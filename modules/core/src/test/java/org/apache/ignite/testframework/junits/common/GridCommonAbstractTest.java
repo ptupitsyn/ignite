@@ -24,6 +24,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicReference;
 import javax.cache.Cache;
@@ -47,6 +48,7 @@ import org.apache.ignite.cache.affinity.Affinity;
 import org.apache.ignite.cache.affinity.AffinityFunction;
 import org.apache.ignite.cluster.ClusterGroup;
 import org.apache.ignite.cluster.ClusterNode;
+import org.apache.ignite.cluster.ClusterTopologyException;
 import org.apache.ignite.compute.ComputeTask;
 import org.apache.ignite.compute.ComputeTaskFuture;
 import org.apache.ignite.configuration.CacheConfiguration;
@@ -74,12 +76,16 @@ import org.apache.ignite.internal.util.typedef.internal.U;
 import org.apache.ignite.lang.IgniteFuture;
 import org.apache.ignite.lang.IgnitePredicate;
 import org.apache.ignite.testframework.junits.GridAbstractTest;
+import org.apache.ignite.transactions.Transaction;
+import org.apache.ignite.transactions.TransactionRollbackException;
 import org.jetbrains.annotations.Nullable;
 
 import static org.apache.ignite.cache.CacheMode.LOCAL;
 import static org.apache.ignite.cache.CacheMode.PARTITIONED;
 import static org.apache.ignite.cache.CacheRebalanceMode.NONE;
 import static org.apache.ignite.internal.processors.cache.GridCacheUtils.isNearEnabled;
+import static org.apache.ignite.transactions.TransactionConcurrency.PESSIMISTIC;
+import static org.apache.ignite.transactions.TransactionIsolation.REPEATABLE_READ;
 
 /**
  * Super class for all common tests.
@@ -278,6 +284,7 @@ public abstract class GridCommonAbstractTest extends GridAbstractTest {
      * @param replaceExistingValues Replace existing values.
      * @throws Exception If failed.
      */
+    @SuppressWarnings("unchecked")
     protected static <K> void loadAll(Cache<K, ?> cache, final Set<K> keys, final boolean replaceExistingValues) throws Exception {
         IgniteCache<K, Object> cacheCp = (IgniteCache<K, Object>)cache;
 
@@ -419,38 +426,26 @@ public abstract class GridCommonAbstractTest extends GridAbstractTest {
                         long start = 0;
 
                         for (int i = 0; ; i++) {
-                            // Must map on updated version of topology.
-                            Collection<ClusterNode> affNodes =
-                                g0.affinity(cfg.getName()).mapPartitionToPrimaryAndBackups(p);
+                            boolean match = false;
 
-                            int exp = affNodes.size();
+                            AffinityTopologyVersion readyVer = dht.context().shared().exchange().readyAffinityVersion();
 
-                            GridDhtTopologyFuture topFut = top.topologyVersionFuture();
+                            if (readyVer.topologyVersion() > 0 && c.context().started()) {
+                                // Must map on updated version of topology.
+                                Collection<ClusterNode> affNodes =
+                                    g0.affinity(cfg.getName()).mapPartitionToPrimaryAndBackups(p);
 
-                            Collection<ClusterNode> owners = (topFut != null && topFut.isDone()) ?
-                                top.nodes(p, AffinityTopologyVersion.NONE) : Collections.<ClusterNode>emptyList();
+                                int exp = affNodes.size();
 
-                            int actual = owners.size();
+                                GridDhtTopologyFuture topFut = top.topologyVersionFuture();
 
-                            if (affNodes.size() != owners.size() || !affNodes.containsAll(owners)) {
-                                LT.warn(log(), null, "Waiting for topology map update [" +
-                                    "grid=" + g.name() +
-                                    ", cache=" + cfg.getName() +
-                                    ", cacheId=" + dht.context().cacheId() +
-                                    ", topVer=" + top.topologyVersion() +
-                                    ", topFut=" + topFut +
-                                    ", p=" + p +
-                                    ", affNodesCnt=" + exp +
-                                    ", ownersCnt=" + actual +
-                                    ", affNodes=" + affNodes +
-                                    ", owners=" + owners +
-                                    ", locNode=" + g.cluster().localNode() + ']');
+                                Collection<ClusterNode> owners = (topFut != null && topFut.isDone()) ?
+                                    top.nodes(p, AffinityTopologyVersion.NONE) : Collections.<ClusterNode>emptyList();
 
-                                if (i == 0)
-                                    start = System.currentTimeMillis();
+                                int actual = owners.size();
 
-                                if (System.currentTimeMillis() - start > 30_000)
-                                    throw new IgniteException("Timeout of waiting for topology map update [" +
+                                if (affNodes.size() != owners.size() || !affNodes.containsAll(owners)) {
+                                    LT.warn(log(), null, "Waiting for topology map update [" +
                                         "grid=" + g.name() +
                                         ", cache=" + cfg.getName() +
                                         ", cacheId=" + dht.context().cacheId() +
@@ -461,6 +456,35 @@ public abstract class GridCommonAbstractTest extends GridAbstractTest {
                                         ", ownersCnt=" + actual +
                                         ", affNodes=" + affNodes +
                                         ", owners=" + owners +
+                                        ", locNode=" + g.cluster().localNode() + ']');
+                                }
+                                else
+                                    match = true;
+                            }
+                            else {
+                                LT.warn(log(), null, "Waiting for topology map update [" +
+                                    "grid=" + g.name() +
+                                    ", cache=" + cfg.getName() +
+                                    ", cacheId=" + dht.context().cacheId() +
+                                    ", topVer=" + top.topologyVersion() +
+                                    ", started=" + dht.context().started() +
+                                    ", p=" + p +
+                                    ", readVer=" + readyVer +
+                                    ", locNode=" + g.cluster().localNode() + ']');
+                            }
+
+                            if (!match) {
+                                if (i == 0)
+                                    start = System.currentTimeMillis();
+
+                                if (System.currentTimeMillis() - start > 30_000)
+                                    throw new IgniteException("Timeout of waiting for topology map update [" +
+                                        "grid=" + g.name() +
+                                        ", cache=" + cfg.getName() +
+                                        ", cacheId=" + dht.context().cacheId() +
+                                        ", topVer=" + top.topologyVersion() +
+                                        ", p=" + p +
+                                        ", readVer=" + readyVer +
                                         ", locNode=" + g.cluster().localNode() + ']');
 
                                 Thread.sleep(200); // Busy wait.
@@ -534,6 +558,7 @@ public abstract class GridCommonAbstractTest extends GridAbstractTest {
      * @param startFrom Start value for keys search.
      * @return Collection of keys for which given cache is primary.
      */
+    @SuppressWarnings("unchecked")
     protected List<Integer> primaryKeys(IgniteCache<?, ?> cache, int cnt, int startFrom) {
         assert cnt > 0 : cnt;
 
@@ -585,6 +610,7 @@ public abstract class GridCommonAbstractTest extends GridAbstractTest {
      * @param startFrom Start value for keys search.
      * @return Collection of keys for which given cache is backup.
      */
+    @SuppressWarnings("unchecked")
     protected List<Integer> backupKeys(IgniteCache<?, ?> cache, int cnt, int startFrom) {
         assert cnt > 0 : cnt;
 
@@ -615,6 +641,7 @@ public abstract class GridCommonAbstractTest extends GridAbstractTest {
      * @return Collection of keys for which given cache is neither primary nor backup.
      * @throws IgniteCheckedException If failed.
      */
+    @SuppressWarnings("unchecked")
     protected List<Integer> nearKeys(IgniteCache<?, ?> cache, int cnt, int startFrom)
         throws IgniteCheckedException {
         assert cnt > 0 : cnt;
@@ -984,6 +1011,41 @@ public abstract class GridCommonAbstractTest extends GridAbstractTest {
                 fail("Collections are not equal (position " + idx + "):\nExpected: " + exp + "\nActual:   " + act);
 
             idx++;
+        }
+    }
+
+    /**
+     * @param ignite Ignite instance.
+     * @param clo Closure.
+     * @return Result of closure execution.
+     * @throws Exception If failed.
+     */
+    protected <T> T doInTransaction(Ignite ignite, Callable<T> clo) throws Exception {
+        while (true) {
+            try (Transaction tx = ignite.transactions().txStart(PESSIMISTIC, REPEATABLE_READ)) {
+                T res = clo.call();
+
+                tx.commit();
+
+                return res;
+            }
+            catch (CacheException e) {
+                if (e.getCause() instanceof ClusterTopologyException) {
+                    ClusterTopologyException topEx = (ClusterTopologyException)e.getCause();
+
+                    topEx.retryReadyFuture().get();
+                }
+                else
+                    throw e;
+            }
+            catch (ClusterTopologyException e) {
+                IgniteFuture<?> fut = e.retryReadyFuture();
+
+                fut.get();
+            }
+            catch (TransactionRollbackException ignore) {
+                // Safe to retry right away.
+            }
         }
     }
 }

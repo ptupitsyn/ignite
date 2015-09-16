@@ -28,6 +28,7 @@ import java.io.ObjectStreamException;
 import java.io.Serializable;
 import java.lang.management.ManagementFactory;
 import java.lang.management.RuntimeMXBean;
+import java.lang.ref.WeakReference;
 import java.lang.reflect.Constructor;
 import java.text.DateFormat;
 import java.text.DecimalFormat;
@@ -63,7 +64,7 @@ import org.apache.ignite.IgniteException;
 import org.apache.ignite.IgniteFileSystem;
 import org.apache.ignite.IgniteLogger;
 import org.apache.ignite.IgniteMessaging;
-import org.apache.ignite.IgnitePortables;
+import org.apache.ignite.internal.portable.api.IgnitePortables;
 import org.apache.ignite.IgniteQueue;
 import org.apache.ignite.IgniteScheduler;
 import org.apache.ignite.IgniteServices;
@@ -156,7 +157,7 @@ import org.apache.ignite.lifecycle.LifecycleBean;
 import org.apache.ignite.lifecycle.LifecycleEventType;
 import org.apache.ignite.marshaller.MarshallerExclusions;
 import org.apache.ignite.marshaller.optimized.OptimizedMarshaller;
-import org.apache.ignite.marshaller.portable.PortableMarshaller;
+import org.apache.ignite.internal.portable.api.PortableMarshaller;
 import org.apache.ignite.mxbean.ClusterLocalNodeMetricsMXBean;
 import org.apache.ignite.mxbean.IgniteMXBean;
 import org.apache.ignite.mxbean.ThreadPoolMXBean;
@@ -202,7 +203,6 @@ import static org.apache.ignite.internal.IgniteNodeAttributes.ATTR_MARSHALLER;
 import static org.apache.ignite.internal.IgniteNodeAttributes.ATTR_NODE_CONSISTENT_ID;
 import static org.apache.ignite.internal.IgniteNodeAttributes.ATTR_PEER_CLASSLOADING;
 import static org.apache.ignite.internal.IgniteNodeAttributes.ATTR_PHY_RAM;
-import static org.apache.ignite.internal.IgniteNodeAttributes.ATTR_PORTABLE_PROTO_VER;
 import static org.apache.ignite.internal.IgniteNodeAttributes.ATTR_PREFIX;
 import static org.apache.ignite.internal.IgniteNodeAttributes.ATTR_RESTART_ENABLED;
 import static org.apache.ignite.internal.IgniteNodeAttributes.ATTR_REST_PORT_RANGE;
@@ -715,8 +715,8 @@ public class IgniteKernal implements IgniteEx, IgniteMXBean, Externalizable {
 
         this.cfg = cfg;
 
-        log = (GridLoggerProxy)cfg.getGridLogger().getLogger(getClass().getName() +
-            (gridName != null ? '%' + gridName : ""));
+        log = (GridLoggerProxy)cfg.getGridLogger().getLogger(
+            getClass().getName() + (gridName != null ? '%' + gridName : ""));
 
         RuntimeMXBean rtBean = ManagementFactory.getRuntimeMXBean();
 
@@ -820,34 +820,8 @@ public class IgniteKernal implements IgniteEx, IgniteMXBean, Externalizable {
                     updateNtfTimer = new Timer("ignite-update-notifier-timer", true);
 
                     // Setup periodic version check.
-                    updateNtfTimer.scheduleAtFixedRate(new GridTimerTask() {
-                        private boolean first = true;
-
-                        @Override public void safeRun() throws InterruptedException {
-                            if (!first)
-                                verChecker.topologySize(cluster().nodes().size());
-
-                            verChecker.checkForNewVersion(execSvc, log);
-
-                            // Just wait for 10 secs.
-                            Thread.sleep(PERIODIC_VER_CHECK_CONN_TIMEOUT);
-
-                            // Just wait another 60 secs in order to get
-                            // version info even on slow connection.
-                            for (int i = 0; i < 60 && verChecker.latestVersion() == null; i++)
-                                Thread.sleep(1000);
-
-                            // Report status if one is available.
-                            // No-op if status is NOT available.
-                            verChecker.reportStatus(log);
-
-                            if (first) {
-                                first = false;
-
-                                verChecker.reportOnlyNew(true);
-                            }
-                        }
-                    }, 0, PERIODIC_VER_CHECK_DELAY);
+                    updateNtfTimer.scheduleAtFixedRate(new UpdateNotifierTimerTask(this, execSvc, verChecker),
+                        0, PERIODIC_VER_CHECK_DELAY);
                 }
                 catch (IgniteCheckedException e) {
                     if (log.isDebugEnabled())
@@ -901,8 +875,8 @@ public class IgniteKernal implements IgniteEx, IgniteMXBean, Externalizable {
             startProcessor(new GridAffinityProcessor(ctx));
             startProcessor(createComponent(GridSegmentationProcessor.class, ctx));
             startProcessor(createComponent(IgniteCacheObjectProcessor.class, ctx));
-            startProcessor(new GridQueryProcessor(ctx));
             startProcessor(new GridCacheProcessor(ctx));
+            startProcessor(new GridQueryProcessor(ctx));
             startProcessor(new GridTaskSessionProcessor(ctx));
             startProcessor(new GridJobProcessor(ctx));
             startProcessor(new GridTaskProcessor(ctx));
@@ -1295,9 +1269,6 @@ public class IgniteKernal implements IgniteEx, IgniteMXBean, Externalizable {
         add(ATTR_MARSHALLER, cfg.getMarshaller().getClass().getName());
         add(ATTR_USER_NAME, System.getProperty("user.name"));
         add(ATTR_GRID_NAME, gridName);
-        add(ATTR_PORTABLE_PROTO_VER, cfg.getMarshaller() instanceof PortableMarshaller ?
-            ((PortableMarshaller)cfg.getMarshaller()).getProtocolVersion().toString() :
-            PortableMarshaller.DFLT_PORTABLE_PROTO_VER.toString());
 
         add(ATTR_PEER_CLASSLOADING, cfg.isPeerClassLoadingEnabled());
         add(ATTR_DEPLOYMENT_MODE, cfg.getDeploymentMode());
@@ -1864,6 +1835,9 @@ public class IgniteKernal implements IgniteEx, IgniteMXBean, Externalizable {
             if (updateNtfTimer != null)
                 updateNtfTimer.cancel();
 
+            if (verChecker != null)
+                verChecker.stop();
+
             if (starveTask != null)
                 starveTask.close();
 
@@ -2273,7 +2247,7 @@ public class IgniteKernal implements IgniteEx, IgniteMXBean, Externalizable {
 
     /** {@inheritDoc} */
     @Override public IgniteLogger log() {
-        return log;
+        return cfg.getGridLogger();
     }
 
     /** {@inheritDoc} */
@@ -3101,13 +3075,21 @@ public class IgniteKernal implements IgniteEx, IgniteMXBean, Externalizable {
         if (cls.equals(DiscoveryNodeValidationProcessor.class))
             return (T)new OsDiscoveryNodeValidationProcessor(ctx);
 
-        if (cls.equals(PlatformProcessor.class))
-            return (T)new PlatformNoopProcessor(ctx);
-
         Class<T> implCls = null;
 
         try {
-            implCls = (Class<T>)Class.forName(componentClassName(cls));
+            String clsName;
+
+            // Handle special case for PlatformProcessor
+            if (cls.equals(PlatformProcessor.class)) {
+                clsName = PlatformNoopProcessor.class.getName();
+//                clsName = ctx.config().getPlatformConfiguration() == null ?
+//                    PlatformNoopProcessor.class.getName() : cls.getName() + "Impl";
+            }
+            else
+                clsName = componentClassName(cls);
+
+            implCls = (Class<T>)Class.forName(clsName);
         }
         catch (ClassNotFoundException ignore) {
             // No-op.
@@ -3193,5 +3175,71 @@ public class IgniteKernal implements IgniteEx, IgniteMXBean, Externalizable {
     /** {@inheritDoc} */
     @Override public String toString() {
         return S.toString(IgniteKernal.class, this);
+    }
+
+    /**
+     * Update notifier timer task.
+     */
+    private static class UpdateNotifierTimerTask extends GridTimerTask {
+        /** Reference to kernal. */
+        private final WeakReference<IgniteKernal> kernalRef;
+
+        /** Logger. */
+        private final IgniteLogger log;
+
+        /** Executor service. */
+        private final ExecutorService execSvc;
+
+        /** Version checker. */
+        private final GridUpdateNotifier verChecker;
+
+        /** Whether this is the first run. */
+        private boolean first = true;
+
+        /**
+         * Constructor.
+         *
+         * @param kernal Kernal.
+         * @param execSvc Executor service.
+         * @param verChecker Version checker.
+         */
+        private UpdateNotifierTimerTask(IgniteKernal kernal, ExecutorService execSvc, GridUpdateNotifier verChecker) {
+            kernalRef = new WeakReference<>(kernal);
+
+            log = kernal.log.getLogger(UpdateNotifierTimerTask.class);
+
+            this.execSvc = execSvc;
+            this.verChecker = verChecker;
+        }
+
+        /** {@inheritDoc} */
+        @Override public void safeRun() throws InterruptedException {
+            if (!first) {
+                IgniteKernal kernal = kernalRef.get();
+
+                if (kernal != null)
+                    verChecker.topologySize(kernal.cluster().nodes().size());
+            }
+
+            verChecker.checkForNewVersion(log);
+
+            // Just wait for 10 secs.
+            Thread.sleep(PERIODIC_VER_CHECK_CONN_TIMEOUT);
+
+            // Just wait another 60 secs in order to get
+            // version info even on slow connection.
+            for (int i = 0; i < 60 && verChecker.latestVersion() == null; i++)
+                Thread.sleep(1000);
+
+            // Report status if one is available.
+            // No-op if status is NOT available.
+            verChecker.reportStatus(log);
+
+            if (first) {
+                first = false;
+
+                verChecker.reportOnlyNew(true);
+            }
+        }
     }
 }

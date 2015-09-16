@@ -318,7 +318,7 @@ public abstract class GridCacheAdapter<K, V> implements IgniteInternalCache<K, V
 
         this.map = map;
 
-        log = ctx.gridConfig().getGridLogger().getLogger(getClass());
+        log = ctx.logger(getClass());
 
         metrics = new CacheMetricsImpl(ctx);
 
@@ -4096,21 +4096,22 @@ public abstract class GridCacheAdapter<K, V> implements IgniteInternalCache<K, V
 
                     return t;
                 }
-                catch (IgniteInterruptedCheckedException | IgniteTxHeuristicCheckedException |
-                    IgniteTxRollbackCheckedException e) {
+                catch (IgniteInterruptedCheckedException | IgniteTxHeuristicCheckedException e) {
                     throw e;
                 }
                 catch (IgniteCheckedException e) {
-                    try {
-                        tx.rollback();
+                    if (!(e instanceof IgniteTxRollbackCheckedException)) {
+                        try {
+                            tx.rollback();
 
-                        e = new IgniteTxRollbackCheckedException("Transaction has been rolled back: " +
-                            tx.xid(), e);
-                    }
-                    catch (IgniteCheckedException | AssertionError | RuntimeException e1) {
-                        U.error(log, "Failed to rollback transaction (cache may contain stale locks): " + tx, e1);
+                            e = new IgniteTxRollbackCheckedException("Transaction has been rolled back: " +
+                                tx.xid(), e);
+                        }
+                        catch (IgniteCheckedException | AssertionError | RuntimeException e1) {
+                            U.error(log, "Failed to rollback transaction (cache may contain stale locks): " + tx, e1);
 
-                        U.addLastCause(e, e1, log);
+                            U.addLastCause(e, e1, log);
+                        }
                     }
 
                     if (X.hasCause(e, ClusterTopologyCheckedException.class) && i != retries - 1) {
@@ -4230,10 +4231,16 @@ public abstract class GridCacheAdapter<K, V> implements IgniteInternalCache<K, V
                                     try {
                                         return tFut.get();
                                     }
+                                    catch (IgniteTxRollbackCheckedException e) {
+                                        throw e;
+                                    }
                                     catch (IgniteCheckedException e1) {
                                         tx0.rollbackAsync();
 
                                         throw e1;
+                                    }
+                                    finally {
+                                        ctx.shared().txContextReset();
                                     }
                                 }
                             });
@@ -4245,15 +4252,21 @@ public abstract class GridCacheAdapter<K, V> implements IgniteInternalCache<K, V
                 return f;
             }
 
-            IgniteInternalFuture<T> f = op.op(tx).chain(new CX1<IgniteInternalFuture<T>, T>() {
+            final IgniteInternalFuture<T> f = op.op(tx).chain(new CX1<IgniteInternalFuture<T>, T>() {
                 @Override public T applyx(IgniteInternalFuture<T> tFut) throws IgniteCheckedException {
                     try {
                         return tFut.get();
+                    }
+                    catch (IgniteTxRollbackCheckedException e) {
+                        throw e;
                     }
                     catch (IgniteCheckedException e1) {
                         tx0.rollbackAsync();
 
                         throw e1;
+                    }
+                    finally {
+                        ctx.shared().txContextReset();
                     }
                 }
             });
@@ -4880,6 +4893,9 @@ public abstract class GridCacheAdapter<K, V> implements IgniteInternalCache<K, V
                                         }
                                         catch (IgniteCheckedException e) {
                                             onDone(e);
+                                        }
+                                        finally {
+                                            ctx.shared().txContextReset();
                                         }
                                     }
                                 });

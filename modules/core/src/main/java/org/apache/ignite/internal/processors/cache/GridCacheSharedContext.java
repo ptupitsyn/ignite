@@ -520,7 +520,7 @@ public class GridCacheSharedContext<K, V> {
      * @return Logger.
      */
     public IgniteLogger logger(String category) {
-        return kernalCtx.log().getLogger(category);
+        return kernalCtx.log(category);
     }
 
     /**
@@ -677,5 +677,12 @@ public class GridCacheSharedContext<K, V> {
             mgrs.add(mgr);
 
         return mgr;
+    }
+
+    /**
+     * Reset thread-local context for transactional cache.
+     */
+    public void txContextReset() {
+        mvccMgr.contextReset();
     }
 }

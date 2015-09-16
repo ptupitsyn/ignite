@@ -21,6 +21,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -34,6 +35,7 @@ import org.apache.ignite.internal.IgniteInternalFuture;
 import org.apache.ignite.internal.IgniteInterruptedCheckedException;
 import org.apache.ignite.internal.processors.affinity.AffinityTopologyVersion;
 import org.apache.ignite.internal.processors.cache.GridCacheContext;
+import org.apache.ignite.internal.processors.cache.GridCacheEntryRemovedException;
 import org.apache.ignite.internal.processors.cache.GridCacheSwapEntry;
 import org.apache.ignite.internal.processors.cache.KeyCacheObject;
 import org.apache.ignite.internal.processors.cache.distributed.dht.preloader.GridDhtPreloader;
@@ -260,8 +262,11 @@ public class GridDhtLocalPartition implements Comparable<GridDhtLocalPartition>,
 
         map.put(entry.key(), entry);
 
-        if (!entry.isInternal())
+        if (!entry.isInternal()) {
+            assert !entry.deleted() : entry;
+
             mapPubSize.increment();
+        }
     }
 
     /**
@@ -269,7 +274,7 @@ public class GridDhtLocalPartition implements Comparable<GridDhtLocalPartition>,
      */
     @SuppressWarnings("SynchronizationOnLocalVariableOrMethodParameter")
     void onRemoved(GridDhtCacheEntry entry) {
-        assert entry.obsolete();
+        assert entry.obsolete() : entry;
 
         // Make sure to remove exactly this entry.
         synchronized (entry) {
@@ -628,21 +633,40 @@ public class GridDhtLocalPartition implements Comparable<GridDhtLocalPartition>,
 
         try {
             while (it.hasNext()) {
-                GridDhtCacheEntry cached = it.next();
+                GridDhtCacheEntry cached = null;
 
                 try {
+                    cached = it.next();
+
                     if (cached.clearInternal(clearVer, swap)) {
                         map.remove(cached.key(), cached);
 
                         if (!cached.isInternal()) {
                             mapPubSize.decrement();
 
-                            if (rec)
-                                cctx.events().addEvent(cached.partition(), cached.key(), cctx.localNodeId(),
-                                    (IgniteUuid)null, null, EVT_CACHE_REBALANCE_OBJECT_UNLOADED, null, false,
-                                    cached.rawGet(), cached.hasValue(), null, null, null);
+                            if (rec) {
+                                cctx.events().addEvent(cached.partition(),
+                                    cached.key(),
+                                    cctx.localNodeId(),
+                                    (IgniteUuid)null,
+                                    null,
+                                    EVT_CACHE_REBALANCE_OBJECT_UNLOADED,
+                                    null,
+                                    false,
+                                    cached.rawGet(),
+                                    cached.hasValue(),
+                                    null,
+                                    null,
+                                    null);
+                            }
                         }
                     }
+                }
+                catch (GridDhtInvalidPartitionException e) {
+                    assert map.isEmpty() && state() == EVICTED: "Invalid error [e=" + e + ", part=" + this + ']';
+                    assert swapEmpty() : "Invalid error when swap is not cleared [e=" + e + ", part=" + this + ']';
+
+                    break; // Partition is already concurrently cleared and evicted.
                 }
                 catch (IgniteCheckedException e) {
                     U.error(log, "Failed to clear cache entry for evicted partition: " + cached, e);
@@ -651,6 +675,28 @@ public class GridDhtLocalPartition implements Comparable<GridDhtLocalPartition>,
         }
         finally {
             U.close(swapIt, log);
+        }
+    }
+
+    /**
+     * @return {@code True} if there are no swap entries for this partition.
+     */
+    private boolean swapEmpty() {
+        GridCloseableIterator<?> it0 = null;
+
+        try {
+            it0 = cctx.swap().iterator(id);
+
+            return it0 == null || !it0.hasNext();
+        }
+        catch (IgniteCheckedException e) {
+            U.error(log, "Failed to get partition swap iterator: " + this, e);
+
+            return true;
+        }
+        finally {
+            if (it0 != null)
+                U.closeQuiet(it0);
         }
     }
 
@@ -676,17 +722,23 @@ public class GridDhtLocalPartition implements Comparable<GridDhtLocalPartition>,
 
                 byte[] keyBytes = entry.getKey();
 
-                try {
-                    KeyCacheObject key = cctx.toCacheKeyObject(keyBytes);
+                while (true) {
+                    try {
+                        KeyCacheObject key = cctx.toCacheKeyObject(keyBytes);
 
-                    lastEntry = (GridDhtCacheEntry)cctx.cache().entryEx(key, false);
+                        lastEntry = (GridDhtCacheEntry)cctx.cache().entryEx(key, false);
 
-                    lastEntry.unswap(true);
+                        lastEntry.unswap(true);
 
-                    return lastEntry;
-                }
-                catch (IgniteCheckedException e) {
-                    throw new CacheException(e);
+                        return lastEntry;
+                    }
+                    catch (GridCacheEntryRemovedException e) {
+                        if (log.isDebugEnabled())
+                            log.debug("Got removed entry: " + lastEntry);
+                    }
+                    catch (IgniteCheckedException e) {
+                        throw new CacheException(e);
+                    }
                 }
             }
 

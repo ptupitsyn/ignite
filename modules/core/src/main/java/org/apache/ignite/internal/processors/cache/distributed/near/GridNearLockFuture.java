@@ -45,6 +45,7 @@ import org.apache.ignite.internal.processors.cache.distributed.GridDistributedCa
 import org.apache.ignite.internal.processors.cache.distributed.dht.GridDhtCacheEntry;
 import org.apache.ignite.internal.processors.cache.distributed.dht.GridDhtTopologyFuture;
 import org.apache.ignite.internal.processors.cache.distributed.dht.GridDhtTransactionalCacheAdapter;
+import org.apache.ignite.internal.processors.cache.transactions.IgniteInternalTx;
 import org.apache.ignite.internal.processors.cache.transactions.IgniteTxEntry;
 import org.apache.ignite.internal.processors.cache.transactions.IgniteTxKey;
 import org.apache.ignite.internal.processors.cache.version.GridCacheVersion;
@@ -685,6 +686,14 @@ public final class GridNearLockFuture extends GridCompoundIdentityFuture<Boolean
         // Obtain the topology version to use.
         AffinityTopologyVersion topVer = cctx.mvcc().lastExplicitLockTopologyVersion(Thread.currentThread().getId());
 
+        // If there is another system transaction in progress, use it's topology version to prevent deadlock.
+        if (topVer == null && tx != null && tx.system()) {
+            IgniteInternalTx tx0 = cctx.tm().anyActiveThreadTx(tx);
+
+            if (tx0 != null)
+                topVer = tx0.topologyVersionSnapshot();
+        }
+
         if (topVer != null && tx != null)
             tx.topologyVersion(topVer);
 
@@ -769,7 +778,12 @@ public final class GridNearLockFuture extends GridCompoundIdentityFuture<Boolean
             else {
                 fut.listen(new CI1<IgniteInternalFuture<AffinityTopologyVersion>>() {
                     @Override public void apply(IgniteInternalFuture<AffinityTopologyVersion> t) {
-                        mapOnTopology(remap);
+                        try {
+                            mapOnTopology(remap);
+                        }
+                        finally {
+                            cctx.shared().txContextReset();
+                        }
                     }
                 });
             }
@@ -1420,7 +1434,12 @@ public final class GridNearLockFuture extends GridCompoundIdentityFuture<Boolean
                     if (affFut != null && !affFut.isDone()) {
                         affFut.listen(new CI1<IgniteInternalFuture<?>>() {
                             @Override public void apply(IgniteInternalFuture<?> fut) {
-                                remap();
+                                try {
+                                    remap();
+                                }
+                                finally {
+                                    cctx.shared().txContextReset();
+                                }
                             }
                         });
                     }
