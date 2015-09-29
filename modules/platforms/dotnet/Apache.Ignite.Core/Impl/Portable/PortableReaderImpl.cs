@@ -893,11 +893,12 @@ namespace Apache.Ignite.Core.Impl.Portable
                 if (fieldId == id)
                 {
                     // Field is found, return.
-                    Stream.Seek(4, SeekOrigin.Current);
+                    Stream.Seek(4, SeekOrigin.Current);  // skip field length
 
                     return true;
                 }
-                
+
+                // Seek to the length of the field
                 Stream.Seek(Stream.ReadInt(), SeekOrigin.Current);
 
                 cur = Stream.Position;
@@ -918,8 +919,9 @@ namespace Apache.Ignite.Core.Impl.Portable
 
                     return true;
                 }
-                
-                Stream.Seek(Stream.ReadInt(), SeekOrigin.Current);
+
+                // Seek to the length of the field
+                Stream.Seek(Stream.ReadInt(), SeekOrigin.Current);  // skip field length
 
                 cur = Stream.Position;
             }
