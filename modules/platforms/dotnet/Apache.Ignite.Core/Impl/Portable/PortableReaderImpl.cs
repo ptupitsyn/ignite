@@ -874,6 +874,9 @@ namespace Apache.Ignite.Core.Impl.Portable
 
         private int GetCurrentFieldLength(byte fieldType)
         {
+            if (fieldType == PortableUtils.HdrNull)
+                return 0;
+
             // TODO: Get from system handler
             if (fieldType == PortableUtils.TypeByte || fieldType == PortableUtils.TypeBool)
                 return 1;
