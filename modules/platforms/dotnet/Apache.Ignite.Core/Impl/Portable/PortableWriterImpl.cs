@@ -84,7 +84,6 @@ namespace Apache.Ignite.Core.Impl.Portable
             WriteFieldId(fieldName, PU.TypeBool);
 
             _stream.WriteByte(PU.TypeBool);
-            _stream.WriteInt(PU.LengthTypeId + 1);
             _stream.WriteBool(val);
         }
         
@@ -111,7 +110,6 @@ namespace Apache.Ignite.Core.Impl.Portable
             else
             {
                 _stream.WriteByte(PU.TypeArrayBool);
-                _stream.WriteInt(PU.LengthTypeId + PU.LengthArraySize + val.Length);
                 PU.WriteBooleanArray(val, _stream);
             }
         }
@@ -141,7 +139,6 @@ namespace Apache.Ignite.Core.Impl.Portable
             WriteFieldId(fieldName, PU.TypeBool);
 
             _stream.WriteByte(PU.TypeByte);
-            _stream.WriteInt(PU.LengthTypeId + 1);
             _stream.WriteByte(val);
         }
 
@@ -168,7 +165,6 @@ namespace Apache.Ignite.Core.Impl.Portable
             else
             {
                 _stream.WriteByte(PU.TypeArrayByte);
-                _stream.WriteInt(PU.LengthTypeId + PU.LengthArraySize + val.Length);
                 PU.WriteByteArray(val, _stream);
             }
         }
@@ -198,7 +194,6 @@ namespace Apache.Ignite.Core.Impl.Portable
             WriteFieldId(fieldName, PU.TypeShort);
 
             _stream.WriteByte(PU.TypeShort);
-            _stream.WriteInt(PU.LengthTypeId + 2);
             _stream.WriteShort(val);
         }
 
@@ -225,7 +220,6 @@ namespace Apache.Ignite.Core.Impl.Portable
             else
             {
                 _stream.WriteByte(PU.TypeArrayShort);
-                _stream.WriteInt(PU.LengthTypeId + PU.LengthArraySize + (val.Length << 1));
                 PU.WriteShortArray(val, _stream);
             }
         }
@@ -255,7 +249,6 @@ namespace Apache.Ignite.Core.Impl.Portable
             WriteFieldId(fieldName, PU.TypeChar);
 
             _stream.WriteByte(PU.TypeChar);
-            _stream.WriteInt(PU.LengthTypeId + 2);
             _stream.WriteChar(val);
         }
 
@@ -282,7 +275,6 @@ namespace Apache.Ignite.Core.Impl.Portable
             else
             {
                 _stream.WriteByte(PU.TypeArrayChar);
-                _stream.WriteInt(PU.LengthTypeId + PU.LengthArraySize + (val.Length << 1));
                 PU.WriteCharArray(val, _stream);
             }
         }
@@ -312,7 +304,6 @@ namespace Apache.Ignite.Core.Impl.Portable
             WriteFieldId(fieldName, PU.TypeInt);
 
             _stream.WriteByte(PU.TypeInt);
-            _stream.WriteInt(PU.LengthTypeId + 4);
             _stream.WriteInt(val);
         }
 
@@ -339,7 +330,6 @@ namespace Apache.Ignite.Core.Impl.Portable
             else
             {
                 _stream.WriteByte(PU.TypeArrayInt);
-                _stream.WriteInt(PU.LengthTypeId + PU.LengthArraySize + (val.Length << 2));
                 PU.WriteIntArray(val, _stream);
             }
         }
@@ -369,7 +359,6 @@ namespace Apache.Ignite.Core.Impl.Portable
             WriteFieldId(fieldName, PU.TypeLong);
 
             _stream.WriteByte(PU.TypeLong);
-            _stream.WriteInt(PU.LengthTypeId + 8);
             _stream.WriteLong(val);
         }
 
@@ -396,7 +385,6 @@ namespace Apache.Ignite.Core.Impl.Portable
             else
             {
                 _stream.WriteByte(PU.TypeArrayLong);
-                _stream.WriteInt(PU.LengthTypeId + PU.LengthArraySize + (val.Length << 3));
                 PU.WriteLongArray(val, _stream);
             }
         }
@@ -426,7 +414,6 @@ namespace Apache.Ignite.Core.Impl.Portable
             WriteFieldId(fieldName, PU.TypeFloat);
 
             _stream.WriteByte(PU.TypeFloat);
-            _stream.WriteInt(PU.LengthTypeId + 4);
             _stream.WriteFloat(val);
         }
 
@@ -453,7 +440,6 @@ namespace Apache.Ignite.Core.Impl.Portable
             else
             {
                 _stream.WriteByte(PU.TypeArrayFloat);
-                _stream.WriteInt(PU.LengthTypeId + PU.LengthArraySize + (val.Length << 2));
                 PU.WriteFloatArray(val, _stream);
             }
         }
@@ -483,7 +469,6 @@ namespace Apache.Ignite.Core.Impl.Portable
             WriteFieldId(fieldName, PU.TypeDouble);
 
             _stream.WriteByte(PU.TypeDouble);
-            _stream.WriteInt(PU.LengthTypeId + 8);
             _stream.WriteDouble(val);
         }
 
@@ -510,7 +495,6 @@ namespace Apache.Ignite.Core.Impl.Portable
             else
             {
                 _stream.WriteByte(PU.TypeArrayDouble);
-                _stream.WriteInt(PU.LengthTypeId + PU.LengthArraySize + (val.Length << 3));
                 PU.WriteDoubleArray(val, _stream);
             }
         }
@@ -539,12 +523,8 @@ namespace Apache.Ignite.Core.Impl.Portable
         {
             WriteFieldId(fieldName, PU.TypeDecimal);
 
-            int pos = SkipFieldLength();
-
             _stream.WriteByte(PU.TypeDecimal);
             PortableUtils.WriteDecimal(val, _stream);
-
-            WriteFieldLength(_stream, pos);
         }
 
         /// <summary>
@@ -572,11 +552,7 @@ namespace Apache.Ignite.Core.Impl.Portable
             {
                 _stream.WriteByte(PU.TypeArrayDecimal);
 
-                int pos = SkipFieldLength();
-
                 PU.WriteDecimalArray(val, _stream);
-
-                WriteFieldLength(_stream, pos);
             }
         }
         
@@ -603,8 +579,6 @@ namespace Apache.Ignite.Core.Impl.Portable
 //        public void WriteDate(string fieldName, DateTime val)
 //        {
 //            WriteFieldId(fieldName, PU.TypeDate);
-//
-//            _stream.WriteInt(PU.LengthTypeId + 12);
 //
 //            _stream.WriteByte(PortableUtils.TypeDate);
 //            PortableUtils.WriteDate(val, _stream);
@@ -633,12 +607,8 @@ namespace Apache.Ignite.Core.Impl.Portable
 //                WriteNullField();
 //            else
 //            {
-//                int pos = SkipFieldLength();
-//
 //                _stream.WriteByte(PortableUtils.TypeArrayDate);
 //                PortableUtils.WriteDateArray(val, _stream);
-//
-//                WriteFieldLength(_stream, pos);
 //            }
 //        }
 //
@@ -666,8 +636,6 @@ namespace Apache.Ignite.Core.Impl.Portable
             else
             {
                 _stream.WriteByte(PU.TypeDate);
-                _stream.WriteInt(PU.LengthTypeId + 12);
-
                 PortableUtils.WriteDate(val.Value, _stream);
             }
         }
@@ -701,11 +669,7 @@ namespace Apache.Ignite.Core.Impl.Portable
             else
             {
                 _stream.WriteByte(PU.TypeArrayDate);
-                int pos = SkipFieldLength();
-
                 PortableUtils.WriteDateArray(val, _stream);
-
-                WriteFieldLength(_stream, pos);
             }
         }
 
@@ -738,11 +702,7 @@ namespace Apache.Ignite.Core.Impl.Portable
             else
             {
                 _stream.WriteByte(PU.TypeString);
-                int pos = SkipFieldLength();
-
                 PU.WriteString(val, _stream);
-
-                WriteFieldLength(_stream, pos);
             }
         }
 
@@ -775,11 +735,7 @@ namespace Apache.Ignite.Core.Impl.Portable
             else
             {
                 _stream.WriteByte(PU.TypeArrayString);
-                int pos = SkipFieldLength();
-
                 PU.WriteStringArray(val, _stream);
-
-                WriteFieldLength(_stream, pos);
             }
         }
 
@@ -806,8 +762,6 @@ namespace Apache.Ignite.Core.Impl.Portable
 //        public void WriteGuid(string fieldName, Guid val)
 //        {
 //            WriteFieldId(fieldName, PU.TypeGuid);
-//
-//            _stream.WriteInt(PU.LengthTypeId + 16);
 //
 //            _stream.WriteByte(PU.TypeGuid);
 //            PU.WriteGuid(val, _stream);
@@ -836,12 +790,8 @@ namespace Apache.Ignite.Core.Impl.Portable
 //                WriteNullField();
 //            else
 //            {
-//                int pos = SkipFieldLength();
-//
 //                _stream.WriteByte(PU.TypeArrayGuid);
 //                PU.WriteGuidArray(val, _stream);
-//
-//                WriteFieldLength(_stream, pos);
 //            }
 //        }
 //
@@ -874,8 +824,6 @@ namespace Apache.Ignite.Core.Impl.Portable
             else
             {
                 _stream.WriteByte(PU.TypeGuid);
-                _stream.WriteInt(PU.LengthTypeId + 16);
-
                 PU.WriteGuid(val.Value, _stream);
             }
         }
@@ -909,11 +857,7 @@ namespace Apache.Ignite.Core.Impl.Portable
             else
             {
                 _stream.WriteByte(PU.TypeArrayGuid);
-                int pos = SkipFieldLength();
-
                 PU.WriteGuidArray(val, _stream);
-
-                WriteFieldLength(_stream, pos);
             }
         }
 
@@ -943,8 +887,6 @@ namespace Apache.Ignite.Core.Impl.Portable
             WriteFieldId(fieldName, PU.TypeEnum);
 
             _stream.WriteByte(PU.TypeEnum);
-            _stream.WriteInt(PU.LengthTypeId + 16);
-
             PortableUtils.WriteEnum(_stream, (Enum)(object)val);
         }
 
@@ -974,11 +916,7 @@ namespace Apache.Ignite.Core.Impl.Portable
             else
             {
                 _stream.WriteByte(PU.TypeArrayEnum);
-                int pos = SkipFieldLength();
-
                 PortableUtils.WriteArray(val, this, true);
-
-                WriteFieldLength(_stream, pos);
             }
         }
 

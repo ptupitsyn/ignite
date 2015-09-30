@@ -592,6 +592,8 @@ namespace Apache.Ignite.Core.Impl.Portable
             int pos = Stream.Position;
 
             byte hdr = Stream.ReadByte();
+            
+            SkipCurrentFieldLength(hdr);
 
             var doDetach = _detach;  // save detach flag into a var and reset so it does not go deeper
 
@@ -870,11 +872,46 @@ namespace Apache.Ignite.Core.Impl.Portable
             }
         }
 
+        private void SkipCurrentFieldLength(byte fieldType)
+        {
+            // Primitives do not have length in the header
+            if (fieldType >= PortableUtils.TypeArray)
+                Stream.Seek(4, SeekOrigin.Current); // skip field length
+        }
+
+        private int GetCurrentFieldLength(byte fieldType)
+        {
+            // TODO: Get from system handler
+            if (fieldType == PortableUtils.TypeByte || fieldType == PortableUtils.TypeBool)
+                return 1;
+
+            if (fieldType == PortableUtils.TypeShort || fieldType == PortableUtils.TypeChar)
+                return 2;
+
+            if (fieldType == PortableUtils.TypeInt || fieldType == PortableUtils.TypeEnum || fieldType == PortableUtils.TypeFloat)
+                return 4;
+
+            if (fieldType == PortableUtils.TypeLong || fieldType == PortableUtils.TypeDouble)
+                return 8;
+
+            if (fieldType == PortableUtils.TypeDate)
+                return 12;
+
+            if (fieldType == PortableUtils.TypeGuid || fieldType == PortableUtils.TypeDecimal)
+                return 16;
+
+            // TODO: Primitive arrays
+
+            return Stream.ReadInt();
+        }
+
         /// <summary>
         /// Seek field with the given ID in the current object.
         /// </summary>
         /// <param name="fieldId">Field ID.</param>
-        /// <returns>True in case the field was found and position adjusted, false otherwise.</returns>
+        /// <returns>
+        /// True in case the field was found and position adjusted, false otherwise.
+        /// </returns>
         private bool SeekField(int fieldId)
         {
             // This method is expected to be called when stream pointer is set either before
@@ -886,44 +923,28 @@ namespace Apache.Ignite.Core.Impl.Portable
 
             int cur = initial;
 
-            while (cur < end)
+            // Start with current stream position, then try from the beginning of the stream
+            for (var targetPos = end; targetPos != initial; targetPos = initial)
             {
-                int id = Stream.ReadInt();
-
-                if (fieldId == id)
+                while (cur < targetPos)
                 {
-                    // Field is found, return.
-                    Stream.Seek(4, SeekOrigin.Current);  // skip field length
+                    int id = Stream.ReadInt();
 
-                    return true;
+                    if (fieldId == id)
+                    {
+                        return true;
+                    }
+
+                    // Seek to the length of the field
+                    var fieldType = Stream.ReadByte();
+                    Stream.Seek(GetCurrentFieldLength(fieldType), SeekOrigin.Current);
+
+                    cur = Stream.Position;
                 }
 
-                // Seek to the length of the field
-                Stream.Seek(Stream.ReadInt(), SeekOrigin.Current);
+                Stream.Seek(start, SeekOrigin.Begin);
 
-                cur = Stream.Position;
-            }
-
-            Stream.Seek(start, SeekOrigin.Begin);
-
-            cur = start;
-
-            while (cur < initial)
-            {
-                int id = Stream.ReadInt();
-
-                if (fieldId == id)
-                {
-                    // Field is found, return.
-                    Stream.Seek(4, SeekOrigin.Current);
-
-                    return true;
-                }
-
-                // Seek to the length of the field
-                Stream.Seek(Stream.ReadInt(), SeekOrigin.Current);  // skip field length
-
-                cur = Stream.Position;
+                cur = start;
             }
 
             return false;
