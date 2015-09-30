@@ -593,7 +593,7 @@ namespace Apache.Ignite.Core.Impl.Portable
 
             byte hdr = Stream.ReadByte();
             
-            SkipCurrentFieldLength(hdr);
+            GetCurrentFieldLength(hdr);
 
             var doDetach = _detach;  // save detach flag into a var and reset so it does not go deeper
 
@@ -870,13 +870,6 @@ namespace Apache.Ignite.Core.Impl.Portable
 
                 Stream.Seek(_curPos + _curRawOffset, SeekOrigin.Begin);
             }
-        }
-
-        private void SkipCurrentFieldLength(byte fieldType)
-        {
-            // Primitives do not have length in the header
-            if (fieldType >= PortableUtils.TypeArray)
-                Stream.Seek(4, SeekOrigin.Current); // skip field length
         }
 
         private int GetCurrentFieldLength(byte fieldType)
