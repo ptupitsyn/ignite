@@ -17,30 +17,61 @@
 
 namespace Apache.Ignite.Core.Impl.Memory
 {
+    using System;
+
     /// <summary>
     /// Interop external memory chunk.
     /// </summary>
-    internal class InteropExternalMemory : PlatformMemory
+    internal class InteropExternalMemory : IPlatformMemory
     {
+        private readonly long _memPtr;
+
         /// <summary>
         /// Constructor.
         /// </summary>
         /// <param name="memPtr">Memory pointer.</param>
-        public InteropExternalMemory(long memPtr) : base(memPtr)
+        public InteropExternalMemory(long memPtr)
         {
-            // No-op.
+            _memPtr = memPtr;
+        }
+
+        public long Pointer
+        {
+            get { return _memPtr; }
+        }
+
+        public long Data
+        {
+            get { return PlatformMemoryUtils.GetData(_memPtr); }
+        }
+
+        public int Capacity
+        {
+            get { return PlatformMemoryUtils.GetCapacity(_memPtr); }
+        }
+
+        public int Length
+        {
+            get { return PlatformMemoryUtils.GetLength(_memPtr); }
+            set { PlatformMemoryUtils.SetLength(_memPtr, value); }
         }
 
         /** <inheritdoc /> */
-        public override void Reallocate(int cap)
+        public void Reallocate(int cap)
         {
             InteropMemoryUtils.ReallocateExternal(Pointer, cap);
         }
 
         /** <inheritdoc /> */
-        public override void Release()
+        public void Release()
         {
             // Memory can only be released by native platform.
+        }
+
+        public virtual PlatformMemoryStream GetStream()
+        {
+            return BitConverter.IsLittleEndian ? new PlatformMemoryStream(this) : 
+                new PlatformBigEndianMemoryStream(this);
         }
     }
 }

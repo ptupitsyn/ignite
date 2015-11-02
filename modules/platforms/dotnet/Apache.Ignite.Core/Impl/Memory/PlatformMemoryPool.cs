@@ -48,7 +48,7 @@ namespace Apache.Ignite.Core.Impl.Memory
         /// </summary>
         /// <param name="cap">Minimum capacity.</param>
         /// <returns>Memory chunk</returns>
-        public PlatformMemory Allocate(int cap)
+        public IPlatformMemory Allocate(int cap)
         {
             var memPtr = PlatformMemoryUtils.AllocatePooled(handle.ToInt64(), cap);
 
@@ -80,7 +80,7 @@ namespace Apache.Ignite.Core.Impl.Memory
         /// </summary>
         /// <param name="memPtr">Memory pointer.</param>
         /// <returns>Memory chunk.</returns>
-        public PlatformMemory Get(long memPtr) 
+        public IPlatformMemory Get(long memPtr) 
         {
             long delta = memPtr - handle.ToInt64();
 

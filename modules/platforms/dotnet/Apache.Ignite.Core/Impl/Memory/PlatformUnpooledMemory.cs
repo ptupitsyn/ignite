@@ -17,22 +17,47 @@
 
 namespace Apache.Ignite.Core.Impl.Memory
 {
+    using System;
+
     /// <summary>
     /// Platform unpooled memory chunk.
     /// </summary>
-    internal class PlatformUnpooledMemory : PlatformMemory
+    internal class PlatformUnpooledMemory : IPlatformMemory
     {
+        private readonly long _memPtr;
+
         /// <summary>
         /// Constructor.
         /// </summary>
         /// <param name="memPtr">Memory pointer.</param>
-        public PlatformUnpooledMemory(long memPtr) : base(memPtr)
+        public PlatformUnpooledMemory(long memPtr)
         {
-            // No-op.
+            _memPtr = memPtr;
+        }
+
+        public long Pointer
+        {
+            get { return _memPtr; }
+        }
+
+        public long Data
+        {
+            get { return PlatformMemoryUtils.GetData(_memPtr); }
+        }
+
+        public int Capacity
+        {
+            get { return PlatformMemoryUtils.GetCapacity(_memPtr); }
+        }
+
+        public int Length
+        {
+            get { return PlatformMemoryUtils.GetLength(_memPtr); }
+            set { PlatformMemoryUtils.SetLength(_memPtr, value); }
         }
 
         /** <inheritdoc /> */
-        public override void Reallocate(int cap)
+        public void Reallocate(int cap)
         {
             // Try doubling capacity to avoid excessive allocations.
             int doubledCap = ((PlatformMemoryUtils.GetCapacity(Pointer) + 16) << 1) - 16;
@@ -44,9 +69,15 @@ namespace Apache.Ignite.Core.Impl.Memory
         }
 
         /** <inheritdoc /> */
-        public override void Release()
+        public void Release()
         {
             PlatformMemoryUtils.ReleaseUnpooled(Pointer);
+        }
+
+        public virtual PlatformMemoryStream GetStream()
+        {
+            return BitConverter.IsLittleEndian ? new PlatformMemoryStream(this) : 
+                new PlatformBigEndianMemoryStream(this);
         }
     }
 }

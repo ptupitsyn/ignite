@@ -224,7 +224,6 @@
     <Compile Include="Impl\Memory\InteropMemoryUtils.cs" />
     <Compile Include="Impl\Memory\IPlatformMemory.cs" />
     <Compile Include="Impl\Memory\PlatformBigEndianMemoryStream.cs" />
-    <Compile Include="Impl\Memory\PlatformMemory.cs" />
     <Compile Include="Impl\Memory\PlatformMemoryManager.cs" />
     <Compile Include="Impl\Memory\PlatformMemoryPool.cs" />
     <Compile Include="Impl\Memory\PlatformMemoryStream.cs" />

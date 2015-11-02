@@ -17,28 +17,55 @@
 
 namespace Apache.Ignite.Core.Impl.Memory
 {
+    using System;
+
     /// <summary>
     /// Platform pooled memory chunk.
     /// </summary>
-    internal class PlatformPooledMemory : PlatformMemory
+    internal class PlatformPooledMemory : IPlatformMemory
     {
         /** Cached stream. */
         private PlatformMemoryStream _stream;
+        
+        /** */
+        private readonly long _memPtr;
 
         /// <summary>
         /// Constructor.
         /// </summary>
         /// <param name="memPtr">Memory pointer.</param>
-        public PlatformPooledMemory(long memPtr) : base(memPtr)
+        public PlatformPooledMemory(long memPtr)
         {
-            // No-op.
+            _memPtr = memPtr;
+        }
+
+        public long Pointer
+        {
+            get { return _memPtr; }
+        }
+
+        public long Data
+        {
+            get { return PlatformMemoryUtils.GetData(_memPtr); }
+        }
+
+        public int Capacity
+        {
+            get { return PlatformMemoryUtils.GetCapacity(_memPtr); }
+        }
+
+        public int Length
+        {
+            get { return PlatformMemoryUtils.GetLength(_memPtr); }
+            set { PlatformMemoryUtils.SetLength(_memPtr, value); }
         }
 
         /** <inheritdoc /> */
-        public override PlatformMemoryStream GetStream()
+        public PlatformMemoryStream GetStream()
         {
             if (_stream == null)
-                _stream = base.GetStream();
+                _stream = BitConverter.IsLittleEndian ? new PlatformMemoryStream(this) : 
+                new PlatformBigEndianMemoryStream(this);
             else
                 _stream.Reuse();
 
@@ -46,7 +73,7 @@ namespace Apache.Ignite.Core.Impl.Memory
         }
 
         /** <inheritdoc /> */
-        public override void Reallocate(int cap)
+        public void Reallocate(int cap)
         {
             // Try doubling capacity to avoid excessive allocations.
             int doubledCap = PlatformMemoryUtils.GetCapacity(Pointer) << 1;
@@ -58,7 +85,7 @@ namespace Apache.Ignite.Core.Impl.Memory
         }
 
         /** <inheritdoc /> */
-        public override void Release()
+        public void Release()
         {
             PlatformMemoryPool.Release(Pointer); // Return to the pool.
         }
