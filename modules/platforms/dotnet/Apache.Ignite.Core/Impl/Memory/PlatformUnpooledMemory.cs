@@ -22,7 +22,7 @@ namespace Apache.Ignite.Core.Impl.Memory
     /// <summary>
     /// Platform unpooled memory chunk.
     /// </summary>
-    internal class PlatformUnpooledMemory : IPlatformMemory
+    internal struct PlatformUnpooledMemory : IPlatformMemory
     {
         private readonly long _memPtr;
 
@@ -74,7 +74,7 @@ namespace Apache.Ignite.Core.Impl.Memory
             PlatformMemoryUtils.ReleaseUnpooled(Pointer);
         }
 
-        public virtual PlatformMemoryStream GetStream()
+        public PlatformMemoryStream GetStream()
         {
             return BitConverter.IsLittleEndian ? new PlatformMemoryStream(this) : 
                 new PlatformBigEndianMemoryStream(this);

@@ -22,7 +22,7 @@ namespace Apache.Ignite.Core.Impl.Memory
     /// <summary>
     /// Interop external memory chunk.
     /// </summary>
-    internal class InteropExternalMemory : IPlatformMemory
+    internal struct InteropExternalMemory : IPlatformMemory
     {
         private readonly long _memPtr;
 
@@ -68,7 +68,7 @@ namespace Apache.Ignite.Core.Impl.Memory
             // Memory can only be released by native platform.
         }
 
-        public virtual PlatformMemoryStream GetStream()
+        public PlatformMemoryStream GetStream()
         {
             return BitConverter.IsLittleEndian ? new PlatformMemoryStream(this) : 
                 new PlatformBigEndianMemoryStream(this);
