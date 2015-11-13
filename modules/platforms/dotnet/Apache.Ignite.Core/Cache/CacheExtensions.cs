@@ -105,8 +105,9 @@ namespace Apache.Ignite.Core.Cache
         /// </returns> 
         public static IContinuousQueryHandle<ICacheEntry<TK, TV>> QueryContinuous<TK, TV>(this ICache<TK, TV> cache, 
             Action<IEnumerable<ICacheEntryEvent<TK, TV>>> localListener, 
+            QueryBase initialQry,
             Func<ICacheEntryEvent<TK, TV>, bool> remoteFilter = null,
-            bool local = false, QueryBase initialQry = null)  
+            bool local = false)  
         {
             AC.NotNull(cache, "cache");
             AC.NotNull(localListener, "localListener");
@@ -117,6 +118,30 @@ namespace Apache.Ignite.Core.Cache
             var qry = new ContinuousQuery<TK, TV>(lsnr, filter, local);
 
             return cache.QueryContinuous(qry, initialQry);
+        }
+
+        /// <summary> 
+        /// Start continuous query execution. 
+        /// </summary>
+        /// <param name="cache">Cache instance.</param> 
+        /// <param name="localListener">Listener.</param>
+        /// <param name="remoteFilter">Optional filter.</param>
+        /// <param name="local">Whether query should be executed locally.</param>
+        /// <returns>Handle to stop query execution.</returns> 
+        public static IContinuousQueryHandle QueryContinuous<TK, TV>(this ICache<TK, TV> cache,
+            Action<IEnumerable<ICacheEntryEvent<TK, TV>>> localListener, 
+            Func<ICacheEntryEvent<TK, TV>, bool> remoteFilter = null,
+            bool local = false)
+        {
+            AC.NotNull(cache, "cache");
+            AC.NotNull(localListener, "localListener");
+
+            var lsnr = new CacheEntryDelegateEventListener<TK, TV>(localListener);
+            var filter = remoteFilter == null ? null : new CacheEntryDelegateEventFilter<TK, TV>(remoteFilter);
+
+            var qry = new ContinuousQuery<TK, TV>(lsnr, filter, local);
+
+            return cache.QueryContinuous(qry);
         }
 
         /// <summary> 

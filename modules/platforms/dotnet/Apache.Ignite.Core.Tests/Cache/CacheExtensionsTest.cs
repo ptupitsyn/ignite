@@ -134,7 +134,7 @@ namespace Apache.Ignite.Core.Tests.Cache
             // With initial query
             var initialQry = new ScanQuery<int, int>();
 
-            using (var cur = Cache.QueryContinuous(e => entriesArrived += e.Count(), e => e.Key == key, false, initialQry))
+            using (var cur = Cache.QueryContinuous(e => entriesArrived += e.Count(), initialQry, e => e.Key == key))
             {
                 Assert.AreEqual(Entries.Count + 2, cur.GetInitialQueryCursor().GetAll().Count);
 
