@@ -110,7 +110,7 @@ namespace Apache.Ignite.Core.Tests.Cache
             int key = -1;
 
             // No filter
-            using (Cache.QueryContinuous(e => entriesArrived += e.Count(), null, false))
+            using (Cache.QueryContinuous(e => entriesArrived += e.Count()))
             {
                 Cache.Put(-1, -1);
                 Cache.Put(-2, -2);
@@ -121,7 +121,7 @@ namespace Apache.Ignite.Core.Tests.Cache
             entriesArrived = 0;
 
             // With filter
-            using (Cache.QueryContinuous(e => entriesArrived += e.Count(), e => e.Key == key, false))
+            using (Cache.QueryContinuous(e => entriesArrived += e.Count(), e => e.Key == key))
             {
                 Cache.Put(-1, -1);
                 Cache.Put(-2, -2);
