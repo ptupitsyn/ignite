@@ -130,7 +130,7 @@ public class PlatformCacheConfiguration {
             ccfg.setWriteBehindFlushThreadCount(in.readInt());
             ccfg.setWriteSynchronizationMode(CacheWriteSynchronizationMode.fromOrdinal(in.readInt()));
 
-            // TODO:
+            // TODO: new API is not yet finalized.
             // ccfg.setQueryEntities()
 
             caches.add(ccfg);
