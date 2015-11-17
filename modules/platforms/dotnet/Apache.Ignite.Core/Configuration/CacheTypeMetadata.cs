@@ -19,6 +19,8 @@ namespace Apache.Ignite.Core.Configuration
 {
     using System;
     using System.Collections.Generic;
+    using Apache.Ignite.Core.Binary;
+    using Apache.Ignite.Core.Impl.Binary;
 
     /// <summary>
     /// Cache type metadata describes cache type for queries.
@@ -68,5 +70,74 @@ namespace Apache.Ignite.Core.Configuration
         /// Gets or sets the aliases.
         /// </summary>
         public IDictionary<string, string> Aliases { get; set; }
+
+        /// <summary>
+        /// Writes this instance to the specified writer.
+        /// </summary>
+        /// <param name="writer">The writer.</param>
+        internal void Write(IBinaryRawWriter writer)
+        {
+            writer.WriteString(DatabaseSchemaName);
+            writer.WriteString(DatabaseTableName);
+
+            WriteType(writer, KeyType);
+            WriteType(writer, ValueType);
+
+            WriteDictionary(writer, QueryFields);
+            WriteDictionary(writer, TextFields);
+            WriteDictionary(writer, AscendingFields);
+            WriteDictionary(writer, DescendingFields);
+            WriteDictionary(writer, Aliases);
+        }
+
+        /// <summary>
+        /// Writes type to the writer.
+        /// </summary>
+        private static void WriteType(IBinaryRawWriter writer, Type type)
+        {
+            var typeName = type == null ? null : BinaryUtils.SimpleTypeName(type.Name);
+
+            writer.WriteString(typeName);
+        }
+
+        /// <summary>
+        /// Writes type to the writer.
+        /// </summary>
+        private static void WriteDictionary(IBinaryRawWriter writer, IDictionary<string, Type> dict)
+        {
+            if (dict == null)
+            {
+                writer.WriteInt(0);
+                return;
+            }
+
+            writer.WriteInt(dict.Count);
+
+            foreach (var pair in dict)
+            {
+                writer.WriteString(pair.Key);
+                WriteType(writer, pair.Value);
+            }
+        }
+
+        /// <summary>
+        /// Writes type to the writer.
+        /// </summary>
+        private static void WriteDictionary(IBinaryRawWriter writer, IDictionary<string, string> dict)
+        {
+            if (dict == null)
+            {
+                writer.WriteInt(0);
+                return;
+            }
+
+            writer.WriteInt(dict.Count);
+
+            foreach (var pair in dict)
+            {
+                writer.WriteString(pair.Key);
+                writer.WriteString(pair.Value);
+            }
+        }
     }
 }
