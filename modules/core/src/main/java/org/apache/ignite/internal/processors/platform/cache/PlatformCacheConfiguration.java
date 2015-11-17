@@ -27,46 +27,125 @@ import java.util.*;
  * Platform CacheConfiguration utils.
  */
 public class PlatformCacheConfiguration {
-    public static void writeCacheConfiguration(BinaryRawWriterEx writer, CacheConfiguration ccfg) {
-        writer.writeInt(ccfg.getAtomicityMode().ordinal());
-        writer.writeInt(ccfg.getAtomicWriteOrderMode().ordinal());
-        writer.writeInt(ccfg.getBackups());
-        writer.writeInt(ccfg.getCacheMode().ordinal());
-        writer.writeBoolean(ccfg.isCopyOnRead());
-        writer.writeBoolean(ccfg.isEagerTtl());
-        writer.writeBoolean(ccfg.isSwapEnabled());
-        writer.writeBoolean(ccfg.isEvictSynchronized());
-        writer.writeInt(ccfg.getEvictSynchronizedConcurrencyLevel());
-        writer.writeInt(ccfg.getEvictSynchronizedKeyBufferSize());
-        writer.writeLong(ccfg.getEvictSynchronizedTimeout());
-        writer.writeBoolean(ccfg.isInvalidate());
-        writer.writeBoolean(ccfg.isKeepPortableInStore());
-        writer.writeBoolean(ccfg.isLoadPreviousValue());
-        writer.writeLong(ccfg.getDefaultLockTimeout());
-        writer.writeLong(ccfg.getLongQueryWarningTimeout());
-        writer.writeInt(ccfg.getMaxConcurrentAsyncOperations());
-        writer.writeFloat(ccfg.getEvictMaxOverflowRatio());
-        writer.writeInt(ccfg.getMemoryMode().ordinal());
-        writer.writeString(ccfg.getName());
-        writer.writeLong(ccfg.getOffHeapMaxMemory());
-        writer.writeBoolean(ccfg.isReadFromBackup());
-        writer.writeInt(ccfg.getRebalanceBatchSize());
-        writer.writeLong(ccfg.getRebalanceDelay());
-        writer.writeInt(ccfg.getRebalanceMode().ordinal());
-        writer.writeInt(ccfg.getRebalanceThreadPoolSize());
-        writer.writeLong(ccfg.getRebalanceThrottle());
-        writer.writeLong(ccfg.getRebalanceTimeout());
-        writer.writeBoolean(ccfg.isSqlEscapeAll());
-        writer.writeInt(ccfg.getSqlOnheapRowCacheSize());
-        writer.writeInt(ccfg.getStartSize());
-        writer.writeInt(ccfg.getWriteBehindBatchSize());
-        writer.writeBoolean(ccfg.isWriteBehindEnabled());
-        writer.writeLong(ccfg.getWriteBehindFlushFrequency());
-        writer.writeInt(ccfg.getWriteBehindFlushSize());
-        writer.writeInt(ccfg.getWriteBehindFlushThreadCount());
-        writer.writeInt(ccfg.getWriteSynchronizationMode().ordinal());
+    /**
+     * Writes cache configuration.
+     *
+     * @param writer Writer.
+     * @param cfg Configuration.
+     */
+    public static void writeCacheConfiguration(BinaryRawWriterEx writer, CacheConfiguration cfg) {
+        writer.writeInt(cfg.getAtomicityMode().ordinal());
+        writer.writeInt(cfg.getAtomicWriteOrderMode().ordinal());
+        writer.writeInt(cfg.getBackups());
+        writer.writeInt(cfg.getCacheMode().ordinal());
+        writer.writeBoolean(cfg.isCopyOnRead());
+        writer.writeBoolean(cfg.isEagerTtl());
+        writer.writeBoolean(cfg.isSwapEnabled());
+        writer.writeBoolean(cfg.isEvictSynchronized());
+        writer.writeInt(cfg.getEvictSynchronizedConcurrencyLevel());
+        writer.writeInt(cfg.getEvictSynchronizedKeyBufferSize());
+        writer.writeLong(cfg.getEvictSynchronizedTimeout());
+        writer.writeBoolean(cfg.isInvalidate());
+        writer.writeBoolean(cfg.isKeepPortableInStore());
+        writer.writeBoolean(cfg.isLoadPreviousValue());
+        writer.writeLong(cfg.getDefaultLockTimeout());
+        writer.writeLong(cfg.getLongQueryWarningTimeout());
+        writer.writeInt(cfg.getMaxConcurrentAsyncOperations());
+        writer.writeFloat(cfg.getEvictMaxOverflowRatio());
+        writer.writeInt(cfg.getMemoryMode().ordinal());
+        writer.writeString(cfg.getName());
+        writer.writeLong(cfg.getOffHeapMaxMemory());
+        writer.writeBoolean(cfg.isReadFromBackup());
+        writer.writeInt(cfg.getRebalanceBatchSize());
+        writer.writeLong(cfg.getRebalanceDelay());
+        writer.writeInt(cfg.getRebalanceMode().ordinal());
+        writer.writeInt(cfg.getRebalanceThreadPoolSize());
+        writer.writeLong(cfg.getRebalanceThrottle());
+        writer.writeLong(cfg.getRebalanceTimeout());
+        writer.writeBoolean(cfg.isSqlEscapeAll());
+        writer.writeInt(cfg.getSqlOnheapRowCacheSize());
+        writer.writeInt(cfg.getStartSize());
+        writer.writeInt(cfg.getWriteBehindBatchSize());
+        writer.writeBoolean(cfg.isWriteBehindEnabled());
+        writer.writeLong(cfg.getWriteBehindFlushFrequency());
+        writer.writeInt(cfg.getWriteBehindFlushSize());
+        writer.writeInt(cfg.getWriteBehindFlushThreadCount());
+        writer.writeInt(cfg.getWriteSynchronizationMode().ordinal());
 
-        writeCacheTypeMeta(writer, ccfg.getTypeMetadata());
+        writeCacheTypeMeta(writer, cfg.getTypeMetadata());
+    }
+
+    /**
+     * Reads cache configurations from a stream and updates provided IgniteConfiguration.
+     *
+     * @param cfg IgniteConfiguration to update.
+     * @param in Reader.
+     */
+    public static void readCacheConfigurations(BinaryReaderExImpl in, IgniteConfiguration cfg) {
+        int len = in.readInt();
+
+        if (len == 0)
+            return;
+
+        List<CacheConfiguration> caches = new ArrayList<>();
+
+        for (int i = 0; i < len; i++) {
+            CacheConfiguration ccfg = new CacheConfiguration();
+
+            ccfg.setAtomicityMode(CacheAtomicityMode.fromOrdinal(in.readInt()));
+            ccfg.setAtomicWriteOrderMode(CacheAtomicWriteOrderMode.fromOrdinal((byte) in.readInt()));
+            ccfg.setBackups(in.readInt());
+            ccfg.setCacheMode(CacheMode.fromOrdinal(in.readInt()));
+            ccfg.setCopyOnRead(in.readBoolean());
+            ccfg.setEagerTtl(in.readBoolean());
+            ccfg.setSwapEnabled(in.readBoolean());
+            ccfg.setEvictSynchronized(in.readBoolean());
+            ccfg.setEvictSynchronizedConcurrencyLevel(in.readInt());
+            ccfg.setEvictSynchronizedKeyBufferSize(in.readInt());
+            ccfg.setEvictSynchronizedTimeout(in.readLong());
+            ccfg.setInvalidate(in.readBoolean());
+            ccfg.setKeepPortableInStore(in.readBoolean());
+            ccfg.setLoadPreviousValue(in.readBoolean());
+            ccfg.setDefaultLockTimeout(in.readLong());
+            ccfg.setLongQueryWarningTimeout(in.readLong());
+            ccfg.setMaxConcurrentAsyncOperations(in.readInt());
+            ccfg.setEvictMaxOverflowRatio(in.readFloat());
+            ccfg.setMemoryMode(CacheMemoryMode.values()[in.readInt()]);
+            ccfg.setName(in.readString());
+            ccfg.setOffHeapMaxMemory(in.readLong());
+            ccfg.setReadFromBackup(in.readBoolean());
+            ccfg.setRebalanceBatchSize(in.readInt());
+            ccfg.setRebalanceDelay(in.readLong());
+            ccfg.setRebalanceMode(CacheRebalanceMode.fromOrdinal(in.readInt()));
+            ccfg.setRebalanceThreadPoolSize(in.readInt());
+            ccfg.setRebalanceThrottle(in.readLong());
+            ccfg.setRebalanceTimeout(in.readLong());
+            ccfg.setSqlEscapeAll(in.readBoolean());
+            ccfg.setSqlOnheapRowCacheSize(in.readInt());
+            ccfg.setStartSize(in.readInt());
+            ccfg.setWriteBehindBatchSize(in.readInt());
+            ccfg.setWriteBehindEnabled(in.readBoolean());
+            ccfg.setWriteBehindFlushFrequency(in.readLong());
+            ccfg.setWriteBehindFlushSize(in.readInt());
+            ccfg.setWriteBehindFlushThreadCount(in.readInt());
+            ccfg.setWriteSynchronizationMode(CacheWriteSynchronizationMode.fromOrdinal(in.readInt()));
+
+            caches.add(ccfg);
+        }
+
+        CacheConfiguration[] oldCaches = cfg.getCacheConfiguration();
+        CacheConfiguration[] caches0 = caches.toArray(new CacheConfiguration[caches.size()]);
+
+        if (oldCaches == null)
+            cfg.setCacheConfiguration(caches0);
+        else {
+            CacheConfiguration[] mergedCaches = new CacheConfiguration[oldCaches.length + caches.size()];
+
+            System.arraycopy(oldCaches, 0, mergedCaches, 0, oldCaches.length);
+            System.arraycopy(caches0, 0, mergedCaches, oldCaches.length, caches.size());
+
+            cfg.setCacheConfiguration(mergedCaches);
+        }
     }
 
     /**
