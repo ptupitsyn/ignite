@@ -21,6 +21,7 @@
 namespace Apache.Ignite.Core.Configuration
 {
     using System;
+    using System.Collections.Generic;
     using Apache.Ignite.Core.Binary;
     using Apache.Ignite.Core.Cache;
     using Apache.Ignite.Core.Cache.Store;
@@ -177,15 +178,16 @@ namespace Apache.Ignite.Core.Configuration
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="CacheConfiguration"/> class.
+        /// Initializes a new instance of the <see cref="CacheConfiguration" /> class.
         /// </summary>
         /// <param name="reader">The reader.</param>
-        internal CacheConfiguration(IBinaryRawReader reader)
+        /// <param name="binaryConfiguration">The binary configuration.</param>
+        internal CacheConfiguration(IBinaryRawReader reader, BinaryConfiguration binaryConfiguration)
         {
-            AtomicityMode = (CacheAtomicityMode) reader.ReadInt();
-            AtomicWriteOrderMode = (CacheAtomicWriteOrderMode) reader.ReadInt();
+            AtomicityMode = (CacheAtomicityMode)reader.ReadInt();
+            AtomicWriteOrderMode = (CacheAtomicWriteOrderMode)reader.ReadInt();
             Backups = reader.ReadInt();
-            CacheMode = (CacheMode) reader.ReadInt();
+            CacheMode = (CacheMode)reader.ReadInt();
             CopyOnRead = reader.ReadBoolean();
             EagerTtl = reader.ReadBoolean();
             EnableSwap = reader.ReadBoolean();
@@ -200,13 +202,13 @@ namespace Apache.Ignite.Core.Configuration
             LongQueryWarningTimeout = TimeSpan.FromMilliseconds(reader.ReadLong());
             MaxConcurrentAsyncOperations = reader.ReadInt();
             MaxEvictionOverflowRatio = reader.ReadFloat();
-            MemoryMode = (CacheMemoryMode) reader.ReadInt();
+            MemoryMode = (CacheMemoryMode)reader.ReadInt();
             Name = reader.ReadString();
             OffHeapMaxMemory = reader.ReadLong();
             ReadFromBackup = reader.ReadBoolean();
             RebalanceBatchSize = reader.ReadInt();
             RebalanceDelay = TimeSpan.FromMilliseconds(reader.ReadLong());
-            RebalanceMode = (CacheRebalanceMode) reader.ReadInt();
+            RebalanceMode = (CacheRebalanceMode)reader.ReadInt();
             RebalanceThreadPoolSize = reader.ReadInt();
             RebalanceThrottle = TimeSpan.FromMilliseconds(reader.ReadLong());
             RebalanceTimeout = TimeSpan.FromMilliseconds(reader.ReadLong());
@@ -218,7 +220,17 @@ namespace Apache.Ignite.Core.Configuration
             WriteBehindFlushFrequency = TimeSpan.FromMilliseconds(reader.ReadLong());
             WriteBehindFlushSize = reader.ReadInt();
             WriteBehindFlushThreadCount = reader.ReadInt();
-            WriteSynchronizationMode = (CacheWriteSynchronizationMode) reader.ReadInt();
+            WriteSynchronizationMode = (CacheWriteSynchronizationMode)reader.ReadInt();
+
+            var typeMetaCount = reader.ReadInt();
+
+            if (typeMetaCount > 0)
+            {
+                TypeMetadata = new List<CacheTypeMetadata>(typeMetaCount);
+
+                for (var i = 0; i < typeMetaCount; i++)
+                    TypeMetadata.Add(new CacheTypeMetadata(reader, binaryConfiguration));
+            }
         }
 
         /// <summary>
@@ -264,6 +276,16 @@ namespace Apache.Ignite.Core.Configuration
             writer.WriteInt(WriteBehindFlushSize);
             writer.WriteInt(WriteBehindFlushThreadCount);
             writer.WriteInt((int) WriteSynchronizationMode);
+
+            if (TypeMetadata != null)
+            {
+                writer.WriteInt(TypeMetadata.Count);
+
+                foreach (var typeMeta in TypeMetadata)
+                    typeMeta.Write(writer);
+            }
+            else
+                writer.WriteInt(0);
         }
 
         /// <summary>
@@ -506,5 +528,10 @@ namespace Apache.Ignite.Core.Configuration
         /// This setting only makes sense when offheap is enabled for this cache.
         /// </summary>
         public int SqlOnheapRowCacheSize { get; set; }
+
+        /// <summary>
+        /// Gets or sets the type metadata.
+        /// </summary>
+        public ICollection<CacheTypeMetadata> TypeMetadata { get; set; }
     }
 }

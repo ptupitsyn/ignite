@@ -106,6 +106,14 @@ namespace Apache.Ignite.Core.Impl.Binary
         public Ignite Ignite { get; set; }
 
         /// <summary>
+        /// Gets the binary configuration.
+        /// </summary>
+        public BinaryConfiguration BinaryConfiguration
+        {
+            get { return _cfg; }
+        }
+
+        /// <summary>
         /// Marshal object.
         /// </summary>
         /// <param name="val">Value.</param>
@@ -356,7 +364,7 @@ namespace Apache.Ignite.Core.Impl.Binary
             IBinaryTypeDescriptor desc;
 
             return _typeNameToDesc.TryGetValue(typeName, out desc) ? desc : 
-                new BinarySurrogateTypeDescriptor(_cfg, typeName);
+                new BinarySurrogateTypeDescriptor(BinaryConfiguration, typeName);
         }
 
         /// <summary>
@@ -370,7 +378,7 @@ namespace Apache.Ignite.Core.Impl.Binary
             IBinaryTypeDescriptor desc;
 
             return _idToDesc.TryGetValue(BinaryUtils.TypeKey(userType, typeId), out desc) ? desc :
-                userType ? new BinarySurrogateTypeDescriptor(_cfg, typeId) : null;
+                userType ? new BinarySurrogateTypeDescriptor(BinaryConfiguration, typeId) : null;
         }
 
         /// <summary>
