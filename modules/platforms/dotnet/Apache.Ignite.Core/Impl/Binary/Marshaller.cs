@@ -356,7 +356,7 @@ namespace Apache.Ignite.Core.Impl.Binary
             IBinaryTypeDescriptor desc;
 
             return _typeNameToDesc.TryGetValue(typeName, out desc) ? desc : 
-                new BinarySurrogateTypeDescriptor(BinaryConfiguration, typeName);
+                new BinarySurrogateTypeDescriptor(_cfg, typeName);
         }
 
         /// <summary>
@@ -370,7 +370,7 @@ namespace Apache.Ignite.Core.Impl.Binary
             IBinaryTypeDescriptor desc;
 
             return _idToDesc.TryGetValue(BinaryUtils.TypeKey(userType, typeId), out desc) ? desc :
-                userType ? new BinarySurrogateTypeDescriptor(BinaryConfiguration, typeId) : null;
+                userType ? new BinarySurrogateTypeDescriptor(_cfg, typeId) : null;
         }
 
         /// <summary>

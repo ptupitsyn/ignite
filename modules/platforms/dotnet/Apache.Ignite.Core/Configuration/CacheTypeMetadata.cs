@@ -56,7 +56,7 @@ namespace Apache.Ignite.Core.Configuration
         /// <summary>
         /// Gets or sets the text fields.
         /// </summary>
-        public IDictionary<string, Type> TextFields { get; set; }
+        public ICollection<string> TextFields { get; set; }
         /// <summary>
         /// Gets or sets the ascending fields.
         /// </summary>
@@ -93,7 +93,7 @@ namespace Apache.Ignite.Core.Configuration
             ValueType = ReadType(reader);
 
             QueryFields = ReadDictionary(reader);
-            TextFields = ReadDictionary(reader);
+            TextFields = ReadCollection(reader);
             AscendingFields = ReadDictionary(reader);
             DescendingFields = ReadDictionary(reader);
 
@@ -113,7 +113,7 @@ namespace Apache.Ignite.Core.Configuration
             writer.WriteString(GetJavaTypeName(ValueType));
 
             WriteDictionary(writer, QueryFields);
-            WriteDictionary(writer, TextFields);
+            WriteCollection(writer, TextFields);
             WriteDictionary(writer, AscendingFields);
             WriteDictionary(writer, DescendingFields);
 
@@ -152,23 +152,35 @@ namespace Apache.Ignite.Core.Configuration
         }
 
         /// <summary>
-        /// Writes type to the writer.
+        /// Writes dictionary to the writer.
         /// </summary>
         private static void WriteDictionary(IBinaryRawWriter writer, IDictionary<string, Type> dict)
         {
-            if (dict == null)
+            WriteCollection(writer, dict, (w, p) =>
+            {
+                w.WriteString(p.Key);
+                w.WriteString(GetJavaTypeName(p.Value));
+            });
+        }
+
+        /// <summary>
+        /// Writes collection to the writer.
+        /// </summary>
+        private static void WriteCollection<T>(IBinaryRawWriter writer, ICollection<T> col,
+            Action<IBinaryRawWriter, T> writeAction = null)
+        {
+            if (col == null)
             {
                 writer.WriteInt(0);
                 return;
             }
 
-            writer.WriteInt(dict.Count);
+            writer.WriteInt(col.Count);
 
-            foreach (var pair in dict)
-            {
-                writer.WriteString(pair.Key);
-                writer.WriteString(GetJavaTypeName(pair.Value));
-            }
+            writeAction = writeAction ?? ((w, val) => w.WriteObject(val));
+
+            foreach (var e in col)
+                writeAction(writer, e);
         }
 
         /// <summary>
@@ -183,12 +195,33 @@ namespace Apache.Ignite.Core.Configuration
 
             Debug.Assert(count > 0);
 
-            var dict = new Dictionary<string, Type>();
+            var dict = new Dictionary<string, Type>(count);
 
             for (var i = 0; i < count; i++)
                 dict.Add(reader.ReadString(), ReadType(reader));
 
             return dict;
+        }
+
+        /// <summary>
+        /// Reads collection.
+        /// </summary>
+        private static ICollection<string> ReadCollection(IBinaryRawReader reader)
+        {
+            var count = reader.ReadInt();
+
+            if (count == 0)
+                return null;
+
+            Debug.Assert(count > 0);
+
+            var list = new List<string>(count);
+
+            for (var i = 0; i < count; i++)
+                list.Add(reader.ReadString());
+
+            return list;
+
         }
 
         /// <summary>

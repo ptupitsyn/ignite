@@ -1024,9 +1024,47 @@ public class PlatformCache extends PlatformAbstractTarget {
                 writer.writeString(meta.getKeyType());
                 writer.writeString(meta.getValueType());
 
-                // TODO
-                meta.getQueryFields();
+                writeMap(writer, meta.getQueryFields());
+                writeCollection(writer, meta.getTextFields());
+                writeMap(writer, meta.getAscendingFields());
+                writeMap(writer, meta.getDescendingFields());
             }
+        }
+        else
+            writer.writeInt(0);
+    }
+
+    /**
+     * Writes a map.
+     *
+     * @param writer Writer
+     * @param map Map.
+     */
+    private void writeMap(BinaryRawWriterEx writer, Map<String, Class<?>> map) {
+        if (map != null) {
+            writer.writeInt(map.size());
+
+            for (Map.Entry<String, Class<?>> e : map.entrySet()) {
+                writer.writeString(e.getKey());
+                writer.writeString(e.getValue().getName());
+            }
+        }
+        else
+            writer.writeInt(0);
+    }
+
+    /**
+     * Writes a collection.
+     *
+     * @param writer Writer
+     * @param col Collection.
+     */
+    private void writeCollection(BinaryRawWriterEx writer, Collection col) {
+        if (col != null) {
+            writer.writeInt(col.size());
+
+            for (Object e : col)
+                writer.writeObject(e);
         }
         else
             writer.writeInt(0);
