@@ -181,8 +181,7 @@ namespace Apache.Ignite.Core.Configuration
         /// Initializes a new instance of the <see cref="CacheConfiguration" /> class.
         /// </summary>
         /// <param name="reader">The reader.</param>
-        /// <param name="binaryConfiguration">The binary configuration.</param>
-        internal CacheConfiguration(IBinaryRawReader reader, BinaryConfiguration binaryConfiguration)
+        internal CacheConfiguration(IBinaryRawReader reader)
         {
             AtomicityMode = (CacheAtomicityMode)reader.ReadInt();
             AtomicWriteOrderMode = (CacheAtomicWriteOrderMode)reader.ReadInt();
@@ -229,7 +228,7 @@ namespace Apache.Ignite.Core.Configuration
                 TypeMetadata = new List<CacheTypeMetadata>(typeMetaCount);
 
                 for (var i = 0; i < typeMetaCount; i++)
-                    TypeMetadata.Add(new CacheTypeMetadata(reader, binaryConfiguration));
+                    TypeMetadata.Add(new CacheTypeMetadata(reader));
             }
         }
 

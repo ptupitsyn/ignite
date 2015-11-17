@@ -20,7 +20,6 @@ namespace Apache.Ignite.Core.Configuration
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
-    using System.Linq;
     using Apache.Ignite.Core.Binary;
     using Apache.Ignite.Core.Impl.Binary;
 
@@ -85,21 +84,20 @@ namespace Apache.Ignite.Core.Configuration
         /// Initializes a new instance of the <see cref="CacheTypeMetadata" /> class.
         /// </summary>
         /// <param name="reader">The reader.</param>
-        /// <param name="binaryConfiguration">The binary configuration.</param>
-        internal CacheTypeMetadata(IBinaryRawReader reader, BinaryConfiguration binaryConfiguration)
+        internal CacheTypeMetadata(IBinaryRawReader reader)
         {
             DatabaseSchemaName = reader.ReadString();
             DatabaseTableName = reader.ReadString();
 
-            KeyType = ReadType(reader, binaryConfiguration);
-            ValueType = ReadType(reader, binaryConfiguration);
+            KeyType = ReadType(reader);
+            ValueType = ReadType(reader);
 
-            QueryFields = ReadDictionary(reader, binaryConfiguration);
-            TextFields = ReadDictionary(reader, binaryConfiguration);
-            AscendingFields = ReadDictionary(reader, binaryConfiguration);
-            DescendingFields = ReadDictionary(reader, binaryConfiguration);
+            QueryFields = ReadDictionary(reader);
+            TextFields = ReadDictionary(reader);
+            AscendingFields = ReadDictionary(reader);
+            DescendingFields = ReadDictionary(reader);
 
-            Aliases = ReadDictionary(reader);
+            Aliases = ReadStringDictionary(reader);
         }
 
         /// <summary>
@@ -111,8 +109,8 @@ namespace Apache.Ignite.Core.Configuration
             writer.WriteString(DatabaseSchemaName);
             writer.WriteString(DatabaseTableName);
 
-            WriteType(writer, KeyType);
-            WriteType(writer, ValueType);
+            writer.WriteString(GetJavaTypeName(KeyType));
+            writer.WriteString(GetJavaTypeName(ValueType));
 
             WriteDictionary(writer, QueryFields);
             WriteDictionary(writer, TextFields);
@@ -123,35 +121,34 @@ namespace Apache.Ignite.Core.Configuration
         }
 
         /// <summary>
-        /// Writes type to the writer.
+        /// Gets the corresponding Java type name.
         /// </summary>
-        private static void WriteType(IBinaryRawWriter writer, Type type)
+        private static string GetJavaTypeName(Type type)
         {
-            var typeName = type == null ? null : BinaryUtils.SimpleTypeName(type.Name);
+            if (type == null)
+                return null;
 
-            writer.WriteString(typeName);
+            var typeName = JavaTypes.GetJavaTypeName(type);
+
+            if (typeName == null)
+                throw new InvalidOperationException(
+                    string.Format(
+                        "Unsupported type in cache type metadata: {0}. " +
+                        "The following types are supported in queries: {1}", type, JavaTypes.SupportedTypesString));
+            return typeName;
         }
 
         /// <summary>
         /// Reads type from the reader.
         /// </summary>
-        private static Type ReadType(IBinaryRawReader reader, BinaryConfiguration cfg)
+        private static Type ReadType(IBinaryRawReader reader)
         {
-            // TODO: This is incorrect. We operate on primitive types from Java.
-
             var typeName = reader.ReadString();
 
-            if (typeName == null || cfg == null || (cfg.TypeConfigurations == null && cfg.Types == null))
-                return null;
+            if (typeName == null)
+                return null;   // TODO: Think
 
-            var typeNames = cfg.Types ?? Enumerable.Empty<string>();
-
-            if (cfg.TypeConfigurations != null)
-                typeNames = typeNames.Concat(cfg.TypeConfigurations.Select(x => x.TypeName));
-
-            var nsName = '.' + typeName;
-
-            return typeNames.Where(x => x.EndsWith(nsName)).Select(x => Type.GetType(x, false)).FirstOrDefault();
+            return JavaTypes.GetDotNetType(typeName);
         }
 
         /// <summary>
@@ -170,14 +167,14 @@ namespace Apache.Ignite.Core.Configuration
             foreach (var pair in dict)
             {
                 writer.WriteString(pair.Key);
-                WriteType(writer, pair.Value);
+                writer.WriteString(GetJavaTypeName(pair.Value));
             }
         }
 
         /// <summary>
         /// Reads dictionary.
         /// </summary>
-        private static Dictionary<string, Type> ReadDictionary(IBinaryRawReader reader, BinaryConfiguration cfg)
+        private static Dictionary<string, Type> ReadDictionary(IBinaryRawReader reader)
         {
             var count = reader.ReadInt();
 
@@ -189,7 +186,7 @@ namespace Apache.Ignite.Core.Configuration
             var dict = new Dictionary<string, Type>();
 
             for (var i = 0; i < count; i++)
-                dict.Add(reader.ReadString(), ReadType(reader, cfg));
+                dict.Add(reader.ReadString(), ReadType(reader));
 
             return dict;
         }
@@ -197,7 +194,7 @@ namespace Apache.Ignite.Core.Configuration
         /// <summary>
         /// Reads dictionary.
         /// </summary>
-        private static Dictionary<string, string> ReadDictionary(IBinaryRawReader reader)
+        private static Dictionary<string, string> ReadStringDictionary(IBinaryRawReader reader)
         {
             var count = reader.ReadInt();
 
