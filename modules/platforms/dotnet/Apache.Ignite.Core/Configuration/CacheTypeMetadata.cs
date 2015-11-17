@@ -19,6 +19,8 @@ namespace Apache.Ignite.Core.Configuration
 {
     using System;
     using System.Collections.Generic;
+    using System.Diagnostics;
+    using System.Linq;
     using Apache.Ignite.Core.Binary;
     using Apache.Ignite.Core.Impl.Binary;
 
@@ -72,6 +74,35 @@ namespace Apache.Ignite.Core.Configuration
         public IDictionary<string, string> Aliases { get; set; }
 
         /// <summary>
+        /// Initializes a new instance of the <see cref="CacheTypeMetadata"/> class.
+        /// </summary>
+        public CacheTypeMetadata()
+        {
+            // No-op.
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="CacheTypeMetadata" /> class.
+        /// </summary>
+        /// <param name="reader">The reader.</param>
+        /// <param name="binaryConfiguration">The binary configuration.</param>
+        internal CacheTypeMetadata(IBinaryRawReader reader, BinaryConfiguration binaryConfiguration)
+        {
+            DatabaseSchemaName = reader.ReadString();
+            DatabaseTableName = reader.ReadString();
+
+            KeyType = ReadType(reader, binaryConfiguration);
+            ValueType = ReadType(reader, binaryConfiguration);
+
+            QueryFields = ReadDictionary(reader, binaryConfiguration);
+            TextFields = ReadDictionary(reader, binaryConfiguration);
+            AscendingFields = ReadDictionary(reader, binaryConfiguration);
+            DescendingFields = ReadDictionary(reader, binaryConfiguration);
+
+            Aliases = ReadDictionary(reader);
+        }
+
+        /// <summary>
         /// Writes this instance to the specified writer.
         /// </summary>
         /// <param name="writer">The writer.</param>
@@ -87,6 +118,7 @@ namespace Apache.Ignite.Core.Configuration
             WriteDictionary(writer, TextFields);
             WriteDictionary(writer, AscendingFields);
             WriteDictionary(writer, DescendingFields);
+
             WriteDictionary(writer, Aliases);
         }
 
@@ -98,6 +130,26 @@ namespace Apache.Ignite.Core.Configuration
             var typeName = type == null ? null : BinaryUtils.SimpleTypeName(type.Name);
 
             writer.WriteString(typeName);
+        }
+
+        /// <summary>
+        /// Reads type from the reader.
+        /// </summary>
+        private static Type ReadType(IBinaryRawReader reader, BinaryConfiguration cfg)
+        {
+            var typeName = reader.ReadString();
+
+            if (typeName == null || cfg == null || (cfg.TypeConfigurations == null && cfg.Types == null))
+                return null;
+
+            var typeNames = cfg.Types ?? Enumerable.Empty<string>();
+
+            if (cfg.TypeConfigurations != null)
+                typeNames = typeNames.Concat(cfg.TypeConfigurations.Select(x => x.TypeName));
+
+            var nsName = '.' + typeName;
+
+            return typeNames.Where(x => x.EndsWith(nsName)).Select(x => Type.GetType(x, false)).FirstOrDefault();
         }
 
         /// <summary>
@@ -118,6 +170,46 @@ namespace Apache.Ignite.Core.Configuration
                 writer.WriteString(pair.Key);
                 WriteType(writer, pair.Value);
             }
+        }
+
+        /// <summary>
+        /// Reads dictionary.
+        /// </summary>
+        private static Dictionary<string, Type> ReadDictionary(IBinaryRawReader reader, BinaryConfiguration cfg)
+        {
+            var count = reader.ReadInt();
+
+            if (count == 0)
+                return null;
+
+            Debug.Assert(count > 0);
+
+            var dict = new Dictionary<string, Type>();
+
+            for (var i = 0; i < count; i++)
+                dict.Add(reader.ReadString(), ReadType(reader, cfg));
+
+            return dict;
+        }
+
+        /// <summary>
+        /// Reads dictionary.
+        /// </summary>
+        private static Dictionary<string, string> ReadDictionary(IBinaryRawReader reader)
+        {
+            var count = reader.ReadInt();
+
+            if (count == 0)
+                return null;
+
+            Debug.Assert(count > 0);
+
+            var dict = new Dictionary<string, string>();
+
+            for (var i = 0; i < count; i++)
+                dict.Add(reader.ReadString(), reader.ReadString());
+
+            return dict;
         }
 
         /// <summary>
