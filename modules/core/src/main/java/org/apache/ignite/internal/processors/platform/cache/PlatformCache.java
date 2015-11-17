@@ -19,10 +19,7 @@ package org.apache.ignite.internal.processors.platform.cache;
 
 import org.apache.ignite.IgniteCache;
 import org.apache.ignite.IgniteCheckedException;
-import org.apache.ignite.cache.CacheEntryProcessor;
-import org.apache.ignite.cache.CacheMetrics;
-import org.apache.ignite.cache.CachePartialUpdateException;
-import org.apache.ignite.cache.CachePeekMode;
+import org.apache.ignite.cache.*;
 import org.apache.ignite.cache.query.Query;
 import org.apache.ignite.cache.query.ScanQuery;
 import org.apache.ignite.cache.query.SqlFieldsQuery;
@@ -54,9 +51,7 @@ import javax.cache.expiry.Duration;
 import javax.cache.expiry.ExpiryPolicy;
 import javax.cache.processor.EntryProcessorException;
 import javax.cache.processor.EntryProcessorResult;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
@@ -561,6 +556,8 @@ public class PlatformCache extends PlatformAbstractTarget {
                 writer.writeInt(ccfg.getWriteBehindFlushThreadCount());
                 writer.writeInt(ccfg.getWriteSynchronizationMode().ordinal());
 
+                writeCacheTypeMeta(writer, ccfg.getTypeMetadata());
+
                 break;
 
             default:
@@ -1008,6 +1005,31 @@ public class PlatformCache extends PlatformAbstractTarget {
         qry.setLocal(loc);
 
         return qry;
+    }
+
+    /**
+     * Write cache type metadata.
+     *
+     * @param writer Writer.
+     * @param typeMeta Metadata.
+     */
+    private void writeCacheTypeMeta(BinaryRawWriterEx writer, Collection<CacheTypeMetadata> typeMeta) {
+        if (typeMeta != null) {
+            writer.writeInt(typeMeta.size());
+
+            for (CacheTypeMetadata meta : typeMeta) {
+                writer.writeString(meta.getDatabaseSchema());
+                writer.writeString(meta.getDatabaseTable());
+
+                writer.writeString(meta.getKeyType());
+                writer.writeString(meta.getValueType());
+
+                // TODO
+                meta.getQueryFields();
+            }
+        }
+        else
+            writer.writeInt(0);
     }
 
     /**

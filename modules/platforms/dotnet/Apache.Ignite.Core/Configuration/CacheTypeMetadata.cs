@@ -137,6 +137,8 @@ namespace Apache.Ignite.Core.Configuration
         /// </summary>
         private static Type ReadType(IBinaryRawReader reader, BinaryConfiguration cfg)
         {
+            // TODO: This is incorrect. We operate on primitive types from Java.
+
             var typeName = reader.ReadString();
 
             if (typeName == null || cfg == null || (cfg.TypeConfigurations == null && cfg.Types == null))
