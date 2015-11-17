@@ -130,6 +130,9 @@ public class PlatformCacheConfiguration {
             ccfg.setWriteBehindFlushThreadCount(in.readInt());
             ccfg.setWriteSynchronizationMode(CacheWriteSynchronizationMode.fromOrdinal(in.readInt()));
 
+            // TODO:
+            // ccfg.setQueryEntities()
+
             caches.add(ccfg);
         }
 
@@ -174,6 +177,34 @@ public class PlatformCacheConfiguration {
         }
         else
             writer.writeInt(0);
+    }
+
+    /**
+     * Read cache type metadata.
+     *
+     * @param reader Reader
+     * @return Metadata.
+     */
+    private static Collection<CacheTypeMetadata> readCacheTypeMeta(BinaryRawReaderEx reader) {
+        int count = reader.readInt();
+
+        if (count == 0)
+            return null;
+
+        assert count > 0;
+
+        ArrayList<CacheTypeMetadata> res = new ArrayList<>(count);
+
+        for (int i = 0; i < count; i++) {
+            CacheTypeMetadata meta = new CacheTypeMetadata();
+
+            meta.setDatabaseSchema(reader.readString());
+            meta.setDatabaseTable(reader.readString());
+
+            res.add(meta);
+        }
+
+        return res;
     }
 
     /**
