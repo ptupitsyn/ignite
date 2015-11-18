@@ -119,6 +119,10 @@
     <Compile Include="Configuration\CacheMode.cs" />
     <Compile Include="Configuration\CacheRebalanceMode.cs" />
     <Compile Include="Configuration\CacheWriteSynchronizationMode.cs" />
+    <Compile Include="Configuration\DiscoveryConfiguration.cs" />
+    <Compile Include="Configuration\IpFinder.cs" />
+    <Compile Include="Configuration\MulticastIpFinder.cs" />
+    <Compile Include="Configuration\StaticIpFinder.cs" />
     <Compile Include="Datastream\IDataStreamer.cs" />
     <Compile Include="Datastream\IStreamReceiver.cs" />
     <Compile Include="Datastream\StreamTransformer.cs" />

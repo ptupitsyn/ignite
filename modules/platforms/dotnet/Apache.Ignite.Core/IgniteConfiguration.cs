@@ -152,6 +152,12 @@ namespace Apache.Ignite.Core
         public int JvmMaxMemoryMb { get; set; }
 
         /// <summary>
+        /// Gets or sets the discovery configuration.
+        /// Null for default configuration.
+        /// </summary>
+        public DiscoveryConfiguration DiscoveryConfiguration { get; set; }
+
+        /// <summary>
         /// Copies the list.
         /// </summary>
         private static List<T> CopyList<T>(ICollection<T> collection)
