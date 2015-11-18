@@ -230,7 +230,8 @@ public class PlatformDotNetConfigurationClosure extends PlatformAbstractConfigur
 
     /**
      * Reads cache configurations from a stream and updates provided IgniteConfiguration.
-     * @param cfg IgniteCOnfiguration to update.
+     *
+     * @param cfg IgniteConfiguration to update.
      * @param in Reader.
      */
     private static void readCacheConfiguration(IgniteConfiguration cfg, BinaryReaderExImpl in) {
@@ -257,6 +258,16 @@ public class PlatformDotNetConfigurationClosure extends PlatformAbstractConfigur
 
             cfg.setCacheConfiguration(mergedCaches);
         }
+    }
+
+    /**
+     * Reads discovery configuration from a stream and updates provided IgniteConfiguration.
+     *
+     * @param cfg IgniteConfiguration to update.
+     * @param in Reader.
+     */
+    private static void readDiscoveryConfiguration(IgniteConfiguration cfg, BinaryReaderExImpl in) {
+        // TODO:
     }
 
     /**
