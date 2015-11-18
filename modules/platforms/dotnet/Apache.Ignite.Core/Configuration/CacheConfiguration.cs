@@ -219,6 +219,7 @@ namespace Apache.Ignite.Core.Configuration
             WriteBehindFlushSize = reader.ReadInt();
             WriteBehindFlushThreadCount = reader.ReadInt();
             WriteSynchronizationMode = (CacheWriteSynchronizationMode) reader.ReadInt();
+            CacheStoreFactory = reader.ReadObject<ICacheStoreFactory>();
         }
 
         /// <summary>
@@ -264,6 +265,7 @@ namespace Apache.Ignite.Core.Configuration
             writer.WriteInt(WriteBehindFlushSize);
             writer.WriteInt(WriteBehindFlushThreadCount);
             writer.WriteInt((int) WriteSynchronizationMode);
+            writer.WriteObject(CacheStoreFactory);
         }
 
         /// <summary>
