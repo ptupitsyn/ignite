@@ -29,6 +29,30 @@ namespace Apache.Ignite.Core.Configuration
     public class MulticastIpFinder : StaticIpFinder
     {
         /// <summary>
+        /// Default multicast port.
+        /// </summary>
+        public const int DefaultMulticastPort = 47400;
+
+        /// <summary>
+        /// Default address request attempts.
+        /// </summary>
+        public const int DefaultAddressRequestAttempts = 2;
+
+        /// <summary>
+        /// Default response timeout.
+        /// </summary>
+        public static readonly TimeSpan DefaultResponseTimeout = TimeSpan.FromMilliseconds(500);
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="MulticastIpFinder"/> class.
+        /// </summary>
+        public MulticastIpFinder()
+        {
+            MulticastPort = DefaultMulticastPort;
+            AddressRequestAtempts = DefaultAddressRequestAttempts;
+        }
+
+        /// <summary>
         /// Gets or sets the local address.
         /// If provided address is non-loopback then multicast socket is bound to this interface. 
         /// If local address is not set or is any local address then IP finder
@@ -61,7 +85,7 @@ namespace Apache.Ignite.Core.Configuration
         /// Gets or sets the time to live for multicast packets sent out on this
         /// IP finder in order to control the scope of the multicast.
         /// </summary>
-        public TimeSpan TimeToLive { get; set; }
+        public byte? TimeToLive { get; set; }
 
         /** <inheritdoc /> */
         protected override void Write(IBinaryRawWriter writer)
