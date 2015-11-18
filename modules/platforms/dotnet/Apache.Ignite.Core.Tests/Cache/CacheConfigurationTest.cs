@@ -19,8 +19,11 @@ namespace Apache.Ignite.Core.Tests.Cache
 {
     using System;
     using System.Collections.Generic;
+    using System.Diagnostics;
+    using Apache.Ignite.Core.Cache.Store;
     using Apache.Ignite.Core.Common;
     using Apache.Ignite.Core.Configuration;
+    using Apache.Ignite.Core.Resource;
     using NUnit.Framework;
 
     /// <summary>
@@ -33,6 +36,10 @@ namespace Apache.Ignite.Core.Tests.Cache
 
         /** */
         private const string CacheName = "cacheName";
+
+        /** */
+        private static bool _factoryInvoked;
+
 
         [TestFixtureSetUp]
         public void FixtureSetUp()
@@ -101,7 +108,21 @@ namespace Apache.Ignite.Core.Tests.Cache
         [Test]
         public void TestCacheStore()
         {
-            
+            _factoryInvoked = false;
+
+            var factory = new CacheStoreFactoryTest {TestProperty = 15};
+
+            var cache = _ignite.CreateCache<int, int>(new CacheConfiguration("cacheWithStore")
+            {
+                CacheStoreFactory = factory
+            });
+
+            Assert.IsTrue(_factoryInvoked);
+
+            var factory0 = cache.GetConfiguration().CacheStoreFactory as CacheStoreFactoryTest;
+
+            Assert.IsNotNull(factory0);
+            Assert.AreEqual(factory.TestProperty, factory0.TestProperty);
         }
 
         /// <summary>
@@ -229,6 +250,42 @@ namespace Apache.Ignite.Core.Tests.Cache
                 WriteBehindEnabled = false,
                 WriteSynchronizationMode = CacheWriteSynchronizationMode.PrimarySync
             };
+        }
+
+        [Serializable]
+        private class CacheStoreFactoryTest : ICacheStoreFactory
+        {
+            [InstanceResource]
+            private readonly IIgnite _ignite = null;
+
+            public int TestProperty { get; set; }
+
+            public ICacheStore CreateInstance()
+            {
+                Assert.IsNotNull(_ignite);
+
+                _factoryInvoked = true;
+
+                return new CacheStoreTest();
+            }
+        }
+
+        private class CacheStoreTest : CacheStoreAdapter
+        {
+            public override object Load(object key)
+            {
+                return null;
+            }
+
+            public override void Write(object key, object val)
+            {
+                // No-op.
+            }
+
+            public override void Delete(object key)
+            {
+                // No-op.
+            }
         }
     }
 }
