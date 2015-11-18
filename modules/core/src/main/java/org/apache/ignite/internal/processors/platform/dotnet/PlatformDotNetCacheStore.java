@@ -102,11 +102,30 @@ public class PlatformDotNetCacheStore<K, V> implements CacheStore<K, V>, Platfor
     /** Properties. */
     private Map<String, ?> props;
 
+    /** Native factory. */
+    private final Object nativeFactory;
+
     /** Interop processor. */
     protected PlatformContext platformCtx;
 
     /** Pointer to native store. */
     protected long ptr;
+
+    /**
+     * Default ctor.
+     */
+    public PlatformDotNetCacheStore() {
+        nativeFactory = null;
+    }
+
+    /**
+     * Native factory ctor.
+     */
+    public PlatformDotNetCacheStore(Object nativeFactory) {
+        assert nativeFactory != null;
+
+        this.nativeFactory = nativeFactory;
+    }
 
     /**
      * Gets .NET class name.
@@ -175,7 +194,7 @@ public class PlatformDotNetCacheStore<K, V> implements CacheStore<K, V>, Platfor
                     writer.writeByte(OP_LOAD_ALL);
                     writer.writeLong(session());
                     writer.writeString(ses.cacheName());
-                    writer.writeCollection((Collection) keys);
+                    writer.writeCollection((Collection)keys);
                 }
             }, new LoadAllCallback<>(platformCtx, loaded));
 
@@ -349,6 +368,7 @@ public class PlatformDotNetCacheStore<K, V> implements CacheStore<K, V>, Platfor
         writer.writeString(typName);
         writer.writeBoolean(convertPortable);
         writer.writeMap(props);
+        writer.writeObjectDetached(nativeFactory);
     }
 
     /**

@@ -855,6 +855,13 @@ public class PlatformUtils {
         ccfg.setWriteBehindFlushThreadCount(in.readInt());
         ccfg.setWriteSynchronizationMode(CacheWriteSynchronizationMode.fromOrdinal(in.readInt()));
 
+        Object storeFactory = in.readObjectDetached();
+
+        if (storeFactory != null) {
+            // TODO:
+            //ccfg.setCacheStoreFactory()
+        }
+
         return ccfg;
     }
 
