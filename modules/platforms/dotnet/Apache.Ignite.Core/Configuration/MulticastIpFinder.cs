@@ -27,6 +27,24 @@ namespace Apache.Ignite.Core.Configuration
     /// </summary>
     public class MulticastIpFinder : StaticIpFinder
     {
+        /// <summary>
+        /// Gets or sets the local address.
+        /// If provided address is non-loopback then multicast socket is bound to this interface. 
+        /// If local address is not set or is any local address then IP finder
+        /// creates multicast sockets for all found non-loopback addresses.
+        /// </summary>
+        public string LocalAddress { get; set; }
+
+        /// <summary>
+        /// Gets or sets the IP address of the multicast group.
+        /// </summary>
+        public string MulticastGroup { get; set; }
+
+        /// <summary>
+        /// Gets or sets the port number which multicast messages are sent to.
+        /// </summary>
+        public int MulticastPort { get; set; }
+
         /** <inheritdoc /> */
         protected override void Write(IBinaryRawWriter writer)
         {
