@@ -17,11 +17,56 @@
 
 namespace Apache.Ignite.Core.Configuration
 {
+    using System;
+
     /// <summary>
     /// Node discovery configuration.
     /// </summary>
     public class DiscoveryConfiguration
     {
+        /// <summary>
+        /// Default socket timeout.
+        /// </summary>
+        public readonly TimeSpan DefaultSocketTimeout = TimeSpan.FromMilliseconds(5000);
+
+        /// <summary>
+        /// Default acknowledgement timeout.
+        /// </summary>
+        public readonly TimeSpan DefaultAckTimeout = TimeSpan.FromMilliseconds(5000);
+
+        /// <summary>
+        /// Default network timeout.
+        /// </summary>
+        public readonly TimeSpan DefaultNetworkTimeout = TimeSpan.FromMilliseconds(5000);
+
+        /// <summary>
+        /// Default join timeout.
+        /// </summary>
+        public readonly TimeSpan DefaultJoinTimeout = TimeSpan.Zero;
+
+        /// <summary>
+        /// Gets or sets the IP finder which defines how nodes will find each other on the network.
+        /// </summary>
         public IpFinder IpFinder { get; set; }
+
+        /// <summary>
+        /// Gets or sets the socket timeout.
+        /// </summary>
+        public TimeSpan SocketTimeout { get; set; }
+        
+        /// <summary>
+        /// Gets or sets the timeout for receiving acknowledgement for sent message.
+        /// </summary>
+        public TimeSpan AckTimeout { get; set; }
+
+        /// <summary>
+        /// Gets or sets the network timeout.
+        /// </summary>
+        public TimeSpan NetworkTimeout { get; set; }
+        
+        /// <summary>
+        /// Gets or sets the join timeout.
+        /// </summary>
+        public TimeSpan JoinTimeout { get; set; }
     }
 }
