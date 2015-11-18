@@ -98,6 +98,12 @@ namespace Apache.Ignite.Core.Tests.Cache
             AssertConfigsAreEqual(cfg, cache2.GetConfiguration());
         }
 
+        [Test]
+        public void TestCacheStore()
+        {
+            
+        }
+
         /// <summary>
         /// Asserts the configuration is default.
         /// </summary>
