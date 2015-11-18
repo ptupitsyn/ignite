@@ -271,8 +271,6 @@ public class PlatformDotNetConfigurationClosure extends PlatformAbstractConfigur
      * @param in Reader.
      */
     private static void readDiscoveryConfiguration(IgniteConfiguration cfg, BinaryReaderExImpl in) {
-        // TODO:
-
         boolean hasConfig = in.readBoolean();
 
         if (!hasConfig)
@@ -299,7 +297,20 @@ public class PlatformDotNetConfigurationClosure extends PlatformAbstractConfigur
                 finder = new TcpDiscoveryVmIpFinder();
             }
             else if (ipFinderType == 2) {
-                finder = new TcpDiscoveryMulticastIpFinder();
+                TcpDiscoveryMulticastIpFinder finder0 = new TcpDiscoveryMulticastIpFinder();
+
+                finder0.setLocalAddress(in.readString());
+                finder0.setMulticastGroup(in.readString());
+                finder0.setMulticastPort(in.readInt());
+                finder0.setAddressRequestAttempts(in.readInt());
+                finder0.setResponseWaitTime(in.readInt());
+
+                boolean hasTtl = in.readBoolean();
+
+                if (hasTtl)
+                    finder0.setTimeToLive(in.readByte());
+
+                finder = finder0;
             }
             else {
                 assert false;
