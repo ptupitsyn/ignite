@@ -18,7 +18,6 @@
 namespace Apache.Ignite.Core.Configuration
 {
     using System;
-    using System.Runtime.Remoting.Messaging;
     using Apache.Ignite.Core.Binary;
 
     /// <summary>

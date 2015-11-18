@@ -18,7 +18,6 @@
 namespace Apache.Ignite.Core.Configuration
 {
     using System.Collections.Generic;
-    using System.Net;
     using Apache.Ignite.Core.Binary;
 
     /// <summary>
@@ -29,7 +28,7 @@ namespace Apache.Ignite.Core.Configuration
         /// <summary>
         /// Gets or sets the end points.
         /// </summary>
-        public ICollection<IPEndPoint> EndPoints { get; set; }
+        public ICollection<string> EndPoints { get; set; }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="StaticIpFinder"/> class.
@@ -49,10 +48,10 @@ namespace Apache.Ignite.Core.Configuration
 
             if (count > 0)
             {
-                EndPoints = new List<IPEndPoint>(count);
+                EndPoints = new List<string>(count);
 
                 for (int i = 0; i < count; i++)
-                    EndPoints.Add(new IPEndPoint(IPAddress.Parse(reader.ReadString()), reader.ReadInt()));
+                    EndPoints.Add(reader.ReadString());
             }
         }
 
@@ -68,10 +67,7 @@ namespace Apache.Ignite.Core.Configuration
                 writer.WriteInt(eps.Count);
 
                 foreach (var ep in eps)
-                {
-                    writer.WriteString(ep.Address.ToString());
-                    writer.WriteInt(ep.Port);
-                }
+                    writer.WriteString(ep);
             }
             else
                 writer.WriteInt(0);

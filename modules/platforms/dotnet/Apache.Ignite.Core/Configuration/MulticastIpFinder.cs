@@ -18,7 +18,6 @@
 namespace Apache.Ignite.Core.Configuration
 {
     using System;
-    using System.Net;
     using Apache.Ignite.Core.Binary;
 
     /// <summary>
@@ -59,12 +58,12 @@ namespace Apache.Ignite.Core.Configuration
         /// If local address is not set or is any local address then IP finder
         /// creates multicast sockets for all found non-loopback addresses.
         /// </summary>
-        public IPAddress LocalAddress { get; set; }
+        public string LocalAddress { get; set; }
 
         /// <summary>
         /// Gets or sets the IP address of the multicast group.
         /// </summary>
-        public IPAddress MulticastGroup { get; set; }
+        public string MulticastGroup { get; set; }
 
         /// <summary>
         /// Gets or sets the port number which multicast messages are sent to.
@@ -94,8 +93,8 @@ namespace Apache.Ignite.Core.Configuration
         /// <param name="reader">The reader.</param>
         internal MulticastIpFinder(IBinaryRawReader reader) : base(reader)
         {
-            LocalAddress = ReadIp(reader);
-            MulticastGroup = ReadIp(reader);
+            LocalAddress = reader.ReadString();
+            MulticastGroup = reader.ReadString();
             MulticastPort = reader.ReadInt();
             AddressRequestAtempts = reader.ReadInt();
             ResponseTimeout = TimeSpan.FromMilliseconds(reader.ReadLong());
@@ -106,8 +105,8 @@ namespace Apache.Ignite.Core.Configuration
         {
             base.Write(writer);
 
-            writer.WriteString(LocalAddress == null ? null : LocalAddress.ToString());
-            writer.WriteString(MulticastGroup == null ? null : MulticastGroup.ToString());
+            writer.WriteString(LocalAddress);
+            writer.WriteString(MulticastGroup);
             writer.WriteInt(MulticastPort);
             writer.WriteInt(AddressRequestAtempts);
             writer.WriteLong((long)ResponseTimeout.TotalMilliseconds);
@@ -117,16 +116,6 @@ namespace Apache.Ignite.Core.Configuration
         protected override byte TypeCode
         {
             get { return TypeCodeMulticastIpFinder; }
-        }
-
-        /// <summary>
-        /// Reads the ip.
-        /// </summary>
-        private static IPAddress ReadIp(IBinaryRawReader reader)
-        {
-            var addr = reader.ReadString();
-
-            return addr == null ? null : IPAddress.Parse(addr);
         }
     }
 }
