@@ -22,7 +22,6 @@ namespace Apache.Ignite.Core.Tests.Cache
     using Apache.Ignite.Core.Cache.Store;
     using Apache.Ignite.Core.Common;
     using Apache.Ignite.Core.Configuration;
-    using Apache.Ignite.Core.Resource;
     using NUnit.Framework;
 
     /// <summary>
@@ -37,7 +36,7 @@ namespace Apache.Ignite.Core.Tests.Cache
         private const string CacheName = "cacheName";
 
         /** */
-        private static bool _factoryInvoked;
+        private static int _factoryProp;
 
 
         [TestFixtureSetUp]
@@ -107,7 +106,7 @@ namespace Apache.Ignite.Core.Tests.Cache
         [Test]
         public void TestCacheStore()
         {
-            _factoryInvoked = false;
+            _factoryProp = 0;
 
             var factory = new CacheStoreFactoryTest {TestProperty = 15};
 
@@ -116,7 +115,7 @@ namespace Apache.Ignite.Core.Tests.Cache
                 CacheStoreFactory = factory
             });
 
-            Assert.IsTrue(_factoryInvoked);
+            Assert.AreEqual(factory.TestProperty, _factoryProp);
 
             var factory0 = cache.GetConfiguration().CacheStoreFactory as CacheStoreFactoryTest;
 
@@ -258,7 +257,7 @@ namespace Apache.Ignite.Core.Tests.Cache
 
             public ICacheStore CreateInstance()
             {
-                _factoryInvoked = true;
+                _factoryProp = TestProperty;
 
                 return new CacheStoreTest();
             }
