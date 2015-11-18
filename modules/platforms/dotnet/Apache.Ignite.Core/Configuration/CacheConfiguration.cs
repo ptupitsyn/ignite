@@ -507,5 +507,10 @@ namespace Apache.Ignite.Core.Configuration
         /// This setting only makes sense when offheap is enabled for this cache.
         /// </summary>
         public int SqlOnheapRowCacheSize { get; set; }
+
+        /// <summary>
+        /// Gets or sets the factory for underlying persistent storage for read-through and write-through operations.
+        /// </summary>
+        public ICacheStoreFactory CacheStoreFactory { get; set; }
     }
 }
