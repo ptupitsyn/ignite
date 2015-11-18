@@ -17,6 +17,8 @@
 
 namespace Apache.Ignite.Core.Configuration
 {
+    using System.Collections.Generic;
+    using System.Net;
     using Apache.Ignite.Core.Binary;
 
     /// <summary>
@@ -24,6 +26,11 @@ namespace Apache.Ignite.Core.Configuration
     /// </summary>
     public class StaticIpFinder : IpFinder
     {
+        /// <summary>
+        /// Gets or sets the end points.
+        /// </summary>
+        public ICollection<IPEndPoint> EndPoints { get; set; }
+
         /** <inheritdoc /> */
         protected override void Write(IBinaryRawWriter writer)
         {
