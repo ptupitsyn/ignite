@@ -25,12 +25,20 @@ namespace Apache.Ignite.Core.Configuration
     /// When TCP discovery starts this finder sends multicast request and waits
     /// for some time when others nodes reply to this request with messages containing their addresses
     /// </summary>
-    public class MulticastIpFinder : IpFinder
+    public class MulticastIpFinder : StaticIpFinder
     {
         /** <inheritdoc /> */
         protected override void Write(IBinaryRawWriter writer)
         {
+            base.Write(writer);
+
             throw new System.NotImplementedException();
+        }
+
+        /** <inheritdoc /> */
+        protected override byte TypeCode
+        {
+            get { return TypeCodeMulticastIpFinder; }
         }
     }
 }

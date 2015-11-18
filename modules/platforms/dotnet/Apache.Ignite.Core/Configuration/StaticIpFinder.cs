@@ -34,7 +34,15 @@ namespace Apache.Ignite.Core.Configuration
         /** <inheritdoc /> */
         protected override void Write(IBinaryRawWriter writer)
         {
+            base.Write(writer);
+
             throw new System.NotImplementedException();
+        }
+        
+        /** <inheritdoc /> */
+        protected override byte TypeCode
+        {
+            get { return TypeCodeVmIpFinder; }
         }
     }
 }

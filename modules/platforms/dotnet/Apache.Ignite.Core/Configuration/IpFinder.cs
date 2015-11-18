@@ -24,6 +24,12 @@ namespace Apache.Ignite.Core.Configuration
     /// </summary>
     public abstract class IpFinder
     {
+        /** */
+        protected const byte TypeCodeVmIpFinder = 1;
+
+        /** */
+        protected const byte TypeCodeMulticastIpFinder = 2;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="IpFinder"/> class.
         /// Prevents user-defined implementations.
@@ -37,6 +43,14 @@ namespace Apache.Ignite.Core.Configuration
         /// Writes this instance to the specified writer.
         /// </summary>
         /// <param name="writer">The writer.</param>
-        protected abstract void Write(IBinaryRawWriter writer);
+        protected virtual void Write(IBinaryRawWriter writer)
+        {
+            writer.WriteByte(TypeCode);
+        }
+
+        /// <summary>
+        /// Gets the type code to be used in Java to determine ip finder type.
+        /// </summary>
+        protected abstract byte TypeCode { get; }
     }
 }
