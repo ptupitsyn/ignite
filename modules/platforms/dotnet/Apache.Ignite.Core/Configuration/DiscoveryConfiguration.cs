@@ -18,6 +18,7 @@
 namespace Apache.Ignite.Core.Configuration
 {
     using System;
+    using Apache.Ignite.Core.Binary;
 
     /// <summary>
     /// Node discovery configuration.
@@ -79,5 +80,24 @@ namespace Apache.Ignite.Core.Configuration
         /// Gets or sets the join timeout.
         /// </summary>
         public TimeSpan JoinTimeout { get; set; }
+
+        /// <summary>
+        /// Writes this instance to the specified writer.
+        /// </summary>
+        internal void Write(IBinaryRawWriter writer)
+        {
+            var ipFinder = IpFinder;
+
+            if (ipFinder != null)
+            {
+                writer.WriteBoolean(true);
+
+                IpFinder.Write(writer);
+            }
+            else
+                writer.WriteBoolean(false);
+
+            // TODO
+        }
     }
 }

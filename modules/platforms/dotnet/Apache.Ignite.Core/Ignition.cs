@@ -281,6 +281,8 @@ namespace Apache.Ignite.Core
         {
             Debug.Assert(outStream != null && cfg != null);
 
+            var writer = _startup.Marshaller.StartMarshal(outStream);
+
             var caches = cfg.CacheConfiguration;
 
             if (caches == null)
@@ -289,11 +291,20 @@ namespace Apache.Ignite.Core
             {
                 outStream.WriteInt(caches.Count);
 
-                var writer = _startup.Marshaller.StartMarshal(outStream);
-
                 foreach (var cache in caches)
                     cache.Write(writer);
             }
+
+            var disco = cfg.DiscoveryConfiguration;
+
+            if (disco != null)
+            {
+                outStream.WriteBool(true);
+
+                disco.Write(writer);
+            }
+            else
+                outStream.WriteBool(false);
         }
 
         /// <summary>

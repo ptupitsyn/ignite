@@ -43,7 +43,7 @@ namespace Apache.Ignite.Core.Configuration
         /// Writes this instance to the specified writer.
         /// </summary>
         /// <param name="writer">The writer.</param>
-        protected virtual void Write(IBinaryRawWriter writer)
+        internal virtual void Write(IBinaryRawWriter writer)
         {
             writer.WriteByte(TypeCode);
         }
