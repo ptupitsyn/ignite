@@ -94,7 +94,11 @@ namespace Apache.Ignite.Core.Configuration
         /// <param name="reader">The reader.</param>
         internal MulticastIpFinder(IBinaryRawReader reader) : base(reader)
         {
-            // TODO
+            LocalAddress = ReadIp(reader);
+            MulticastGroup = ReadIp(reader);
+            MulticastPort = reader.ReadInt();
+            AddressRequestAtempts = reader.ReadInt();
+            ResponseTimeout = TimeSpan.FromMilliseconds(reader.ReadLong());
         }
 
         /** <inheritdoc /> */
@@ -113,6 +117,16 @@ namespace Apache.Ignite.Core.Configuration
         protected override byte TypeCode
         {
             get { return TypeCodeMulticastIpFinder; }
+        }
+
+        /// <summary>
+        /// Reads the ip.
+        /// </summary>
+        private static IPAddress ReadIp(IBinaryRawReader reader)
+        {
+            var addr = reader.ReadString();
+
+            return addr == null ? null : IPAddress.Parse(addr);
         }
     }
 }
