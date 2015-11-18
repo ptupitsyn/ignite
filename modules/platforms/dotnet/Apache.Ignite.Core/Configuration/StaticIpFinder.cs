@@ -32,11 +32,24 @@ namespace Apache.Ignite.Core.Configuration
         public ICollection<IPEndPoint> EndPoints { get; set; }
 
         /** <inheritdoc /> */
-        protected override void Write(IBinaryRawWriter writer)
+        internal override void Write(IBinaryRawWriter writer)
         {
             base.Write(writer);
 
-            throw new System.NotImplementedException();
+            var eps = EndPoints;
+
+            if (eps != null)
+            {
+                writer.WriteInt(eps.Count);
+
+                foreach (var ep in eps)
+                {
+                    writer.WriteString(ep.Address.ToString());
+                    writer.WriteInt(ep.Port);
+                }
+            }
+            else
+                writer.WriteInt(0);
         }
         
         /** <inheritdoc /> */
