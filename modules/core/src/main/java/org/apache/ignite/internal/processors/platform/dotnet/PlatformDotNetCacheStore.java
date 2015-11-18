@@ -341,7 +341,8 @@ public class PlatformDotNetCacheStore<K, V> implements CacheStore<K, V>, Platfor
      * @throws org.apache.ignite.IgniteCheckedException
      */
     public void initialize(GridKernalContext ctx, boolean convertPortable) throws IgniteCheckedException {
-        A.notNull(typName, "typName");
+        A.ensure(typName != null || nativeFactory != null,
+            "Either typName or nativeFactory must be set in PlatformDotNetCacheStore");
 
         platformCtx = PlatformUtils.platformContext(ctx.grid());
 
