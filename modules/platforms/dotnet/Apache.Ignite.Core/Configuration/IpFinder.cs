@@ -17,6 +17,8 @@
 
 namespace Apache.Ignite.Core.Configuration
 {
+    using System;
+    using System.Runtime.Remoting.Messaging;
     using Apache.Ignite.Core.Binary;
 
     /// <summary>
@@ -52,5 +54,25 @@ namespace Apache.Ignite.Core.Configuration
         /// Gets the type code to be used in Java to determine ip finder type.
         /// </summary>
         protected abstract byte TypeCode { get; }
+
+        /// <summary>
+        /// Reads the instance.
+        /// </summary>
+        internal static IpFinder ReadInstance(IBinaryRawReader reader)
+        {
+            var code = reader.ReadByte();
+
+            switch (code)
+            {
+                case TypeCodeVmIpFinder:
+                    return new StaticIpFinder(reader);
+
+                case TypeCodeMulticastIpFinder:
+                    return new MulticastIpFinder(reader);
+
+                default:
+                    throw new InvalidOperationException("Invalid data on IpFinder deserialization: " + code);
+            }
+        }
     }
 }
