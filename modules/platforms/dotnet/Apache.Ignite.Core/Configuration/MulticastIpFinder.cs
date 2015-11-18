@@ -18,6 +18,7 @@
 namespace Apache.Ignite.Core.Configuration
 {
     using System;
+    using System.Net;
     using Apache.Ignite.Core.Binary;
 
     /// <summary>
@@ -58,12 +59,12 @@ namespace Apache.Ignite.Core.Configuration
         /// If local address is not set or is any local address then IP finder
         /// creates multicast sockets for all found non-loopback addresses.
         /// </summary>
-        public string LocalAddress { get; set; }
+        public IPAddress LocalAddress { get; set; }
 
         /// <summary>
         /// Gets or sets the IP address of the multicast group.
         /// </summary>
-        public string MulticastGroup { get; set; }
+        public IPAddress MulticastGroup { get; set; }
 
         /// <summary>
         /// Gets or sets the port number which multicast messages are sent to.
@@ -88,11 +89,15 @@ namespace Apache.Ignite.Core.Configuration
         public byte? TimeToLive { get; set; }
 
         /** <inheritdoc /> */
-        protected override void Write(IBinaryRawWriter writer)
+        internal override void Write(IBinaryRawWriter writer)
         {
             base.Write(writer);
 
-            throw new NotImplementedException();
+            writer.WriteString(LocalAddress == null ? null : LocalAddress.ToString());
+            writer.WriteString(MulticastGroup == null ? null : MulticastGroup.ToString());
+            writer.WriteInt(MulticastPort);
+            writer.WriteInt(AddressRequestAtempts);
+            writer.WriteLong((long) ResponseTimeout.TotalMilliseconds);
         }
 
         /** <inheritdoc /> */
