@@ -17,6 +17,7 @@
 
 namespace Apache.Ignite.Core.Configuration
 {
+    using System;
     using Apache.Ignite.Core.Binary;
 
     /// <summary>
@@ -45,12 +46,29 @@ namespace Apache.Ignite.Core.Configuration
         /// </summary>
         public int MulticastPort { get; set; }
 
+        /// <summary>
+        /// Gets or sets the number of attempts to send multicast address request. IP finder re-sends
+        /// request only in case if no reply for previous request is received.
+        /// </summary>
+        public int AddressRequestAtempts { get; set; }
+
+        /// <summary>
+        /// Gets or sets the response timeout.
+        /// </summary>
+        public TimeSpan ResponseTimeout { get; set; }
+
+        /// <summary>
+        /// Gets or sets the time to live for multicast packets sent out on this
+        /// IP finder in order to control the scope of the multicast.
+        /// </summary>
+        public TimeSpan TimeToLive { get; set; }
+
         /** <inheritdoc /> */
         protected override void Write(IBinaryRawWriter writer)
         {
             base.Write(writer);
 
-            throw new System.NotImplementedException();
+            throw new NotImplementedException();
         }
 
         /** <inheritdoc /> */
