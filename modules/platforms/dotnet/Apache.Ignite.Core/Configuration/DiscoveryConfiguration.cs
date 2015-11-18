@@ -97,7 +97,10 @@ namespace Apache.Ignite.Core.Configuration
             else
                 writer.WriteBoolean(false);
 
-            // TODO
+            writer.WriteLong((long) SocketTimeout.TotalMilliseconds);
+            writer.WriteLong((long) AckTimeout.TotalMilliseconds);
+            writer.WriteLong((long) NetworkTimeout.TotalMilliseconds);
+            writer.WriteLong((long) JoinTimeout.TotalMilliseconds);
         }
     }
 }
