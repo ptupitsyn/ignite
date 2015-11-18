@@ -101,7 +101,7 @@ namespace Apache.Ignite.Core.Impl.Cache.Store
         {
             using (var stream = IgniteManager.Memory.Get(memPtr).GetStream())
             {
-                var reader = BinaryUtils.Marshaller.StartUnmarshal(stream, BinaryMode.KeepBinary);
+                var reader = BinaryUtils.Marshaller.StartUnmarshal(stream);
 
                 var convertBinary = reader.ReadBoolean();
                 var factory = reader.ReadObject<ICacheStoreFactory>();

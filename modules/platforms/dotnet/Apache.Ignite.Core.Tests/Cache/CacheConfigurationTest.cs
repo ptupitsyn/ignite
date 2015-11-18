@@ -254,15 +254,10 @@ namespace Apache.Ignite.Core.Tests.Cache
         [Serializable]
         private class CacheStoreFactoryTest : ICacheStoreFactory
         {
-            [InstanceResource]
-            private readonly IIgnite _ignite = null;
-
             public int TestProperty { get; set; }
 
             public ICacheStore CreateInstance()
             {
-                Assert.IsNotNull(_ignite);
-
                 _factoryInvoked = true;
 
                 return new CacheStoreTest();

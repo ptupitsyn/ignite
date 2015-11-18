@@ -39,6 +39,15 @@ public class PlatformDotNetCacheStoreFactoryNative implements Factory<PlatformDo
         this.nativeFactory = nativeFactory;
     }
 
+    /**
+     * Gets the wrapped factory object.
+     *
+     * @return Factory object.
+     */
+    public Object getNativeFactory() {
+        return nativeFactory;
+    }
+
     /** {@inheritDoc} */
     @Override public PlatformDotNetCacheStore create() {
         return new PlatformDotNetCacheStore(nativeFactory);

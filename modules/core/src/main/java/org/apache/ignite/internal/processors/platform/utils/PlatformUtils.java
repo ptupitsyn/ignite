@@ -914,7 +914,11 @@ public class PlatformUtils {
         writer.writeInt(ccfg.getWriteBehindFlushSize());
         writer.writeInt(ccfg.getWriteBehindFlushThreadCount());
         writer.writeInt(ccfg.getWriteSynchronizationMode().ordinal());
-        writer.writeObject(ccfg.getCacheStoreFactory());
+
+        if (ccfg.getCacheStoreFactory() instanceof PlatformDotNetCacheStoreFactoryNative)
+            writer.writeObject(((PlatformDotNetCacheStoreFactoryNative)ccfg.getCacheStoreFactory()).getNativeFactory());
+        else
+            writer.writeObject(null);
     }
 
     /**
