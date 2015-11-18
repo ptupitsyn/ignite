@@ -45,6 +45,17 @@ namespace Apache.Ignite.Core.Configuration
         public readonly TimeSpan DefaultJoinTimeout = TimeSpan.Zero;
 
         /// <summary>
+        /// Initializes a new instance of the <see cref="DiscoveryConfiguration"/> class.
+        /// </summary>
+        public DiscoveryConfiguration()
+        {
+            SocketTimeout = DefaultSocketTimeout;
+            AckTimeout = DefaultAckTimeout;
+            NetworkTimeout = DefaultNetworkTimeout;
+            JoinTimeout = DefaultJoinTimeout;
+        }
+
+        /// <summary>
         /// Gets or sets the IP finder which defines how nodes will find each other on the network.
         /// </summary>
         public IpFinder IpFinder { get; set; }
