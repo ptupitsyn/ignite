@@ -41,12 +41,55 @@ namespace Apache.Ignite.Core
         public const int DefaultJvmMaxMem = 1024;
 
         /// <summary>
-        /// Default constructor.
+        /// The default network retry count.
+        /// </summary>
+        public const int DefaultNetworkRetryCount = 3;
+
+        /// <summary>
+        /// The default network retry delay.
+        /// </summary>
+        public static readonly TimeSpan DefaultNetworkRetryDelay = TimeSpan.FromSeconds(1);
+
+        /// <summary>
+        /// The default network timeout
+        /// </summary>
+        public static readonly TimeSpan DefaultNetworkTimeout = TimeSpan.FromSeconds(5);
+
+        /// <summary>
+        /// The default metrics expire time.
+        /// </summary>
+        public static readonly TimeSpan DefaultMetricsExpireTime = TimeSpan.MaxValue;
+        
+        /// <summary>
+        /// The default metrics history size
+        /// </summary>
+        public const int DefaultMetricsHistorySize = 10000;
+
+        /// <summary>
+        /// The default metrics log frequency.
+        /// </summary>
+        public static readonly TimeSpan DefaultMetricsLogFrequency = TimeSpan.FromSeconds(60);
+
+        /// <summary>
+        /// The default metrics update frequency.
+        /// </summary>
+        public static readonly TimeSpan DefaultMetricsUpdateFrequency = TimeSpan.FromSeconds(2);
+
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="IgniteConfiguration"/> class.
         /// </summary>
         public IgniteConfiguration()
         {
             JvmInitialMemoryMb = DefaultJvmInitMem;
             JvmMaxMemoryMb = DefaultJvmMaxMem;
+            NetworkSendRetryCount = DefaultNetworkRetryCount;
+            NetworkSendRetryDelay = DefaultNetworkRetryDelay;
+            NetworkTimeout = DefaultNetworkTimeout;
+            MetricsExpireTime = DefaultMetricsExpireTime;
+            MetricsHistorySize = DefaultMetricsHistorySize;
+            MetricsLogFrequency = DefaultMetricsLogFrequency;
+            MetricsUpdateFrequency = DefaultMetricsUpdateFrequency;
         }
 
         /// <summary>
