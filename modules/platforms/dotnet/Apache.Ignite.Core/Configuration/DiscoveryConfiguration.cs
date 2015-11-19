@@ -36,6 +36,11 @@ namespace Apache.Ignite.Core.Configuration
         public readonly TimeSpan DefaultAckTimeout = TimeSpan.FromMilliseconds(5000);
 
         /// <summary>
+        /// Default maximum acknowledgement timeout.
+        /// </summary>
+        public readonly TimeSpan DefaultMaxAckTimeout = TimeSpan.FromMinutes(10);
+
+        /// <summary>
         /// Default network timeout.
         /// </summary>
         public readonly TimeSpan DefaultNetworkTimeout = TimeSpan.FromMilliseconds(5000);
@@ -72,6 +77,11 @@ namespace Apache.Ignite.Core.Configuration
         public TimeSpan AckTimeout { get; set; }
 
         /// <summary>
+        /// Gets or sets the maximum timeout for receiving acknowledgement for sent message.
+        /// </summary>
+        public TimeSpan MaxAckTimeout { get; set; }
+
+        /// <summary>
         /// Gets or sets the network timeout.
         /// </summary>
         public TimeSpan NetworkTimeout { get; set; }
@@ -99,8 +109,11 @@ namespace Apache.Ignite.Core.Configuration
 
             writer.WriteLong((long) SocketTimeout.TotalMilliseconds);
             writer.WriteLong((long) AckTimeout.TotalMilliseconds);
+            writer.WriteLong((long) MaxAckTimeout.TotalMilliseconds);
             writer.WriteLong((long) NetworkTimeout.TotalMilliseconds);
             writer.WriteLong((long) JoinTimeout.TotalMilliseconds);
         }
+
+        // TODO: Validate
     }
 }

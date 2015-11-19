@@ -327,6 +327,7 @@ public class PlatformDotNetConfigurationClosure extends PlatformAbstractConfigur
 
         disco.setSocketTimeout(in.readLong());
         disco.setAckTimeout(in.readLong());
+        disco.setMaxAckTimeout(in.readLong());
         disco.setNetworkTimeout(in.readLong());
         disco.setJoinTimeout(in.readLong());
 

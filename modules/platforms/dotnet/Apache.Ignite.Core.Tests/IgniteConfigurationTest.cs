@@ -49,7 +49,7 @@ namespace Apache.Ignite.Core.Tests
             }
         }
 
-        [Test]
+        //[Test]
         public void TestInvalidTimeouts()
         {
             var cfg = new IgniteConfiguration
