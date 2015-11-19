@@ -38,14 +38,14 @@ namespace Apache.Ignite.Core.Tests
                         JoinTimeout = TimeSpan.MaxValue,
                         NetworkTimeout = TimeSpan.MaxValue,
                         SocketTimeout = TimeSpan.MaxValue
-                    }
+                    },
+                JvmClasspath = TestUtils.CreateTestClasspath(),
+                JvmOptions = TestUtils.TestJavaOptions()
             };
 
             using (var ignite = Ignition.Start(cfg))
-            using (var ignite2 = Ignition.Start(cfg))
-            {
-                Assert.AreEqual(2, ignite.GetCluster().GetNodes().Count); 
-                Assert.AreEqual(2, ignite2.GetCluster().GetNodes().Count); 
+            { 
+                Assert.AreEqual(1, ignite.GetCluster().GetNodes().Count);
             }
         }
 
@@ -59,7 +59,9 @@ namespace Apache.Ignite.Core.Tests
                     {
                         AckTimeout = TimeSpan.FromMilliseconds(-5),
                         JoinTimeout = TimeSpan.MinValue,
-                    }
+                    },
+                JvmClasspath = TestUtils.CreateTestClasspath(),
+                JvmOptions = TestUtils.TestJavaOptions()
             };
 
             using (var ignite = Ignition.Start(cfg))
@@ -71,7 +73,7 @@ namespace Apache.Ignite.Core.Tests
         [Test]
         public void TestStaticSpi()
         {
-            var cfg1 = new IgniteConfiguration {DiscoveryConfiguration = new DiscoveryConfiguration {} };
+            //var cfg1 = new IgniteConfiguration {DiscoveryConfiguration = new DiscoveryConfiguration {} };
         }
 
         [Test]

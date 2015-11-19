@@ -180,6 +180,7 @@ public class PlatformDotNetConfigurationClosure extends PlatformAbstractConfigur
         assert cfg != null;
 
         readCacheConfiguration(cfg, in);
+        readDiscoveryConfiguration(cfg, in);
 
         List<PlatformDotNetLifecycleBean> beans = beans(cfg);
         List<PlatformLifecycleBean> newBeans = new ArrayList<>();
