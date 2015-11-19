@@ -274,6 +274,19 @@ namespace Apache.Ignite.Core
 
             var writer = _startup.Marshaller.StartMarshal(outStream);
 
+            // Simple properties
+            writer.WriteBoolean(cfg.ClientMode);
+            writer.WriteIntArray(cfg.IncludedEventTypes == null ? null : cfg.IncludedEventTypes.ToArray());
+            writer.WriteLong((long) cfg.MetricsExpireTime.TotalMilliseconds);
+            writer.WriteLong((long) cfg.MetricsLogFrequency.TotalMilliseconds);
+            writer.WriteLong((long) cfg.MetricsUpdateFrequency.TotalMilliseconds);
+            writer.WriteInt(cfg.MetricsHistorySize);
+            writer.WriteInt(cfg.NetworkSendRetryCount);
+            writer.WriteLong((long) cfg.NetworkSendRetryDelay.TotalMilliseconds);
+            writer.WriteLong((long) cfg.NetworkTimeout.TotalMilliseconds);
+            writer.WriteString(cfg.WorkDirectory);
+
+            // Cache config
             var caches = cfg.CacheConfiguration;
 
             if (caches == null)
@@ -286,6 +299,7 @@ namespace Apache.Ignite.Core
                     cache.Write(writer);
             }
 
+            // Discovery config
             var disco = cfg.DiscoveryConfiguration;
 
             if (disco != null)
