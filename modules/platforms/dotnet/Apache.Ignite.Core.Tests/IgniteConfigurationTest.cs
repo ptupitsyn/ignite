@@ -77,15 +77,31 @@ namespace Apache.Ignite.Core.Tests
         [Test]
         public void TestStaticIpFinder()
         {
+            TestIpFinders(new StaticIpFinder
+            {
+                EndPoints = new[] {"127.0.0.1:47500"}
+            }, new StaticIpFinder
+            {
+                EndPoints = new[] {"127.0.0.1:47501"}
+            });
+        }
+
+        [Test]
+        public void TestMulticastIpFinder()
+        {
+            TestIpFinders(
+                new MulticastIpFinder {MulticastGroup = "228.111.111.222", MulticastPort = 54522},
+                new MulticastIpFinder {MulticastGroup = "228.111.111.222", MulticastPort = 54522});
+        }
+
+        private static void TestIpFinders(IpFinder ipFinder, IpFinder ipFinder2)
+        {
             var cfg = new IgniteConfiguration
             {
                 DiscoveryConfiguration =
                     new DiscoveryConfiguration
                     {
-                        IpFinder = new StaticIpFinder
-                        {
-                            EndPoints = new [] { "127.0.0.1:47500" }
-                        }
+                        IpFinder = ipFinder
                     },
                 JvmClasspath = TestUtils.CreateTestClasspath(),
                 JvmOptions = TestUtils.TestJavaOptions()
@@ -102,10 +118,7 @@ namespace Apache.Ignite.Core.Tests
                 }
 
                 // Start with incompatible endpoint and check that there are 2 topologies
-                cfg.DiscoveryConfiguration.IpFinder = new StaticIpFinder
-                {
-                    EndPoints = new[] { "127.0.0.1:47501" }
-                };
+                cfg.DiscoveryConfiguration.IpFinder = ipFinder2;
 
                 using (var ignite2 = Ignition.Start(cfg))
                 {
@@ -115,10 +128,5 @@ namespace Apache.Ignite.Core.Tests
             }
         }
 
-        [Test]
-        public void TestMulticastIpFinder()
-        {
-            
-        }
     }
 }
