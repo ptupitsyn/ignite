@@ -46,8 +46,13 @@ namespace Apache.Ignite.Core.Tests
             };
 
             using (var ignite = Ignition.Start(cfg))
-            { 
-                Assert.AreEqual(1, ignite.GetCluster().GetNodes().Count);
+            {
+                cfg.GridName = "ignite2";
+                using (var ignite2 = Ignition.Start(cfg))
+                {
+                    Assert.AreEqual(2, ignite.GetCluster().GetNodes().Count);
+                    Assert.AreEqual(2, ignite2.GetCluster().GetNodes().Count);
+                }
             }
         }
 

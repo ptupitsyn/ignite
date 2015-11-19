@@ -53,6 +53,7 @@ namespace Apache.Ignite.Core
         /// <param name="cfg">Configuration.</param>
         internal IgniteConfiguration(IgniteConfiguration cfg)
         {
+            GridName = cfg.GridName;
             SpringConfigUrl = cfg.SpringConfigUrl;
             JvmDllPath = cfg.JvmDllPath;
             IgniteHome = cfg.IgniteHome;
