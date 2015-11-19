@@ -91,7 +91,7 @@ namespace Apache.Ignite.Core.Tests
         {
             TestIpFinders(
                 new MulticastIpFinder {MulticastGroup = "228.111.111.222", MulticastPort = 54522},
-                new MulticastIpFinder {MulticastGroup = "228.111.111.222", MulticastPort = 54522});
+                new MulticastIpFinder {MulticastGroup = "228.111.111.223", MulticastPort = 54522});
         }
 
         private static void TestIpFinders(IpFinder ipFinder, IpFinder ipFinder2)

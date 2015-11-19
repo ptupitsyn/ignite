@@ -50,6 +50,7 @@ namespace Apache.Ignite.Core.Configuration
         {
             MulticastPort = DefaultMulticastPort;
             AddressRequestAtempts = DefaultAddressRequestAttempts;
+            ResponseTimeout = DefaultResponseTimeout;
         }
 
         /// <summary>
