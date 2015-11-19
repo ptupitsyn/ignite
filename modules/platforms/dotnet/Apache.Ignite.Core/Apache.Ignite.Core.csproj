@@ -224,7 +224,6 @@
     <Compile Include="Impl\Events\Events.cs" />
     <Compile Include="Impl\Events\RemoteListenEventFilter.cs" />
     <Compile Include="Impl\ExceptionUtils.cs" />
-    <Compile Include="Impl\IgniteConfigurationEx.cs" />
     <Compile Include="Impl\Ignite.cs" />
     <Compile Include="Impl\IgniteManager.cs" />
     <Compile Include="Impl\IgniteProxy.cs" />

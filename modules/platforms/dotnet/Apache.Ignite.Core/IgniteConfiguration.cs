@@ -77,6 +77,11 @@ namespace Apache.Ignite.Core
         }
 
         /// <summary>
+        /// Grid name which is used if not provided in configuration file.
+        /// </summary>
+        public string GridName { get; set; }
+
+        /// <summary>
         /// Gets or sets the binary configuration.
         /// </summary>
         /// <value>

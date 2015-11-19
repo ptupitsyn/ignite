@@ -127,9 +127,7 @@ namespace Apache.Ignite.Core
             IgniteArgumentCheck.NotNull(cfg, "cfg");
 
             // Copy configuration to avoid changes to user-provided instance.
-            IgniteConfigurationEx cfgEx = cfg as IgniteConfigurationEx;
-
-            cfg = cfgEx == null ? new IgniteConfiguration(cfg) : new IgniteConfigurationEx(cfgEx);
+            cfg = new IgniteConfiguration(cfg);
 
             // Set default Spring config if needed.
             if (cfg.SpringConfigUrl == null)
@@ -147,7 +145,7 @@ namespace Apache.Ignite.Core
 
                 IgniteManager.CreateJvmContext(cfg, cbs);
 
-                var gridName = cfgEx != null ? cfgEx.GridName : null;
+                var gridName = cfg.GridName;
 
                 var cfgPath = Environment.GetEnvironmentVariable(EnvIgniteSpringConfigUrlPrefix) +
                     (cfg.SpringConfigUrl ?? DefaultCfg);
