@@ -279,7 +279,10 @@ namespace Apache.Ignite.Core
             writer.WriteIntArray(cfg.IncludedEventTypes == null ? null : cfg.IncludedEventTypes.ToArray());
             writer.WriteLong((long) cfg.MetricsExpireTime.TotalMilliseconds);
             writer.WriteLong((long) cfg.MetricsLogFrequency.TotalMilliseconds);
-            writer.WriteLong((long) cfg.MetricsUpdateFrequency.TotalMilliseconds);
+
+            var metricsUpdateFreq = (long) cfg.MetricsUpdateFrequency.TotalMilliseconds;
+            writer.WriteLong(metricsUpdateFreq >= 0 ? metricsUpdateFreq : -1);
+
             writer.WriteInt(cfg.MetricsHistorySize);
             writer.WriteInt(cfg.NetworkSendRetryCount);
             writer.WriteLong((long) cfg.NetworkSendRetryDelay.TotalMilliseconds);
