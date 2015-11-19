@@ -84,7 +84,7 @@ namespace Apache.Ignite.Core.Tests
                     {
                         IpFinder = new StaticIpFinder
                         {
-                            EndPoints = new [] { "127.0.0.1:55000..55123" }
+                            EndPoints = new [] { "127.0.0.1:47500" }
                         }
                     },
                 JvmClasspath = TestUtils.CreateTestClasspath(),
@@ -104,7 +104,7 @@ namespace Apache.Ignite.Core.Tests
                 // Start with incompatible endpoint and check that there are 2 topologies
                 cfg.DiscoveryConfiguration.IpFinder = new StaticIpFinder
                 {
-                    EndPoints = new[] {"127.0.0.1:65000..65123"}
+                    EndPoints = new[] { "127.0.0.1:47501" }
                 };
 
                 using (var ignite2 = Ignition.Start(cfg))
