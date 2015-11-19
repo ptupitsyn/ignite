@@ -357,6 +357,11 @@ public class PlatformProcessorImpl extends GridProcessorAdapter implements Platf
         return new PlatformAtomicLong(platformCtx, atomicLong);
     }
 
+    /** {@inheritDoc} */
+    @Override public void getIgniteConfiguration(long memPtr) {
+        // TODO
+    }
+
     /**
      * Internal store initialization routine.
      *

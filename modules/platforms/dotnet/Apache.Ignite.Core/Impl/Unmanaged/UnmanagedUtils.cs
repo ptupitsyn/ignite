@@ -189,6 +189,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged
         private delegate void* ProcessorServicesDelegate(void* ctx, void* obj, void* prj);
         private delegate void* ProcessorExtensionsDelegate(void* ctx, void* obj);
         private delegate void* ProcessorAtomicLongDelegate(void* ctx, void* obj, sbyte* name, long initVal, bool create);
+        private delegate void ProcessorGetIgniteConfigurationDelegate(void* ctx, void* obj, long memPtr);
         
         private delegate long TargetInStreamOutLongDelegate(void* ctx, void* target, int opType, long memPtr);
         private delegate void TargetInStreamOutStreamDelegate(void* ctx, void* target, int opType, long inMemPtr, long outMemPtr);
