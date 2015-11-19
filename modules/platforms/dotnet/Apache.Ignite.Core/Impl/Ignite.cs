@@ -480,6 +480,13 @@ namespace Apache.Ignite.Core.Impl
             return new AtomicLong(nativeLong, Marshaller, name);
         }
 
+        /** <inheritdoc /> */
+        public IgniteConfiguration GetConfiguration()
+        {
+            // TODO
+            throw new NotImplementedException();
+        }
+
         /// <summary>
         /// Gets internal projection.
         /// </summary>
