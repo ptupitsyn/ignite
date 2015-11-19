@@ -72,6 +72,8 @@ namespace Apache.Ignite.Core
             JvmMaxMemoryMb = cfg.JvmMaxMemoryMb;
 
             CacheConfiguration = CopyList(cfg.CacheConfiguration);
+
+            DiscoveryConfiguration = cfg.DiscoveryConfiguration;
         }
 
         /// <summary>

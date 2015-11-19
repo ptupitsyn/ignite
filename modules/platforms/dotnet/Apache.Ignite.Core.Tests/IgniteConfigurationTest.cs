@@ -17,6 +17,8 @@
 
 namespace Apache.Ignite.Core.Tests
 {
+    using System;
+    using Apache.Ignite.Core.Configuration;
     using NUnit.Framework;
 
     /// <summary>
@@ -25,9 +27,49 @@ namespace Apache.Ignite.Core.Tests
     public class IgniteConfigurationTest
     {
         [Test]
+        public void TestDefaultSpi()
+        {
+            var cfg = new IgniteConfiguration
+            {
+                DiscoveryConfiguration =
+                    new DiscoveryConfiguration
+                    {
+                        AckTimeout = TimeSpan.MaxValue,
+                        JoinTimeout = TimeSpan.MaxValue,
+                        NetworkTimeout = TimeSpan.MaxValue,
+                        SocketTimeout = TimeSpan.MaxValue
+                    }
+            };
+
+            using (var ignite = Ignition.Start(cfg))
+            {
+                Assert.IsNotNull(ignite);
+            }
+        }
+
+        [Test]
+        public void TestInvalidTimeouts()
+        {
+            var cfg = new IgniteConfiguration
+            {
+                DiscoveryConfiguration =
+                    new DiscoveryConfiguration
+                    {
+                        AckTimeout = TimeSpan.FromMilliseconds(-5),
+                        JoinTimeout = TimeSpan.MinValue,
+                    }
+            };
+
+            using (var ignite = Ignition.Start(cfg))
+            {
+                Assert.IsNotNull(ignite);
+            }
+        }
+
+        [Test]
         public void TestStaticSpi()
         {
-            
+            var cfg1 = new IgniteConfiguration {DiscoveryConfiguration = new DiscoveryConfiguration {} };
         }
 
         [Test]
