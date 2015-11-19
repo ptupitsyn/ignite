@@ -18,6 +18,7 @@
 namespace Apache.Ignite.Core.Tests
 {
     using System;
+    using Apache.Ignite.Core.Common;
     using Apache.Ignite.Core.Configuration;
     using NUnit.Framework;
 
@@ -50,7 +51,7 @@ namespace Apache.Ignite.Core.Tests
             }
         }
 
-        //[Test]
+        [Test]
         public void TestInvalidTimeouts()
         {
             var cfg = new IgniteConfiguration
@@ -65,10 +66,7 @@ namespace Apache.Ignite.Core.Tests
                 JvmOptions = TestUtils.TestJavaOptions()
             };
 
-            using (var ignite = Ignition.Start(cfg))
-            {
-                Assert.IsNotNull(ignite);
-            }
+            Assert.Throws<IgniteException>(() => Ignition.Start(cfg));
         }
 
         [Test]
