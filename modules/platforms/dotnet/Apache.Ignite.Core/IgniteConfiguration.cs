@@ -48,36 +48,6 @@ namespace Apache.Ignite.Core
         }
 
         /// <summary>
-        /// Copying constructor.
-        /// </summary>
-        /// <param name="cfg">Configuration.</param>
-        internal IgniteConfiguration(IgniteConfiguration cfg)
-        {
-            GridName = cfg.GridName;
-            SpringConfigUrl = cfg.SpringConfigUrl;
-            JvmDllPath = cfg.JvmDllPath;
-            IgniteHome = cfg.IgniteHome;
-            JvmClasspath = cfg.JvmClasspath;
-            SuppressWarnings = cfg.SuppressWarnings;
-
-            JvmOptions = CopyList(cfg.JvmOptions);
-            Assemblies = CopyList(cfg.Assemblies);
-
-            BinaryConfiguration = cfg.BinaryConfiguration != null
-                ? new BinaryConfiguration(cfg.BinaryConfiguration)
-                : null;
-
-            LifecycleBeans = cfg.LifecycleBeans != null ? new List<ILifecycleBean>(cfg.LifecycleBeans) : null;
-
-            JvmInitialMemoryMb = cfg.JvmInitialMemoryMb;
-            JvmMaxMemoryMb = cfg.JvmMaxMemoryMb;
-
-            CacheConfiguration = CopyList(cfg.CacheConfiguration);
-
-            DiscoveryConfiguration = cfg.DiscoveryConfiguration;
-        }
-
-        /// <summary>
         /// Grid name which is used if not provided in configuration file.
         /// </summary>
         public string GridName { get; set; }
@@ -164,13 +134,5 @@ namespace Apache.Ignite.Core
         /// Null for default configuration.
         /// </summary>
         public DiscoveryConfiguration DiscoveryConfiguration { get; set; }
-
-        /// <summary>
-        /// Copies the list.
-        /// </summary>
-        private static List<T> CopyList<T>(ICollection<T> collection)
-        {
-            return collection == null ? null : new List<T>(collection);
-        }
     }
 }

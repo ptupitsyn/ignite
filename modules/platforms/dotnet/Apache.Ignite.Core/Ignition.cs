@@ -126,13 +126,6 @@ namespace Apache.Ignite.Core
         {
             IgniteArgumentCheck.NotNull(cfg, "cfg");
 
-            // Copy configuration to avoid changes to user-provided instance.
-            cfg = new IgniteConfiguration(cfg);
-
-            // Set default Spring config if needed.
-            if (cfg.SpringConfigUrl == null)
-                cfg.SpringConfigUrl = DefaultCfg;
-
             lock (SyncRoot)
             {
                 // 1. Check GC settings.
