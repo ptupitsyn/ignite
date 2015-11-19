@@ -35,6 +35,7 @@ import org.apache.ignite.internal.GridKernalContext;
 import org.apache.ignite.internal.IgniteKernal;
 import org.apache.ignite.internal.portable.BinaryRawReaderEx;
 import org.apache.ignite.internal.portable.BinaryRawWriterEx;
+import org.apache.ignite.internal.portable.BinaryReaderExImpl;
 import org.apache.ignite.internal.processors.platform.PlatformContext;
 import org.apache.ignite.internal.processors.platform.PlatformExtendedException;
 import org.apache.ignite.internal.processors.platform.PlatformNativeException;
@@ -51,6 +52,9 @@ import org.apache.ignite.platform.dotnet.PlatformDotNetCacheStoreFactoryNative;
 import org.apache.ignite.platform.dotnet.PlatformDotNetConfiguration;
 import org.apache.ignite.platform.dotnet.PlatformDotNetBinaryConfiguration;
 import org.apache.ignite.platform.dotnet.PlatformDotNetBinaryTypeConfiguration;
+import org.apache.ignite.spi.discovery.tcp.TcpDiscoverySpi;
+import org.apache.ignite.spi.discovery.tcp.ipfinder.multicast.TcpDiscoveryMulticastIpFinder;
+import org.apache.ignite.spi.discovery.tcp.ipfinder.vm.TcpDiscoveryVmIpFinder;
 import org.jetbrains.annotations.Nullable;
 
 import javax.cache.CacheException;
@@ -865,6 +869,131 @@ public class PlatformUtils {
             ccfg.setCacheStoreFactory(new PlatformDotNetCacheStoreFactoryNative(storeFactory));
 
         return ccfg;
+    }
+
+    /**
+     * Reads Ignite configuration.
+     * @param in Reader.
+     * @param cfg Configuration.
+     */
+    public static void readIgniteConfiguration(BinaryReaderExImpl in, IgniteConfiguration cfg) {
+        if (in.readBoolean()) cfg.setClientMode(in.readBoolean());
+        if (in.readBoolean()) cfg.setMetricsExpireTime(in.readLong());
+        if (in.readBoolean()) cfg.setMetricsLogFrequency(in.readLong());
+        if (in.readBoolean()) cfg.setMetricsUpdateFrequency(in.readLong());
+        if (in.readBoolean()) cfg.setMetricsHistorySize(in.readInt());
+        if (in.readBoolean()) cfg.setNetworkSendRetryCount(in.readInt());
+        if (in.readBoolean()) cfg.setNetworkSendRetryDelay(in.readLong());
+        if (in.readBoolean()) cfg.setNetworkTimeout(in.readLong());
+
+        int[] eventTypes = in.readIntArray();
+        if (eventTypes != null) cfg.setIncludeEventTypes(eventTypes);
+
+        String workDir = in.readString();
+        if (workDir != null) cfg.setWorkDirectory(workDir);
+
+        readCacheConfigurations(in, cfg);
+        readDiscoveryConfiguration(in, cfg);
+    }
+
+    /**
+     * Reads cache configurations from a stream and updates provided IgniteConfiguration.
+     *
+     * @param cfg IgniteConfiguration to update.
+     * @param in Reader.
+     */
+    public static void readCacheConfigurations(BinaryReaderExImpl in, IgniteConfiguration cfg) {
+        int len = in.readInt();
+
+        if (len == 0)
+            return;
+
+        List<CacheConfiguration> caches = new ArrayList<>();
+
+        for (int i = 0; i < len; i++)
+            caches.add(readCacheConfiguration(in));
+
+        CacheConfiguration[] oldCaches = cfg.getCacheConfiguration();
+        CacheConfiguration[] caches0 = caches.toArray(new CacheConfiguration[caches.size()]);
+
+        if (oldCaches == null)
+            cfg.setCacheConfiguration(caches0);
+        else {
+            CacheConfiguration[] mergedCaches = new CacheConfiguration[oldCaches.length + caches.size()];
+
+            System.arraycopy(oldCaches, 0, mergedCaches, 0, oldCaches.length);
+            System.arraycopy(caches0, 0, mergedCaches, oldCaches.length, caches.size());
+
+            cfg.setCacheConfiguration(mergedCaches);
+        }
+    }
+
+    /**
+     * Reads discovery configuration from a stream and updates provided IgniteConfiguration.
+     *
+     * @param cfg IgniteConfiguration to update.
+     * @param in Reader.
+     */
+    public static void readDiscoveryConfiguration(BinaryReaderExImpl in, IgniteConfiguration cfg) {
+        boolean hasConfig = in.readBoolean();
+
+        if (!hasConfig)
+            return;
+
+        TcpDiscoverySpi disco = new TcpDiscoverySpi();
+
+        boolean hasIpFinder = in.readBoolean();
+
+        if (hasIpFinder) {
+            byte ipFinderType = in.readByte();
+
+            int addrCount = in.readInt();
+
+            ArrayList<String> addrs = null;
+
+            if (addrCount > 0) {
+                addrs = new ArrayList<>(addrCount);
+
+                for (int i = 0; i < addrCount; i++)
+                    addrs.add(in.readString());
+            }
+
+            TcpDiscoveryVmIpFinder finder = null;
+            if (ipFinderType == 1) {
+                finder = new TcpDiscoveryVmIpFinder();
+            }
+            else if (ipFinderType == 2) {
+                TcpDiscoveryMulticastIpFinder finder0 = new TcpDiscoveryMulticastIpFinder();
+
+                finder0.setLocalAddress(in.readString());
+                finder0.setMulticastGroup(in.readString());
+                finder0.setMulticastPort(in.readInt());
+                finder0.setAddressRequestAttempts(in.readInt());
+                finder0.setResponseWaitTime(in.readInt());
+
+                boolean hasTtl = in.readBoolean();
+
+                if (hasTtl)
+                    finder0.setTimeToLive(in.readByte());
+
+                finder = finder0;
+            }
+            else {
+                assert false;
+            }
+
+            finder.setAddresses(addrs);
+
+            disco.setIpFinder(finder);
+        }
+
+        disco.setSocketTimeout(in.readLong());
+        disco.setAckTimeout(in.readLong());
+        disco.setMaxAckTimeout(in.readLong());
+        disco.setNetworkTimeout(in.readLong());
+        disco.setJoinTimeout(in.readLong());
+
+        cfg.setDiscoverySpi(disco);
     }
 
     /**

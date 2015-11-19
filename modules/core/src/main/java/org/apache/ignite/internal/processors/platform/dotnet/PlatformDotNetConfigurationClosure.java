@@ -19,7 +19,6 @@ package org.apache.ignite.internal.processors.platform.dotnet;
 
 import org.apache.ignite.IgniteCheckedException;
 import org.apache.ignite.IgniteException;
-import org.apache.ignite.cache.*;
 import org.apache.ignite.configuration.*;
 import org.apache.ignite.internal.MarshallerContextImpl;
 import org.apache.ignite.internal.portable.BinaryNoopMetadataHandler;
@@ -39,12 +38,7 @@ import org.apache.ignite.marshaller.Marshaller;
 import org.apache.ignite.marshaller.portable.PortableMarshaller;
 import org.apache.ignite.platform.dotnet.PlatformDotNetConfiguration;
 import org.apache.ignite.platform.dotnet.PlatformDotNetLifecycleBean;
-import org.apache.ignite.spi.discovery.tcp.TcpDiscoverySpi;
-import org.apache.ignite.spi.discovery.tcp.ipfinder.TcpDiscoveryIpFinder;
-import org.apache.ignite.spi.discovery.tcp.ipfinder.multicast.TcpDiscoveryMulticastIpFinder;
-import org.apache.ignite.spi.discovery.tcp.ipfinder.vm.TcpDiscoveryVmIpFinder;
 
-import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -179,23 +173,7 @@ public class PlatformDotNetConfigurationClosure extends PlatformAbstractConfigur
     private void processPrepareResult(BinaryReaderExImpl in) {
         assert cfg != null;
 
-        if (in.readBoolean()) cfg.setClientMode(in.readBoolean());
-        if (in.readBoolean()) cfg.setMetricsExpireTime(in.readLong());
-        if (in.readBoolean()) cfg.setMetricsLogFrequency(in.readLong());
-        if (in.readBoolean()) cfg.setMetricsUpdateFrequency(in.readLong());
-        if (in.readBoolean()) cfg.setMetricsHistorySize(in.readInt());
-        if (in.readBoolean()) cfg.setNetworkSendRetryCount(in.readInt());
-        if (in.readBoolean()) cfg.setNetworkSendRetryDelay(in.readLong());
-        if (in.readBoolean()) cfg.setNetworkTimeout(in.readLong());
-
-        int[] eventTypes = in.readIntArray();
-        if (eventTypes != null) cfg.setIncludeEventTypes(eventTypes);
-
-        String workDir = in.readString();
-        if (workDir != null) cfg.setWorkDirectory(workDir);
-
-        readCacheConfiguration(cfg, in);
-        readDiscoveryConfiguration(cfg, in);
+        PlatformUtils.readIgniteConfiguration(in, cfg);
 
         List<PlatformDotNetLifecycleBean> beans = beans(cfg);
         List<PlatformLifecycleBean> newBeans = new ArrayList<>();
@@ -247,106 +225,6 @@ public class PlatformDotNetConfigurationClosure extends PlatformAbstractConfigur
         }
 
         return res;
-    }
-
-    /**
-     * Reads cache configurations from a stream and updates provided IgniteConfiguration.
-     *
-     * @param cfg IgniteConfiguration to update.
-     * @param in Reader.
-     */
-    private static void readCacheConfiguration(IgniteConfiguration cfg, BinaryReaderExImpl in) {
-        int len = in.readInt();
-
-        if (len == 0)
-            return;
-
-        List<CacheConfiguration> caches = new ArrayList<>();
-
-        for (int i = 0; i < len; i++)
-            caches.add(PlatformUtils.readCacheConfiguration(in));
-
-        CacheConfiguration[] oldCaches = cfg.getCacheConfiguration();
-        CacheConfiguration[] caches0 = caches.toArray(new CacheConfiguration[caches.size()]);
-
-        if (oldCaches == null)
-            cfg.setCacheConfiguration(caches0);
-        else {
-            CacheConfiguration[] mergedCaches = new CacheConfiguration[oldCaches.length + caches.size()];
-
-            System.arraycopy(oldCaches, 0, mergedCaches, 0, oldCaches.length);
-            System.arraycopy(caches0, 0, mergedCaches, oldCaches.length, caches.size());
-
-            cfg.setCacheConfiguration(mergedCaches);
-        }
-    }
-
-    /**
-     * Reads discovery configuration from a stream and updates provided IgniteConfiguration.
-     *
-     * @param cfg IgniteConfiguration to update.
-     * @param in Reader.
-     */
-    private static void readDiscoveryConfiguration(IgniteConfiguration cfg, BinaryReaderExImpl in) {
-        boolean hasConfig = in.readBoolean();
-
-        if (!hasConfig)
-            return;
-
-        TcpDiscoverySpi disco = new TcpDiscoverySpi();
-
-        boolean hasIpFinder = in.readBoolean();
-
-        if (hasIpFinder) {
-            byte ipFinderType = in.readByte();
-
-            int addrCount = in.readInt();
-
-            ArrayList<String> addrs = null;
-
-            if (addrCount > 0) {
-                addrs = new ArrayList<>(addrCount);
-
-                for (int i = 0; i < addrCount; i++)
-                    addrs.add(in.readString());
-            }
-
-            TcpDiscoveryVmIpFinder finder = null;
-            if (ipFinderType == 1) {
-                finder = new TcpDiscoveryVmIpFinder();
-            }
-            else if (ipFinderType == 2) {
-                TcpDiscoveryMulticastIpFinder finder0 = new TcpDiscoveryMulticastIpFinder();
-
-                finder0.setLocalAddress(in.readString());
-                finder0.setMulticastGroup(in.readString());
-                finder0.setMulticastPort(in.readInt());
-                finder0.setAddressRequestAttempts(in.readInt());
-                finder0.setResponseWaitTime(in.readInt());
-
-                boolean hasTtl = in.readBoolean();
-
-                if (hasTtl)
-                    finder0.setTimeToLive(in.readByte());
-
-                finder = finder0;
-            }
-            else {
-                assert false;
-            }
-
-            finder.setAddresses(addrs);
-
-            disco.setIpFinder(finder);
-        }
-
-        disco.setSocketTimeout(in.readLong());
-        disco.setAckTimeout(in.readLong());
-        disco.setMaxAckTimeout(in.readLong());
-        disco.setNetworkTimeout(in.readLong());
-        disco.setJoinTimeout(in.readLong());
-
-        cfg.setDiscoverySpi(disco);
     }
 
     /**
