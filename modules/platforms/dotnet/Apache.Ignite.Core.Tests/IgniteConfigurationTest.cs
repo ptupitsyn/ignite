@@ -75,13 +75,48 @@ namespace Apache.Ignite.Core.Tests
         }
 
         [Test]
-        public void TestStaticSpi()
+        public void TestStaticIpFinder()
         {
-            //var cfg1 = new IgniteConfiguration {DiscoveryConfiguration = new DiscoveryConfiguration {} };
+            var cfg = new IgniteConfiguration
+            {
+                DiscoveryConfiguration =
+                    new DiscoveryConfiguration
+                    {
+                        IpFinder = new StaticIpFinder
+                        {
+                            EndPoints = new [] { "127.0.0.1:55000..55123" }
+                        }
+                    },
+                JvmClasspath = TestUtils.CreateTestClasspath(),
+                JvmOptions = TestUtils.TestJavaOptions()
+            };
+
+            using (var ignite = Ignition.Start(cfg))
+            {
+                // Start with the same endpoint
+                cfg.GridName = "ignite2";
+                using (var ignite2 = Ignition.Start(cfg))
+                {
+                    Assert.AreEqual(2, ignite.GetCluster().GetNodes().Count);
+                    Assert.AreEqual(2, ignite2.GetCluster().GetNodes().Count);
+                }
+
+                // Start with incompatible endpoint and check that there are 2 topologies
+                cfg.DiscoveryConfiguration.IpFinder = new StaticIpFinder
+                {
+                    EndPoints = new[] {"127.0.0.1:65000..65123"}
+                };
+
+                using (var ignite2 = Ignition.Start(cfg))
+                {
+                    Assert.AreEqual(1, ignite.GetCluster().GetNodes().Count);
+                    Assert.AreEqual(1, ignite2.GetCluster().GetNodes().Count);
+                }
+            }
         }
 
         [Test]
-        public void TestMulticastSpi()
+        public void TestMulticastIpFinder()
         {
             
         }
