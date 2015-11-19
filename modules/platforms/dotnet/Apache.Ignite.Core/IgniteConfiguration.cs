@@ -50,6 +50,15 @@ namespace Apache.Ignite.Core
         }
 
         /// <summary>
+        /// Initializes a new instance of the <see cref="IgniteConfiguration"/> class from a reader.
+        /// </summary>
+        /// <param name="binaryReader">The binary reader.</param>
+        internal IgniteConfiguration(IBinaryRawReader binaryReader)
+        {
+            // TODO
+        }
+
+        /// <summary>
         /// Grid name which is used if not provided in configuration file.
         /// </summary>
         public string GridName { get; set; }

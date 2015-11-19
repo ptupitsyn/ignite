@@ -56,6 +56,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged
         private const string ProcProcessorServices = "IgniteProcessorServices";
         private const string ProcProcessorExtensions = "IgniteProcessorExtensions";
         private const string ProcProcessorAtomicLong = "IgniteProcessorAtomicLong";
+        private const string ProcProcessorGetIgniteConfiguration = "IgniteProcessorGetIgniteConfiguration";
         
         private const string ProcTargetInStreamOutLong = "IgniteTargetInStreamOutLong";
         private const string ProcTargetInStreamOutStream = "IgniteTargetInStreamOutStream";
@@ -324,6 +325,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged
         private static readonly ProcessorServicesDelegate PROCESSOR_SERVICES;
         private static readonly ProcessorExtensionsDelegate PROCESSOR_EXTENSIONS;
         private static readonly ProcessorAtomicLongDelegate PROCESSOR_ATOMIC_LONG;
+        private static readonly ProcessorGetIgniteConfigurationDelegate PROCESSOR_GET_IGNITE_CONFIGURATION;
         
         private static readonly TargetInStreamOutLongDelegate TARGET_IN_STREAM_OUT_LONG;
         private static readonly TargetInStreamOutStreamDelegate TARGET_IN_STREAM_OUT_STREAM;
@@ -474,6 +476,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged
             PROCESSOR_SERVICES = CreateDelegate<ProcessorServicesDelegate>(ProcProcessorServices);
             PROCESSOR_EXTENSIONS = CreateDelegate<ProcessorExtensionsDelegate>(ProcProcessorExtensions);
             PROCESSOR_ATOMIC_LONG = CreateDelegate<ProcessorAtomicLongDelegate>(ProcProcessorAtomicLong);
+            PROCESSOR_GET_IGNITE_CONFIGURATION = CreateDelegate<ProcessorGetIgniteConfigurationDelegate>(ProcProcessorGetIgniteConfiguration);
             
             TARGET_IN_STREAM_OUT_LONG = CreateDelegate<TargetInStreamOutLongDelegate>(ProcTargetInStreamOutLong);
             TARGET_IN_STREAM_OUT_STREAM = CreateDelegate<TargetInStreamOutStreamDelegate>(ProcTargetInStreamOutStream);
@@ -790,6 +793,11 @@ namespace Apache.Ignite.Core.Impl.Unmanaged
             {
                 Marshal.FreeHGlobal(new IntPtr(name0));
             }
+        }
+
+        internal static void ProcessorGetIgniteConfiguration(IUnmanagedTarget target, long memPtr)
+        {
+            PROCESSOR_GET_IGNITE_CONFIGURATION(target.Context, target.Target, memPtr);
         }
 
         #endregion

@@ -483,8 +483,12 @@ namespace Apache.Ignite.Core.Impl
         /** <inheritdoc /> */
         public IgniteConfiguration GetConfiguration()
         {
-            // TODO
-            throw new NotImplementedException();
+            using (var stream = IgniteManager.Memory.Allocate(1024).GetStream())
+            {
+                UU.ProcessorGetIgniteConfiguration(_proc, stream.MemoryPointer);
+
+                return new IgniteConfiguration(_marsh.StartUnmarshal(stream));
+            }
         }
 
         /// <summary>
