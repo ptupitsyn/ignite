@@ -30,31 +30,6 @@ namespace Apache.Ignite.Core.Configuration
         /// </summary>
         public ICollection<string> EndPoints { get; set; }
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="StaticIpFinder"/> class.
-        /// </summary>
-        public StaticIpFinder()
-        {
-            // No-op.
-        }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="StaticIpFinder"/> class.
-        /// </summary>
-        /// <param name="reader">The reader.</param>
-        internal StaticIpFinder(IBinaryRawReader reader)
-        {
-            var count = reader.ReadInt();
-
-            if (count > 0)
-            {
-                EndPoints = new List<string>(count);
-
-                for (int i = 0; i < count; i++)
-                    EndPoints.Add(reader.ReadString());
-            }
-        }
-
         /** <inheritdoc /> */
         internal override void Write(IBinaryRawWriter writer)
         {

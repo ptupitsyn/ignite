@@ -88,20 +88,6 @@ namespace Apache.Ignite.Core.Configuration
         /// </summary>
         public byte? TimeToLive { get; set; }
 
-        /*
-        /// <summary>
-        /// Initializes a new instance of the <see cref="MulticastIpFinder"/> class.
-        /// </summary>
-        /// <param name="reader">The reader.</param>
-        internal MulticastIpFinder(IBinaryRawReader reader) : base(reader)
-        {
-            LocalAddress = reader.ReadString();
-            MulticastGroup = reader.ReadString();
-            MulticastPort = reader.ReadInt();
-            AddressRequestAtempts = reader.ReadInt();
-            ResponseTimeout = TimeSpan.FromMilliseconds(reader.ReadLong());
-        }*/
-
         /** <inheritdoc /> */
         internal override void Write(IBinaryRawWriter writer)
         {
