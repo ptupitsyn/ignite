@@ -34,7 +34,8 @@ namespace Apache.Ignite.Core.Tests
                 DiscoveryConfiguration =
                     new DiscoveryConfiguration
                     {
-                        AckTimeout = TimeSpan.MaxValue,
+                        AckTimeout = TimeSpan.FromDays(2),
+                        MaxAckTimeout = TimeSpan.MaxValue,
                         JoinTimeout = TimeSpan.MaxValue,
                         NetworkTimeout = TimeSpan.MaxValue,
                         SocketTimeout = TimeSpan.MaxValue
