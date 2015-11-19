@@ -30,6 +30,7 @@ import org.apache.ignite.cache.CachePeekMode;
 import org.apache.ignite.cache.CacheRebalanceMode;
 import org.apache.ignite.cache.CacheWriteSynchronizationMode;
 import org.apache.ignite.configuration.CacheConfiguration;
+import org.apache.ignite.configuration.IgniteConfiguration;
 import org.apache.ignite.internal.GridKernalContext;
 import org.apache.ignite.internal.IgniteKernal;
 import org.apache.ignite.internal.portable.BinaryRawReaderEx;
@@ -919,6 +920,16 @@ public class PlatformUtils {
             writer.writeObject(((PlatformDotNetCacheStoreFactoryNative)ccfg.getCacheStoreFactory()).getNativeFactory());
         else
             writer.writeObject(null);
+    }
+
+    /**
+     * Writes Ignite configuration.
+     *
+     * @param writer Writer.
+     * @param cfg Configuration.
+     */
+    public static void writeIgniteConfiguration(BinaryRawWriter writer, IgniteConfiguration cfg) {
+        // TODO
     }
 
     /**
