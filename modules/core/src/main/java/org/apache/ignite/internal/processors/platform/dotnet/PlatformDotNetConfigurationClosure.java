@@ -179,18 +179,20 @@ public class PlatformDotNetConfigurationClosure extends PlatformAbstractConfigur
     private void processPrepareResult(BinaryReaderExImpl in) {
         assert cfg != null;
 
-        if (in.readBoolean())
-            cfg.setClientMode(in.readBoolean());
+        if (in.readBoolean()) cfg.setClientMode(in.readBoolean());
+        if (in.readBoolean()) cfg.setMetricsExpireTime(in.readLong());
+        if (in.readBoolean()) cfg.setMetricsLogFrequency(in.readLong());
+        if (in.readBoolean()) cfg.setMetricsUpdateFrequency(in.readLong());
+        if (in.readBoolean()) cfg.setMetricsHistorySize(in.readInt());
+        if (in.readBoolean()) cfg.setNetworkSendRetryCount(in.readInt());
+        if (in.readBoolean()) cfg.setNetworkSendRetryDelay(in.readLong());
+        if (in.readBoolean()) cfg.setNetworkTimeout(in.readLong());
 
-        cfg.setIncludeEventTypes(in.readIntArray());
-        cfg.setMetricsExpireTime(in.readLong());
-        cfg.setMetricsLogFrequency(in.readLong());
-        cfg.setMetricsUpdateFrequency(in.readLong());
-        cfg.setMetricsHistorySize(in.readInt());
-        cfg.setNetworkSendRetryCount(in.readInt());
-        cfg.setNetworkSendRetryDelay(in.readLong());
-        cfg.setNetworkTimeout(in.readLong());
-        cfg.setWorkDirectory(in.readString());
+        int[] eventTypes = in.readIntArray();
+        if (eventTypes != null) cfg.setIncludeEventTypes(eventTypes);
+
+        String workDir = in.readString();
+        if (workDir != null) cfg.setWorkDirectory(workDir);
 
         readCacheConfiguration(cfg, in);
         readDiscoveryConfiguration(cfg, in);

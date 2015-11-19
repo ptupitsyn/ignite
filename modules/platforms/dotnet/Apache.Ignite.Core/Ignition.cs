@@ -279,7 +279,6 @@ namespace Apache.Ignite.Core
             if (cfg.ClientMode.HasValue)
                 writer.WriteBoolean(cfg.ClientMode.Value);
 
-            writer.WriteIntArray(cfg.IncludedEventTypes == null ? null : cfg.IncludedEventTypes.ToArray());
             WriteNullableTimespan(writer, cfg.MetricsExpireTime);
             WriteNullableTimespan(writer, cfg.MetricsLogFrequency);
 
@@ -295,6 +294,7 @@ namespace Apache.Ignite.Core
             WriteNullableInt(writer, cfg.NetworkSendRetryCount);
             WriteNullableTimespan(writer,  cfg.NetworkSendRetryDelay);
             WriteNullableTimespan(writer,  cfg.NetworkTimeout);
+            writer.WriteIntArray(cfg.IncludedEventTypes == null ? null : cfg.IncludedEventTypes.ToArray());
             writer.WriteString(cfg.WorkDirectory);
 
             // Cache config
