@@ -39,6 +39,7 @@ import org.apache.ignite.marshaller.Marshaller;
 import org.apache.ignite.marshaller.portable.PortableMarshaller;
 import org.apache.ignite.platform.dotnet.PlatformDotNetConfiguration;
 import org.apache.ignite.platform.dotnet.PlatformDotNetLifecycleBean;
+import org.apache.ignite.spi.discovery.tcp.TcpDiscoverySpi;
 import org.apache.ignite.spi.discovery.tcp.ipfinder.TcpDiscoveryIpFinder;
 import org.apache.ignite.spi.discovery.tcp.ipfinder.multicast.TcpDiscoveryMulticastIpFinder;
 import org.apache.ignite.spi.discovery.tcp.ipfinder.vm.TcpDiscoveryVmIpFinder;
@@ -276,6 +277,8 @@ public class PlatformDotNetConfigurationClosure extends PlatformAbstractConfigur
         if (!hasConfig)
             return;
 
+        TcpDiscoverySpi disco = new TcpDiscoverySpi();
+
         boolean hasIpFinder = in.readBoolean();
 
         if (hasIpFinder) {
@@ -317,7 +320,16 @@ public class PlatformDotNetConfigurationClosure extends PlatformAbstractConfigur
             }
 
             finder.setAddresses(addrs);
+
+            disco.setIpFinder(finder);
         }
+
+        disco.setSocketTimeout(in.readLong());
+        disco.setAckTimeout(in.readLong());
+        disco.setNetworkTimeout(in.readLong());
+        disco.setJoinTimeout(in.readLong());
+
+        cfg.setDiscoverySpi(disco);
     }
 
     /**
