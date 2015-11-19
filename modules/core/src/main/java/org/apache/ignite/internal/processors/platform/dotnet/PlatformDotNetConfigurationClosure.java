@@ -179,7 +179,9 @@ public class PlatformDotNetConfigurationClosure extends PlatformAbstractConfigur
     private void processPrepareResult(BinaryReaderExImpl in) {
         assert cfg != null;
 
-        cfg.setClientMode(in.readBoolean());
+        if (in.readBoolean())
+            cfg.setClientMode(in.readBoolean());
+
         cfg.setIncludeEventTypes(in.readIntArray());
         cfg.setMetricsExpireTime(in.readLong());
         cfg.setMetricsLogFrequency(in.readLong());

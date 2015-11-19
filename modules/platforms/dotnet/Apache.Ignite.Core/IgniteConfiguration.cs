@@ -183,8 +183,9 @@ namespace Apache.Ignite.Core
         /// <summary>
         /// Gets or sets a value indicating whether node should start in client mode.
         /// Client node cannot hold data in the caches.
+        /// Default is null and takes this setting from Spring configuration.
         /// </summary>
-        public bool ClientMode { get; set; }
+        public bool? ClientMode { get; set; }
 
         /// <summary>
         /// Gets or sets a set of event types (<see cref="EventType" />) to be recorded by Ignite. 

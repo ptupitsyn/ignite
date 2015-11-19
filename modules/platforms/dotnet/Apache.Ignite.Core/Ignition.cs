@@ -275,7 +275,10 @@ namespace Apache.Ignite.Core
             var writer = _startup.Marshaller.StartMarshal(outStream);
 
             // Simple properties
-            writer.WriteBoolean(cfg.ClientMode);
+            writer.WriteBoolean(cfg.ClientMode.HasValue);
+            if (cfg.ClientMode.HasValue)
+                writer.WriteBoolean(cfg.ClientMode.Value);
+
             writer.WriteIntArray(cfg.IncludedEventTypes == null ? null : cfg.IncludedEventTypes.ToArray());
             writer.WriteLong((long) cfg.MetricsExpireTime.TotalMilliseconds);
             writer.WriteLong((long) cfg.MetricsLogFrequency.TotalMilliseconds);
