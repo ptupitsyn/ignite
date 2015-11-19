@@ -280,16 +280,21 @@ namespace Apache.Ignite.Core
                 writer.WriteBoolean(cfg.ClientMode.Value);
 
             writer.WriteIntArray(cfg.IncludedEventTypes == null ? null : cfg.IncludedEventTypes.ToArray());
-            writer.WriteLong((long) cfg.MetricsExpireTime.TotalMilliseconds);
-            writer.WriteLong((long) cfg.MetricsLogFrequency.TotalMilliseconds);
+            WriteNullableTimespan(writer, cfg.MetricsExpireTime);
+            WriteNullableTimespan(writer, cfg.MetricsLogFrequency);
 
-            var metricsUpdateFreq = (long) cfg.MetricsUpdateFrequency.TotalMilliseconds;
-            writer.WriteLong(metricsUpdateFreq >= 0 ? metricsUpdateFreq : -1);
+            writer.WriteBoolean(cfg.MetricsUpdateFrequency.HasValue);
 
-            writer.WriteInt(cfg.MetricsHistorySize);
-            writer.WriteInt(cfg.NetworkSendRetryCount);
-            writer.WriteLong((long) cfg.NetworkSendRetryDelay.TotalMilliseconds);
-            writer.WriteLong((long) cfg.NetworkTimeout.TotalMilliseconds);
+            if (cfg.MetricsUpdateFrequency.HasValue)
+            {
+                var metricsUpdateFreq = (long) cfg.MetricsUpdateFrequency.Value.TotalMilliseconds;
+                writer.WriteLong(metricsUpdateFreq >= 0 ? metricsUpdateFreq : -1);
+            }
+
+            WriteNullableInt(writer, cfg.MetricsHistorySize);
+            WriteNullableInt(writer, cfg.NetworkSendRetryCount);
+            WriteNullableTimespan(writer,  cfg.NetworkSendRetryDelay);
+            WriteNullableTimespan(writer,  cfg.NetworkTimeout);
             writer.WriteString(cfg.WorkDirectory);
 
             // Cache config
@@ -316,6 +321,28 @@ namespace Apache.Ignite.Core
             }
             else
                 outStream.WriteBool(false);
+        }
+
+        /// <summary>
+        /// Writes nullable timespan.
+        /// </summary>
+        private static void WriteNullableTimespan(IBinaryRawWriter writer, TimeSpan? timeSpan)
+        {
+            writer.WriteBoolean(timeSpan.HasValue);
+
+            if (timeSpan.HasValue)
+                writer.WriteLong((long) timeSpan.Value.TotalMilliseconds);
+        }
+
+        /// <summary>
+        /// Writes nullable int.
+        /// </summary>
+        private static void WriteNullableInt(IBinaryRawWriter writer, int? i)
+        {
+            writer.WriteBoolean(i.HasValue);
+
+            if (i.HasValue)
+                writer.WriteInt(i.Value);
         }
 
         /// <summary>
