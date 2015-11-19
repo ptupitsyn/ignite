@@ -42,8 +42,10 @@ namespace Apache.Ignite.Core.Tests
             };
 
             using (var ignite = Ignition.Start(cfg))
+            using (var ignite2 = Ignition.Start(cfg))
             {
-                Assert.IsNotNull(ignite);
+                Assert.AreEqual(2, ignite.GetCluster().GetNodes().Count); 
+                Assert.AreEqual(2, ignite2.GetCluster().GetNodes().Count); 
             }
         }
 

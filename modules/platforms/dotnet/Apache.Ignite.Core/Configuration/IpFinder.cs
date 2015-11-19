@@ -54,6 +54,7 @@ namespace Apache.Ignite.Core.Configuration
         /// </summary>
         protected abstract byte TypeCode { get; }
 
+        /*
         /// <summary>
         /// Reads the instance.
         /// </summary>
@@ -72,6 +73,6 @@ namespace Apache.Ignite.Core.Configuration
                 default:
                     throw new InvalidOperationException("Invalid data on IpFinder deserialization: " + code);
             }
-        }
+        }*/
     }
 }
