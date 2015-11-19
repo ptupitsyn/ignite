@@ -57,6 +57,7 @@ namespace Apache.Ignite.Core.Configuration
         {
             SocketTimeout = DefaultSocketTimeout;
             AckTimeout = DefaultAckTimeout;
+            MaxAckTimeout = DefaultMaxAckTimeout;
             NetworkTimeout = DefaultNetworkTimeout;
             JoinTimeout = DefaultJoinTimeout;
         }
