@@ -18,6 +18,7 @@
 package org.apache.ignite.testsuites;
 
 import junit.framework.TestSuite;
+import org.apache.ignite.internal.portable.BinaryEnumsSelfTest;
 import org.apache.ignite.internal.portable.GridPortableAffinityKeySelfTest;
 import org.apache.ignite.internal.portable.BinaryObjectBuilderAdditionalSelfTest;
 import org.apache.ignite.internal.portable.BinaryObjectBuilderSelfTest;
@@ -62,7 +63,7 @@ public class IgnitePortableObjectsTestSuite extends TestSuite {
      * @throws Exception If failed.
      */
     public static TestSuite suite() throws Exception {
-        TestSuite suite = new TestSuite("GridGain Portable Objects Test Suite");
+        TestSuite suite = new TestSuite("Ignite Binary Objects Test Suite");
 
         suite.addTestSuite(BinaryMarshallerSelfTest.class);
         suite.addTestSuite(GridPortableMarshallerCtxDisabledSelfTest.class);
@@ -72,6 +73,7 @@ public class IgnitePortableObjectsTestSuite extends TestSuite {
         suite.addTestSuite(BinaryFieldsOffheapSelfTest.class);
         suite.addTestSuite(BinaryFooterOffsetsHeapSelfTest.class);
         suite.addTestSuite(BinaryFooterOffsetsOffheapSelfTest.class);
+        suite.addTestSuite(BinaryEnumsSelfTest.class);
         suite.addTestSuite(GridPortableMetaDataSelfTest.class);
         suite.addTestSuite(GridPortableAffinityKeySelfTest.class);
         suite.addTestSuite(GridPortableWildcardsSelfTest.class);
