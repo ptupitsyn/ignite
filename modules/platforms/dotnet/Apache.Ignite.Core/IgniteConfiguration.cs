@@ -77,6 +77,9 @@ namespace Apache.Ignite.Core
 
             ClientMode = r.ReadBoolean();
             IncludedEventTypes = r.ReadIntArray();
+
+            var maxMs = TimeSpan.MaxValue.TotalMilliseconds;
+
             MetricsExpireTime = TimeSpan.FromMilliseconds(r.ReadLong());
             MetricsHistorySize = r.ReadInt();
             MetricsLogFrequency = TimeSpan.FromMilliseconds(r.ReadLong());

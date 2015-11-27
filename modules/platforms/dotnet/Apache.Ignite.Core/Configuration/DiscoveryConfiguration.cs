@@ -71,11 +71,11 @@ namespace Apache.Ignite.Core.Configuration
         {
             IpFinder = reader.ReadBoolean() ? IpFinder.ReadInstance(reader) : null;
 
-            SocketTimeout = TimeSpan.FromMilliseconds(reader.ReadLong());
-            AckTimeout = TimeSpan.FromMilliseconds(reader.ReadLong());
-            MaxAckTimeout = TimeSpan.FromMilliseconds(reader.ReadLong());
-            NetworkTimeout = TimeSpan.FromMilliseconds(reader.ReadLong());
-            JoinTimeout = TimeSpan.FromMilliseconds(reader.ReadLong());
+            SocketTimeout = reader.ReadLongAsTimespan();
+            AckTimeout = reader.ReadLongAsTimespan();
+            MaxAckTimeout = reader.ReadLongAsTimespan();
+            NetworkTimeout = reader.ReadLongAsTimespan();
+            JoinTimeout = reader.ReadLongAsTimespan();
         }
 
         /// <summary>
