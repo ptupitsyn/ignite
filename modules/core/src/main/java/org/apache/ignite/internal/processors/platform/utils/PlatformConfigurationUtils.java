@@ -280,9 +280,10 @@ public class PlatformConfigurationUtils {
         assert ccfg != null;
 
         writer.writeInt(ccfg.getAtomicityMode().ordinal());
-        writer.writeInt(ccfg.getAtomicWriteOrderMode().ordinal());
+        writer.writeInt(ccfg.getAtomicWriteOrderMode() == null ? 0 : ccfg.getAtomicWriteOrderMode().ordinal());
         writer.writeInt(ccfg.getBackups());
-        writer.writeInt(ccfg.getCacheMode().ordinal());
+        writer.writeInt(ccfg.getCacheMode() == null ?
+            CacheConfiguration.DFLT_CACHE_MODE.ordinal() : ccfg.getCacheMode().ordinal());
         writer.writeBoolean(ccfg.isCopyOnRead());
         writer.writeBoolean(ccfg.isEagerTtl());
         writer.writeBoolean(ccfg.isSwapEnabled());
@@ -297,13 +298,15 @@ public class PlatformConfigurationUtils {
         writer.writeLong(ccfg.getLongQueryWarningTimeout());
         writer.writeInt(ccfg.getMaxConcurrentAsyncOperations());
         writer.writeFloat(ccfg.getEvictMaxOverflowRatio());
-        writer.writeInt(ccfg.getMemoryMode().ordinal());
+        writer.writeInt(ccfg.getMemoryMode() == null ?
+            CacheConfiguration.DFLT_MEMORY_MODE.ordinal() : ccfg.getMemoryMode().ordinal());
         writer.writeString(ccfg.getName());
         writer.writeLong(ccfg.getOffHeapMaxMemory());
         writer.writeBoolean(ccfg.isReadFromBackup());
         writer.writeInt(ccfg.getRebalanceBatchSize());
         writer.writeLong(ccfg.getRebalanceDelay());
-        writer.writeInt(ccfg.getRebalanceMode().ordinal());
+        writer.writeInt(ccfg.getRebalanceMode() == null ?
+            CacheConfiguration.DFLT_REBALANCE_MODE.ordinal() : ccfg.getRebalanceMode().ordinal());
         writer.writeInt(ccfg.getRebalanceThreadPoolSize());
         writer.writeLong(ccfg.getRebalanceThrottle());
         writer.writeLong(ccfg.getRebalanceTimeout());
@@ -315,7 +318,7 @@ public class PlatformConfigurationUtils {
         writer.writeLong(ccfg.getWriteBehindFlushFrequency());
         writer.writeInt(ccfg.getWriteBehindFlushSize());
         writer.writeInt(ccfg.getWriteBehindFlushThreadCount());
-        writer.writeInt(ccfg.getWriteSynchronizationMode().ordinal());
+        writer.writeInt(ccfg.getWriteSynchronizationMode() == null ? 0 : ccfg.getWriteSynchronizationMode().ordinal());
 
         if (ccfg.getCacheStoreFactory() instanceof PlatformDotNetCacheStoreFactoryNative)
             writer.writeObject(((PlatformDotNetCacheStoreFactoryNative)ccfg.getCacheStoreFactory()).getNativeFactory());
