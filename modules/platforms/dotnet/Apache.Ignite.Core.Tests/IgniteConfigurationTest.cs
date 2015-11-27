@@ -67,6 +67,17 @@ namespace Apache.Ignite.Core.Tests
             using (var ignite = Ignition.Start(cfg))
             {
                 var resCfg = ignite.GetConfiguration();
+
+                Assert.AreEqual(cfg.GridName, resCfg.GridName);
+                Assert.AreEqual(cfg.IncludedEventTypes, resCfg.IncludedEventTypes);
+                Assert.AreEqual(cfg.MetricsExpireTime, resCfg.MetricsExpireTime);
+                Assert.AreEqual(cfg.MetricsHistorySize, resCfg.MetricsHistorySize);
+                Assert.AreEqual(cfg.MetricsLogFrequency, resCfg.MetricsLogFrequency);
+                Assert.AreEqual(cfg.MetricsUpdateFrequency, resCfg.MetricsUpdateFrequency);
+                Assert.AreEqual(cfg.NetworkSendRetryCount, resCfg.NetworkSendRetryCount);
+                Assert.AreEqual(cfg.NetworkTimeout, resCfg.NetworkTimeout);
+                Assert.AreEqual(cfg.NetworkSendRetryDelay, resCfg.NetworkSendRetryDelay);
+                Assert.AreEqual(cfg.WorkDirectory, resCfg.WorkDirectory);
             }
         }
 
