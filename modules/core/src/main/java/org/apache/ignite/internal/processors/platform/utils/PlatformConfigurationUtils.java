@@ -35,11 +35,14 @@ import org.apache.ignite.platform.dotnet.PlatformDotNetCacheStoreFactoryNative;
 import org.apache.ignite.platform.dotnet.PlatformDotNetConfiguration;
 import org.apache.ignite.spi.discovery.DiscoverySpi;
 import org.apache.ignite.spi.discovery.tcp.TcpDiscoverySpi;
+import org.apache.ignite.spi.discovery.tcp.ipfinder.TcpDiscoveryIpFinder;
 import org.apache.ignite.spi.discovery.tcp.ipfinder.multicast.TcpDiscoveryMulticastIpFinder;
 import org.apache.ignite.spi.discovery.tcp.ipfinder.vm.TcpDiscoveryVmIpFinder;
 
 import java.lang.management.ManagementFactory;
+import java.net.InetSocketAddress;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -371,6 +374,27 @@ public class PlatformConfigurationUtils {
         TcpDiscoverySpi tcp = (TcpDiscoverySpi)spi;
 
         // TODO: Write IpFinder
+        TcpDiscoveryIpFinder finder = tcp.getIpFinder();
+
+        if (finder instanceof TcpDiscoveryVmIpFinder) {
+            w.writeBoolean(true);
+
+            TcpDiscoveryVmIpFinder vmFinder = (TcpDiscoveryVmIpFinder) finder;
+
+            Collection<InetSocketAddress> addrs = vmFinder.getRegisteredAddresses();
+
+            w.writeInt(addrs.size());
+
+            for (InetSocketAddress a : addrs)
+                w.writeString(a.toString());
+
+            if (vmFinder instanceof TcpDiscoveryMulticastIpFinder) {
+                // TODO
+            }
+        }
+        else {
+            w.writeBoolean(false);
+        }
 
         w.writeLong(tcp.getSocketTimeout());
         w.writeLong(tcp.getAckTimeout());
