@@ -247,7 +247,7 @@ public class PlatformConfigurationUtils {
                 boolean hasTtl = in.readBoolean();
 
                 if (hasTtl)
-                    finder0.setTimeToLive(in.readByte());
+                    finder0.setTimeToLive(in.readInt());
 
                 finder = finder0;
             }
@@ -373,11 +373,14 @@ public class PlatformConfigurationUtils {
 
         TcpDiscoverySpi tcp = (TcpDiscoverySpi)spi;
 
-        // TODO: Write IpFinder
         TcpDiscoveryIpFinder finder = tcp.getIpFinder();
 
         if (finder instanceof TcpDiscoveryVmIpFinder) {
             w.writeBoolean(true);
+
+            boolean isMulticast = finder instanceof TcpDiscoveryMulticastIpFinder;
+
+            w.writeByte((byte)(isMulticast ? 2 : 1));
 
             TcpDiscoveryVmIpFinder vmFinder = (TcpDiscoveryVmIpFinder) finder;
 
@@ -388,8 +391,15 @@ public class PlatformConfigurationUtils {
             for (InetSocketAddress a : addrs)
                 w.writeString(a.toString());
 
-            if (vmFinder instanceof TcpDiscoveryMulticastIpFinder) {
-                // TODO
+            if (isMulticast) {
+                TcpDiscoveryMulticastIpFinder multiFinder = (TcpDiscoveryMulticastIpFinder) vmFinder;
+
+                w.writeString(multiFinder.getLocalAddress());
+                w.writeString(multiFinder.getMulticastGroup());
+                w.writeInt(multiFinder.getMulticastPort());
+                w.writeInt(multiFinder.getAddressRequestAttempts());
+                w.writeInt(multiFinder.getResponseWaitTime());
+                w.writeInt(multiFinder.getTimeToLive());
             }
         }
         else {
