@@ -18,8 +18,10 @@
 namespace Apache.Ignite.Core.Tests
 {
     using System;
+    using System.IO;
     using Apache.Ignite.Core.Common;
     using Apache.Ignite.Core.Configuration;
+    using Apache.Ignite.Core.Events;
     using NUnit.Framework;
 
     /// <summary>
@@ -27,6 +29,47 @@ namespace Apache.Ignite.Core.Tests
     /// </summary>
     public class IgniteConfigurationTest
     {
+        [Test]
+        public void TestAllConfigurationProperties()
+        {
+            var cfg = new IgniteConfiguration
+            {
+                DiscoveryConfiguration = new DiscoveryConfiguration
+                {
+                    NetworkTimeout = TimeSpan.FromMinutes(1),
+                    AckTimeout = TimeSpan.FromMinutes(2),
+                    MaxAckTimeout = TimeSpan.FromMinutes(3),
+                    SocketTimeout = TimeSpan.FromMinutes(4),
+                    JoinTimeout = TimeSpan.FromMinutes(5),
+                    IpFinder = new MulticastIpFinder
+                    {
+                        MulticastGroup = "228.111.111.222",
+                        MulticastPort = 54522,
+                        AddressRequestAttempts = 5,
+                        EndPoints = new[] { "127.0.0.1:47500", "127.0.0.1:47501" },
+                        TimeToLive = 25,
+                        LocalAddress = "127.0.0.1",
+                        ResponseTimeout = TimeSpan.FromMinutes(6)
+                    }
+                },
+                GridName = "gridName1",
+                IncludedEventTypes = EventType.SwapspaceAll,
+                MetricsExpireTime = TimeSpan.FromMinutes(7),
+                MetricsHistorySize = 125,
+                MetricsLogFrequency = TimeSpan.FromMinutes(8),
+                MetricsUpdateFrequency = TimeSpan.FromMinutes(9),
+                NetworkSendRetryCount = 54,
+                NetworkTimeout = TimeSpan.FromMinutes(10),
+                NetworkSendRetryDelay = TimeSpan.FromMinutes(11),
+                WorkDirectory = Path.GetTempPath()
+            };
+
+            using (var ignite = Ignition.Start(cfg))
+            {
+                var resCfg = ignite.GetConfiguration();
+            }
+        }
+
         [Test]
         public void TestClientMode()
         {
