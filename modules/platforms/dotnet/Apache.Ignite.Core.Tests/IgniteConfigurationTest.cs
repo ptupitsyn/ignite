@@ -36,11 +36,11 @@ namespace Apache.Ignite.Core.Tests
             {
                 DiscoveryConfiguration = new DiscoveryConfiguration
                 {
-                    NetworkTimeout = TimeSpan.FromMinutes(1),
-                    AckTimeout = TimeSpan.FromMinutes(2),
-                    MaxAckTimeout = TimeSpan.FromMinutes(3),
-                    SocketTimeout = TimeSpan.FromMinutes(4),
-                    JoinTimeout = TimeSpan.FromMinutes(5),
+                    NetworkTimeout = TimeSpan.FromSeconds(1),
+                    AckTimeout = TimeSpan.FromSeconds(2),
+                    MaxAckTimeout = TimeSpan.FromSeconds(3),
+                    SocketTimeout = TimeSpan.FromSeconds(4),
+                    JoinTimeout = TimeSpan.FromSeconds(5),
                     IpFinder = new MulticastIpFinder
                     {
                         MulticastGroup = "228.111.111.222",
@@ -49,7 +49,7 @@ namespace Apache.Ignite.Core.Tests
                         EndPoints = new[] { "127.0.0.1:47500", "127.0.0.1:47501" },
                         TimeToLive = 25,
                         LocalAddress = "127.0.0.1",
-                        ResponseTimeout = TimeSpan.FromMinutes(6)
+                        ResponseTimeout = TimeSpan.FromSeconds(6)
                     }
                 },
                 GridName = "gridName1",
