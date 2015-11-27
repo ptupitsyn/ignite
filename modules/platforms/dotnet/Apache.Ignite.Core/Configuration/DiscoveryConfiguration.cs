@@ -69,7 +69,7 @@ namespace Apache.Ignite.Core.Configuration
         /// <param name="reader">The reader.</param>
         internal DiscoveryConfiguration(BinaryReader reader)
         {
-            IpFinder = IpFinder.ReadInstance(reader);
+            IpFinder = reader.ReadBoolean() ? IpFinder.ReadInstance(reader) : null;
 
             SocketTimeout = TimeSpan.FromMilliseconds(reader.ReadLong());
             AckTimeout = TimeSpan.FromMilliseconds(reader.ReadLong());
