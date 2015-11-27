@@ -37,6 +37,7 @@ import org.apache.ignite.spi.discovery.tcp.TcpDiscoverySpi;
 import org.apache.ignite.spi.discovery.tcp.ipfinder.multicast.TcpDiscoveryMulticastIpFinder;
 import org.apache.ignite.spi.discovery.tcp.ipfinder.vm.TcpDiscoveryVmIpFinder;
 
+import java.lang.management.ManagementFactory;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -321,11 +322,27 @@ public class PlatformConfigurationUtils {
     /**
      * Writes Ignite configuration.
      *
-     * @param writer Writer.
+     * @param w Writer.
      * @param cfg Configuration.
      */
-    public static void writeIgniteConfiguration(BinaryRawWriter writer, IgniteConfiguration cfg) {
-        // TODO
+    public static void writeIgniteConfiguration(BinaryRawWriter w, IgniteConfiguration cfg) {
+        w.writeString(cfg.getGridName());
+
+        CacheConfiguration[] cacheCfg = cfg.getCacheConfiguration();
+
+        if (cacheCfg != null) {
+            w.writeInt(cacheCfg.length);
+
+            for (CacheConfiguration ccfg : cacheCfg)
+                writeCacheConfiguration(w, ccfg);
+        }
+        else
+            w.writeInt(0);
+
+        w.writeString(cfg.getIgniteHome());
+
+        w.writeLong(ManagementFactory.getMemoryMXBean().getHeapMemoryUsage().getInit());
+        w.writeLong(ManagementFactory.getMemoryMXBean().getHeapMemoryUsage().getMax());
     }
 
     /**

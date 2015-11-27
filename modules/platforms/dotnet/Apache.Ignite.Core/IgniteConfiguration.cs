@@ -68,14 +68,34 @@ namespace Apache.Ignite.Core
             for (int i = 0; i < cacheCfgCount; i++)
                 CacheConfiguration.Add(new CacheConfiguration(r));
 
-            SpringConfigUrl = r.ReadString();
+            IgniteHome = r.ReadString();
+
+            JvmInitialMemoryMb = (int) (r.ReadLong() / 1024 / 2014);
+            JvmMaxMemoryMb = (int) (r.ReadLong() / 1024 / 2014);
+
 
             // Local data (not from reader)
             JvmDllPath = Process.GetCurrentProcess().Modules.OfType<ProcessModule>()
                 .Single(x => string.Equals(x.ModuleName, IgniteUtils.FileJvmDll, StringComparison.OrdinalIgnoreCase))
                 .FileName;
 
-            BinaryConfiguration = r.Marshaller.BinaryConfiguration;
+            var marsh = r.Marshaller;
+
+            var origCfg = marsh.Ignite.Configuration;
+
+            BinaryConfiguration = marsh.BinaryConfiguration;
+
+            SpringConfigUrl = origCfg.SpringConfigUrl;
+
+            JvmClasspath = origCfg.JvmClasspath;
+
+            JvmOptions = origCfg.JvmOptions;
+
+            Assemblies = origCfg.Assemblies;
+
+            SuppressWarnings = origCfg.SuppressWarnings;
+
+            LifecycleBeans = origCfg.LifecycleBeans;
         }
 
         /// <summary>
