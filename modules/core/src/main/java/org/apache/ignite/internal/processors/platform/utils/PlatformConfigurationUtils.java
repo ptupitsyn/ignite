@@ -33,6 +33,7 @@ import org.apache.ignite.platform.dotnet.PlatformDotNetBinaryConfiguration;
 import org.apache.ignite.platform.dotnet.PlatformDotNetBinaryTypeConfiguration;
 import org.apache.ignite.platform.dotnet.PlatformDotNetCacheStoreFactoryNative;
 import org.apache.ignite.platform.dotnet.PlatformDotNetConfiguration;
+import org.apache.ignite.spi.discovery.DiscoverySpi;
 import org.apache.ignite.spi.discovery.tcp.TcpDiscoverySpi;
 import org.apache.ignite.spi.discovery.tcp.ipfinder.multicast.TcpDiscoveryMulticastIpFinder;
 import org.apache.ignite.spi.discovery.tcp.ipfinder.vm.TcpDiscoveryVmIpFinder;
@@ -326,6 +327,9 @@ public class PlatformConfigurationUtils {
      * @param cfg Configuration.
      */
     public static void writeIgniteConfiguration(BinaryRawWriter w, IgniteConfiguration cfg) {
+        assert w != null;
+        assert cfg != null;
+
         w.writeString(cfg.getGridName());
 
         CacheConfiguration[] cacheCfg = cfg.getCacheConfiguration();
@@ -343,6 +347,19 @@ public class PlatformConfigurationUtils {
 
         w.writeLong(ManagementFactory.getMemoryMXBean().getHeapMemoryUsage().getInit());
         w.writeLong(ManagementFactory.getMemoryMXBean().getHeapMemoryUsage().getMax());
+
+        writeDiscoveryConfiguration(w, cfg.getDiscoverySpi());
+    }
+
+    /**
+     * Writes discovery configuration.
+     *
+     * @param w Writer.
+     * @param spi Disco.
+     */
+    private static void writeDiscoveryConfiguration(BinaryRawWriter w, DiscoverySpi spi) {
+        assert w != null;
+        assert spi != null;
     }
 
     /**
