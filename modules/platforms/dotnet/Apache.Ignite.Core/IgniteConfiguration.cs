@@ -73,7 +73,7 @@ namespace Apache.Ignite.Core
             JvmInitialMemoryMb = (int) (r.ReadLong() / 1024 / 2014);
             JvmMaxMemoryMb = (int) (r.ReadLong() / 1024 / 2014);
 
-            DiscoveryConfiguration = new DiscoveryConfiguration(r);
+            DiscoveryConfiguration = r.ReadBoolean() ? new DiscoveryConfiguration(r) : null;
 
             // Local data (not from reader)
             JvmDllPath = Process.GetCurrentProcess().Modules.OfType<ProcessModule>()

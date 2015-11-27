@@ -360,6 +360,23 @@ public class PlatformConfigurationUtils {
     private static void writeDiscoveryConfiguration(BinaryRawWriter w, DiscoverySpi spi) {
         assert w != null;
         assert spi != null;
+
+        if (!(spi instanceof TcpDiscoverySpi)) {
+            w.writeBoolean(false);
+            return;
+        }
+
+        w.writeBoolean(true);
+
+        TcpDiscoverySpi tcp = (TcpDiscoverySpi)spi;
+
+        // TODO: Write IpFinder
+
+        w.writeLong(tcp.getSocketTimeout());
+        w.writeLong(tcp.getAckTimeout());
+        w.writeLong(tcp.getMaxAckTimeout());
+        w.writeLong(tcp.getNetworkTimeout());
+        w.writeLong(tcp.getJoinTimeout());
     }
 
     /**
