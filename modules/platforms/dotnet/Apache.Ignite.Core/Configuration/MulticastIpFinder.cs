@@ -99,7 +99,7 @@ namespace Apache.Ignite.Core.Configuration
             MulticastPort = reader.ReadInt();
             AddressRequestAttempts = reader.ReadInt();
             ResponseTimeout = TimeSpan.FromMilliseconds(reader.ReadInt());
-            TimeToLive = (byte?) reader.ReadInt();
+            TimeToLive = reader.ReadBoolean() ? (byte?) reader.ReadInt() : null;
         }
 
         /** <inheritdoc /> */

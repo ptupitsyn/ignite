@@ -414,7 +414,12 @@ public class PlatformConfigurationUtils {
                 w.writeInt(multiFinder.getMulticastPort());
                 w.writeInt(multiFinder.getAddressRequestAttempts());
                 w.writeInt(multiFinder.getResponseWaitTime());
-                w.writeInt(multiFinder.getTimeToLive());
+
+                Integer ttl = multiFinder.getTimeToLive();
+                w.writeBoolean(ttl != null);
+
+                if (ttl != null)
+                    w.writeInt(ttl);
             }
         }
         else {
