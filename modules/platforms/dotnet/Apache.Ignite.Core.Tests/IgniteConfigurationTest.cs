@@ -40,6 +40,8 @@ namespace Apache.Ignite.Core.Tests
                 Assert.AreEqual(2, ignite2.GetCluster().GetNodes().Count);
                 Assert.AreEqual(1, ignite.GetCluster().ForCacheNodes(cacheName).GetNodes().Count);
 
+                Assert.AreEqual(false, ignite.GetConfiguration().ClientMode);
+                Assert.AreEqual(true, ignite2.GetConfiguration().ClientMode);
             }
         }
 
