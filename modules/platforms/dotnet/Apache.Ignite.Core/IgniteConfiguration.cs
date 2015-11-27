@@ -19,10 +19,14 @@ namespace Apache.Ignite.Core
 {
     using System;
     using System.Collections.Generic;
+    using System.Diagnostics;
     using System.Diagnostics.CodeAnalysis;
+    using System.Linq;
     using Apache.Ignite.Core.Binary;
     using Apache.Ignite.Core.Configuration;
     using Apache.Ignite.Core.Events;
+    using Apache.Ignite.Core.Impl;
+    using Apache.Ignite.Core.Impl.Binary;
     using Apache.Ignite.Core.Lifecycle;
 
     /// <summary>
@@ -53,9 +57,25 @@ namespace Apache.Ignite.Core
         /// Initializes a new instance of the <see cref="IgniteConfiguration"/> class from a reader.
         /// </summary>
         /// <param name="binaryReader">The binary reader.</param>
-        internal IgniteConfiguration(IBinaryRawReader binaryReader)
+        internal IgniteConfiguration(BinaryReader binaryReader)
         {
-            // TODO
+            var r = binaryReader;
+
+            GridName = r.ReadString();
+
+            var cacheCfgCount = r.ReadInt();
+            CacheConfiguration = new List<CacheConfiguration>(cacheCfgCount);
+            for (int i = 0; i < cacheCfgCount; i++)
+                CacheConfiguration.Add(new CacheConfiguration(r));
+
+            SpringConfigUrl = r.ReadString();
+
+            // Local data (not from reader)
+            JvmDllPath = Process.GetCurrentProcess().Modules.OfType<ProcessModule>()
+                .Single(x => string.Equals(x.ModuleName, IgniteUtils.FileJvmDll, StringComparison.OrdinalIgnoreCase))
+                .FileName;
+
+            BinaryConfiguration = r.Marshaller.BinaryConfiguration;
         }
 
         /// <summary>
