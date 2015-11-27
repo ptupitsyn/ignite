@@ -78,15 +78,13 @@ namespace Apache.Ignite.Core
             ClientMode = r.ReadBoolean();
             IncludedEventTypes = r.ReadIntArray();
 
-            var maxMs = TimeSpan.MaxValue.TotalMilliseconds;
-
-            MetricsExpireTime = TimeSpan.FromMilliseconds(r.ReadLong());
+            MetricsExpireTime = r.ReadLongAsTimespan();
             MetricsHistorySize = r.ReadInt();
-            MetricsLogFrequency = TimeSpan.FromMilliseconds(r.ReadLong());
-            MetricsUpdateFrequency = TimeSpan.FromMilliseconds(r.ReadLong());
+            MetricsLogFrequency = r.ReadLongAsTimespan();
+            MetricsUpdateFrequency = r.ReadLongAsTimespan();
             NetworkSendRetryCount = r.ReadInt();
-            NetworkSendRetryDelay = TimeSpan.FromMilliseconds(r.ReadLong());
-            NetworkTimeout = TimeSpan.FromMilliseconds(r.ReadLong());
+            NetworkSendRetryDelay = r.ReadLongAsTimespan();
+            NetworkTimeout = r.ReadLongAsTimespan();
             WorkDirectory = r.ReadString();
 
 
