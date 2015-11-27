@@ -19,6 +19,7 @@ namespace Apache.Ignite.Core.Tests
 {
     using System;
     using System.IO;
+    using System.Linq;
     using Apache.Ignite.Core.Common;
     using Apache.Ignite.Core.Configuration;
     using Apache.Ignite.Core.Events;
@@ -77,7 +78,19 @@ namespace Apache.Ignite.Core.Tests
                 Assert.AreEqual(disco.SocketTimeout, resDisco.SocketTimeout);
                 Assert.AreEqual(disco.JoinTimeout, resDisco.JoinTimeout);
 
-                //var ipf
+                var ip = (MulticastIpFinder) disco.IpFinder;
+                var resIp = (MulticastIpFinder) resDisco.IpFinder;
+
+                Assert.AreEqual(ip.MulticastGroup, resIp.MulticastGroup);
+                Assert.AreEqual(ip.MulticastPort, resIp.MulticastPort);
+                Assert.AreEqual(ip.AddressRequestAttempts, resIp.AddressRequestAttempts);
+
+                // There can be extra IPv6 endpoints
+                Assert.AreEqual(ip.EndPoints, resIp.EndPoints.Take(2).Select(x => x.Trim('/')).ToArray());
+
+                Assert.AreEqual(ip.TimeToLive, resIp.TimeToLive);
+                Assert.AreEqual(ip.LocalAddress, resIp.LocalAddress);
+                Assert.AreEqual(ip.ResponseTimeout, resIp.ResponseTimeout);
 
                 Assert.AreEqual(cfg.GridName, resCfg.GridName);
                 Assert.AreEqual(cfg.IncludedEventTypes, resCfg.IncludedEventTypes);
