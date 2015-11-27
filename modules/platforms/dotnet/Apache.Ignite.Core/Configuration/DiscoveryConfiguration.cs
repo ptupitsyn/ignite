@@ -70,6 +70,11 @@ namespace Apache.Ignite.Core.Configuration
         internal DiscoveryConfiguration(BinaryReader reader)
         {
             IpFinder = IpFinder.ReadInstance(reader);
+            SocketTimeout = TimeSpan.FromMilliseconds(reader.ReadLong());
+            AckTimeout = TimeSpan.FromMilliseconds(reader.ReadLong());
+            MaxAckTimeout = TimeSpan.FromMilliseconds(reader.ReadLong());
+            NetworkTimeout = TimeSpan.FromMilliseconds(reader.ReadLong());
+            JoinTimeout = TimeSpan.FromMilliseconds(reader.ReadLong());
         }
 
         /// <summary>
