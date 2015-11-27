@@ -356,8 +356,14 @@ public class PlatformConfigurationUtils {
         w.writeBoolean(cfg.isClientMode());
 
         w.writeIntArray(cfg.getIncludeEventTypes());
-
         w.writeLong(cfg.getMetricsExpireTime());
+        w.writeInt(cfg.getMetricsHistorySize());
+        w.writeLong(cfg.getMetricsLogFrequency());
+        w.writeLong(cfg.getMetricsUpdateFrequency());
+        w.writeInt(cfg.getNetworkSendRetryCount());
+        w.writeLong(cfg.getNetworkSendRetryDelay());
+        w.writeLong(cfg.getNetworkTimeout());
+        w.writeString(cfg.getWorkDirectory());
     }
 
     /**
