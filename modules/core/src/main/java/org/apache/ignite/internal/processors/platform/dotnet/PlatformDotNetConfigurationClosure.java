@@ -33,6 +33,7 @@ import org.apache.ignite.internal.processors.platform.lifecycle.PlatformLifecycl
 import org.apache.ignite.internal.processors.platform.memory.PlatformMemory;
 import org.apache.ignite.internal.processors.platform.memory.PlatformMemoryManagerImpl;
 import org.apache.ignite.internal.processors.platform.memory.PlatformOutputStream;
+import org.apache.ignite.internal.processors.platform.utils.PlatformConfigurationUtils;
 import org.apache.ignite.internal.processors.platform.utils.PlatformUtils;
 import org.apache.ignite.internal.util.typedef.internal.U;
 import org.apache.ignite.lifecycle.LifecycleBean;
@@ -153,7 +154,7 @@ public class PlatformDotNetConfigurationClosure extends PlatformAbstractConfigur
                 GridPortableMarshaller marshaller = marshaller();
                 BinaryRawWriterEx writer = marshaller.writer(out);
 
-                PlatformUtils.writeDotNetConfiguration(writer, interopCfg.unwrap());
+                PlatformConfigurationUtils.writeDotNetConfiguration(writer, interopCfg.unwrap());
 
                 List<PlatformDotNetLifecycleBean> beans = beans(igniteCfg);
 
@@ -182,7 +183,7 @@ public class PlatformDotNetConfigurationClosure extends PlatformAbstractConfigur
     private void processPrepareResult(BinaryReaderExImpl in) {
         assert cfg != null;
 
-        PlatformUtils.readIgniteConfiguration(in, cfg);
+        PlatformConfigurationUtils.readIgniteConfiguration(in, cfg);
 
         List<PlatformDotNetLifecycleBean> beans = beans(cfg);
         List<PlatformLifecycleBean> newBeans = new ArrayList<>();

@@ -47,6 +47,7 @@ import org.apache.ignite.internal.processors.platform.memory.PlatformOutputStrea
 import org.apache.ignite.internal.processors.platform.messaging.PlatformMessaging;
 import org.apache.ignite.internal.processors.platform.services.PlatformServices;
 import org.apache.ignite.internal.processors.platform.transactions.PlatformTransactions;
+import org.apache.ignite.internal.processors.platform.utils.PlatformConfigurationUtils;
 import org.apache.ignite.internal.processors.platform.utils.PlatformUtils;
 import org.apache.ignite.internal.util.typedef.F;
 import org.apache.ignite.internal.util.typedef.internal.U;
@@ -248,7 +249,7 @@ public class PlatformProcessorImpl extends GridProcessorAdapter implements Platf
     /** {@inheritDoc} */
     @Override public PlatformTarget createCacheFromConfig(long memPtr) throws IgniteCheckedException {
         BinaryRawReaderEx reader = platformCtx.reader(platformCtx.memory().get(memPtr));
-        CacheConfiguration cfg = PlatformUtils.readCacheConfiguration(reader);
+        CacheConfiguration cfg = PlatformConfigurationUtils.readCacheConfiguration(reader);
 
         IgniteCacheProxy cache = (IgniteCacheProxy)ctx.grid().createCache(cfg);
 
@@ -258,7 +259,7 @@ public class PlatformProcessorImpl extends GridProcessorAdapter implements Platf
     /** {@inheritDoc} */
     @Override public PlatformTarget getOrCreateCacheFromConfig(long memPtr) throws IgniteCheckedException {
         BinaryRawReaderEx reader = platformCtx.reader(platformCtx.memory().get(memPtr));
-        CacheConfiguration cfg = PlatformUtils.readCacheConfiguration(reader);
+        CacheConfiguration cfg = PlatformConfigurationUtils.readCacheConfiguration(reader);
 
         IgniteCacheProxy cache = (IgniteCacheProxy)ctx.grid().getOrCreateCache(cfg);
 
@@ -360,7 +361,7 @@ public class PlatformProcessorImpl extends GridProcessorAdapter implements Platf
         PlatformOutputStream stream = platformCtx.memory().get(memPtr).output();
         BinaryRawWriterEx writer = platformCtx.writer(stream);
 
-        PlatformUtils.writeIgniteConfiguration(writer, ignite().configuration());
+        PlatformConfigurationUtils.writeIgniteConfiguration(writer, ignite().configuration());
 
         stream.synchronize();
     }
