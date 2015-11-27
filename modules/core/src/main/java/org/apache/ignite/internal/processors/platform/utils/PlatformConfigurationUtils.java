@@ -279,7 +279,8 @@ public class PlatformConfigurationUtils {
         assert writer != null;
         assert ccfg != null;
 
-        writer.writeInt(ccfg.getAtomicityMode().ordinal());
+        writer.writeInt(ccfg.getAtomicityMode() == null ?
+            CacheConfiguration.DFLT_CACHE_ATOMICITY_MODE.ordinal() : ccfg.getAtomicityMode().ordinal());
         writer.writeInt(ccfg.getAtomicWriteOrderMode() == null ? 0 : ccfg.getAtomicWriteOrderMode().ordinal());
         writer.writeInt(ccfg.getBackups());
         writer.writeInt(ccfg.getCacheMode() == null ?
