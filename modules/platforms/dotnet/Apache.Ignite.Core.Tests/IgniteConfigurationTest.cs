@@ -62,7 +62,8 @@ namespace Apache.Ignite.Core.Tests
                 NetworkSendRetryCount = 54,
                 NetworkTimeout = TimeSpan.FromMinutes(10),
                 NetworkSendRetryDelay = TimeSpan.FromMinutes(11),
-                WorkDirectory = Path.GetTempPath()
+                WorkDirectory = Path.GetTempPath(),
+                JvmOptions = TestUtils.TestJavaOptions()
             };
 
             using (var ignite = Ignition.Start(cfg))
@@ -102,6 +103,9 @@ namespace Apache.Ignite.Core.Tests
                 Assert.AreEqual(cfg.NetworkTimeout, resCfg.NetworkTimeout);
                 Assert.AreEqual(cfg.NetworkSendRetryDelay, resCfg.NetworkSendRetryDelay);
                 Assert.AreEqual(cfg.WorkDirectory, resCfg.WorkDirectory);
+                Assert.AreEqual(cfg.JvmClasspath, resCfg.JvmClasspath);
+                Assert.AreEqual(cfg.JvmOptions, resCfg.JvmOptions);
+                Assert.IsTrue(File.Exists(resCfg.JvmDllPath));
             }
         }
 
