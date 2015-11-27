@@ -488,6 +488,8 @@ namespace Apache.Ignite.Core.Impl
             {
                 UU.ProcessorGetIgniteConfiguration(_proc, stream.MemoryPointer);
 
+                stream.SynchronizeInput();
+
                 return new IgniteConfiguration(_marsh.StartUnmarshal(stream));
             }
         }

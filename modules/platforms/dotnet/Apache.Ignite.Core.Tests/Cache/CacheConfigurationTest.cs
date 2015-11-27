@@ -48,10 +48,11 @@ namespace Apache.Ignite.Core.Tests.Cache
                 CacheConfiguration = new List<CacheConfiguration>
                 {
                     new CacheConfiguration(),
-                     GetCustomCacheConfiguration()
+                    GetCustomCacheConfiguration()
                 },
                 JvmClasspath = TestUtils.CreateTestClasspath(),
-                JvmOptions = TestUtils.TestJavaOptions()
+                JvmOptions = TestUtils.TestJavaOptions(),
+                GridName = CacheName
             };
 
             _ignite = Ignition.Start(cfg);
