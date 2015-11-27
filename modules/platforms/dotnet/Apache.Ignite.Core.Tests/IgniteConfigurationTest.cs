@@ -68,6 +68,17 @@ namespace Apache.Ignite.Core.Tests
             {
                 var resCfg = ignite.GetConfiguration();
 
+                var disco = cfg.DiscoveryConfiguration;
+                var resDisco = resCfg.DiscoveryConfiguration;
+
+                Assert.AreEqual(disco.NetworkTimeout, resDisco.NetworkTimeout);
+                Assert.AreEqual(disco.AckTimeout, resDisco.AckTimeout);
+                Assert.AreEqual(disco.MaxAckTimeout, resDisco.MaxAckTimeout);
+                Assert.AreEqual(disco.SocketTimeout, resDisco.SocketTimeout);
+                Assert.AreEqual(disco.JoinTimeout, resDisco.JoinTimeout);
+
+                //var ipf
+
                 Assert.AreEqual(cfg.GridName, resCfg.GridName);
                 Assert.AreEqual(cfg.IncludedEventTypes, resCfg.IncludedEventTypes);
                 Assert.AreEqual(cfg.MetricsExpireTime, resCfg.MetricsExpireTime);
