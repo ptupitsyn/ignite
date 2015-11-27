@@ -75,6 +75,12 @@ namespace Apache.Ignite.Core
 
             DiscoveryConfiguration = r.ReadBoolean() ? new DiscoveryConfiguration(r) : null;
 
+            ClientMode = r.ReadBoolean();
+
+            IncludedEventTypes = r.ReadIntArray();
+
+            MetricsExpireTime = TimeSpan.FromMilliseconds(r.ReadLong());
+
             // Local data (not from reader)
             JvmDllPath = Process.GetCurrentProcess().Modules.OfType<ProcessModule>()
                 .Single(x => string.Equals(x.ModuleName, IgniteUtils.FileJvmDll, StringComparison.OrdinalIgnoreCase))

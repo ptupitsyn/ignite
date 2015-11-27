@@ -352,6 +352,12 @@ public class PlatformConfigurationUtils {
         w.writeLong(ManagementFactory.getMemoryMXBean().getHeapMemoryUsage().getMax());
 
         writeDiscoveryConfiguration(w, cfg.getDiscoverySpi());
+
+        w.writeBoolean(cfg.isClientMode());
+
+        w.writeIntArray(cfg.getIncludeEventTypes());
+
+        w.writeLong(cfg.getMetricsExpireTime());
     }
 
     /**
