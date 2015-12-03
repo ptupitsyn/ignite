@@ -239,6 +239,9 @@ public class GridCacheContext<K, V> implements Externalizable {
     /** Deployment enabled flag for this specific cache */
     private boolean depEnabled;
 
+    /** */
+    private boolean deferredDelete;
+
     /**
      * Empty constructor required for {@link Externalizable}.
      */
@@ -506,6 +509,9 @@ public class GridCacheContext<K, V> implements Externalizable {
      */
     public void cache(GridCacheAdapter<K, V> cache) {
         this.cache = cache;
+
+        deferredDelete = cache.isDht() || cache.isDhtAtomic() || cache.isColocated() ||
+            (cache.isNear() && cache.configuration().getAtomicityMode() == ATOMIC);
     }
 
     /**
@@ -568,21 +574,7 @@ public class GridCacheContext<K, V> implements Externalizable {
      * @return {@code True} if entries should not be deleted from cache immediately.
      */
     public boolean deferredDelete() {
-        GridCacheAdapter<K, V> cache = this.cache;
-
-        if (cache == null)
-            throw new IllegalStateException("Cache stopped: " + cacheName);
-
-        return deferredDelete(cache);
-    }
-
-    /**
-     * @param cache Cache.
-     * @return {@code True} if entries should not be deleted from cache immediately.
-     */
-    public boolean deferredDelete(GridCacheAdapter<?, ?> cache) {
-        return cache.isDht() || cache.isDhtAtomic() || cache.isColocated() ||
-            (cache.isNear() && cache.configuration().getAtomicityMode() == ATOMIC);
+        return deferredDelete;
     }
 
     /**
@@ -1488,10 +1480,9 @@ public class GridCacheContext<K, V> implements Externalizable {
      * @param log Log.
      * @param dhtMap Dht mappings.
      * @param nearMap Near mappings.
-     * @return {@code True} if mapped.
      * @throws GridCacheEntryRemovedException If reader for entry is removed.
      */
-    public boolean dhtMap(
+    public void dhtMap(
         UUID nearNodeId,
         AffinityTopologyVersion topVer,
         GridDhtCacheEntry entry,
@@ -1509,7 +1500,7 @@ public class GridCacheContext<K, V> implements Externalizable {
 
         Collection<ClusterNode> dhtRemoteNodes = F.view(dhtNodes, F.remoteNodes(nodeId())); // Exclude local node.
 
-        boolean ret = map(entry, dhtRemoteNodes, dhtMap);
+        map(entry, dhtRemoteNodes, dhtMap);
 
         Collection<ClusterNode> nearRemoteNodes = null;
 
@@ -1530,7 +1521,7 @@ public class GridCacheContext<K, V> implements Externalizable {
             if (nearNodes != null && !nearNodes.isEmpty()) {
                 nearRemoteNodes = F.view(nearNodes, F.notIn(dhtNodes));
 
-                ret |= map(entry, nearRemoteNodes, nearMap);
+                map(entry, nearRemoteNodes, nearMap);
             }
         }
 
@@ -1540,8 +1531,6 @@ public class GridCacheContext<K, V> implements Externalizable {
 
             entry.mappings(explicitLockVer, dhtNodeIds, nearNodeIds);
         }
-
-        return ret;
     }
 
     /**
@@ -1549,10 +1538,9 @@ public class GridCacheContext<K, V> implements Externalizable {
      * @param log Log.
      * @param dhtMap Dht mappings.
      * @param nearMap Near mappings.
-     * @return {@code True} if mapped.
      * @throws GridCacheEntryRemovedException If reader for entry is removed.
      */
-    public boolean dhtMap(
+    public void dhtMap(
         GridDhtCacheEntry entry,
         GridCacheVersion explicitLockVer,
         IgniteLogger log,
@@ -1571,27 +1559,20 @@ public class GridCacheContext<K, V> implements Externalizable {
 
             Collection<ClusterNode> nearNodes = cand.mappedNearNodes();
 
-            boolean ret = map(entry, dhtNodes, dhtMap);
+            map(entry, dhtNodes, dhtMap);
 
             if (nearNodes != null && !nearNodes.isEmpty())
-                ret |= map(entry, nearNodes, nearMap);
-
-            return ret;
+                map(entry, nearNodes, nearMap);
         }
-
-        return false;
     }
 
     /**
      * @param entry Entry.
      * @param nodes Nodes.
      * @param map Map.
-     * @return {@code True} if mapped.
      */
-    private boolean map(GridDhtCacheEntry entry, Iterable<ClusterNode> nodes,
+    private void map(GridDhtCacheEntry entry, Iterable<ClusterNode> nodes,
         Map<ClusterNode, List<GridDhtCacheEntry>> map) {
-        boolean ret = false;
-
         if (nodes != null) {
             for (ClusterNode n : nodes) {
                 List<GridDhtCacheEntry> entries = map.get(n);
@@ -1600,12 +1581,8 @@ public class GridCacheContext<K, V> implements Externalizable {
                     map.put(n, entries = new LinkedList<>());
 
                 entries.add(entry);
-
-                ret = true;
             }
         }
-
-        return ret;
     }
 
     /**
@@ -1758,9 +1735,20 @@ public class GridCacheContext<K, V> implements Externalizable {
      * @param keepPortable Keep portable flag.
      * @return Unwrapped object.
      */
-    @SuppressWarnings("IfMayBeConditional")
     public Object unwrapPortableIfNeeded(Object o, boolean keepPortable) {
         return cacheObjCtx.unwrapPortableIfNeeded(o, keepPortable);
+    }
+
+    /**
+     * Unwraps object for binary.
+     *
+     * @param o Object to unwrap.
+     * @param keepPortable Keep portable flag.
+     * @param cpy Copy value flag.
+     * @return Unwrapped object.
+     */
+    public Object unwrapPortableIfNeeded(Object o, boolean keepPortable, boolean cpy) {
+        return cacheObjCtx.unwrapPortableIfNeeded(o, keepPortable, cpy);
     }
 
     /**
@@ -1775,6 +1763,8 @@ public class GridCacheContext<K, V> implements Externalizable {
      * @return Cache object.
      */
     @Nullable public CacheObject toCacheObject(@Nullable Object obj) {
+        assert validObjectForCache(obj) : obj;
+
         return cacheObjects().toCacheObject(cacheObjCtx, obj, true);
     }
 
@@ -1783,7 +1773,19 @@ public class GridCacheContext<K, V> implements Externalizable {
      * @return Cache key object.
      */
     public KeyCacheObject toCacheKeyObject(Object obj) {
+        assert validObjectForCache(obj) : obj;
+
         return cacheObjects().toCacheKeyObject(cacheObjCtx, obj, true);
+    }
+
+    /**
+     * @param obj Object.
+     * @return {@code False} if objects is not expected for cache.
+     */
+    private boolean validObjectForCache(Object obj) {
+        return obj == null ||
+            !CU.isUtilityCache(cacheName) ||
+            ctx.marshallerContext().isSystemType(obj.getClass().getName());
     }
 
     /**

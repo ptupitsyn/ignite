@@ -19,7 +19,10 @@ package org.apache.ignite.internal.processors.platform.cache;
 
 import org.apache.ignite.IgniteCache;
 import org.apache.ignite.IgniteCheckedException;
-import org.apache.ignite.cache.*;
+import org.apache.ignite.cache.CacheEntryProcessor;
+import org.apache.ignite.cache.CacheMetrics;
+import org.apache.ignite.cache.CachePartialUpdateException;
+import org.apache.ignite.cache.CachePeekMode;
 import org.apache.ignite.cache.query.Query;
 import org.apache.ignite.cache.query.ScanQuery;
 import org.apache.ignite.cache.query.SqlFieldsQuery;
@@ -34,10 +37,11 @@ import org.apache.ignite.internal.processors.cache.IgniteCacheProxy;
 import org.apache.ignite.internal.processors.cache.query.QueryCursorEx;
 import org.apache.ignite.internal.processors.platform.PlatformAbstractTarget;
 import org.apache.ignite.internal.processors.platform.PlatformContext;
+import org.apache.ignite.internal.processors.platform.PlatformNativeException;
 import org.apache.ignite.internal.processors.platform.cache.query.PlatformContinuousQuery;
 import org.apache.ignite.internal.processors.platform.cache.query.PlatformFieldsQueryCursor;
 import org.apache.ignite.internal.processors.platform.cache.query.PlatformQueryCursor;
-import org.apache.ignite.internal.processors.platform.PlatformNativeException;
+import org.apache.ignite.internal.processors.platform.utils.PlatformConfigurationUtils;
 import org.apache.ignite.internal.processors.platform.utils.PlatformFutureUtils;
 import org.apache.ignite.internal.processors.platform.utils.PlatformUtils;
 import org.apache.ignite.internal.util.GridConcurrentFactory;
@@ -50,7 +54,9 @@ import javax.cache.expiry.Duration;
 import javax.cache.expiry.ExpiryPolicy;
 import javax.cache.processor.EntryProcessorException;
 import javax.cache.processor.EntryProcessorResult;
-import java.util.*;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
@@ -371,13 +377,13 @@ public class PlatformCache extends PlatformAbstractTarget {
     /**
      * Loads cache via localLoadCache or loadCache.
      */
-    private void loadCache0(BinaryRawReaderEx reader, boolean loc) throws IgniteCheckedException {
+    private void loadCache0(BinaryRawReaderEx reader, boolean loc) {
         PlatformCacheEntryFilter filter = null;
 
         Object pred = reader.readObjectDetached();
 
         if (pred != null)
-            filter = platformCtx.createCacheEntryFilter(pred, reader.readLong());
+            filter = platformCtx.createCacheEntryFilter(pred, 0);
 
         Object[] args = reader.readObjectArray();
 
@@ -517,7 +523,7 @@ public class PlatformCache extends PlatformAbstractTarget {
                 CacheConfiguration ccfg = ((IgniteCache<Object, Object>)cache).
                         getConfiguration(CacheConfiguration.class);
 
-                PlatformCacheConfiguration.writeCacheConfiguration(writer, ccfg);
+                PlatformConfigurationUtils.writeCacheConfiguration(writer, ccfg);
 
                 break;
 
@@ -961,7 +967,7 @@ public class PlatformCache extends PlatformAbstractTarget {
         Object pred = reader.readObjectDetached();
 
         if (pred != null)
-            qry.setFilter(platformCtx.createCacheEntryFilter(pred, reader.readLong()));
+            qry.setFilter(platformCtx.createCacheEntryFilter(pred, 0));
 
         qry.setLocal(loc);
 

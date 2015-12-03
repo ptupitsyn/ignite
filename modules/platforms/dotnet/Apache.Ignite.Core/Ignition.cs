@@ -126,15 +126,6 @@ namespace Apache.Ignite.Core
         {
             IgniteArgumentCheck.NotNull(cfg, "cfg");
 
-            // Copy configuration to avoid changes to user-provided instance.
-            IgniteConfigurationEx cfgEx = cfg as IgniteConfigurationEx;
-
-            cfg = cfgEx == null ? new IgniteConfiguration(cfg) : new IgniteConfigurationEx(cfgEx);
-
-            // Set default Spring config if needed.
-            if (cfg.SpringConfigUrl == null)
-                cfg.SpringConfigUrl = DefaultCfg;
-
             lock (SyncRoot)
             {
                 // 1. Check GC settings.
@@ -147,7 +138,7 @@ namespace Apache.Ignite.Core
 
                 IgniteManager.CreateJvmContext(cfg, cbs);
 
-                var gridName = cfgEx != null ? cfgEx.GridName : null;
+                var gridName = cfg.GridName;
 
                 var cfgPath = Environment.GetEnvironmentVariable(EnvIgniteSpringConfigUrlPrefix) +
                     (cfg.SpringConfigUrl ?? DefaultCfg);
@@ -281,6 +272,32 @@ namespace Apache.Ignite.Core
         {
             Debug.Assert(outStream != null && cfg != null);
 
+            var writer = _startup.Marshaller.StartMarshal(outStream);
+
+            // Simple properties
+            writer.WriteBoolean(cfg.ClientMode.HasValue);
+            if (cfg.ClientMode.HasValue)
+                writer.WriteBoolean(cfg.ClientMode.Value);
+
+            WriteNullableTimespan(writer, cfg.MetricsExpireTime);
+            WriteNullableTimespan(writer, cfg.MetricsLogFrequency);
+
+            writer.WriteBoolean(cfg.MetricsUpdateFrequency.HasValue);
+
+            if (cfg.MetricsUpdateFrequency.HasValue)
+            {
+                var metricsUpdateFreq = (long) cfg.MetricsUpdateFrequency.Value.TotalMilliseconds;
+                writer.WriteLong(metricsUpdateFreq >= 0 ? metricsUpdateFreq : -1);
+            }
+
+            WriteNullableInt(writer, cfg.MetricsHistorySize);
+            WriteNullableInt(writer, cfg.NetworkSendRetryCount);
+            WriteNullableTimespan(writer,  cfg.NetworkSendRetryDelay);
+            WriteNullableTimespan(writer,  cfg.NetworkTimeout);
+            writer.WriteIntArray(cfg.IncludedEventTypes == null ? null : cfg.IncludedEventTypes.ToArray());
+            writer.WriteString(cfg.WorkDirectory);
+
+            // Cache config
             var caches = cfg.CacheConfiguration;
 
             if (caches == null)
@@ -289,11 +306,43 @@ namespace Apache.Ignite.Core
             {
                 outStream.WriteInt(caches.Count);
 
-                var writer = _startup.Marshaller.StartMarshal(outStream);
-
                 foreach (var cache in caches)
                     cache.Write(writer);
             }
+
+            // Discovery config
+            var disco = cfg.DiscoveryConfiguration;
+
+            if (disco != null)
+            {
+                outStream.WriteBool(true);
+
+                disco.Write(writer);
+            }
+            else
+                outStream.WriteBool(false);
+        }
+
+        /// <summary>
+        /// Writes nullable timespan.
+        /// </summary>
+        private static void WriteNullableTimespan(IBinaryRawWriter writer, TimeSpan? timeSpan)
+        {
+            writer.WriteBoolean(timeSpan.HasValue);
+
+            if (timeSpan.HasValue)
+                writer.WriteLong((long) timeSpan.Value.TotalMilliseconds);
+        }
+
+        /// <summary>
+        /// Writes nullable int.
+        /// </summary>
+        private static void WriteNullableInt(IBinaryRawWriter writer, int? i)
+        {
+            writer.WriteBoolean(i.HasValue);
+
+            if (i.HasValue)
+                writer.WriteInt(i.Value);
         }
 
         /// <summary>

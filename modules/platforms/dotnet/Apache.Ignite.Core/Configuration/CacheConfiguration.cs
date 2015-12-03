@@ -1,4 +1,4 @@
-﻿/*
+﻿﻿/*
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
@@ -21,10 +21,10 @@
 namespace Apache.Ignite.Core.Configuration
 {
     using System;
-    using System.Collections.Generic;
     using Apache.Ignite.Core.Binary;
     using Apache.Ignite.Core.Cache;
     using Apache.Ignite.Core.Cache.Store;
+    using Apache.Ignite.Core.Impl.Binary;
 
     /// <summary>
     /// Defines grid cache configuration.
@@ -153,7 +153,7 @@ namespace Apache.Ignite.Core.Configuration
             EvictSynchronizedConcurrencyLevel = DefaultEvictSynchronizedConcurrencyLevel;
             EvictSynchronizedTimeout = DefaultEvictSynchronizedTimeout;
             Invalidate = DefaultInvalidate;
-            KeepPortableInStore = DefaultKeepPortableInStore;
+            KeepBinaryInStore = DefaultKeepPortableInStore;
             LoadPreviousValue = DefaultLoadPreviousValue;
             LockTimeout = DefaultLockTimeout;
             LongQueryWarningTimeout = DefaultLongQueryWarningTimeout;
@@ -178,58 +178,49 @@ namespace Apache.Ignite.Core.Configuration
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="CacheConfiguration" /> class.
+        /// Initializes a new instance of the <see cref="CacheConfiguration"/> class.
         /// </summary>
         /// <param name="reader">The reader.</param>
         internal CacheConfiguration(IBinaryRawReader reader)
         {
-            AtomicityMode = (CacheAtomicityMode)reader.ReadInt();
-            AtomicWriteOrderMode = (CacheAtomicWriteOrderMode)reader.ReadInt();
+            AtomicityMode = (CacheAtomicityMode) reader.ReadInt();
+            AtomicWriteOrderMode = (CacheAtomicWriteOrderMode) reader.ReadInt();
             Backups = reader.ReadInt();
-            CacheMode = (CacheMode)reader.ReadInt();
+            CacheMode = (CacheMode) reader.ReadInt();
             CopyOnRead = reader.ReadBoolean();
             EagerTtl = reader.ReadBoolean();
             EnableSwap = reader.ReadBoolean();
             EvictSynchronized = reader.ReadBoolean();
             EvictSynchronizedConcurrencyLevel = reader.ReadInt();
             EvictSynchronizedKeyBufferSize = reader.ReadInt();
-            EvictSynchronizedTimeout = TimeSpan.FromMilliseconds(reader.ReadLong());
+            EvictSynchronizedTimeout = reader.ReadLongAsTimespan();
             Invalidate = reader.ReadBoolean();
-            KeepPortableInStore = reader.ReadBoolean();
+            KeepBinaryInStore = reader.ReadBoolean();
             LoadPreviousValue = reader.ReadBoolean();
-            LockTimeout = TimeSpan.FromMilliseconds(reader.ReadLong());
-            LongQueryWarningTimeout = TimeSpan.FromMilliseconds(reader.ReadLong());
+            LockTimeout = reader.ReadLongAsTimespan();
+            LongQueryWarningTimeout = reader.ReadLongAsTimespan();
             MaxConcurrentAsyncOperations = reader.ReadInt();
             MaxEvictionOverflowRatio = reader.ReadFloat();
-            MemoryMode = (CacheMemoryMode)reader.ReadInt();
+            MemoryMode = (CacheMemoryMode) reader.ReadInt();
             Name = reader.ReadString();
             OffHeapMaxMemory = reader.ReadLong();
             ReadFromBackup = reader.ReadBoolean();
             RebalanceBatchSize = reader.ReadInt();
-            RebalanceDelay = TimeSpan.FromMilliseconds(reader.ReadLong());
-            RebalanceMode = (CacheRebalanceMode)reader.ReadInt();
+            RebalanceDelay = reader.ReadLongAsTimespan();
+            RebalanceMode = (CacheRebalanceMode) reader.ReadInt();
             RebalanceThreadPoolSize = reader.ReadInt();
-            RebalanceThrottle = TimeSpan.FromMilliseconds(reader.ReadLong());
-            RebalanceTimeout = TimeSpan.FromMilliseconds(reader.ReadLong());
+            RebalanceThrottle = reader.ReadLongAsTimespan();
+            RebalanceTimeout = reader.ReadLongAsTimespan();
             SqlEscapeAll = reader.ReadBoolean();
             SqlOnheapRowCacheSize = reader.ReadInt();
             StartSize = reader.ReadInt();
             WriteBehindBatchSize = reader.ReadInt();
             WriteBehindEnabled = reader.ReadBoolean();
-            WriteBehindFlushFrequency = TimeSpan.FromMilliseconds(reader.ReadLong());
+            WriteBehindFlushFrequency = reader.ReadLongAsTimespan();
             WriteBehindFlushSize = reader.ReadInt();
             WriteBehindFlushThreadCount = reader.ReadInt();
-            WriteSynchronizationMode = (CacheWriteSynchronizationMode)reader.ReadInt();
-
-            var typeMetaCount = reader.ReadInt();
-
-            if (typeMetaCount > 0)
-            {
-                TypeMetadata = new List<CacheTypeMetadata>(typeMetaCount);
-
-                for (var i = 0; i < typeMetaCount; i++)
-                    TypeMetadata.Add(new CacheTypeMetadata(reader));
-            }
+            WriteSynchronizationMode = (CacheWriteSynchronizationMode) reader.ReadInt();
+            CacheStoreFactory = reader.ReadObject<ICacheStoreFactory>();
         }
 
         /// <summary>
@@ -250,7 +241,7 @@ namespace Apache.Ignite.Core.Configuration
             writer.WriteInt(EvictSynchronizedKeyBufferSize);
             writer.WriteLong((long) EvictSynchronizedTimeout.TotalMilliseconds);
             writer.WriteBoolean(Invalidate);
-            writer.WriteBoolean(KeepPortableInStore);
+            writer.WriteBoolean(KeepBinaryInStore);
             writer.WriteBoolean(LoadPreviousValue);
             writer.WriteLong((long) LockTimeout.TotalMilliseconds);
             writer.WriteLong((long) LongQueryWarningTimeout.TotalMilliseconds);
@@ -275,16 +266,7 @@ namespace Apache.Ignite.Core.Configuration
             writer.WriteInt(WriteBehindFlushSize);
             writer.WriteInt(WriteBehindFlushThreadCount);
             writer.WriteInt((int) WriteSynchronizationMode);
-
-            if (TypeMetadata != null)
-            {
-                writer.WriteInt(TypeMetadata.Count);
-
-                foreach (var typeMeta in TypeMetadata)
-                    typeMeta.Write(writer);
-            }
-            else
-                writer.WriteInt(0);
+            writer.WriteObject(CacheStoreFactory);
         }
 
         /// <summary>
@@ -360,9 +342,10 @@ namespace Apache.Ignite.Core.Configuration
         public bool LoadPreviousValue { get; set; }
 
         /// <summary>
-        /// Gets or sets factory for underlying persistent storage for read-through and write-through operations.
+        /// Gets or sets the flag indicating whether <see cref="ICacheStore"/> is working with binary objects 
+        /// instead of deserialized objects.
         /// </summary>
-        public bool KeepPortableInStore { get; set; }
+        public bool KeepBinaryInStore { get; set; }
 
         /// <summary>
         /// Gets or sets caching mode to use.
@@ -529,8 +512,8 @@ namespace Apache.Ignite.Core.Configuration
         public int SqlOnheapRowCacheSize { get; set; }
 
         /// <summary>
-        /// Gets or sets the type metadata.
+        /// Gets or sets the factory for underlying persistent storage for read-through and write-through operations.
         /// </summary>
-        public ICollection<CacheTypeMetadata> TypeMetadata { get; set; }
+        public ICacheStoreFactory CacheStoreFactory { get; set; }
     }
 }

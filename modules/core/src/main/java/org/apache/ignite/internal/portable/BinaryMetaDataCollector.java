@@ -17,6 +17,12 @@
 
 package org.apache.ignite.internal.portable;
 
+import org.apache.ignite.binary.BinaryIdMapper;
+import org.apache.ignite.binary.BinaryObjectException;
+import org.apache.ignite.binary.BinaryRawWriter;
+import org.apache.ignite.binary.BinaryWriter;
+import org.jetbrains.annotations.Nullable;
+
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
@@ -27,194 +33,212 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
-import org.apache.ignite.binary.BinaryObjectException;
-import org.apache.ignite.binary.BinaryRawWriter;
-import org.apache.ignite.binary.BinaryWriter;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * Writer for meta data collection.
  */
-class BinaryMetaDataCollector implements BinaryWriter {
-    /** */
-    private final Map<String, String> meta = new HashMap<>();
+class BinaryMetadataCollector implements BinaryWriter {
+    /** Type ID. */
+    private final int typeId;
 
-    /** */
+    /** Type name. */
     private final String typeName;
 
+    /** ID mapper. */
+    private final BinaryIdMapper idMapper;
+
+    /** Collected metadata. */
+    private final Map<String, Integer> meta = new HashMap<>();
+
+    /** Schema builder. */
+    private PortableSchema.Builder schemaBuilder = PortableSchema.Builder.newBuilder();
+
     /**
+     * Constructor.
+     *
+     * @param typeId Type ID.
      * @param typeName Type name.
+     * @param idMapper ID mapper.
      */
-    BinaryMetaDataCollector(String typeName) {
+    BinaryMetadataCollector(int typeId, String typeName, BinaryIdMapper idMapper) {
+        this.typeId = typeId;
         this.typeName = typeName;
+        this.idMapper = idMapper;
     }
 
     /**
      * @return Field meta data.
      */
-    Map<String, String> meta() {
+    Map<String, Integer> meta() {
         return meta;
+    }
+
+    /**
+     * @return Schemas.
+     */
+    PortableSchema schema() {
+        return schemaBuilder.build();
     }
 
     /** {@inheritDoc} */
     @Override public void writeByte(String fieldName, byte val) throws BinaryObjectException {
-        add(fieldName, byte.class);
+        add(fieldName, BinaryWriteMode.BYTE);
     }
 
     /** {@inheritDoc} */
     @Override public void writeShort(String fieldName, short val) throws BinaryObjectException {
-        add(fieldName, short.class);
+        add(fieldName, BinaryWriteMode.SHORT);
     }
 
     /** {@inheritDoc} */
     @Override public void writeInt(String fieldName, int val) throws BinaryObjectException {
-        add(fieldName, int.class);
+        add(fieldName, BinaryWriteMode.INT);
     }
 
     /** {@inheritDoc} */
     @Override public void writeLong(String fieldName, long val) throws BinaryObjectException {
-        add(fieldName, long.class);
+        add(fieldName, BinaryWriteMode.LONG);
     }
 
     /** {@inheritDoc} */
     @Override public void writeFloat(String fieldName, float val) throws BinaryObjectException {
-        add(fieldName, float.class);
+        add(fieldName, BinaryWriteMode.FLOAT);
     }
 
     /** {@inheritDoc} */
     @Override public void writeDouble(String fieldName, double val) throws BinaryObjectException {
-        add(fieldName, double.class);
+        add(fieldName, BinaryWriteMode.DOUBLE);
     }
 
     /** {@inheritDoc} */
     @Override public void writeChar(String fieldName, char val) throws BinaryObjectException {
-        add(fieldName, char.class);
+        add(fieldName, BinaryWriteMode.CHAR);
     }
 
     /** {@inheritDoc} */
     @Override public void writeBoolean(String fieldName, boolean val) throws BinaryObjectException {
-        add(fieldName, boolean.class);
+        add(fieldName, BinaryWriteMode.BOOLEAN);
     }
 
     /** {@inheritDoc} */
     @Override public void writeDecimal(String fieldName, @Nullable BigDecimal val) throws BinaryObjectException {
-        add(fieldName, PortableClassDescriptor.Mode.DECIMAL.typeName());
+        add(fieldName, BinaryWriteMode.DECIMAL);
     }
 
     /** {@inheritDoc} */
     @Override public void writeString(String fieldName, @Nullable String val) throws BinaryObjectException {
-        add(fieldName, String.class);
+        add(fieldName, BinaryWriteMode.STRING);
     }
 
     /** {@inheritDoc} */
     @Override public void writeUuid(String fieldName, @Nullable UUID val) throws BinaryObjectException {
-        add(fieldName, UUID.class);
+        add(fieldName, BinaryWriteMode.UUID);
     }
 
     /** {@inheritDoc} */
     @Override public void writeDate(String fieldName, @Nullable Date val) throws BinaryObjectException {
-        add(fieldName, Date.class);
+        add(fieldName, BinaryWriteMode.DATE);
     }
 
     /** {@inheritDoc} */
     @Override public void writeTimestamp(String fieldName, @Nullable Timestamp val) throws BinaryObjectException {
-        add(fieldName, Timestamp.class);
+        add(fieldName, BinaryWriteMode.TIMESTAMP);
     }
 
     /** {@inheritDoc} */
     @Override public <T extends Enum<?>> void writeEnum(String fieldName, T val) throws BinaryObjectException {
-        add(fieldName, Enum.class);
+        add(fieldName, BinaryWriteMode.ENUM);
     }
 
     /** {@inheritDoc} */
     @Override public <T extends Enum<?>> void writeEnumArray(String fieldName, T[] val) throws BinaryObjectException {
-        add(fieldName, Enum[].class);
+        add(fieldName, BinaryWriteMode.ENUM_ARR);
     }
 
     /** {@inheritDoc} */
     @Override public void writeObject(String fieldName, @Nullable Object obj) throws BinaryObjectException {
-        add(fieldName, Object.class);
+        add(fieldName, BinaryWriteMode.OBJECT);
     }
 
     /** {@inheritDoc} */
     @Override public void writeByteArray(String fieldName, @Nullable byte[] val) throws BinaryObjectException {
-        add(fieldName, byte[].class);
+        add(fieldName, BinaryWriteMode.BYTE_ARR);
     }
 
     /** {@inheritDoc} */
     @Override public void writeShortArray(String fieldName, @Nullable short[] val) throws BinaryObjectException {
-        add(fieldName, short[].class);
+        add(fieldName, BinaryWriteMode.SHORT_ARR);
     }
 
     /** {@inheritDoc} */
     @Override public void writeIntArray(String fieldName, @Nullable int[] val) throws BinaryObjectException {
-        add(fieldName, int[].class);
+        add(fieldName, BinaryWriteMode.INT_ARR);
     }
 
     /** {@inheritDoc} */
     @Override public void writeLongArray(String fieldName, @Nullable long[] val) throws BinaryObjectException {
-        add(fieldName, long[].class);
+        add(fieldName, BinaryWriteMode.LONG_ARR);
     }
 
     /** {@inheritDoc} */
     @Override public void writeFloatArray(String fieldName, @Nullable float[] val) throws BinaryObjectException {
-        add(fieldName, float[].class);
+        add(fieldName, BinaryWriteMode.FLOAT_ARR);
     }
 
     /** {@inheritDoc} */
     @Override public void writeDoubleArray(String fieldName, @Nullable double[] val) throws BinaryObjectException {
-        add(fieldName, double[].class);
+        add(fieldName, BinaryWriteMode.DOUBLE_ARR);
     }
 
     /** {@inheritDoc} */
     @Override public void writeCharArray(String fieldName, @Nullable char[] val) throws BinaryObjectException {
-        add(fieldName, char[].class);
+        add(fieldName, BinaryWriteMode.CHAR_ARR);
     }
 
     /** {@inheritDoc} */
     @Override public void writeBooleanArray(String fieldName, @Nullable boolean[] val) throws BinaryObjectException {
-        add(fieldName, boolean[].class);
+        add(fieldName, BinaryWriteMode.BOOLEAN_ARR);
     }
 
     /** {@inheritDoc} */
     @Override public void writeDecimalArray(String fieldName, @Nullable BigDecimal[] val) throws BinaryObjectException {
-        add(fieldName, PortableClassDescriptor.Mode.DECIMAL_ARR.typeName());
+        add(fieldName, BinaryWriteMode.DECIMAL_ARR);
     }
 
     /** {@inheritDoc} */
     @Override public void writeStringArray(String fieldName, @Nullable String[] val) throws BinaryObjectException {
-        add(fieldName, String[].class);
+        add(fieldName, BinaryWriteMode.STRING_ARR);
     }
 
     /** {@inheritDoc} */
     @Override public void writeUuidArray(String fieldName, @Nullable UUID[] val) throws BinaryObjectException {
-        add(fieldName, UUID[].class);
+        add(fieldName, BinaryWriteMode.UUID_ARR);
     }
 
     /** {@inheritDoc} */
     @Override public void writeDateArray(String fieldName, @Nullable Date[] val) throws BinaryObjectException {
-        add(fieldName, Date[].class);
+        add(fieldName, BinaryWriteMode.DATE_ARR);
     }
 
     /** {@inheritDoc} */
     @Override public void writeTimestampArray(String fieldName, @Nullable Timestamp[] val) throws BinaryObjectException {
-        add(fieldName, Timestamp[].class);
+        add(fieldName, BinaryWriteMode.TIMESTAMP_ARR);
     }
 
     /** {@inheritDoc} */
     @Override public void writeObjectArray(String fieldName, @Nullable Object[] val) throws BinaryObjectException {
-        add(fieldName, Object[].class);
+        add(fieldName, BinaryWriteMode.OBJECT_ARR);
     }
 
     /** {@inheritDoc} */
     @Override public <T> void writeCollection(String fieldName, @Nullable Collection<T> col)
         throws BinaryObjectException {
-        add(fieldName, Collection.class);
+        add(fieldName, BinaryWriteMode.COL);
     }
 
     /** {@inheritDoc} */
     @Override public <K, V> void writeMap(String fieldName, @Nullable Map<K, V> map) throws BinaryObjectException {
-        add(fieldName, Map.class);
+        add(fieldName, BinaryWriteMode.MAP);
     }
 
     /** {@inheritDoc} */
@@ -230,34 +254,24 @@ class BinaryMetaDataCollector implements BinaryWriter {
 
     /**
      * @param name Field name.
-     * @param fieldType Field type.
-     * @throws org.apache.ignite.binary.BinaryObjectException In case of error.
+     * @param mode Field mode.
+     * @throws BinaryObjectException In case of error.
      */
-    private void add(String name, Class<?> fieldType) throws BinaryObjectException {
-        assert fieldType != null;
-
-        add(name, fieldType.getSimpleName());
-    }
-
-    /**
-     * @param name Field name.
-     * @param fieldTypeName Field type name.
-     * @throws org.apache.ignite.binary.BinaryObjectException In case of error.
-     */
-    private void add(String name, String fieldTypeName) throws BinaryObjectException {
+    private void add(String name, BinaryWriteMode mode) throws BinaryObjectException {
         assert name != null;
 
-        String oldFieldTypeName = meta.put(name, fieldTypeName);
+        int fieldTypeId = mode.typeId();
 
-        if (oldFieldTypeName != null && !oldFieldTypeName.equals(fieldTypeName)) {
+        Integer oldFieldTypeId = meta.put(name, fieldTypeId);
+
+        if (oldFieldTypeId != null && !oldFieldTypeId.equals(fieldTypeId)) {
             throw new BinaryObjectException(
-                "Field is written twice with different types [" +
-                "typeName=" + typeName +
-                ", fieldName=" + name +
-                ", fieldTypeName1=" + oldFieldTypeName +
-                ", fieldTypeName2=" + fieldTypeName +
-                ']'
+                "Field is written twice with different types [" + "typeName=" + typeName + ", fieldName=" + name +
+                ", fieldTypeName1=" + PortableUtils.fieldTypeName(oldFieldTypeId) +
+                ", fieldTypeName2=" + PortableUtils.fieldTypeName(fieldTypeId) + ']'
             );
         }
+
+        schemaBuilder.addField(idMapper.fieldId(typeId, name));
     }
 }

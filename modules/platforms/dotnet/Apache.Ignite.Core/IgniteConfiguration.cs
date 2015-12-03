@@ -17,10 +17,16 @@
 
 namespace Apache.Ignite.Core
 {
+    using System;
     using System.Collections.Generic;
+    using System.Diagnostics;
     using System.Diagnostics.CodeAnalysis;
+    using System.Linq;
     using Apache.Ignite.Core.Binary;
     using Apache.Ignite.Core.Configuration;
+    using Apache.Ignite.Core.Events;
+    using Apache.Ignite.Core.Impl;
+    using Apache.Ignite.Core.Impl.Binary;
     using Apache.Ignite.Core.Lifecycle;
 
     /// <summary>
@@ -39,7 +45,7 @@ namespace Apache.Ignite.Core
         public const int DefaultJvmMaxMem = 1024;
 
         /// <summary>
-        /// Default constructor.
+        /// Initializes a new instance of the <see cref="IgniteConfiguration"/> class.
         /// </summary>
         public IgniteConfiguration()
         {
@@ -48,31 +54,68 @@ namespace Apache.Ignite.Core
         }
 
         /// <summary>
-        /// Copying constructor.
+        /// Initializes a new instance of the <see cref="IgniteConfiguration"/> class from a reader.
         /// </summary>
-        /// <param name="cfg">Configuration.</param>
-        internal IgniteConfiguration(IgniteConfiguration cfg)
+        /// <param name="binaryReader">The binary reader.</param>
+        internal IgniteConfiguration(BinaryReader binaryReader)
         {
-            SpringConfigUrl = cfg.SpringConfigUrl;
-            JvmDllPath = cfg.JvmDllPath;
-            IgniteHome = cfg.IgniteHome;
-            JvmClasspath = cfg.JvmClasspath;
-            SuppressWarnings = cfg.SuppressWarnings;
+            var r = binaryReader;
 
-            JvmOptions = CopyList(cfg.JvmOptions);
-            Assemblies = CopyList(cfg.Assemblies);
+            GridName = r.ReadString();
 
-            BinaryConfiguration = cfg.BinaryConfiguration != null
-                ? new BinaryConfiguration(cfg.BinaryConfiguration)
-                : null;
+            var cacheCfgCount = r.ReadInt();
+            CacheConfiguration = new List<CacheConfiguration>(cacheCfgCount);
+            for (int i = 0; i < cacheCfgCount; i++)
+                CacheConfiguration.Add(new CacheConfiguration(r));
 
-            LifecycleBeans = cfg.LifecycleBeans != null ? new List<ILifecycleBean>(cfg.LifecycleBeans) : null;
+            IgniteHome = r.ReadString();
 
-            JvmInitialMemoryMb = cfg.JvmInitialMemoryMb;
-            JvmMaxMemoryMb = cfg.JvmMaxMemoryMb;
+            JvmInitialMemoryMb = (int) (r.ReadLong() / 1024 / 2014);
+            JvmMaxMemoryMb = (int) (r.ReadLong() / 1024 / 2014);
 
-            CacheConfiguration = CopyList(cfg.CacheConfiguration);
+            DiscoveryConfiguration = r.ReadBoolean() ? new DiscoveryConfiguration(r) : null;
+
+            ClientMode = r.ReadBoolean();
+            IncludedEventTypes = r.ReadIntArray();
+
+            MetricsExpireTime = r.ReadLongAsTimespan();
+            MetricsHistorySize = r.ReadInt();
+            MetricsLogFrequency = r.ReadLongAsTimespan();
+            MetricsUpdateFrequency = r.ReadLongAsTimespan();
+            NetworkSendRetryCount = r.ReadInt();
+            NetworkSendRetryDelay = r.ReadLongAsTimespan();
+            NetworkTimeout = r.ReadLongAsTimespan();
+            WorkDirectory = r.ReadString();
+
+
+            // Local data (not from reader)
+            JvmDllPath = Process.GetCurrentProcess().Modules.OfType<ProcessModule>()
+                .Single(x => string.Equals(x.ModuleName, IgniteUtils.FileJvmDll, StringComparison.OrdinalIgnoreCase))
+                .FileName;
+
+            var marsh = r.Marshaller;
+
+            var origCfg = marsh.Ignite.Configuration;
+
+            BinaryConfiguration = marsh.BinaryConfiguration;
+
+            SpringConfigUrl = origCfg.SpringConfigUrl;
+
+            JvmClasspath = origCfg.JvmClasspath;
+
+            JvmOptions = origCfg.JvmOptions;
+
+            Assemblies = origCfg.Assemblies;
+
+            SuppressWarnings = origCfg.SuppressWarnings;
+
+            LifecycleBeans = origCfg.LifecycleBeans;
         }
+
+        /// <summary>
+        /// Grid name which is used if not provided in configuration file.
+        /// </summary>
+        public string GridName { get; set; }
 
         /// <summary>
         /// Gets or sets the binary configuration.
@@ -152,11 +195,65 @@ namespace Apache.Ignite.Core
         public int JvmMaxMemoryMb { get; set; }
 
         /// <summary>
-        /// Copies the list.
+        /// Gets or sets the discovery configuration.
+        /// Null for default configuration.
         /// </summary>
-        private static List<T> CopyList<T>(ICollection<T> collection)
-        {
-            return collection == null ? null : new List<T>(collection);
-        }
+        public DiscoveryConfiguration DiscoveryConfiguration { get; set; }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether node should start in client mode.
+        /// Client node cannot hold data in the caches.
+        /// Default is null and takes this setting from Spring configuration.
+        /// </summary>
+        public bool? ClientMode { get; set; }
+
+        /// <summary>
+        /// Gets or sets a set of event types (<see cref="EventType" />) to be recorded by Ignite. 
+        /// </summary>
+        public ICollection<int> IncludedEventTypes { get; set; }
+
+        /// <summary>
+        /// Gets or sets the time after which a certain metric value is considered expired.
+        /// </summary>
+        public TimeSpan? MetricsExpireTime { get; set; }
+
+        /// <summary>
+        /// Gets or sets the number of metrics kept in history to compute totals and averages.
+        /// </summary>
+        public int? MetricsHistorySize { get; set; }
+
+        /// <summary>
+        /// Gets or sets the frequency of metrics log print out.
+        /// <see cref="TimeSpan.Zero"/> to disable metrics print out.
+        /// </summary>
+        public TimeSpan? MetricsLogFrequency { get; set; }
+
+        /// <summary>
+        /// Gets or sets the job metrics update frequency.
+        /// <see cref="TimeSpan.Zero"/> to update metrics on job start/finish.
+        /// Negative value to never update metrics.
+        /// </summary>
+        public TimeSpan? MetricsUpdateFrequency { get; set; }
+
+        /// <summary>
+        /// Gets or sets the network send retry count.
+        /// </summary>
+        public int? NetworkSendRetryCount { get; set; }
+
+        /// <summary>
+        /// Gets or sets the network send retry delay.
+        /// </summary>
+        public TimeSpan? NetworkSendRetryDelay { get; set; }
+
+        /// <summary>
+        /// Gets or sets the network timeout.
+        /// </summary>
+        public TimeSpan? NetworkTimeout { get; set; }
+
+        /// <summary>
+        /// Gets or sets the work directory.
+        /// If not provided, a folder under <see cref="IgniteHome"/> will be used.
+        /// </summary>
+        public string WorkDirectory { get; set; }
     }
 }

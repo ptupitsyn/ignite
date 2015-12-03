@@ -19,6 +19,9 @@ namespace Apache.Ignite.Core.Tests.Cache
 {
     using System;
     using System.Collections.Generic;
+    using System.Linq;
+    using Apache.Ignite.Core.Cache.Store;
+    using Apache.Ignite.Core.Common;
     using Apache.Ignite.Core.Configuration;
     using NUnit.Framework;
 
@@ -31,64 +34,25 @@ namespace Apache.Ignite.Core.Tests.Cache
         private IIgnite _ignite;
 
         /** */
-        private CacheConfiguration _cacheConfiguration;
+        private const string CacheName = "cacheName";
 
         /** */
-        private const string CacheName = "cacheName";
+        private static int _factoryProp;
+
 
         [TestFixtureSetUp]
         public void FixtureSetUp()
         {
-            _cacheConfiguration = new CacheConfiguration
-            {
-                Name = CacheName,
-                OffHeapMaxMemory = 1,
-                StartSize = 2,
-                MaxConcurrentAsyncOperations = 3,
-                WriteBehindFlushThreadCount = 4,
-                LongQueryWarningTimeout = TimeSpan.FromSeconds(5),
-                LoadPreviousValue = true,
-                EvictSynchronizedKeyBufferSize = 6,
-                CopyOnRead = true,
-                WriteBehindFlushFrequency = TimeSpan.FromSeconds(6),
-                WriteBehindFlushSize = 7,
-                EvictSynchronized = true,
-                AtomicWriteOrderMode = CacheAtomicWriteOrderMode.Primary,
-                AtomicityMode = CacheAtomicityMode.Atomic,
-                Backups = 8,
-                CacheMode = CacheMode.Partitioned,
-                EagerTtl = true,
-                EnableSwap = true,
-                EvictSynchronizedConcurrencyLevel = 9,
-                EvictSynchronizedTimeout = TimeSpan.FromSeconds(10),
-                Invalidate = true,
-                KeepPortableInStore = true,
-                LockTimeout = TimeSpan.FromSeconds(11),
-                MaxEvictionOverflowRatio = 0.5f,
-                MemoryMode = CacheMemoryMode.OffheapValues,
-                ReadFromBackup = true,
-                RebalanceBatchSize = 12,
-                RebalanceDelay = TimeSpan.FromSeconds(13),
-                RebalanceMode = CacheRebalanceMode.Async,
-                RebalanceThreadPoolSize = 14,
-                RebalanceThrottle = TimeSpan.FromSeconds(15),
-                RebalanceTimeout = TimeSpan.FromSeconds(16),
-                SqlEscapeAll = true,
-                SqlOnheapRowCacheSize = 17,
-                WriteBehindBatchSize = 18,
-                WriteBehindEnabled = false,
-                WriteSynchronizationMode = CacheWriteSynchronizationMode.PrimarySync
-            };
-
             var cfg = new IgniteConfiguration
             {
                 CacheConfiguration = new List<CacheConfiguration>
                 {
                     new CacheConfiguration(),
-                    _cacheConfiguration,
+                    GetCustomCacheConfiguration()
                 },
                 JvmClasspath = TestUtils.CreateTestClasspath(),
-                JvmOptions = TestUtils.TestJavaOptions()
+                JvmOptions = TestUtils.TestJavaOptions(),
+                GridName = CacheName
             };
 
             _ignite = Ignition.Start(cfg);
@@ -106,12 +70,64 @@ namespace Apache.Ignite.Core.Tests.Cache
             AssertConfigIsDefault(new CacheConfiguration());
 
             AssertConfigIsDefault(_ignite.GetCache<int, int>(null).GetConfiguration());
+
+            AssertConfigIsDefault(_ignite.GetConfiguration().CacheConfiguration.Single(c => c.Name == null));
         }
 
         [Test]
         public void TestCustomConfiguration()
         {
-            AssertConfigsAreEqual(_cacheConfiguration, _ignite.GetCache<int, int>(CacheName).GetConfiguration());
+            AssertConfigsAreEqual(GetCustomCacheConfiguration(),
+                _ignite.GetCache<int, int>(CacheName).GetConfiguration());
+
+            AssertConfigsAreEqual(GetCustomCacheConfiguration(),
+                _ignite.GetConfiguration().CacheConfiguration.Single(c => c.Name == CacheName));
+        }
+
+        [Test]
+        public void TestCreateFromConfiguration()
+        {
+            var cacheName = Guid.NewGuid().ToString();
+            var cfg = GetCustomCacheConfiguration(cacheName);
+
+            var cache = _ignite.CreateCache<int, int>(cfg);
+            AssertConfigsAreEqual(cfg, cache.GetConfiguration());
+
+            // Can't create existing cache
+            Assert.Throws<IgniteException>(() => _ignite.CreateCache<int, int>(cfg));
+        }
+
+        [Test]
+        public void TestGetOrCreateFromConfiguration()
+        {
+            var cacheName = Guid.NewGuid().ToString();
+            var cfg = GetCustomCacheConfiguration(cacheName);
+
+            var cache = _ignite.GetOrCreateCache<int, int>(cfg);
+            AssertConfigsAreEqual(cfg, cache.GetConfiguration());
+
+            var cache2 = _ignite.GetOrCreateCache<int, int>(cfg);
+            AssertConfigsAreEqual(cfg, cache2.GetConfiguration());
+        }
+
+        [Test]
+        public void TestCacheStore()
+        {
+            _factoryProp = 0;
+
+            var factory = new CacheStoreFactoryTest {TestProperty = 15};
+
+            var cache = _ignite.CreateCache<int, int>(new CacheConfiguration("cacheWithStore")
+            {
+                CacheStoreFactory = factory
+            });
+
+            Assert.AreEqual(factory.TestProperty, _factoryProp);
+
+            var factory0 = cache.GetConfiguration().CacheStoreFactory as CacheStoreFactoryTest;
+
+            Assert.IsNotNull(factory0);
+            Assert.AreEqual(factory.TestProperty, factory0.TestProperty);
         }
 
         /// <summary>
@@ -130,7 +146,7 @@ namespace Apache.Ignite.Core.Tests.Cache
             Assert.AreEqual(CacheConfiguration.DefaultEvictSynchronizedConcurrencyLevel, cfg.EvictSynchronizedConcurrencyLevel);
             Assert.AreEqual(CacheConfiguration.DefaultEvictSynchronizedTimeout, cfg.EvictSynchronizedTimeout);
             Assert.AreEqual(CacheConfiguration.DefaultInvalidate, cfg.Invalidate);
-            Assert.AreEqual(CacheConfiguration.DefaultKeepPortableInStore, cfg.KeepPortableInStore);
+            Assert.AreEqual(CacheConfiguration.DefaultKeepPortableInStore, cfg.KeepBinaryInStore);
             Assert.AreEqual(CacheConfiguration.DefaultLoadPreviousValue, cfg.LoadPreviousValue);
             Assert.AreEqual(CacheConfiguration.DefaultLockTimeout, cfg.LockTimeout);
             Assert.AreEqual(CacheConfiguration.DefaultLongQueryWarningTimeout, cfg.LongQueryWarningTimeout);
@@ -170,7 +186,7 @@ namespace Apache.Ignite.Core.Tests.Cache
             Assert.AreEqual(x.EvictSynchronizedConcurrencyLevel, y.EvictSynchronizedConcurrencyLevel);
             Assert.AreEqual(x.EvictSynchronizedTimeout, y.EvictSynchronizedTimeout);
             Assert.AreEqual(x.Invalidate, y.Invalidate);
-            Assert.AreEqual(x.KeepPortableInStore, y.KeepPortableInStore);
+            Assert.AreEqual(x.KeepBinaryInStore, y.KeepBinaryInStore);
             Assert.AreEqual(x.LoadPreviousValue, y.LoadPreviousValue);
             Assert.AreEqual(x.LockTimeout, y.LockTimeout);
             Assert.AreEqual(x.LongQueryWarningTimeout, y.LongQueryWarningTimeout);
@@ -192,6 +208,84 @@ namespace Apache.Ignite.Core.Tests.Cache
             Assert.AreEqual(x.WriteBehindEnabled, y.WriteBehindEnabled);
             Assert.AreEqual(x.WriteBehindFlushFrequency, y.WriteBehindFlushFrequency);
             Assert.AreEqual(x.WriteBehindFlushSize, y.WriteBehindFlushSize);
+        }
+
+        /// <summary>
+        /// Gets the custom cache configuration.
+        /// </summary>
+        private static CacheConfiguration GetCustomCacheConfiguration(string name = null)
+        {
+            return new CacheConfiguration
+            {
+                Name = name ?? CacheName,
+                OffHeapMaxMemory = 1,
+                StartSize = 2,
+                MaxConcurrentAsyncOperations = 3,
+                WriteBehindFlushThreadCount = 4,
+                LongQueryWarningTimeout = TimeSpan.FromSeconds(5),
+                LoadPreviousValue = true,
+                EvictSynchronizedKeyBufferSize = 6,
+                CopyOnRead = true,
+                WriteBehindFlushFrequency = TimeSpan.FromSeconds(6),
+                WriteBehindFlushSize = 7,
+                EvictSynchronized = true,
+                AtomicWriteOrderMode = CacheAtomicWriteOrderMode.Primary,
+                AtomicityMode = CacheAtomicityMode.Atomic,
+                Backups = 8,
+                CacheMode = CacheMode.Partitioned,
+                EagerTtl = true,
+                EnableSwap = true,
+                EvictSynchronizedConcurrencyLevel = 9,
+                EvictSynchronizedTimeout = TimeSpan.FromSeconds(10),
+                Invalidate = true,
+                KeepBinaryInStore = true,
+                LockTimeout = TimeSpan.FromSeconds(11),
+                MaxEvictionOverflowRatio = 0.5f,
+                MemoryMode = CacheMemoryMode.OffheapValues,
+                ReadFromBackup = true,
+                RebalanceBatchSize = 12,
+                RebalanceDelay = TimeSpan.FromSeconds(13),
+                RebalanceMode = CacheRebalanceMode.Async,
+                RebalanceThreadPoolSize = 14,
+                RebalanceThrottle = TimeSpan.FromSeconds(15),
+                RebalanceTimeout = TimeSpan.FromSeconds(16),
+                SqlEscapeAll = true,
+                SqlOnheapRowCacheSize = 17,
+                WriteBehindBatchSize = 18,
+                WriteBehindEnabled = false,
+                WriteSynchronizationMode = CacheWriteSynchronizationMode.PrimarySync
+            };
+        }
+
+        [Serializable]
+        private class CacheStoreFactoryTest : ICacheStoreFactory
+        {
+            public int TestProperty { get; set; }
+
+            public ICacheStore CreateInstance()
+            {
+                _factoryProp = TestProperty;
+
+                return new CacheStoreTest();
+            }
+        }
+
+        private class CacheStoreTest : CacheStoreAdapter
+        {
+            public override object Load(object key)
+            {
+                return null;
+            }
+
+            public override void Write(object key, object val)
+            {
+                // No-op.
+            }
+
+            public override void Delete(object key)
+            {
+                // No-op.
+            }
         }
     }
 }

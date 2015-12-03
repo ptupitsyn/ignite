@@ -24,6 +24,7 @@
     <OutputPath>bin\x64\Release\</OutputPath>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <CodeAnalysisRuleSet>Apache.Ignite.Core.ruleset</CodeAnalysisRuleSet>
+    <Optimize>true</Optimize>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x86'">
     <PlatformTarget>x86</PlatformTarget>
@@ -37,6 +38,7 @@
     <OutputPath>bin\x86\Release\</OutputPath>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <CodeAnalysisRuleSet>Apache.Ignite.Core.ruleset</CodeAnalysisRuleSet>
+    <Optimize>true</Optimize>
   </PropertyGroup>
   <PropertyGroup>
     <SignAssembly>true</SignAssembly>
@@ -85,6 +87,7 @@
     <Compile Include="Cache\Store\CacheStoreAdapter.cs" />
     <Compile Include="Cache\Store\CacheStoreException.cs" />
     <Compile Include="Cache\Store\ICacheStore.cs" />
+    <Compile Include="Cache\Store\ICacheStoreFactory.cs" />
     <Compile Include="Cache\Store\ICacheStoreSession.cs" />
     <Compile Include="Cluster\ClusterGroupEmptyException.cs" />
     <Compile Include="Cluster\ClusterTopologyException.cs" />
@@ -119,6 +122,10 @@
     <Compile Include="Configuration\CacheRebalanceMode.cs" />
     <Compile Include="Configuration\CacheTypeMetadata.cs" />
     <Compile Include="Configuration\CacheWriteSynchronizationMode.cs" />
+    <Compile Include="Configuration\DiscoveryConfiguration.cs" />
+    <Compile Include="Configuration\IpFinder.cs" />
+    <Compile Include="Configuration\MulticastIpFinder.cs" />
+    <Compile Include="Configuration\StaticIpFinder.cs" />
     <Compile Include="Datastream\IDataStreamer.cs" />
     <Compile Include="Datastream\IStreamReceiver.cs" />
     <Compile Include="Datastream\StreamTransformer.cs" />
@@ -145,6 +152,7 @@
     <Compile Include="Ignition.cs" />
     <Compile Include="IIgnite.cs" />
     <Compile Include="Impl\Binary\JavaTypes.cs" />
+    <Compile Include="Impl\Binary\BinaryEnum.cs" />
     <Compile Include="Impl\Cache\CacheAffinityImpl.cs" />
     <Compile Include="Impl\Cache\CacheEntry.cs" />
     <Compile Include="Impl\Cache\CacheEntryFilterHolder.cs" />
@@ -221,7 +229,6 @@
     <Compile Include="Impl\Events\Events.cs" />
     <Compile Include="Impl\Events\RemoteListenEventFilter.cs" />
     <Compile Include="Impl\ExceptionUtils.cs" />
-    <Compile Include="Impl\IgniteConfigurationEx.cs" />
     <Compile Include="Impl\Ignite.cs" />
     <Compile Include="Impl\IgniteManager.cs" />
     <Compile Include="Impl\IgniteProxy.cs" />
@@ -277,7 +284,7 @@
     <Compile Include="Impl\Binary\BinaryReader.cs" />
     <Compile Include="Impl\Binary\BinaryReflectiveActions.cs" />
     <Compile Include="Impl\Binary\BinaryReflectiveSerializer.cs" />
-    <Compile Include="Impl\Binary\IgniteBinary.cs" />
+    <Compile Include="Impl\Binary\Binary.cs" />
     <Compile Include="Impl\Binary\Structure\BinaryStructureTracker.cs" />
     <Compile Include="Impl\Binary\BinarySurrogateTypeDescriptor.cs" />
     <Compile Include="Impl\Binary\BinarySystemHandlers.cs" />
@@ -327,7 +334,7 @@
     <Compile Include="Binary\IBinaryRawReader.cs" />
     <Compile Include="Binary\IBinaryRawWriter.cs" />
     <Compile Include="Binary\IBinaryReader.cs" />
-    <Compile Include="Binary\IIgniteBinary.cs" />
+    <Compile Include="Binary\IBinary.cs" />
     <Compile Include="Binary\IBinarySerializer.cs" />
     <Compile Include="Binary\IBinaryWriter.cs" />
     <Compile Include="Binary\BinaryConfiguration.cs" />
