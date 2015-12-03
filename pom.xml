@@ -827,8 +827,8 @@
 
                                         <echo message="Update ignite.version in cpp client" />
                                         <replaceregexp byline="true" encoding="UTF-8">
-                                            <regexp pattern="(AC_INIT.+\[)\d.\d.\d(.\d)?(\].+)" />
-                                            <substitution expression="\1${new.client.version}\3" />
+                                            <regexp pattern="(AC_INIT.+\[)\d.\d.\d.*?(\].+)" />
+                                            <substitution expression="\1${new.client.version}\2" />
                                             <fileset dir="${basedir}/">
                                                 <include name="**/configure.ac" />
                                             </fileset>
