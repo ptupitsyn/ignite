@@ -110,7 +110,7 @@ namespace Apache.Ignite.Core.Configuration
                 foreach (var field in Fields)
                 {
                     writer.WriteString(field.Name);
-                    writer.WriteBoolean(field.IsAscending);
+                    writer.WriteBoolean(field.IsDescending);
                 }
             }
             else

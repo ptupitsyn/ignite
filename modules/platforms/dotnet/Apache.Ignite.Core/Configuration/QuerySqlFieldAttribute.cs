@@ -28,5 +28,17 @@ namespace Apache.Ignite.Core.Configuration
     [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property)]
     public sealed class QuerySqlFieldAttribute : Attribute
     {
+        /// <summary>
+        /// Gets or sets the sql field name.
+        /// If not provided, property or field name will be used.
+        /// </summary>
+        public string Name { get; set; }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether corresponding field should be indexed.
+        /// Just like with databases, field indexing may require additional overhead during updates, 
+        /// but makes select operations faster.
+        /// </summary>
+        public bool Index { get; set; }
     }
 }
