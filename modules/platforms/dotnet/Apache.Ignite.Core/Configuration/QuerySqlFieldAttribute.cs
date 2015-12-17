@@ -39,6 +39,12 @@ namespace Apache.Ignite.Core.Configuration
         /// Just like with databases, field indexing may require additional overhead during updates, 
         /// but makes select operations faster.
         /// </summary>
-        public bool Index { get; set; }
+        public bool IsIndexed { get; set; }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether index for this field should be descending.
+        /// Ignored when <see cref="IsIndexed"/> is <c>false</c>.
+        /// </summary>
+        public bool IsDescending { get; set; }
     }
 }
