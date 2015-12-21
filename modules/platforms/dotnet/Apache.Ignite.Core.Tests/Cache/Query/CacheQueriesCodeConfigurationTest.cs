@@ -125,12 +125,21 @@ namespace Apache.Ignite.Core.Tests.Cache.Query
 
                 Assert.IsNotNull(cache);
 
-                cache[1] = new AttributeQueryPerson("Arnold", 10);
+                cache[1] = new AttributeQueryPerson("Arnold", 10)
+                {
+                    Address = new AttributeQueryAddress {Country = "USA", Street = "Pine Tree road"}
+                };
+
                 cache[2] = new AttributeQueryPerson("John", 20);
 
                 using (var cursor = cache.Query(new SqlQuery(typeof(AttributeQueryPerson), "age > 10")))
                 {
                     Assert.AreEqual(2, cursor.GetAll().Single().Key);
+                }
+
+                using (var cursor = cache.Query(new SqlQuery(typeof(AttributeQueryPerson), "Address.Country = 'USA'")))
+                {
+                    Assert.AreEqual(1, cursor.GetAll().Single().Key);
                 }
 
                 using (var cursor = cache.Query(new TextQuery(typeof(AttributeQueryPerson), "Ar*")))
