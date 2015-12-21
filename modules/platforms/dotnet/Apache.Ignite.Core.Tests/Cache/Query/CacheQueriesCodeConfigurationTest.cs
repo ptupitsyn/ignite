@@ -99,6 +99,14 @@ namespace Apache.Ignite.Core.Tests.Cache.Query
             Assert.Throws<InvalidOperationException>(() => new QueryEntity {ValueType = typeof (RecursiveQuery)});
 
             var qe = new QueryEntity {ValueType = typeof(AttributeTest) };
+
+            Assert.AreEqual(typeof(AttributeTest), qe.ValueType);
+
+            CollectionAssert.AreEquivalent(new[]
+            {
+                "SqlField", "IndexedField1", "FullTextField", "Inner", "Inner.Foo",
+                "GroupIndex1", "GroupIndex2", "GroupIndex3"
+            }, qe.Fields.Select(x => x.Name));
         }
 
         [Test]
@@ -202,6 +210,7 @@ namespace Apache.Ignite.Core.Tests.Cache.Query
             [QueryField(IndexType = QueryIndexType.FullText, IsIndexed = true)]
             public string FullTextField { get; set; }
 
+            [QueryField]
             public AttributeTestInner Inner { get; set; }
 
             [QueryField(IndexGroups = new [] {"group1", "group2"})]
