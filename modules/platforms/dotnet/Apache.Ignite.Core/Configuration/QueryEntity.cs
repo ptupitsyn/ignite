@@ -47,8 +47,11 @@ namespace Apache.Ignite.Core.Configuration
 
         /// <summary>
         /// Gets or sets the type of the key.
-        /// This is a shortcut for <see cref="KeyTypeName"/>. 
-        /// Getter will return null for non-primitive types.
+        /// <para />
+        /// This is a shortcut for <see cref="KeyTypeName"/>. Getter will return null for non-primitive types.
+        /// <para />
+        /// Setting this property will overwrite <see cref="Fields"/> and <see cref="Indexes"/> according to
+        /// <see cref="QueryFieldAttribute"/>, if any.
         /// </summary>
         public Type KeyType
         {
@@ -68,8 +71,11 @@ namespace Apache.Ignite.Core.Configuration
 
         /// <summary>
         /// Gets or sets the type of the value.
-        /// This is a shortcut for <see cref="ValueTypeName"/>. 
-        /// Getter will return null for non-primitive types.
+        /// <para />
+        /// This is a shortcut for <see cref="ValueTypeName"/>. Getter will return null for non-primitive types.
+        /// <para />
+        /// Setting this property will overwrite <see cref="Fields"/> and <see cref="Indexes"/> according to
+        /// <see cref="QueryFieldAttribute"/>, if any.
         /// </summary>
         public Type ValueType
         {
