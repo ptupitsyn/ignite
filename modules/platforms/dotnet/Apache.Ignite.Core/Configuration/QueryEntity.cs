@@ -21,6 +21,7 @@ namespace Apache.Ignite.Core.Configuration
 {
     using System;
     using System.Collections.Generic;
+    using System.Diagnostics;
     using System.Diagnostics.CodeAnalysis;
     using System.Linq;
     using Apache.Ignite.Core.Binary;
@@ -32,6 +33,12 @@ namespace Apache.Ignite.Core.Configuration
     /// </summary>
     public class QueryEntity
     {
+        /** */
+        private Type _keyType;
+
+        /** */
+        private Type _valType;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="QueryEntity"/> class.
         /// </summary>
@@ -55,12 +62,16 @@ namespace Apache.Ignite.Core.Configuration
         /// </summary>
         public Type KeyType
         {
-            get { return JavaTypes.GetDotNetType(KeyTypeName); }
+            get { return _keyType ?? JavaTypes.GetDotNetType(KeyTypeName); }
             set
             {
+                _keyType = value;
+
                 KeyTypeName = value == null
                     ? null
                     : (JavaTypes.GetJavaTypeName(value) ?? BinaryUtils.GetTypeName(value));
+
+                RescanAttributes();
             }
         }
 
@@ -79,12 +90,16 @@ namespace Apache.Ignite.Core.Configuration
         /// </summary>
         public Type ValueType
         {
-            get { return JavaTypes.GetDotNetType(KeyTypeName); }
+            get { return _valType ?? JavaTypes.GetDotNetType(KeyTypeName); }
             set
             {
+                _valType = value;
+
                 ValueTypeName = value == null
                     ? null
                     : (JavaTypes.GetJavaTypeName(value) ?? BinaryUtils.GetTypeName(value));
+
+                RescanAttributes();
             }
         }
 
@@ -179,6 +194,41 @@ namespace Apache.Ignite.Core.Configuration
             }
             else
                 writer.WriteInt(0);
+        }
+
+
+        /// <summary>
+        /// Rescans the attributes in <see cref="KeyType"/> and <see cref="ValueType"/>.
+        /// </summary>
+        private void RescanAttributes()
+        {
+            if (_keyType == null && _valType == null)
+                return;
+
+            var fields = new List<QueryField>();
+            var indexes = new List<QueryIndex>();
+
+            if (_keyType != null)
+                ScanAttributes(_keyType, fields, indexes, null);
+            
+            if (_valType != null)
+                ScanAttributes(_valType, fields, indexes, null);
+
+            if (fields.Any())
+            {
+                Fields = fields;
+                Indexes = indexes;
+            }
+        }
+
+        private void ScanAttributes(Type type, List<QueryField> fields, List<QueryIndex> indexes, string parentPropName)
+        {
+            Debug.Assert(type != null);
+            Debug.Assert(fields != null);
+            Debug.Assert(indexes != null);
+
+            // TODO: Recursive scan
+            // TODO: Detect cycles
         }
     }
 }
