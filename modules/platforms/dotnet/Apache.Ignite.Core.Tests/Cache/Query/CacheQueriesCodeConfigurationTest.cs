@@ -90,8 +90,15 @@ namespace Apache.Ignite.Core.Tests.Cache.Query
                 }
             }
         }
+
         [Test]
         public void TestAttributeConfiguration()
+        {
+            
+        }
+
+        [Test]
+        public void TestAttributeConfigurationQuery()
         {
             var cfg = new IgniteConfiguration
             {
@@ -172,6 +179,41 @@ namespace Apache.Ignite.Core.Tests.Cache.Query
 
             [QueryField]
             public string Street { get; set; }
+        }
+
+        private class RecursiveQuery
+        {
+            [QueryField]
+            public RecursiveQuery Inner { get; set; }
+        }
+
+        private class AttributeTest
+        {
+            [QueryField]
+            public double SqlField { get; set; }
+
+            [QueryField(IsIndexed = true, Name = "IndexedField1")]
+            public int IndexedField { get; set; }
+
+            [QueryField(IndexType = QueryIndexType.FullText, IsIndexed = true)]
+            public string FullTextField { get; set; }
+
+            public AttributeTestInner Inner { get; set; }
+
+            [QueryField(IndexGroups = new [] {"group1", "group2"})]
+            public string GroupIndex1 { get; set; }
+
+            [QueryField(IndexGroups = new [] {"group1"})]
+            public string GroupIndex2 { get; set; }
+
+            [QueryField(IndexGroups = new [] {"group2"})]
+            public string GroupIndex3 { get; set; }
+        }
+
+        private class AttributeTestInner
+        {
+            [QueryField]
+            public string Foo { get; set; }
         }
     }
 }

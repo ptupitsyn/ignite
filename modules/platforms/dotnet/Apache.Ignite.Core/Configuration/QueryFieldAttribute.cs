@@ -59,6 +59,6 @@ namespace Apache.Ignite.Core.Configuration
         /// whenever index should be created on more than one field.
         /// All fields within the same group will belong to the same index.
         /// </summary>
-        public ICollection<string> IndexGroups { get; set; }
+        public string[] IndexGroups { get; set; }
     }
 }
