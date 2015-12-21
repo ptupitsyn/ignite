@@ -231,23 +231,30 @@ namespace Apache.Ignite.Core.Configuration
             if (visitedTypes.Contains(type))
                 throw new InvalidOperationException("Recursive Query Field definition detected: " + type);
 
+            visitedTypes.Add(type);
+
             foreach (var memberInfo in GetFieldsAndProperties(type))
             {
-                foreach (var attr in memberInfo.GetCustomAttributes(true).OfType<QueryFieldAttribute>())
+                foreach (var attr in memberInfo.Key.GetCustomAttributes(true).OfType<QueryFieldAttribute>())
                 {
-                    var columnName = attr.Name ?? memberInfo.Name;
+                    var columnName = attr.Name ?? memberInfo.Key.Name;
 
-                    fields.Add(new QueryField(columnName, type));
+                    if (parentPropName != null)
+                        columnName = parentPropName + "." + columnName;
+
+                    fields.Add(new QueryField(columnName, memberInfo.Value));
 
                     if (attr.IsIndexed)
                     {
-                        
+                        // TODO
                     }
+
+                    ScanAttributes(memberInfo.Value, fields, indexes, columnName, visitedTypes);
                 }
             }
         }
 
-        private List<MemberInfo> GetFieldsAndProperties(Type type)
+        private List<KeyValuePair<MemberInfo, Type>> GetFieldsAndProperties(Type type)
         {
             Debug.Assert(type != null);
 
@@ -257,12 +264,15 @@ namespace Apache.Ignite.Core.Configuration
             var bindingFlags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance |
                                BindingFlags.DeclaredOnly;
 
-            var res = new List<MemberInfo>();
+            var res = new List<KeyValuePair<MemberInfo, Type>>();
 
             while (type != typeof (object) && type != null)
             {
-                res.AddRange(type.GetFields(bindingFlags));
-                res.AddRange(type.GetProperties(bindingFlags));
+                res.AddRange(type.GetFields(bindingFlags)
+                    .Select(f => new KeyValuePair<MemberInfo, Type>(f, f.FieldType)));
+
+                res.AddRange(type.GetProperties(bindingFlags)
+                    .Select(p => new KeyValuePair<MemberInfo, Type>(p, p.PropertyType)));
 
                 type = type.BaseType;
             }
