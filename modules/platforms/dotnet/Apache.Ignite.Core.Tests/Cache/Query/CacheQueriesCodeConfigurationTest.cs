@@ -20,6 +20,7 @@
 namespace Apache.Ignite.Core.Tests.Cache.Query
 {
     using System;
+    using System.Collections.Generic;
     using System.Linq;
     using Apache.Ignite.Core.Binary;
     using Apache.Ignite.Core.Cache.Query;
@@ -102,19 +103,25 @@ namespace Apache.Ignite.Core.Tests.Cache.Query
 
             Assert.AreEqual(typeof(AttributeTest), qe.ValueType);
 
+            var fields = qe.Fields.ToArray();
+
             CollectionAssert.AreEquivalent(new[]
             {
                 "SqlField", "IndexedField1", "FullTextField", "Inner", "Inner.Foo",
                 "GroupIndex1", "GroupIndex2", "GroupIndex3"
-            }, qe.Fields.Select(x => x.Name));
+            }, fields.Select(x => x.Name));
 
             var idx = qe.Indexes.ToArray();
 
             Assert.AreEqual(QueryIndexType.FullText, idx[0].IndexType);
             Assert.AreEqual(QueryIndexType.FullText, idx[1].IndexType);
+            Assert.AreEqual(QueryIndexType.Sorted, idx[2].IndexType);
+            Assert.AreEqual(QueryIndexType.FullText, idx[3].IndexType);
 
             CollectionAssert.AreEquivalent(new[] {"GroupIndex1", "GroupIndex2"}, idx[0].Fields.Select(f => f.Name));
             CollectionAssert.AreEquivalent(new[] {"GroupIndex1", "GroupIndex3"}, idx[1].Fields.Select(f => f.Name));
+            CollectionAssert.AreEquivalent(new[] {"IndexedField1"}, idx[2].Fields.Select(f => f.Name));
+            CollectionAssert.AreEquivalent(new[] {"FullTextField"}, idx[3].Fields.Select(f => f.Name));
         }
 
         [Test]
