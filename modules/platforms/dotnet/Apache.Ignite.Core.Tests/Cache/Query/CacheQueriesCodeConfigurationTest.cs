@@ -213,13 +213,13 @@ namespace Apache.Ignite.Core.Tests.Cache.Query
             [QueryField]
             public AttributeTestInner Inner { get; set; }
 
-            [QueryField(IndexGroups = new [] {"group1", "group2"})]
+            [QueryField(IsIndexed = true, IndexGroups = new [] {"group1", "group2"})]
             public string GroupIndex1 { get; set; }
 
-            [QueryField(IndexGroups = new [] {"group1"})]
+            [QueryField(IsIndexed = true, IndexGroups = new [] {"group1"})]
             public string GroupIndex2 { get; set; }
 
-            [QueryField(IndexGroups = new [] {"group2"})]
+            [QueryField(IsIndexed = true, IndexGroups = new [] {"group2"})]
             public string GroupIndex3 { get; set; }
         }
 

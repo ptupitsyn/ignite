@@ -218,7 +218,7 @@ namespace Apache.Ignite.Core.Configuration
                 Fields = fields;
 
             if (indexes.Any())
-                Indexes = GetGroupIndexes(indexes);
+                Indexes = GetGroupIndexes(indexes).ToArray();
         }
 
         /// <summary>
@@ -226,34 +226,24 @@ namespace Apache.Ignite.Core.Configuration
         /// </summary>
         /// <param name="indexes">Ungrouped indexes with their group names.</param>
         /// <returns></returns>
-        private static List<QueryIndex> GetGroupIndexes(List<QueryIndexEx> indexes)
+        private static IEnumerable<QueryIndex> GetGroupIndexes(List<QueryIndexEx> indexes)
         {
-            var idxMap = new Dictionary<string, QueryIndex>();
-            var resIndexes = new List<QueryIndex>(indexes.Count);
-
-            foreach (var idx in indexes)
-            {
-                var field = idx.Fields.Single();
-
-                if (idx.IndexGroups != null)
+            return indexes.Where(idx => idx.IndexGroups != null)
+                .SelectMany(idx => idx.IndexGroups.Select(g => new {Index = idx, GroupName = g}))
+                .GroupBy(x => x.GroupName)
+                .Select(g =>
                 {
-                    foreach (var idxGroup in idx.IndexGroups.Where(x => x != null))
+                    var idxs = g.Select(pair => pair.Index).ToArray();
+
+                    var first = idxs.First();
+
+                    return new QueryIndex(idxs.SelectMany(i => i.Fields).ToArray())
                     {
-                        QueryIndex existingIdx;
-
-                        if (idxMap.TryGetValue(idxGroup, out existingIdx))
-                            existingIdx.Fields.Add(new IndexField(field.Name, field.IsDescending));
-                        else
-                            idxMap[idxGroup] = new QueryIndex(field.Name, field.IsDescending, idx.IndexType);
-                    }
-                }
-                else
-                    resIndexes.Add(new QueryIndex(field.Name, field.IsDescending, idx.IndexType));
-            }
-
-            resIndexes.AddRange(idxMap.Values);
-
-            return resIndexes;
+                        IndexType = first.IndexType,
+                        Name = first.Name
+                    };
+                })
+                .Concat(indexes.Where(idx => idx.IndexGroups == null));
         }
 
         /// <summary>
