@@ -221,6 +221,11 @@ namespace Apache.Ignite.Core.Configuration
                 Indexes = GetGroupIndexes(indexes);
         }
 
+        /// <summary>
+        /// Gets the group indexes.
+        /// </summary>
+        /// <param name="indexes">Ungrouped indexes with their group names.</param>
+        /// <returns></returns>
         private static List<QueryIndex> GetGroupIndexes(List<QueryIndexEx> indexes)
         {
             var idxMap = new Dictionary<string, QueryIndex>();
@@ -251,6 +256,14 @@ namespace Apache.Ignite.Core.Configuration
             return resIndexes;
         }
 
+        /// <summary>
+        /// Scans specified type for occurences of <see cref="QueryFieldAttribute"/>.
+        /// </summary>
+        /// <param name="type">The type.</param>
+        /// <param name="fields">The fields.</param>
+        /// <param name="indexes">The indexes.</param>
+        /// <param name="parentPropName">Name of the parent property.</param>
+        /// <param name="visitedTypes">The visited types.</param>
         private static void ScanAttributes(Type type, List<QueryField> fields, List<QueryIndexEx> indexes, 
             string parentPropName, ISet<Type> visitedTypes)
         {
@@ -284,6 +297,11 @@ namespace Apache.Ignite.Core.Configuration
             visitedTypes.Remove(type);
         }
 
+        /// <summary>
+        /// Gets the fields and properties.
+        /// </summary>
+        /// <param name="type">The type.</param>
+        /// <returns></returns>
         private static IEnumerable<KeyValuePair<MemberInfo, Type>> GetFieldsAndProperties(Type type)
         {
             Debug.Assert(type != null);
@@ -306,8 +324,18 @@ namespace Apache.Ignite.Core.Configuration
             }
         }
 
+        /// <summary>
+        /// Extended index with group names.
+        /// </summary>
         private class QueryIndexEx : QueryIndex
         {
+            /// <summary>
+            /// Initializes a new instance of the <see cref="QueryIndexEx"/> class.
+            /// </summary>
+            /// <param name="fieldName">Name of the field.</param>
+            /// <param name="isDescending">if set to <c>true</c> [is descending].</param>
+            /// <param name="indexType">Type of the index.</param>
+            /// <param name="groups">The groups.</param>
             public QueryIndexEx(string fieldName, bool isDescending, QueryIndexType indexType, 
                 ICollection<string> groups) 
                 : base(fieldName, isDescending, indexType)
@@ -315,6 +343,9 @@ namespace Apache.Ignite.Core.Configuration
                 IndexGroups = groups;
             }
 
+            /// <summary>
+            /// Gets or sets the index groups.
+            /// </summary>
             public ICollection<string> IndexGroups { get; set; }
         }
     }
