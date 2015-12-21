@@ -24,6 +24,7 @@ namespace Apache.Ignite.Core.Configuration
     using System.Diagnostics;
     using System.Diagnostics.CodeAnalysis;
     using System.Linq;
+    using System.Reflection;
     using Apache.Ignite.Core.Binary;
     using Apache.Ignite.Core.Impl.Binary;
 
@@ -65,13 +66,13 @@ namespace Apache.Ignite.Core.Configuration
             get { return _keyType ?? JavaTypes.GetDotNetType(KeyTypeName); }
             set
             {
+                RescanAttributes(value, _valType);  // Do this first because it can throw
+
                 _keyType = value;
 
                 KeyTypeName = value == null
                     ? null
                     : (JavaTypes.GetJavaTypeName(value) ?? BinaryUtils.GetTypeName(value));
-
-                RescanAttributes();
             }
         }
 
@@ -93,6 +94,8 @@ namespace Apache.Ignite.Core.Configuration
             get { return _valType ?? JavaTypes.GetDotNetType(KeyTypeName); }
             set
             {
+                RescanAttributes(_keyType, value);  // Do this first because it can throw
+
                 _valType = value;
 
                 ValueTypeName = value == null
@@ -200,19 +203,16 @@ namespace Apache.Ignite.Core.Configuration
         /// <summary>
         /// Rescans the attributes in <see cref="KeyType"/> and <see cref="ValueType"/>.
         /// </summary>
-        private void RescanAttributes()
+        private void RescanAttributes(params Type[] types)
         {
-            if (_keyType == null && _valType == null)
+            if (types.Length == 0 || types.All(t => t == null))
                 return;
 
             var fields = new List<QueryField>();
             var indexes = new List<QueryIndex>();
 
-            if (_keyType != null)
-                ScanAttributes(_keyType, fields, indexes, null);
-            
-            if (_valType != null)
-                ScanAttributes(_valType, fields, indexes, null);
+            foreach (var type in types.Where(t => t != null))
+                ScanAttributes(type, fields, indexes, null, new HashSet<Type>());
 
             if (fields.Any())
             {
@@ -221,14 +221,53 @@ namespace Apache.Ignite.Core.Configuration
             }
         }
 
-        private void ScanAttributes(Type type, List<QueryField> fields, List<QueryIndex> indexes, string parentPropName)
+        private void ScanAttributes(Type type, List<QueryField> fields, List<QueryIndex> indexes, 
+            string parentPropName, HashSet<Type> visitedTypes)
         {
             Debug.Assert(type != null);
             Debug.Assert(fields != null);
             Debug.Assert(indexes != null);
 
-            // TODO: Recursive scan
-            // TODO: Detect cycles
+            if (visitedTypes.Contains(type))
+                throw new InvalidOperationException("Recursive Query Field definition detected: " + type);
+
+            foreach (var memberInfo in GetFieldsAndProperties(type))
+            {
+                foreach (var attr in memberInfo.GetCustomAttributes(true).OfType<QueryFieldAttribute>())
+                {
+                    var columnName = attr.Name ?? memberInfo.Name;
+
+                    fields.Add(new QueryField(columnName, type));
+
+                    if (attr.IsIndexed)
+                    {
+                        
+                    }
+                }
+            }
+        }
+
+        private List<MemberInfo> GetFieldsAndProperties(Type type)
+        {
+            Debug.Assert(type != null);
+
+            if (type.IsPrimitive)
+                return null;
+
+            var bindingFlags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance |
+                               BindingFlags.DeclaredOnly;
+
+            var res = new List<MemberInfo>();
+
+            while (type != typeof (object) && type != null)
+            {
+                res.AddRange(type.GetFields(bindingFlags));
+                res.AddRange(type.GetProperties(bindingFlags));
+
+                type = type.BaseType;
+            }
+
+            return res;
         }
     }
 }
