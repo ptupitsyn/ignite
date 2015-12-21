@@ -117,8 +117,6 @@ namespace Apache.Ignite.Core.Tests.Cache.Query
                 }
             };
 
-            // TODO: Test nested types
-
             using (var ignite = Ignition.Start(cfg))
             {
                 var cache = ignite.GetOrCreateCache<int, AttributeQueryPerson>(CacheName);
