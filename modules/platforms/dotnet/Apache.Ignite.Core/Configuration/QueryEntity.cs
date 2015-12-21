@@ -253,6 +253,8 @@ namespace Apache.Ignite.Core.Configuration
                     ScanAttributes(memberInfo.Value, fields, indexes, columnName, visitedTypes);
                 }
             }
+
+            visitedTypes.Remove(type);
         }
 
         private static IEnumerable<KeyValuePair<MemberInfo, Type>> GetFieldsAndProperties(Type type)

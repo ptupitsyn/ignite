@@ -110,7 +110,7 @@ namespace Apache.Ignite.Core.Tests.Cache.Query
                             new QueryEntity
                             {
                                 KeyType = typeof (int),
-                                ValueType = typeof (QueryPerson)
+                                ValueType = typeof (AttributeQueryPerson)
                                 // Fields/indexes will be populated from attributes
                             }
                         }
