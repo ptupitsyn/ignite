@@ -15,6 +15,8 @@
  * limitations under the License.
  */
 
+// ReSharper disable MemberCanBePrivate.Local
+// ReSharper disable UnusedAutoPropertyAccessor.Local
 namespace Apache.Ignite.Core.Tests.Cache.Query
 {
     using System.Linq;
@@ -28,13 +30,14 @@ namespace Apache.Ignite.Core.Tests.Cache.Query
     /// </summary>
     public class CacheQueriesCodeConfigurationTest
     {
+        const string CacheName = "personCache";
+
         /// <summary>
         /// Tests the SQL query.
         /// </summary>
         [Test]
-        public void TestSqlQuery()
+        public void TestQueryEntityConfiguration()
         {
-            var cacheName = "personCache";
 
             var cfg = new IgniteConfiguration
             {
@@ -45,7 +48,7 @@ namespace Apache.Ignite.Core.Tests.Cache.Query
                 {
                     new CacheConfiguration
                     {
-                        Name = cacheName,
+                        Name = CacheName,
                         QueryEntities = new[]
                         {
                             new QueryEntity
@@ -69,7 +72,7 @@ namespace Apache.Ignite.Core.Tests.Cache.Query
 
             using (var ignite = Ignition.Start(cfg))
             {
-                var cache = ignite.GetCache<int, QueryPerson>(cacheName);
+                var cache = ignite.GetCache<int, QueryPerson>(CacheName);
 
                 Assert.IsNotNull(cache);
 
@@ -86,6 +89,55 @@ namespace Apache.Ignite.Core.Tests.Cache.Query
                     Assert.AreEqual(1, cursor.GetAll().Single().Key);
                 }
             }
+        }
+
+        [Test]
+        public void TestAttributeConfiguration()
+        {
+            var cfg = new IgniteConfiguration
+            {
+                JvmOptions = TestUtils.TestJavaOptions(),
+                JvmClasspath = TestUtils.CreateTestClasspath(),
+                BinaryConfiguration = new BinaryConfiguration(typeof(AttributeQueryPerson))
+            };
+
+            using (var ignite = Ignition.Start(cfg))
+            {
+                var cache = ignite.GetOrCreateCache<int, AttributeQueryPerson>(CacheName);
+
+                Assert.IsNotNull(cache);
+
+                cache[1] = new AttributeQueryPerson("Arnold", 10);
+                cache[2] = new AttributeQueryPerson("John", 20);
+
+                using (var cursor = cache.Query(new SqlQuery(typeof(AttributeQueryPerson), "age > 10")))
+                {
+                    Assert.AreEqual(2, cursor.GetAll().Single().Key);
+                }
+
+                using (var cursor = cache.Query(new TextQuery(typeof(AttributeQueryPerson), "Ar*")))
+                {
+                    Assert.AreEqual(1, cursor.GetAll().Single().Key);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Person.
+        /// </summary>
+        private class AttributeQueryPerson
+        {
+            public AttributeQueryPerson(string name, int age)
+            {
+                Name = name;
+                Age = age;
+            }
+
+            [QueryField(IsIndexed = true, IndexType = QueryIndexType.FullText)]
+            public string Name { get; set; }
+
+            [QueryField]
+            public int Age { get; set; }
         }
     }
 }
