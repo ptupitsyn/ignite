@@ -98,7 +98,8 @@ namespace Apache.Ignite.Core.Tests.Cache.Query
             {
                 JvmOptions = TestUtils.TestJavaOptions(),
                 JvmClasspath = TestUtils.CreateTestClasspath(),
-                BinaryConfiguration = new BinaryConfiguration(typeof(AttributeQueryPerson)),
+                BinaryConfiguration = new BinaryConfiguration(
+                    typeof (AttributeQueryPerson), typeof (AttributeQueryAddress)),
                 CacheConfiguration = new[]
                 {
                     new CacheConfiguration
@@ -147,9 +148,6 @@ namespace Apache.Ignite.Core.Tests.Cache.Query
             }
         }
 
-        /// <summary>
-        /// Person.
-        /// </summary>
         private class AttributeQueryPerson
         {
             public AttributeQueryPerson(string name, int age)
