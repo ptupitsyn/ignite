@@ -24,7 +24,6 @@ namespace Apache.Ignite.Core.Configuration
     /// Marks field or property for SQL queries.
     /// <para />
     /// Using this attribute is an alternative to <see cref="QueryEntity.Fields"/> in <see cref="CacheConfiguration"/>.
-    /// Explicit <see cref="QueryEntity"/> configuration overrides attribute-based configuration.
     /// </summary>
     [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property)]
     public sealed class QueryFieldAttribute : Attribute

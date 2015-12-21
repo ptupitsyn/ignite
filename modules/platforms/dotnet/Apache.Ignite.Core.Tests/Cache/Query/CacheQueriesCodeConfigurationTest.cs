@@ -98,7 +98,23 @@ namespace Apache.Ignite.Core.Tests.Cache.Query
             {
                 JvmOptions = TestUtils.TestJavaOptions(),
                 JvmClasspath = TestUtils.CreateTestClasspath(),
-                BinaryConfiguration = new BinaryConfiguration(typeof(AttributeQueryPerson))
+                BinaryConfiguration = new BinaryConfiguration(typeof(AttributeQueryPerson)),
+                CacheConfiguration = new[]
+                {
+                    new CacheConfiguration
+                    {
+                        Name = CacheName,
+                        QueryEntities = new[]
+                        {
+                            new QueryEntity
+                            {
+                                KeyType = typeof (int),
+                                ValueType = typeof (QueryPerson)
+                                // Fields/indexes will be populated from attributes
+                            }
+                        }
+                    }
+                }
             };
 
             using (var ignite = Ignition.Start(cfg))
