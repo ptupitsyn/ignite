@@ -62,7 +62,7 @@ namespace Apache.Ignite.Core.Tests.Cache.Query
                                 },
                                 Indexes = new[]
                                 {
-                                    new QueryIndex("Name", QueryIndexType.FullText), new QueryIndex("Age")
+                                    new QueryIndex("Name", false, QueryIndexType.FullText), new QueryIndex("Age")
                                 }
                             }
                         }
@@ -166,9 +166,6 @@ namespace Apache.Ignite.Core.Tests.Cache.Query
 
             [QueryField]
             public AttributeQueryAddress Address { get; set; }
-
-            [QueryField]  // test recursive
-            public AttributeQueryPerson Parent { get; set; }
         }
 
         private class AttributeQueryAddress
