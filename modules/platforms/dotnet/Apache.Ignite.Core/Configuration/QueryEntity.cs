@@ -221,8 +221,8 @@ namespace Apache.Ignite.Core.Configuration
             }
         }
 
-        private void ScanAttributes(Type type, List<QueryField> fields, List<QueryIndex> indexes, 
-            string parentPropName, HashSet<Type> visitedTypes)
+        private static void ScanAttributes(Type type, List<QueryField> fields, List<QueryIndex> indexes, 
+            string parentPropName, ISet<Type> visitedTypes)
         {
             Debug.Assert(type != null);
             Debug.Assert(fields != null);
@@ -246,7 +246,8 @@ namespace Apache.Ignite.Core.Configuration
 
                     if (attr.IsIndexed)
                     {
-                        // TODO
+                        // TODO: group indexes
+                        indexes.Add(new QueryIndex(columnName, attr.IsDescending, attr.IndexType));
                     }
 
                     ScanAttributes(memberInfo.Value, fields, indexes, columnName, visitedTypes);
@@ -254,30 +255,26 @@ namespace Apache.Ignite.Core.Configuration
             }
         }
 
-        private List<KeyValuePair<MemberInfo, Type>> GetFieldsAndProperties(Type type)
+        private static IEnumerable<KeyValuePair<MemberInfo, Type>> GetFieldsAndProperties(Type type)
         {
             Debug.Assert(type != null);
 
             if (type.IsPrimitive)
-                return null;
+                yield break;
 
             var bindingFlags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance |
                                BindingFlags.DeclaredOnly;
 
-            var res = new List<KeyValuePair<MemberInfo, Type>>();
-
             while (type != typeof (object) && type != null)
             {
-                res.AddRange(type.GetFields(bindingFlags)
-                    .Select(f => new KeyValuePair<MemberInfo, Type>(f, f.FieldType)));
+                foreach (var fieldInfo in type.GetFields(bindingFlags))
+                    yield return new KeyValuePair<MemberInfo, Type>(fieldInfo, fieldInfo.FieldType);
 
-                res.AddRange(type.GetProperties(bindingFlags)
-                    .Select(p => new KeyValuePair<MemberInfo, Type>(p, p.PropertyType)));
+                foreach (var propertyInfo in type.GetProperties(bindingFlags))
+                    yield return new KeyValuePair<MemberInfo, Type>(propertyInfo, propertyInfo.PropertyType);
 
                 type = type.BaseType;
             }
-
-            return res;
         }
     }
 }
