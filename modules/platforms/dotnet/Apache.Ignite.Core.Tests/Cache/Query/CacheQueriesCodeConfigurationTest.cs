@@ -19,6 +19,7 @@
 // ReSharper disable UnusedAutoPropertyAccessor.Local
 namespace Apache.Ignite.Core.Tests.Cache.Query
 {
+    using System;
     using System.Linq;
     using Apache.Ignite.Core.Binary;
     using Apache.Ignite.Core.Cache.Query;
@@ -94,7 +95,10 @@ namespace Apache.Ignite.Core.Tests.Cache.Query
         [Test]
         public void TestAttributeConfiguration()
         {
-            
+            // ReSharper disable once ObjectCreationAsStatement
+            Assert.Throws<InvalidOperationException>(() => new QueryEntity {ValueType = typeof (RecursiveQuery)});
+
+            var qe = new QueryEntity {ValueType = typeof(AttributeTest) };
         }
 
         [Test]
