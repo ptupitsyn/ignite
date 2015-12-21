@@ -18,6 +18,7 @@
 namespace Apache.Ignite.Core.Configuration
 {
     using System;
+    using System.Collections.Generic;
 
     /// <summary>
     /// Marks field or property for SQL queries.
@@ -26,7 +27,7 @@ namespace Apache.Ignite.Core.Configuration
     /// Explicit <see cref="QueryEntity"/> configuration overrides attribute-based configuration.
     /// </summary>
     [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property)]
-    public sealed class QuerySqlFieldAttribute : Attribute
+    public sealed class QueryFieldAttribute : Attribute
     {
         /// <summary>
         /// Gets or sets the sql field name.
@@ -42,9 +43,23 @@ namespace Apache.Ignite.Core.Configuration
         public bool IsIndexed { get; set; }
 
         /// <summary>
+        /// Gets or sets the type of the index.
+        /// Applicable when <see cref="IsIndexed"/> is <c>true</c>.
+        /// </summary>
+        public QueryIndexType IndexType { get; set; }
+
+        /// <summary>
         /// Gets or sets a value indicating whether index for this field should be descending.
         /// Ignored when <see cref="IsIndexed"/> is <c>false</c>.
         /// </summary>
         public bool IsDescending { get; set; }
+
+        /// <summary>
+        /// Gets or sets the collection of index groups this field belongs to. 
+        /// Groups are used for compound indexes, 
+        /// whenever index should be created on more than one field.
+        /// All fields within the same group will belong to the same index.
+        /// </summary>
+        public ICollection<string> IndexGroups { get; set; }
     }
 }
