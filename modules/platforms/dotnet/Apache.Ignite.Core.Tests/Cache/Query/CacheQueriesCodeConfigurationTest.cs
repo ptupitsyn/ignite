@@ -17,10 +17,10 @@
 
 // ReSharper disable MemberCanBePrivate.Local
 // ReSharper disable UnusedAutoPropertyAccessor.Local
+// ReSharper disable UnusedMember.Local
 namespace Apache.Ignite.Core.Tests.Cache.Query
 {
     using System;
-    using System.Collections.Generic;
     using System.Linq;
     using Apache.Ignite.Core.Binary;
     using Apache.Ignite.Core.Cache.Query;
