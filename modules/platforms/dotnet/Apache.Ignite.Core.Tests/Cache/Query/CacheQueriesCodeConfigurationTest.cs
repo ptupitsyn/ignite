@@ -117,6 +117,8 @@ namespace Apache.Ignite.Core.Tests.Cache.Query
                 }
             };
 
+            // TODO: Test nested types
+
             using (var ignite = Ignition.Start(cfg))
             {
                 var cache = ignite.GetOrCreateCache<int, AttributeQueryPerson>(CacheName);
@@ -154,6 +156,21 @@ namespace Apache.Ignite.Core.Tests.Cache.Query
 
             [QueryField]
             public int Age { get; set; }
+
+            [QueryField]
+            public AttributeQueryAddress Address { get; set; }
+
+            [QueryField]  // test recursive
+            public AttributeQueryPerson Parent { get; set; }
+        }
+
+        private class AttributeQueryAddress
+        {
+            [QueryField]
+            public string Country { get; set; }
+
+            [QueryField]
+            public string Street { get; set; }
         }
     }
 }
