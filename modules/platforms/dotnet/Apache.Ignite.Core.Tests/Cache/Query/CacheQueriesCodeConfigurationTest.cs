@@ -107,6 +107,14 @@ namespace Apache.Ignite.Core.Tests.Cache.Query
                 "SqlField", "IndexedField1", "FullTextField", "Inner", "Inner.Foo",
                 "GroupIndex1", "GroupIndex2", "GroupIndex3"
             }, qe.Fields.Select(x => x.Name));
+
+            var idx = qe.Indexes.ToArray();
+
+            Assert.AreEqual(QueryIndexType.FullText, idx[0].IndexType);
+            Assert.AreEqual(QueryIndexType.FullText, idx[1].IndexType);
+
+            CollectionAssert.AreEquivalent(new[] {"GroupIndex1", "GroupIndex2"}, idx[0].Fields.Select(f => f.Name));
+            CollectionAssert.AreEquivalent(new[] {"GroupIndex1", "GroupIndex3"}, idx[1].Fields.Select(f => f.Name));
         }
 
         [Test]
@@ -213,13 +221,14 @@ namespace Apache.Ignite.Core.Tests.Cache.Query
             [QueryField]
             public AttributeTestInner Inner { get; set; }
 
-            [QueryField(IsIndexed = true, IndexGroups = new [] {"group1", "group2"})]
+            [QueryField(IsIndexed = true, IndexGroups = new [] {"group1", "group2"}, 
+                IndexType = QueryIndexType.FullText)]
             public string GroupIndex1 { get; set; }
 
-            [QueryField(IsIndexed = true, IndexGroups = new [] {"group1"})]
+            [QueryField(IsIndexed = true, IndexGroups = new [] {"group1"}, IndexType = QueryIndexType.FullText)]
             public string GroupIndex2 { get; set; }
 
-            [QueryField(IsIndexed = true, IndexGroups = new [] {"group2"})]
+            [QueryField(IsIndexed = true, IndexGroups = new [] {"group2"}, IndexType = QueryIndexType.FullText)]
             public string GroupIndex3 { get; set; }
         }
 
