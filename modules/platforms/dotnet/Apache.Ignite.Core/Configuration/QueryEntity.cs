@@ -209,19 +209,49 @@ namespace Apache.Ignite.Core.Configuration
                 return;
 
             var fields = new List<QueryField>();
-            var indexes = new List<QueryIndex>();
+            var indexes = new List<QueryIndexEx>();
 
             foreach (var type in types.Where(t => t != null))
                 ScanAttributes(type, fields, indexes, null, new HashSet<Type>());
 
             if (fields.Any())
-            {
                 Fields = fields;
-                Indexes = indexes;
-            }
+
+            if (indexes.Any())
+                Indexes = GetGroupIndexes(indexes);
         }
 
-        private static void ScanAttributes(Type type, List<QueryField> fields, List<QueryIndex> indexes, 
+        private static List<QueryIndex> GetGroupIndexes(List<QueryIndexEx> indexes)
+        {
+            var idxMap = new Dictionary<string, QueryIndex>();
+            var resIndexes = new List<QueryIndex>(indexes.Count);
+
+            foreach (var idx in indexes)
+            {
+                var field = idx.Fields.Single();
+
+                if (idx.IndexGroups != null)
+                {
+                    foreach (var idxGroup in idx.IndexGroups.Where(x => x != null))
+                    {
+                        QueryIndex existingIdx;
+
+                        if (idxMap.TryGetValue(idxGroup, out existingIdx))
+                            existingIdx.Fields.Add(new IndexField(field.Name, field.IsDescending));
+                        else
+                            idxMap[idxGroup] = new QueryIndex(field.Name, field.IsDescending, idx.IndexType);
+                    }
+                }
+                else
+                    resIndexes.Add(new QueryIndex(field.Name, field.IsDescending, idx.IndexType));
+            }
+
+            resIndexes.AddRange(idxMap.Values);
+
+            return resIndexes;
+        }
+
+        private static void ScanAttributes(Type type, List<QueryField> fields, List<QueryIndexEx> indexes, 
             string parentPropName, ISet<Type> visitedTypes)
         {
             Debug.Assert(type != null);
@@ -245,10 +275,7 @@ namespace Apache.Ignite.Core.Configuration
                     fields.Add(new QueryField(columnName, memberInfo.Value));
 
                     if (attr.IsIndexed)
-                    {
-                        // TODO: group indexes
-                        indexes.Add(new QueryIndex(columnName, attr.IsDescending, attr.IndexType));
-                    }
+                        indexes.Add(new QueryIndexEx(columnName, attr.IsDescending, attr.IndexType, attr.IndexGroups));
 
                     ScanAttributes(memberInfo.Value, fields, indexes, columnName, visitedTypes);
                 }
@@ -277,6 +304,18 @@ namespace Apache.Ignite.Core.Configuration
 
                 type = type.BaseType;
             }
+        }
+
+        private class QueryIndexEx : QueryIndex
+        {
+            public QueryIndexEx(string fieldName, bool isDescending, QueryIndexType indexType, 
+                ICollection<string> groups) 
+                : base(fieldName, isDescending, indexType)
+            {
+                IndexGroups = groups;
+            }
+
+            public ICollection<string> IndexGroups { get; set; }
         }
     }
 }
