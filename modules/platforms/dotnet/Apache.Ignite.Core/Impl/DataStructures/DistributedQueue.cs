@@ -57,6 +57,18 @@ namespace Apache.Ignite.Core.Impl.DataStructures
         }
 
         /** <inheritDoc /> */
+        public void Close()
+        {
+            throw new NotImplementedException();
+        }
+
+        /** <inheritDoc /> */
+        public bool IsClosed()
+        {
+            throw new NotImplementedException();
+        }
+
+        /** <inheritDoc /> */
         public IDistributedQueue<T2> WithKeepBinary<T2>()
         {
             if (_keepBinary)
