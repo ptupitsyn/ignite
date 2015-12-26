@@ -17,7 +17,9 @@
 
 namespace Apache.Ignite.Core.DataStructures
 {
+    using System;
     using System.Collections.Concurrent;
+    using System.Collections.Generic;
 
     /// <summary>
     /// Provides an API for working with distributed queues based on In-Memory Data Grid.
@@ -28,6 +30,21 @@ namespace Apache.Ignite.Core.DataStructures
         /// Gets the queue name.
         /// </summary>
         string Name { get; }
+
+        /// <summary>
+        /// Attempts to add an item.
+        /// </summary>
+        /// <param name="item">The item to add.</param>
+        /// <param name="timeout">The timeout: how long to wait before giving up and returning false.</param>
+        /// <returns>true if the item was added successfully; otherwise, false.</returns>
+        bool TryAdd(T item, TimeSpan timeout);
+
+        /// <summary>
+        /// Adds multiple items.
+        /// </summary>
+        /// <param name="items">The items to add.</param>
+        /// <returns>true if items were added successfully; otherwise, false.</returns>
+        bool AddRange(IEnumerable<T> items);
 
         /// <summary>
         /// Closes this instance and removes data from the grid.
