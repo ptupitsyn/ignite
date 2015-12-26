@@ -21,6 +21,8 @@ import org.apache.ignite.IgniteQueue;
 import org.apache.ignite.internal.processors.platform.PlatformAbstractTarget;
 import org.apache.ignite.internal.processors.platform.PlatformContext;
 
+import java.util.Iterator;
+
 /**
  * Platform queue.
  */
@@ -39,5 +41,14 @@ public class PlatformDistributedQueue extends PlatformAbstractTarget {
         assert queue != null;
 
         this.queue = queue;
+    }
+
+    /**
+     * Create cache iterator.
+     *
+     * @return Cache iterator.
+     */
+    public PlatformIterator iterator() {
+        return new PlatformIterator(platformCtx, queue.iterator());
     }
 }
