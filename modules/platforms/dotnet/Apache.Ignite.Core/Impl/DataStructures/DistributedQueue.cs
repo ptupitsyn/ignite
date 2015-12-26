@@ -21,15 +21,33 @@ namespace Apache.Ignite.Core.Impl.DataStructures
     using System.Collections;
     using System.Collections.Generic;
     using Apache.Ignite.Core.DataStructures;
+    using Apache.Ignite.Core.Impl.Binary;
+    using Apache.Ignite.Core.Impl.Unmanaged;
+
     /// <summary>
     /// Provides an API for working with distributed queues based on In-Memory Data Grid.
     /// </summary>
-    public class DistributedQueue<T> : IDistributedQueue<T>
+    internal class DistributedQueue<T> : PlatformTarget, IDistributedQueue<T>
     {
+        private readonly bool _keepBinary;
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="DistributedQueue{T}" /> class.
+        /// </summary>
+        /// <param name="target">Target.</param>
+        /// <param name="marsh">Marshaller.</param>
+        /// <param name="keepBinary">Keep binary flag.</param>
+        public DistributedQueue(IUnmanagedTarget target, Marshaller marsh, bool keepBinary) : base(target, marsh)
+        {
+            _keepBinary = keepBinary;
+        }
+
+
         /** <inheritDoc /> */
         public IEnumerator<T> GetEnumerator()
         {
-            throw new NotImplementedException();
+            IUnmanagedTarget target = null;  // TODO: Java call
+            return new IgniteEnumerator<T>(target, Marshaller, _keepBinary);
         }
 
         /** <inheritDoc /> */
