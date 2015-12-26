@@ -28,5 +28,12 @@ namespace Apache.Ignite.Core.DataStructures
         /// Gets the queue name.
         /// </summary>
         string Name { get; }
+
+        /// <summary>
+        /// Returns and instance of this queue with binary mode enabled.
+        /// </summary>
+        /// <typeparam name="T2">The type of the queue element.</typeparam>
+        /// <returns>Binary mode instance.</returns>
+        IDistributedQueue<T2> WithKeepBinary<T2>();
     }
 }

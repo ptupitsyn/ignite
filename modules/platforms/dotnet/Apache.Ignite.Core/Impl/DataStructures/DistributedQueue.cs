@@ -58,6 +58,24 @@ namespace Apache.Ignite.Core.Impl.DataStructures
         }
 
         /** <inheritDoc /> */
+        public IDistributedQueue<T2> WithKeepBinary<T2>()
+        {
+            if (_keepBinary)
+            {
+                var result = this as IDistributedQueue<T2>;
+
+                if (result == null)
+                    throw new InvalidOperationException(
+                        "Can't change type of binary queue. WithKeepBinary has been called on an instance of " +
+                        "binary queue with incompatible generic arguments.");
+
+                return result;
+            }
+
+            return new DistributedQueue<T2>(Target, Marshaller, Name, true);
+        }
+
+        /** <inheritDoc /> */
         public IEnumerator<T> GetEnumerator()
         {
             IUnmanagedTarget target = null;  // TODO: Java call
