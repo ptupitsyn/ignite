@@ -81,7 +81,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged
         public static extern void* ProcessorExtensions(void* ctx, void* obj);
 
         [DllImport(IgniteUtils.FileIgniteJniDll, EntryPoint = "IgniteProcessorQueue")]
-        public static extern void* ProcessorQueue(void* ctx, void* obj, sbyte* name, long memPtr);
+        public static extern void* ProcessorQueue(void* ctx, void* obj, sbyte* name, int capacity, long memPtr);
 
         [DllImport(IgniteUtils.FileIgniteJniDll, EntryPoint = "IgniteProcessorAtomicLong")]
         public static extern void* ProcessorAtomicLong(void* ctx, void* obj, sbyte* name, long initVal,

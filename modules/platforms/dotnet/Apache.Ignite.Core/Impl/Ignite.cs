@@ -433,7 +433,7 @@ namespace Apache.Ignite.Core.Impl
         }
 
         /** <inheritdoc /> */
-        public IDistributedQueue<T> GetQueue<T>(string name, CollectionConfiguration configuration)
+        public IDistributedQueue<T> GetQueue<T>(string name, int capacity, CollectionConfiguration configuration)
         {
             IgniteArgumentCheck.NotNullOrEmpty(name, "name");
 
@@ -448,11 +448,11 @@ namespace Apache.Ignite.Core.Impl
                     configuration.Write(writer);
                     stream.SynchronizeOutput();
 
-                    nativeQueue = UU.ProcessorQueue(_proc, name, stream.MemoryPointer);
+                    nativeQueue = UU.ProcessorQueue(_proc, name, capacity, stream.MemoryPointer);
                 }
             }
             else
-                nativeQueue = UU.ProcessorQueue(_proc, name, 0);
+                nativeQueue = UU.ProcessorQueue(_proc, name, capacity, 0);
 
             if (nativeQueue == null)
                 return null;

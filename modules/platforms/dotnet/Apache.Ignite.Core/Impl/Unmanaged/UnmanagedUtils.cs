@@ -235,13 +235,13 @@ namespace Apache.Ignite.Core.Impl.Unmanaged
             return target.ChangeTarget(res);
         }
 
-        internal static IUnmanagedTarget ProcessorQueue(IUnmanagedTarget target, string name, long memPtr)
+        internal static IUnmanagedTarget ProcessorQueue(IUnmanagedTarget target, string name, int capacity, long memPtr)
         {
             var name0 = IgniteUtils.StringToUtf8Unmanaged(name);
 
             try
             {
-                var res = JNI.ProcessorQueue(target.Context, target.Target, name0, memPtr);
+                var res = JNI.ProcessorQueue(target.Context, target.Target, name0, capacity, memPtr);
 
                 return res == null ? null : target.ChangeTarget(res);
             }

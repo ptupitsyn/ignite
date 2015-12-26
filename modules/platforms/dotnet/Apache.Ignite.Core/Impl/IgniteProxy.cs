@@ -313,9 +313,9 @@ namespace Apache.Ignite.Core.Impl
         }
 
         /** <inheritdoc /> */
-        public IDistributedQueue<T> GetQueue<T>(string name, CollectionConfiguration configuration)
+        public IDistributedQueue<T> GetQueue<T>(string name, int capacity, CollectionConfiguration configuration)
         {
-            return _ignite.GetQueue<T>(name, configuration);
+            return _ignite.GetQueue<T>(name, capacity, configuration);
         }
 
         /** <inheritdoc /> */
