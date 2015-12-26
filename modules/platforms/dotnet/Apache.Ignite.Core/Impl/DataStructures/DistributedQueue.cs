@@ -20,6 +20,7 @@ namespace Apache.Ignite.Core.Impl.DataStructures
     using System;
     using System.Collections;
     using System.Collections.Generic;
+    using Apache.Ignite.Core.Configuration;
     using Apache.Ignite.Core.DataStructures;
     using Apache.Ignite.Core.Impl.Binary;
     using Apache.Ignite.Core.Impl.Unmanaged;
@@ -30,17 +31,23 @@ namespace Apache.Ignite.Core.Impl.DataStructures
     internal class DistributedQueue<T> : PlatformTarget, IDistributedQueue<T>
     {
         /** */
-        private readonly bool _keepBinary;
+        private readonly string _name;
+
+        /** */
+        private readonly CollectionConfiguration _config;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="DistributedQueue{T}" /> class.
         /// </summary>
         /// <param name="target">Target.</param>
         /// <param name="marsh">Marshaller.</param>
-        /// <param name="keepBinary">Keep binary flag.</param>
-        public DistributedQueue(IUnmanagedTarget target, Marshaller marsh, bool keepBinary) : base(target, marsh)
+        /// <param name="name">Collection name.</param>
+        /// <param name="configuration">Collection configuration.</param>
+        public DistributedQueue(IUnmanagedTarget target, Marshaller marsh, string name, 
+            CollectionConfiguration configuration) : base(target, marsh)
         {
-            _keepBinary = keepBinary;
+            _name = name;
+            _config = configuration;
         }
 
 
@@ -48,7 +55,7 @@ namespace Apache.Ignite.Core.Impl.DataStructures
         public IEnumerator<T> GetEnumerator()
         {
             IUnmanagedTarget target = null;  // TODO: Java call
-            return new IgniteEnumerator<T>(target, Marshaller, _keepBinary);
+            return new IgniteEnumerator<T>(target, Marshaller, _config.KeepBinary);
         }
 
         /** <inheritDoc /> */

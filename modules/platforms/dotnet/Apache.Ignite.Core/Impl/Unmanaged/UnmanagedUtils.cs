@@ -235,6 +235,22 @@ namespace Apache.Ignite.Core.Impl.Unmanaged
             return target.ChangeTarget(res);
         }
 
+        internal static IUnmanagedTarget ProcessorQueue(IUnmanagedTarget target, string name, long memPtr)
+        {
+            var name0 = IgniteUtils.StringToUtf8Unmanaged(name);
+
+            try
+            {
+                var res = JNI.ProcessorQueue(target.Context, target.Target, name0, memPtr);
+
+                return res == null ? null : target.ChangeTarget(res);
+            }
+            finally
+            {
+                Marshal.FreeHGlobal(new IntPtr(name0));
+            }
+        }
+
         internal static IUnmanagedTarget ProcessorAtomicLong(IUnmanagedTarget target, string name, long initialValue, 
             bool create)
         {

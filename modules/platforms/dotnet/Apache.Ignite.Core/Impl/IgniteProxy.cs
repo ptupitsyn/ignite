@@ -24,6 +24,7 @@ namespace Apache.Ignite.Core.Impl
     using Apache.Ignite.Core.Cache;
     using Apache.Ignite.Core.Cluster;
     using Apache.Ignite.Core.Compute;
+    using Apache.Ignite.Core.Configuration;
     using Apache.Ignite.Core.Datastream;
     using Apache.Ignite.Core.DataStructures;
     using Apache.Ignite.Core.Events;
@@ -309,6 +310,12 @@ namespace Apache.Ignite.Core.Impl
         public IServices GetServices()
         {
             return _ignite.GetServices();
+        }
+
+        /** <inheritdoc /> */
+        public IDistributedQueue<T> GetQueue<T>(string name, CollectionConfiguration configuration)
+        {
+            return _ignite.GetQueue<T>(name, configuration);
         }
 
         /** <inheritdoc /> */

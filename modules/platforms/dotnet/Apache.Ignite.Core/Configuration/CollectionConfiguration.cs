@@ -25,6 +25,7 @@ namespace Apache.Ignite.Core.Configuration
     public class CollectionConfiguration
     {
         // TODO: implement this after IGNITE-1906 merge
+        public bool KeepBinary { get; set; }
 
         internal void Write(IBinaryRawWriter writer)
         {
