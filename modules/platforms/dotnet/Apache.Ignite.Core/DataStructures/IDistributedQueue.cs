@@ -44,7 +44,31 @@ namespace Apache.Ignite.Core.DataStructures
         /// </summary>
         /// <param name="items">The items to add.</param>
         /// <returns>true if items were added successfully; otherwise, false.</returns>
-        bool AddRange(IEnumerable<T> items);
+        bool TryAddAll(IEnumerable<T> items);
+
+        /// <summary>
+        /// Determines whether this collection contains specified item.
+        /// </summary>
+        /// <param name="item">The item.</param>
+        /// <returns>True if this collection contains specified item; otherwise, false.</returns>
+        bool Contains(T item);
+
+        /// <summary>
+        /// Determines whether this collection contains specified items.
+        /// </summary>
+        /// <param name="items">The items.</param>
+        /// <returns>True if this collection contains specified items; otherwise, false.</returns>
+        bool ContainsAll(IEnumerable<T> items);
+
+        /// <summary>
+        /// Removes all elements from this collection.
+        /// </summary>
+        void Clear();
+
+        bool Remove(T item);
+        bool RemoveAll(IEnumerable<T> items);
+        bool IsEmpty();
+        bool RetainAll(IEnumerable<T> items);
 
         /// <summary>
         /// Closes this instance and removes data from the grid.
