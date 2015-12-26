@@ -21,8 +21,6 @@ import org.apache.ignite.IgniteQueue;
 import org.apache.ignite.internal.processors.platform.PlatformAbstractTarget;
 import org.apache.ignite.internal.processors.platform.PlatformContext;
 
-import java.util.Iterator;
-
 /**
  * Platform queue.
  */
