@@ -125,6 +125,11 @@ public class PlatformNoopProcessor extends GridProcessorAdapter implements Platf
     }
 
     /** {@inheritDoc} */
+    @Override public PlatformTarget queue(String name, int cap, long memPtr) throws IgniteException {
+        return null;
+    }
+
+    /** {@inheritDoc} */
     @Override public PlatformTarget atomicLong(String name, long initVal, boolean create) throws IgniteException {
         return null;
     }

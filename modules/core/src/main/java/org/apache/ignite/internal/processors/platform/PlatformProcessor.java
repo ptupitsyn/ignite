@@ -172,6 +172,16 @@ public interface PlatformProcessor extends GridProcessor {
     public void registerStore(PlatformCacheStore store, boolean convertBinary) throws IgniteCheckedException;
 
     /**
+     * Get or create Queue.
+     * @param name Name.
+     * @param cap Capacity.
+     * @param memPtr Configuration strem.
+     * @return Platform queue.
+     * @throws IgniteException
+     */
+    public PlatformTarget queue(String name, int cap, long memPtr) throws IgniteException;
+
+    /**
      * Get or create AtomicLong.
      * @param name Name.
      * @param initVal Initial value.
