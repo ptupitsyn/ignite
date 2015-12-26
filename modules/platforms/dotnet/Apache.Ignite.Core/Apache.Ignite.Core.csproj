@@ -123,6 +123,7 @@
     <Compile Include="Compute\IComputeReducer.cs" />
     <Compile Include="Compute\IComputeTask.cs" />
     <Compile Include="Compute\Package-Info.cs" />
+    <Compile Include="Configuration\CollectionConfiguration.cs" />
     <Compile Include="Datastream\IDataStreamer.cs" />
     <Compile Include="Datastream\IStreamReceiver.cs" />
     <Compile Include="Datastream\Package-Info.cs" />

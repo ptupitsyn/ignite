@@ -24,6 +24,7 @@ namespace Apache.Ignite.Core
     using Apache.Ignite.Core.Cluster;
     using Apache.Ignite.Core.Common;
     using Apache.Ignite.Core.Compute;
+    using Apache.Ignite.Core.Configuration;
     using Apache.Ignite.Core.Datastream;
     using Apache.Ignite.Core.DataStructures;
     using Apache.Ignite.Core.Events;
@@ -152,6 +153,19 @@ namespace Apache.Ignite.Core
         IServices GetServices();
 
         /// <summary>
+        /// Will get a named queue from cache and create one if it has not been created yet and configuration 
+        /// is not null.If queue is present already, queue properties will not be changed. 
+        /// Use colocation for partitioned caches if you have lots of relatively small queues 
+        /// as it will make fetching, querying, and iteration a lot faster.If you have few very large queues, 
+        /// then you should consider turning off colocation as they simply may not fit in a single node's memory.
+        /// </summary>
+        /// <typeparam name="T">Queue element type.</typeparam>
+        /// <param name="name">The name.</param>
+        /// <param name="configuration">Queue configuration.</param>
+        /// <returns>Distributed queue</returns>
+        IDistributedQueue<T> GetQueue<T>(string name, CollectionConfiguration configuration);
+
+            /// <summary>
         /// Gets an atomic long with specified name from cache.
         /// Creates new atomic long in cache if it does not exist and <c>create</c> is true.
         /// </summary>
