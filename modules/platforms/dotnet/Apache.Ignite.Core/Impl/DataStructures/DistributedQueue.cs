@@ -29,6 +29,7 @@ namespace Apache.Ignite.Core.Impl.DataStructures
     /// </summary>
     internal class DistributedQueue<T> : PlatformTarget, IDistributedQueue<T>
     {
+        /** */
         private readonly bool _keepBinary;
 
         /// <summary>
@@ -71,13 +72,13 @@ namespace Apache.Ignite.Core.Impl.DataStructures
         /** <inheritDoc /> */
         public object SyncRoot
         {
-            get { throw new NotImplementedException(); }
+            get { return this; }
         }
 
         /** <inheritDoc /> */
         public bool IsSynchronized
         {
-            get { throw new NotImplementedException(); }
+            get { return true; }
         }
 
         /** <inheritDoc /> */
