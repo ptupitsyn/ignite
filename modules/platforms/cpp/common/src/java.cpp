@@ -199,7 +199,7 @@ namespace ignite
             JniMethod M_PLATFORM_PROCESSOR_EVENTS = JniMethod("events", "(Lorg/apache/ignite/internal/processors/platform/PlatformTarget;)Lorg/apache/ignite/internal/processors/platform/PlatformTarget;", false);
             JniMethod M_PLATFORM_PROCESSOR_SERVICES = JniMethod("services", "(Lorg/apache/ignite/internal/processors/platform/PlatformTarget;)Lorg/apache/ignite/internal/processors/platform/PlatformTarget;", false);
             JniMethod M_PLATFORM_PROCESSOR_EXTENSIONS = JniMethod("extensions", "()Lorg/apache/ignite/internal/processors/platform/PlatformTarget;", false);
-            JniMethod M_PLATFORM_PROCESSOR_QUEUE = JniMethod("queue", "(Ljava/lang/String;J)Lorg/apache/ignite/internal/processors/platform/PlatformTarget;", false);
+            JniMethod M_PLATFORM_PROCESSOR_QUEUE = JniMethod("queue", "(Ljava/lang/String;IJ)Lorg/apache/ignite/internal/processors/platform/PlatformTarget;", false);
             JniMethod M_PLATFORM_PROCESSOR_ATOMIC_LONG = JniMethod("atomicLong", "(Ljava/lang/String;JZ)Lorg/apache/ignite/internal/processors/platform/PlatformTarget;", false);
 
             const char* C_PLATFORM_TARGET = "org/apache/ignite/internal/processors/platform/PlatformTarget";
@@ -1226,13 +1226,13 @@ namespace ignite
                 return LocalToGlobal(env, res);
             }
 
-            jobject JniContext::ProcessorQueue(jobject obj, char* name, long long memPtr)
+            jobject JniContext::ProcessorQueue(jobject obj, char* name, int cap, long long memPtr)
             {
                 JNIEnv* env = Attach();
 
                 jstring name0 = name != NULL ? env->NewStringUTF(name) : NULL;
 
-                jobject res = env->CallObjectMethod(obj, jvm->GetMembers().m_PlatformProcessor_queue, name0, memPtr);
+                jobject res = env->CallObjectMethod(obj, jvm->GetMembers().m_PlatformProcessor_queue, name0, cap, memPtr);
 
                 if (name0)
                     env->DeleteLocalRef(name0);
