@@ -66,6 +66,7 @@ namespace Apache.Ignite.Core.Impl.DataStructures
         /** <inheritDoc /> */
         public int Count
         {
+            // Direct cakk
             get { throw new NotImplementedException(); }
         }
 
@@ -84,24 +85,28 @@ namespace Apache.Ignite.Core.Impl.DataStructures
         /** <inheritDoc /> */
         public void CopyTo(T[] array, int index)
         {
+            // OutOp
             throw new NotImplementedException();
         }
 
         /** <inheritDoc /> */
         public bool TryAdd(T item)
         {
+            // OutOp
             throw new NotImplementedException();
         }
 
         /** <inheritDoc /> */
         public bool TryTake(out T item)
         {
+            // OutOp
             throw new NotImplementedException();
         }
 
         /** <inheritDoc /> */
         public T[] ToArray()
         {
+            // OutOp
             throw new NotImplementedException();
         }
     }
