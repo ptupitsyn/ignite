@@ -30,6 +30,17 @@ namespace Apache.Ignite.Core.DataStructures
         string Name { get; }
 
         /// <summary>
+        /// Closes this instance and removes data from the grid.
+        /// </summary>
+        void Close();
+
+        /// <summary>
+        /// Determines whether this instance is closed.
+        /// </summary>
+        /// <returns>True if corresponding queue has been closed; otherwise, false.</returns>
+        bool IsClosed();
+
+        /// <summary>
         /// Returns and instance of this queue with binary mode enabled.
         /// </summary>
         /// <typeparam name="T2">The type of the queue element.</typeparam>

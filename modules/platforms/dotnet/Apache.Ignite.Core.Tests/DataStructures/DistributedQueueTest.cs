@@ -17,6 +17,7 @@
 
 namespace Apache.Ignite.Core.Tests.DataStructures
 {
+    using Apache.Ignite.Core.Configuration;
     using Apache.Ignite.Core.DataStructures;
     using NUnit.Framework;
 
@@ -35,7 +36,29 @@ namespace Apache.Ignite.Core.Tests.DataStructures
         [Test]
         public void TestCreateClose()
         {
-            // Nonexistent long returns null
+            // Nonexistent queue returns null
+            Assert.IsNull(Grid.GetQueue<int>(QueueName, 10, null));
+
+            // Create new
+            var q1 = Grid.GetQueue<int>(QueueName, 0, new CollectionConfiguration());
+            Assert.IsTrue(q1.TryAdd(10));
+            Assert.AreEqual(QueueName, q1.Name);
+
+            // Get existing
+            var q2 = Grid.GetQueue<int>(QueueName, 0, null);
+            Assert.AreEqual(QueueName, q2.Name);
+            Assert.AreEqual(new[] {10}, q2.ToArray());
+            
+            // Get existing with configuration
+            var q3 = Grid.GetQueue<int>(QueueName, 3, new CollectionConfiguration());
+            Assert.AreEqual(QueueName, q3.Name);
+            Assert.AreEqual(new[] {10}, q3.ToArray());
+
+            q3.Close();
+
+            Assert.IsTrue(q1.IsClosed());
+            Assert.IsTrue(q2.IsClosed());
+            Assert.IsTrue(q3.IsClosed());
             Assert.IsNull(Grid.GetQueue<int>(QueueName, 10, null));
         }
     }
