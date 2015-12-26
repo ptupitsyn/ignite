@@ -24,5 +24,9 @@ namespace Apache.Ignite.Core.DataStructures
     /// </summary>
     public interface IDistributedQueue<T> : IProducerConsumerCollection<T>
     {
+        /// <summary>
+        /// Gets the queue name.
+        /// </summary>
+        string Name { get; }
     }
 }

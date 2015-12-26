@@ -34,7 +34,7 @@ namespace Apache.Ignite.Core.Impl.DataStructures
         private readonly string _name;
 
         /** */
-        private readonly CollectionConfiguration _config;
+        private readonly bool _keepBinary;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="DistributedQueue{T}" /> class.
@@ -42,20 +42,26 @@ namespace Apache.Ignite.Core.Impl.DataStructures
         /// <param name="target">Target.</param>
         /// <param name="marsh">Marshaller.</param>
         /// <param name="name">Collection name.</param>
-        /// <param name="configuration">Collection configuration.</param>
-        public DistributedQueue(IUnmanagedTarget target, Marshaller marsh, string name, 
-            CollectionConfiguration configuration) : base(target, marsh)
+        /// <param name="keepBinary">Binary mode flag.</param>
+        public DistributedQueue(IUnmanagedTarget target, Marshaller marsh, string name, bool keepBinary) 
+            : base(target, marsh)
         {
             _name = name;
-            _config = configuration;
+            _keepBinary = keepBinary;
         }
 
+
+        /** <inheritDoc /> */
+        public string Name
+        {
+            get { return _name; }
+        }
 
         /** <inheritDoc /> */
         public IEnumerator<T> GetEnumerator()
         {
             IUnmanagedTarget target = null;  // TODO: Java call
-            return new IgniteEnumerator<T>(target, Marshaller, _config.KeepBinary);
+            return new IgniteEnumerator<T>(target, Marshaller, _keepBinary);
         }
 
         /** <inheritDoc /> */
@@ -73,7 +79,7 @@ namespace Apache.Ignite.Core.Impl.DataStructures
         /** <inheritDoc /> */
         public int Count
         {
-            // Direct cakk
+            // TODO: Java call
             get { throw new NotImplementedException(); }
         }
 

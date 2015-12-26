@@ -437,14 +437,28 @@ namespace Apache.Ignite.Core.Impl
         {
             IgniteArgumentCheck.NotNullOrEmpty(name, "name");
 
-            long memPtr = 0; // TODO: Write config
+            IUnmanagedTarget nativeQueue;
 
-            var nativeQueue = UU.ProcessorQueue(_proc, name, memPtr);
+            if (configuration != null)
+            {
+                using (var stream = IgniteManager.Memory.Allocate().GetStream())
+                {
+                    var writer = _marsh.StartMarshal(stream);
+
+                    configuration.Write(writer);
+                    stream.SynchronizeOutput();
+
+                    nativeQueue = UU.ProcessorQueue(_proc, name, stream.MemoryPointer);
+                }
+            }
+            else
+                nativeQueue = UU.ProcessorQueue(_proc, name, 0);
 
             if (nativeQueue == null)
                 return null;
 
-            return new DistributedQueue<T>(nativeQueue, Marshaller, name, configuration);
+            return new DistributedQueue<T>(nativeQueue, Marshaller, name, false);
+
         }
 
         /** <inheritdoc /> */
