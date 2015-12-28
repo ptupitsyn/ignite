@@ -23,6 +23,7 @@ import org.apache.ignite.IgniteDataStreamer;
 import org.apache.ignite.IgniteException;
 import org.apache.ignite.IgniteLogger;
 import org.apache.ignite.IgniteQueue;
+import org.apache.ignite.configuration.CollectionConfiguration;
 import org.apache.ignite.configuration.PlatformConfiguration;
 import org.apache.ignite.internal.GridKernalContext;
 import org.apache.ignite.internal.IgniteComputeImpl;
@@ -328,7 +329,9 @@ public class PlatformProcessorImpl extends GridProcessorAdapter implements Platf
     /** {@inheritDoc} */
     @Override public PlatformTarget queue(String name, int cap, long memPtr) throws IgniteException {
         // TODO: Read config
-        IgniteQueue queue = ignite().queue(name, cap, null);
+        IgniteQueue queue = memPtr == 0
+            ? ignite().queue(name, cap, null)
+            : ignite().queue(name, cap, new CollectionConfiguration());
 
         if (queue == null)
             return null;
