@@ -671,7 +671,7 @@ namespace ignite
                 m_PlatformUtils_reallocate = FindMethod(env, c_PlatformUtils, M_PLATFORM_UTILS_REALLOC);
                 m_PlatformUtils_errData = FindMethod(env, c_PlatformUtils, M_PLATFORM_UTILS_ERR_DATA);
 
-                jclass c_PlatformQueue = FindClass(env, C_PLATFORM_QUEUE);
+                c_PlatformQueue = FindClass(env, C_PLATFORM_QUEUE);
                 m_PlatformQueue_close = FindMethod(env, c_PlatformQueue, M_PLATFORM_QUEUE_CLOSE);
 
                 jclass c_PlatformAtomicLong = FindClass(env, C_PLATFORM_ATOMIC_LONG);

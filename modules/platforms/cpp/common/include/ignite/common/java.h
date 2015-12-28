@@ -337,6 +337,12 @@ namespace ignite
 
                 jclass c_PlatformQueue;
                 jmethodID m_PlatformQueue_close;
+                jmethodID m_PlatformQueue_clear;
+                jmethodID m_PlatformQueue_size;
+                jmethodID m_PlatformQueue_capacity;
+                jmethodID m_PlatformQueue_isEmpty;
+                jmethodID m_PlatformQueue_isColocated;
+                jmethodID m_PlatformQueue_isClosed;
 
                 jclass c_PlatformAtomicLong;
                 jmethodID m_PlatformAtomicLong_get;

@@ -114,7 +114,7 @@ public class PlatformQueue extends PlatformAbstractTarget {
      *
      * @return True if colocated; otherwise, false.
      */
-    public boolean colocated() {
+    public boolean isColocated() {
         return queue.collocated();
     }
 }
