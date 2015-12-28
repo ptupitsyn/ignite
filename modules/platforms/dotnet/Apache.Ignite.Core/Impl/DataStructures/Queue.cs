@@ -30,6 +30,12 @@ namespace Apache.Ignite.Core.Impl.DataStructures
     /// </summary>
     internal class Queue<T> : PlatformTarget, IQueue<T>
     {
+        private enum Op
+        {
+            Add = 1,
+            Remove = 2
+        }
+
         /** */
         private const int DefaultClearBatchSize = 100;
 
@@ -87,7 +93,7 @@ namespace Apache.Ignite.Core.Impl.DataStructures
         /** <inheritDoc /> */
         public bool TryRemove(T item)
         {
-            throw new NotImplementedException();
+            return DoOutOp((int) Op.Remove, item) == True;
         }
 
         /** <inheritDoc /> */
@@ -229,8 +235,7 @@ namespace Apache.Ignite.Core.Impl.DataStructures
         /** <inheritDoc /> */
         public bool TryAdd(T item)
         {
-            // OutOp
-            throw new NotImplementedException();
+            return DoOutOp((int) Op.Add, item) == True;
         }
 
         /** <inheritDoc /> */
