@@ -33,7 +33,8 @@ namespace Apache.Ignite.Core.Impl.DataStructures
         private enum Op
         {
             Add = 1,
-            Remove = 2
+            Remove = 2,
+            ToArray = 3
         }
 
         /** */
@@ -248,8 +249,7 @@ namespace Apache.Ignite.Core.Impl.DataStructures
         /** <inheritDoc /> */
         public T[] ToArray()
         {
-            // OutOp
-            throw new NotImplementedException();
+            return DoInOp((int) Op.ToArray, stream => Marshaller.StartUnmarshal(stream).ReadArray<T>());
         }
     }
 }

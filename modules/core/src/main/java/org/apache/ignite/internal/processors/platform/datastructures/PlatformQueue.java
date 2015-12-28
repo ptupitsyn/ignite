@@ -20,6 +20,7 @@ package org.apache.ignite.internal.processors.platform.datastructures;
 import org.apache.ignite.IgniteCheckedException;
 import org.apache.ignite.IgniteQueue;
 import org.apache.ignite.internal.binary.BinaryRawReaderEx;
+import org.apache.ignite.internal.binary.BinaryRawWriterEx;
 import org.apache.ignite.internal.processors.platform.PlatformAbstractTarget;
 import org.apache.ignite.internal.processors.platform.PlatformContext;
 
@@ -35,7 +36,7 @@ public class PlatformQueue extends PlatformAbstractTarget {
     private static final int OP_REMOVE = 2;
 
     /** */
-    private static final int OP_PEEK = 3;
+    private static final int OP_TO_ARRAY = 3;
 
     /** Underlying queue. */
     private final IgniteQueue queue;
@@ -134,6 +135,18 @@ public class PlatformQueue extends PlatformAbstractTarget {
 
             default:
                 return super.processInStreamOutLong(type, reader);
+        }
+    }
+
+    /** {@inheritDoc} */
+    @Override protected void processOutStream(int type, BinaryRawWriterEx writer) throws IgniteCheckedException {
+        switch (type) {
+            case OP_TO_ARRAY:
+                writer.writeObjectArray(queue.toArray());
+
+                break;
+            default:
+                super.processOutStream(type, writer);
         }
     }
 }
