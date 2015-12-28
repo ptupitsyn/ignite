@@ -57,6 +57,84 @@ namespace Apache.Ignite.Core.Impl.DataStructures
         }
 
         /** <inheritDoc /> */
+        public bool TryAdd(T item, TimeSpan timeout)
+        {
+            throw new NotImplementedException();
+        }
+
+        /** <inheritDoc /> */
+        public bool TryAddAll(IEnumerable<T> items)
+        {
+            throw new NotImplementedException();
+        }
+
+        /** <inheritDoc /> */
+        public bool Contains(T item)
+        {
+            throw new NotImplementedException();
+        }
+
+        /** <inheritDoc /> */
+        public bool ContainsAll(IEnumerable<T> items)
+        {
+            throw new NotImplementedException();
+        }
+
+        /** <inheritDoc /> */
+        public bool TryRemove(T item)
+        {
+            throw new NotImplementedException();
+        }
+
+        /** <inheritDoc /> */
+        public bool TryRemoveAll(IEnumerable<T> items)
+        {
+            throw new NotImplementedException();
+        }
+
+        /** <inheritDoc /> */
+        public bool IsEmpty()
+        {
+            throw new NotImplementedException();
+        }
+
+        /** <inheritDoc /> */
+        public bool TryRetainAll(IEnumerable<T> items)
+        {
+            throw new NotImplementedException();
+        }
+
+        /** <inheritDoc /> */
+        public bool TryPoll(out T item)
+        {
+            throw new NotImplementedException();
+        }
+
+        /** <inheritDoc /> */
+        public bool TryPoll(out T item, TimeSpan timeout)
+        {
+            throw new NotImplementedException();
+        }
+
+        /** <inheritDoc /> */
+        public bool TryPeek(out T item)
+        {
+            throw new NotImplementedException();
+        }
+
+        /** <inheritDoc /> */
+        public void Clear()
+        {
+            throw new NotImplementedException();
+        }
+
+        /** <inheritDoc /> */
+        public void Clear(int batchSize)
+        {
+            throw new NotImplementedException();
+        }
+
+        /** <inheritDoc /> */
         public void Close()
         {
             throw new NotImplementedException();
@@ -64,6 +142,12 @@ namespace Apache.Ignite.Core.Impl.DataStructures
 
         /** <inheritDoc /> */
         public bool IsClosed()
+        {
+            throw new NotImplementedException();
+        }
+
+        /** <inheritDoc /> */
+        public bool IsColocated()
         {
             throw new NotImplementedException();
         }
