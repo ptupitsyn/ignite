@@ -49,4 +49,20 @@ public class PlatformQueue extends PlatformAbstractTarget {
     public PlatformIterator iterator() {
         return new PlatformIterator(platformCtx, queue.iterator());
     }
+
+    /**
+     * Closes the queue.
+     */
+    public void close() {
+        queue.close();
+    }
+
+    /**
+     * Determines whether underlying queue has been removed.
+     *
+     * @return True if the queue has been removed; otherwise, false.
+     */
+    public boolean isClosed() {
+        return queue.removed();
+    }
 }
