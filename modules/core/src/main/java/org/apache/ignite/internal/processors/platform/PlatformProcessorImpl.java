@@ -39,7 +39,7 @@ import org.apache.ignite.internal.processors.platform.cluster.PlatformClusterGro
 import org.apache.ignite.internal.processors.platform.compute.PlatformCompute;
 import org.apache.ignite.internal.processors.platform.datastreamer.PlatformDataStreamer;
 import org.apache.ignite.internal.processors.platform.datastructures.PlatformAtomicLong;
-import org.apache.ignite.internal.processors.platform.datastructures.PlatformDistributedQueue;
+import org.apache.ignite.internal.processors.platform.datastructures.PlatformQueue;
 import org.apache.ignite.internal.processors.platform.dotnet.PlatformDotNetCacheStore;
 import org.apache.ignite.internal.processors.platform.events.PlatformEvents;
 import org.apache.ignite.internal.processors.platform.memory.PlatformMemory;
@@ -333,7 +333,7 @@ public class PlatformProcessorImpl extends GridProcessorAdapter implements Platf
         if (queue == null)
             return null;
 
-        return new PlatformDistributedQueue(platformCtx, queue);
+        return new PlatformQueue(platformCtx, queue);
     }
 
     /** {@inheritDoc} */

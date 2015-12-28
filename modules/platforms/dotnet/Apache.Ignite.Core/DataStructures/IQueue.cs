@@ -24,7 +24,7 @@ namespace Apache.Ignite.Core.DataStructures
     /// <summary>
     /// Provides an API for working with distributed queues based on In-Memory Data Grid.
     /// </summary>
-    public interface IDistributedQueue<T> : IProducerConsumerCollection<T>
+    public interface IQueue<T> : IProducerConsumerCollection<T>
     {
         /// <summary>
         /// Gets the queue name.
@@ -145,6 +145,6 @@ namespace Apache.Ignite.Core.DataStructures
         /// </summary>
         /// <typeparam name="T2">The type of the queue element.</typeparam>
         /// <returns>Binary mode instance.</returns>
-        IDistributedQueue<T2> WithKeepBinary<T2>();
+        IQueue<T2> WithKeepBinary<T2>();
     }
 }

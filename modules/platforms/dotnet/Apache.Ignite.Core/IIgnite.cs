@@ -166,7 +166,7 @@ namespace Apache.Ignite.Core
         /// <returns>
         /// Distributed queue.
         /// </returns>
-        IDistributedQueue<T> GetQueue<T>(string name, int capacity, CollectionConfiguration configuration);
+        IQueue<T> GetQueue<T>(string name, int capacity, CollectionConfiguration configuration);
 
             /// <summary>
         /// Gets an atomic long with specified name from cache.

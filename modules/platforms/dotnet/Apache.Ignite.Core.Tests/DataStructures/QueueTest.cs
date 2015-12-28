@@ -22,13 +22,13 @@ namespace Apache.Ignite.Core.Tests.DataStructures
     using NUnit.Framework;
 
     /// <summary>
-    /// Tests for <see cref="IDistributedQueue{T}"/>.
+    /// Tests for <see cref="IQueue{T}"/>.
     /// </summary>
-    public class DistributedQueueTest : IgniteTestBase
+    public class QueueTest : IgniteTestBase
     {
         private const string QueueName = "igniteQueueTest";
 
-        public DistributedQueueTest() : base("config\\compute\\compute-grid1.xml")
+        public QueueTest() : base("config\\compute\\compute-grid1.xml")
         {
             // No-op.
         }

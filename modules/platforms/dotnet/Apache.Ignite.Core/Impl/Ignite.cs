@@ -433,7 +433,7 @@ namespace Apache.Ignite.Core.Impl
         }
 
         /** <inheritdoc /> */
-        public IDistributedQueue<T> GetQueue<T>(string name, int capacity, CollectionConfiguration configuration)
+        public IQueue<T> GetQueue<T>(string name, int capacity, CollectionConfiguration configuration)
         {
             IgniteArgumentCheck.NotNullOrEmpty(name, "name");
 
@@ -457,7 +457,7 @@ namespace Apache.Ignite.Core.Impl
             if (nativeQueue == null)
                 return null;
 
-            return new DistributedQueue<T>(nativeQueue, Marshaller, name, false);
+            return new DataStructures.Queue<T>(nativeQueue, Marshaller, name, false);
 
         }
 

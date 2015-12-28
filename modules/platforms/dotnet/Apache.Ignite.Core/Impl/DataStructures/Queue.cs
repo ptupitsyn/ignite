@@ -27,7 +27,7 @@ namespace Apache.Ignite.Core.Impl.DataStructures
     /// <summary>
     /// Provides an API for working with distributed queues based on In-Memory Data Grid.
     /// </summary>
-    internal class DistributedQueue<T> : PlatformTarget, IDistributedQueue<T>
+    internal class Queue<T> : PlatformTarget, IQueue<T>
     {
         /** */
         private readonly string _name;
@@ -36,13 +36,13 @@ namespace Apache.Ignite.Core.Impl.DataStructures
         private readonly bool _keepBinary;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="DistributedQueue{T}" /> class.
+        /// Initializes a new instance of the <see cref="Queue{T}" /> class.
         /// </summary>
         /// <param name="target">Target.</param>
         /// <param name="marsh">Marshaller.</param>
         /// <param name="name">Collection name.</param>
         /// <param name="keepBinary">Binary mode flag.</param>
-        public DistributedQueue(IUnmanagedTarget target, Marshaller marsh, string name, bool keepBinary) 
+        public Queue(IUnmanagedTarget target, Marshaller marsh, string name, bool keepBinary) 
             : base(target, marsh)
         {
             _name = name;
@@ -153,11 +153,11 @@ namespace Apache.Ignite.Core.Impl.DataStructures
         }
 
         /** <inheritDoc /> */
-        public IDistributedQueue<T2> WithKeepBinary<T2>()
+        public IQueue<T2> WithKeepBinary<T2>()
         {
             if (_keepBinary)
             {
-                var result = this as IDistributedQueue<T2>;
+                var result = this as IQueue<T2>;
 
                 if (result == null)
                     throw new InvalidOperationException(
@@ -167,7 +167,7 @@ namespace Apache.Ignite.Core.Impl.DataStructures
                 return result;
             }
 
-            return new DistributedQueue<T2>(Target, Marshaller, Name, true);
+            return new Queue<T2>(Target, Marshaller, Name, true);
         }
 
         /** <inheritDoc /> */

@@ -24,7 +24,7 @@ import org.apache.ignite.internal.processors.platform.PlatformContext;
 /**
  * Platform queue.
  */
-public class PlatformDistributedQueue extends PlatformAbstractTarget {
+public class PlatformQueue extends PlatformAbstractTarget {
     /** Underlying queue. */
     private final IgniteQueue queue;
 
@@ -33,7 +33,7 @@ public class PlatformDistributedQueue extends PlatformAbstractTarget {
      *
      * @param platformCtx Context.
      */
-    public PlatformDistributedQueue(PlatformContext platformCtx, IgniteQueue queue) {
+    public PlatformQueue(PlatformContext platformCtx, IgniteQueue queue) {
         super(platformCtx);
 
         assert queue != null;
