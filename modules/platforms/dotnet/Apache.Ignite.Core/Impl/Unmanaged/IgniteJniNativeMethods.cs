@@ -333,9 +333,6 @@ namespace Apache.Ignite.Core.Impl.Unmanaged
         public static extern void* ServicesGetServiceProxy(void* ctx, void* target, char* name,
             [MarshalAs(UnmanagedType.U1)] bool sticky);
 
-        [DllImport(IgniteUtils.FileIgniteJniDll, EntryPoint = "IgniteQueueClear")]
-        public static extern void QueueClear(void* ctx, void* target);
-
         [DllImport(IgniteUtils.FileIgniteJniDll, EntryPoint = "IgniteQueueIsEmpty")]
         [return: MarshalAs(UnmanagedType.U1)]
         public static extern bool QueueIsEmpty(void* ctx, void* target);

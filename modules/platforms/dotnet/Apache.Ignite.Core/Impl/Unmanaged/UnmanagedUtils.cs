@@ -792,9 +792,39 @@ namespace Apache.Ignite.Core.Impl.Unmanaged
 
         #region NATIVE METHODS: DATA STRUCTURES
 
+        internal static bool QueueIsEmpty(IUnmanagedTarget target)
+        {
+            return JNI.QueueIsEmpty(target.Context, target.Target);
+        }
+
+        internal static int QueueSize(IUnmanagedTarget target)
+        {
+            return JNI.QueueSize(target.Context, target.Target);
+        }
+
+        internal static void QueueClear(IUnmanagedTarget target, int batchSize)
+        {
+            JNI.QueueClear(target.Context, target.Target, batchSize);
+        }
+
         internal static void QueueClose(IUnmanagedTarget target)
         {
             JNI.QueueClose(target.Context, target.Target);
+        }
+
+        internal static int QueueCapacity(IUnmanagedTarget target)
+        {
+            return JNI.QueueCapacity(target.Context, target.Target);
+        }
+
+        internal static bool QueueIsColocated(IUnmanagedTarget target)
+        {
+            return JNI.QueueIsColocated(target.Context, target.Target);
+        }
+
+        internal static bool QueueIsClosed(IUnmanagedTarget target)
+        {
+            return JNI.QueueIsClosed(target.Context, target.Target);
         }
 
         internal static long AtomicLongGet(IUnmanagedTarget target)
