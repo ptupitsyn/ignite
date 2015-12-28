@@ -105,7 +105,11 @@ namespace Apache.Ignite.Core.DataStructures
         /// </returns>
         bool TryPoll(out T item, TimeSpan timeout);
 
-
+        /// <summary>
+        /// Attempts to return (but not remove) the object at the beginning of the queue.
+        /// </summary>
+        /// <param name="item">The resulting item, if the operation succeeded.</param>
+        /// <returns>False if the queue was empty; otherwise, true.</returns>
         bool TryPeek(out T item);
 
         /// <summary>
