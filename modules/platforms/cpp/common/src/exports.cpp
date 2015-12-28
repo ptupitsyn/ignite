@@ -419,6 +419,10 @@ extern "C" {
 		return ctx->ServicesGetServiceProxy(static_cast<jobject>(obj), name, sticky);
     }
 
+    void IGNITE_CALL IgniteQueueClose(gcj::JniContext* ctx, void* obj) {
+        return ctx->QueueClose(static_cast<jobject>(obj));
+    }
+
     long long IGNITE_CALL IgniteAtomicLongGet(gcj::JniContext* ctx, void* obj) {
         return ctx->AtomicLongGet(static_cast<jobject>(obj));
     }

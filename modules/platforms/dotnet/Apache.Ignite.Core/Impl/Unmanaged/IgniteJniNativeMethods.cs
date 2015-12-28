@@ -333,6 +333,9 @@ namespace Apache.Ignite.Core.Impl.Unmanaged
         public static extern void* ServicesGetServiceProxy(void* ctx, void* target, char* name,
             [MarshalAs(UnmanagedType.U1)] bool sticky);
 
+        [DllImport(IgniteUtils.FileIgniteJniDll, EntryPoint = "IgniteQueueClose")]
+        public static extern void QueueClose(void* ctx, void* target);
+
         [DllImport(IgniteUtils.FileIgniteJniDll, EntryPoint = "IgniteAtomicLongGet")]
         public static extern long AtomicLongGet(void* ctx, void* target);
 

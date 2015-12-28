@@ -378,6 +378,9 @@ namespace ignite
 			JniMethod M_PLATFORM_SERVICES_CANCEL_ALL = JniMethod("cancelAll", "()V", false);
 			JniMethod M_PLATFORM_SERVICES_SERVICE_PROXY = JniMethod("dotNetServiceProxy", "(Ljava/lang/String;Z)Ljava/lang/Object;", false);
 
+            const char* C_PLATFORM_QUEUE = "org/apache/ignite/internal/processors/platform/datastructures/PlatformQueue";
+            JniMethod M_PLATFORM_QUEUE_CLOSE = JniMethod("close", "()V", false);
+
             const char* C_PLATFORM_ATOMIC_LONG = "org/apache/ignite/internal/processors/platform/datastructures/PlatformAtomicLong";
             JniMethod M_PLATFORM_ATOMIC_LONG_GET = JniMethod("get", "()J", false);
             JniMethod M_PLATFORM_ATOMIC_LONG_INCREMENT_AND_GET = JniMethod("incrementAndGet", "()J", false);
@@ -667,6 +670,9 @@ namespace ignite
                 c_PlatformUtils = FindClass(env, C_PLATFORM_UTILS);
                 m_PlatformUtils_reallocate = FindMethod(env, c_PlatformUtils, M_PLATFORM_UTILS_REALLOC);
                 m_PlatformUtils_errData = FindMethod(env, c_PlatformUtils, M_PLATFORM_UTILS_ERR_DATA);
+
+                jclass c_PlatformQueue = FindClass(env, C_PLATFORM_QUEUE);
+                m_PlatformQueue_close = FindMethod(env, c_PlatformQueue, M_PLATFORM_QUEUE_CLOSE);
 
                 jclass c_PlatformAtomicLong = FindClass(env, C_PLATFORM_ATOMIC_LONG);
                 m_PlatformAtomicLong_get = FindMethod(env, c_PlatformAtomicLong, M_PLATFORM_ATOMIC_LONG_GET);
@@ -1935,6 +1941,15 @@ namespace ignite
 
 				return LocalToGlobal(env, res);;
 			}
+
+            void JniContext::QueueClose(jobject obj)
+            {
+                JNIEnv* env = Attach();
+
+                env->CallVoidMethod(obj, jvm->GetMembers().m_PlatformQueue_close);
+
+                ExceptionCheck(env);
+            }
 
             long long JniContext::AtomicLongGet(jobject obj)
             {

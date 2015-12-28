@@ -335,6 +335,9 @@ namespace ignite
                 jmethodID m_PlatformUtils_reallocate;
                 jmethodID m_PlatformUtils_errData;
 
+                jclass c_PlatformQueue;
+                jmethodID m_PlatformQueue_close;
+
                 jclass c_PlatformAtomicLong;
                 jmethodID m_PlatformAtomicLong_get;
                 jmethodID m_PlatformAtomicLong_incrementAndGet;
@@ -578,6 +581,8 @@ namespace ignite
 				void ServicesCancel(jobject obj, char* name);
 				void ServicesCancelAll(jobject obj);
 				void* ServicesGetServiceProxy(jobject obj, char* name, bool sticky);
+
+                void QueueClose(jobject obj);
 
                 long long AtomicLongGet(jobject obj);
                 long long AtomicLongIncrementAndGet(jobject obj);

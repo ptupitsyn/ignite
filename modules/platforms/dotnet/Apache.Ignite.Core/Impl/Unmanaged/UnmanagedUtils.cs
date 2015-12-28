@@ -792,6 +792,11 @@ namespace Apache.Ignite.Core.Impl.Unmanaged
 
         #region NATIVE METHODS: DATA STRUCTURES
 
+        internal static void QueueClose(IUnmanagedTarget target)
+        {
+            
+        }
+
         internal static long AtomicLongGet(IUnmanagedTarget target)
         {
             return JNI.AtomicLongGet(target.Context, target.Target);
