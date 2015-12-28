@@ -794,7 +794,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged
 
         internal static void QueueClose(IUnmanagedTarget target)
         {
-            
+            JNI.QueueClose(target.Context, target.Target);
         }
 
         internal static long AtomicLongGet(IUnmanagedTarget target)
