@@ -110,3 +110,10 @@ IgniteAtomicLongCompareAndSetAndGet @107
 IgniteAtomicLongIsClosed @108
 IgniteAtomicLongClose @109
 IgniteProcessorQueue @110
+IgniteQueueClear @111 
+IgniteQueueIsEmpty @112 
+IgniteQueueSize @113 
+IgniteQueueClose @114
+IgniteQueueCapacity @115
+IgniteQueueIsColocated @116
+IgniteQueueIsClosed @117
