@@ -137,7 +137,7 @@ namespace Apache.Ignite.Core.Impl.DataStructures
         /** <inheritDoc /> */
         public void Close()
         {
-            throw new NotImplementedException();
+            UnmanagedUtils.QueueClose(Target);
         }
 
         /** <inheritDoc /> */
