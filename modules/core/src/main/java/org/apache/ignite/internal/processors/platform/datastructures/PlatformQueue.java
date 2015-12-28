@@ -65,4 +65,56 @@ public class PlatformQueue extends PlatformAbstractTarget {
     public boolean isClosed() {
         return queue.removed();
     }
+
+    /**
+     * Clears the queue.
+     */
+    public void clear() {
+        queue.clear();
+    }
+
+    /**
+     * Determines whether underlying queue is empty.
+     *
+     * @return True if queue is empty; otherwise, false.
+     */
+    public boolean isEmpty() {
+        return queue.isEmpty();
+    }
+
+    /**
+     * Gets the queue size.
+     *
+     * @return Size.
+     */
+    public int size() {
+        return queue.size();
+    }
+
+    /**
+     * Removes all items from the queue.
+     *
+     * @param batchSize Batch size.
+     */
+    public void clear(int batchSize) {
+        queue.clear(batchSize);
+    }
+
+    /**
+     * Gets the capacity of the queue.
+     *
+     * @return Capacity.
+     */
+    public int capacity() {
+        return queue.capacity();
+    }
+
+    /**
+     * Gets a value indicating whether underlying queue is colocated.
+     *
+     * @return True if colocated; otherwise, false.
+     */
+    public boolean colocated() {
+        return queue.collocated();
+    }
 }
