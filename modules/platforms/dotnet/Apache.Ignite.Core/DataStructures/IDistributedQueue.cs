@@ -60,13 +60,52 @@ namespace Apache.Ignite.Core.DataStructures
         /// <returns>True if this collection contains specified items; otherwise, false.</returns>
         bool ContainsAll(IEnumerable<T> items);
 
-        bool Remove(T item);
-        bool RemoveAll(IEnumerable<T> items);
-        bool IsEmpty();
-        bool RetainAll(IEnumerable<T> items);
+        /// <summary>
+        /// Attempts the remove specified item from the queue.
+        /// </summary>
+        /// <param name="item">The item to remove.</param>
+        /// <returns>True if an item has been removed; otherwise, false.</returns>
+        bool TryRemove(T item);
 
+        /// <summary>
+        /// Attempts the remove specified items from the queue.
+        /// </summary>
+        /// <param name="items">The item to remove.</param>
+        /// <returns>True if items has been removed; otherwise, false.</returns>
+        bool TryRemoveAll(IEnumerable<T> items);
+
+        /// <summary>
+        /// Determines whether this queue is empty.
+        /// </summary>
+        /// <returns>True is the queue is empty; otherwise, false.</returns>
+        bool IsEmpty();
+
+        /// <summary>
+        /// Attempts to remove all items that are not present in the provided collection.
+        /// </summary>
+        /// <param name="items">The items to be retained.</param>
+        /// <returns>True if this collection has changed as a result of the call.</returns>
+        bool TryRetainAll(IEnumerable<T> items);
+
+        /// <summary>
+        /// Attempts to remove and return the object at the beginning of the queue.
+        /// </summary>
+        /// <param name="item">The resulting item, if the operation succeeded.</param>
+        /// <returns>False if the queue was empty; otherwise, true.</returns>
         bool TryPoll(out T item);
+
+        /// <summary>
+        /// Attempts to remove and return the object at the beginning of the queue, waiting up to the
+        /// specified wait time if necessary for an element to become available.
+        /// </summary>
+        /// <param name="item">The resulting item, if the operation succeeded.</param>
+        /// <param name="timeout">The time to wait before giving up and returning false.</param>
+        /// <returns>
+        /// False if the queue was empty; otherwise, true.
+        /// </returns>
         bool TryPoll(out T item, TimeSpan timeout);
+
+
         bool TryPeek(out T item);
 
         /// <summary>
