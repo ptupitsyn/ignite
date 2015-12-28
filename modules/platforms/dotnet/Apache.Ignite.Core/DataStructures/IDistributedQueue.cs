@@ -60,15 +60,25 @@ namespace Apache.Ignite.Core.DataStructures
         /// <returns>True if this collection contains specified items; otherwise, false.</returns>
         bool ContainsAll(IEnumerable<T> items);
 
-        /// <summary>
-        /// Removes all elements from this collection.
-        /// </summary>
-        void Clear();
-
         bool Remove(T item);
         bool RemoveAll(IEnumerable<T> items);
         bool IsEmpty();
         bool RetainAll(IEnumerable<T> items);
+
+        bool TryPoll(out T item);
+        bool TryPoll(out T item, TimeSpan timeout);
+        bool TryPeek(out T item);
+
+        /// <summary>
+        /// Removes all of the elements from this collection.
+        /// </summary>
+        void Clear();
+
+        /// <summary>
+        /// Clears the specified batch size.
+        /// </summary>
+        /// <param name="batchSize">Size of the removal batch.</param>
+        void Clear(int batchSize);
 
         /// <summary>
         /// Closes this instance and removes data from the grid.
@@ -80,6 +90,12 @@ namespace Apache.Ignite.Core.DataStructures
         /// </summary>
         /// <returns>True if corresponding queue has been closed; otherwise, false.</returns>
         bool IsClosed();
+
+        /// <summary>
+        /// Determines whether this queue is colocated, that is, can be kept on a single node.
+        /// </summary>
+        /// <returns></returns>
+        bool IsColocated();
 
         /// <summary>
         /// Returns and instance of this queue with binary mode enabled.
