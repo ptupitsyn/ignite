@@ -17,14 +17,23 @@
 
 package org.apache.ignite.internal.processors.platform.datastructures;
 
+import org.apache.ignite.IgniteCheckedException;
 import org.apache.ignite.IgniteQueue;
+import org.apache.ignite.internal.binary.BinaryRawReaderEx;
 import org.apache.ignite.internal.processors.platform.PlatformAbstractTarget;
 import org.apache.ignite.internal.processors.platform.PlatformContext;
 
 /**
  * Platform queue.
  */
+@SuppressWarnings("unchecked")
 public class PlatformQueue extends PlatformAbstractTarget {
+    /** */
+    private static final int OP_ADD = 1;
+
+    /** */
+    private static final int OP_REMOVE = 2;
+
     /** Underlying queue. */
     private final IgniteQueue queue;
 
@@ -109,5 +118,19 @@ public class PlatformQueue extends PlatformAbstractTarget {
      */
     public boolean isColocated() {
         return queue.collocated();
+    }
+
+    /** {@inheritDoc} */
+    @Override protected long processInStreamOutLong(int type, BinaryRawReaderEx reader) throws IgniteCheckedException {
+        switch (type) {
+            case OP_ADD:
+                return queue.add(reader.readObject()) ? TRUE : FALSE;
+
+            case OP_REMOVE:
+                return queue.remove(reader.readObject()) ? TRUE : FALSE;
+
+            default:
+                return super.processInStreamOutLong(type, reader);
+        }
     }
 }
