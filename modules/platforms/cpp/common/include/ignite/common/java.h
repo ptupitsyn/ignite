@@ -588,7 +588,13 @@ namespace ignite
 				void ServicesCancelAll(jobject obj);
 				void* ServicesGetServiceProxy(jobject obj, char* name, bool sticky);
 
+                bool QueueIsEmpty(jobject obj);
+                int QueueSize(jobject obj);
+                void QueueClear(jobject obj, int batchSize);
                 void QueueClose(jobject obj);
+                int QueueCapacity(jobject obj);
+                bool QueueIsColocated(jobject obj);
+                bool QueueIsClosed(jobject obj);
 
                 long long AtomicLongGet(jobject obj);
                 long long AtomicLongIncrementAndGet(jobject obj);

@@ -380,6 +380,12 @@ namespace ignite
 
             const char* C_PLATFORM_QUEUE = "org/apache/ignite/internal/processors/platform/datastructures/PlatformQueue";
             JniMethod M_PLATFORM_QUEUE_CLOSE = JniMethod("close", "()V", false);
+            JniMethod M_PLATFORM_QUEUE_IS_EMPTY = JniMethod("isEmpty", "()Z", false);
+            JniMethod M_PLATFORM_QUEUE_SIZE = JniMethod("size", "()I", false);
+            JniMethod M_PLATFORM_QUEUE_CLEAR = JniMethod("clear", "(I)V", false);
+            JniMethod M_PLATFORM_QUEUE_CAPACITY = JniMethod("capacity", "()I", false);
+            JniMethod M_PLATFORM_QUEUE_IS_COLOCATED = JniMethod("isColocated", "()Z", false);
+            JniMethod M_PLATFORM_QUEUE_IS_CLOSED = JniMethod("isClosed", "()Z", false);
 
             const char* C_PLATFORM_ATOMIC_LONG = "org/apache/ignite/internal/processors/platform/datastructures/PlatformAtomicLong";
             JniMethod M_PLATFORM_ATOMIC_LONG_GET = JniMethod("get", "()J", false);
@@ -672,7 +678,13 @@ namespace ignite
                 m_PlatformUtils_errData = FindMethod(env, c_PlatformUtils, M_PLATFORM_UTILS_ERR_DATA);
 
                 c_PlatformQueue = FindClass(env, C_PLATFORM_QUEUE);
+                m_PlatformQueue_clear = FindMethod(env, c_PlatformQueue, M_PLATFORM_QUEUE_CLEAR);
+                m_PlatformQueue_isEmpty = FindMethod(env, c_PlatformQueue, M_PLATFORM_QUEUE_IS_EMPTY);
+                m_PlatformQueue_size = FindMethod(env, c_PlatformQueue, M_PLATFORM_QUEUE_SIZE);
                 m_PlatformQueue_close = FindMethod(env, c_PlatformQueue, M_PLATFORM_QUEUE_CLOSE);
+                m_PlatformQueue_capacity = FindMethod(env, c_PlatformQueue, M_PLATFORM_QUEUE_CAPACITY);
+                m_PlatformQueue_isColocated = FindMethod(env, c_PlatformQueue, M_PLATFORM_QUEUE_IS_COLOCATED);
+                m_PlatformQueue_isClosed = FindMethod(env, c_PlatformQueue, M_PLATFORM_QUEUE_IS_CLOSED);
 
                 jclass c_PlatformAtomicLong = FindClass(env, C_PLATFORM_ATOMIC_LONG);
                 m_PlatformAtomicLong_get = FindMethod(env, c_PlatformAtomicLong, M_PLATFORM_ATOMIC_LONG_GET);
@@ -1942,6 +1954,37 @@ namespace ignite
 				return LocalToGlobal(env, res);;
 			}
 
+            bool JniContext::QueueIsEmpty(jobject obj)
+            {
+                JNIEnv* env = Attach();
+
+                bool res = env->CallBooleanMethod(obj, jvm->GetMembers().m_PlatformQueue_isEmpty);
+
+                ExceptionCheck(env);
+
+                return res;
+            }
+
+            int JniContext::QueueSize(jobject obj)
+            {
+                JNIEnv* env = Attach();
+
+                int res = env->CallIntMethod(obj, jvm->GetMembers().m_PlatformQueue_size);
+
+                ExceptionCheck(env);
+
+                return res;
+            }
+
+            void JniContext::QueueClear(jobject obj, int batchSize)
+            {
+                JNIEnv* env = Attach();
+
+                env->CallVoidMethod(obj, jvm->GetMembers().m_PlatformQueue_clear, batchSize);
+
+                ExceptionCheck(env);
+            }
+
             void JniContext::QueueClose(jobject obj)
             {
                 JNIEnv* env = Attach();
@@ -1949,6 +1992,39 @@ namespace ignite
                 env->CallVoidMethod(obj, jvm->GetMembers().m_PlatformQueue_close);
 
                 ExceptionCheck(env);
+            }
+
+            int JniContext::QueueCapacity(jobject obj)
+            {
+                JNIEnv* env = Attach();
+
+                int res = env->CallIntMethod(obj, jvm->GetMembers().m_PlatformQueue_capacity);
+
+                ExceptionCheck(env);
+
+                return res;
+            }
+
+            bool JniContext::QueueIsColocated(jobject obj)
+            {
+                JNIEnv* env = Attach();
+
+                bool res = env->CallBooleanMethod(obj, jvm->GetMembers().m_PlatformQueue_isColocated);
+
+                ExceptionCheck(env);
+
+                return res;
+            }
+
+            bool JniContext::QueueIsClosed(jobject obj)
+            {
+                JNIEnv* env = Attach();
+
+                bool res = env->CallBooleanMethod(obj, jvm->GetMembers().m_PlatformQueue_isClosed);
+
+                ExceptionCheck(env);
+
+                return res;
             }
 
             long long JniContext::AtomicLongGet(jobject obj)

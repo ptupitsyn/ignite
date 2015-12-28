@@ -67,13 +67,6 @@ public class PlatformQueue extends PlatformAbstractTarget {
     }
 
     /**
-     * Clears the queue.
-     */
-    public void clear() {
-        queue.clear();
-    }
-
-    /**
      * Determines whether underlying queue is empty.
      *
      * @return True if queue is empty; otherwise, false.
