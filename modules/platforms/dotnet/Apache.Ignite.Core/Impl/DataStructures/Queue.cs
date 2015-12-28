@@ -22,6 +22,7 @@ namespace Apache.Ignite.Core.Impl.DataStructures
     using System.Collections.Generic;
     using Apache.Ignite.Core.DataStructures;
     using Apache.Ignite.Core.Impl.Binary;
+    using Apache.Ignite.Core.Impl.Common;
     using Apache.Ignite.Core.Impl.Unmanaged;
 
     /// <summary>
@@ -29,6 +30,9 @@ namespace Apache.Ignite.Core.Impl.DataStructures
     /// </summary>
     internal class Queue<T> : PlatformTarget, IQueue<T>
     {
+        /** */
+        private const int DefaultClearBatchSize = 100;
+
         /** */
         private readonly string _name;
 
@@ -95,7 +99,7 @@ namespace Apache.Ignite.Core.Impl.DataStructures
         /** <inheritDoc /> */
         public bool IsEmpty()
         {
-            throw new NotImplementedException();
+            return UnmanagedUtils.QueueIsEmpty(Target);
         }
 
         /** <inheritDoc /> */
@@ -125,13 +129,15 @@ namespace Apache.Ignite.Core.Impl.DataStructures
         /** <inheritDoc /> */
         public void Clear()
         {
-            throw new NotImplementedException();
+            Clear(DefaultClearBatchSize);
         }
 
         /** <inheritDoc /> */
         public void Clear(int batchSize)
         {
-            throw new NotImplementedException();
+            IgniteArgumentCheck.Ensure(batchSize > 0, "batchSize", "Batch size should be positive.");
+
+            UnmanagedUtils.QueueClear(Target, batchSize);
         }
 
         /** <inheritDoc /> */
@@ -143,13 +149,13 @@ namespace Apache.Ignite.Core.Impl.DataStructures
         /** <inheritDoc /> */
         public bool IsClosed()
         {
-            throw new NotImplementedException();
+            return UnmanagedUtils.QueueIsClosed(Target);
         }
 
         /** <inheritDoc /> */
         public bool IsColocated()
         {
-            throw new NotImplementedException();
+            return UnmanagedUtils.QueueIsColocated(Target);
         }
 
         /** <inheritDoc /> */
@@ -192,8 +198,13 @@ namespace Apache.Ignite.Core.Impl.DataStructures
         /** <inheritDoc /> */
         public int Count
         {
-            // TODO: Java call
-            get { throw new NotImplementedException(); }
+            get { return UnmanagedUtils.QueueSize(Target); }
+        }
+
+        /** <inheritDoc /> */
+        public int Capacity
+        {
+            get { return UnmanagedUtils.QueueCapacity(Target); }
         }
 
         /** <inheritDoc /> */

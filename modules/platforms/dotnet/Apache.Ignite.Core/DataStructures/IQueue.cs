@@ -146,5 +146,13 @@ namespace Apache.Ignite.Core.DataStructures
         /// <typeparam name="T2">The type of the queue element.</typeparam>
         /// <returns>Binary mode instance.</returns>
         IQueue<T2> WithKeepBinary<T2>();
+
+        /// <summary>
+        /// Gets the maximum number of elements in the queue.
+        /// </summary>
+        /// <value>
+        /// Maximum number of elements in the queue.
+        /// </value>
+        int Capacity { get; }
     }
 }
