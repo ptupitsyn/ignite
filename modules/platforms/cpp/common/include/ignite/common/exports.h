@@ -143,7 +143,13 @@ extern "C" {
 	void IGNITE_CALL IgniteServicesCancelAll(gcj::JniContext* ctx, void* obj);
 	void* IGNITE_CALL IgniteServicesGetServiceProxy(gcj::JniContext* ctx, void* obj, char* name, bool sticky);
 
+    bool IGNITE_CALL IgniteQueueIsEmpty(gcj::JniContext* ctx, void* obj);
+    int IGNITE_CALL IgniteQueueSize(gcj::JniContext* ctx, void* obj);
+    void IGNITE_CALL IgniteQueueClear(gcj::JniContext* ctx, void* obj, int batchSize);
     void IGNITE_CALL IgniteQueueClose(gcj::JniContext* ctx, void* obj);
+    int IGNITE_CALL IgniteQueueCapacity(gcj::JniContext* ctx, void* obj);
+    bool IGNITE_CALL IgniteQueueIsColocated(gcj::JniContext* ctx, void* obj);
+    bool IGNITE_CALL IgniteQueueIsClosed(gcj::JniContext* ctx, void* obj);
 
     long long IGNITE_CALL IgniteAtomicLongGet(gcj::JniContext* ctx, void* obj);
     long long IGNITE_CALL IgniteAtomicLongIncrementAndGet(gcj::JniContext* ctx, void* obj);

@@ -419,8 +419,32 @@ extern "C" {
 		return ctx->ServicesGetServiceProxy(static_cast<jobject>(obj), name, sticky);
     }
 
+    bool IGNITE_CALL IgniteQueueIsEmpty(gcj::JniContext* ctx, void* obj) {
+        return ctx->QueueIsEmpty(static_cast<jobject>(obj));
+    }
+
+    int IGNITE_CALL IgniteQueueSize(gcj::JniContext* ctx, void* obj) {
+        return ctx->QueueSize(static_cast<jobject>(obj));
+    }
+
+    void IGNITE_CALL IgniteQueueClear(gcj::JniContext* ctx, void* obj, int batchSize) {
+        return ctx->QueueClear(static_cast<jobject>(obj), batchSize);
+    }
+
     void IGNITE_CALL IgniteQueueClose(gcj::JniContext* ctx, void* obj) {
         return ctx->QueueClose(static_cast<jobject>(obj));
+    }
+
+    int IGNITE_CALL IgniteQueueCapacity(gcj::JniContext* ctx, void* obj) {
+        return ctx->QueueCapacity(static_cast<jobject>(obj));
+    }
+
+    bool IGNITE_CALL IgniteQueueIsColocated(gcj::JniContext* ctx, void* obj) {
+        return ctx->QueueIsColocated(static_cast<jobject>(obj));
+    }
+
+    bool IGNITE_CALL IgniteQueueIsClosed(gcj::JniContext* ctx, void* obj) {
+        return ctx->QueueIsClosed(static_cast<jobject>(obj));
     }
 
     long long IGNITE_CALL IgniteAtomicLongGet(gcj::JniContext* ctx, void* obj) {
