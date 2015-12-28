@@ -34,6 +34,9 @@ public class PlatformQueue extends PlatformAbstractTarget {
     /** */
     private static final int OP_REMOVE = 2;
 
+    /** */
+    private static final int OP_PEEK = 3;
+
     /** Underlying queue. */
     private final IgniteQueue queue;
 
