@@ -333,8 +333,32 @@ namespace Apache.Ignite.Core.Impl.Unmanaged
         public static extern void* ServicesGetServiceProxy(void* ctx, void* target, char* name,
             [MarshalAs(UnmanagedType.U1)] bool sticky);
 
+        [DllImport(IgniteUtils.FileIgniteJniDll, EntryPoint = "IgniteQueueClear")]
+        public static extern void QueueClear(void* ctx, void* target);
+
+        [DllImport(IgniteUtils.FileIgniteJniDll, EntryPoint = "IgniteQueueIsEmpty")]
+        [return: MarshalAs(UnmanagedType.U1)]
+        public static extern bool QueueIsEmpty(void* ctx, void* target);
+
+        [DllImport(IgniteUtils.FileIgniteJniDll, EntryPoint = "IgniteQueueSize")]
+        public static extern int QueueSize(void* ctx, void* target);
+
+        [DllImport(IgniteUtils.FileIgniteJniDll, EntryPoint = "IgniteQueueClear")]
+        public static extern void QueueClear(void* ctx, void* target, int batchSize);
+
         [DllImport(IgniteUtils.FileIgniteJniDll, EntryPoint = "IgniteQueueClose")]
         public static extern void QueueClose(void* ctx, void* target);
+
+        [DllImport(IgniteUtils.FileIgniteJniDll, EntryPoint = "IgniteQueueCapacity")]
+        public static extern int QueueCapacity(void* ctx, void* target);
+
+        [DllImport(IgniteUtils.FileIgniteJniDll, EntryPoint = "IgniteQueueIsColocated")]
+        [return: MarshalAs(UnmanagedType.U1)]
+        public static extern bool QueueIsColocated(void* ctx, void* target);
+
+        [DllImport(IgniteUtils.FileIgniteJniDll, EntryPoint = "IgniteQueueIsClosed")]
+        [return: MarshalAs(UnmanagedType.U1)]
+        public static extern bool QueueIsClosed(void* ctx, void* target);
 
         [DllImport(IgniteUtils.FileIgniteJniDll, EntryPoint = "IgniteAtomicLongGet")]
         public static extern long AtomicLongGet(void* ctx, void* target);
