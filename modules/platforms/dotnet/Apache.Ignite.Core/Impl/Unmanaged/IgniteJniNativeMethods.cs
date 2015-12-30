@@ -357,6 +357,9 @@ namespace Apache.Ignite.Core.Impl.Unmanaged
         [return: MarshalAs(UnmanagedType.U1)]
         public static extern bool QueueIsClosed(void* ctx, void* target);
 
+        [DllImport(IgniteUtils.FileIgniteJniDll, EntryPoint = "IgniteQueueIterator")]
+        public static extern void* QueueIterator(void* ctx, void* target);
+
         [DllImport(IgniteUtils.FileIgniteJniDll, EntryPoint = "IgniteAtomicLongGet")]
         public static extern long AtomicLongGet(void* ctx, void* target);
 

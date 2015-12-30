@@ -827,6 +827,11 @@ namespace Apache.Ignite.Core.Impl.Unmanaged
             return JNI.QueueIsClosed(target.Context, target.Target);
         }
 
+        internal static IUnmanagedTarget QueueIterator(IUnmanagedTarget target)
+        {
+            return target.ChangeTarget(JNI.QueueIterator(target.Context, target.Target));
+        }
+
         internal static long AtomicLongGet(IUnmanagedTarget target)
         {
             return JNI.AtomicLongGet(target.Context, target.Target);
