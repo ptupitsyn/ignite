@@ -1960,7 +1960,7 @@ namespace ignite
             {
                 JNIEnv* env = Attach();
 
-                bool res = env->CallBooleanMethod(obj, jvm->GetMembers().m_PlatformQueue_isEmpty);
+                int res = env->CallBooleanMethod(obj, jvm->GetMembers().m_PlatformQueue_isEmpty);
 
                 ExceptionCheck(env);
 
@@ -2011,7 +2011,7 @@ namespace ignite
             {
                 JNIEnv* env = Attach();
 
-                bool res = env->CallBooleanMethod(obj, jvm->GetMembers().m_PlatformQueue_isColocated);
+                int res = env->CallBooleanMethod(obj, jvm->GetMembers().m_PlatformQueue_isColocated);
 
                 ExceptionCheck(env);
 
@@ -2022,7 +2022,7 @@ namespace ignite
             {
                 JNIEnv* env = Attach();
 
-                bool res = env->CallBooleanMethod(obj, jvm->GetMembers().m_PlatformQueue_isClosed);
+                int res = env->CallBooleanMethod(obj, jvm->GetMembers().m_PlatformQueue_isClosed);
 
                 ExceptionCheck(env);
 
