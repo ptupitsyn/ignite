@@ -167,6 +167,7 @@
     <Compile Include="Impl\Cache\CacheLock.cs" />
     <Compile Include="Impl\Cache\CacheMetricsImpl.cs" />
     <Compile Include="Impl\Cache\CacheOp.cs" />
+    <Compile Include="Impl\Cache\EnumeratorProxyBase.cs" />
     <Compile Include="Impl\Cache\Event\CacheEntryCreateEvent.cs" />
     <Compile Include="Impl\Cache\Event\CacheEntryRemoveEvent.cs" />
     <Compile Include="Impl\Cache\Event\CacheEntryUpdateEvent.cs" />

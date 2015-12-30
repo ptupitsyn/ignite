@@ -17,17 +17,14 @@
 
 namespace Apache.Ignite.Core.Impl.Cache
 {
-    using System;
-    using System.Collections;
     using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
     using Apache.Ignite.Core.Cache;
+
 
     /// <summary>
     /// Cache enumerator proxy. Required to support reset and early native iterator cleanup.
     /// </summary>
-    internal class CacheEnumeratorProxy<TK, TV> : IEnumerator<ICacheEntry<TK, TV>>
+    internal class CacheEnumeratorProxy<TK, TV> : EnumeratorProxyBase<ICacheEntry<TK, TV>>
     {
         /** Target cache. */
         private readonly CacheImpl<TK, TV> _cache;
@@ -37,12 +34,6 @@ namespace Apache.Ignite.Core.Impl.Cache
 
         /** Peek modes. */
         private readonly int _peekModes;
-
-        /** Target enumerator. */
-        private CacheEnumerator<TK, TV> _target;
-
-        /** Dispose flag. */
-        private bool _disposed;
 
         /// <summary>
         /// Constructor.
@@ -59,101 +50,11 @@ namespace Apache.Ignite.Core.Impl.Cache
             CreateTarget();
         }
 
-        /** <inheritdoc /> */
-        public bool MoveNext()
-        {
-            CheckDisposed();
-
-            // No target => closed or finished.
-            if (_target == null)
-                return false;
-            
-            if (!_target.MoveNext())
-            {
-                // Failed to advance => end is reached.
-                CloseTarget();
-
-                return false;
-            }
-
-            return true;
-        }
 
         /** <inheritdoc /> */
-        public ICacheEntry<TK, TV> Current
+        protected override IEnumerator<ICacheEntry<TK, TV>> GetEnumerator()
         {
-            get
-            {
-                CheckDisposed();
-
-                if (_target == null)
-                    throw new InvalidOperationException("Invalid enumerator state (did you call MoveNext()?)");
-
-                return _target.Current;
-            }
-        }
-
-        /** <inheritdoc /> */
-        object IEnumerator.Current
-        {
-            get { return Current; }
-        }
-
-        /** <inheritdoc /> */
-        public void Reset()
-        {
-            CheckDisposed();
-
-            if (_target != null)
-                CloseTarget();
-
-            CreateTarget();
-        }
-
-        /** <inheritdoc /> */
-        [SuppressMessage("Microsoft.Usage", "CA1816:CallGCSuppressFinalizeCorrectly",
-            Justification = "There is no finalizer.")]
-        public void Dispose()
-        {
-            if (!_disposed)
-            {
-                if (_target != null)
-                    CloseTarget();
-
-                _disposed = true;
-            }
-        }
-
-        /// <summary>
-        /// Get target enumerator.
-        /// </summary>
-        /// <returns>Target enumerator.</returns>
-        private void CreateTarget()
-        {
-            Debug.Assert(_target == null, "Previous target is not cleaned.");
-
-            _target = _cache.CreateEnumerator(_loc, _peekModes);
-        }
-
-        /// <summary>
-        /// Close the target.
-        /// </summary>
-        private void CloseTarget()
-        {
-            Debug.Assert(_target != null);
-
-            _target.Dispose();
-
-            _target = null;
-        }
-
-        /// <summary>
-        /// Check whether object is disposed.
-        /// </summary>
-        private void CheckDisposed()
-        {
-            if (_disposed)
-                throw new ObjectDisposedException("Cache enumerator has been disposed.");
+            return _cache.CreateEnumerator(_loc, _peekModes);
         }
     }
 }
