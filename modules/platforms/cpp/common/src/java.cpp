@@ -1964,7 +1964,7 @@ namespace ignite
 
                 ExceptionCheck(env);
 
-                return res;
+                return res != 0;
             }
 
             int JniContext::QueueSize(jobject obj)
@@ -2015,7 +2015,7 @@ namespace ignite
 
                 ExceptionCheck(env);
 
-                return res;
+                return res != 0;
             }
 
             bool JniContext::QueueIsClosed(jobject obj)
@@ -2026,7 +2026,7 @@ namespace ignite
 
                 ExceptionCheck(env);
 
-                return res;
+                return res != 0;
             }
 
             jobject JniContext::QueueIterator(jobject obj)
@@ -2147,7 +2147,7 @@ namespace ignite
 
                 ExceptionCheck(env);
 
-                return res != 0;;
+                return res != 0;
             }
 
             void JniContext::AtomicLongClose(jobject obj)

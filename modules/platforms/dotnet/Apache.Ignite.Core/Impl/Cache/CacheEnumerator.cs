@@ -17,28 +17,16 @@
 
 namespace Apache.Ignite.Core.Impl.Cache
 {
-    using System;
-    using System.Collections;
-    using System.Collections.Generic;
     using Apache.Ignite.Core.Cache;
     using Apache.Ignite.Core.Impl.Binary;
-    using Apache.Ignite.Core.Impl.Binary.IO;
+    using Apache.Ignite.Core.Impl.DataStructures;
     using Apache.Ignite.Core.Impl.Unmanaged;
 
     /// <summary>
     /// Real cache enumerator communicating with Java.
     /// </summary>
-    internal class CacheEnumerator<TK, TV> : PlatformDisposableTarget, IEnumerator<ICacheEntry<TK, TV>>
+    internal class CacheEnumerator<TK, TV> : IgniteEnumerator<ICacheEntry<TK, TV>>
     {
-        /** Operation: next value. */
-        private const int OpNext = 1;
-
-        /** Keep binary flag. */
-        private readonly bool _keepBinary;
-
-        /** Current entry. */
-        private CacheEntry<TK, TV>? _cur;
-
         /// <summary>
         /// Constructor.
         /// </summary>
@@ -46,72 +34,18 @@ namespace Apache.Ignite.Core.Impl.Cache
         /// <param name="marsh">Marshaller.</param>
         /// <param name="keepBinary">Keep binary flag.</param>
         public CacheEnumerator(IUnmanagedTarget target, Marshaller marsh, bool keepBinary) : 
-            base(target, marsh)
+            base(target, marsh, keepBinary)
         {
-            _keepBinary = keepBinary;
+            // No-op.
         }
 
         /** <inheritdoc /> */
-        public bool MoveNext()
+        protected override ICacheEntry<TK, TV> ReadItem(BinaryReader reader)
         {
-            ThrowIfDisposed();
+            var key = reader.DetachNext().ReadObject<TK>();
+            var val = reader.DetachNext().ReadObject<TV>();
 
-            return DoInOp(OpNext, stream =>
-            {
-                var reader = Marshaller.StartUnmarshal(stream, _keepBinary);
-
-                bool hasNext = reader.ReadBoolean();
-
-                if (hasNext)
-                {
-                    reader.DetachNext();
-                    TK key = reader.ReadObject<TK>();
-
-                    reader.DetachNext();
-                    TV val = reader.ReadObject<TV>();
-
-                    _cur = new CacheEntry<TK, TV>(key, val);
-
-                    return true;
-                }
-
-                _cur = null;
-
-                return false;
-            });
-        }
-
-        /** <inheritdoc /> */
-        public ICacheEntry<TK, TV> Current
-        {
-            get
-            {
-                ThrowIfDisposed();
-
-                if (_cur == null)
-                    throw new InvalidOperationException(
-                        "Invalid enumerator state, enumeration is either finished or not started");
-
-                return _cur.Value;
-            }
-        }
-
-        /** <inheritdoc /> */
-        object IEnumerator.Current
-        {
-            get { return Current; }
-        }
-
-        /** <inheritdoc /> */
-        public void Reset()
-        {
-            throw new NotSupportedException("Specified method is not supported.");
-        }
-
-        /** <inheritdoc /> */
-        protected override T Unmarshal<T>(IBinaryStream stream)
-        {
-            throw new InvalidOperationException("Should not be called.");
+            return new CacheEntry<TK, TV>(key, val);
         }
     }
 }

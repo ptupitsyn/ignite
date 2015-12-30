@@ -66,8 +66,7 @@ namespace Apache.Ignite.Core.Impl.DataStructures
 
                 if (hasNext)
                 {
-                    reader.DetachNext();
-                    _cur = reader.ReadObject<T>();
+                    _cur = ReadItem(reader);
                     _hasCur = true;
 
                     return true;
@@ -110,6 +109,18 @@ namespace Apache.Ignite.Core.Impl.DataStructures
         protected override TU Unmarshal<TU>(IBinaryStream stream)
         {
             throw new InvalidOperationException("Should not be called.");
+        }
+
+        /// <summary>
+        /// Reads the enumerator item.
+        /// </summary>
+        /// <param name="reader">The reader.</param>
+        /// <returns>Item.</returns>
+        protected virtual T ReadItem(BinaryReader reader)
+        {
+            reader.DetachNext();
+
+            return reader.ReadObject<T>();
         }
     }
 }
