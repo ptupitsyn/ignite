@@ -343,6 +343,7 @@ namespace ignite
                 jmethodID m_PlatformQueue_isEmpty;
                 jmethodID m_PlatformQueue_isColocated;
                 jmethodID m_PlatformQueue_isClosed;
+                jmethodID m_PlatformQueue_iterator;
 
                 jclass c_PlatformAtomicLong;
                 jmethodID m_PlatformAtomicLong_get;
@@ -595,6 +596,7 @@ namespace ignite
                 int QueueCapacity(jobject obj);
                 bool QueueIsColocated(jobject obj);
                 bool QueueIsClosed(jobject obj);
+                jobject QueueIterator(jobject obj);
 
                 long long AtomicLongGet(jobject obj);
                 long long AtomicLongIncrementAndGet(jobject obj);

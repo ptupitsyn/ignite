@@ -386,6 +386,7 @@ namespace ignite
             JniMethod M_PLATFORM_QUEUE_CAPACITY = JniMethod("capacity", "()I", false);
             JniMethod M_PLATFORM_QUEUE_IS_COLOCATED = JniMethod("isColocated", "()Z", false);
             JniMethod M_PLATFORM_QUEUE_IS_CLOSED = JniMethod("isClosed", "()Z", false);
+            JniMethod M_PLATFORM_QUEUE_ITERATOR = JniMethod("iterator", "()Lorg/apache/ignite/internal/processors/platform/datastructures/PlatformIterator;", false);
 
             const char* C_PLATFORM_ATOMIC_LONG = "org/apache/ignite/internal/processors/platform/datastructures/PlatformAtomicLong";
             JniMethod M_PLATFORM_ATOMIC_LONG_GET = JniMethod("get", "()J", false);
@@ -685,6 +686,7 @@ namespace ignite
                 m_PlatformQueue_capacity = FindMethod(env, c_PlatformQueue, M_PLATFORM_QUEUE_CAPACITY);
                 m_PlatformQueue_isColocated = FindMethod(env, c_PlatformQueue, M_PLATFORM_QUEUE_IS_COLOCATED);
                 m_PlatformQueue_isClosed = FindMethod(env, c_PlatformQueue, M_PLATFORM_QUEUE_IS_CLOSED);
+                m_PlatformQueue_iterator = FindMethod(env, c_PlatformQueue, M_PLATFORM_QUEUE_ITERATOR);
 
                 jclass c_PlatformAtomicLong = FindClass(env, C_PLATFORM_ATOMIC_LONG);
                 m_PlatformAtomicLong_get = FindMethod(env, c_PlatformAtomicLong, M_PLATFORM_ATOMIC_LONG_GET);
@@ -2025,6 +2027,17 @@ namespace ignite
                 ExceptionCheck(env);
 
                 return res;
+            }
+
+            jobject JniContext::QueueIterator(jobject obj)
+            {
+                JNIEnv* env = Attach();
+
+                jobject res = env->CallObjectMethod(obj, jvm->GetMembers().m_PlatformQueue_iterator);
+
+                ExceptionCheck(env);
+
+                return LocalToGlobal(env, res);
             }
 
             long long JniContext::AtomicLongGet(jobject obj)
