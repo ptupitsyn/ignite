@@ -117,3 +117,4 @@ IgniteQueueClose @114
 IgniteQueueCapacity @115
 IgniteQueueIsColocated @116
 IgniteQueueIsClosed @117
+IgniteQueueIterator @118

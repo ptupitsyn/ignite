@@ -447,6 +447,10 @@ extern "C" {
         return ctx->QueueIsClosed(static_cast<jobject>(obj));
     }
 
+    void* IGNITE_CALL IgniteQueueIterator(gcj::JniContext* ctx, void* obj) {
+        return ctx->QueueIterator(static_cast<jobject>(obj));
+    }
+
     long long IGNITE_CALL IgniteAtomicLongGet(gcj::JniContext* ctx, void* obj) {
         return ctx->AtomicLongGet(static_cast<jobject>(obj));
     }

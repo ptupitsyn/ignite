@@ -150,6 +150,7 @@ extern "C" {
     int IGNITE_CALL IgniteQueueCapacity(gcj::JniContext* ctx, void* obj);
     bool IGNITE_CALL IgniteQueueIsColocated(gcj::JniContext* ctx, void* obj);
     bool IGNITE_CALL IgniteQueueIsClosed(gcj::JniContext* ctx, void* obj);
+    void* IGNITE_CALL IgniteQueueIterator(gcj::JniContext* ctx, void* obj);
 
     long long IGNITE_CALL IgniteAtomicLongGet(gcj::JniContext* ctx, void* obj);
     long long IGNITE_CALL IgniteAtomicLongIncrementAndGet(gcj::JniContext* ctx, void* obj);
