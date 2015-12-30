@@ -22,6 +22,7 @@ namespace Apache.Ignite.Core.Impl.DataStructures
     using System.Collections.Generic;
     using Apache.Ignite.Core.DataStructures;
     using Apache.Ignite.Core.Impl.Binary;
+    using Apache.Ignite.Core.Impl.Collections;
     using Apache.Ignite.Core.Impl.Common;
     using Apache.Ignite.Core.Impl.Unmanaged;
 

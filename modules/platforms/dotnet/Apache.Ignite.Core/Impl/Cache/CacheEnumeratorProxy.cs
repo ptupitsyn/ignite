@@ -19,6 +19,7 @@ namespace Apache.Ignite.Core.Impl.Cache
 {
     using System.Collections.Generic;
     using Apache.Ignite.Core.Cache;
+    using Apache.Ignite.Core.Impl.Collections;
 
 
     /// <summary>

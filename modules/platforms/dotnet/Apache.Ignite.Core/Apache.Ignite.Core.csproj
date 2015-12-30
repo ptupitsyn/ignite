@@ -167,7 +167,7 @@
     <Compile Include="Impl\Cache\CacheLock.cs" />
     <Compile Include="Impl\Cache\CacheMetricsImpl.cs" />
     <Compile Include="Impl\Cache\CacheOp.cs" />
-    <Compile Include="Impl\Cache\EnumeratorProxyBase.cs" />
+    <Compile Include="Impl\Collections\EnumeratorProxyBase.cs" />
     <Compile Include="Impl\Cache\Event\CacheEntryCreateEvent.cs" />
     <Compile Include="Impl\Cache\Event\CacheEntryRemoveEvent.cs" />
     <Compile Include="Impl\Cache\Event\CacheEntryUpdateEvent.cs" />
@@ -228,7 +228,7 @@
     <Compile Include="Impl\Datastream\DataStreamerRemoveEntry.cs" />
     <Compile Include="Impl\Datastream\StreamReceiverHolder.cs" />
     <Compile Include="Impl\DataStructures\AtomicLong.cs" />
-    <Compile Include="Impl\DataStructures\IgniteEnumerator.cs" />
+    <Compile Include="Impl\Collections\IgniteEnumerator.cs" />
     <Compile Include="Impl\DataStructures\Queue.cs" />
     <Compile Include="Impl\Events\Events.cs" />
     <Compile Include="Impl\Events\RemoteListenEventFilter.cs" />
