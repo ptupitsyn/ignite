@@ -187,6 +187,7 @@ namespace Apache.Ignite.Core.Impl.DataStructures
         /** <inheritDoc /> */
         public IEnumerator<T> GetEnumerator()
         {
+            //  TODO: Enumerator proxy
             return new IgniteEnumerator<T>(UnmanagedUtils.QueueIterator(Target), Marshaller, _keepBinary);
         }
 
