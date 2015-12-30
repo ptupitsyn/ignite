@@ -187,8 +187,7 @@ namespace Apache.Ignite.Core.Impl.DataStructures
         /** <inheritDoc /> */
         public IEnumerator<T> GetEnumerator()
         {
-            IUnmanagedTarget target = null;  // TODO: Java call
-            return new IgniteEnumerator<T>(target, Marshaller, _keepBinary);
+            return new IgniteEnumerator<T>(UnmanagedUtils.QueueIterator(Target), Marshaller, _keepBinary);
         }
 
         /** <inheritDoc /> */
