@@ -30,6 +30,7 @@ namespace Apache.Ignite.Core.Impl.DataStructures
     /// </summary>
     internal class Queue<T> : PlatformTarget, IQueue<T>
     {
+        /** Op ids. */
         private enum Op
         {
             Add = 1,
