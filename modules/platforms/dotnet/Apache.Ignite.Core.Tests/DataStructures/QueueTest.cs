@@ -34,6 +34,15 @@ namespace Apache.Ignite.Core.Tests.DataStructures
             // No-op.
         }
 
+        [SetUp]
+        public void BeforeTest()
+        {
+            var q = Grid.GetQueue<int>(QueueName, 0, null);
+
+            if (q != null && !q.IsClosed())
+                q.Close();
+        }
+
         [Test]
         public void TestCreateClose()
         {
@@ -58,6 +67,12 @@ namespace Apache.Ignite.Core.Tests.DataStructures
             Assert.IsTrue(q1.IsClosed());
             Assert.IsTrue(q2.IsClosed());
             Assert.IsNull(Grid.GetQueue<int>(QueueName, 10, null));
+        }
+
+        [Test]
+        public void TestEnumerator()
+        {
+            
         }
     }
 }
