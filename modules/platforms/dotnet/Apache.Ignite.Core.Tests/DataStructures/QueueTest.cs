@@ -70,6 +70,13 @@ namespace Apache.Ignite.Core.Tests.DataStructures
         }
 
         [Test]
+        public void TestConfiguration()
+        {
+            // TODO: use Java task to get internal caches from GridCacheProcessor
+        }
+
+
+        [Test]
         public void TestEnumerator()
         {
             
