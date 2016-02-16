@@ -92,7 +92,12 @@ namespace Apache.Ignite.Core.Tests.DataStructures
             // Create a new queue
             var cfg = new CollectionConfiguration
             {
-                CacheMode = CacheMode.Local
+                CacheMode = CacheMode.Local,
+                AtomicityMode = CacheAtomicityMode.Transactional,
+                Backups = 3,
+                OffHeapMaxMemory = 1024*1024,
+                MemoryMode = CacheMemoryMode.OffheapValues,
+                NodeFilter = null // TODO
             };
 
             var q = Grid.GetQueue<int>(Guid.NewGuid().ToString(), 0, cfg);
@@ -104,6 +109,10 @@ namespace Apache.Ignite.Core.Tests.DataStructures
 
             // Validate config
             Assert.AreEqual(cfg.CacheMode, cacheConfig.CacheMode);
+            Assert.AreEqual(cfg.AtomicityMode, cacheConfig.AtomicityMode);
+            Assert.AreEqual(cfg.Backups, cacheConfig.Backups);
+            Assert.AreEqual(cfg.OffHeapMaxMemory, cacheConfig.OffHeapMaxMemory);
+            Assert.AreEqual(cfg.MemoryMode, cacheConfig.MemoryMode);
         }
 
         /// <summary>

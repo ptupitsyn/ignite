@@ -55,7 +55,7 @@ namespace Apache.Ignite.Core.Configuration
             MemoryMode = DefaultMemoryMode;
             IsColocated = DefaultIsColocated;
             Backups = DefaultBackups;
-            OffheapMaxMemory = DefaultOffHeapMaxMemory;
+            OffHeapMaxMemory = DefaultOffHeapMaxMemory;
         }
 
         /// <summary>
@@ -88,7 +88,7 @@ namespace Apache.Ignite.Core.Configuration
         /// Gets or sets maximum amount of memory available to off-heap storage, in bytes.
         /// -1 for disabled off-heap, 0 for unlimited.
         /// </summary>
-        public long OffheapMaxMemory { get; set; }
+        public long OffHeapMaxMemory { get; set; }
 
         /// <summary>
         /// Gets or sets predicate specifying on which nodes the cache should be started.
@@ -107,7 +107,7 @@ namespace Apache.Ignite.Core.Configuration
             writer.WriteInt((int) MemoryMode);
             writer.WriteBoolean(IsColocated);
             writer.WriteInt(Backups);
-            writer.WriteLong(OffheapMaxMemory);
+            writer.WriteLong(OffHeapMaxMemory);
 
             if (NodeFilter != null)
                 writer.WriteObject(NodeFilter);
