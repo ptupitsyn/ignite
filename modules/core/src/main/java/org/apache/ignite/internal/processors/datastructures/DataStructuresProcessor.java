@@ -36,6 +36,8 @@ import javax.cache.event.EventType;
 import javax.cache.processor.EntryProcessor;
 import javax.cache.processor.EntryProcessorException;
 import javax.cache.processor.MutableEntry;
+
+import org.apache.ignite.Ignite;
 import org.apache.ignite.IgniteAtomicLong;
 import org.apache.ignite.IgniteAtomicReference;
 import org.apache.ignite.IgniteAtomicSequence;
@@ -48,6 +50,7 @@ import org.apache.ignite.IgniteQueue;
 import org.apache.ignite.IgniteSemaphore;
 import org.apache.ignite.IgniteSet;
 import org.apache.ignite.cache.CacheEntryEventSerializableFilter;
+import org.apache.ignite.cluster.ClusterNode;
 import org.apache.ignite.configuration.AtomicConfiguration;
 import org.apache.ignite.configuration.CacheConfiguration;
 import org.apache.ignite.configuration.CollectionConfiguration;
@@ -60,6 +63,7 @@ import org.apache.ignite.internal.cluster.ClusterTopologyCheckedException;
 import org.apache.ignite.internal.cluster.ClusterTopologyServerNotFoundException;
 import org.apache.ignite.internal.managers.eventstorage.GridLocalEventListener;
 import org.apache.ignite.internal.processors.GridProcessorAdapter;
+import org.apache.ignite.internal.processors.cache.CacheInvokeEntry;
 import org.apache.ignite.internal.processors.cache.CacheType;
 import org.apache.ignite.internal.processors.cache.GridCacheAdapter;
 import org.apache.ignite.internal.processors.cache.GridCacheContext;
@@ -67,6 +71,7 @@ import org.apache.ignite.internal.processors.cache.GridCacheInternal;
 import org.apache.ignite.internal.processors.cache.GridCacheUtils;
 import org.apache.ignite.internal.processors.cache.IgniteInternalCache;
 import org.apache.ignite.internal.processors.cache.transactions.IgniteInternalTx;
+import org.apache.ignite.internal.processors.platform.utils.PlatformUtils;
 import org.apache.ignite.internal.util.lang.IgniteClosureX;
 import org.apache.ignite.internal.util.lang.IgniteInClosureX;
 import org.apache.ignite.internal.util.lang.IgniteOutClosureX;
@@ -80,6 +85,8 @@ import org.apache.ignite.internal.util.typedef.internal.CU;
 import org.apache.ignite.internal.util.typedef.internal.GPR;
 import org.apache.ignite.internal.util.typedef.internal.S;
 import org.apache.ignite.internal.util.typedef.internal.U;
+import org.apache.ignite.lang.IgnitePredicate;
+import org.apache.ignite.resources.IgniteInstanceResource;
 import org.jetbrains.annotations.Nullable;
 import org.jsr166.ConcurrentHashMap8;
 
@@ -2147,6 +2154,17 @@ public final class DataStructuresProcessor extends GridProcessorAdapter {
             MutableEntry<CacheDataStructuresCacheKey, List<CacheCollectionInfo>> entry,
             Object... args)
         {
+            IgnitePredicate filter = cfg.getNodeFilter();
+
+            if (filter != null)
+                try {
+                    ((CacheInvokeEntry)entry).cacheContext().kernalContext().resource().injectGeneric(filter);
+                }
+                catch (IgniteCheckedException e) {
+                    // TODO: ???
+                    throw new IgniteException(e);
+                }
+
             List<CacheCollectionInfo> list = entry.getValue();
 
             if (list == null) {
@@ -2188,6 +2206,17 @@ public final class DataStructuresProcessor extends GridProcessorAdapter {
         /** {@inheritDoc} */
         @Override public String toString() {
             return S.toString(AddDataCacheProcessor.class, this);
+        }
+
+        /**
+         * @param ignite Ignite instance.
+         */
+        @SuppressWarnings("UnusedDeclaration")
+        @IgniteInstanceResource
+        public void setIgniteInstance(Ignite ignite) {
+            if (cfg.getNodeFilter() != null) {
+
+            }
         }
     }
 
