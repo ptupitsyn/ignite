@@ -52,12 +52,13 @@ namespace Apache.Ignite.Core.Tests.DataStructures
             // Create new
             var q1 = Grid.GetQueue<int>(QueueName, 0, new CollectionConfiguration());
             Assert.IsTrue(q1.TryAdd(10));
+            Assert.AreEqual(new[] { 10 }, q1.ToArray());
             Assert.AreEqual(QueueName, q1.Name);
 
             // Get existing
             var q2 = Grid.GetQueue<int>(QueueName, 0, null);
             Assert.AreEqual(QueueName, q2.Name);
-            //Assert.AreEqual(new[] {10}, q2.ToArray());
+            Assert.AreEqual(new[] {10}, q2.ToArray());
             
             // Get existing with different configuration
             Assert.Throws<IgniteException>(() => Grid.GetQueue<int>(QueueName, 3, new CollectionConfiguration()));
