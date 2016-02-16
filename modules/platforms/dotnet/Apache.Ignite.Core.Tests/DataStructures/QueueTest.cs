@@ -21,6 +21,7 @@ namespace Apache.Ignite.Core.Tests.DataStructures
     using System.Collections.Generic;
     using System.Linq;
     using Apache.Ignite.Core.Cache.Configuration;
+    using Apache.Ignite.Core.Cluster;
     using Apache.Ignite.Core.Common;
     using Apache.Ignite.Core.Configuration;
     using Apache.Ignite.Core.DataStructures;
@@ -39,7 +40,7 @@ namespace Apache.Ignite.Core.Tests.DataStructures
         /** */
         private const string InternalCacheTask = "org.apache.ignite.platform.PlatformInternalCacheTask";
 
-        public QueueTest() : base("config\\compute\\compute-grid1.xml")
+        public QueueTest() : base("config\\compute\\compute-grid1.xml", "config\\compute\\compute-grid2.xml")
         {
             // No-op.
         }
@@ -81,13 +82,20 @@ namespace Apache.Ignite.Core.Tests.DataStructures
         }
 
         [Test]
+        public void TestEnumerator()
+        {
+
+        }
+
+
+        [Test]
         public void TestConfiguration()
         {
             // New cache is created when there is a new Queue 
             // with different cache settings than all existing data structures
 
             // Get all cache configs
-            var origConfigs = GetCacheConfigurations().ToArray();
+            var origConfigs = GetCacheConfigurations(Grid).ToArray();
 
             // Create a new queue
             var cfg = new CollectionConfiguration
@@ -97,13 +105,13 @@ namespace Apache.Ignite.Core.Tests.DataStructures
                 Backups = 3,
                 OffHeapMaxMemory = 1024*1024,
                 MemoryMode = CacheMemoryMode.OffheapValues,
-                NodeFilter = null // TODO
+                NodeFilter = new NodeFilter { AllowedNode = Grid.GetCluster().GetLocalNode().Id }
             };
 
             var q = Grid.GetQueue<int>(Guid.NewGuid().ToString(), 0, cfg);
 
             // Get configs again and find the new one
-            var cacheConfig = GetCacheConfigurations().Single(x => origConfigs.All(y => x.Name != y.Name));
+            var cacheConfig = GetCacheConfigurations(Grid).Single(x => origConfigs.All(y => x.Name != y.Name));
 
             q.Close();
 
@@ -113,14 +121,18 @@ namespace Apache.Ignite.Core.Tests.DataStructures
             Assert.AreEqual(cfg.Backups, cacheConfig.Backups);
             Assert.AreEqual(cfg.OffHeapMaxMemory, cacheConfig.OffHeapMaxMemory);
             Assert.AreEqual(cfg.MemoryMode, cacheConfig.MemoryMode);
+
+            // Validate node deployment
+            var remoteCaches = GetCacheConfigurations(Grid2).Select(x => x.Name).ToArray();
+            Assert.IsFalse(remoteCaches.Contains(cacheConfig.Name));
         }
 
         /// <summary>
         /// Gets all cache configurations.
         /// </summary>
-        private IEnumerable<CacheConfiguration> GetCacheConfigurations()
+        private static IEnumerable<CacheConfiguration> GetCacheConfigurations(IIgnite grid)
         {
-            var data = Grid.GetCompute().ExecuteJavaTask<byte[]>(InternalCacheTask, null);
+            var data = grid.GetCompute().ExecuteJavaTask<byte[]>(InternalCacheTask, null);
 
             using (var stream = new BinaryHeapStream(data))
             {
@@ -135,11 +147,15 @@ namespace Apache.Ignite.Core.Tests.DataStructures
             }
         }
 
-
-        [Test]
-        public void TestEnumerator()
+        [Serializable]
+        private class NodeFilter : IClusterNodeFilter
         {
-            
+            public Guid AllowedNode { get; set; }
+
+            public bool Invoke(IClusterNode node)
+            {
+                return node.Id == AllowedNode;
+            }
         }
     }
 }
