@@ -17,6 +17,7 @@
 
 namespace Apache.Ignite.Core.Tests.DataStructures
 {
+    using System;
     using System.Collections.Generic;
     using System.Linq;
     using Apache.Ignite.Core.Cache.Configuration;
@@ -82,15 +83,32 @@ namespace Apache.Ignite.Core.Tests.DataStructures
         [Test]
         public void TestConfiguration()
         {
-            // TODO: use Java task to get internal caches from GridCacheProcessor
+            // New cache is created when there is a new Queue 
+            // with different cache settings than all existing data structures
 
-            var q = Grid.GetQueue<int>(QueueName, 0, new CollectionConfiguration {CacheMode = CacheMode.Replicated});
+            // Get all cache configs
+            var origConfigs = GetCacheConfigurations().ToArray();
 
-            var configs = GetCacheConfigurations().ToArray();
+            // Create a new queue
+            var cfg = new CollectionConfiguration
+            {
+                CacheMode = CacheMode.Local
+            };
 
-            q.Close();       
+            var q = Grid.GetQueue<int>(Guid.NewGuid().ToString(), 0, cfg);
+
+            // Get configs again and find the new one
+            var cacheConfig = GetCacheConfigurations().Single(x => origConfigs.All(y => x.Name != y.Name));
+
+            q.Close();
+
+            // Validate config
+            Assert.AreEqual(cfg.CacheMode, cacheConfig.CacheMode);
         }
 
+        /// <summary>
+        /// Gets all cache configurations.
+        /// </summary>
         private IEnumerable<CacheConfiguration> GetCacheConfigurations()
         {
             var data = Grid.GetCompute().ExecuteJavaTask<byte[]>(InternalCacheTask, null);
