@@ -20,6 +20,7 @@ namespace Apache.Ignite.Core.Configuration
     using System.Diagnostics;
     using Apache.Ignite.Core.Binary;
     using Apache.Ignite.Core.Cache.Configuration;
+    using Apache.Ignite.Core.Cluster;
 
     /// <summary>
     /// Ignite collection configuration.
@@ -88,6 +89,11 @@ namespace Apache.Ignite.Core.Configuration
         /// -1 for disabled off-heap, 0 for unlimited.
         /// </summary>
         public long OffheapMaxMemory { get; set; }
+
+        /// <summary>
+        /// Gets or sets predicate specifying on which nodes the cache should be started.
+        /// </summary>
+        public IClusterNodeFilter NodeFilter { get; set; }
 
         /// <summary>
         /// Writes this instance to a writer.
