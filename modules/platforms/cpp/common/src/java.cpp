@@ -713,7 +713,6 @@ namespace ignite
                 m_PlatformUtils_reallocate = FindMethod(env, c_PlatformUtils, M_PLATFORM_UTILS_REALLOC);
                 m_PlatformUtils_errData = FindMethod(env, c_PlatformUtils, M_PLATFORM_UTILS_ERR_DATA);
 
-                c_PlatformAtomicLong = FindClass(env, C_PLATFORM_ATOMIC_LONG);
                 c_PlatformQueue = FindClass(env, C_PLATFORM_QUEUE);
                 m_PlatformQueue_clear = FindMethod(env, c_PlatformQueue, M_PLATFORM_QUEUE_CLEAR);
                 m_PlatformQueue_isEmpty = FindMethod(env, c_PlatformQueue, M_PLATFORM_QUEUE_IS_EMPTY);
@@ -724,7 +723,7 @@ namespace ignite
                 m_PlatformQueue_isClosed = FindMethod(env, c_PlatformQueue, M_PLATFORM_QUEUE_IS_CLOSED);
                 m_PlatformQueue_iterator = FindMethod(env, c_PlatformQueue, M_PLATFORM_QUEUE_ITERATOR);
 
-                jclass c_PlatformAtomicLong = FindClass(env, C_PLATFORM_ATOMIC_LONG);
+                c_PlatformAtomicLong = FindClass(env, C_PLATFORM_ATOMIC_LONG);
                 m_PlatformAtomicLong_get = FindMethod(env, c_PlatformAtomicLong, M_PLATFORM_ATOMIC_LONG_GET);
                 m_PlatformAtomicLong_incrementAndGet = FindMethod(env, c_PlatformAtomicLong, M_PLATFORM_ATOMIC_LONG_INCREMENT_AND_GET);
                 m_PlatformAtomicLong_getAndIncrement = FindMethod(env, c_PlatformAtomicLong, M_PLATFORM_ATOMIC_LONG_GET_AND_INCREMENT);
