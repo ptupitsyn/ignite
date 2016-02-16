@@ -37,6 +37,7 @@ import org.apache.ignite.internal.util.typedef.F;
 import org.apache.ignite.resources.IgniteInstanceResource;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -76,7 +77,11 @@ public class PlatformInternalCacheTask extends ComputeTaskAdapter<Object, Object
 
                 BinaryRawWriterEx writer = ctx.writer(out);
 
-                for (IgniteInternalCache cache : proc.caches())
+                Collection<IgniteInternalCache<?, ?>> caches = proc.caches();
+
+                writer.writeInt(caches.size());
+
+                for (IgniteInternalCache cache : caches)
                     PlatformConfigurationUtils.writeCacheConfiguration(writer, cache.configuration());
 
                 out.synchronize();
