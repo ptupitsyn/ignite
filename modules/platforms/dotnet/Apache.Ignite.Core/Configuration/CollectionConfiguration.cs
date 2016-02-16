@@ -102,12 +102,17 @@ namespace Apache.Ignite.Core.Configuration
         {
             Debug.Assert(writer != null);
 
-            writer.WriteInt((int)AtomicityMode);
-            writer.WriteInt((int)CacheMode);
-            writer.WriteInt((int)MemoryMode);
+            writer.WriteInt((int) AtomicityMode);
+            writer.WriteInt((int) CacheMode);
+            writer.WriteInt((int) MemoryMode);
             writer.WriteBoolean(IsColocated);
             writer.WriteInt(Backups);
             writer.WriteLong(OffheapMaxMemory);
+
+            if (NodeFilter != null)
+                writer.WriteObject(NodeFilter);
+            else
+                writer.WriteObject<object>(null);
         }
     }
 }
