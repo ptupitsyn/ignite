@@ -26,12 +26,22 @@ namespace Apache.Ignite.Core.Configuration
     /// </summary>
     public class CollectionConfiguration
     {
+        /// <summary> The default atomicity mode. </summary>
+        public const CacheAtomicityMode DefaultAtomicityMode = CacheAtomicityMode.Atomic;
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="CollectionConfiguration"/> class.
+        /// </summary>
+        public CollectionConfiguration()
+        {
+            AtomicityMode = DefaultAtomicityMode;
+        }
+
         /// <summary>
         /// Gets or sets the atomicity mode.
         /// </summary>
         public CacheAtomicityMode AtomicityMode { get; set; }
 
-        // TODO: implement this after IGNITE-1906 merge
         internal void Write(IBinaryRawWriter writer)
         {
             Debug.Assert(writer != null);
