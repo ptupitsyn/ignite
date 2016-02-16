@@ -35,6 +35,15 @@ namespace Apache.Ignite.Core.Configuration
         /// <summary> The default memory mode. </summary>
         public const CacheMemoryMode DefaultMemoryMode = CacheMemoryMode.OnheapTiered;
 
+        /// <summary> The default colocated value. </summary>
+        public const bool DefaultIsColocated = false;
+
+        /// <summary> The default number of backups. </summary>
+        public const int DefaultBackups = 0;
+
+        /// <summary> Default off-heap storage size (-1 means that off-heap storage is disabled). </summary>
+        public const long DefaultOffHeapMaxMemory = -1;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="CollectionConfiguration"/> class.
         /// </summary>
@@ -43,6 +52,9 @@ namespace Apache.Ignite.Core.Configuration
             AtomicityMode = DefaultAtomicityMode;
             CacheMode = DefaultCacheMode;
             MemoryMode = DefaultMemoryMode;
+            IsColocated = DefaultIsColocated;
+            Backups = DefaultBackups;
+            OffheapMaxMemory = DefaultOffHeapMaxMemory;
         }
 
         /// <summary>
@@ -59,6 +71,22 @@ namespace Apache.Ignite.Core.Configuration
         /// Gets or sets the memory mode.
         /// </summary>
         public CacheMemoryMode MemoryMode { get; set; }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether all items within the same collection 
+        /// will be colocated on the same node.
+        /// </summary>
+        public bool IsColocated { get; set; }
+
+        /// <summary>
+        /// Gets or sets the number of backup cache nodes.
+        /// </summary>
+        public int Backups { get; set; }
+
+        /// <summary>
+        /// Gets or sets maximum amount of memory available to off-heap storage.
+        /// </summary>
+        public long OffheapMaxMemory { get; set; }
 
         /// <summary>
         /// Writes this instance to a writer.
