@@ -2515,6 +2515,14 @@ public class GridDiscoveryManager extends GridManagerAdapter<DiscoverySpi> {
 
                     CachePredicate filter = entry.getValue();
 
+                    try {
+                        ctx.resource().injectGeneric(filter);
+                    }
+                    catch (IgniteCheckedException e) {
+                        // TODO: ???
+                        throw new IgniteException(e);
+                    }
+
                     if (filter.cacheNode(node)) {
                         nodesWithCaches.add(node);
 
