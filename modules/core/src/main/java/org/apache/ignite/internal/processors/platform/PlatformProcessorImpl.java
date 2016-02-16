@@ -24,6 +24,9 @@ import org.apache.ignite.IgniteDataStreamer;
 import org.apache.ignite.IgniteException;
 import org.apache.ignite.IgniteLogger;
 import org.apache.ignite.IgniteQueue;
+import org.apache.ignite.cache.CacheAtomicityMode;
+import org.apache.ignite.cache.CacheMemoryMode;
+import org.apache.ignite.cache.CacheMode;
 import org.apache.ignite.configuration.CollectionConfiguration;
 import org.apache.ignite.configuration.CacheConfiguration;
 import org.apache.ignite.configuration.PlatformConfiguration;
@@ -358,10 +361,22 @@ public class PlatformProcessorImpl extends GridProcessorAdapter implements Platf
 
     /** {@inheritDoc} */
     @Override public PlatformTarget queue(String name, int cap, long memPtr) throws IgniteException {
-        // TODO: Read config
-        IgniteQueue queue = memPtr == 0
-            ? ignite().queue(name, cap, null)
-            : ignite().queue(name, cap, new CollectionConfiguration());
+        CollectionConfiguration ccfg = null;
+
+        if (memPtr != 0) {
+            BinaryRawReaderEx reader = platformCtx.reader(platformCtx.memory().get(memPtr));
+
+            ccfg = new CollectionConfiguration();
+
+            ccfg.setAtomicityMode(CacheAtomicityMode.fromOrdinal(reader.readInt()));
+            ccfg.setCacheMode(CacheMode.fromOrdinal(reader.readInt()));
+            ccfg.setMemoryMode(CacheMemoryMode.values()[reader.readInt()]);
+            ccfg.setCollocated(reader.readBoolean());
+            ccfg.setBackups(reader.readInt());
+            ccfg.setOffHeapMaxMemory(reader.readLong());
+        }
+
+        IgniteQueue queue = ignite().queue(name, cap, ccfg);
 
         if (queue == null)
             return null;
