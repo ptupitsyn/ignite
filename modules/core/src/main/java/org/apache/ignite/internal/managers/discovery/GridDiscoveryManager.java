@@ -304,8 +304,17 @@ public class GridDiscoveryManager extends GridManagerAdapter<DiscoverySpi> {
         boolean nearEnabled,
         CacheMode cacheMode
     ) {
-        if (!registeredCaches.containsKey(cacheName))
+        if (!registeredCaches.containsKey(cacheName)) {
+            try {
+                ctx.resource().injectGeneric(filter);
+            }
+            catch (IgniteCheckedException e) {
+                // TODO: ???
+                throw new IgniteException(e);
+            }
+
             registeredCaches.put(cacheName, new CachePredicate(filter, nearEnabled, cacheMode));
+        }
     }
 
     /**
