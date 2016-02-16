@@ -27,7 +27,11 @@ namespace Apache.Ignite.Core.Tests.DataStructures
     /// </summary>
     public class QueueTest : IgniteTestBase
     {
+        /** */
         private const string QueueName = "igniteQueueTest";
+
+        /** */
+        private const string InternalCacheTask = "org.apache.ignite.platform.PlatformInternalCacheTask";
 
         public QueueTest() : base("config\\compute\\compute-grid1.xml")
         {
@@ -74,6 +78,8 @@ namespace Apache.Ignite.Core.Tests.DataStructures
         public void TestConfiguration()
         {
             // TODO: use Java task to get internal caches from GridCacheProcessor
+
+            var configs = Grid.GetCompute().ExecuteJavaTask<byte[]>(InternalCacheTask, null);
         }
 
 

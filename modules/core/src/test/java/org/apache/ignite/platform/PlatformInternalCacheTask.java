@@ -25,6 +25,7 @@ import org.apache.ignite.compute.ComputeJobResult;
 import org.apache.ignite.compute.ComputeTaskAdapter;
 import org.apache.ignite.internal.IgniteKernal;
 import org.apache.ignite.internal.binary.BinaryRawWriterEx;
+import org.apache.ignite.internal.binary.streams.BinaryHeapOutputStream;
 import org.apache.ignite.internal.processors.cache.GridCacheProcessor;
 import org.apache.ignite.internal.processors.cache.IgniteInternalCache;
 import org.apache.ignite.internal.processors.platform.PlatformContext;
@@ -80,7 +81,11 @@ public class PlatformInternalCacheTask extends ComputeTaskAdapter<Object, Object
 
                 out.synchronize();
 
-                return out.arrayCopy();
+                byte[] res = new byte[mem.length()];
+
+                mem.input().read(res, 0, res.length);
+
+                return res;
             }
         }
     }
