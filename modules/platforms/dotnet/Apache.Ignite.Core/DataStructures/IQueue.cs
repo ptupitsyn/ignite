@@ -20,10 +20,13 @@ namespace Apache.Ignite.Core.DataStructures
     using System;
     using System.Collections.Concurrent;
     using System.Collections.Generic;
+    using System.Diagnostics.CodeAnalysis;
 
     /// <summary>
     /// Provides an API for working with distributed queues based on In-Memory Data Grid.
     /// </summary>
+    [SuppressMessage("Microsoft.Naming", "CA1711:IdentifiersShouldNotHaveIncorrectSuffix")]
+    [SuppressMessage("Microsoft.Naming", "CA1710:IdentifiersShouldHaveCorrectSuffix")]
     public interface IQueue<T> : IProducerConsumerCollection<T>
     {
         /// <summary>

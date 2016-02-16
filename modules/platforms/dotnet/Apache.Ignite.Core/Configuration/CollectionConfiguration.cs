@@ -17,17 +17,26 @@
 
 namespace Apache.Ignite.Core.Configuration
 {
+    using System.Diagnostics;
     using Apache.Ignite.Core.Binary;
+    using Apache.Ignite.Core.Cache.Configuration;
 
     /// <summary>
     /// Ignite collection configuration.
     /// </summary>
     public class CollectionConfiguration
     {
+        /// <summary>
+        /// Gets or sets the atomicity mode.
+        /// </summary>
+        public CacheAtomicityMode AtomicityMode { get; set; }
+
         // TODO: implement this after IGNITE-1906 merge
         internal void Write(IBinaryRawWriter writer)
         {
-            
+            Debug.Assert(writer != null);
+
+            writer.WriteInt((int) AtomicityMode);
         }
     }
 }

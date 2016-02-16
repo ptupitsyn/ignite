@@ -17,10 +17,11 @@
 
 namespace Apache.Ignite.Core.Impl.Cache
 {
+    using System.Diagnostics;
+    using System.Diagnostics.CodeAnalysis;
     using Apache.Ignite.Core.Cache;
     using Apache.Ignite.Core.Impl.Binary;
     using Apache.Ignite.Core.Impl.Collections;
-    using Apache.Ignite.Core.Impl.DataStructures;
     using Apache.Ignite.Core.Impl.Unmanaged;
 
     /// <summary>
@@ -41,8 +42,11 @@ namespace Apache.Ignite.Core.Impl.Cache
         }
 
         /** <inheritdoc /> */
+        [SuppressMessage("Microsoft.Design", "CA1062:Validate arguments of public methods")]
         protected override ICacheEntry<TK, TV> ReadItem(BinaryReader reader)
         {
+            Debug.Assert(reader != null);
+
             var key = reader.DetachNext().ReadObject<TK>();
             var val = reader.DetachNext().ReadObject<TV>();
 
