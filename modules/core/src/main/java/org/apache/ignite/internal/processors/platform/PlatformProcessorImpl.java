@@ -374,6 +374,11 @@ public class PlatformProcessorImpl extends GridProcessorAdapter implements Platf
             ccfg.setCollocated(reader.readBoolean());
             ccfg.setBackups(reader.readInt());
             ccfg.setOffHeapMaxMemory(reader.readLong());
+
+            Object filter = reader.readObjectDetached();
+
+            if (filter != null)
+                ccfg.setNodeFilter(platformCtx.createClusterNodeFilter(filter));
         }
 
         IgniteQueue queue = ignite().queue(name, cap, ccfg);
