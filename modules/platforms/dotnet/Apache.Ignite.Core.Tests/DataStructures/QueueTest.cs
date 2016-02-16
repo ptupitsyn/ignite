@@ -17,9 +17,12 @@
 
 namespace Apache.Ignite.Core.Tests.DataStructures
 {
+    using Apache.Ignite.Core.Cache.Configuration;
     using Apache.Ignite.Core.Common;
     using Apache.Ignite.Core.Configuration;
     using Apache.Ignite.Core.DataStructures;
+    using Apache.Ignite.Core.Impl.Binary;
+    using Apache.Ignite.Core.Impl.Binary.IO;
     using NUnit.Framework;
 
     /// <summary>
@@ -79,7 +82,20 @@ namespace Apache.Ignite.Core.Tests.DataStructures
         {
             // TODO: use Java task to get internal caches from GridCacheProcessor
 
-            var configs = Grid.GetCompute().ExecuteJavaTask<byte[]>(InternalCacheTask, null);
+            var data = Grid.GetCompute().ExecuteJavaTask<byte[]>(InternalCacheTask, null);
+
+            using (var stream = new BinaryHeapStream(data))
+            {
+                var size = stream.ReadInt();
+
+                var reader = BinaryUtils.Marshaller.StartUnmarshal(stream);
+
+                for (var i = 0; i < size; i++)
+                {
+                    var ccfg = new CacheConfiguration(reader);
+                }
+            }
+                
         }
 
 
