@@ -17,6 +17,8 @@
 
 namespace Apache.Ignite.Core.Tests.DataStructures
 {
+    using System.Collections.Generic;
+    using System.Linq;
     using Apache.Ignite.Core.Cache.Configuration;
     using Apache.Ignite.Core.Common;
     using Apache.Ignite.Core.Configuration;
@@ -82,6 +84,15 @@ namespace Apache.Ignite.Core.Tests.DataStructures
         {
             // TODO: use Java task to get internal caches from GridCacheProcessor
 
+            var q = Grid.GetQueue<int>(QueueName, 0, new CollectionConfiguration {CacheMode = CacheMode.Replicated});
+
+            var configs = GetCacheConfigurations().ToArray();
+
+            q.Close();       
+        }
+
+        private IEnumerable<CacheConfiguration> GetCacheConfigurations()
+        {
             var data = Grid.GetCompute().ExecuteJavaTask<byte[]>(InternalCacheTask, null);
 
             using (var stream = new BinaryHeapStream(data))
@@ -92,10 +103,9 @@ namespace Apache.Ignite.Core.Tests.DataStructures
 
                 for (var i = 0; i < size; i++)
                 {
-                    var ccfg = new CacheConfiguration(reader);
+                    yield return new CacheConfiguration(reader);
                 }
             }
-                
         }
 
 
