@@ -17,12 +17,17 @@
 
 package org.apache.ignite.platform;
 
+import org.apache.ignite.Ignite;
 import org.apache.ignite.cluster.ClusterNode;
 import org.apache.ignite.compute.ComputeJob;
 import org.apache.ignite.compute.ComputeJobAdapter;
 import org.apache.ignite.compute.ComputeJobResult;
 import org.apache.ignite.compute.ComputeTaskAdapter;
+import org.apache.ignite.internal.IgniteKernal;
+import org.apache.ignite.internal.processors.cache.GridCacheProcessor;
+import org.apache.ignite.internal.processors.cache.IgniteInternalCache;
 import org.apache.ignite.internal.util.typedef.F;
+import org.apache.ignite.resources.IgniteInstanceResource;
 import org.jetbrains.annotations.Nullable;
 
 import java.lang.management.ManagementFactory;
@@ -33,7 +38,7 @@ import java.util.Map;
 /**
  * Provides internal cache info.
  */
-public class PlatformInternalCacheTask extends ComputeTaskAdapter<Object, Long> {
+public class PlatformInternalCacheTask extends ComputeTaskAdapter<Object, Object> {
     /** {@inheritDoc} */
     @Nullable @Override public Map<? extends ComputeJob, ClusterNode> map(List<ClusterNode> subgrid,
         @Nullable Object arg) {
@@ -41,7 +46,7 @@ public class PlatformInternalCacheTask extends ComputeTaskAdapter<Object, Long> 
     }
 
     /** {@inheritDoc} */
-    @Nullable @Override public Long reduce(List<ComputeJobResult> results) {
+    @Nullable @Override public Object reduce(List<ComputeJobResult> results) {
         return results.get(0).getData();
     }
 
@@ -49,10 +54,21 @@ public class PlatformInternalCacheTask extends ComputeTaskAdapter<Object, Long> 
      * Job.
      */
     private static class InternalCacheJob extends ComputeJobAdapter {
+        /** */
+        @IgniteInstanceResource
+        private Ignite ignite;
+
         /** {@inheritDoc} */
         @Nullable @Override public Object execute() {
-            // TODO: Write cache configs to stream
-            return ManagementFactory.getMemoryMXBean().getHeapMemoryUsage().getMax();
+            GridCacheProcessor proc = ((IgniteKernal)ignite).context().cache();
+
+            for (IgniteInternalCache cache : proc.caches()) {
+                // Write to stream
+            }
+
+            byte[] result = null;
+
+            return result;
         }
     }
 }
