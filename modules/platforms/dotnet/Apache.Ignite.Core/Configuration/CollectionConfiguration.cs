@@ -29,12 +29,20 @@ namespace Apache.Ignite.Core.Configuration
         /// <summary> The default atomicity mode. </summary>
         public const CacheAtomicityMode DefaultAtomicityMode = CacheAtomicityMode.Atomic;
 
+        /// <summary> The default cache mode. </summary>
+        public const CacheMode DefaultCacheMode = CacheMode.Partitioned;
+
+        /// <summary> The default memory mode. </summary>
+        public const CacheMemoryMode DefaultMemoryMode = CacheMemoryMode.OnheapTiered;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="CollectionConfiguration"/> class.
         /// </summary>
         public CollectionConfiguration()
         {
             AtomicityMode = DefaultAtomicityMode;
+            CacheMode = DefaultCacheMode;
+            MemoryMode = DefaultMemoryMode;
         }
 
         /// <summary>
@@ -42,6 +50,19 @@ namespace Apache.Ignite.Core.Configuration
         /// </summary>
         public CacheAtomicityMode AtomicityMode { get; set; }
 
+        /// <summary>
+        /// Gets or sets the cache mode.
+        /// </summary>
+        public CacheMode CacheMode { get; set; }
+
+        /// <summary>
+        /// Gets or sets the memory mode.
+        /// </summary>
+        public CacheMemoryMode MemoryMode { get; set; }
+
+        /// <summary>
+        /// Writes this instance to a writer.
+        /// </summary>
         internal void Write(IBinaryRawWriter writer)
         {
             Debug.Assert(writer != null);
