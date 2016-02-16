@@ -84,7 +84,8 @@ namespace Apache.Ignite.Core.Configuration
         public int Backups { get; set; }
 
         /// <summary>
-        /// Gets or sets maximum amount of memory available to off-heap storage.
+        /// Gets or sets maximum amount of memory available to off-heap storage, in bytes.
+        /// -1 for disabled off-heap, 0 for unlimited.
         /// </summary>
         public long OffheapMaxMemory { get; set; }
 
