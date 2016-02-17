@@ -150,13 +150,4 @@ public class CacheLazyEntry<K, V> implements Cache.Entry<K, V> {
     public String toString() {
         return S.toString(CacheLazyEntry.class, this);
     }
-
-    /**
-     * Gets the cache context.
-     *
-     * @return Cache context.
-     */
-    public GridCacheContext cacheContext() {
-        return cctx;
-    }
 }
