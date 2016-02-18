@@ -20,6 +20,7 @@ namespace Apache.Ignite.Core.Impl
     using System;
     using System.Collections.Generic;
     using System.Diagnostics.CodeAnalysis;
+    using System.Threading.Tasks;
     using Apache.Ignite.Core.Binary;
     using Apache.Ignite.Core.Cache;
     using Apache.Ignite.Core.Cache.Configuration;
@@ -283,6 +284,12 @@ namespace Apache.Ignite.Core.Impl
         public void ResetMetrics()
         {
             _ignite.GetCluster().ResetMetrics();
+        }
+
+        /** <inheritdoc /> */
+        public Task<bool> ClientReconnectTask
+        {
+            get { return _ignite.GetCluster().ClientReconnectTask; }
         }
 
         /** <inheritdoc /> */
