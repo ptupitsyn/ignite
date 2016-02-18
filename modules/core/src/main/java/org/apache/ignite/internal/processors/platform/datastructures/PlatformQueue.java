@@ -60,6 +60,10 @@ public class PlatformQueue extends PlatformAbstractTarget {
      * @return Cache iterator.
      */
     public PlatformIterator iterator() {
+        // TODO: GridCacheContext.operationContextPerCall, keepBinary
+        //platformCtx.kernalContext().cache().
+        //queue.ca
+
         return new PlatformIterator(platformCtx, queue.iterator());
     }
 
