@@ -128,10 +128,10 @@ public class PlatformQueue extends PlatformAbstractTarget {
     @Override protected long processInStreamOutLong(int type, BinaryRawReaderEx reader) throws IgniteCheckedException {
         switch (type) {
             case OP_ADD:
-                return queue.add(reader.readObject()) ? TRUE : FALSE;
+                return queue.add(reader.readObjectDetached()) ? TRUE : FALSE;
 
             case OP_REMOVE:
-                return queue.remove(reader.readObject()) ? TRUE : FALSE;
+                return queue.remove(reader.readObjectDetached()) ? TRUE : FALSE;
 
             default:
                 return super.processInStreamOutLong(type, reader);
