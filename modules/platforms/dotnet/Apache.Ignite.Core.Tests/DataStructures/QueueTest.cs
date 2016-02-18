@@ -88,12 +88,38 @@ namespace Apache.Ignite.Core.Tests.DataStructures
         }
 
         /// <summary>
+        /// Tests the serializable item.
+        /// </summary>
+        [Test]
+        public void TestSerializable()
+        {
+            var q = Grid.GetQueue<NodeFilter>(QueueName, 0, new CollectionConfiguration());
+
+            var obj = new NodeFilter {AllowedNode = Guid.NewGuid()};
+
+            Assert.IsTrue(q.TryAdd(obj));
+
+            Assert.AreEqual(obj.AllowedNode, q.Single().AllowedNode);
+        }
+
+        /// <summary>
+        /// Tests the binarizable item.
+        /// </summary>
+        [Test]
+        public void TestBinarizable()
+        {
+            // TODO
+        }
+
+        /// <summary>
         /// Tests the enumerator.
         /// </summary>
         [Test]
         public void TestEnumerator()
         {
+            var q = Grid.GetQueue<int>(QueueName, 0, new CollectionConfiguration());
 
+            //q.TryAddAll()
         }
 
 
