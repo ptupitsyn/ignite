@@ -20,6 +20,7 @@ namespace Apache.Ignite.Core.Tests.DataStructures
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using Apache.Ignite.Core.Binary;
     using Apache.Ignite.Core.Cache.Configuration;
     using Apache.Ignite.Core.Cluster;
     using Apache.Ignite.Core.Common;
@@ -108,7 +109,13 @@ namespace Apache.Ignite.Core.Tests.DataStructures
         [Test]
         public void TestBinarizable()
         {
-            // TODO
+            var q = Grid.GetQueue<Binarizable>(QueueName, 0, new CollectionConfiguration());
+
+            var obj = new Binarizable {Foo = 99};
+
+            Assert.IsTrue(q.TryAdd(obj));
+
+            Assert.AreEqual(obj.Foo, q.Single().Foo);
         }
 
         /// <summary>
@@ -185,6 +192,16 @@ namespace Apache.Ignite.Core.Tests.DataStructures
             }
         }
 
+        /** <inheritdoc /> */
+        protected override IgniteConfiguration GetConfiguration(string springConfigUrl)
+        {
+            var cfg = base.GetConfiguration(springConfigUrl);
+
+            cfg.BinaryConfiguration = new BinaryConfiguration(typeof(Binarizable));
+
+            return cfg;
+        }
+
         /// <summary>
         /// Test node filter.
         /// </summary>
@@ -201,6 +218,17 @@ namespace Apache.Ignite.Core.Tests.DataStructures
             {
                 return node.Id == AllowedNode;
             }
+        }
+
+        /// <summary>
+        /// Test binarizable.
+        /// </summary>
+        private class Binarizable
+        {
+            /// <summary>
+            /// Gets or sets the foo.
+            /// </summary>
+            public int Foo { get; set; }
         }
     }
 }
