@@ -45,6 +45,9 @@ namespace Apache.Ignite.Core.Tests.DataStructures
             // No-op.
         }
 
+        /// <summary>
+        /// Before the test.
+        /// </summary>
         [SetUp]
         public void BeforeTest()
         {
@@ -54,6 +57,9 @@ namespace Apache.Ignite.Core.Tests.DataStructures
                 q.Close();
         }
 
+        /// <summary>
+        /// Tests create and close.
+        /// </summary>
         [Test]
         public void TestCreateClose()
         {
@@ -81,6 +87,9 @@ namespace Apache.Ignite.Core.Tests.DataStructures
             Assert.IsNull(Grid.GetQueue<int>(QueueName, 10, null));
         }
 
+        /// <summary>
+        /// Tests the enumerator.
+        /// </summary>
         [Test]
         public void TestEnumerator()
         {
@@ -88,6 +97,9 @@ namespace Apache.Ignite.Core.Tests.DataStructures
         }
 
 
+        /// <summary>
+        /// Tests the configuration.
+        /// </summary>
         [Test]
         public void TestConfiguration()
         {
@@ -147,11 +159,18 @@ namespace Apache.Ignite.Core.Tests.DataStructures
             }
         }
 
+        /// <summary>
+        /// Test node filter.
+        /// </summary>
         [Serializable]
         private class NodeFilter : IClusterNodeFilter
         {
+            /// <summary>
+            /// Gets or sets the allowed node.
+            /// </summary>
             public Guid AllowedNode { get; set; }
 
+            /** <inheritdoc /> */
             public bool Invoke(IClusterNode node)
             {
                 return node.Id == AllowedNode;
