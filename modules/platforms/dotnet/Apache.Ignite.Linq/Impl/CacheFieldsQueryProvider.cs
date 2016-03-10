@@ -151,6 +151,16 @@ namespace Apache.Ignite.Linq.Impl
         public TResult Execute<TResult>(Expression expression)
         {
             // TODO: Here we can cache compiled queries
+            // Need to walk the expression and extract:
+            // * parameter types
+            // * caching key
+
+            var model = GenerateQueryModel(expression);
+            var qryData = CacheFieldsQueryExecutor.GetQueryData(model);
+            //var selector = CacheFieldsQueryExecutor.GetResultSelector<TResult>(model.SelectClause.Selector);
+
+            Debug.Assert(qryData != null);
+
             return (TResult) Execute(expression).Value;
         }
 

@@ -67,6 +67,14 @@ namespace Apache.Ignite.Linq.Impl
             get { return _local; }
         }
 
+        /// <summary>
+        /// Gets the cache.
+        /// </summary>
+        public ICacheInternal Cache
+        {
+            get { return _cache; }
+        }
+
         /** <inheritdoc /> */
         public T ExecuteScalar<T>(QueryModel queryModel)
         {
@@ -152,7 +160,7 @@ namespace Apache.Ignite.Linq.Impl
         /// <summary>
         /// Gets the result selector.
         /// </summary>
-        private static Func<IBinaryRawReader, int, T> GetResultSelector<T>(Expression selectorExpression)
+        public static Func<IBinaryRawReader, int, T> GetResultSelector<T>(Expression selectorExpression)
         {
             var newExpr = selectorExpression as NewExpression;
 
