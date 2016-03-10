@@ -157,9 +157,11 @@ namespace Apache.Ignite.Linq.Impl
 
             var model = GenerateQueryModel(expression);
             var qryData = CacheFieldsQueryExecutor.GetQueryData(model);
+            var cache = _executor.Cache;
             //var selector = CacheFieldsQueryExecutor.GetResultSelector<TResult>(model.SelectClause.Selector);
 
             Debug.Assert(qryData != null);
+            Debug.Assert(cache != null);
 
             return (TResult) Execute(expression).Value;
         }
