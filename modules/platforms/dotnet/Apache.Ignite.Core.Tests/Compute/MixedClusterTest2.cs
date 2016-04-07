@@ -29,7 +29,12 @@ namespace Apache.Ignite.Core.Tests.Compute
         [Test]
         public void Test()
         {
-            using (var ignite = Ignition.Start("config\\freshdesk.xml"))
+            var cfg = new IgniteConfiguration(TestUtils.GetTestConfiguration())
+            {
+                SpringConfigUrl = "config\\freshdesk.xml"
+            };
+
+            using (var ignite = Ignition.Start(cfg))
             {
                 var listener = new EventListener();
 
