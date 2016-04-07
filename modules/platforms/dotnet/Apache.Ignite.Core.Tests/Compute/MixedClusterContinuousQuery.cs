@@ -24,14 +24,14 @@ namespace Apache.Ignite.Core.Tests.Compute
     /// <summary>
     /// Freshdesk test.
     /// </summary>
-    public class MixedClusterTest2
+    public class MixedClusterContinuousQuery
     {
         [Test]
         public void Test()
         {
             var cfg = new IgniteConfiguration(TestUtils.GetTestConfiguration())
             {
-                SpringConfigUrl = "config\\freshdesk.xml"
+                SpringConfigUrl = "config\\mixed-cluster-qry.xml"
             };
 
             using (var ignite = Ignition.Start(cfg))
@@ -44,8 +44,15 @@ namespace Apache.Ignite.Core.Tests.Compute
                 ignite.GetCompute().ExecuteJavaTask<object>(javaTask, "myCache");
 
                 var cache = ignite.GetCache<int, string>("myCache");
-                for (int i = 0; i < 10; i++)
-                    cache[i] = i + "!";
+
+                for (int i = 0; i < 3; i++)
+                    cache[i] = "val_" + i;
+
+                for (int i = 0; i < 3; i++)
+                    cache[i] = "new_" + i;
+
+                for (int i = 0; i < 3; i++)
+                    cache.Remove(i);
             }
         }
 
@@ -53,7 +60,7 @@ namespace Apache.Ignite.Core.Tests.Compute
         {
             public bool Invoke(CacheEvent evt)
             {
-                Console.WriteLine("Event: " + evt.Name);
+                Console.WriteLine("Event: {0}, Old: {1}, New: {2}", evt.Name, evt.OldValue, evt.NewValue);
 
                 return true;
             }

@@ -43,7 +43,7 @@ import java.util.Map;
 /**
  * Task run a continuous query with a Java filter.
  */
-public class PlatformRunContinuousQueryTask extends ComputeTaskAdapter<String, Boolean> {
+public class PlatformRunContinuousQueryTask extends ComputeTaskAdapter<String, Object> {
     /** {@inheritDoc} */
     @Nullable @Override public Map<? extends ComputeJob, ClusterNode> map(List<ClusterNode> subgrid,
         @Nullable String arg) throws IgniteException {
