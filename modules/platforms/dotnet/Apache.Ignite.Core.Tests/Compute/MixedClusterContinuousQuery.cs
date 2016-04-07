@@ -18,6 +18,7 @@
 namespace Apache.Ignite.Core.Tests.Compute
 {
     using System;
+    using System.Threading;
     using Apache.Ignite.Core.Events;
     using NUnit.Framework;
 
@@ -26,6 +27,12 @@ namespace Apache.Ignite.Core.Tests.Compute
     /// </summary>
     public class MixedClusterContinuousQuery
     {
+        // Main cache that we want to continuously query
+        const string MainCache = "myCache";
+
+        // Intermediate local cache for event notifications
+        const string EventCache = "myCache_local";
+
         [Test]
         public void Test()
         {
@@ -41,9 +48,9 @@ namespace Apache.Ignite.Core.Tests.Compute
                 ignite.GetEvents().LocalListen(listener, EventType.CacheAll);
 
                 const string javaTask = "org.apache.ignite.platform.PlatformRunContinuousQueryTask";
-                ignite.GetCompute().ExecuteJavaTask<object>(javaTask, "myCache");
+                ignite.GetCompute().ExecuteJavaTask<object>(javaTask, MainCache);
 
-                var cache = ignite.GetCache<int, string>("myCache");
+                var cache = ignite.GetCache<int, string>(MainCache);
 
                 for (int i = 0; i < 3; i++)
                     cache[i] = "val_" + i;
@@ -60,7 +67,11 @@ namespace Apache.Ignite.Core.Tests.Compute
         {
             public bool Invoke(CacheEvent evt)
             {
-                Console.WriteLine("Event: {0}, Old: {1}, New: {2}", evt.Name, evt.OldValue, evt.NewValue);
+                //if (evt.CacheName == EventCache)
+                {
+                    Console.WriteLine("Event: {0}, Old: {1}, New: {2}, Cache: {3}", evt.Name, evt.OldValue, evt.NewValue,
+                        evt.CacheName);
+                }
 
                 return true;
             }
