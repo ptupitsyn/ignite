@@ -101,7 +101,7 @@
     <Compile Include="Compute\BinarizableClosureTaskTest.cs" />
     <Compile Include="Compute\BinarizableTaskTest.cs" />
     <Compile Include="Compute\MixedClusterTest.cs" />
-    <Compile Include="Compute\MixedClusterTest2.cs" />
+    <Compile Include="Compute\MixedClusterContinuousQuery.cs" />
     <Compile Include="Compute\ResourceTaskTest.cs" />
     <Compile Include="Compute\SerializableClosureTaskTest.cs" />
     <Compile Include="Compute\TaskAdapterTest.cs" />
@@ -200,7 +200,7 @@
     <Content Include="Config\Cache\Store\cache-store-session.xml">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="Config\freshdesk.xml">
+    <Content Include="Config\mixed-cluster-qry.xml">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="Config\Compute\compute-grid1.xml">
