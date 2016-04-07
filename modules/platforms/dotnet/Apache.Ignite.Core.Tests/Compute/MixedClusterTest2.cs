@@ -17,11 +17,41 @@
 
 namespace Apache.Ignite.Core.Tests.Compute
 {
+    using System;
+    using Apache.Ignite.Core.Events;
+    using NUnit.Framework;
+
     /// <summary>
     /// Freshdesk test.
     /// </summary>
     public class MixedClusterTest2
     {
-        
+        [Test]
+        public void Test()
+        {
+            using (var ignite = Ignition.Start("config\\freshdesk.xml"))
+            {
+                var listener = new EventListener();
+
+                ignite.GetEvents().LocalListen(listener, EventType.CacheAll);
+
+                const string javaTask = "org.apache.ignite.platform.PlatformRunContinuousQueryTask";
+                ignite.GetCompute().ExecuteJavaTask<object>(javaTask, "myCache");
+
+                var cache = ignite.GetCache<int, string>("myCache");
+                for (int i = 0; i < 10; i++)
+                    cache[i] = i + "!";
+            }
+        }
+
+        private class EventListener : IEventListener<CacheEvent>
+        {
+            public bool Invoke(CacheEvent evt)
+            {
+                Console.WriteLine("Event: " + evt.Name);
+
+                return true;
+            }
+        }
     }
 }
