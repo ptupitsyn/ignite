@@ -560,6 +560,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged
                         return filter.Allocate();
                     }
 
+                    // TODO: Deduplicate
                     var factoryHolder = (ContinuousQueryFilterFactoryHolder) obj;
 
                     var actualFactory = factoryHolder.FilterFactory;
