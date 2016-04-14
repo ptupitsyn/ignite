@@ -19,9 +19,10 @@ namespace Apache.Ignite.Core.Impl.Common
 {
     using System;
     using System.Globalization;
-
+    using System.Linq;
     using Apache.Ignite.Core.Cache;
     using Apache.Ignite.Core.Cache.Event;
+    using Apache.Ignite.Core.Common;
     using Apache.Ignite.Core.Compute;
     using Apache.Ignite.Core.Datastream;
     using Apache.Ignite.Core.Events;
@@ -74,6 +75,9 @@ namespace Apache.Ignite.Core.Impl.Common
 
         /** */
         private readonly Func<object, object, object> _continuousQueryFilterCtor;
+
+        /** */
+        private readonly Func<object, object, object> _continuousQueryFilterFactoryCtor;
 
         /// <summary>
         /// Gets the <see cref="IComputeFunc{T}" /> invocator.
@@ -187,6 +191,16 @@ namespace Apache.Ignite.Core.Impl.Common
         public static Func<object, object, object> GetContinuousQueryFilterCtor(Type type)
         {
             return Get(type)._continuousQueryFilterCtor;
+        }
+
+        /// <summary>
+        /// Gets the <see cref="ContinuousQueryFilterFactory{TK,TV}"/>> ctor invocator.
+        /// </summary>
+        /// <param name="type">Type.</param>
+        /// <returns>Precompiled invocator delegate.</returns>
+        public static Func<object, object, object> GetContinuousQueryFilterFactoryCtor(Type type)
+        {
+            return Get(type)._continuousQueryFilterFactoryCtor;
         }
 
         /// <summary>
@@ -326,13 +340,32 @@ namespace Apache.Ignite.Core.Impl.Common
                 }
                 else if (genericTypeDefinition == typeof (ICacheEntryEventFilter<,>))
                 {
-                    ThrowIfMultipleInterfaces(_streamReceiver, type, typeof(ICacheEntryEventFilter<,>));
+                    ThrowIfMultipleInterfaces(_continuousQueryFilterCtor, type, typeof(ICacheEntryEventFilter<,>));
 
                     var args = iface.GetGenericArguments();
 
                     _continuousQueryFilterCtor =
                         DelegateConverter.CompileCtor<Func<object, object, object>>(
                             typeof(ContinuousQueryFilter<,>).MakeGenericType(args), new[] { iface, typeof(bool) });
+                }
+                else if (genericTypeDefinition == typeof (IFactory<>))
+                {
+                    var factoryArg = iface.GetGenericArguments().Single();
+
+                    if (factoryArg.IsGenericType &&
+                        factoryArg.GetGenericTypeDefinition() == typeof (ICacheEntryEventFilter<,>))
+                    {
+                        // TODO: Factory of derived types, + test!
+                        ThrowIfMultipleInterfaces(_continuousQueryFilterFactoryCtor, type,
+                            typeof (IFactory<>).MakeGenericType(typeof (ICacheEntryEventFilter<,>)));
+
+                        var args = factoryArg.GetGenericArguments();
+
+                        _continuousQueryFilterFactoryCtor =
+                            DelegateConverter.CompileCtor<Func<object, object, object>>(
+                                typeof (ContinuousQueryFilterFactory<,>).MakeGenericType(args),
+                                new[] {factoryArg, typeof (bool)});
+                    }
                 }
             }
         }
