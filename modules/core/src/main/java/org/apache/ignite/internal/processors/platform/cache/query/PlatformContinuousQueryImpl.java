@@ -271,8 +271,11 @@ public class PlatformContinuousQueryImpl implements PlatformContinuousQuery, Fac
 
     /** {@inheritDoc} */
     @Override public CacheEntryEventFilter create() {
-        // TODO:
-        return null;
+        if (javaFilter != null) {
+            // TODO:
+        }
+
+        return this;
     }
 
     /**
