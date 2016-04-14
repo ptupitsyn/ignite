@@ -27,6 +27,7 @@ import org.apache.ignite.internal.processors.platform.cache.PlatformCacheEntryFi
 import org.apache.ignite.internal.processors.platform.cache.PlatformCacheEntryProcessor;
 import org.apache.ignite.internal.processors.platform.cache.query.PlatformContinuousQuery;
 import org.apache.ignite.internal.processors.platform.cache.query.PlatformContinuousQueryFilter;
+import org.apache.ignite.internal.processors.platform.cache.query.PlatformContinuousQueryFilterFactory;
 import org.apache.ignite.internal.processors.platform.callback.PlatformCallbackGateway;
 import org.apache.ignite.internal.processors.platform.cluster.PlatformClusterNodeFilter;
 import org.apache.ignite.internal.processors.platform.compute.PlatformJob;
@@ -168,6 +169,14 @@ public interface PlatformContext {
      * @return Filter.
      */
     public PlatformContinuousQueryFilter createContinuousQueryFilter(Object filter);
+
+    /**
+     * Create continuous query filter factory to be deployed on remote node.
+     *
+     * @param filter Native filter factory.
+     * @return Filter factory.
+     */
+    public PlatformContinuousQueryFilterFactory createContinuousQueryFilterFactory(Object filter);
 
     /**
      * Create remote message filter.

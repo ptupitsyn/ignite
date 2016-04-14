@@ -285,11 +285,15 @@ public class PlatformContinuousQueryImpl implements PlatformContinuousQuery, Fac
      * @throws ObjectStreamException If failed.
      */
     Object writeReplace() throws ObjectStreamException {
-        // TODO: If factory?
-
         if (javaFilter != null)
-            return javaFilter;
+            return javaFilter;  // TODO: factory
 
-        return filter == null ? null : platformCtx.createContinuousQueryFilter(filter);
+        if (filter == null)
+            return null;
+
+        if (isFactory)
+            return platformCtx.createContinuousQueryFilterFactory(filter);
+
+        return platformCtx.createContinuousQueryFilter(filter);
     }
 }

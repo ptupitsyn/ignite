@@ -44,10 +44,7 @@ import org.apache.ignite.internal.processors.platform.cache.PlatformCacheEntryFi
 import org.apache.ignite.internal.processors.platform.cache.PlatformCacheEntryFilterImpl;
 import org.apache.ignite.internal.processors.platform.cache.PlatformCacheEntryProcessor;
 import org.apache.ignite.internal.processors.platform.cache.PlatformCacheEntryProcessorImpl;
-import org.apache.ignite.internal.processors.platform.cache.query.PlatformContinuousQuery;
-import org.apache.ignite.internal.processors.platform.cache.query.PlatformContinuousQueryFilter;
-import org.apache.ignite.internal.processors.platform.cache.query.PlatformContinuousQueryImpl;
-import org.apache.ignite.internal.processors.platform.cache.query.PlatformContinuousQueryRemoteFilter;
+import org.apache.ignite.internal.processors.platform.cache.query.*;
 import org.apache.ignite.internal.processors.platform.callback.PlatformCallbackGateway;
 import org.apache.ignite.internal.processors.platform.cluster.PlatformClusterNodeFilter;
 import org.apache.ignite.internal.processors.platform.cluster.PlatformClusterNodeFilterImpl;
@@ -415,6 +412,11 @@ public class PlatformContextImpl implements PlatformContext {
     /** {@inheritDoc} */
     @Override public PlatformContinuousQueryFilter createContinuousQueryFilter(Object filter) {
         return new PlatformContinuousQueryRemoteFilter(filter);
+    }
+
+    /** {@inheritDoc} */
+    @Override public PlatformContinuousQueryFilterFactory createContinuousQueryFilterFactory(Object filter) {
+        return new PlatformContinuousQueryRemoteFilterFactory(filter);
     }
 
     /** {@inheritDoc} */
