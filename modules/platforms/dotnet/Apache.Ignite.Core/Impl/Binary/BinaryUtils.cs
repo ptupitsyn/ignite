@@ -187,6 +187,9 @@ namespace Apache.Ignite.Core.Impl.Binary
         /** Type: stream receiver holder. */
         public const byte TypeStreamReceiverHolder = 94;
 
+        /** Type: continuous query remote filter. */
+        public const byte TypeContinuousQueryRemoteFilterFactoryHolder = 95;
+
         /** Type: platform object proxy. */
         public const byte TypePlatformJavaObjectFactoryProxy = 99;
 

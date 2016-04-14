@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
+#pragma warning disable 618  // Obsolete Filter
 namespace Apache.Ignite.Core.Tests.Cache.Query.Continuous
 {
     using System;

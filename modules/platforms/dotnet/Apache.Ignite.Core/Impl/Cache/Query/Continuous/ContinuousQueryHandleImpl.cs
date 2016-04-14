@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
+#pragma warning disable 618  // Obsolete Filter
 namespace Apache.Ignite.Core.Impl.Cache.Query.Continuous
 {
     using System;
@@ -24,6 +25,7 @@ namespace Apache.Ignite.Core.Impl.Cache.Query.Continuous
     using Apache.Ignite.Core.Cache.Event;
     using Apache.Ignite.Core.Cache.Query;
     using Apache.Ignite.Core.Cache.Query.Continuous;
+    using Apache.Ignite.Core.Common;
     using Apache.Ignite.Core.Impl.Binary;
     using Apache.Ignite.Core.Impl.Binary.IO;
     using Apache.Ignite.Core.Impl.Common;
@@ -63,6 +65,9 @@ namespace Apache.Ignite.Core.Impl.Cache.Query.Continuous
         /** Real filter. */
         private readonly ICacheEntryEventFilter<TK, TV> _filter;
 
+        /** Real filter factory. */
+        private readonly IFactory<ICacheEntryEventFilter<TK, TV>> _filterFactory;
+
         /** GC handle. */
         private long _hnd;
 
@@ -88,6 +93,7 @@ namespace Apache.Ignite.Core.Impl.Cache.Query.Continuous
 
             _lsnr = qry.Listener;
             _filter = qry.Filter;
+            _filterFactory = qry.FilterFactory;
         }
 
         /// <summary>
@@ -120,11 +126,25 @@ namespace Apache.Ignite.Core.Impl.Cache.Query.Continuous
             }
             else
             {
-                var filterHolder = _filter == null || qry.Local
+                var filterHolder = _filter == null
                     ? null
                     : new ContinuousQueryFilterHolder(_filter, _keepBinary);
 
                 writer.WriteObject(filterHolder);
+            }
+
+            var javaFactory = _filterFactory as PlatformJavaObjectFactoryProxy;
+            if (javaFactory != null)
+            {
+                writer.WriteObject(javaFactory.GetRawProxy());
+            }
+            else
+            {
+                var filterFactoryHolder = _filter == null
+                    ? null
+                    : new ContinuousQueryFilterFactoryHolder(_filterFactory, _keepBinary);
+
+                writer.WriteObject(filterFactoryHolder);
             }
 
             writer.WriteInt(qry.BufferSize);
