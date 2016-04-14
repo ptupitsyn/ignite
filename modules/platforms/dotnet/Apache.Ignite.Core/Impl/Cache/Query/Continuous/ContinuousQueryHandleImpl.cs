@@ -95,7 +95,7 @@ namespace Apache.Ignite.Core.Impl.Cache.Query.Continuous
             _filter = qry.Filter;
             _filterFactory = qry.FilterFactory;
 
-            if (_filterFactory != null)
+            if (_filterFactory != null && !(_filterFactory is PlatformJavaObjectFactoryProxy))
                 _filter = _filterFactory.CreateInstance();
         }
 

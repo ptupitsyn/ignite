@@ -190,7 +190,7 @@ namespace Apache.Ignite.Core.Tests.Cache.Query.Continuous
         [Test]
         public void TestFilterFactory()
         {
-            var javaObj = new JavaObject("org.apache.ignite.platform.PlatformCacheEntryEventFilterFactory",
+            var javaObj = new JavaObject("org.apache.ignite.platform.PlatformCacheEntryEventFilterFactory2",
                 new Dictionary<string, object> {{"startsWith", "valid"}});
 
             var filterFactory = javaObj.ToCacheEntryEventFilterFactory<int, string>();
