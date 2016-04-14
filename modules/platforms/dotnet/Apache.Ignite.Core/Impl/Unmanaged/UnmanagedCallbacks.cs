@@ -543,17 +543,24 @@ namespace Apache.Ignite.Core.Impl.Unmanaged
                 {
                     var reader = _ignite.Marshaller.StartUnmarshal(stream);
 
-                    var filterHolder = reader.ReadObject<ContinuousQueryFilterHolder>();
+                    var obj = reader.ReadObject<object>();
 
-                    // 2. Create real filter from it's holder.
-                    var filter = (IContinuousQueryFilter) DelegateTypeDescriptor.GetContinuousQueryFilterCtor(
-                        filterHolder.Filter.GetType())(filterHolder.Filter, filterHolder.KeepBinary);
+                    var filterHolder = obj as ContinuousQueryFilterHolder;
 
-                    // 3. Inject grid.
-                    filter.Inject(_ignite);
+                    if (filterHolder != null)
+                    {
+                        // 2. Create real filter from it's holder.
+                        var filter = (IContinuousQueryFilter) DelegateTypeDescriptor.GetContinuousQueryFilterCtor(
+                            filterHolder.Filter.GetType())(filterHolder.Filter, filterHolder.KeepBinary);
 
-                    // 4. Allocate GC handle.
-                    return filter.Allocate();
+                        // 3. Inject grid.
+                        filter.Inject(_ignite);
+
+                        // 4. Allocate GC handle.
+                        return filter.Allocate();
+                    }
+
+                    return 0;  // TODO: Factory
                 }
             });
         }

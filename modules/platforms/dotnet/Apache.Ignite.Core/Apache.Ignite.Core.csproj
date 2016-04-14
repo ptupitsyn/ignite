@@ -111,6 +111,7 @@
     <Compile Include="Common\Package-Info.cs" />
     <Compile Include="Impl\Cache\Event\JavaCacheEntryEventFilterFactory.cs" />
     <Compile Include="Impl\Cache\Event\JavaCacheEntryEventFilter.cs" />
+    <Compile Include="Impl\Cache\Query\Continuous\ContinuousQueryFilterFactory.cs" />
     <Compile Include="Impl\Cache\Query\Continuous\ContinuousQueryFilterFactoryHolder.cs" />
     <Compile Include="Impl\Common\PlatformJavaObjectFactoryProxy.cs" />
     <Compile Include="Compute\ComputeExecutionRejectedException.cs" />
