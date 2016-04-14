@@ -560,7 +560,21 @@ namespace Apache.Ignite.Core.Impl.Unmanaged
                         return filter.Allocate();
                     }
 
-                    return 0;  // TODO: Factory
+                    var factoryHolder = (ContinuousQueryFilterFactoryHolder) obj;
+
+                    var actualFactory = factoryHolder.FilterFactory;
+
+                    ResourceProcessor.Inject(actualFactory, _ignite);
+
+                    var factory = (IContinuousQueryFilterFactory)
+                        DelegateTypeDescriptor.GetContinuousQueryFilterFactoryCtor(actualFactory.GetType())(
+                            actualFactory, factoryHolder.KeepBinary);
+
+                    var filter0 = factory.CreateInstance();
+
+                    filter0.Inject(_ignite);
+
+                    return filter0.Allocate();
                 }
             });
         }
