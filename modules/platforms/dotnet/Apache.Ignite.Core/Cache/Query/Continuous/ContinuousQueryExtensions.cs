@@ -18,6 +18,7 @@
 namespace Apache.Ignite.Core.Cache.Query.Continuous
 {
     using Apache.Ignite.Core.Cache.Event;
+    using Apache.Ignite.Core.Common;
     using Apache.Ignite.Core.Impl.Cache.Event;
     using Apache.Ignite.Core.Interop;
 
@@ -36,6 +37,15 @@ namespace Apache.Ignite.Core.Cache.Query.Continuous
             return new JavaCacheEntryEventFilter<TK, TV>(javaObject.ClassName, javaObject.Properties);
         }
 
-        // TODO: ToFactory
+        /// <summary>
+        /// Creates the cache event filter that delegates to the corresponding Java object.
+        /// </summary>
+        /// <typeparam name="TK">Key type.</typeparam>
+        /// <typeparam name="TV">Value type.</typeparam>
+        public static IFactory<ICacheEntryEventFilter<TK, TV>> ToCacheEntryEventFilterFactory<TK, TV>(
+            this JavaObject javaObject)
+        {
+            return new JavaCacheEntryEventFilterFactory<TK, TV>(javaObject.ClassName, javaObject.Properties);
+        }
     }
 }
