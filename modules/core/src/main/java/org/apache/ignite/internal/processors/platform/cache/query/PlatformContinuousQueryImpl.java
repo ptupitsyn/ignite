@@ -61,6 +61,9 @@ public class PlatformContinuousQueryImpl implements PlatformContinuousQuery, Fac
     /** Java filter. */
     protected final CacheEntryEventFilter javaFilter;
 
+    /** Java filter. */
+    protected final Object javaFilterFactory;
+
     /** Factory flag. */
     private final boolean isFactory;
 
@@ -95,8 +98,8 @@ public class PlatformContinuousQueryImpl implements PlatformContinuousQuery, Fac
         this.filter = filter;
         this.isFactory = isFactory;
 
-        // TODO: What do we do with Factory?
-        javaFilter = getJavaFilter(filter, platformCtx.kernalContext());
+        javaFilter = isFactory ? null : (CacheEntryEventFilter) getJavaFilter(filter, platformCtx.kernalContext());
+        javaFilterFactory = !isFactory ? null : getJavaFilter(filter, platformCtx.kernalContext());
     }
 
     /**
@@ -106,14 +109,14 @@ public class PlatformContinuousQueryImpl implements PlatformContinuousQuery, Fac
      * @param ctx Context.
      * @return Java filter or null.
      */
-    private static CacheEntryEventFilter getJavaFilter(Object filter, GridKernalContext ctx) {
+    private static Object getJavaFilter(Object filter, GridKernalContext ctx) {
         if (filter instanceof BinaryObjectImpl) {
             BinaryObjectImpl bo = (BinaryObjectImpl)filter;
 
             if (bo.typeId() == GridBinaryMarshaller.PLATFORM_JAVA_OBJECT_FACTORY_PROXY) {
                 PlatformJavaObjectFactoryProxy prx = bo.deserialize();
 
-                return (CacheEntryEventFilter)prx.factory(ctx).create();
+                return prx.factory(ctx).create();
             }
         }
 
