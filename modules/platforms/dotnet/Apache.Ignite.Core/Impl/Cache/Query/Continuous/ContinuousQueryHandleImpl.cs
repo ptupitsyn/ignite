@@ -94,6 +94,9 @@ namespace Apache.Ignite.Core.Impl.Cache.Query.Continuous
             _lsnr = qry.Listener;
             _filter = qry.Filter;
             _filterFactory = qry.FilterFactory;
+
+            if (_filterFactory != null)
+                _filter = _filterFactory.CreateInstance();
         }
 
         /// <summary>
@@ -117,34 +120,40 @@ namespace Apache.Ignite.Core.Impl.Cache.Query.Continuous
             writer.WriteLong(_hnd);
             writer.WriteBoolean(qry.Local);
             writer.WriteBoolean(_filter != null);
+            writer.WriteBoolean(_filterFactory != null);
 
             var javaFilter = _filter as PlatformJavaObjectFactoryProxy;
 
-            if (javaFilter != null)
+            if (_filterFactory == null)
             {
-                writer.WriteObject(javaFilter.GetRawProxy());
+                if (javaFilter != null)
+                {
+                    writer.WriteObject(javaFilter.GetRawProxy());
+                }
+                else
+                {
+                    var filterHolder = _filter == null || qry.Local
+                        ? null
+                        : new ContinuousQueryFilterHolder(_filter, _keepBinary);
+
+                    writer.WriteObject(filterHolder);
+                }
             }
             else
             {
-                var filterHolder = _filter == null
-                    ? null
-                    : new ContinuousQueryFilterHolder(_filter, _keepBinary);
+                var javaFactory = _filterFactory as PlatformJavaObjectFactoryProxy;
+                if (javaFactory != null)
+                {
+                    writer.WriteObject(javaFactory.GetRawProxy());
+                }
+                else
+                {
+                    var filterFactoryHolder = _filter == null || qry.Local
+                        ? null
+                        : new ContinuousQueryFilterFactoryHolder(_filterFactory, _keepBinary);
 
-                writer.WriteObject(filterHolder);
-            }
-
-            var javaFactory = _filterFactory as PlatformJavaObjectFactoryProxy;
-            if (javaFactory != null)
-            {
-                writer.WriteObject(javaFactory.GetRawProxy());
-            }
-            else
-            {
-                var filterFactoryHolder = _filter == null
-                    ? null
-                    : new ContinuousQueryFilterFactoryHolder(_filterFactory, _keepBinary);
-
-                writer.WriteObject(filterFactoryHolder);
+                    writer.WriteObject(filterFactoryHolder);
+                }
             }
 
             writer.WriteInt(qry.BufferSize);
