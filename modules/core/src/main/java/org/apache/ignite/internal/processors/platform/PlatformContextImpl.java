@@ -408,8 +408,8 @@ public class PlatformContextImpl implements PlatformContext {
 
     /** {@inheritDoc} */
     @Override public PlatformContinuousQuery createContinuousQuery(long ptr, boolean hasFilter,
-        @Nullable Object filter) {
-        return new PlatformContinuousQueryImpl(this, ptr, hasFilter, filter);
+        @Nullable Object filter, boolean isFactory) {
+        return new PlatformContinuousQueryImpl(this, ptr, hasFilter, filter, isFactory);
     }
 
     /** {@inheritDoc} */

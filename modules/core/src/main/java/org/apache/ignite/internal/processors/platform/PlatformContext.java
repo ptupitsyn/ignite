@@ -155,9 +155,11 @@ public interface PlatformContext {
      * @param ptr Pointer to continuous query deployed on the platform.
      * @param hasFilter Whether filter exists.
      * @param filter Filter.
+     * @param isFactory Whether filter object is a factory.
      * @return Platform continuous query.
      */
-    public PlatformContinuousQuery createContinuousQuery(long ptr, boolean hasFilter, @Nullable Object filter);
+    public PlatformContinuousQuery createContinuousQuery(long ptr, boolean hasFilter, @Nullable Object filter,
+                                                         boolean isFactory);
 
     /**
      * Create continuous query filter to be deployed on remote node.

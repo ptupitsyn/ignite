@@ -410,13 +410,14 @@ public class PlatformCache extends PlatformAbstractTarget {
                 long ptr = reader.readLong();
                 boolean loc = reader.readBoolean();
                 boolean hasFilter = reader.readBoolean();
+                boolean isFactory = reader.readBoolean();
                 Object filter = reader.readObjectDetached();
                 int bufSize = reader.readInt();
                 long timeInterval = reader.readLong();
                 boolean autoUnsubscribe = reader.readBoolean();
                 Query initQry = readInitialQuery(reader);
 
-                PlatformContinuousQuery qry = platformCtx.createContinuousQuery(ptr, hasFilter, filter);
+                PlatformContinuousQuery qry = platformCtx.createContinuousQuery(ptr, hasFilter, filter, isFactory);
 
                 qry.start(cache, loc, bufSize, timeInterval, autoUnsubscribe, initQry);
 

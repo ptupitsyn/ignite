@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import javax.cache.Cache;
+import javax.cache.configuration.Factory;
 import javax.cache.event.CacheEntryEvent;
 import javax.cache.event.CacheEntryEventFilter;
 import javax.cache.event.CacheEntryListenerException;
@@ -44,7 +45,7 @@ import org.apache.ignite.internal.processors.query.GridQueryFieldMetadata;
 /**
  * Interop continuous query handle.
  */
-public class PlatformContinuousQueryImpl implements PlatformContinuousQuery {
+public class PlatformContinuousQueryImpl implements PlatformContinuousQuery, Factory<CacheEntryEventFilter> {
     /** */
     private static final long serialVersionUID = 0L;
 
@@ -59,6 +60,9 @@ public class PlatformContinuousQueryImpl implements PlatformContinuousQuery {
 
     /** Java filter. */
     protected final CacheEntryEventFilter javaFilter;
+
+    /** Factory flag. */
+    private final boolean isFactory;
 
     /** Pointer to native counterpart; zero if closed. */
     private long ptr;
@@ -79,14 +83,17 @@ public class PlatformContinuousQueryImpl implements PlatformContinuousQuery {
      * @param ptr Pointer to native counterpart.
      * @param hasFilter Whether filter exists.
      * @param filter Filter.
+     * @param isFactory Factory flag..
      */
-    public PlatformContinuousQueryImpl(PlatformContext platformCtx, long ptr, boolean hasFilter, Object filter) {
+    public PlatformContinuousQueryImpl(PlatformContext platformCtx, long ptr, boolean hasFilter, Object filter,
+                                       boolean isFactory) {
         assert ptr != 0L;
 
         this.platformCtx = platformCtx;
         this.ptr = ptr;
         this.hasFilter = hasFilter;
         this.filter = filter;
+        this.isFactory = isFactory;
 
         javaFilter = getJavaFilter(filter, platformCtx.kernalContext());
     }
@@ -133,8 +140,11 @@ public class PlatformContinuousQueryImpl implements PlatformContinuousQuery {
 
                 qry.setLocalListener(this);
 
-                // TODO: Set factory if a flag is set
-                qry.setRemoteFilter(this); // Filter must be set always for correct resource release.
+                if (isFactory)
+                    qry.setRemoteFilterFactory(this);
+                else
+                    qry.setRemoteFilter(this); // Filter must be set always for correct resource release.
+
                 qry.setPageSize(bufSize);
                 qry.setTimeInterval(timeInterval);
                 qry.setAutoUnsubscribe(autoUnsubscribe);
@@ -258,6 +268,12 @@ public class PlatformContinuousQueryImpl implements PlatformContinuousQuery {
         }
     }
 
+    /** {@inheritDoc} */
+    @Override public CacheEntryEventFilter create() {
+        // TODO:
+        return null;
+    }
+
     /**
      * Replacer for remote filter.
      *
@@ -265,6 +281,8 @@ public class PlatformContinuousQueryImpl implements PlatformContinuousQuery {
      * @throws ObjectStreamException If failed.
      */
     Object writeReplace() throws ObjectStreamException {
+        // TODO: If factory?
+
         if (javaFilter != null)
             return javaFilter;
 
