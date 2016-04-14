@@ -291,6 +291,9 @@ public class PlatformContinuousQueryImpl implements PlatformContinuousQuery, Fac
         if (javaFilter != null)
             return javaFilter;  // TODO: factory
 
+        if (javaFilterFactory != null)
+            return javaFilterFactory;
+
         if (filter == null)
             return null;
 
