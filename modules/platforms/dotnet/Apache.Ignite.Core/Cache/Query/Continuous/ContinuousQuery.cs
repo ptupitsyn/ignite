@@ -15,11 +15,13 @@
  * limitations under the License.
  */
 
+#pragma warning disable 618  // Obsolete Filter
 namespace Apache.Ignite.Core.Cache.Query.Continuous
 {
     using System;
     using System.Diagnostics.CodeAnalysis;
     using Apache.Ignite.Core.Cache.Event;
+    using Apache.Ignite.Core.Common;
 
     /// <summary>
     /// API for configuring continuous cache queries.
@@ -71,7 +73,8 @@ namespace Apache.Ignite.Core.Cache.Query.Continuous
         /// </summary>
         /// <param name="lsnr">Listener.</param>
         /// <param name="loc">Whether query should be executed locally.</param>
-        public ContinuousQuery(ICacheEntryEventListener<TK, TV> lsnr, bool loc) : this(lsnr, null, loc)
+        public ContinuousQuery(ICacheEntryEventListener<TK, TV> lsnr, bool loc) 
+            : this(lsnr, (IFactory<ICacheEntryEventFilter<TK, TV>>)null, loc)
         {
             // No-op.
         }
@@ -81,6 +84,7 @@ namespace Apache.Ignite.Core.Cache.Query.Continuous
         /// </summary>
         /// <param name="lsnr">Listener.</param>
         /// <param name="filter">Filter.</param>
+        [Obsolete("ContinuousQuery.Filter is deprecated, use a constructor with FilterFactory instead.")]
         public ContinuousQuery(ICacheEntryEventListener<TK, TV> lsnr, ICacheEntryEventFilter<TK, TV> filter)
             : this(lsnr, filter, false)
         {
@@ -93,10 +97,40 @@ namespace Apache.Ignite.Core.Cache.Query.Continuous
         /// <param name="lsnr">Listener.</param>
         /// <param name="filter">Filter.</param>
         /// <param name="loc">Whether query should be executed locally.</param>
+        [Obsolete("ContinuousQuery.Filter is deprecated, use a constructor with FilterFactory instead.")]
         public ContinuousQuery(ICacheEntryEventListener<TK, TV> lsnr, ICacheEntryEventFilter<TK, TV> filter, bool loc)
         {
             Listener = lsnr;
             Filter = filter;
+            Local = loc;
+
+            BufferSize = DfltBufSize;
+            TimeInterval = DfltTimeInterval;
+            AutoUnsubscribe = DfltAutoUnsubscribe;
+        }
+
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        /// <param name="lsnr">Listener.</param>
+        /// <param name="filterFactory">Filter.</param>
+        public ContinuousQuery(ICacheEntryEventListener<TK, TV> lsnr, 
+            IFactory<ICacheEntryEventFilter<TK, TV>> filterFactory) : this(lsnr, filterFactory, false)
+        {
+            // No-op.
+        }
+
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        /// <param name="lsnr">Listener.</param>
+        /// <param name="filterFactory">Filter.</param>
+        /// <param name="loc">Whether query should be executed locally.</param>
+        public ContinuousQuery(ICacheEntryEventListener<TK, TV> lsnr, 
+            IFactory<ICacheEntryEventFilter<TK, TV>> filterFactory, bool loc)
+        {
+            Listener = lsnr;
+            FilterFactory = filterFactory;
             Local = loc;
 
             BufferSize = DfltBufSize;
@@ -117,7 +151,17 @@ namespace Apache.Ignite.Core.Cache.Query.Continuous
         /// <para />
         /// Must be either binary or serializable in case query is not local.
         /// </summary>
+        [Obsolete("Use FilterFactory property instead.")]
         public ICacheEntryEventFilter<TK, TV> Filter { get; set; }
+
+        /// <summary>
+        /// Optional cache entry filter factory. Invoked on a node where cache event occurred. If filter
+        /// returns <c>false</c>, then cache entry event will not be sent to a node where
+        /// continuous query has been started.
+        /// <para />
+        /// Must be either binary or serializable in case query is not local.
+        /// </summary>
+        public IFactory<ICacheEntryEventFilter<TK, TV>> FilterFactory { get; set; }
 
         /// <summary>
         /// Buffer size. When a cache update happens, entry is first put into a buffer. 
