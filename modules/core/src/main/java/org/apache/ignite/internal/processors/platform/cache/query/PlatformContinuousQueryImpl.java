@@ -62,7 +62,7 @@ public class PlatformContinuousQueryImpl implements PlatformContinuousQuery, Fac
     protected final CacheEntryEventFilter javaFilter;
 
     /** Java filter. */
-    protected final Object javaFilterFactory;
+    protected final Factory<? extends CacheEntryEventFilter> javaFilterFactory;
 
     /** Factory flag. */
     private final boolean isFactory;
@@ -88,6 +88,7 @@ public class PlatformContinuousQueryImpl implements PlatformContinuousQuery, Fac
      * @param filter Filter.
      * @param isFactory Factory flag..
      */
+    @SuppressWarnings("unchecked")
     public PlatformContinuousQueryImpl(PlatformContext platformCtx, long ptr, boolean hasFilter, Object filter,
                                        boolean isFactory) {
         assert ptr != 0L;
@@ -98,8 +99,11 @@ public class PlatformContinuousQueryImpl implements PlatformContinuousQuery, Fac
         this.filter = filter;
         this.isFactory = isFactory;
 
-        javaFilter = isFactory ? null : (CacheEntryEventFilter) getJavaFilter(filter, platformCtx.kernalContext());
-        javaFilterFactory = !isFactory ? null : getJavaFilter(filter, platformCtx.kernalContext());
+        javaFilter = !isFactory ? (CacheEntryEventFilter) getJavaFilter(filter, platformCtx.kernalContext()) : null;
+
+        javaFilterFactory = isFactory
+                ? (Factory<? extends CacheEntryEventFilter>) getJavaFilter(filter, platformCtx.kernalContext())
+                : null;
     }
 
     /**
@@ -274,9 +278,8 @@ public class PlatformContinuousQueryImpl implements PlatformContinuousQuery, Fac
 
     /** {@inheritDoc} */
     @Override public CacheEntryEventFilter create() {
-        if (javaFilter != null) {
-            // TODO:
-        }
+        if (javaFilterFactory != null)
+            return javaFilterFactory.create();
 
         return this;
     }
@@ -289,7 +292,7 @@ public class PlatformContinuousQueryImpl implements PlatformContinuousQuery, Fac
      */
     Object writeReplace() throws ObjectStreamException {
         if (javaFilter != null)
-            return javaFilter;  // TODO: factory
+            return javaFilter;
 
         if (javaFilterFactory != null)
             return javaFilterFactory;
