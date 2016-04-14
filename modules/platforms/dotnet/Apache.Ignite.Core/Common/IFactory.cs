@@ -15,27 +15,20 @@
  * limitations under the License.
  */
 
-namespace Apache.Ignite.Core.Cache.Query.Continuous
+namespace Apache.Ignite.Core.Common
 {
-    using Apache.Ignite.Core.Cache.Event;
-    using Apache.Ignite.Core.Impl.Cache.Event;
-    using Apache.Ignite.Core.Interop;
+    using System;
 
     /// <summary>
-    /// Extensions for continuous queries.
+    /// Factory that produces instances of a specific type.
+    /// Implementation can be passed over the wire and thus should be marked with <see cref="SerializableAttribute"/>.
     /// </summary>
-    public static class ContinuousQueryExtensions
+    public interface IFactory<out T>
     {
         /// <summary>
-        /// Creates the cache event filter that delegates to the corresponding Java object.
+        /// Creates an instance of the cache store.
         /// </summary>
-        /// <typeparam name="TK">Key type.</typeparam>
-        /// <typeparam name="TV">Value type.</typeparam>
-        public static ICacheEntryEventFilter<TK, TV> ToCacheEntryEventFilter<TK, TV>(this JavaObject javaObject)
-        {
-            return new JavaCacheEntryEventFilter<TK, TV>(javaObject.ClassName, javaObject.Properties);
-        }
-
-        // TODO: ToFactory
+        /// <returns>New instance of the cache store.</returns>
+        T CreateInstance();
     }
 }

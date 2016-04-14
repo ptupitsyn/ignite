@@ -132,6 +132,8 @@ public class PlatformContinuousQueryImpl implements PlatformContinuousQuery {
                 ContinuousQuery qry = new ContinuousQuery();
 
                 qry.setLocalListener(this);
+
+                // TODO: Set factory if a flag is set
                 qry.setRemoteFilter(this); // Filter must be set always for correct resource release.
                 qry.setPageSize(bufSize);
                 qry.setTimeInterval(timeInterval);
