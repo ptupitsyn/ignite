@@ -185,6 +185,20 @@ namespace Apache.Ignite.Core.Tests.Cache.Query.Continuous
         }
 
         /// <summary>
+        /// Tests the factory class.
+        /// </summary>
+        [Test]
+        public void TestFilterFactory()
+        {
+            var javaObj = new JavaObject("org.apache.ignite.platform.PlatformCacheEntryEventFilterFactory",
+                new Dictionary<string, object> {{"startsWith", "valid"}});
+
+            var filterFactory = javaObj.ToCacheEntryEventFilterFactory<int, string>();
+
+            TestFilter(null, filterFactory);
+        }
+
+        /// <summary>
         /// Tests the invalid class name
         /// </summary>
         [Test]
@@ -218,19 +232,26 @@ namespace Apache.Ignite.Core.Tests.Cache.Query.Continuous
         /// <summary>
         /// Tests the specified filter.
         /// </summary>
-        private void TestFilter(ICacheEntryEventFilter<int, string> pred)
+        private void TestFilter(ICacheEntryEventFilter<int, string> filter, 
+            IFactory<ICacheEntryEventFilter<int, string>> filterFactory = null)
         {
-            TestFilter(pred, false);
-            TestFilter(pred, true);
+            TestFilter(filter, filterFactory, false);
+            TestFilter(filter, filterFactory, true);
         }
 
         /// <summary>
         /// Tests the specified filter.
         /// </summary>
-        private void TestFilter(ICacheEntryEventFilter<int, string> pred, bool local)
+        private void TestFilter(ICacheEntryEventFilter<int, string> filter, 
+            IFactory<ICacheEntryEventFilter<int, string>> filterFactory, bool local)
         {
             var cache = _ignite.GetOrCreateCache<int, string>("qry");
-            var qry = new ContinuousQuery<int, string>(new QueryListener(), pred, local);
+            var qry = new ContinuousQuery<int, string>(new QueryListener(), local)
+            {
+                Filter = filter,
+                FilterFactory = filterFactory
+            };
+
             var aff = _ignite.GetAffinity("qry");
             var localNode = _ignite.GetCluster().GetLocalNode();
 
