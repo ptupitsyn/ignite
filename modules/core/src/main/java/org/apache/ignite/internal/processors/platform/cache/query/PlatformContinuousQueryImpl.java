@@ -95,6 +95,7 @@ public class PlatformContinuousQueryImpl implements PlatformContinuousQuery, Fac
         this.filter = filter;
         this.isFactory = isFactory;
 
+        // TODO: What do we do with Factory?
         javaFilter = getJavaFilter(filter, platformCtx.kernalContext());
     }
 
