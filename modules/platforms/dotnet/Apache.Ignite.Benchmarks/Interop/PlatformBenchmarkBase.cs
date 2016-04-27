@@ -64,9 +64,12 @@ namespace Apache.Ignite.Benchmarks.Interop
                     "-Xms2g",
                     "-Xmx2g",
                     "-DIGNITE_QUIET=false",
-                    "-DIGNITE_NO_SHUTDOWN_HOOK=true"
+                    "-DIGNITE_NO_SHUTDOWN_HOOK=true",
+                    "-XX:+UnlockCommercialFeatures",
+                    //"-XX:+FlightRecorder",
+                    //"-XX:StartFlightRecording=delay=10s,duration=30s,filename=out.jfr",
                 },
-                JvmClasspath = Classpath ?? Core.Impl.Common.Classpath.CreateClasspath(),
+                JvmClasspath = Classpath ?? Core.Impl.Common.Classpath.CreateClasspath(forceTestClasspath:true),
                 JvmDllPath = DllPath,
                 SpringConfigUrl = ConfigPath
             };

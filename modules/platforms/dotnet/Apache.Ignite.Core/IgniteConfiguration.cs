@@ -188,6 +188,7 @@
             writer.WriteString(WorkDirectory);
             writer.WriteString(Localhost);
             writer.WriteBoolean(IsDaemon);
+            writer.WriteBoolean(IsLateAffinityAssignment);
 
             // Cache config
             var caches = CacheConfiguration;
@@ -290,6 +291,7 @@
             WorkDirectory = r.ReadString();
             Localhost = r.ReadString();
             IsDaemon = r.ReadBoolean();
+            IsLateAffinityAssignment = r.ReadBoolean();
 
             // Cache config
             var cacheCfgCount = r.ReadInt();
