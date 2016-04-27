@@ -10,6 +10,8 @@ rmdir pkg -Force -Recurse
 mkdir nupkg
 mkdir pkg
 
+# TODO: Override version with -nightlyXXX, where XXX is a number of days or something
+
 & $ng pack ..\Apache.Ignite.Core\Apache.Ignite.Core.csproj -Prop Configuration=Release -OutputDirectory nupkg
 & $ng pack ..\Apache.Ignite.Linq\Apache.Ignite.Linq.csproj -Prop Configuration=Release -OutputDirectory nupkg
 
