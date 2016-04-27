@@ -11,11 +11,11 @@ mkdir nupkg
 mkdir pkg
 
 # TODO: Override version with -nightlyXXX, where XXX is a number of days or something
-
-& $ng pack ..\Apache.Ignite.Core\Apache.Ignite.Core.csproj -Prop Configuration=Release -OutputDirectory nupkg
-& $ng pack ..\Apache.Ignite.Linq\Apache.Ignite.Linq.csproj -Prop Configuration=Release -OutputDirectory nupkg
-
 $ver = (Get-ChildItem nupkg\Apache.Ignite.Linq*)[0].Name -replace '\D+([\d.]+)\.\D+','$1'
+
+& $ng pack ..\Apache.Ignite.Core\Apache.Ignite.Core.csproj -Prop Configuration=Release -OutputDirectory nupkg -Version $ver
+& $ng pack ..\Apache.Ignite.Linq\Apache.Ignite.Linq.csproj -Prop Configuration=Release -OutputDirectory nupkg -Version $ver
+
 
 # Replace versions in project files
 (Get-Content packages.config) `
