@@ -21,5 +21,5 @@ $ver = (Get-ChildItem nupkg\Apache.Ignite.Linq*)[0].Name -replace 'Apache\.Ignit
     | Out-File packages.config -Encoding utf8
 
 (Get-Content Apache.Ignite.Core.Tests.NuGet.csproj) `
-    -replace '<HintPath>packages\\Apache.Ignite(.*?)\.[\d.]+\\', ('<HintPath>packages\Apache.Ignite$1.' + "$ver\") `
+    -replace 'packages\\Apache.Ignite(.*?)\.\d.*?\\', ('packages\Apache.Ignite$1.' + "$ver\") `
     | Out-File Apache.Ignite.Core.Tests.NuGet.csproj  -Encoding utf8
