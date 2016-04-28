@@ -1,7 +1,7 @@
 ﻿# Number of days since 4/28/2016
 $buildNum = ([System.DateTime]::Now - [System.DateTime]::FromBinary(-8587399024854775808)).Days
 
-echo "Updating versions to $buildnum-nightly"
+echo "Updating versions to -nightly$buildnum"
 
 Get-ChildItem -Filter AssemblyInfo.cs -Recurse `
     | ForEach-Object {
@@ -10,6 +10,6 @@ Get-ChildItem -Filter AssemblyInfo.cs -Recurse `
         (Get-Content $file) `
             -replace 'AssemblyVersion\("(\d+\.\d+\.\d+).*?"\)', ('AssemblyVersion("$1.' + $buildNum + '")') `
             -replace 'AssemblyFileVersion\("(\d+\.\d+\.\d+).*?"\)', ('AssemblyFileVersion("$1.' + $buildNum + '")') `
-            -replace 'AssemblyInformationalVersion\("(\d+\.\d+\.\d+).*?"\)', ('AssemblyInformationalVersion("$1.' + $buildNum + '-nightly")') `
+            -replace 'AssemblyInformationalVersion\("(\d+\.\d+\.\d+).*?"\)', ('AssemblyInformationalVersion("$1-nightly'+ $buildNum +'")') `
             | Out-File $file -Encoding utf8
       }
