@@ -1,4 +1,5 @@
-﻿$num = 13
+﻿# Number of days since 4/28/2016
+$buildNum = ([System.DateTime]::Now - [System.DateTime]::FromBinary(-8587399024854775808)).Days
 
 [System.IO.Directory]::GetFiles('C:\W\incubator-ignite\modules\platforms\dotnet', "AssemblyInfo.cs", [System.IO.SearchOption]::AllDirectories) `
     | ForEach-Object {
