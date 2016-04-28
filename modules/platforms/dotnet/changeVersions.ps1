@@ -7,5 +7,5 @@ Get-ChildItem -Filter AssemblyInfo.cs -Recurse `
             -replace 'AssemblyVersion\("(\d+\.\d+\.\d+).*?"\)', ('AssemblyVersion("$1.' + $buildNum + '")') `
             -replace 'AssemblyFileVersion\("(\d+\.\d+\.\d+).*?"\)', ('AssemblyFileVersion("$1.' + $buildNum + '")') `
             -replace 'AssemblyInformationalVersion\("(\d+\.\d+\.\d+).*?"\)', ('AssemblyInformationalVersion("$1.' + $buildNum + '-nightly")') `
-            | Out-File $_ -Encoding utf8
+            | Out-File $_.FullName -Encoding utf8
       }
