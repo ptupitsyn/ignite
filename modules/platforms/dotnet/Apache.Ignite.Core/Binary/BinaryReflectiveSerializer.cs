@@ -113,6 +113,12 @@ namespace Apache.Ignite.Core.Binary
             if (type.GetInterface(typeof(IBinarizable).Name) != null)
                 return;
 
+            // TODO: Check for dense struct:
+            // * Is value type
+            // * All fields are serialized
+            // * LayoutKind=Sequential
+            // * Pack=1
+
             List<FieldInfo> fields = new List<FieldInfo>();
 
             Type curType = type;
