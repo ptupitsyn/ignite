@@ -163,19 +163,20 @@ namespace Apache.Ignite.Core.Binary
         /// <summary>
         /// Determines whether specified type is a dense struct:
         /// * Is value type
-        /// * All fields are serialized
         /// * LayoutKind = Sequential
         /// * Pack = 1
+        /// * All fields are dense structs
         /// </summary>
-        private bool IsDenseStruct(Type type)
+        private static bool IsDenseStruct(Type type)
         {
-            // TODO: Recursive field checks
+            if (type.IsPrimitive)
+                return true;
 
             return type.IsValueType
                    && type.IsLayoutSequential
-                   && type.GetCustomAttributes(false).OfType<StructLayoutAttribute>()
-                       .Select(x => x.Pack).FirstOrDefault() == 1
-                   && type.GetFields(Flags).All(x => !x.IsNotSerialized);
+                   && type.StructLayoutAttribute != null
+                   && type.StructLayoutAttribute.Pack == 1
+                   && type.GetFields(Flags).All(x => !x.IsNotSerialized && IsDenseStruct(x.FieldType));
         }
 
         /// <summary>
