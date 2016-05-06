@@ -164,6 +164,7 @@ namespace Apache.Ignite.Core.Binary
 
         /// <summary>
         /// Determines whether specified type is blittable (can be written as a memory copy).
+        /// https://msdn.microsoft.com/en-us/library/75dwhxf7(v=vs.110).aspx
         /// </summary>
         private static bool IsBlittable(Type type)
         {
