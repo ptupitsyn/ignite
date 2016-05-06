@@ -74,8 +74,7 @@ namespace Apache.Ignite.Benchmarks.Binary
 
                 var writer = _marsh.StartMarshal(stream);
 
-                for (int i = 0; i < 100; i++)
-                    writer.Write(_model);
+                writer.Write(_model);
             }
             finally
             {
