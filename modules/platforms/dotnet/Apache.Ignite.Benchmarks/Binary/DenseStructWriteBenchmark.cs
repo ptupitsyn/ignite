@@ -46,7 +46,7 @@ namespace Apache.Ignite.Benchmarks.Binary
             {
                 TypeConfigurations = new List<BinaryTypeConfiguration>
                 {
-                    new BinaryTypeConfiguration(typeof (DenseStruct))
+                    new BinaryTypeConfiguration(typeof (DenseStruct)) { Serializer = new BinaryReflectiveSerializer {RawMode = true} }
                 }
             });
         }
@@ -87,6 +87,7 @@ namespace Apache.Ignite.Benchmarks.Binary
             public readonly int _int;
             public readonly long _long;
             public readonly decimal _decimal;
+            public readonly double _double;
 
             public DenseStruct(bool b, int i, long l, decimal d)
             {
@@ -94,6 +95,7 @@ namespace Apache.Ignite.Benchmarks.Binary
                 _int = i;
                 _long = l;
                 _decimal = d;
+                _double = l;
             }
         }
     }
