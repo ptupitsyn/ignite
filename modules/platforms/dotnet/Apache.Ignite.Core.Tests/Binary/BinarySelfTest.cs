@@ -1114,6 +1114,10 @@ namespace Apache.Ignite.Core.Tests.Binary
                         new BinaryTypeConfiguration(typeof (ReflectiveStruct))
                         {
                             Serializer = new BinaryReflectiveSerializer {RawMode = raw}
+                        },
+                        new BinaryTypeConfiguration(typeof (DenseStruct))
+                        {
+                            Serializer = new BinaryReflectiveSerializer {RawMode = raw}
                         }
                     }
             });
