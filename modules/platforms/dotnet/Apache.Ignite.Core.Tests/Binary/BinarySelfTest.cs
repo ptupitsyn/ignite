@@ -30,6 +30,7 @@ namespace Apache.Ignite.Core.Tests.Binary
     using System.IO;
     using System.Linq;
     using System.Reflection;
+    using System.Runtime.InteropServices;
     using Apache.Ignite.Core.Binary;
     using Apache.Ignite.Core.Common;
     using Apache.Ignite.Core.Impl.Binary;
@@ -43,7 +44,8 @@ namespace Apache.Ignite.Core.Tests.Binary
     /// Binary tests.
     /// </summary>
     [TestFixture]
-    public class BinarySelfTest { 
+    public class BinarySelfTest
+    { 
         /** */
         private Marshaller _marsh;
 
@@ -1118,8 +1120,11 @@ namespace Apache.Ignite.Core.Tests.Binary
 
             var obj = new ReflectiveStruct(15, 28.8);
             var res = marsh.Unmarshal<ReflectiveStruct>(marsh.Marshal(obj));
-
             Assert.AreEqual(res, obj);
+
+            var denseObj = new DenseStruct(56, float.MaxValue, -98);
+            var denseRes = marsh.Unmarshal<DenseStruct>(marsh.Marshal(denseObj));
+            Assert.AreEqual(denseRes, denseObj);
         }
 
         /**
@@ -2500,6 +2505,68 @@ namespace Apache.Ignite.Core.Tests.Binary
             }
 
             public static bool operator !=(ReflectiveStruct left, ReflectiveStruct right)
+            {
+                return !left.Equals(right);
+            }
+        }
+
+        [StructLayout(LayoutKind.Sequential, Pack = 1)]
+        private struct DenseStruct
+        {
+            private readonly int _int;
+            private readonly float _float;
+            private readonly short _short;
+
+            public DenseStruct(int i, float f, short s)
+            {
+                _int = i;
+                _float = f;
+                _short = s;
+            }
+
+            public int I
+            {
+                get { return _int; }
+            }
+
+            public float F
+            {
+                get { return _float; }
+            }
+
+            public short S
+            {
+                get { return _short; }
+            }
+
+            public bool Equals(DenseStruct other)
+            {
+                return _int == other._int && _float.Equals(other._float) && _short == other._short;
+            }
+
+            public override bool Equals(object obj)
+            {
+                if (ReferenceEquals(null, obj)) return false;
+                return obj is DenseStruct && Equals((DenseStruct) obj);
+            }
+
+            public override int GetHashCode()
+            {
+                unchecked
+                {
+                    var hashCode = _int;
+                    hashCode = (hashCode*397) ^ _float.GetHashCode();
+                    hashCode = (hashCode*397) ^ _short.GetHashCode();
+                    return hashCode;
+                }
+            }
+
+            public static bool operator ==(DenseStruct left, DenseStruct right)
+            {
+                return left.Equals(right);
+            }
+
+            public static bool operator !=(DenseStruct left, DenseStruct right)
             {
                 return !left.Equals(right);
             }
