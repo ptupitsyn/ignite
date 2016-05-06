@@ -255,9 +255,17 @@ namespace Apache.Ignite.Core.Binary
                     {
                         unsafe
                         {
-                            var bytes = stackalloc byte[size];
-                            Marshal.StructureToPtr(obj, (IntPtr) bytes, false);
-                            ((BinaryWriter)writer).Stream.Write(bytes, size);
+                            // TODO: What is faster - marshal or GCHandle? 
+
+                            //var bytes = stackalloc byte[size];
+                            //Marshal.StructureToPtr(obj, (IntPtr) bytes, false);
+                            //((BinaryWriter)writer).Stream.Write(bytes, size);
+
+                            var handle = GCHandle.Alloc(obj, GCHandleType.Pinned);
+                            var pointer = (byte*) handle.AddrOfPinnedObject();
+                            ((BinaryWriter) writer).Stream.Write(pointer, size);
+                            handle.Free();
+
                         }
                     }
                 };
