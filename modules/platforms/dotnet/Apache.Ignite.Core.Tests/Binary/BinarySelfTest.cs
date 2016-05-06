@@ -2528,21 +2528,6 @@ namespace Apache.Ignite.Core.Tests.Binary
                 _short = s;
             }
 
-            public int I
-            {
-                get { return _int; }
-            }
-
-            public float F
-            {
-                get { return _float; }
-            }
-
-            public short S
-            {
-                get { return _short; }
-            }
-
             public bool Equals(DenseStruct other)
             {
                 return _int == other._int && _float.Equals(other._float) && _short == other._short;

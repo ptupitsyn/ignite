@@ -44,6 +44,7 @@
     <Compile Include="BenchmarkRunner.cs" />
     <Compile Include="BenchmarkState.cs" />
     <Compile Include="BenchmarkUtils.cs" />
+    <Compile Include="Binary\DenseStructWriteBenchmark.cs" />
     <Compile Include="Interop\PlatformBenchmarkBase.cs" />
     <Compile Include="Interop\ClosureBenchmark.cs" />
     <Compile Include="Interop\GetAsyncBenchmark.cs" />
