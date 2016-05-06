@@ -19,9 +19,9 @@ namespace Apache.Ignite.Core.Binary
 {
     using System;
     using System.Collections.Generic;
+    using System.Diagnostics;
     using System.Linq;
     using System.Reflection;
-    using System.Runtime.InteropServices;
     using Apache.Ignite.Core.Impl.Binary;
 
     /// <summary>
@@ -117,7 +117,8 @@ namespace Apache.Ignite.Core.Binary
 
             if (IsDenseStruct(type) && RawMode)
             {
-                // TODO
+                _types[type] = new Descriptor(type);
+                return;
             }
 
             List<FieldInfo> fields = new List<FieldInfo>();
@@ -238,6 +239,18 @@ namespace Apache.Ignite.Core.Binary
             }
 
             /// <summary>
+            /// Initializes a new instance of the <see cref="Descriptor"/> class.
+            /// </summary>
+            /// <param name="denseStructType">Type of the dense structure.</param>
+            public Descriptor(Type denseStructType)
+            {
+                Debug.Assert(denseStructType != null);
+
+                _wActions = new List<BinaryReflectiveWriteAction>(1) {WriteDenseStruct};
+                _rActions = new List<BinaryReflectiveReadAction>(1) {ReadDenseStruct};
+            }
+
+            /// <summary>
             /// Write object.
             /// </summary>
             /// <param name="obj">Object.</param>
@@ -261,6 +274,16 @@ namespace Apache.Ignite.Core.Binary
 
                 for (int i = 0; i < cnt; i++ )
                     _rActions[i](obj, reader);
+            }
+
+            private void WriteDenseStruct(object obj, IBinaryWriter writer)
+            {
+                // TODO
+            }
+
+            private void ReadDenseStruct(object obj, IBinaryReader writer)
+            {
+                // TODO
             }
         }
     }
