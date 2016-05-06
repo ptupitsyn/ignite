@@ -19,7 +19,9 @@ namespace Apache.Ignite.Core.Binary
 {
     using System;
     using System.Collections.Generic;
+    using System.Linq;
     using System.Reflection;
+    using System.Runtime.InteropServices;
     using Apache.Ignite.Core.Impl.Binary;
 
     /// <summary>
@@ -113,12 +115,6 @@ namespace Apache.Ignite.Core.Binary
             if (type.GetInterface(typeof(IBinarizable).Name) != null)
                 return;
 
-            // TODO: Check for dense struct:
-            // * Is value type
-            // * All fields are serialized
-            // * LayoutKind=Sequential
-            // * Pack=1
-
             List<FieldInfo> fields = new List<FieldInfo>();
 
             Type curType = type;
@@ -157,6 +153,22 @@ namespace Apache.Ignite.Core.Binary
             Descriptor desc = new Descriptor(fields, _rawMode);
 
             _types[type] = desc;
+        }
+
+        /// <summary>
+        /// Determines whether specified type is a dense struct:
+        /// * Is value type
+        /// * All fields are serialized
+        /// * LayoutKind = Sequential
+        /// * Pack = 1
+        /// </summary>
+        private bool IsDenseStruct(Type type)
+        {
+            return type.IsValueType
+                   && type.IsLayoutSequential
+                   && type.GetCustomAttributes(false).OfType<StructLayoutAttribute>()
+                       .Select(x => x.Pack).FirstOrDefault() == 1
+                   && type.GetFields(Flags).All(x => !x.IsNotSerialized);
         }
 
         /// <summary>
