@@ -97,7 +97,7 @@ namespace Apache.Ignite.Core.Binary
         /// <exception cref="BinaryObjectException">Type is not registered in serializer:  + type.Name</exception>
         public void ReadBinary(object obj, IBinaryReader reader)
         {
-            var binarizable = obj as IBinarizable;
+            var binarizable = obj as IBinarizable;  // TODO: Wtf? This should be checked before using Reflective serializer
             
             if (binarizable != null)
                 binarizable.ReadBinary(reader);
@@ -170,6 +170,7 @@ namespace Apache.Ignite.Core.Binary
         {
             // TODO: Move all this logic to a separate serializer
             // TODO: Use serializers with generic parameters (15% faster) - wrap user-defined serializers in generics
+            // TODO: Compile typed serializer
 
             try
             {
