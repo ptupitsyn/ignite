@@ -66,7 +66,7 @@ namespace Apache.Ignite.Core.Binary
             set
             {
                 if (_types.Count > 0)
-                    throw new InvalidOperationException(typeof (BinarizableSerializer).Name +
+                    throw new InvalidOperationException(GetType().Name +
                         ".RawMode cannot be changed after first serialization.");
 
                 _rawMode = value;
