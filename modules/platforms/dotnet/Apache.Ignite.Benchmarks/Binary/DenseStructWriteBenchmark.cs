@@ -89,14 +89,12 @@ namespace Apache.Ignite.Benchmarks.Binary
             public readonly int _int;
             public readonly long _long;
             public readonly double _double;
-            public readonly decimal _decimal;
 
             public DenseStruct(int i)
             {
                 _int = i;
                 _long = i;
                 _double = i;
-                _decimal = i;
             }
         }
     }
