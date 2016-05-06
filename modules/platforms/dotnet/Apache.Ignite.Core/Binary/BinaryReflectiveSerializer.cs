@@ -115,6 +115,11 @@ namespace Apache.Ignite.Core.Binary
             if (type.GetInterface(typeof(IBinarizable).Name) != null)
                 return;
 
+            if (IsDenseStruct(type) && RawMode)
+            {
+                // TODO
+            }
+
             List<FieldInfo> fields = new List<FieldInfo>();
 
             Type curType = type;
@@ -164,6 +169,8 @@ namespace Apache.Ignite.Core.Binary
         /// </summary>
         private bool IsDenseStruct(Type type)
         {
+            // TODO: Recursive field checks
+
             return type.IsValueType
                    && type.IsLayoutSequential
                    && type.GetCustomAttributes(false).OfType<StructLayoutAttribute>()
