@@ -268,9 +268,10 @@ namespace Apache.Ignite.Core.Binary
                     {
                         unsafe
                         {
-                            var bytes = stackalloc byte[size];
-                            ((BinaryReader) reader).Stream.Read(bytes, size);
-                            Marshal.PtrToStructure((IntPtr) bytes, obj);
+                            var handle = GCHandle.Alloc(obj, GCHandleType.Pinned);
+                            var pointer = (byte*) handle.AddrOfPinnedObject();
+                            ((BinaryReader) reader).Stream.Read(pointer, size);
+                            handle.Free();
                         }
                     }
                 };
