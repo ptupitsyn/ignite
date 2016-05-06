@@ -22,6 +22,7 @@ namespace Apache.Ignite.Core.Binary
     using System.Diagnostics;
     using System.Linq;
     using System.Reflection;
+    using System.Runtime.InteropServices;
     using Apache.Ignite.Core.Impl.Binary;
 
     /// <summary>
@@ -246,8 +247,33 @@ namespace Apache.Ignite.Core.Binary
             {
                 Debug.Assert(denseStructType != null);
 
-                _wActions = new List<BinaryReflectiveWriteAction>(1) {WriteDenseStruct};
-                _rActions = new List<BinaryReflectiveReadAction>(1) {ReadDenseStruct};
+                var size = Marshal.SizeOf(denseStructType);
+
+                _wActions = new List<BinaryReflectiveWriteAction>(1)
+                {
+                    (obj, writer) =>
+                    {
+                        unsafe
+                        {
+                            var bytes = stackalloc byte[size];
+                            Marshal.StructureToPtr(obj, (IntPtr) bytes, false);
+                            ((BinaryWriter)writer).Stream.Write(bytes, size);
+                        }
+                    }
+                };
+
+                _rActions = new List<BinaryReflectiveReadAction>(1)
+                {
+                    (obj, reader) =>
+                    {
+                        unsafe
+                        {
+                            var bytes = stackalloc byte[size];
+                            ((BinaryReader) reader).Stream.Read(bytes, size);
+                            Marshal.PtrToStructure((IntPtr) bytes, obj);
+                        }
+                    }
+                };
             }
 
             /// <summary>
@@ -274,16 +300,6 @@ namespace Apache.Ignite.Core.Binary
 
                 for (int i = 0; i < cnt; i++ )
                     _rActions[i](obj, reader);
-            }
-
-            private void WriteDenseStruct(object obj, IBinaryWriter writer)
-            {
-                // TODO
-            }
-
-            private void ReadDenseStruct(object obj, IBinaryReader writer)
-            {
-                // TODO
             }
         }
     }
