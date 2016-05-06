@@ -58,7 +58,6 @@ namespace Apache.Ignite.Benchmarks.Binary
         protected override void GetDescriptors(ICollection<BenchmarkOperationDescriptor> descs)
         {
             descs.Add(BenchmarkOperationDescriptor.Create("WriteStruct", WriteStruct, 1));
-            //descs.Add(BenchmarkOperationDescriptor.Create("WriteTestModel", WriteTestModel, 1));
         }
 
         /// <summary>

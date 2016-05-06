@@ -35,7 +35,7 @@ namespace Apache.Ignite.Benchmarks
         public static void Main(string[] args)
         {
             args = new[] { 
-                typeof(BinarizableReadBenchmark).FullName,
+                typeof(DenseStructWriteBenchmark).FullName,
                 "-ConfigPath", @"modules\platforms\dotnet\Apache.Ignite.Benchmarks\Config\benchmark.xml",
                 "-Threads", "1",
                 "-Warmup", "0",
