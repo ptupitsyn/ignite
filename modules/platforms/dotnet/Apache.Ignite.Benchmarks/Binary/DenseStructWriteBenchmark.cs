@@ -35,7 +35,7 @@ namespace Apache.Ignite.Benchmarks.Binary
         private readonly PlatformMemoryManager _memMgr = new PlatformMemoryManager(1024);
 
         /** Pre-allocated model. */
-        private readonly DenseStruct _model = new DenseStruct(true, 567, 895, (decimal) 1.456);
+        private readonly DenseStruct _model = new DenseStruct(567);
 
         /// <summary>
         /// Initializes a new instance of the <see cref="BinarizableWriteBenchmark"/> class.
@@ -72,7 +72,10 @@ namespace Apache.Ignite.Benchmarks.Binary
             {
                 var stream = mem.GetStream();
 
-                _marsh.StartMarshal(stream).Write(_model);
+                var writer = _marsh.StartMarshal(stream);
+
+                for (int i = 0; i < 100; i++)
+                    writer.Write(_model);
             }
             finally
             {
@@ -83,19 +86,17 @@ namespace Apache.Ignite.Benchmarks.Binary
         [StructLayout(LayoutKind.Sequential, Pack = 1)]
         private struct DenseStruct
         {
-            public readonly bool _bool;
             public readonly int _int;
             public readonly long _long;
-            public readonly decimal _decimal;
             public readonly double _double;
+            public readonly decimal _decimal;
 
-            public DenseStruct(bool b, int i, long l, decimal d)
+            public DenseStruct(int i)
             {
-                _bool = b;
                 _int = i;
-                _long = l;
-                _decimal = d;
-                _double = l;
+                _long = i;
+                _double = i;
+                _decimal = i;
             }
         }
     }

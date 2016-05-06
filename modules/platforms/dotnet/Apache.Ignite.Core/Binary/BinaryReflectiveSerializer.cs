@@ -20,9 +20,9 @@ namespace Apache.Ignite.Core.Binary
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
-    using System.Linq;
     using System.Reflection;
     using System.Runtime.InteropServices;
+    using System.Runtime.Serialization;
     using Apache.Ignite.Core.Impl.Binary;
 
     /// <summary>
@@ -116,7 +116,7 @@ namespace Apache.Ignite.Core.Binary
             if (type.GetInterface(typeof(IBinarizable).Name) != null)
                 return;
 
-            if (IsDenseStruct(type) && RawMode)
+            if (IsBlittable(type) && RawMode)
             {
                 _types[type] = new Descriptor(type);
                 return;
@@ -163,22 +163,29 @@ namespace Apache.Ignite.Core.Binary
         }
 
         /// <summary>
-        /// Determines whether specified type is a dense struct:
-        /// * Is value type
-        /// * LayoutKind = Sequential
-        /// * Pack = 1
-        /// * All fields are dense structs
+        /// Determines whether specified type is blittable (can be written as a memory copy).
         /// </summary>
-        private static bool IsDenseStruct(Type type)
+        private static bool IsBlittable(Type type)
         {
-            if (type.IsPrimitive)
+            try
+            {
+                var instance = FormatterServices.GetUninitializedObject(type);
+                GCHandle.Alloc(instance, GCHandleType.Pinned).Free();
                 return true;
+            }
+            catch
+            {
+                return false;
+            }
 
-            return type.IsValueType
-                   && type.IsLayoutSequential
-                   && type.StructLayoutAttribute != null
-                   && type.StructLayoutAttribute.Pack == 1
-                   && type.GetFields(Flags).All(x => !x.IsNotSerialized && IsDenseStruct(x.FieldType));
+            //if (type.IsPrimitive)
+            //    return true;
+
+            //return type.IsValueType
+            //       && type.IsLayoutSequential
+            //       && type.StructLayoutAttribute != null
+            //       && type.StructLayoutAttribute.Pack == 1
+            //       && type.GetFields(Flags).All(x => !x.IsNotSerialized && IsDenseStruct(x.FieldType));
         }
 
         /// <summary>
@@ -242,12 +249,12 @@ namespace Apache.Ignite.Core.Binary
             /// <summary>
             /// Initializes a new instance of the <see cref="Descriptor"/> class.
             /// </summary>
-            /// <param name="denseStructType">Type of the dense structure.</param>
-            public Descriptor(Type denseStructType)
+            /// <param name="blittableType">Type of the dense structure.</param>
+            public Descriptor(Type blittableType)
             {
-                Debug.Assert(denseStructType != null);
+                Debug.Assert(blittableType != null);
 
-                var size = Marshal.SizeOf(denseStructType);
+                var size = Marshal.SizeOf(blittableType);
 
                 _wActions = new List<BinaryReflectiveWriteAction>(1)
                 {
