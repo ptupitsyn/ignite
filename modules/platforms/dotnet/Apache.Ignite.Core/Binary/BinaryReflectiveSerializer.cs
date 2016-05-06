@@ -168,6 +168,9 @@ namespace Apache.Ignite.Core.Binary
         /// </summary>
         private static bool IsBlittable(Type type)
         {
+            // TODO: Move all this logic to a separate serializer
+            // TODO: Use serializers with generic parameters (15% faster) - wrap user-defined serializers in generics
+
             try
             {
                 var instance = FormatterServices.GetUninitializedObject(type);
