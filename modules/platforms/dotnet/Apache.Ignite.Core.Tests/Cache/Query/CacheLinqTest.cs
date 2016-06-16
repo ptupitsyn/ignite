@@ -843,6 +843,8 @@ namespace Apache.Ignite.Core.Tests.Cache.Query
         {
             var cache = GetPersonCache().AsCacheQueryable();
 
+            // TODO: Test Take and other aggregates, joins, etc
+
             // const args are not allowed
             Assert.Throws<InvalidOperationException>(() => CompiledQuery.Compile(() => cache.Where(x => x.Key < 5)));
 
