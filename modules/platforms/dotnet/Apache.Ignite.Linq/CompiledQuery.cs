@@ -21,6 +21,7 @@ namespace Apache.Ignite.Linq
     using System.Diagnostics;
     using System.Diagnostics.CodeAnalysis;
     using System.Linq;
+    using System.Linq.Expressions;
     using Apache.Ignite.Core.Cache.Query;
     using Apache.Ignite.Core.Impl.Common;
     using Apache.Ignite.Linq.Impl;
@@ -65,14 +66,16 @@ namespace Apache.Ignite.Linq
         /// <summary>
         /// Creates a new delegate that represents the compiled cache query.
         /// </summary>
-        /// <param name="query">The query to compile.</param>
+        /// <param name="query0">The query to compile.</param>
         /// <returns>Delegate that represents the compiled cache query.</returns>
         [SuppressMessage("Microsoft.Design", "CA1062:Validate arguments of public methods", MessageId = "0", 
             Justification = "Invalid warning, validation is present.")]
-        public static Func<T1, T2, IQueryCursor<T>> Compile<T, T1, T2>(Func<T1, T2, 
-            IQueryable<T>> query)
+        public static Func<T1, T2, IQueryCursor<T>> Compile<T, T1, T2>(Expression<Func<T1, T2, 
+            IQueryable<T>>> query0)
         {
-            IgniteArgumentCheck.NotNull(query, "query");
+            IgniteArgumentCheck.NotNull(query0, "query");
+
+            var query = query0.Compile();
 
             var compiledQuery = GetCompiledQuery(query(default(T1), default(T2)), query);
 

@@ -867,6 +867,10 @@ namespace Apache.Ignite.Core.Tests.Cache.Query
             var qry1 = CompiledQuery.Compile((int k) => cache.Where(x => x.Key < k));
             Assert.AreEqual(3, qry1(3).ToArray().Length);
 
+            // 1 arg twice
+            var qry1T = CompiledQuery.Compile((int k) => cache.Where(x => x.Key < k && x.Value.Age < k));
+            Assert.AreEqual(3, qry1T(3).ToArray().Length);
+
             // 2 arg
             var qry2 =
                 CompiledQuery.Compile((int i, string s) => cache.Where(x => x.Key < i && x.Value.Name.StartsWith(s)));
