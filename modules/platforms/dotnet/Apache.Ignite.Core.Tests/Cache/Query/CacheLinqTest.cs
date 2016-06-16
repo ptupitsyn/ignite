@@ -844,7 +844,7 @@ namespace Apache.Ignite.Core.Tests.Cache.Query
             // TODO: Test Take and other aggregates, joins, etc
             var cache = GetPersonCache().AsCacheQueryable();
 
-            var qry0 = CompiledQuery.Compile((int minKey, int take) => cache.Where(x => x.Key > minKey).Take(take));
+            var qry0 = CompiledQuery.CompileEx((int minKey, int take) => cache.Where(x => x.Key > minKey).Take(take));
             Assert.AreEqual(3, qry0(-1, 3).GetAll().Count);
         }
 
@@ -873,12 +873,12 @@ namespace Apache.Ignite.Core.Tests.Cache.Query
 
             // 2 arg
             var qry2 =
-                CompiledQuery.Compile((int i, string s) => cache.Where(x => x.Key < i && x.Value.Name.StartsWith(s)));
+                CompiledQuery.CompileEx((int i, string s) => cache.Where(x => x.Key < i && x.Value.Name.StartsWith(s)));
             Assert.AreEqual(5, qry2(5, " Pe").ToArray().Length);
 
             // Changed param order
             var qry2R =
-                CompiledQuery.Compile((string s, int i) => cache.Where(x => x.Key < i && x.Value.Name.StartsWith(s)));
+                CompiledQuery.CompileEx((string s, int i) => cache.Where(x => x.Key < i && x.Value.Name.StartsWith(s)));
             Assert.AreEqual(5, qry2R(" Pe", 5).ToArray().Length);
 
             // 3 arg
