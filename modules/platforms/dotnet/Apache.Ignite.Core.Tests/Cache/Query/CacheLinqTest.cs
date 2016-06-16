@@ -844,8 +844,8 @@ namespace Apache.Ignite.Core.Tests.Cache.Query
             // TODO: Test Take and other aggregates, joins, etc
             var cache = GetPersonCache().AsCacheQueryable();
 
-            var qry0 = CompiledQuery.Compile((int x) => cache.Take(x));
-            Assert.AreEqual(3, qry0(3).GetAll().Count);
+            var qry0 = CompiledQuery.Compile((int minKey, int take) => cache.Where(x => x.Key > minKey).Take(take));
+            Assert.AreEqual(3, qry0(-1, 3).GetAll().Count);
         }
 
         /// <summary>
