@@ -836,14 +836,25 @@ namespace Apache.Ignite.Core.Tests.Cache.Query
         }
 
         /// <summary>
-        /// Tests the compiled query.
+        /// Tests the compiled query with various constructs.
         /// </summary>
         [Test]
         public void TestCompiledQuery()
         {
+            // TODO: Test Take and other aggregates, joins, etc
             var cache = GetPersonCache().AsCacheQueryable();
 
-            // TODO: Test Take and other aggregates, joins, etc
+            var qry0 = CompiledQuery.Compile((int x) => cache.Take(x));
+            Assert.AreEqual(3, qry0(3).GetAll().Count);
+        }
+
+        /// <summary>
+        /// Tests the compiled query overloads.
+        /// </summary>
+        [Test]
+        public void TestCompiledQueryOverloads()
+        {
+            var cache = GetPersonCache().AsCacheQueryable();
 
             // const args are not allowed
             Assert.Throws<InvalidOperationException>(() => CompiledQuery.Compile(() => cache.Where(x => x.Key < 5)));
