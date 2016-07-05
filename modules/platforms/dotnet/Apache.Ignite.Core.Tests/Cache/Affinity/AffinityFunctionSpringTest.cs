@@ -87,7 +87,7 @@ namespace Apache.Ignite.Core.Tests.Cache.Affinity
             Assert.AreEqual(3, aff.GetPartition(4));
         }
 
-        private class TestFunc   // [Serializable] is not necessary
+        private class TestFunc : IAffinityFunction   // [Serializable] is not necessary
         {
             [InstanceResource]
             private readonly IIgnite _ignite = null;
