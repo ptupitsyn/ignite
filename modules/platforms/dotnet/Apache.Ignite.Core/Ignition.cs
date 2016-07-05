@@ -31,6 +31,7 @@ namespace Apache.Ignite.Core
     using Apache.Ignite.Core.Impl;
     using Apache.Ignite.Core.Impl.Binary;
     using Apache.Ignite.Core.Impl.Binary.IO;
+    using Apache.Ignite.Core.Impl.Cache.Affinity;
     using Apache.Ignite.Core.Impl.Common;
     using Apache.Ignite.Core.Impl.Handle;
     using Apache.Ignite.Core.Impl.Memory;
@@ -318,7 +319,10 @@ namespace Apache.Ignite.Core
             var writer = reader.Marshaller.StartMarshal(outStream);
 
             for (var i = 0; i < cnt; i++)
-                writer.WriteInt(CreateObject<IAffinityFunction>(reader).Partitions);
+            {
+                var objHolder = new ObjectInfoHolder(reader);
+                AffinityFunctionSerializer.Write(writer, objHolder.CreateInstance<IAffinityFunction>(), objHolder);
+            }
         }
 
         /// <summary>
