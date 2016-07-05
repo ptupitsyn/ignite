@@ -37,7 +37,7 @@ namespace Apache.Ignite.Core.Tests.Cache.Affinity
         /// <summary>
         /// Initializes a new instance of the <see cref="AffinityFunctionSpringTest"/> class.
         /// </summary>
-        public AffinityFunctionSpringTest() : base(3, 
+        public AffinityFunctionSpringTest() : base(6, 
             "config\\cache\\affinity\\affinity-function.xml",
             "config\\cache\\affinity\\affinity-function2.xml")
         {
