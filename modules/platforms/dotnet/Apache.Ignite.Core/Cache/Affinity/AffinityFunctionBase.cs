@@ -19,31 +19,40 @@ namespace Apache.Ignite.Core.Cache.Affinity
 {
     using System;
     using System.Collections.Generic;
-    using Apache.Ignite.Core.Cache.Affinity.Fair;
-    using Apache.Ignite.Core.Cache.Affinity.Rendezvous;
+    using System.ComponentModel;
     using Apache.Ignite.Core.Cluster;
+    using Apache.Ignite.Core.Common;
 
     /// <summary>
-    /// Represents a function that maps cache keys to cluster nodes.
-    /// <para />
-    /// Predefined implementations: 
-    /// <see cref="RendezvousAffinityFunction"/>, <see cref="FairAffinityFunction"/>.
+    /// Base class for predefined affinity functions.
     /// </summary>
-    public interface IAffinityFunction
+    [Serializable]
+    public abstract class AffinityFunctionBase : IAffinityFunction
     {
+        /// <summary> The default value for <see cref="Partitions"/> property. </summary>
+        public const int DefaultPartitions = 1024;
+
+        /** */
+        private int _partitions = DefaultPartitions;
+
+        /** */
+        private IAffinityFunction _baseFunction;
+
+
         /// <summary>
-        /// Gets the total number of partitions.
-        /// <para />
-        /// All caches should always provide correct partition count which should be the same on all 
-        /// participating nodes. Note that partitions should always be numbered from 0 inclusively 
-        /// to N exclusively without any gaps.
+        /// Gets or sets the total number of partitions.
         /// </summary>
-        int Partitions { get; }
+        [DefaultValue(DefaultPartitions)]
+        public virtual int Partitions
+        {
+            get { return _partitions; }
+            set { _partitions = value; }
+        }
 
         /// <summary>
         /// Gets partition number for a given key starting from 0. Partitioned caches
         /// should make sure that keys are about evenly distributed across all partitions
-        /// from 0 to <see cref="Partitions"/> for best performance.
+        /// from 0 to <see cref="Partitions" /> for best performance.
         /// <para />
         /// Note that for fully replicated caches it is possible to segment key sets among different
         /// grid node groups. In that case each node group should return a unique partition
@@ -52,15 +61,27 @@ namespace Apache.Ignite.Core.Cache.Affinity
         /// to another.
         /// </summary>
         /// <param name="key">Key to get partition for.</param>
-        /// <returns>Partition number for a given key.</returns>
-        int GetPartition(object key);
+        /// <returns>
+        /// Partition number for a given key.
+        /// </returns>
+        public virtual int GetPartition(object key)
+        {
+            ThrowIfUninitialized();
+
+            return _baseFunction.GetPartition(key);
+        }
 
         /// <summary>
-        /// Removes node from affinity. This method is called when it is safe to remove 
+        /// Removes node from affinity. This method is called when it is safe to remove
         /// disconnected node from affinity mapping.
         /// </summary>
         /// <param name="nodeId">The node identifier.</param>
-        void RemoveNode(Guid nodeId);
+        public virtual void RemoveNode(Guid nodeId)
+        {
+            ThrowIfUninitialized();
+
+            _baseFunction.RemoveNode(nodeId);
+        }
 
         /// <summary>
         /// Gets affinity nodes for a partition. In case of replicated cache, all returned
@@ -77,6 +98,42 @@ namespace Apache.Ignite.Core.Cache.Affinity
         /// A collection of partitions, where each partition is a collection of nodes,
         /// where first node is a primary node, and other nodes are backup nodes.
         /// </returns>
-        IEnumerable<IEnumerable<IClusterNode>> AssignPartitions(AffinityFunctionContext context);
+        public virtual IEnumerable<IEnumerable<IClusterNode>> AssignPartitions(AffinityFunctionContext context)
+        {
+            ThrowIfUninitialized();
+
+            return _baseFunction.AssignPartitions(context);
+        }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether to exclude same-host-neighbors from being backups of each other.
+        /// </summary>
+        public virtual bool ExcludeNeighbors { get; set; }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="AffinityFunctionBase"/> class.
+        /// </summary>
+        internal AffinityFunctionBase()
+        {
+            // No-op.
+        }
+
+        /// <summary>
+        /// Sets the base function.
+        /// </summary>
+        /// <param name="baseFunc">The base function.</param>
+        internal void SetBaseFunction(IAffinityFunction baseFunc)
+        {
+            _baseFunction = baseFunc;
+        }
+
+        /// <summary>
+        /// Gets the direct usage error.
+        /// </summary>
+        private void ThrowIfUninitialized()
+        {
+            if (_baseFunction == null)
+                throw new IgniteException(GetType() + " has not yet been initialized.");
+        }
     }
 }
