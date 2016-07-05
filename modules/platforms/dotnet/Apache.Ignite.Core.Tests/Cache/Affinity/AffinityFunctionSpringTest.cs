@@ -37,7 +37,7 @@ namespace Apache.Ignite.Core.Tests.Cache.Affinity
         /// <summary>
         /// Initializes a new instance of the <see cref="AffinityFunctionSpringTest"/> class.
         /// </summary>
-        public AffinityFunctionSpringTest() : base(6, 
+        public AffinityFunctionSpringTest() : base(6,
             "config\\cache\\affinity\\affinity-function.xml",
             "config\\cache\\affinity\\affinity-function2.xml")
         {
@@ -50,10 +50,10 @@ namespace Apache.Ignite.Core.Tests.Cache.Affinity
         [Test]
         public void TestStaticCache()
         {
-            ValidateAffinityFunction(Grid.GetCache<int, int>("cache1"));
-            ValidateAffinityFunction(Grid2.GetCache<int, int>("cache1"));
-            ValidateAffinityFunction(Grid.GetCache<int, int>("cache2"));
-            ValidateAffinityFunction(Grid2.GetCache<int, int>("cache2"));
+            ValidateAffinityFunction(Grid.GetCache<long, int>("cache1"));
+            ValidateAffinityFunction(Grid2.GetCache<long, int>("cache1"));
+            ValidateAffinityFunction(Grid.GetCache<long, int>("cache2"));
+            ValidateAffinityFunction(Grid2.GetCache<long, int>("cache2"));
         }
 
         /// <summary>
@@ -62,29 +62,36 @@ namespace Apache.Ignite.Core.Tests.Cache.Affinity
         [Test]
         public void TestDynamicCache()
         {
-            ValidateAffinityFunction(Grid.CreateCache<int, int>("dyn-cache-1"));
-            ValidateAffinityFunction(Grid2.GetCache<int, int>("dyn-cache-1"));
+            ValidateAffinityFunction(Grid.CreateCache<long, int>("dyn-cache-1"));
+            ValidateAffinityFunction(Grid2.GetCache<long, int>("dyn-cache-1"));
 
-            ValidateAffinityFunction(Grid2.CreateCache<int, int>("dyn-cache-2"));
-            ValidateAffinityFunction(Grid.GetCache<int, int>("dyn-cache-2"));
+            ValidateAffinityFunction(Grid2.CreateCache<long, int>("dyn-cache-2"));
+            ValidateAffinityFunction(Grid.GetCache<long, int>("dyn-cache-2"));
 
-            ValidateAffinityFunction(Grid.CreateCache<int, int>("dyn-cache2-1"));
-            ValidateAffinityFunction(Grid2.GetCache<int, int>("dyn-cache2-1"));
+            ValidateAffinityFunction(Grid.CreateCache<long, int>("dyn-cache2-1"));
+            ValidateAffinityFunction(Grid2.GetCache<long, int>("dyn-cache2-1"));
 
-            ValidateAffinityFunction(Grid2.CreateCache<int, int>("dyn-cache2-2"));
-            ValidateAffinityFunction(Grid.GetCache<int, int>("dyn-cache2-2"));
+            ValidateAffinityFunction(Grid2.CreateCache<long, int>("dyn-cache2-2"));
+            ValidateAffinityFunction(Grid.GetCache<long, int>("dyn-cache2-2"));
         }
 
         /// <summary>
         /// Validates the affinity function.
         /// </summary>
         /// <param name="cache">The cache.</param>
-        private static void ValidateAffinityFunction(ICache<int, int> cache)
+        private static void ValidateAffinityFunction(ICache<long, int> cache)
         {
             var aff = cache.Ignite.GetAffinity(cache.Name);
+
             Assert.AreEqual(5, aff.Partitions);
-            Assert.AreEqual(4, aff.GetPartition(2));
-            Assert.AreEqual(3, aff.GetPartition(4));
+
+            // Predefined map
+            Assert.AreEqual(2, aff.GetPartition(1L));
+            Assert.AreEqual(1, aff.GetPartition(2L));
+
+            // Other keys
+            Assert.AreEqual(1, aff.GetPartition(13L));
+            Assert.AreEqual(3, aff.GetPartition(4L));
         }
 
         private class TestFunc : IAffinityFunction   // [Serializable] is not necessary
@@ -107,7 +114,13 @@ namespace Apache.Ignite.Core.Tests.Cache.Affinity
                 Assert.AreEqual(1, Property1);
                 Assert.AreEqual("1", Property2);
 
-                return (int)key * 2 % 5;
+                var longKey = (long)key;
+                int res;
+
+                if (TestFairFunc.PredefinedParts.TryGetValue(longKey, out res))
+                    return res;
+
+                return (int)(longKey * 2 % 5);
             }
 
             // ReSharper disable once UnusedParameter.Local
@@ -124,6 +137,12 @@ namespace Apache.Ignite.Core.Tests.Cache.Affinity
 
         private class TestFairFunc : FairAffinityFunction   // [Serializable] is not necessary
         {
+            public static readonly Dictionary<long, int> PredefinedParts = new Dictionary<long, int>
+            {
+                {1, 2},
+                {2, 1}
+            };
+
             [InstanceResource]
             private readonly IIgnite _ignite = null;
 
@@ -137,11 +156,19 @@ namespace Apache.Ignite.Core.Tests.Cache.Affinity
                 Assert.AreEqual(1, Property1);
                 Assert.AreEqual("1", Property2);
 
+                Assert.IsInstanceOf<long>(key);
+
                 var basePart = base.GetPartition(key);
                 Assert.Greater(basePart, -1);
                 Assert.Less(basePart, Partitions);
 
-                return (int)key * 2 % 5;
+                var longKey = (long) key;
+                int res;
+
+                if (PredefinedParts.TryGetValue(longKey, out res))
+                    return res;
+
+                return (int) (longKey * 2 % 5);
             }
 
             public override IEnumerable<IEnumerable<IClusterNode>> AssignPartitions(AffinityFunctionContext context)
