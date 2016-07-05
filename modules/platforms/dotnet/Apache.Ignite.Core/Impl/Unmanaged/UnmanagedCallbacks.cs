@@ -30,6 +30,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged
     using Apache.Ignite.Core.Impl.Binary;
     using Apache.Ignite.Core.Impl.Binary.IO;
     using Apache.Ignite.Core.Impl.Cache;
+    using Apache.Ignite.Core.Impl.Cache.Affinity;
     using Apache.Ignite.Core.Impl.Cache.Query.Continuous;
     using Apache.Ignite.Core.Impl.Cache.Store;
     using Apache.Ignite.Core.Impl.Common;
@@ -162,7 +163,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged
         private delegate long ExtensionCallbackInLongOutLongDelegate(void* target, int typ, long arg1);
         private delegate long ExtensionCallbackInLongLongOutLongDelegate(void* target, int typ, long arg1, long arg2);
 
-        private delegate long AffinityFunctionInitDelegate(void* target, long memPtr);
+        private delegate long AffinityFunctionInitDelegate(void* target, long memPtr, void* baseFunc);
         private delegate int AffinityFunctionPartitionDelegate(void* target, long ptr, long memPtr);
         private delegate void AffinityFunctionAssignPartitionsDelegate(void* target, long ptr, long inMemPtr, long outMemPtr);
         private delegate void AffinityFunctionRemoveNodeDelegate(void* target, long ptr, long memPtr);
@@ -1073,7 +1074,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged
 
         #region AffinityFunction
 
-        private long AffinityFunctionInit(void* target, long memPtr)
+        private long AffinityFunctionInit(void* target, long memPtr, void* baseFunc)
         {
             return SafeCall(() =>
             {
@@ -1081,13 +1082,15 @@ namespace Apache.Ignite.Core.Impl.Unmanaged
                 {
                     var reader = _ignite.Marshaller.StartUnmarshal(stream);
 
-                    var typeName = reader.ReadString();
-                    var props = reader.ReadDictionaryAsGeneric<string, object>();
-
-                    var func = IgniteUtils.CreateInstance<IAffinityFunction>(typeName);
-                    IgniteUtils.SetProperties(func, props);
+                    var func = reader.ReadObjectEx<IAffinityFunction>();
 
                     ResourceProcessor.Inject(func, _ignite);
+
+                    var affBase = func as AffinityFunctionBase;
+
+                    if (affBase != null)
+                        affBase.SetBaseFunction(new PlatformAffinityFunction(
+                            _ignite.InteropProcessor.ChangeTarget(baseFunc), _ignite.Marshaller));
 
                     return _handleRegistry.Allocate(func);
                 }
