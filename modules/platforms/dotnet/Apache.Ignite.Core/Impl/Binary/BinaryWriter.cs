@@ -1274,12 +1274,8 @@ namespace Apache.Ignite.Core.Impl.Binary
         /// </summary>
         /// <param name="val">Object.</param>
         /// <param name="type">Type.</param>
-        private void WritePrimitive<T>(T val, Type type)
+        private unsafe void WritePrimitive<T>(T val, Type type)
         {
-            // S1871: Two branches in the same conditional structure should not have exactly the same implementation
-            // (Justification: performance. We need this specific order of branches.)
-#pragma warning disable S1871
-
             // .Net defines 14 primitive types. We support 12 - excluding IntPtr and UIntPtr.
             // Types check sequence is designed to minimize comparisons for the most frequent types.
 
@@ -1300,18 +1296,27 @@ namespace Apache.Ignite.Core.Impl.Binary
             else if (type == typeof(double))
                 WriteDoubleField(TypeCaster<double>.Cast(val));
             else if (type == typeof(sbyte))
-                WriteByteField(TypeCaster<byte>.Cast(val));
+            {
+                var val0 = TypeCaster<sbyte>.Cast(val);
+                WriteByteField(*(byte*)&val0);
+            }
             else if (type == typeof(ushort))
-                WriteShortField(TypeCaster<short>.Cast(val));
+            {
+                var val0 = TypeCaster<ushort>.Cast(val);
+                WriteShortField(*(short*) &val0);
+            }
             else if (type == typeof(uint))
-                WriteIntField(TypeCaster<int>.Cast(val));
+            {
+                var val0 = TypeCaster<uint>.Cast(val);
+                WriteIntField(*(int*)&val0);
+            }
             else if (type == typeof(ulong))
-                WriteLongField(TypeCaster<long>.Cast(val));
+            {
+                var val0 = TypeCaster<ulong>.Cast(val);
+                WriteLongField(*(long*)&val0);
+            }
             else
-                throw new BinaryObjectException("Unsupported object type [type=" + type.FullName + ", object=" + val +
-                                                ']');
-
-#pragma warning restore S1871
+                throw new BinaryObjectException("Unsupported object type [type=" + type.FullName + ", object=" + val + ']');
         }
 
         /// <summary>
