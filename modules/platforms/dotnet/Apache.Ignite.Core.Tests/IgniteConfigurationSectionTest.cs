@@ -28,6 +28,9 @@ namespace Apache.Ignite.Core.Tests
     /// </summary>
     public class IgniteConfigurationSectionTest
     {
+        /// <summary>
+        /// Sets up the test.
+        /// </summary>
         [SetUp]
         public void SetUp()
         {
