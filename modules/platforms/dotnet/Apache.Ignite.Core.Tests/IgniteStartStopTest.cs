@@ -125,6 +125,7 @@ namespace Apache.Ignite.Core.Tests
 
             Assert.AreSame(grid3, Ignition.GetIgnite(null));
             Assert.AreSame(grid3, Ignition.TryGetIgnite(null));
+            Assert.AreSame(grid3, Ignition.TryGetIgnite());
 
             Assert.Throws<IgniteException>(() => Ignition.GetIgnite("invalid_name"));
             Assert.IsNull(Ignition.TryGetIgnite("invalid_name"));
