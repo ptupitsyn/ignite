@@ -18,9 +18,9 @@
 #pragma warning disable 1587   // invalid XML comment
 
 /// <summary>
-/// Ignite ASP.NET integration.
+/// Ignite cache LINQ provider.
 /// </summary>
-namespace Apache.Ignite.AspNet
+namespace Apache.Ignite.Linq
 {
     // No-op.
 }
