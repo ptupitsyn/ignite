@@ -366,7 +366,7 @@ namespace Apache.Ignite.Core.Tests
             });
 
             // Wait for remote node to join
-            Assert.IsTrue(grid.WaitTopology(2, 30000));
+            Assert.IsTrue(grid.WaitTopology(2));
 
             // Wait some more for initialization
             Thread.Sleep(1000);
