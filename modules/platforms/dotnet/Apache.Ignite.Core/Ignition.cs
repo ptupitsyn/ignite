@@ -168,7 +168,7 @@ namespace Apache.Ignite.Core
             IgniteArgumentCheck.NotNullOrEmpty(sectionName, "sectionName");
             IgniteArgumentCheck.NotNullOrEmpty(configPath, "configPath");
 
-            var fileMap = new ExeConfigurationFileMap { ExeConfigFilename = configPath };
+            var fileMap = GetConfigMap(configPath);
             var config = ConfigurationManager.OpenMappedExeConfiguration(fileMap, ConfigurationUserLevel.None);
 
             var section = config.GetSection(sectionName) as IgniteConfigurationSection;
@@ -179,6 +179,19 @@ namespace Apache.Ignite.Core
                         typeof(IgniteConfigurationSection).Name, sectionName, configPath));
 
             return Start(section.IgniteConfiguration);
+        }
+
+        /// <summary>
+        /// Gets the configuration file map.
+        /// </summary>
+        private static ExeConfigurationFileMap GetConfigMap(string fileName)
+        {
+            var fullFileName = Path.GetFullPath(fileName);
+
+            if (!File.Exists(fullFileName))
+                throw new ConfigurationErrorsException("Specified config file does not exist: " + fileName);
+
+            return new ExeConfigurationFileMap { ExeConfigFilename = fullFileName };
         }
 
         /// <summary>

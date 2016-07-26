@@ -152,12 +152,12 @@ namespace Apache.Ignite.Config
         /// </summary>
         private static ExeConfigurationFileMap GetConfigMap(string fileName)
         {
-            fileName = Path.GetFullPath(fileName);
+            var fullFileName = Path.GetFullPath(fileName);
 
-            if (!File.Exists(fileName))
-                throw new InvalidOperationException("Specified config file does not exist: " + fileName);
+            if (!File.Exists(fullFileName))
+                throw new ConfigurationErrorsException("Specified config file does not exist: " + fileName);
 
-            return new ExeConfigurationFileMap {ExeConfigFilename = fileName};
+            return new ExeConfigurationFileMap {ExeConfigFilename = fullFileName};
         }
 
         /// <summary>

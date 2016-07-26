@@ -92,8 +92,7 @@ namespace Apache.Ignite.Core.Tests
             ex = Assert.Throws<ConfigurationErrorsException>(() =>
                 Ignition.StartFromApplicationConfiguration("igniteConfiguration", "somefile"));
 
-            Assert.AreEqual("Could not find IgniteConfigurationSection with name 'igniteConfiguration' " +
-                            "in file 'somefile'", ex.Message);
+            Assert.AreEqual("Specified config file does not exist: somefile", ex.Message);
 
 
             ex = Assert.Throws<ConfigurationErrorsException>(() =>
