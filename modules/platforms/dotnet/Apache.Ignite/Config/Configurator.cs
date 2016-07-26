@@ -75,7 +75,8 @@ namespace Apache.Ignite.Config
 
             foreach (var arg in args)
             {
-                Func<string, bool> argIs = x => arg.Item1.Equals(x, StringComparison.OrdinalIgnoreCase);
+                var arg0 = arg;  // copy captured variable
+                Func<string, bool> argIs = x => arg0.Item1.Equals(x, StringComparison.OrdinalIgnoreCase);
 
                 if (argIs(CmdIgniteHome))
                     cfg.IgniteHome = arg.Item2;
