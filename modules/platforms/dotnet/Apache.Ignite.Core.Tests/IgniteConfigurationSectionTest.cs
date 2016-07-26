@@ -29,15 +29,6 @@ namespace Apache.Ignite.Core.Tests
     public class IgniteConfigurationSectionTest
     {
         /// <summary>
-        /// Sets up the test.
-        /// </summary>
-        [SetUp]
-        public void SetUp()
-        {
-            Environment.SetEnvironmentVariable(Classpath.EnvIgniteNativeTestClasspath, "true");
-        }
-
-        /// <summary>
         /// Tests the read.
         /// </summary>
         [Test]
@@ -55,6 +46,8 @@ namespace Apache.Ignite.Core.Tests
         [Test]
         public void TestIgniteStart()
         {
+            Environment.SetEnvironmentVariable(Classpath.EnvIgniteNativeTestClasspath, "true");
+
             using (var ignite = Ignition.StartFromApplicationConfiguration("igniteConfiguration"))
             {
                 Assert.AreEqual("myGrid1", ignite.Name);
