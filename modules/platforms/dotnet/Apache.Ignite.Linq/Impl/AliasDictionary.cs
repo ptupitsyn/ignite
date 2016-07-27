@@ -77,7 +77,7 @@ namespace Apache.Ignite.Linq.Impl
             return GetTableAlias(GetQuerySource(joinClause.InnerSequence) ?? joinClause);
         }
 
-        public string GetTableAlias(IQuerySource querySource)
+        private string GetTableAlias(IQuerySource querySource)
         {
             Debug.Assert(querySource != null);
 

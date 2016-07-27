@@ -248,7 +248,7 @@ namespace Apache.Ignite.Linq.Impl
             // In other cases we need both parts of cache entry
             var format = _useStar ? "{0}.*" : "{0}._key, {0}._val";
 
-            var tableName = Aliases.GetTableAlias(expression.ReferencedQuerySource);
+            var tableName = Aliases.GetTableAlias(expression);
 
             ResultBuilder.AppendFormat(format, tableName);
 
