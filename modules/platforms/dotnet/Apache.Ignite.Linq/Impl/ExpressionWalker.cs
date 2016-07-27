@@ -18,7 +18,6 @@
 namespace Apache.Ignite.Linq.Impl
 {
     using System;
-    using System.Collections.Generic;
     using System.Diagnostics;
     using System.Linq;
     using System.Linq.Expressions;
@@ -39,29 +38,6 @@ namespace Apache.Ignite.Linq.Impl
         /// <summary>
         /// Gets the cache queryable.
         /// </summary>
-        public static ICacheQueryableInternal GetCacheQueryable(Expression expression, bool throwWhenNotFound = true)
-        {
-            var expr = WalkUp(expression).LastOrDefault();
-
-            var constExpr = expr as ConstantExpression;
-
-            if (constExpr != null)
-            {
-                var queryable = constExpr.Value as ICacheQueryableInternal;
-
-                if (queryable != null)
-                    return queryable;
-            }
-
-            if (throwWhenNotFound)
-                throw new NotSupportedException("Unexpected query source: " + expression);
-
-            return null;
-        }
-
-        /// <summary>
-        /// Gets the cache queryable.
-        /// </summary>
         public static ICacheQueryableInternal GetCacheQueryable(IFromClause fromClause)
         {
             return GetCacheQueryable(fromClause.FromExpression);
@@ -76,66 +52,57 @@ namespace Apache.Ignite.Linq.Impl
         }
 
         /// <summary>
-        /// Gets the query source.
+        /// Gets the cache queryable.
         /// </summary>
-        public static IQuerySource GetQuerySource(Expression expression)
+        public static ICacheQueryableInternal GetCacheQueryable(Expression expression, bool throwWhenNotFound = true)
         {
-            return WalkUp(expression)
-                    .OfType<QuerySourceReferenceExpression>()
-                    .Select(x => x.ReferencedQuerySource)
-                    .LastOrDefault();
-        }
+            var subQueryExp = expression as SubQueryExpression;
 
-        /// <summary>
-        /// Walks up the expression tree.
-        /// </summary>
-        private static IEnumerable<Expression> WalkUp(Expression expression)
-        {
-            yield return expression;
+            if (subQueryExp != null)
+                return GetCacheQueryable(subQueryExp.QueryModel.MainFromClause);
 
-            while (true)
+            var srcRefExp = expression as QuerySourceReferenceExpression;
+
+            if (srcRefExp != null)
             {
-                if (expression is ConstantExpression)
-                    yield break;
+                var fromSource = srcRefExp.ReferencedQuerySource as IFromClause;
 
-                Expression res = null;
+                if (fromSource != null)
+                    return GetCacheQueryable(fromSource);
 
-                var subQueryExp = expression as SubQueryExpression;
+                var joinSource = srcRefExp.ReferencedQuerySource as JoinClause;
 
-                if (subQueryExp != null)
-                {
-                    res = subQueryExp.QueryModel.MainFromClause.FromExpression;
-                }
-                else if (expression is QuerySourceReferenceExpression)
-                {
-                    var srcRef = (QuerySourceReferenceExpression) expression;
+                if (joinSource != null)
+                    return GetCacheQueryable(joinSource);
 
-                    var fromSource = srcRef.ReferencedQuerySource as IFromClause;
-
-                    if (fromSource != null)
-                        res = fromSource.FromExpression;
-                    else if (srcRef.ReferencedQuerySource is JoinClause)
-                        res = ((JoinClause) srcRef.ReferencedQuerySource).InnerSequence;
-                    else
-                        throw new NotSupportedException("Unexpected query source: " + srcRef.ReferencedQuerySource);
-                }
-                else if (expression is MemberExpression)
-                {
-                    var memberExpr = (MemberExpression) expression;
-
-                    if (memberExpr.Type.IsGenericType && memberExpr.Type.GetGenericTypeDefinition() == typeof(IQueryable<>))
-                        res = Expression.Constant(EvaluateExpression<ICacheQueryableInternal>(memberExpr));
-                    else
-                        res = memberExpr.Expression;
-                }
-
-                if (res == null)
-                    yield break;
-
-                yield return res;
-
-                expression = res;
+                throw new NotSupportedException("Unexpected query source: " + srcRefExp.ReferencedQuerySource);
             }
+
+            var memberExpr = expression as MemberExpression;
+
+            if (memberExpr != null)
+            {
+                if (memberExpr.Type.IsGenericType &&
+                    memberExpr.Type.GetGenericTypeDefinition() == typeof (IQueryable<>))
+                    return EvaluateExpression<ICacheQueryableInternal>(memberExpr);
+
+                return GetCacheQueryable(memberExpr.Expression, throwWhenNotFound);
+            }
+
+            var constExpr = expression as ConstantExpression;
+
+            if (constExpr != null)
+            {
+                var queryable = constExpr.Value as ICacheQueryableInternal;
+
+                if (queryable != null)
+                    return queryable;
+            }
+
+            if (throwWhenNotFound)
+                throw new NotSupportedException("Unexpected query source: " + expression);
+
+            return null;
         }
 
         /// <summary>
@@ -192,6 +159,42 @@ namespace Apache.Ignite.Linq.Impl
             Debug.Assert(queryable != null);
 
             return string.Format("\"{0}\".{1}", queryable.CacheConfiguration.Name, queryable.TableName);
+        }
+
+        /// <summary>
+        /// Gets the query source.
+        /// </summary>
+        public static IQuerySource GetQuerySource(Expression expression)
+        {
+            var subQueryExp = expression as SubQueryExpression;
+
+            if (subQueryExp != null)
+                return GetQuerySource(subQueryExp.QueryModel.MainFromClause.FromExpression) 
+                    ?? subQueryExp.QueryModel.MainFromClause;
+
+            var srcRefExp = expression as QuerySourceReferenceExpression;
+
+            if (srcRefExp != null)
+            {
+                var fromSource = srcRefExp.ReferencedQuerySource as IFromClause;
+
+                if (fromSource != null)
+                    return GetQuerySource(fromSource.FromExpression) ?? fromSource;
+
+                var joinSource = srcRefExp.ReferencedQuerySource as JoinClause;
+
+                if (joinSource != null)
+                    return GetQuerySource(joinSource.InnerSequence) ?? joinSource;
+
+                throw new NotSupportedException("Unexpected query source: " + srcRefExp.ReferencedQuerySource);
+            }
+
+            var memberExpr = expression as MemberExpression;
+
+            if (memberExpr != null)
+                return GetQuerySource(memberExpr.Expression);
+
+            return null;
         }
     }
 }
