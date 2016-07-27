@@ -160,41 +160,5 @@ namespace Apache.Ignite.Linq.Impl
 
             return string.Format("\"{0}\".{1}", queryable.CacheConfiguration.Name, queryable.TableName);
         }
-
-        /// <summary>
-        /// Gets the query source.
-        /// </summary>
-        public static IQuerySource GetQuerySource(Expression expression)
-        {
-            var subQueryExp = expression as SubQueryExpression;
-
-            if (subQueryExp != null)
-                return GetQuerySource(subQueryExp.QueryModel.MainFromClause.FromExpression) 
-                    ?? subQueryExp.QueryModel.MainFromClause;
-
-            var srcRefExp = expression as QuerySourceReferenceExpression;
-
-            if (srcRefExp != null)
-            {
-                var fromSource = srcRefExp.ReferencedQuerySource as IFromClause;
-
-                if (fromSource != null)
-                    return GetQuerySource(fromSource.FromExpression) ?? fromSource;
-
-                var joinSource = srcRefExp.ReferencedQuerySource as JoinClause;
-
-                if (joinSource != null)
-                    return GetQuerySource(joinSource.InnerSequence) ?? joinSource;
-
-                throw new NotSupportedException("Unexpected query source: " + srcRefExp.ReferencedQuerySource);
-            }
-
-            var memberExpr = expression as MemberExpression;
-
-            if (memberExpr != null)
-                return GetQuerySource(memberExpr.Expression);
-
-            return null;
-        }
     }
 }

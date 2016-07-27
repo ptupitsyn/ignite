@@ -17,11 +17,13 @@
 
 namespace Apache.Ignite.Linq.Impl
 {
+    using System;
     using System.Collections.Generic;
     using System.Diagnostics;
     using System.Linq.Expressions;
     using System.Text;
     using Remotion.Linq.Clauses;
+    using Remotion.Linq.Clauses.Expressions;
 
     /// <summary>
     /// Alias dictionary.
@@ -62,20 +64,17 @@ namespace Apache.Ignite.Linq.Impl
         {
             Debug.Assert(expression != null);
 
-            var src = ExpressionWalker.GetQuerySource(expression);
-
-            return GetTableAlias(src);
+            return GetTableAlias(GetQuerySource(expression));
         }
 
         public string GetTableAlias(IFromClause fromClause)
         {
-            // TODO: ExpressionWalker skips IQuerySource incorrecly. We probably should get rid of WalkUp, it is difficult to generify it
-            return GetTableAlias(ExpressionWalker.GetQuerySource(fromClause.FromExpression) ?? fromClause);
+            return GetTableAlias(GetQuerySource(fromClause.FromExpression) ?? fromClause);
         }
 
         public string GetTableAlias(JoinClause joinClause)
         {
-            return GetTableAlias(ExpressionWalker.GetQuerySource(joinClause.InnerSequence) ?? joinClause);
+            return GetTableAlias(GetQuerySource(joinClause.InnerSequence) ?? joinClause);
         }
 
         public string GetTableAlias(IQuerySource querySource)
@@ -108,6 +107,42 @@ namespace Apache.Ignite.Linq.Impl
             builder.AppendFormat("{0} as {1}", tableName, GetTableAlias(clause));
 
             return builder;
+        }
+
+        /// <summary>
+        /// Gets the query source.
+        /// </summary>
+        private static IQuerySource GetQuerySource(Expression expression)
+        {
+            var subQueryExp = expression as SubQueryExpression;
+
+            if (subQueryExp != null)
+                return GetQuerySource(subQueryExp.QueryModel.MainFromClause.FromExpression)
+                    ?? subQueryExp.QueryModel.MainFromClause;
+
+            var srcRefExp = expression as QuerySourceReferenceExpression;
+
+            if (srcRefExp != null)
+            {
+                var fromSource = srcRefExp.ReferencedQuerySource as IFromClause;
+
+                if (fromSource != null)
+                    return GetQuerySource(fromSource.FromExpression) ?? fromSource;
+
+                var joinSource = srcRefExp.ReferencedQuerySource as JoinClause;
+
+                if (joinSource != null)
+                    return GetQuerySource(joinSource.InnerSequence) ?? joinSource;
+
+                throw new NotSupportedException("Unexpected query source: " + srcRefExp.ReferencedQuerySource);
+            }
+
+            var memberExpr = expression as MemberExpression;
+
+            if (memberExpr != null)
+                return GetQuerySource(memberExpr.Expression);
+
+            return null;
         }
     }
 }
