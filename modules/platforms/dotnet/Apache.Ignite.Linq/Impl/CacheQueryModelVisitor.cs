@@ -437,7 +437,7 @@ namespace Apache.Ignite.Linq.Impl
 
                 var queryable = ExpressionWalker.GetCacheQueryable(joinClause);
                 var tableName = ExpressionWalker.GetTableNameWithSchema(queryable);
-                _builder.AppendFormat("inner join {0} as {1} on (", tableName, _aliases.GetTableAlias(tableName));
+                _builder.AppendFormat("inner join {0} as {1} on (", tableName, _aliases.GetTableAlias(queryable));
             }
 
             BuildJoinCondition(joinClause.InnerKeySelector, joinClause.OuterKeySelector);

@@ -31,10 +31,10 @@ namespace Apache.Ignite.Linq.Impl
         private int _aliasIndex;
 
         /** */
-        private Dictionary<string, string> _aliases = new Dictionary<string, string>();
+        private Dictionary<ICacheQueryableInternal, string> _aliases = new Dictionary<ICacheQueryableInternal, string>();
 
         /** */
-        private readonly Stack<Dictionary<string, string>> _stack = new Stack<Dictionary<string, string>>();
+        private readonly Stack<Dictionary<ICacheQueryableInternal, string>> _stack = new Stack<Dictionary<ICacheQueryableInternal, string>>();
 
         /// <summary>
         /// Pushes current aliases to stack.
@@ -43,7 +43,7 @@ namespace Apache.Ignite.Linq.Impl
         {
             _stack.Push(_aliases);
 
-            _aliases = new Dictionary<string, string>();
+            _aliases = new Dictionary<ICacheQueryableInternal, string>();
         }
 
         /// <summary>
@@ -61,23 +61,13 @@ namespace Apache.Ignite.Linq.Impl
         {
             Debug.Assert(queryable != null);
 
-            return GetTableAlias(ExpressionWalker.GetTableNameWithSchema(queryable));
-        }
-
-        /// <summary>
-        /// Gets the table alias.
-        /// </summary>
-        public string GetTableAlias(string fullName)
-        {
-            Debug.Assert(!string.IsNullOrEmpty(fullName));
-
             string alias;
 
-            if (!_aliases.TryGetValue(fullName, out alias))
+            if (!_aliases.TryGetValue(queryable, out alias))
             {
                 alias = "_T" + _aliasIndex++;
 
-                _aliases[fullName] = alias;
+                _aliases[queryable] = alias;
             }
 
             return alias;
@@ -94,7 +84,7 @@ namespace Apache.Ignite.Linq.Impl
             var queryable = ExpressionWalker.GetCacheQueryable(clause);
             var tableName = ExpressionWalker.GetTableNameWithSchema(queryable);
 
-            builder.AppendFormat("{0} as {1}", tableName, GetTableAlias(tableName));
+            builder.AppendFormat("{0} as {1}", tableName, GetTableAlias(queryable));
 
             return builder;
         }
