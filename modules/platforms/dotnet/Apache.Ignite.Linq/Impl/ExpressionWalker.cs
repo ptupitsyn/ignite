@@ -18,6 +18,7 @@
 namespace Apache.Ignite.Linq.Impl
 {
     using System;
+    using System.Collections.Generic;
     using System.Diagnostics;
     using System.Linq;
     using System.Linq.Expressions;
@@ -111,6 +112,50 @@ namespace Apache.Ignite.Linq.Impl
                 throw new NotSupportedException("Unexpected query source: " + expression);
 
             return null;
+        }
+
+        public static IEnumerable<Expression> WalkUp(Expression expression)
+        {
+            while (true)
+            {
+                if (expression is ConstantExpression)
+                    yield break;
+
+                Expression res = null;
+
+                var subQueryExp = expression as SubQueryExpression;
+
+                if (subQueryExp != null)
+                {
+                    res = subQueryExp.QueryModel.MainFromClause.FromExpression;
+                }
+                else if (expression is QuerySourceReferenceExpression)
+                {
+                    var srcRef = (QuerySourceReferenceExpression) expression;
+
+                    var fromSource = srcRef.ReferencedQuerySource as IFromClause;
+
+                    if (fromSource != null)
+                        res = fromSource.FromExpression;
+                    else if (srcRef.ReferencedQuerySource is JoinClause)
+                        res = ((JoinClause) srcRef.ReferencedQuerySource).InnerSequence;
+                    else
+                        throw new NotSupportedException("Unexpected query source: " + srcRef.ReferencedQuerySource);
+                }
+                else if (expression is MemberExpression)
+                {
+                    var memberExpr = (MemberExpression) expression;
+
+                    if (memberExpr.Type.IsGenericType && memberExpr.Type.GetGenericTypeDefinition() == typeof(IQueryable<>))
+                        res = Expression.Constant(EvaluateExpression<ICacheQueryableInternal>(memberExpr));
+                    else
+                        res = memberExpr.Expression;
+                }
+
+                yield return res;
+
+                expression = res;
+            }
         }
 
         /// <summary>
