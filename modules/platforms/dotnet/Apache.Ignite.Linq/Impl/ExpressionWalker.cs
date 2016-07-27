@@ -75,10 +75,15 @@ namespace Apache.Ignite.Linq.Impl
             return GetCacheQueryable(joinClause.InnerSequence);
         }
 
-
+        /// <summary>
+        /// Gets the query source.
+        /// </summary>
         public static IQuerySource GetQuerySource(Expression expression)
         {
-            return WalkUp(expression).OfType<QuerySourceReferenceExpression>().First().ReferencedQuerySource;
+            return WalkUp(expression)
+                    .OfType<QuerySourceReferenceExpression>()
+                    .Select(x => x.ReferencedQuerySource)
+                    .LastOrDefault();
         }
 
         /// <summary>
