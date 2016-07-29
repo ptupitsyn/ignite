@@ -15,10 +15,10 @@
  * limitations under the License.
  */
 
-using Apache.Ignite.ExamplesDll.Services;
-
 namespace Apache.Ignite.Examples.Services
 {
+    using Apache.Ignite.ExamplesDll.Services;
+
     /// <summary>
     /// Interface for service proxy interaction.
     /// Actual service class (<see cref="MapService{TK,TV}"/>) does not have to implement this interface. 
@@ -26,6 +26,14 @@ namespace Apache.Ignite.Examples.Services
     /// </summary>
     public interface IMapService<TK, TV>
     {
+        /// <summary>
+        /// Gets the size of the map.
+        /// </summary>
+        /// <value>
+        /// The size.
+        /// </value>
+        int Size { get; }
+
         /// <summary>
         /// Puts an entry to the map.
         /// </summary>
@@ -44,13 +52,5 @@ namespace Apache.Ignite.Examples.Services
         /// Clears the map.
         /// </summary>
         void Clear();
-
-        /// <summary>
-        /// Gets the size of the map.
-        /// </summary>
-        /// <value>
-        /// The size.
-        /// </value>
-        int Size { get; }
     }
 }
