@@ -27,14 +27,6 @@ namespace Apache.Ignite.Examples.Services
     public interface IMapService<TK, TV>
     {
         /// <summary>
-        /// Gets the size of the map.
-        /// </summary>
-        /// <value>
-        /// The size.
-        /// </value>
-        int Size { get; }
-
-        /// <summary>
         /// Puts an entry to the map.
         /// </summary>
         /// <param name="key">The key.</param>
@@ -52,5 +44,13 @@ namespace Apache.Ignite.Examples.Services
         /// Clears the map.
         /// </summary>
         void Clear();
+
+        /// <summary>
+        /// Gets the size of the map.
+        /// </summary>
+        /// <value>
+        /// The size.
+        /// </value>
+        int Size { get; }
     }
 }
