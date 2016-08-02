@@ -236,7 +236,7 @@ namespace Apache.Ignite.Core.Tests
                 if (isCollection)
                     propType = propType.GetGenericArguments().First();
 
-                var isAttribute = propType.Namespace != null && propType.Namespace.StartsWith("Apache.Ignite.Core");
+                var isAttribute = !(propType.Namespace != null && propType.Namespace.StartsWith("Apache.Ignite.Core"));
 
                 var propName = toXmlName(prop.Name);
 
