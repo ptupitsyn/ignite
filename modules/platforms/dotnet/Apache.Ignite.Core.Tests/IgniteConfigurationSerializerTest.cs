@@ -219,6 +219,30 @@ namespace Apache.Ignite.Core.Tests
         {
             // TODO: drill down the property tree and check that there is a property with such name in the XSD
             // Somehow locate the parent properly..
+            Func<string, string> toLowerCamel = x => char.ToLowerInvariant(x[0]) + x.Substring(1);
+            Func<string, XmlQualifiedName> toXmlName = x => new XmlQualifiedName(toLowerCamel(x));
+
+            var schema = GetSchema();
+
+            var type = typeof(IgniteConfiguration);
+
+            foreach (var prop in type.GetProperties())
+            {
+                var propType = prop.GetType();
+
+                var isCollection = propType.IsGenericType &&
+                                   propType.GetGenericTypeDefinition() == typeof(ICollection<>);
+
+                if (isCollection)
+                    propType = propType.GetGenericArguments().First();
+
+                var isAttribute = propType.Namespace != null && propType.Namespace.StartsWith("Apache.Ignite.Core");
+
+                Assert.IsTrue(isAttribute
+                    ? schema.Attributes.Contains(toXmlName(prop.Name))
+                    : schema.Elements.Contains(toXmlName(prop.Name)));
+            }
+
         }
 
         /// <summary>
