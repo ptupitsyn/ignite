@@ -24,11 +24,50 @@
     xmlns:mstns="http://ignite.apache.org/schema/dotnet/IgniteConfigurationSection"
     xmlns:xs="http://www.w3.org/2001/XMLSchema">
 
-    <xs:simpleType name="cacheMode" final="restriction" >
+    <xs:simpleType name="cacheMode" final="restriction">
         <xs:restriction base="xs:string">
             <xs:enumeration value="Local" />
             <xs:enumeration value="Replicated" />
             <xs:enumeration value="Partitioned" />
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="cacheAtomicityMode" final="restriction">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="Transactional" />
+            <xs:enumeration value="Atomic" />
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="cacheMemoryMode" final="restriction">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="OnheapTiered" />
+            <xs:enumeration value="OffheapTiered" />
+            <xs:enumeration value="OffheapValues" />
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="cacheRebalanceMode" final="restriction">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="Sync" />
+            <xs:enumeration value="Async" />
+            <xs:enumeration value="None" />
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="cacheWriteSynchronizationMode" final="restriction">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="FullSync" />
+            <xs:enumeration value="FullAsync" />
+            <xs:enumeration value="PrimarySync" />
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="queryIndexType" final="restriction">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="Sorted" />
+            <xs:enumeration value="FullText" />
+            <xs:enumeration value="Geospatial" />
         </xs:restriction>
     </xs:simpleType>
 
