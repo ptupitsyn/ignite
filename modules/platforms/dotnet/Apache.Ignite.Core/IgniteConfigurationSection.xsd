@@ -349,7 +349,7 @@
                                                                                                             </xs:attribute>
                                                                                                             <xs:attribute name="isDescending" type="xs:boolean">
                                                                                                                 <xs:annotation>
-                                                                                                                    <xs:documentation>Gets a value indicating whether this index is descending. Default is false.</xs:documentation>
+                                                                                                                    <xs:documentation>Whether this index is descending.</xs:documentation>
                                                                                                                 </xs:annotation>
                                                                                                             </xs:attribute>
                                                                                                         </xs:complexType>
@@ -977,7 +977,7 @@
                         </xs:attribute>
                         <xs:attribute name="selectorsCount" type="xs:int">
                             <xs:annotation>
-                                <xs:documentation>Count of selectors te be used in TCP server.</xs:documentation>
+                                <xs:documentation>Count of selectors to be used in TCP server.</xs:documentation>
                             </xs:annotation>
                         </xs:attribute>
                         <xs:attribute name="slowClientQueueLimit" type="xs:int">
