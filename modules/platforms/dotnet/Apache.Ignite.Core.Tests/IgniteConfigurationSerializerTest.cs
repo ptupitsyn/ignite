@@ -662,21 +662,13 @@ namespace Apache.Ignite.Core.Tests
         /// </summary>
         public class TestSerializer : IBinarySerializer
         {
-            /// <summary>
-            /// Write portalbe object.
-            /// </summary>
-            /// <param name="obj">Object.</param>
-            /// <param name="writer">Poratble writer.</param>
+            /** <inheritdoc /> */
             public void WriteBinary(object obj, IBinaryWriter writer)
             {
                 // No-op.
             }
 
-            /// <summary>
-            /// Read binary object.
-            /// </summary>
-            /// <param name="obj">Instantiated empty object.</param>
-            /// <param name="reader">Poratble reader.</param>
+            /** <inheritdoc /> */
             public void ReadBinary(object obj, IBinaryReader reader)
             {
                 // No-op.
