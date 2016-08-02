@@ -39,6 +39,13 @@
         </xs:restriction>
     </xs:simpleType>
 
+    <xs:simpleType name="cacheAtomicWriteOrderMode" final="restriction">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="Clock" />
+            <xs:enumeration value="Primary" />
+        </xs:restriction>
+    </xs:simpleType>
+
     <xs:simpleType name="cacheMemoryMode" final="restriction">
         <xs:restriction base="xs:string">
             <xs:enumeration value="OnheapTiered" />
@@ -215,7 +222,7 @@
                                                                                         </xs:element>
                                                                                     </xs:sequence>
                                                                                     <xs:attribute name="name" type="xs:string" />
-                                                                                    <xs:attribute name="indexType" type="xs:string" />
+                                                                                    <xs:attribute name="indexType" type="queryIndexType" />
                                                                                 </xs:complexType>
                                                                             </xs:element>
                                                                         </xs:sequence>
@@ -264,7 +271,7 @@
                                     </xs:all>
                                     <xs:attribute name="name" type="xs:string" />
                                     <xs:attribute name="cacheMode" type="cacheMode" />
-                                    <xs:attribute name="writeSynchronizationMode" type="xs:string" />
+                                    <xs:attribute name="writeSynchronizationMode" type="cacheWriteSynchronizationMode" />
                                     <xs:attribute name="evictSynchronized" type="xs:boolean" />
                                     <xs:attribute name="evictSynchronizedKeyBufferSize" type="xs:int" />
                                     <xs:attribute name="evictSynchronizedConcurrencyLevel" type="xs:int" />
@@ -272,12 +279,12 @@
                                     <xs:attribute name="maxEvictionOverflowRatio" type="xs:decimal" />
                                     <xs:attribute name="startSize" type="xs:int" />
                                     <xs:attribute name="loadPreviousValue" type="xs:string" />
-                                    <xs:attribute name="atomicityMode" type="xs:string" />
-                                    <xs:attribute name="atomicWriteOrderMode" type="xs:string" />
+                                    <xs:attribute name="atomicityMode" type="cacheAtomicityMode" />
+                                    <xs:attribute name="atomicWriteOrderMode" type="cacheAtomicWriteOrderMode" />
                                     <xs:attribute name="backups" type="xs:int" />
                                     <xs:attribute name="lockTimeout" type="xs:string" />
                                     <xs:attribute name="invalidate" type="xs:boolean" />
-                                    <xs:attribute name="rebalanceMode" type="xs:string" />
+                                    <xs:attribute name="rebalanceMode" type="cacheRebalanceMode" />
                                     <xs:attribute name="rebalanceBatchSize" type="xs:int" />
                                     <xs:attribute name="enableSwap" type="xs:boolean" />
                                     <xs:attribute name="maxConcurrentAsyncOperations" type="xs:int" />
@@ -289,7 +296,7 @@
                                     <xs:attribute name="rebalanceDelay" type="xs:string" />
                                     <xs:attribute name="rebalanceThrottle" type="xs:string" />
                                     <xs:attribute name="offHeapMaxMemory" type="xs:int" />
-                                    <xs:attribute name="memoryMode" type="xs:string" />
+                                    <xs:attribute name="memoryMode" type="cacheMemoryMode" />
                                     <xs:attribute name="longQueryWarningTimeout" type="xs:string" />
                                     <xs:attribute name="sqlEscapeAll" type="xs:boolean" />
                                     <xs:attribute name="sqlOnheapRowCacheSize" type="xs:int" />
@@ -408,15 +415,15 @@
                 </xs:element>
                 <xs:element name="atomicConfiguration" minOccurs="0">
                     <xs:complexType>
-                        <xs:attribute name="cacheMode" type="xs:string" />
+                        <xs:attribute name="cacheMode" type="cacheMode" />
                         <xs:attribute name="backups" type="xs:int" />
                         <xs:attribute name="atomicSequenceReserveSize" type="xs:int" />
                     </xs:complexType>
                 </xs:element>
                 <xs:element name="transactionConfiguration" minOccurs="0">
                     <xs:complexType>
-                        <xs:attribute name="defaultTransactionConcurrency" type="xs:string" />
-                        <xs:attribute name="defaultTransactionIsolation" type="xs:string" />
+                        <xs:attribute name="defaultTransactionConcurrency" type="transactionConcurrency" />
+                        <xs:attribute name="defaultTransactionIsolation" type="transactionIsolation" />
                         <xs:attribute name="defaultTimeout" type="xs:string" />
                         <xs:attribute name="pessimisticTransactionLogSize" type="xs:int" />
                         <xs:attribute name="pessimisticTransactionLogLinger" type="xs:string" />
