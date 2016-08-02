@@ -218,14 +218,23 @@ namespace Apache.Ignite.Core.Tests
         [Test]
         public void TestAllPropertiesArePresentInSchema()
         {
-            Func<string, string> toLowerCamel = x => char.ToLowerInvariant(x[0]) + x.Substring(1);
-
             // ReSharper disable once PossibleNullReferenceException
             var schema = XDocument.Load("IgniteConfigurationSection.xsd")
                     .Root.Elements()
                     .Single(x => x.Attribute("name").Value == "igniteConfiguration");
 
             var type = typeof(IgniteConfiguration);
+
+            CheckPropertyIsPresentInSchema(type, schema);
+        }
+
+        /// <summary>
+        /// Checks the property is present in schema.
+        /// </summary>
+        // ReSharper disable once UnusedParameter.Local
+        private static void CheckPropertyIsPresentInSchema(Type type, XElement schema)
+        {
+            Func<string, string> toLowerCamel = x => char.ToLowerInvariant(x[0]) + x.Substring(1);
 
             foreach (var prop in type.GetProperties())
             {
@@ -237,15 +246,17 @@ namespace Apache.Ignite.Core.Tests
                 if (isCollection)
                     propType = propType.GetGenericArguments().First();
 
-                var isAttribute = !(propType.Namespace != null && propType.Namespace.StartsWith("Apache.Ignite.Core"));
-
                 var propName = toLowerCamel(prop.Name);
 
                 Assert.IsTrue(schema.Descendants().Select(x => x.Attribute("name"))
                     .Any(x => x != null && x.Value == propName),
                     "Property is missing in XML schema: " + propName);
-            }
 
+                var isComplexProp = propType.Namespace != null && propType.Namespace.StartsWith("Apache.Ignite.Core");
+
+                if (isComplexProp)
+                    CheckPropertyIsPresentInSchema(propType, schema);
+            }
         }
 
         /// <summary>
