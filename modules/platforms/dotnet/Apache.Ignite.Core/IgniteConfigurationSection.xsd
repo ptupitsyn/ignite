@@ -236,7 +236,7 @@
                         </xs:attribute>
                         <xs:attribute name="compactFooter" type="xs:boolean" >
                             <xs:annotation>
-                                <xs:documentation>Gets the compact footer flag.</xs:documentation>
+                                <xs:documentation>Compact footer flag.</xs:documentation>
                             </xs:annotation>
                         </xs:attribute>
                     </xs:complexType>
