@@ -28,6 +28,9 @@
         <xs:complexType>
             <xs:all>
                 <xs:element name="binaryConfiguration" minOccurs="0">
+                    <xs:annotation>
+                        <xs:documentation>Gets or sets the binary configuration.</xs:documentation>
+                    </xs:annotation>
                     <xs:complexType>
                         <xs:all>
                             <xs:element name="typeConfigurations" minOccurs="0">

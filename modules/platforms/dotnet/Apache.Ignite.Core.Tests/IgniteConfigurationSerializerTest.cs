@@ -542,7 +542,9 @@ namespace Apache.Ignite.Core.Tests
                     SlowClientQueueLimit = 98,
                     SocketSendBufferSize = 2045,
                     UnacknowledgedMessagesBufferSize = 3450
-                }
+                },
+                IsLateAffinityAssignment = false,
+                SpringConfigUrl = "test",
             };
         }
 
