@@ -71,6 +71,21 @@
         </xs:restriction>
     </xs:simpleType>
 
+    <xs:simpleType name="transactionConcurrency" final="restriction">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="Optimistic" />
+            <xs:enumeration value="Pessimistic" />
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="transactionIsolation" final="restriction">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="ReadCommitted" />
+            <xs:enumeration value="RepeatableRead" />
+            <xs:enumeration value="Serializable" />
+        </xs:restriction>
+    </xs:simpleType>
+
     <xs:element name="igniteConfiguration">
         <xs:complexType>
             <xs:all>
