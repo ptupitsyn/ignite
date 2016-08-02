@@ -212,6 +212,16 @@ namespace Apache.Ignite.Core.Tests
         }
 
         /// <summary>
+        /// Tests that all properties are present in the schema.
+        /// </summary>
+        [Test]
+        public void TestAllPropertiesArePresentInSchema()
+        {
+            // TODO: drill down the property tree and check that there is a property with such name in the XSD
+            // Somehow locate the parent properly..
+        }
+
+        /// <summary>
         /// Tests the schema validation.
         /// </summary>
         [Test]
