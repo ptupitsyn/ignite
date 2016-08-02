@@ -238,7 +238,7 @@ namespace Apache.Ignite.Core.Tests
 
             foreach (var prop in type.GetProperties())
             {
-                var propType = prop.GetType();
+                var propType = prop.PropertyType;
 
                 var isCollection = propType.IsGenericType &&
                                    propType.GetGenericTypeDefinition() == typeof(ICollection<>);
@@ -247,6 +247,8 @@ namespace Apache.Ignite.Core.Tests
                     propType = propType.GetGenericArguments().First();
 
                 var propName = toLowerCamel(prop.Name);
+
+                Console.WriteLine(propName);
 
                 Assert.IsTrue(schema.Descendants().Select(x => x.Attribute("name"))
                     .Any(x => x != null && x.Value == propName),
