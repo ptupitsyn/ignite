@@ -95,7 +95,7 @@
 
     <xs:element name="igniteConfiguration">
         <xs:annotation>
-            <xs:documentation>Gets or sets the ignite configuration.</xs:documentation>
+            <xs:documentation>Ignite configuration root.</xs:documentation>
         </xs:annotation>
         <xs:complexType>
             <xs:all>
@@ -141,7 +141,7 @@
                                                     <xs:element name="serializer" minOccurs="0">
                                                         <xs:annotation>
                                                             <xs:documentation>
-                                                                Serializer for the given type. If not provided and class implements <see cref="IBinarizable" /> then its custom logic will be used. If not provided and class doesn't implement <see cref="IBinarizable" /> then all fields of the class except of those with [NotSerialized] attribute will be serialized with help of reflection.
+                                                                Serializer for the given type. If not provided and class implements IBinarizable then its custom logic will be used. If not provided and class doesn't implement IBinarizable then all fields of the class except of those with [NotSerialized] attribute will be serialized with help of reflection.
                                                             </xs:documentation>
                                                         </xs:annotation>
                                                         <xs:complexType>
@@ -166,7 +166,7 @@
                                                 <xs:attribute name="keepDeserialized" type="xs:string" >
                                                     <xs:annotation>
                                                         <xs:documentation>
-                                                            Keep deserialized flag. If set to non-null value, overrides default value set in <see cref="BinaryTypeConfiguration"/>.
+                                                            Keep deserialized flag. If set to non-null value, overrides default value set in BinaryTypeConfiguration.
                                                         </xs:documentation>
                                                     </xs:annotation>
                                                 </xs:attribute>
@@ -183,7 +183,7 @@
                             <xs:element name="types" minOccurs="0">
                                 <xs:annotation>
                                     <xs:documentation>
-                                        Binarizable types. Shorthand for creating <see cref="BinaryTypeConfiguration"/>.
+                                        Binarizable types. Shorthand for creating "BinaryTypeConfiguration.
                                     </xs:documentation>
                                 </xs:annotation>
                                 <xs:complexType>
@@ -370,7 +370,7 @@
                                                             <xs:attribute name="keyType" type="xs:string" >
                                                                 <xs:annotation>
                                                                     <xs:documentation>
-                                                                        Initializes a new instance of the <see cref="CacheMetricsImpl"/> class.
+                                                                        Initializes a new instance of the CacheMetricsImpl class.
                                                                     </xs:documentation>
                                                                 </xs:annotation>
                                                             </xs:attribute>
@@ -378,7 +378,7 @@
                                                             <xs:attribute name="valueType" type="xs:string" >
                                                                 <xs:annotation>
                                                                     <xs:documentation>
-                                                                        Initializes a new instance of the <see cref="CacheMetricsImpl"/> class.
+                                                                        Initializes a new instance of the CacheMetricsImpl class.
                                                                     </xs:documentation>
                                                                 </xs:annotation>
                                                             </xs:attribute>
@@ -401,7 +401,7 @@
                                                             <xs:attribute name="batchSize" type="xs:int" >
                                                                 <xs:annotation>
                                                                     <xs:documentation>
-                                                                        Gets or sets the size of the eviction batch. Batch eviction is enabled only if maximum memory limit isn't set (<see cref="MaxMemorySize"/> == 0).
+                                                                        Gets or sets the size of the eviction batch. Batch eviction is enabled only if maximum memory limit isn't set (MaxMemorySize == 0).
                                                                     </xs:documentation>
                                                                 </xs:annotation>
                                                             </xs:attribute>
@@ -438,7 +438,7 @@
                                                 <xs:attribute name="batchSize" type="xs:int" >
                                                     <xs:annotation>
                                                         <xs:documentation>
-                                                            Gets or sets the size of the eviction batch. Batch eviction is enabled only if maximum memory limit isn't set (<see cref="MaxMemorySize"/> == 0).
+                                                            Gets or sets the size of the eviction batch. Batch eviction is enabled only if maximum memory limit isn't set (MaxMemorySize == 0).
                                                         </xs:documentation>
                                                     </xs:annotation>
                                                 </xs:attribute>
@@ -481,7 +481,7 @@
                                     </xs:attribute>
                                     <xs:attribute name="cacheMode" type="cacheMode" >
                                         <xs:annotation>
-                                            <xs:documentation>public const CacheMode DefaultCacheMode = CacheMode.Partitioned;</xs:documentation>
+                                            <xs:documentation>Gets or sets caching mode to use.</xs:documentation>
                                         </xs:annotation>
                                     </xs:attribute>
                                     <xs:attribute name="writeSynchronizationMode" type="cacheWriteSynchronizationMode" >
@@ -492,7 +492,7 @@
                                     <xs:attribute name="evictSynchronized" type="xs:boolean" >
                                         <xs:annotation>
                                             <xs:documentation>
-                                                Gets or sets flag indicating whether eviction is synchronized between primary, backup and near nodes. If this parameter is true and swap is disabled then <see cref="ICache{TK,TV}.LocalEvict"/> will involve all nodes where an entry is kept. If this property is set to false then eviction is done independently on different cache nodes. Note that it's not recommended to set this value to true if cache store is configured since it will allow to significantly improve cache performance.
+                                                Gets or sets flag indicating whether eviction is synchronized between primary, backup and near nodes. If this parameter is true and swap is disabled then ICache.LocalEvict will involve all nodes where an entry is kept. If this property is set to false then eviction is done independently on different cache nodes. Note that it's not recommended to set this value to true if cache store is configured since it will allow to significantly improve cache performance.
                                             </xs:documentation>
                                         </xs:annotation>
                                     </xs:attribute>
@@ -504,7 +504,7 @@
                                     <xs:attribute name="evictSynchronizedConcurrencyLevel" type="xs:int" >
                                         <xs:annotation>
                                             <xs:documentation>
-                                                Gets or sets concurrency level for synchronized evictions. This flag only makes sense with <see cref="EvictSynchronized"/> set to true. When synchronized evictions are enabled, it is possible that local eviction policy will try to evict entries faster than evictions can be synchronized with backup or near nodes. This value specifies how many concurrent synchronous eviction sessions should be allowed before the system is forced to wait and let synchronous evictions catch up with the eviction policy.
+                                                Gets or sets concurrency level for synchronized evictions. This flag only makes sense with EvictSynchronized set to true. When synchronized evictions are enabled, it is possible that local eviction policy will try to evict entries faster than evictions can be synchronized with backup or near nodes. This value specifies how many concurrent synchronous eviction sessions should be allowed before the system is forced to wait and let synchronous evictions catch up with the eviction policy.
                                             </xs:documentation>
                                         </xs:annotation>
                                     </xs:attribute>
@@ -526,43 +526,7 @@
                                     <xs:attribute name="loadPreviousValue" type="xs:string" >
                                         <xs:annotation>
                                             <xs:documentation>
-                                                Gets or sets flag indicating whether value should be loaded from store if it is not in the cache for the following cache operations: <list type="bullet">
-                                                    <item>
-                                                        <term>
-                                                            <see cref="ICache{TK,TV}.PutIfAbsent"/>
-                                                        </term>
-                                                    </item>
-                                                    <item>
-                                                        <term>
-                                                            <see cref="ICache{TK,TV}.Replace(TK,TV)"/>
-                                                        </term>
-                                                    </item>
-                                                    <item>
-                                                        <term>
-                                                            <see cref="ICache{TK,TV}.Remove(TK)"/>
-                                                        </term>
-                                                    </item>
-                                                    <item>
-                                                        <term>
-                                                            <see cref="ICache{TK,TV}.GetAndPut"/>
-                                                        </term>
-                                                    </item>
-                                                    <item>
-                                                        <term>
-                                                            <see cref="ICache{TK,TV}.GetAndRemove"/>
-                                                        </term>
-                                                    </item>
-                                                    <item>
-                                                        <term>
-                                                            <see cref="ICache{TK,TV}.GetAndReplace"/>
-                                                        </term>
-                                                    </item>
-                                                    <item>
-                                                        <term>
-                                                            <see cref="ICache{TK,TV}.GetAndPutIfAbsent"/>
-                                                        </term>
-                                                    </item>
-                                                </list>
+                                                Gets or sets flag indicating whether value should be loaded from store if it is not in the cache.
                                             </xs:documentation>
                                         </xs:annotation>
                                     </xs:attribute>
@@ -579,7 +543,7 @@
                                     <xs:attribute name="backups" type="xs:int" >
                                         <xs:annotation>
                                             <xs:documentation>
-                                                Gets or sets number of nodes used to back up single partition for <see cref="Configuration.CacheMode.Partitioned"/> cache.
+                                                Gets or sets number of nodes used to back up single partition for Partitioned cache.
                                             </xs:documentation>
                                         </xs:annotation>
                                     </xs:attribute>
@@ -626,14 +590,14 @@
                                     <xs:attribute name="writeBehindFlushThreadCount" type="xs:int" >
                                         <xs:annotation>
                                             <xs:documentation>
-                                                Number of threads that will perform cache flushing. Cache flushing is performed when cache size exceeds value defined by <see cref="WriteBehindFlushSize"/>, or flush interval defined by <see cref="WriteBehindFlushFrequency"/> is elapsed.
+                                                Number of threads that will perform cache flushing. Cache flushing is performed when cache size exceeds value defined by WriteBehindFlushSize, or flush interval defined by WriteBehindFlushFrequency is elapsed.
                                             </xs:documentation>
                                         </xs:annotation>
                                     </xs:attribute>
                                     <xs:attribute name="writeBehindBatchSize" type="xs:int" >
                                         <xs:annotation>
                                             <xs:documentation>
-                                                Maximum batch size for write-behind cache store operations. Store operations (get or remove) are combined in a batch of this size to be passed to <see cref="ICacheStore.WriteAll"/> or <see cref="ICacheStore.DeleteAll"/> methods.
+                                                Maximum batch size for write-behind cache store operations. Store operations (get or remove) are combined in a batch of this size to be passed to ICacheStore.WriteAll or ICacheStore.DeleteAll methods.
                                             </xs:documentation>
                                         </xs:annotation>
                                     </xs:attribute>
@@ -695,7 +659,7 @@
                                     <xs:attribute name="keepBinaryInStore" type="xs:boolean" >
                                         <xs:annotation>
                                             <xs:documentation>
-                                                Gets or sets the flag indicating whether <see cref="ICacheStore"/> is working with binary objects instead of deserialized objects.
+                                                Gets or sets the flag indicating whether ICacheStore is working with binary objects instead of deserialized objects.
                                             </xs:documentation>
                                         </xs:annotation>
                                     </xs:attribute>
@@ -851,7 +815,7 @@
                         <xs:attribute name="forceServerMode" type="xs:boolean" >
                             <xs:annotation>
                                 <xs:documentation>
-                                    Gets or sets a value indicating whether TcpDiscoverySpi is started in server mode regardless of <see cref="IgniteConfiguration.ClientMode"/> setting.
+                                    Gets or sets a value indicating whether TcpDiscoverySpi is started in server mode regardless of IgniteConfiguration.ClientMode setting.
                                 </xs:documentation>
                             </xs:annotation>
                         </xs:attribute>
@@ -878,7 +842,7 @@
                         <xs:attribute name="localPortRange" type="xs:int" >
                             <xs:annotation>
                                 <xs:documentation>
-                                    Gets or sets local port range for local host ports (value must greater than or equal to <tt>0</tt>). If provided local port <see cref="LocalPort"/> is occupied, implementation will try to increment the port number for as long as it is less than initial value plus this range.
+                                    Gets or sets local port range for local host ports (value must greater than or equal to <tt>0</tt>). If provided local port LocalPort is occupied, implementation will try to increment the port number for as long as it is less than initial value plus this range.
                                 </xs:documentation>
                             </xs:annotation>
                         </xs:attribute>
@@ -900,7 +864,7 @@
                         <xs:attribute name="statisticsPrintFrequency" type="xs:string" >
                             <xs:annotation>
                                 <xs:documentation>
-                                    Gets or sets the statistics print frequency. <see cref="TimeSpan.Zero"/> for no statistics.
+                                    Gets or sets the statistics print frequency. TimeSpan.Zero for no statistics.
                                 </xs:documentation>
                             </xs:annotation>
                         </xs:attribute>
@@ -964,7 +928,7 @@
                         <xs:attribute name="localPortRange" type="xs:int" >
                             <xs:annotation>
                                 <xs:documentation>
-                                    Gets or sets local port range for local host ports (value must greater than or equal to <tt>0</tt>). If provided local port <see cref="LocalPort"/> is occupied, implementation will try to increment the port number for as long as it is less than initial value plus this range.
+                                    Gets or sets local port range for local host ports (value must greater than or equal to <tt>0</tt>). If provided local port LocalPort is occupied, implementation will try to increment the port number for as long as it is less than initial value plus this range.
                                 </xs:documentation>
                             </xs:annotation>
                         </xs:attribute>
@@ -1025,7 +989,7 @@
                 <xs:element name="includedEventTypes" minOccurs="0">
                     <xs:annotation>
                         <xs:documentation>
-                            Gets or sets a set of event types (<see cref="EventType" />) to be recorded by Ignite.
+                            Gets or sets a set of event types to be recorded by Ignite.
                         </xs:documentation>
                     </xs:annotation>
                     <xs:complexType>
@@ -1048,20 +1012,20 @@
                     <xs:complexType>
                         <xs:attribute name="cacheMode" type="cacheMode" >
                             <xs:annotation>
-                                <xs:documentation>public const CacheMode DefaultCacheMode = CacheMode.Partitioned;</xs:documentation>
+                                <xs:documentation>Gets or sets caching mode to use.</xs:documentation>
                             </xs:annotation>
                         </xs:attribute>
                         <xs:attribute name="backups" type="xs:int" >
                             <xs:annotation>
                                 <xs:documentation>
-                                    Gets or sets number of nodes used to back up single partition for <see cref="Configuration.CacheMode.Partitioned"/> cache.
+                                    Gets or sets number of nodes used to back up single partition for Partitioned cache.
                                 </xs:documentation>
                             </xs:annotation>
                         </xs:attribute>
                         <xs:attribute name="atomicSequenceReserveSize" type="xs:int" >
                             <xs:annotation>
                                 <xs:documentation>
-                                    Gets or sets the default number of sequence values reserved for <see cref="IAtomicSequence"/> instances. After a certain number has been reserved, consequent increments of sequence will happen locally, without communication with other nodes, until the next reservation has to be made.
+                                    Gets or sets the default number of sequence values reserved for IAtomicSequence"/> instances. After a certain number has been reserved, consequent increments of sequence will happen locally, without communication with other nodes, until the next reservation has to be made.
                                 </xs:documentation>
                             </xs:annotation>
                         </xs:attribute>
@@ -1085,14 +1049,14 @@
                         <xs:attribute name="defaultTimeout" type="xs:string" >
                             <xs:annotation>
                                 <xs:documentation>
-                                    Gets or sets the cache transaction timeout to use when one is not explicitly specified. <see cref="TimeSpan.Zero"/> for infinite timeout.
+                                    Gets or sets the cache transaction timeout to use when one is not explicitly specified. TimeSpan.Zero for infinite timeout.
                                 </xs:documentation>
                             </xs:annotation>
                         </xs:attribute>
                         <xs:attribute name="pessimisticTransactionLogSize" type="xs:int" >
                             <xs:annotation>
                                 <xs:documentation>
-                                    Gets or sets the size of pessimistic transactions log stored on node in order to recover transaction commit if originating node has left grid before it has sent all messages to transaction nodes. <code>0</code> for unlimited.
+                                    Gets or sets the size of pessimistic transactions log stored on node in order to recover transaction commit if originating node has left grid before it has sent all messages to transaction nodes. 0 for unlimited.
                                 </xs:documentation>
                             </xs:annotation>
                         </xs:attribute>
@@ -1132,14 +1096,14 @@
             <xs:attribute name="jvmInitialMemoryMb" type="xs:int" >
                 <xs:annotation>
                     <xs:documentation>
-                        Initial amount of memory in megabytes given to JVM. Maps to -Xms Java option. <code>-1</code> maps to JVM defaults. Defaults to <see cref="DefaultJvmInitMem"/>.
+                        Initial amount of memory in megabytes given to JVM. Maps to -Xms Java option. -1 maps to JVM defaults.
                     </xs:documentation>
                 </xs:annotation>
             </xs:attribute>
             <xs:attribute name="jvmMaxMemoryMb" type="xs:int" >
                 <xs:annotation>
                     <xs:documentation>
-                        Maximum amount of memory in megabytes given to JVM. Maps to -Xmx Java option. <code>-1</code> maps to JVM defaults. Defaults to <see cref="DefaultJvmMaxMem"/>.
+                        Maximum amount of memory in megabytes given to JVM. Maps to -Xmx Java option. -1 maps to JVM defaults.
                     </xs:documentation>
                 </xs:annotation>
             </xs:attribute>
@@ -1158,7 +1122,7 @@
             <xs:attribute name="workDirectory" type="xs:string" >
                 <xs:annotation>
                     <xs:documentation>
-                        Gets or sets the work directory. If not provided, a folder under <see cref="IgniteHome"/> will be used.
+                        Gets or sets the work directory. If not provided, a folder under IgniteHome will be used.
                     </xs:documentation>
                 </xs:annotation>
             </xs:attribute>
