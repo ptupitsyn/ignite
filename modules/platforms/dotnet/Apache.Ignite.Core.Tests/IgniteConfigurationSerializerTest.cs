@@ -248,8 +248,6 @@ namespace Apache.Ignite.Core.Tests
 
                 var propName = toLowerCamel(prop.Name);
 
-                Console.WriteLine(propName);
-
                 Assert.IsTrue(schema.Descendants().Select(x => x.Attribute("name"))
                     .Any(x => x != null && x.Value == propName),
                     "Property is missing in XML schema: " + propName);
