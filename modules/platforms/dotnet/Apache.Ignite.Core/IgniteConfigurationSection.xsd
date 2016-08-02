@@ -287,8 +287,16 @@
                                                                                             <xs:documentation>Gets or sets the cache name.</xs:documentation>
                                                                                         </xs:annotation>
                                                                                     </xs:attribute>
-                                                                                    <xs:attribute name="fieldType" type="xs:string"></xs:attribute>
-                                                                                    <xs:attribute name="fieldTypeName" type="xs:string"></xs:attribute>
+                                                                                    <xs:attribute name="fieldType" type="xs:string">
+                                                                                        <xs:annotation>
+                                                                                            <xs:documentation>Gets or sets the .NET field type.</xs:documentation>
+                                                                                        </xs:annotation>
+                                                                                    </xs:attribute>
+                                                                                    <xs:attribute name="fieldTypeName" type="xs:string">
+                                                                                        <xs:annotation>
+                                                                                            <xs:documentation>Gets or sets the Java field type name.</xs:documentation>
+                                                                                        </xs:annotation>
+                                                                                    </xs:attribute>
                                                                                 </xs:complexType>
                                                                             </xs:element>
                                                                         </xs:sequence>
@@ -366,19 +374,31 @@
                                                                     </xs:complexType>
                                                                 </xs:element>
                                                             </xs:all>
-                                                            <xs:attribute name="keyTypeName" type="xs:string"></xs:attribute>
-                                                            <xs:attribute name="keyType" type="xs:string">
+                                                            <xs:attribute name="keyTypeName" type="xs:string">
                                                                 <xs:annotation>
                                                                     <xs:documentation>
-                                                                        Initializes a new instance of the CacheMetricsImpl class.
+                                                                        Gets or sets the Java key type name.
                                                                     </xs:documentation>
                                                                 </xs:annotation>
                                                             </xs:attribute>
-                                                            <xs:attribute name="valueTypeName" type="xs:string"></xs:attribute>
+                                                            <xs:attribute name="keyType" type="xs:string">
+                                                                <xs:annotation>
+                                                                    <xs:documentation>
+                                                                        Gets or sets the .NET key type.
+                                                                    </xs:documentation>
+                                                                </xs:annotation>
+                                                            </xs:attribute>
+                                                            <xs:attribute name="valueTypeName" type="xs:string">
+                                                                <xs:annotation>
+                                                                    <xs:documentation>
+                                                                        Gets or sets the Java value type name.
+                                                                    </xs:documentation>
+                                                                </xs:annotation>
+                                                            </xs:attribute>
                                                             <xs:attribute name="valueType" type="xs:string">
                                                                 <xs:annotation>
                                                                     <xs:documentation>
-                                                                        Initializes a new instance of the CacheMetricsImpl class.
+                                                                        Gets or sets the .NET value type.
                                                                     </xs:documentation>
                                                                 </xs:annotation>
                                                             </xs:attribute>
@@ -464,8 +484,16 @@
                                                 <xs:documentation>Gets or sets the affinity function to provide mapping from keys to nodes.</xs:documentation>
                                             </xs:annotation>
                                             <xs:complexType>
-                                                <xs:attribute name="partitions" type="xs:int"></xs:attribute>
-                                                <xs:attribute name="excludeNeighbors" type="xs:boolean"></xs:attribute>
+                                                <xs:attribute name="partitions" type="xs:int">
+                                                    <xs:annotation>
+                                                        <xs:documentation>Number of partitions.</xs:documentation>
+                                                    </xs:annotation>
+                                                </xs:attribute>
+                                                <xs:attribute name="excludeNeighbors" type="xs:boolean">
+                                                    <xs:annotation>
+                                                        <xs:documentation>Whether to exclude same-host-neighbors from being backups of each other.</xs:documentation>
+                                                    </xs:annotation>
+                                                </xs:attribute>
                                                 <xs:attribute name="type" type="xs:string" use="required">
                                                     <xs:annotation>
                                                         <xs:documentation>Assembly-qualified type name.</xs:documentation>
@@ -1107,13 +1135,55 @@
                     </xs:documentation>
                 </xs:annotation>
             </xs:attribute>
-            <xs:attribute name="clientMode" type="xs:boolean"></xs:attribute>
-            <xs:attribute name="metricsExpireTime" type="xs:string"></xs:attribute>
-            <xs:attribute name="metricsHistorySize" type="xs:int"></xs:attribute>
-            <xs:attribute name="metricsLogFrequency" type="xs:string"></xs:attribute>
-            <xs:attribute name="metricsUpdateFrequency" type="xs:string"></xs:attribute>
-            <xs:attribute name="networkSendRetryCount" type="xs:int"></xs:attribute>
-            <xs:attribute name="networkSendRetryDelay" type="xs:string"></xs:attribute>
+            <xs:attribute name="clientMode" type="xs:boolean">
+                <xs:annotation>
+                    <xs:documentation>
+                        Whether node should start in client mode. Client node cannot hold data in the caches.
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:attribute>
+            <xs:attribute name="metricsExpireTime" type="xs:string">
+                <xs:annotation>
+                    <xs:documentation>
+                        Time after which a certain metric value is considered expired.
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:attribute>
+            <xs:attribute name="metricsHistorySize" type="xs:int">
+                <xs:annotation>
+                    <xs:documentation>
+                        Number of metrics kept in history to compute totals and averages.
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:attribute>
+            <xs:attribute name="metricsLogFrequency" type="xs:string">
+                <xs:annotation>
+                    <xs:documentation>
+                        Frequency of metrics log print out.
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:attribute>
+            <xs:attribute name="metricsUpdateFrequency" type="xs:string">
+                <xs:annotation>
+                    <xs:documentation>
+                        Metrics update frequency.
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:attribute>
+            <xs:attribute name="networkSendRetryCount" type="xs:int">
+                <xs:annotation>
+                    <xs:documentation>
+                        Network send retry count.
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:attribute>
+            <xs:attribute name="networkSendRetryDelay" type="xs:string">
+                <xs:annotation>
+                    <xs:documentation>
+                        Network send retry delay.
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:attribute>
             <xs:attribute name="networkTimeout" type="xs:string">
                 <xs:annotation>
                     <xs:documentation>Gets or sets the network timeout.</xs:documentation>
@@ -1131,13 +1201,35 @@
                     <xs:documentation>Gets or sets system-wide local address or host for all Ignite components to bind to. If provided it will override all default local bind settings within Ignite.</xs:documentation>
                 </xs:annotation>
             </xs:attribute>
-            <xs:attribute name="isDaemon" type="xs:boolean"></xs:attribute>
+            <xs:attribute name="isDaemon" type="xs:boolean">
+                <xs:annotation>
+                    <xs:documentation>
+                        Whether this node should be a daemon node. Daemon nodes are the usual grid nodes that participate in topology but not visible on the main APIs.
+                        Daemon nodes are used primarily for management and monitoring functionality.
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:attribute>
             <xs:attribute name="springConfigUrl" type="xs:string">
                 <xs:annotation>
                     <xs:documentation>URL to Spring configuration file.</xs:documentation>
                 </xs:annotation>
             </xs:attribute>
-            <xs:attribute name="isLateAffinityAssignment" type="xs:boolean"></xs:attribute>
+            <xs:attribute name="isLateAffinityAssignment" type="xs:boolean">
+                <xs:annotation>
+                    <xs:documentation>
+                        Whether late affinity assignment mode should be used.
+                        On each topology change, for each started cache, partition-to-node mapping is
+                        calculated using AffinityFunction for cache. When late
+                        affinity assignment mode is disabled then new affinity mapping is applied immediately.
+                        With late affinity assignment mode, if primary node was changed for some partition, but data for this
+                        partition is not rebalanced yet on this node, then current primary is not changed and new primary
+                        is temporary assigned as backup. This nodes becomes primary only when rebalancing for all assigned primary
+                        partitions is finished. This mode can show better performance for cache operations, since when cache
+                        primary node executes some operation and data is not rebalanced yet, then it sends additional message
+                        to force rebalancing from other nodes.
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:attribute>
         </xs:complexType>
     </xs:element>
 </xs:schema>
