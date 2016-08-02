@@ -379,6 +379,8 @@
             <xs:attribute name="workDirectory" type="xs:string" />
             <xs:attribute name="localhost" type="xs:string" />
             <xs:attribute name="isDaemon" type="xs:boolean" />
+            <xs:attribute name="springConfigUrl" type="xs:string" />
+            <xs:attribute name="isLateAffinityAssignment" type="xs:boolean" />
         </xs:complexType>
     </xs:element>    
 </xs:schema>
