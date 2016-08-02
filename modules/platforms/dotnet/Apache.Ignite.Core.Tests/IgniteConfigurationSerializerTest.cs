@@ -238,9 +238,12 @@ namespace Apache.Ignite.Core.Tests
 
                 var isAttribute = propType.Namespace != null && propType.Namespace.StartsWith("Apache.Ignite.Core");
 
+                var propName = toXmlName(prop.Name);
+
                 Assert.IsTrue(isAttribute
-                    ? schema.Attributes.Contains(toXmlName(prop.Name))
-                    : schema.Elements.Contains(toXmlName(prop.Name)));
+                    ? schema.Attributes.Contains(propName)
+                    : schema.Elements.Contains(propName),
+                    "Property is missing in XML schema: " + propName);
             }
 
         }
