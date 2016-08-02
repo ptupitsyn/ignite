@@ -97,9 +97,7 @@
         <xs:complexType>
             <xs:all>
                 <xs:element name="binaryConfiguration" minOccurs="0">
-                    <xs:annotation>
-                        <xs:documentation>Gets or sets the binary configuration.</xs:documentation>
-                    </xs:annotation>
+                    <xs:annotation><xs:documentation>Gets or sets the binary configuration.</xs:documentation></xs:annotation>
                     <xs:complexType>
                         <xs:all>
                             <xs:element name="typeConfigurations" minOccurs="0">
@@ -435,7 +433,9 @@
                     </xs:complexType>
                 </xs:element>
             </xs:all>
-            <xs:attribute name="gridName" type="xs:string" />
+            <xs:attribute name="gridName" type="xs:string">
+                <xs:annotation><xs:documentation>Local Ignite instance name to be used with Ignition.GetIgnite.</xs:documentation></xs:annotation>
+            </xs:attribute>
             <xs:attribute name="jvmDllPath" type="xs:string" />
             <xs:attribute name="igniteHome" type="xs:string" />
             <xs:attribute name="jvmClasspath" type="xs:string" />
