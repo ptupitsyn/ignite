@@ -24,6 +24,14 @@
     xmlns:mstns="http://ignite.apache.org/schema/dotnet/IgniteConfigurationSection"
     xmlns:xs="http://www.w3.org/2001/XMLSchema">
 
+    <xs:simpleType name="cacheMode" final="restriction" >
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="local" />
+            <xs:enumeration value="replicated" />
+            <xs:enumeration value="partitioned" />
+        </xs:restriction>
+    </xs:simpleType>
+
     <xs:element name="igniteConfiguration">
         <xs:complexType>
             <xs:all>
@@ -201,7 +209,7 @@
                                         </xs:element>
                                     </xs:all>
                                     <xs:attribute name="name" type="xs:string" />
-                                    <xs:attribute name="cacheMode" type="xs:string" />
+                                    <xs:attribute name="cacheMode" type="cacheMode" />
                                     <xs:attribute name="writeSynchronizationMode" type="xs:string" />
                                     <xs:attribute name="evictSynchronized" type="xs:boolean" />
                                     <xs:attribute name="evictSynchronizedKeyBufferSize" type="xs:int" />
