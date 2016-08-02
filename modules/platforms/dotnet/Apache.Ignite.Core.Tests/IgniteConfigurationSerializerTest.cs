@@ -263,12 +263,19 @@ namespace Apache.Ignite.Core.Tests
         {
             var document = new XmlDocument();
 
-            document.Schemas.Add("http://ignite.apache.org/schema/dotnet/IgniteConfigurationSection", 
-                XmlReader.Create("IgniteConfigurationSection.xsd"));
+            document.Schemas.Add(GetSchema());
 
             document.Load(new StringReader(xml));
 
             document.Validate(null);
+        }
+
+        /// <summary>
+        /// Gets the schema.
+        /// </summary>
+        private static XmlSchema GetSchema()
+        {
+            return XmlSchema.Read(XmlReader.Create("IgniteConfigurationSection.xsd"), null);
         }
 
         /// <summary>
