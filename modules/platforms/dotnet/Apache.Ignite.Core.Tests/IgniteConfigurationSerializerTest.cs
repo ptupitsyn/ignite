@@ -28,6 +28,7 @@ namespace Apache.Ignite.Core.Tests
     using System.Text;
     using System.Threading;
     using System.Xml;
+    using System.Xml.Linq;
     using System.Xml.Schema;
     using Apache.Ignite.Core.Binary;
     using Apache.Ignite.Core.Cache.Affinity.Fair;
@@ -217,12 +218,12 @@ namespace Apache.Ignite.Core.Tests
         [Test]
         public void TestAllPropertiesArePresentInSchema()
         {
-            // TODO: drill down the property tree and check that there is a property with such name in the XSD
-            // Somehow locate the parent properly..
             Func<string, string> toLowerCamel = x => char.ToLowerInvariant(x[0]) + x.Substring(1);
-            Func<string, XmlQualifiedName> toXmlName = x => new XmlQualifiedName(toLowerCamel(x));
 
-            var schema = GetSchema();
+            // ReSharper disable once PossibleNullReferenceException
+            var schema = XDocument.Load("IgniteConfigurationSection.xsd")
+                    .Root.Elements()
+                    .Single(x => x.Attribute("name").Value == "igniteConfiguration");
 
             var type = typeof(IgniteConfiguration);
 
@@ -238,11 +239,10 @@ namespace Apache.Ignite.Core.Tests
 
                 var isAttribute = !(propType.Namespace != null && propType.Namespace.StartsWith("Apache.Ignite.Core"));
 
-                var propName = toXmlName(prop.Name);
+                var propName = toLowerCamel(prop.Name);
 
-                Assert.IsTrue(isAttribute
-                    ? schema.Attributes.Contains(propName)
-                    : schema.Elements.Contains(propName),
+                Assert.IsTrue(schema.Descendants().Select(x => x.Attribute("name"))
+                    .Any(x => x != null && x.Value == propName),
                     "Property is missing in XML schema: " + propName);
             }
 
@@ -290,19 +290,12 @@ namespace Apache.Ignite.Core.Tests
         {
             var document = new XmlDocument();
 
-            document.Schemas.Add(GetSchema());
+            document.Schemas.Add("http://ignite.apache.org/schema/dotnet/IgniteConfigurationSection",
+                XmlReader.Create("IgniteConfigurationSection.xsd"));
 
             document.Load(new StringReader(xml));
 
             document.Validate(null);
-        }
-
-        /// <summary>
-        /// Gets the schema.
-        /// </summary>
-        private static XmlSchema GetSchema()
-        {
-            return XmlSchema.Read(XmlReader.Create("IgniteConfigurationSection.xsd"), null);
         }
 
         /// <summary>
