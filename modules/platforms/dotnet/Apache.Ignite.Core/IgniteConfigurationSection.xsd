@@ -302,6 +302,11 @@
                                     <xs:attribute name="sqlOnheapRowCacheSize" type="xs:int" />
                                     <xs:attribute name="readThrough" type="xs:boolean" />
                                     <xs:attribute name="writeThrough" type="xs:boolean" />
+                                    <xs:attribute name="eagerTtl" type="xs:boolean" />
+                                    <xs:attribute name="keepBinaryInStore" type="xs:boolean" />
+                                    <xs:attribute name="readFromBackup" type="xs:boolean" />
+                                    <xs:attribute name="copyOnRead" type="xs:boolean" />
+                                    <xs:attribute name="writeBehindFlushFrequency" type="xs:string" />
                                 </xs:complexType>
                             </xs:element>
                         </xs:sequence>

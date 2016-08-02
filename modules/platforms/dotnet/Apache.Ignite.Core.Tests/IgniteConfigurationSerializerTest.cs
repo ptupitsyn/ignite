@@ -440,8 +440,8 @@ namespace Apache.Ignite.Core.Tests
                         Backups = 15,
                         CacheMode = CacheMode.Replicated,
                         CacheStoreFactory = new TestCacheStoreFactory(),
-                        CopyOnRead = true,
-                        EagerTtl = true,
+                        CopyOnRead = false,
+                        EagerTtl = false,
                         EnableSwap = true,
                         EvictSynchronized = true,
                         EvictSynchronizedConcurrencyLevel = 13,
@@ -476,7 +476,7 @@ namespace Apache.Ignite.Core.Tests
                                 ValueType = typeof (long)
                             },
                         },
-                        ReadFromBackup = true,
+                        ReadFromBackup = false,
                         RebalanceBatchSize = 33,
                         RebalanceDelay = TimeSpan.MaxValue,
                         RebalanceMode = CacheRebalanceMode.Sync,
@@ -487,7 +487,7 @@ namespace Apache.Ignite.Core.Tests
                         StartSize = 1023,
                         WriteBehindBatchSize = 45,
                         WriteBehindEnabled = true,
-                        WriteBehindFlushFrequency = TimeSpan.FromSeconds(5),
+                        WriteBehindFlushFrequency = TimeSpan.FromSeconds(55),
                         WriteBehindFlushSize = 66,
                         WriteBehindFlushThreadCount = 2,
                         WriteSynchronizationMode = CacheWriteSynchronizationMode.FullAsync,
@@ -507,7 +507,7 @@ namespace Apache.Ignite.Core.Tests
                         {
                             ExcludeNeighbors = true,
                             Partitions = 48
-                        }
+                        },
                     }
                 },
                 ClientMode = true,
