@@ -35,6 +35,7 @@ namespace Apache.Ignite.Core
     using Apache.Ignite.Core.Impl.Cache.Affinity;
     using Apache.Ignite.Core.Impl.Common;
     using Apache.Ignite.Core.Impl.Handle;
+    using Apache.Ignite.Core.Impl.Log;
     using Apache.Ignite.Core.Impl.Memory;
     using Apache.Ignite.Core.Impl.Unmanaged;
     using Apache.Ignite.Core.Lifecycle;
@@ -203,7 +204,7 @@ namespace Apache.Ignite.Core
             lock (SyncRoot)
             {
                 // 0. Init logger
-                var log = cfg.Logger ?? new ConsoleLogger(LogLevel.Info);
+                var log = cfg.Logger ?? new JavaLogger();  // TODO: ??
 
                 log.Debug("Starting Ignite.NET " + Assembly.GetExecutingAssembly().GetName().Version);
 

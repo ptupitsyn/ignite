@@ -31,64 +31,65 @@ namespace Apache.Ignite.Core.Tests.Log
     public class ConsoleLoggerTest
     {
         /** */
-        private static readonly LogLevel[] AllLevels = Enum.GetValues(typeof(LogLevel)).OfType<LogLevel>().ToArray();
+        // TODO!
+        //private static readonly LogLevel[] AllLevels = Enum.GetValues(typeof(LogLevel)).OfType<LogLevel>().ToArray();
 
-        /// <summary>
-        /// Tests the logging levels.
-        /// </summary>
-        [Test]
-        public void TestLogLevels()
-        {
-            foreach (var level in AllLevels)
-            {
-                Test(l => l.Log(level, "test msg"), "test msg", level);
-                Test(l => l.Log(level, "test msg"), null, level + 1);
-            }
-        }
+        ///// <summary>
+        ///// Tests the logging levels.
+        ///// </summary>
+        //[Test]
+        //public void TestLogLevels()
+        //{
+        //    foreach (var level in AllLevels)
+        //    {
+        //        Test(l => l.Log(level, "test msg"), "test msg", level);
+        //        Test(l => l.Log(level, "test msg"), null, level + 1);
+        //    }
+        //}
 
-        /// <summary>
-        /// Tests the formatting.
-        /// </summary>
-        [Test]
-        public void TestFormatting()
-        {
-            Test(l => l.Warn("testWarn"), "testWarn");
-            Test(l => l.Warn("Hello, {0} : {1}", "World", 1), "Hello, World : 1");
-            Test(l => l.Warn(new Exception("error"), "Hello"), "Hello\nException: System.Exception: error");
-            Test(l => l.Warn(new Exception("error"), "Hello, {0} : {1}", "World", 1), 
-                "Hello, World : 1\nException: System.Exception: error");
-            Test(l => l.Log(LogLevel.Info, "{0} msg {0}", new object[] {"|"}, CultureInfo.InvariantCulture, "cat",
-                "nativeErr", new Exception("dotNetErr")), 
-                "| msg |\nNative error: nativeErr\nException: System.Exception: dotNetErr");
-        }
+        ///// <summary>
+        ///// Tests the formatting.
+        ///// </summary>
+        //[Test]
+        //public void TestFormatting()
+        //{
+        //    Test(l => l.Warn("testWarn"), "testWarn");
+        //    Test(l => l.Warn("Hello, {0} : {1}", "World", 1), "Hello, World : 1");
+        //    Test(l => l.Warn(new Exception("error"), "Hello"), "Hello\nException: System.Exception: error");
+        //    Test(l => l.Warn(new Exception("error"), "Hello, {0} : {1}", "World", 1), 
+        //        "Hello, World : 1\nException: System.Exception: error");
+        //    Test(l => l.Log(LogLevel.Info, "{0} msg {0}", new object[] {"|"}, CultureInfo.InvariantCulture, "cat",
+        //        "nativeErr", new Exception("dotNetErr")), 
+        //        "| msg |\nNative error: nativeErr\nException: System.Exception: dotNetErr");
+        //}
 
-        /// <summary>
-        /// Tests the specified log action.
-        /// </summary>
-        private static void Test(Action<ConsoleLogger> logAction, string expected, LogLevel minLevel = LogLevel.Trace)
-        {
-            var sb = new StringBuilder();
-            var writer = new StringWriter(sb);
-            Console.SetOut(writer);
+        ///// <summary>
+        ///// Tests the specified log action.
+        ///// </summary>
+        //private static void Test(Action<ConsoleLogger> logAction, string expected, LogLevel minLevel = LogLevel.Trace)
+        //{
+        //    var sb = new StringBuilder();
+        //    var writer = new StringWriter(sb);
+        //    Console.SetOut(writer);
 
-            var log = new ConsoleLogger(minLevel);
+        //    var log = new ConsoleLogger(minLevel);
 
-            logAction(log);
+        //    logAction(log);
 
-            writer.Flush();
+        //    writer.Flush();
 
-            if (expected != null)
-                Assert.AreEqual(expected, ExtractMessage(sb.ToString()));
-            else
-                Assert.AreEqual(0, sb.Length);
-        }
+        //    if (expected != null)
+        //        Assert.AreEqual(expected, ExtractMessage(sb.ToString()));
+        //    else
+        //        Assert.AreEqual(0, sb.Length);
+        //}
 
-        /// <summary>
-        /// Extracts the message text from the log, removing timestamp and line breaks.
-        /// </summary>
-        private static string ExtractMessage(string log)
-        {
-            return log.Substring(11, log.Length - 13);
-        }
+        ///// <summary>
+        ///// Extracts the message text from the log, removing timestamp and line breaks.
+        ///// </summary>
+        //private static string ExtractMessage(string log)
+        //{
+        //    return log.Substring(11, log.Length - 13);
+        //}
     }
 }
