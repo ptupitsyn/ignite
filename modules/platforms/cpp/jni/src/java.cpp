@@ -1547,6 +1547,29 @@ namespace ignite
                 return res != 0;
             }
 
+            void JniContext::ProcessorLoggerLog(jobject obj, int level, char* message, char* category, char* errorInfo)
+            {
+                JNIEnv* env = Attach();
+
+                jstring message0 = message != NULL ? env->NewStringUTF(message) : NULL;
+                jstring category0 = category != NULL ? env->NewStringUTF(category) : NULL;
+                jstring errorInfo0 = errorInfo != NULL ? env->NewStringUTF(errorInfo) : NULL;
+
+
+                env->CallVoidMethod(obj, jvm->GetMembers().m_PlatformProcessor_loggerLog, message0, category0, errorInfo0);
+
+                if (message0)
+                    env->DeleteLocalRef(message0);
+
+                if (category0)
+                    env->DeleteLocalRef(category0);
+
+                if (errorInfo0)
+                    env->DeleteLocalRef(errorInfo0);
+
+                ExceptionCheck(env);
+            }
+
             long long JniContext::TargetInStreamOutLong(jobject obj, int opType, long long memPtr, JniErrorInfo* err) {
                 JNIEnv* env = Attach();
 
