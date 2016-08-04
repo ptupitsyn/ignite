@@ -18,6 +18,7 @@
 namespace Apache.Ignite.Core.Impl.Log
 {
     using System;
+    using System.Diagnostics;
     using Apache.Ignite.Core.Log;
 
     /// <summary>
@@ -29,6 +30,10 @@ namespace Apache.Ignite.Core.Impl.Log
         public void Log(LogLevel level, string message, object[] args, IFormatProvider formatProvider, string category,
             string nativeErrorInfo, Exception ex)
         {
+            // Java error info should not go back to Java.
+            // Either we log in .NET, and Java sends us logs, or we log in Java, and .NET sends logs, not both.
+            Debug.Assert(nativeErrorInfo == null);
+
             // No-op.
         }
 
