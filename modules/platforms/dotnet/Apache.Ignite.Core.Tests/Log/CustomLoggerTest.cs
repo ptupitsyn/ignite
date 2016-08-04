@@ -317,6 +317,8 @@ namespace Apache.Ignite.Core.Tests.Log
         [Test]
         public void TestJavaLogger()
         {
+            // TODO: Run this in a separate process FFS
+
             // Delete all log files from the work dir
             Func<string[]> getLogs = () =>
                 Directory.GetFiles(IgniteHome.Resolve(null), "dotnet-logger-test.log", SearchOption.AllDirectories);
