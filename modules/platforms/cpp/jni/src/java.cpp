@@ -1556,7 +1556,7 @@ namespace ignite
                 jstring errorInfo0 = errorInfo != NULL ? env->NewStringUTF(errorInfo) : NULL;
 
 
-                env->CallVoidMethod(obj, jvm->GetMembers().m_PlatformProcessor_loggerLog, message0, category0, errorInfo0);
+                env->CallVoidMethod(obj, jvm->GetMembers().m_PlatformProcessor_loggerLog, level, message0, category0, errorInfo0);
 
                 if (message0)
                     env->DeleteLocalRef(message0);
