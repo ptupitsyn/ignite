@@ -131,7 +131,7 @@
     <!-- Default settings. -->
     <root>
         <!-- Print out all info by default. -->
-        <level value="INFO"/>
+        <level value="DEBUG"/>
 
         <!-- Append to console. -->
         <appender-ref ref="CONSOLE"/>

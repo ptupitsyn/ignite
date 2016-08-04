@@ -337,7 +337,7 @@ namespace Apache.Ignite.Core.Tests.Log
                 var log = new StreamReader(fs).ReadToEnd();
 
                 // Check output from Java:
-                Assert.IsTrue(log.Contains("Topology snapshot [ver=1, servers=1, clients=0"));
+                Assert.IsTrue(log.Contains(">>> Topology snapshot."));
 
                 // Check output from .NET:
                 Assert.IsTrue(log.Contains("Starting Ignite.NET " + typeof(Ignition).Assembly.GetName().Version));
