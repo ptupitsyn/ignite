@@ -77,11 +77,12 @@ namespace Apache.Ignite.Core.Impl.Unmanaged
         #region NATIVE METHODS: PROCESSOR
 
         internal static void IgnitionStart(UnmanagedContext ctx, string cfgPath, string gridName,
-            bool clientMode)
+            bool clientMode, bool userLogger)
         {
             using (var mem = IgniteManager.Memory.Allocate().GetStream())
             {
                 mem.WriteBool(clientMode);
+                mem.WriteBool(userLogger);
 
                 sbyte* cfgPath0 = IgniteUtils.StringToUtf8Unmanaged(cfgPath);
                 sbyte* gridName0 = IgniteUtils.StringToUtf8Unmanaged(gridName);

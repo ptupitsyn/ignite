@@ -119,7 +119,8 @@ public class PlatformProcessorImpl extends GridProcessorAdapter implements Platf
 
         platformCtx = new PlatformContextImpl(ctx, interopCfg.gate(), interopCfg.memory(), interopCfg.platform());
 
-        interopCfg.logger().setContext(platformCtx);
+        if (interopCfg.logger() != null)
+            interopCfg.logger().setContext(platformCtx);
     }
 
     /** {@inheritDoc} */

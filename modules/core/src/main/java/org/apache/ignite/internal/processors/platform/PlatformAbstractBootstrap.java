@@ -23,6 +23,7 @@ import org.apache.ignite.configuration.IgniteConfiguration;
 import org.apache.ignite.internal.IgniteEx;
 import org.apache.ignite.internal.IgnitionEx;
 import org.apache.ignite.internal.processors.platform.memory.PlatformExternalMemory;
+import org.apache.ignite.internal.processors.platform.memory.PlatformInputStream;
 import org.apache.ignite.internal.processors.resource.GridSpringResourceContext;
 import org.apache.ignite.internal.util.typedef.internal.U;
 import org.apache.ignite.lang.IgniteClosure;
@@ -35,7 +36,8 @@ public abstract class PlatformAbstractBootstrap implements PlatformBootstrap {
     /** {@inheritDoc} */
     @Override public PlatformProcessor start(IgniteConfiguration cfg, @Nullable GridSpringResourceContext springCtx,
         long envPtr, long dataPtr) {
-        Ignition.setClientMode(new PlatformExternalMemory(null, dataPtr).input().readBoolean());
+        final PlatformInputStream input = new PlatformExternalMemory(null, dataPtr).input();
+        Ignition.setClientMode(input.readBoolean());
 
         IgniteConfiguration cfg0 = closure(envPtr).apply(cfg);
 
