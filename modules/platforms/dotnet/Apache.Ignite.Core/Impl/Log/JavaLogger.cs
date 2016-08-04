@@ -18,7 +18,10 @@
 namespace Apache.Ignite.Core.Impl.Log
 {
     using System;
+    using System.Collections.Generic;
     using System.Diagnostics;
+    using System.Linq;
+    using Apache.Ignite.Core.Impl.Unmanaged;
     using Apache.Ignite.Core.Log;
 
     /// <summary>
@@ -26,6 +29,43 @@ namespace Apache.Ignite.Core.Impl.Log
     /// </summary>
     internal class JavaLogger : ILogger
     {
+        /** */
+        private IUnmanagedTarget _proc;
+
+        /** */
+        private readonly List<LogLevel> _enabledLevels = new List<LogLevel>(5);
+
+        /** */
+        private readonly List<Tuple<LogLevel, string, string, string>> _pendingLogs 
+            = new List<Tuple<LogLevel, string, string, string>>();
+
+        /** */
+        private readonly object _syncRoot = new object();
+
+        /// <summary>
+        /// Sets the processor.
+        /// </summary>
+        /// <param name="proc">The proc.</param>
+        public void SetProcessor(IUnmanagedTarget proc)
+        {
+            Debug.Assert(proc != null);
+
+            lock (_syncRoot)
+            {
+                _proc = proc;
+
+                // Preload enabled levels.
+                _enabledLevels.AddRange(
+                    new[] { LogLevel.Trace, LogLevel.Debug, LogLevel.Info, LogLevel.Warn, LogLevel.Error }
+                        .Where(x => UnmanagedUtils.ProcessorLoggerIsLevelEnabled(proc, (int)x)));
+
+                foreach (var log in _pendingLogs)
+                {
+                    Log(log.Item1, log.Item2, log.Item3, log.Item4);
+                }
+            }
+        }
+
         /** <inheritdoc /> */
         public void Log(LogLevel level, string message, object[] args, IFormatProvider formatProvider, string category,
             string nativeErrorInfo, Exception ex)
@@ -34,13 +74,34 @@ namespace Apache.Ignite.Core.Impl.Log
             // Either we log in .NET, and Java sends us logs, or we log in Java, and .NET sends logs, not both.
             Debug.Assert(nativeErrorInfo == null);
 
-            // No-op.
+            if (!IsEnabled(level))
+                return;
+
+            lock (_syncRoot)
+            {
+                var msg = args == null ? message : string.Format(formatProvider, message, args);
+                var err = ex.ToString();
+
+                if (_proc != null)
+                    Log(level, msg, category, err);
+                else
+                    _pendingLogs.Add(Tuple.Create(level, msg, category, err));
+            }
+        }
+
+        /// <summary>
+        /// Logs the message.
+        /// </summary>
+        private void Log(LogLevel level, string msg, string category, string err)
+        {
+            if (IsEnabled(level))
+                UnmanagedUtils.ProcessorLoggerLog(_proc, (int) level, msg, category, err);
         }
 
         /** <inheritdoc /> */
         public bool IsEnabled(LogLevel level)
         {
-            return true;
+            return _proc == null || _enabledLevels.Contains(level);
         }
     }
 }
