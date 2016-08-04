@@ -20,6 +20,7 @@ namespace Apache.Ignite.Core.Tests.Log
     using System;
     using System.Collections.Generic;
     using System.Globalization;
+    using System.IO;
     using System.Linq;
     using Apache.Ignite.Core.Cache.Configuration;
     using Apache.Ignite.Core.Common;
@@ -30,6 +31,7 @@ namespace Apache.Ignite.Core.Tests.Log
     using Apache.Ignite.Core.Log;
     using Apache.Ignite.Core.Resource;
     using NUnit.Framework;
+    using Impl.Common;
 
     /// <summary>
     /// Tests that user-defined logger receives Ignite events.
@@ -307,6 +309,35 @@ namespace Apache.Ignite.Core.Tests.Log
 
             catLog.Log(LogLevel.Info, "info", null, null, "explicitCat", null, null);
             CheckLastMessage(LogLevel.Info, "info", category: "explicitCat");
+        }
+
+        /// <summary>
+        /// Tests that default Java mechanism is used when there is no custom logger.
+        /// </summary>
+        [Test]
+        public void TestNoLogger()
+        {
+            // Delete all log files from the work dir
+            Func<string[]> getLogs = () =>
+                Directory.GetFiles(IgniteHome.Resolve(null), "dotnet-logger-test.log", SearchOption.AllDirectories);
+
+            getLogs().ToList().ForEach(File.Delete);
+
+            // Start Ignite and verify file log
+            using (Ignition.Start(new IgniteConfiguration(TestUtils.GetTestConfiguration())
+            {
+                SpringConfigUrl = @"config\log\custom-log.xml"
+            }))
+            {
+                // No-op.
+            }
+
+            using (var fs = File.Open(getLogs().Single(), FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+            {
+                var log = new StreamReader(fs).ReadToEnd();
+
+                Assert.IsTrue(log.Contains("Topology snapshot [ver=1, servers=1, clients=0"));
+            }
         }
 
         /// <summary>
