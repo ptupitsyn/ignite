@@ -49,43 +49,32 @@ public class PlatformLogger implements IgniteLogger {
     private static final int LVL_ERROR = 4;
 
     /** Callbacks. */
-    private final PlatformCallbackGateway gate;
+    private volatile PlatformCallbackGateway gate;
+
+    /** Context. */
+    private volatile PlatformContext ctx;
 
     /** Category. */
     private final String category;
 
     /** Trace flag. */
-    private final boolean traceEnabled;
+    private volatile boolean traceEnabled;
 
     /** Debug flag. */
-    private final boolean debugEnabled;
+    private volatile boolean debugEnabled;
 
     /** Info flag. */
-    private final boolean infoEnabled;
+    private volatile boolean infoEnabled;
 
     /** Quiet flag. */
-    // TODO: Get this from .NET?
     private static final boolean isQuiet = Boolean.valueOf(System.getProperty(IGNITE_QUIET, "true"));
-
-    /** Context. */
-    private volatile PlatformContext ctx;
 
     /**
      * Ctor.
      *
-     * @param gate Callback gateway.
      */
-    public PlatformLogger(PlatformCallbackGateway gate) {
-        assert gate != null;
-
-        this.gate = gate;
-
+    public PlatformLogger() {
         category = null;
-
-        // Pre-calculate enabled levels (JNI calls are expensive)
-        traceEnabled = gate.loggerIsLevelEnabled(LVL_TRACE);
-        debugEnabled = gate.loggerIsLevelEnabled(LVL_DEBUG);
-        infoEnabled = gate.loggerIsLevelEnabled(LVL_INFO);
     }
 
     /**
@@ -167,13 +156,27 @@ public class PlatformLogger implements IgniteLogger {
     }
 
     /**
+     * Sets the gateway.
+     *
+     * @param gate Callback gateway.
+     */
+    public void setGateway(PlatformCallbackGateway gate) {
+        assert gate != null;
+        this.gate = gate;
+
+        // Pre-calculate enabled levels (JNI calls are expensive)
+        traceEnabled = gate.loggerIsLevelEnabled(LVL_TRACE);
+        debugEnabled = gate.loggerIsLevelEnabled(LVL_DEBUG);
+        infoEnabled = gate.loggerIsLevelEnabled(LVL_INFO);
+    }
+
+    /**
      * Sets the context.
      *
      * @param ctx Platform context.
      */
     public void setContext(PlatformContext ctx) {
         assert ctx != null;
-
         this.ctx = ctx;
     }
 
