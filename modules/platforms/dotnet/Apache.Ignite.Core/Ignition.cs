@@ -231,9 +231,14 @@ namespace Apache.Ignite.Core
                     // 4. Initiate Ignite start.
                     UU.IgnitionStart(cbs.Context, cfg.SpringConfigUrl, gridName, ClientMode, cfg.Logger != null);
 
+
                     // 5. At this point start routine is finished. We expect STARTUP object to have all necessary data.
                     var node = _startup.Ignite;
                     interopProc = node.InteropProcessor;
+
+                    var javaLogger = log as JavaLogger;
+                    if (javaLogger != null)
+                        javaLogger.SetProcessor(interopProc);
 
                     // 6. On-start callback (notify lifecycle components).
                     node.OnStart();
