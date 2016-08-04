@@ -34,19 +34,19 @@ import static org.apache.ignite.IgniteSystemProperties.IGNITE_QUIET;
  */
 public class PlatformLogger implements IgniteLogger {
     /** */
-    private static final int LVL_TRACE = 0;
+    public static final int LVL_TRACE = 0;
 
     /** */
-    private static final int LVL_DEBUG = 1;
+    public static final int LVL_DEBUG = 1;
 
     /** */
-    private static final int LVL_INFO = 2;
+    public static final int LVL_INFO = 2;
 
     /** */
-    private static final int LVL_WARN = 3;
+    public static final int LVL_WARN = 3;
 
     /** */
-    private static final int LVL_ERROR = 4;
+    public static final int LVL_ERROR = 4;
 
     /** Callbacks. */
     private volatile PlatformCallbackGateway gate;
