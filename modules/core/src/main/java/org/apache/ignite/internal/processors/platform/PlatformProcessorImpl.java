@@ -454,14 +454,19 @@ public class PlatformProcessorImpl extends GridProcessorAdapter implements Platf
         switch (level) {
             case PlatformLogger.LVL_TRACE:
                 log.trace(message);
+                break;
             case PlatformLogger.LVL_DEBUG:
                 log.debug(message);
+                break;
             case PlatformLogger.LVL_INFO:
                 log.info(message);
+                break;
             case PlatformLogger.LVL_WARN:
                 log.warning(message, err);
+                break;
             case PlatformLogger.LVL_ERROR:
                 log.error(message, err);
+                break;
             default:
                 assert false;
         }
