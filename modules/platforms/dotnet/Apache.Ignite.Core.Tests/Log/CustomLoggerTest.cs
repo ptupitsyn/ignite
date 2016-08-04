@@ -315,7 +315,7 @@ namespace Apache.Ignite.Core.Tests.Log
         /// Tests that default Java mechanism is used when there is no custom logger.
         /// </summary>
         [Test]
-        public void TestNoLogger()
+        public void TestJavaLogger()
         {
             // Delete all log files from the work dir
             Func<string[]> getLogs = () =>
