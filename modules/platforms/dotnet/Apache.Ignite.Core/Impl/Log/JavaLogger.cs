@@ -80,7 +80,7 @@ namespace Apache.Ignite.Core.Impl.Log
             lock (_syncRoot)
             {
                 var msg = args == null ? message : string.Format(formatProvider, message, args);
-                var err = ex.ToString();
+                var err = ex != null ? ex.ToString() : null;
 
                 if (_proc != null)
                     Log(level, msg, category, err);
