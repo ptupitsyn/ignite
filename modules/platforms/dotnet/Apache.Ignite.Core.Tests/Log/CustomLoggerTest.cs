@@ -317,8 +317,22 @@ namespace Apache.Ignite.Core.Tests.Log
         [Test]
         public void TestJavaLogger()
         {
-            // TODO: Run this in a separate process FFS
+            // Run the test in a separate process because log4jlogger has some static state,
+            // and after Ignite has been started once, it is not possible to start a new node 
+            // with a different logger config.
+            const string envVar = "CustomLoggerTest.TestJavaLogger";
 
+            if (Environment.GetEnvironmentVariable(envVar) != "true")
+                TestJavaLogger0();
+            else
+            {
+                Environment.SetEnvironmentVariable(envVar, "true");
+                TestUtils.RunTestInNewProcess(GetType().Name, "TestJavaLogger");
+            }
+        }
+
+        private static void TestJavaLogger0()
+        {
             // Delete all log files from the work dir
             Func<string[]> getLogs = () =>
                 Directory.GetFiles(IgniteHome.Resolve(null), "dotnet-logger-test.log", SearchOption.AllDirectories);
