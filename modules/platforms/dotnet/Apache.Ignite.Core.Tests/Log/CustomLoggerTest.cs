@@ -322,41 +322,38 @@ namespace Apache.Ignite.Core.Tests.Log
             // with a different logger config.
             const string envVar = "CustomLoggerTest.TestJavaLogger";
 
-            if (Environment.GetEnvironmentVariable(envVar) != "true")
-                TestJavaLogger0();
+            if (Environment.GetEnvironmentVariable(envVar) == "true")
+            {
+                // Delete all log files from the work dir
+                Func<string[]> getLogs = () =>
+                    Directory.GetFiles(IgniteHome.Resolve(null), "dotnet-logger-test.log", SearchOption.AllDirectories);
+
+                getLogs().ToList().ForEach(File.Delete);
+
+                // Start Ignite and verify file log
+                using (Ignition.Start(new IgniteConfiguration(TestUtils.GetTestConfiguration(false))
+                {
+                    SpringConfigUrl = @"config\log\custom-log.xml"
+                }))
+                {
+                    // No-op.
+                }
+
+                using (var fs = File.Open(getLogs().Single(), FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+                {
+                    var log = new StreamReader(fs).ReadToEnd();
+
+                    // Check output from Java:
+                    Assert.IsTrue(log.Contains(">>> Topology snapshot."));
+
+                    // Check output from .NET:
+                    Assert.IsTrue(log.Contains("Starting Ignite.NET " + typeof(Ignition).Assembly.GetName().Version));
+                }
+            }
             else
             {
                 Environment.SetEnvironmentVariable(envVar, "true");
-                TestUtils.RunTestInNewProcess(GetType().Name, "TestJavaLogger");
-            }
-        }
-
-        private static void TestJavaLogger0()
-        {
-            // Delete all log files from the work dir
-            Func<string[]> getLogs = () =>
-                Directory.GetFiles(IgniteHome.Resolve(null), "dotnet-logger-test.log", SearchOption.AllDirectories);
-
-            getLogs().ToList().ForEach(File.Delete);
-
-            // Start Ignite and verify file log
-            using (Ignition.Start(new IgniteConfiguration(TestUtils.GetTestConfiguration())
-            {
-                SpringConfigUrl = @"config\log\custom-log.xml"
-            }))
-            {
-                // No-op.
-            }
-
-            using (var fs = File.Open(getLogs().Single(), FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
-            {
-                var log = new StreamReader(fs).ReadToEnd();
-
-                // Check output from Java:
-                Assert.IsTrue(log.Contains(">>> Topology snapshot."));
-
-                // Check output from .NET:
-                Assert.IsTrue(log.Contains("Starting Ignite.NET " + typeof(Ignition).Assembly.GetName().Version));
+                TestUtils.RunTestInNewProcess(GetType().FullName, "TestJavaLogger");
             }
         }
 
