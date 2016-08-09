@@ -99,7 +99,9 @@ namespace Apache.Ignite.Linq.Impl
         {
             var executor = CacheQueryProvider.Executor;
 
-            return executor.CompileQuery<TQ>(GetQueryModel(), queryExpression);
+            var model = CacheQueryProvider.GenerateQueryModel(queryExpression.Body);
+
+            return executor.CompileQuery<TQ>(model, queryExpression);
         }
 
         /// <summary>
