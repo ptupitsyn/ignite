@@ -208,7 +208,7 @@ namespace Apache.Ignite.Linq
                                   "Provided query is not valid: '{1}'", typeof(CompiledQuery2).FullName, queryable));
 
             // TODO: Provide some parameter info from the calling method to mitigate ConstantExpression uncertainty.
-            return cacheQueryable.CompileQuery<T>(queryCaller);
+            return cacheQueryable.CompileQuery<T>(queryCaller, expression);
         }
 
     }

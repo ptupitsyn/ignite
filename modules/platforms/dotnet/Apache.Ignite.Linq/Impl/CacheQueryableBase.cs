@@ -87,11 +87,12 @@ namespace Apache.Ignite.Linq.Impl
         }
 
         /** <inheritdoc /> */
-        public Func<object[], IQueryCursor<TQ>> CompileQuery<TQ>(Delegate queryCaller)
+        public Func<object[], IQueryCursor<TQ>> CompileQuery<TQ>(Delegate queryCaller, 
+            LambdaExpression queryExpression)
         {
             var executor = CacheQueryProvider.Executor;
 
-            return executor.CompileQuery<TQ>(GetQueryModel(), queryCaller);
+            return executor.CompileQuery<TQ>(GetQueryModel(), queryCaller, queryExpression);
         }
 
         /// <summary>

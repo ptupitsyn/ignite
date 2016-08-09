@@ -147,7 +147,8 @@ namespace Apache.Ignite.Linq.Impl
         /// <summary>
         /// Compiles the query.
         /// </summary>
-        public Func<object[], IQueryCursor<T>> CompileQuery<T>(QueryModel queryModel, Delegate queryCaller)
+        public Func<object[], IQueryCursor<T>> CompileQuery<T>(QueryModel queryModel, Delegate queryCaller,
+            LambdaExpression queryExpression)
         {
             Debug.Assert(queryModel != null);
             Debug.Assert(queryCaller != null);
