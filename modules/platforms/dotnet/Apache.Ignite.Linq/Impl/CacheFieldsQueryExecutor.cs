@@ -210,16 +210,17 @@ namespace Apache.Ignite.Linq.Impl
             // Compiled query is a delegate with query parameters
             // Delegate parameters order and query parameters order may differ
 
-            // TODO: Some parameters may be embedded!
 
             // These are in order of usage in query
-            var qryOrderParams = qryData.Parameters.Cast<ParameterExpression>().Select(x => x.Name).ToList();
+            // TODO: Some parameters may be embedded. We need to compile a func that keeps embedded params
+            // and inserts provided params at correct places.
+            var qryOrderParams = qryData.Parameters.OfType<ParameterExpression>().Select(x => x.Name).ToList();
 
             // These are in order they come from user
             var userOrderParams = queryExpression.Parameters.Select(x => x.Name).ToList();
 
-            if ((qryOrderParams.Count != qryData.Parameters.Count) ||
-                (qryOrderParams.Count != userOrderParams.Count))
+            if (qryOrderParams.Count != userOrderParams.Count)
+                // TODO: Is this possible? What should we really throw?
                 throw new InvalidOperationException("Error compiling query: all compiled query arguments " +
                     "should come from enclosing delegate parameters.");
 

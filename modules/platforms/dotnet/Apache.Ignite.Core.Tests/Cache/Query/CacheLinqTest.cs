@@ -876,8 +876,8 @@ namespace Apache.Ignite.Core.Tests.Cache.Query
         {
             var cache = GetPersonCache().AsCacheQueryable();
 
-            // const args are not allowed
-            Assert.Throws<InvalidOperationException>(() => CompiledQuery2.Compile(() => cache.Where(x => x.Key < 5)));
+            // const args are allowed
+            Assert.AreEqual(5, CompiledQuery2.Compile(() => cache.Where(x => x.Key < 5))().GetAll().Count);
 
             // 0 arg
             var qry0 = CompiledQuery2.Compile(() => cache.Select(x => x.Value.Name));
