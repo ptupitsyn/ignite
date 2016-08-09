@@ -71,7 +71,6 @@ namespace Apache.Ignite.Linq
         /// <returns>Delegate that represents the compiled cache query.</returns>
         [SuppressMessage("Microsoft.Design", "CA1062:Validate arguments of public methods", MessageId = "0", 
             Justification = "Invalid warning, validation is present.")]
-        [Obsolete("Use CompileEx method instead.")]
         public static Func<T1, T2, IQueryCursor<T>> Compile<T, T1, T2>(Func<T1, T2, 
             IQueryable<T>> query)
         {
@@ -203,9 +202,8 @@ namespace Apache.Ignite.Linq
                     string.Format("{0} can only compile cache queries produced by AsCacheQueryable method. " +
                                   "Provided query is not valid: '{1}'", typeof (CompiledQuery).FullName, queryable));
 
-            //Debug.WriteLine(queryable);
+            Debug.WriteLine(queryable);
 
-            // TODO: Provide some parameter info from the calling method to mitigate ConstantExpression uncertainty.
             return cacheQueryable.CompileQuery<T>(queryCaller);
         }
     }
