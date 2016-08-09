@@ -21,7 +21,6 @@ namespace Apache.Ignite.Linq
     using System.Diagnostics;
     using System.Diagnostics.CodeAnalysis;
     using System.Linq;
-    using System.Linq.Expressions;
     using Apache.Ignite.Core.Cache.Query;
     using Apache.Ignite.Core.Impl.Common;
     using Apache.Ignite.Linq.Impl;

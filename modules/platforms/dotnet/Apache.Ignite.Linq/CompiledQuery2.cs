@@ -41,7 +41,7 @@ namespace Apache.Ignite.Linq
         {
             IgniteArgumentCheck.NotNull(query, "query");
 
-            var compiledQuery = GetCompiledQuery<T>(query);
+            var compiledQuery = GetCompiledQuery<T>(query, query.Compile());
 
             return () => compiledQuery(new object[0]);
         }
@@ -57,7 +57,7 @@ namespace Apache.Ignite.Linq
         {
             IgniteArgumentCheck.NotNull(query, "query");
 
-            var compiledQuery = GetCompiledQuery<T>(query);
+            var compiledQuery = GetCompiledQuery<T>(query, query.Compile());
 
             return x => compiledQuery(new object[] {x});
         }
@@ -74,7 +74,7 @@ namespace Apache.Ignite.Linq
         {
             IgniteArgumentCheck.NotNull(query, "query");
 
-            var compiledQuery = GetCompiledQuery<T>(query);
+            var compiledQuery = GetCompiledQuery<T>(query, query.Compile());
 
             return (x, y) => compiledQuery(new object[] {x, y});
         }
@@ -91,7 +91,7 @@ namespace Apache.Ignite.Linq
         {
             IgniteArgumentCheck.NotNull(query, "query");
 
-            var compiledQuery = GetCompiledQuery<T>(query);
+            var compiledQuery = GetCompiledQuery<T>(query, query.Compile());
 
             return (x, y, z) => compiledQuery(new object[] {x, y, z});
         }
@@ -108,7 +108,7 @@ namespace Apache.Ignite.Linq
         {
             IgniteArgumentCheck.NotNull(query, "query");
 
-            var compiledQuery = GetCompiledQuery<T>(query);
+            var compiledQuery = GetCompiledQuery<T>(query, query.Compile());
 
             return (x, y, z, a) => compiledQuery(new object[] {x, y, z, a});
         }
@@ -125,7 +125,7 @@ namespace Apache.Ignite.Linq
         {
             IgniteArgumentCheck.NotNull(query, "query");
 
-            var compiledQuery = GetCompiledQuery<T>(query);
+            var compiledQuery = GetCompiledQuery<T>(query, query.Compile());
 
             return (x, y, z, a, b) => compiledQuery(new object[] {x, y, z, a, b});
         }
@@ -142,7 +142,7 @@ namespace Apache.Ignite.Linq
         {
             IgniteArgumentCheck.NotNull(query, "query");
 
-            var compiledQuery = GetCompiledQuery<T>(query);
+            var compiledQuery = GetCompiledQuery<T>(query, query.Compile());
 
             return (x, y, z, a, b, c) => compiledQuery(new object[] {x, y, z, a, b, c});
         }
@@ -159,7 +159,7 @@ namespace Apache.Ignite.Linq
         {
             IgniteArgumentCheck.NotNull(query, "query");
 
-            var compiledQuery = GetCompiledQuery<T>(query);
+            var compiledQuery = GetCompiledQuery<T>(query, query.Compile());
 
             return (x, y, z, a, b, c, d) => compiledQuery(new object[] {x, y, z, a, b, c, d});
         }
@@ -176,7 +176,7 @@ namespace Apache.Ignite.Linq
         {
             IgniteArgumentCheck.NotNull(query, "query");
 
-            var compiledQuery = GetCompiledQuery<T>(query);
+            var compiledQuery = GetCompiledQuery<T>(query, query.Compile());
 
             return (x, y, z, a, b, c, d, e) => compiledQuery(new object[] {x, y, z, a, b, c, d, e});
         }
@@ -184,7 +184,7 @@ namespace Apache.Ignite.Linq
         /// <summary>
         /// Gets the compiled query.
         /// </summary>
-        private static Func<object[], IQueryCursor<T>> GetCompiledQuery<T>(Expression expression)
+        private static Func<object[], IQueryCursor<T>> GetCompiledQuery<T>(Expression expression, Delegate queryCaller)
         {
             Debug.Assert(expression != null);
 
