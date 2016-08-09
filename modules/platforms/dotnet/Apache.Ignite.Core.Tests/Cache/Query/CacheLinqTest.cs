@@ -938,7 +938,7 @@ namespace Apache.Ignite.Core.Tests.Cache.Query
         /// Tests the old, deprecated compiled query.
         /// </summary>
         [Test]
-        public void TestOldCompiledQuery()
+        public void TestCompiledQueryOld()
         {
             var cache = GetPersonCache().AsCacheQueryable();
 

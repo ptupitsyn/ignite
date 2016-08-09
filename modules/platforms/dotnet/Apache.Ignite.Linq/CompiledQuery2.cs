@@ -219,7 +219,7 @@ namespace Apache.Ignite.Linq
             if (cacheQueryable == null)
                 throw new ArgumentException(
                     string.Format("{0} can only compile cache queries produced by AsCacheQueryable method. " +
-                                  "Provided query is not valid: '{1}'", typeof (CompiledQuery).FullName, queryable));
+                                  "Provided query is not valid: '{1}'", typeof (CompiledQuery2).FullName, queryable));
 
             //Debug.WriteLine(queryable);
 
