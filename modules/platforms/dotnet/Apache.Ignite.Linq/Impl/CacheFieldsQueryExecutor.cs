@@ -213,8 +213,7 @@ namespace Apache.Ignite.Linq.Impl
             // TODO: Some parameters may be embedded!
 
             // These are in order of usage in query
-            var qryOrderParams = qryData.ParameterExpressions.OfType<MemberExpression>()
-                .Select(x => x.Member.Name).ToList();
+            var qryOrderParams = qryData.Parameters.Cast<ParameterExpression>().Select(x => x.Name).ToList();
 
             // These are in order they come from user
             var userOrderParams = queryExpression.Parameters.Select(x => x.Name).ToList();
