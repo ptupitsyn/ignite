@@ -29,8 +29,7 @@ namespace Apache.Ignite.Linq
     /// <summary>
     /// Represents a compiled cache query.
     /// </summary>
-    [Obsolete("Use CompiledQuery2 class.")]
-    public static class CompiledQuery
+    public static class CompiledQuery2
     {
         /// <summary>
         /// Creates a new delegate that represents the compiled cache query.
@@ -62,6 +61,25 @@ namespace Apache.Ignite.Linq
             var compiledQuery = GetCompiledQuery(query(default(T1)), query);
 
             return x => compiledQuery(new object[] {x});
+        }
+
+        /// <summary>
+        /// Creates a new delegate that represents the compiled cache query.
+        /// </summary>
+        /// <param name="query0">The query to compile.</param>
+        /// <returns>Delegate that represents the compiled cache query.</returns>
+        [SuppressMessage("Microsoft.Design", "CA1062:Validate arguments of public methods", MessageId = "0", 
+            Justification = "Invalid warning, validation is present.")]
+        public static Func<T1, T2, IQueryCursor<T>> CompileEx<T, T1, T2>(Expression<Func<T1, T2, 
+            IQueryable<T>>> query0)
+        {
+            IgniteArgumentCheck.NotNull(query0, "query");
+
+            var query = query0.Compile();
+
+            var compiledQuery = GetCompiledQuery(query(default(T1), default(T2)), query);
+
+            return (x, y) => compiledQuery(new object[] {x, y});
         }
 
         /// <summary>
