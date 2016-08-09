@@ -203,7 +203,7 @@ namespace Apache.Ignite.Linq
 
             Debug.WriteLine(queryable);
 
-            return cacheQueryable.CompileQuery<T>(queryCaller, null);
+            return cacheQueryable.CompileQuery<T>(queryCaller);
         }
     }
 }

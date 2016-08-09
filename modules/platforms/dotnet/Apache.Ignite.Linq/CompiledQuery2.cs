@@ -207,8 +207,7 @@ namespace Apache.Ignite.Linq
                     string.Format("{0} can only compile cache queries produced by AsCacheQueryable method. " +
                                   "Provided query is not valid: '{1}'", typeof(CompiledQuery2).FullName, queryable));
 
-            // TODO: Provide some parameter info from the calling method to mitigate ConstantExpression uncertainty.
-            return cacheQueryable.CompileQuery<T>(queryCaller, expression);
+            return cacheQueryable.CompileQuery<T>(expression);
         }
 
     }
