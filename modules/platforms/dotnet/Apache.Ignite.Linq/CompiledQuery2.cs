@@ -24,6 +24,7 @@ namespace Apache.Ignite.Linq
     using System.Linq.Expressions;
     using Apache.Ignite.Core.Cache.Query;
     using Apache.Ignite.Core.Impl.Common;
+    using Apache.Ignite.Linq.Impl;
 
     /// <summary>
     /// Represents a compiled cache query.
@@ -184,24 +185,31 @@ namespace Apache.Ignite.Linq
         /// <summary>
         /// Gets the compiled query.
         /// </summary>
-        private static Func<object[], IQueryCursor<T>> GetCompiledQuery<T>(Expression expression, Delegate queryCaller)
+        private static Func<object[], IQueryCursor<T>> GetCompiledQuery<T>(LambdaExpression expression, 
+            Delegate queryCaller)
         {
             Debug.Assert(expression != null);
+            Debug.Assert(queryCaller != null);
 
-            // TODO
-            return x => null;
+            // Get default parameter values.
+            var paramValues = expression.Parameters
+                .Select(x => x.Type)
+                .Select(x => x.IsValueType ? Activator.CreateInstance(x) : null)
+                .ToArray();
 
-            //var cacheQueryable = queryable as ICacheQueryableInternal;
+            // Invoke the delegate to obtain the cacheQueryable.
+            var queryable = queryCaller.DynamicInvoke(paramValues);
 
-            //if (cacheQueryable == null)
-            //    throw new ArgumentException(
-            //        string.Format("{0} can only compile cache queries produced by AsCacheQueryable method. " +
-            //                      "Provided query is not valid: '{1}'", typeof (CompiledQuery2).FullName, queryable));
+            var cacheQueryable = queryable as ICacheQueryableInternal;
 
-            ////Debug.WriteLine(queryable);
+            if (cacheQueryable == null)
+                throw new ArgumentException(
+                    string.Format("{0} can only compile cache queries produced by AsCacheQueryable method. " +
+                                  "Provided query is not valid: '{1}'", typeof(CompiledQuery2).FullName, queryable));
 
-            //// TODO: Provide some parameter info from the calling method to mitigate ConstantExpression uncertainty.
-            //return cacheQueryable.CompileQuery<T>(queryCaller);
+            // TODO: Provide some parameter info from the calling method to mitigate ConstantExpression uncertainty.
+            return cacheQueryable.CompileQuery<T>(queryCaller);
         }
+
     }
 }
