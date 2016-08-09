@@ -210,6 +210,8 @@ namespace Apache.Ignite.Linq.Impl
             // Compiled query is a delegate with query parameters
             // Delegate parameters order and query parameters order may differ
 
+            // TODO: Some parameters may be embedded!
+
             // These are in order of usage in query
             var qryOrderParams = qryData.ParameterExpressions.OfType<MemberExpression>()
                 .Select(x => x.Member.Name).ToList();
