@@ -263,7 +263,7 @@ namespace Apache.Ignite.Linq.Impl
             var userOrderArgs = queryLambda.Parameters.Select(x => x.Name).ToList();
 
             // Simple case: all query args directly map to the lambda args in the same order
-            if (qryOrderArgs.Length == queryLambda.Parameters.Count
+            if (qryOrderArgs.Length == qryData.Parameters.Count
                 && qryOrderArgs.SequenceEqual(userOrderArgs))
             {
                 return args => _cache.QueryFields(new SqlFieldsQuery(qryText, _local, args)
