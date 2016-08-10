@@ -942,10 +942,24 @@ namespace Apache.Ignite.Core.Tests.Cache.Query
 
             var qry = cache.Where(x => x.Key < 5);
 
+            // Simple
             var compiled = CompiledQuery2.Compile(qry);
 
             Assert.AreEqual(5, compiled(5).Count());
             Assert.AreEqual(6, compiled(6).Count());
+
+            // Select
+            var compiledSelect = CompiledQuery2.Compile(qry.Select(x => x.Value.Name).OrderBy(x => x));
+
+            Assert.AreEqual(3, compiledSelect(3).Count());
+            Assert.AreEqual(" Person_0  ", compiledSelect(1).Single());
+
+            // Join
+            var compiledJoin = CompiledQuery2.Compile(qry.Join(
+                GetOrgCache().AsCacheQueryable().Where(x=>x.Value.Name.StartsWith("Org")),
+                p => p.Value.OrganizationId, o => o.Value.Id, (p, o) => o.Key));
+
+            Assert.AreEqual(1000, compiledJoin("Org", 1).Single());
         }
 
 #pragma warning disable 618  // obsolete class
