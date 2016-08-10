@@ -894,10 +894,9 @@ namespace Apache.Ignite.Core.Tests.Cache.Query
                         persons.Where(x => x.Key < b && x.Key > 1),
                         r => r.Key.Foo,
                         p => p.Value.Address.Zip,
-                        (r, p) => p.Value.Name + sep + r.Value.Name).Skip(a));
+                        (r, p) => p.Value.Name + sep + r.Value.Name).Skip(a).Take(1000));
 
-            Assert.AreEqual(new[] {"", ""}, qry3(1, 3, "="));
-
+            Assert.AreEqual(new[] {"", ""}, qry3(1, 3, "=").ToArray());
         }
 
         /// <summary>
