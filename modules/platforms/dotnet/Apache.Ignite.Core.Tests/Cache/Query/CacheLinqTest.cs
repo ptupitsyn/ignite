@@ -933,7 +933,7 @@ namespace Apache.Ignite.Core.Tests.Cache.Query
         }
 
         /// <summary>
-        /// Tests the freeform compiled query, where user provides an array of arguments.
+        /// Tests the free-form compiled query, where user provides an array of arguments.
         /// </summary>
         [Test]
         public void TestCompiledQueryFreeform()
@@ -946,7 +946,6 @@ namespace Apache.Ignite.Core.Tests.Cache.Query
 
             Assert.AreEqual(5, compiled(5).Count());
             Assert.AreEqual(6, compiled(6).Count());
-            Assert.AreEqual(0, compiled().Count());
         }
 
 #pragma warning disable 618  // obsolete class

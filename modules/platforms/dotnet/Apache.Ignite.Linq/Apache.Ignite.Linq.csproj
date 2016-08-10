@@ -65,7 +65,6 @@
     <Compile Include="Impl\CacheQueryModelVisitor.cs" />
     <Compile Include="Impl\CacheQueryParser.cs" />
     <Compile Include="Impl\ICacheQueryableInternal.cs" />
-    <Compile Include="Impl\ICacheQueryProxy.cs" />
     <Compile Include="Impl\MethodVisitor.cs" />
     <Compile Include="Impl\QueryData.cs" />
     <Compile Include="Impl\SqlTypes.cs" />
