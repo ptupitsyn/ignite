@@ -861,14 +861,24 @@ namespace Apache.Ignite.Core.Tests.Cache.Query
         [Test]
         public void TestCompiledQuery()
         {
-            // TODO: Test Take and other aggregates, joins, etc
-            var cache = GetPersonCache().AsCacheQueryable();
+            var persons = GetPersonCache().AsCacheQueryable();
+            var roles = GetRoleCache().AsCacheQueryable();
 
-            var qry0 = CompiledQuery2.Compile((int minKey, int take) => cache.Where(x => x.Key > minKey).Take(take));
+            // Simple args
+            var qry0 = CompiledQuery2.Compile((int minKey, int take) => persons.Where(x => x.Key > minKey).Take(take));
             Assert.AreEqual(3, qry0(-1, 3).GetAll().Count);
 
-            qry0 = CompiledQuery2.Compile((int take, int minKey) => cache.Where(x => x.Key > minKey).Take(take));
+            qry0 = CompiledQuery2.Compile((int take, int minKey) => persons.Where(x => x.Key > minKey).Take(take));
             Assert.AreEqual(5, qry0(5, 3).GetAll().Count);
+
+            // Embedded args
+            var qry1 = CompiledQuery2.Compile(persons.Where(x => x.Key < 3 && x.Value.Name.Contains("son")));
+            Assert.AreEqual(3, qry1().Count());
+
+            // Mixed args
+
+            // Join
+
         }
 
         /// <summary>
