@@ -932,6 +932,23 @@ namespace Apache.Ignite.Core.Tests.Cache.Query
             Assert.AreEqual(new[] {3, 4}, qry8(0, 1, 2, 5, 6, 7, 8, 9).ToArray());
         }
 
+        /// <summary>
+        /// Tests the freeform compiled query, where user provides an array of arguments.
+        /// </summary>
+        [Test]
+        public void TestCompiledQueryFreeform()
+        {
+            var cache = GetPersonCache().AsCacheQueryable();
+
+            var qry = cache.Where(x => x.Key < 5);
+
+            var compiled = CompiledQuery2.Compile(qry);
+
+            Assert.AreEqual(5, compiled(5));
+            Assert.AreEqual(6, compiled(6));
+            Assert.AreEqual(0, compiled());
+        }
+
 #pragma warning disable 618  // obsolete class
         /// <summary>
         /// Tests the old, deprecated compiled query.
