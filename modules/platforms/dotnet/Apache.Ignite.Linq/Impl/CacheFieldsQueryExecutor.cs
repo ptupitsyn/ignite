@@ -145,7 +145,7 @@ namespace Apache.Ignite.Linq.Impl
         }
 
         /// <summary>
-        /// Compiles the query.
+        /// Compiles the query (old method, does not support some scenarios).
         /// </summary>
         public Func<object[], IQueryCursor<T>> CompileQuery<T>(QueryModel queryModel, Delegate queryCaller)
         {
@@ -197,7 +197,7 @@ namespace Apache.Ignite.Linq.Impl
         /// <summary>
         /// Compiles the query.
         /// </summary>
-        public Func<object[], IQueryCursor<T>> CompileQuery<T>(QueryModel queryModel, LambdaExpression queryExpression)
+        public Func<object[], IQueryCursor<T>> CompileQuery<T>(QueryModel queryModel, LambdaExpression queryLambda)
         {
             Debug.Assert(queryModel != null);
 
@@ -213,7 +213,7 @@ namespace Apache.Ignite.Linq.Impl
             // Delegate parameters order and query parameters order may differ
 
             // Simple case: lambda with no parameters
-            if (!queryExpression.Parameters.Any())
+            if (!queryLambda.Parameters.Any())
             {
                 return argsUnused => _cache.QueryFields(new SqlFieldsQuery(qryText, _local, qryParams)
                 {
@@ -224,14 +224,14 @@ namespace Apache.Ignite.Linq.Impl
             }
 
             // These are in order of usage in query
-            var qryOrderParams = qryData.Parameters.OfType<ParameterExpression>().Select(x => x.Name).ToArray();
+            var qryOrderArgs = qryData.Parameters.OfType<ParameterExpression>().Select(x => x.Name).ToArray();
 
             // These are in order they come from user
-            var userOrderParams = queryExpression.Parameters.Select(x => x.Name).ToList();
+            var userOrderArgs = queryLambda.Parameters.Select(x => x.Name).ToList();
 
-            // Simple case: all query params directly map to the lambda params in the same order
-            if (qryOrderParams.Length == queryExpression.Parameters.Count
-                && qryOrderParams.SequenceEqual(userOrderParams))
+            // Simple case: all query args directly map to the lambda args in the same order
+            if (qryOrderArgs.Length == queryLambda.Parameters.Count
+                && qryOrderArgs.SequenceEqual(userOrderArgs))
             {
                 return args => _cache.QueryFields(new SqlFieldsQuery(qryText, _local, args)
                 {
@@ -241,13 +241,14 @@ namespace Apache.Ignite.Linq.Impl
                 }, selector);
             }
 
-            // TODO: Produce a mapping where embedded params are mixed with lambda params
+            // General case: embedded args and lambda args are mixed; same args can be used multiple times.
+            // Produce a mapping that defines where query arguments come from.
             var mapping = qryData.Parameters.Select(x =>
             {
                 var pe = x as ParameterExpression;
 
                 if (pe != null)
-                    return userOrderParams.IndexOf(pe.Name);
+                    return userOrderArgs.IndexOf(pe.Name);
 
                 return -1;
             }).ToArray();
