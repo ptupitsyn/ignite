@@ -876,6 +876,8 @@ namespace Apache.Ignite.Core.Tests.Cache.Query
             Assert.AreEqual(5, qry1(5, 3).GetAll().Count);
 
             // Mixed args
+            var qry2 = CompiledQuery2.Compile((int maxKey) => persons.Where(x => x.Key < maxKey).Skip(2));
+            Assert.AreEqual(8, qry2(10).Count());
 
             // Join
 
