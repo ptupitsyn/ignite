@@ -58,7 +58,8 @@ namespace Apache.Ignite.Linq
         /// <summary>
         /// Creates a new delegate that represents the compiled cache query with any number of arguments.
         /// <para />
-        /// This method differs from other Compile methods in that it takes in an object array.
+        /// This method differs from other Compile methods in that it takes in <see cref="ICacheQueryable"/> directly,
+        /// and returns a delegate that takes an array of parameters.
         /// It is up to the user to provide query arguments in correct order.
         /// <para />
         /// This method also imposes no restrictions on where the query comes from (in contrary to other methods).
