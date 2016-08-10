@@ -234,9 +234,14 @@ namespace Apache.Ignite.Linq.Impl
             var qryTextLambda = qryData.QueryText;
 
             if (qryText != qryTextLambda)
+            {
+                Debug.WriteLine(qryText);
+                Debug.WriteLine(qryTextLambda);
+
                 throw new InvalidOperationException("Error compiling query: entire LINQ expression should be " +
                                                     "specified within lambda passed to Compile method. " +
                                                     "Part of the query can't be outside the Compile method call.");
+            }
 
             var selector = GetResultSelector<T>(queryModel.SelectClause.Selector);
 
