@@ -869,11 +869,14 @@ namespace Apache.Ignite.Core.Tests.Cache.Query
             Assert.AreEqual(3, qry0().Count());
 
             // Lambda args
-            var qry1 = CompiledQuery2.Compile((int minKey, int take) => persons.Where(x => x.Key > minKey).Take(take));
-            Assert.AreEqual(3, qry1(-1, 3).GetAll().Count);
+            var qry1 = CompiledQuery2.Compile((int minKey, int take, int skip) => persons.Where(x => x.Key > minKey)
+                .Take(take).Skip(skip));
+            Assert.AreEqual(3, qry1(-1, 3, 1).GetAll().Count);
 
-            qry1 = CompiledQuery2.Compile((int take, int minKey) => persons.Where(x => x.Key > minKey).Take(take));
-            Assert.AreEqual(5, qry1(5, 3).GetAll().Count);
+            qry1 = CompiledQuery2.Compile((int skip, int take, int minKey) => persons.Where(x => x.Key > minKey)
+                .Take(take).Skip(skip));
+
+            Assert.AreEqual(5, qry1(2, 5, 20).GetAll().Count);
 
             // Mixed args
             var qry2 = CompiledQuery2.Compile((int maxKey, int minKey) =>
@@ -885,6 +888,15 @@ namespace Apache.Ignite.Core.Tests.Cache.Query
             Assert.AreEqual(6, qry2(10, 1).Count());
 
             // Join
+            var qry3 = CompiledQuery2.Compile(
+                (int a, int b, string sep) =>
+                    roles.Where(x => x.Key.Bar > a).Join(
+                        persons.Where(x => x.Key < b && x.Key > 1),
+                        r => r.Key.Foo,
+                        p => p.Value.Address.Zip,
+                        (r, p) => p.Value.Name + sep + r.Value.Name).Skip(a));
+
+            Assert.AreEqual(new[] {"", ""}, qry3(1, 3, "="));
 
         }
 
