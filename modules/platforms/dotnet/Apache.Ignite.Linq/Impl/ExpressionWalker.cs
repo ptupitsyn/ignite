@@ -129,6 +129,10 @@ namespace Apache.Ignite.Linq.Impl
                 }
             }
 
+            // Case for compiled queries: return unchanged.
+            if (expr is ParameterExpression)
+                return (T) (object) expr;
+
             throw new NotSupportedException("Expression not supported: " + expr);
         }
 
