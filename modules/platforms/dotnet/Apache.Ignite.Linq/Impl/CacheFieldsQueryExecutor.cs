@@ -227,11 +227,11 @@ namespace Apache.Ignite.Linq.Impl
         {
             Debug.Assert(queryModel != null);
 
-            var qryData = GetQueryData(queryModel);
-            var qryDataLambda = GetQueryData(queryLambdaModel);
+            // Get model from lambda to map arguments properly.
+            var qryData = GetQueryData(queryLambdaModel);
 
-            var qryText = qryData.QueryText;
-            var qryTextLambda = qryDataLambda.QueryText;
+            var qryText = GetQueryData(queryModel).QueryText;
+            var qryTextLambda = qryData.QueryText;
 
             if (qryText != qryTextLambda)
                 throw new InvalidOperationException("Error compiling query: entire LINQ expression should be " +
