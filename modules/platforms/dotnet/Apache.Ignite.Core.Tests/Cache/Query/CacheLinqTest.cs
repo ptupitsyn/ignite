@@ -866,6 +866,9 @@ namespace Apache.Ignite.Core.Tests.Cache.Query
 
             var qry0 = CompiledQuery2.Compile((int minKey, int take) => cache.Where(x => x.Key > minKey).Take(take));
             Assert.AreEqual(3, qry0(-1, 3).GetAll().Count);
+
+            qry0 = CompiledQuery2.Compile((int take, int minKey) => cache.Where(x => x.Key > minKey).Take(take));
+            Assert.AreEqual(5, qry0(5, 3).GetAll().Count);
         }
 
         /// <summary>
