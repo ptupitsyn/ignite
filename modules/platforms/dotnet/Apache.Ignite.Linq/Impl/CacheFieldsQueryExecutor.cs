@@ -193,6 +193,26 @@ namespace Apache.Ignite.Linq.Impl
                 EnforceJoinOrder = _enforceJoinOrder
             }, selector);
         }
+        /// <summary>
+        /// Compiles the query without regard to number or order of arguments.
+        /// </summary>
+        public Func<object[], IQueryCursor<T>> CompileQuery<T>(QueryModel queryModel)
+        {
+            Debug.Assert(queryModel != null);
+
+            var qryData = GetQueryData(queryModel);
+
+            var qryText = qryData.QueryText;
+
+            var selector = GetResultSelector<T>(queryModel.SelectClause.Selector);
+
+            return args => _cache.QueryFields(new SqlFieldsQuery(qryText, _local, args)
+            {
+                EnableDistributedJoins = _enableDistributedJoins,
+                PageSize = _pageSize,
+                EnforceJoinOrder = _enforceJoinOrder
+            }, selector);
+        }
 
         /// <summary>
         /// Compiles the query.

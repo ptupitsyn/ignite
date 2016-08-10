@@ -48,6 +48,27 @@ namespace Apache.Ignite.Linq
         }
 
         /// <summary>
+        /// Creates a new delegate that represents the compiled cache query with any number of arguments.
+        /// This method differs from other Compile methods in that it takes in an object array.
+        /// It is up to the user to provide query arguments in correct order.
+        /// </summary>
+        /// <param name="query">The query to compile.</param>
+        /// <returns>Delegate that represents the compiled cache query.</returns>
+        [SuppressMessage("Microsoft.Design", "CA1062:Validate arguments of public methods", MessageId = "0", 
+            Justification = "Invalid warning, validation is present.")]
+        public static Func<object[], IQueryCursor<T>> Compile<T>(IQueryable<T> query)
+        {
+            IgniteArgumentCheck.NotNull(query, "query");
+
+            var cacheQueryable = query as ICacheQueryableInternal;
+
+            if (cacheQueryable == null)
+                throw GetInvalidQueryException(query);
+
+            return cacheQueryable.CompileQuery<T>();
+        }
+
+        /// <summary>
         /// Creates a new delegate that represents the compiled cache query.
         /// </summary>
         /// <param name="query">The query to compile.</param>
@@ -203,12 +224,19 @@ namespace Apache.Ignite.Linq
             var cacheQueryable = queryable as ICacheQueryableInternal;
 
             if (cacheQueryable == null)
-                throw new ArgumentException(
-                    string.Format("{0} can only compile cache queries produced by AsCacheQueryable method. " +
-                                  "Provided query is not valid: '{1}'", typeof(CompiledQuery2).FullName, queryable));
+                throw GetInvalidQueryException(queryable);
 
             return cacheQueryable.CompileQuery<T>(expression);
         }
 
+        /// <summary>
+        /// Gets the invalid query exception.
+        /// </summary>
+        private static ArgumentException GetInvalidQueryException(object queryable)
+        {
+            return new ArgumentException(
+                string.Format("{0} can only compile cache queries produced by AsCacheQueryable method. " +
+                              "Provided query is not valid: '{1}'", typeof(CompiledQuery2).FullName, queryable));
+        }
     }
 }
