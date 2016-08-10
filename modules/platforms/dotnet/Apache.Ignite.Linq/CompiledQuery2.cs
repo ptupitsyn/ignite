@@ -78,6 +78,7 @@ namespace Apache.Ignite.Linq
 
             var compileQuery = cacheQueryable.CompileQuery<T>();
 
+            // Special delegate is required to allow params[].
             return args => compileQuery(args);
         }
 

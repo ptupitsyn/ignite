@@ -944,9 +944,9 @@ namespace Apache.Ignite.Core.Tests.Cache.Query
 
             var compiled = CompiledQuery2.Compile(qry);
 
-            Assert.AreEqual(5, compiled(5));
-            Assert.AreEqual(6, compiled(6));
-            Assert.AreEqual(0, compiled());
+            Assert.AreEqual(5, compiled(5).Count());
+            Assert.AreEqual(6, compiled(6).Count());
+            Assert.AreEqual(0, compiled().Count());
         }
 
 #pragma warning disable 618  // obsolete class
