@@ -99,9 +99,13 @@ namespace Apache.Ignite.Linq.Impl
         {
             var executor = CacheQueryProvider.Executor;
 
+            // Generate two models: from current expression, and from provided lambda.
+            // Lambda expression provides a way to identify argument mapping.
+            // Comparing two models allows to check whether whole query is within lambda.
             var model = CacheQueryProvider.GenerateQueryModel(queryExpression.Body);
+            var lambdaModel = GetQueryModel();
 
-            return executor.CompileQuery<TQ>(model, queryExpression);
+            return executor.CompileQuery<TQ>(model, lambdaModel, queryExpression);
         }
 
         /// <summary>

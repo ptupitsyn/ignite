@@ -197,13 +197,26 @@ namespace Apache.Ignite.Linq.Impl
         /// <summary>
         /// Compiles the query.
         /// </summary>
-        public Func<object[], IQueryCursor<T>> CompileQuery<T>(QueryModel queryModel, LambdaExpression queryLambda)
+        /// <typeparam name="T">Result type.</typeparam>
+        /// <param name="queryModel">The query model.</param>
+        /// <param name="queryLambdaModel">The query model generated from lambda body.</param>
+        /// <param name="queryLambda">The query lambda.</param>
+        /// <returns>Compiled query func.</returns>
+        public Func<object[], IQueryCursor<T>> CompileQuery<T>(QueryModel queryModel, QueryModel queryLambdaModel, 
+            LambdaExpression queryLambda)
         {
             Debug.Assert(queryModel != null);
 
             var qryData = GetQueryData(queryModel);
+            var qryDataLambda = GetQueryData(queryLambdaModel);
 
             var qryText = qryData.QueryText;
+            var qryTextLambda = qryDataLambda.QueryText;
+
+            if (qryText != qryTextLambda)
+                throw new InvalidOperationException("Error compiling query: entire LINQ expression should be " +
+                                                    "specified within lambda passed to Compile method. " +
+                                                    "Part of the query can't be outside the Compile method call.");
 
             var selector = GetResultSelector<T>(queryModel.SelectClause.Selector);
 
