@@ -960,6 +960,17 @@ namespace Apache.Ignite.Core.Tests.Cache.Query
                 p => p.Value.OrganizationId, o => o.Value.Id, (p, o) => o.Key));
 
             Assert.AreEqual(1000, compiledJoin("Org", 1).Single());
+
+            // Many parameters
+            var qry2 = cache.Where(x => x.Key < 3)
+                .Where(x => x.Key > 0)
+                .Where(x => x.Value.Name.Contains(""))
+                .Where(x => x.Value.Address.Zip > 0)
+                .Where(x => x.Value.Age == 7);
+
+            var compiled2 = CompiledQuery2.Compile(qry2);
+
+            Assert.AreEqual(17, compiled2(18, 16, "ers", 13, 17).Single().Key);
         }
 
 #pragma warning disable 618  // obsolete class
