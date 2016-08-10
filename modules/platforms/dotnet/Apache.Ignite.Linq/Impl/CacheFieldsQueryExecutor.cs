@@ -207,14 +207,14 @@ namespace Apache.Ignite.Linq.Impl
 
             var selector = GetResultSelector<T>(queryModel.SelectClause.Selector);
 
+            var qryParams = qryData.Parameters.ToArray();
+            
             // Compiled query is a delegate with query parameters
             // Delegate parameters order and query parameters order may differ
 
             // Simple case: lambda with no parameters
             if (!queryExpression.Parameters.Any())
             {
-                var qryParams = qryData.Parameters.ToArray();
-
                 return argsUnused => _cache.QueryFields(new SqlFieldsQuery(qryText, _local, qryParams)
                 {
                     EnableDistributedJoins = _enableDistributedJoins,
@@ -227,7 +227,7 @@ namespace Apache.Ignite.Linq.Impl
             var qryOrderParams = qryData.Parameters.OfType<ParameterExpression>().Select(x => x.Name).ToArray();
 
             // These are in order they come from user
-            var userOrderParams = queryExpression.Parameters.Select(x => x.Name).ToArray();
+            var userOrderParams = queryExpression.Parameters.Select(x => x.Name).ToList();
 
             // Simple case: all query params directly map to the lambda params in the same order
             if (qryOrderParams.Length == queryExpression.Parameters.Count
@@ -242,7 +242,34 @@ namespace Apache.Ignite.Linq.Impl
             }
 
             // TODO: Produce a mapping where embedded params are mixed with lambda params
-            throw new NotSupportedException("TODO");
+            var mapping = qryData.Parameters.Select(x =>
+            {
+                var pe = x as ParameterExpression;
+
+                if (pe != null)
+                    return userOrderParams.IndexOf(pe.Name);
+
+                return -1;
+            }).ToArray();
+
+            return args =>
+            {
+                var mappedArgs = new object[qryParams.Length];
+
+                for (var i = 0; i < mappedArgs.Length; i++)
+                {
+                    var map = mapping[i];
+
+                    mappedArgs[i] = map < 0 ? qryParams[i] : args[map];
+                }
+
+                return _cache.QueryFields(new SqlFieldsQuery(qryText, _local, mappedArgs)
+                {
+                    EnableDistributedJoins = _enableDistributedJoins,
+                    PageSize = _pageSize,
+                    EnforceJoinOrder = _enforceJoinOrder
+                }, selector);
+            };
         }
 
         /** <inheritdoc /> */
