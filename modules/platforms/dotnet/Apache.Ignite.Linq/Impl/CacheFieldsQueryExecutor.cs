@@ -210,39 +210,39 @@ namespace Apache.Ignite.Linq.Impl
             // Compiled query is a delegate with query parameters
             // Delegate parameters order and query parameters order may differ
 
+            // Simple case: lambda with no parameters
+            if (!queryExpression.Parameters.Any())
+            {
+                var qryParams = qryData.Parameters.ToArray();
+
+                return argsUnused => _cache.QueryFields(new SqlFieldsQuery(qryText, _local, qryParams)
+                {
+                    EnableDistributedJoins = _enableDistributedJoins,
+                    PageSize = _pageSize,
+                    EnforceJoinOrder = _enforceJoinOrder
+                }, selector);
+            }
 
             // These are in order of usage in query
-            // TODO: Some parameters may be embedded. We need to compile a func that keeps embedded params
-            // and inserts provided params at correct places.
-            var qryOrderParams = qryData.Parameters.OfType<ParameterExpression>().Select(x => x.Name).ToList();
+            var qryOrderParams = qryData.Parameters.OfType<ParameterExpression>().Select(x => x.Name).ToArray();
 
             // These are in order they come from user
-            var userOrderParams = queryExpression.Parameters.Select(x => x.Name).ToList();
+            var userOrderParams = queryExpression.Parameters.Select(x => x.Name).ToArray();
 
-            if (qryOrderParams.Count != userOrderParams.Count)
-                // TODO: Is this possible? What should we really throw?
-                throw new InvalidOperationException("Error compiling query: all compiled query arguments " +
-                    "should come from enclosing delegate parameters.");
-
-            var indices = qryOrderParams.Select(x => userOrderParams.IndexOf(x)).ToArray();
-
-            // Check if user param order is already correct
-            if (indices.SequenceEqual(Enumerable.Range(0, indices.Length)))
+            // Simple case: all query params directly map to the lambda params in the same order
+            if (qryOrderParams.Length == queryExpression.Parameters.Count
+                && qryOrderParams.SequenceEqual(userOrderParams))
+            {
                 return args => _cache.QueryFields(new SqlFieldsQuery(qryText, _local, args)
                 {
                     EnableDistributedJoins = _enableDistributedJoins,
                     PageSize = _pageSize,
                     EnforceJoinOrder = _enforceJoinOrder
                 }, selector);
+            }
 
-            // Return delegate with reorder
-            return args => _cache.QueryFields(new SqlFieldsQuery(qryText, _local,
-                args.Select((x, i) => args[indices[i]]).ToArray())
-            {
-                EnableDistributedJoins = _enableDistributedJoins,
-                PageSize = _pageSize,
-                EnforceJoinOrder = _enforceJoinOrder
-            }, selector);
+            // TODO: Produce a mapping where embedded params are mixed with lambda params
+            throw new NotSupportedException("TODO");
         }
 
         /** <inheritdoc /> */
