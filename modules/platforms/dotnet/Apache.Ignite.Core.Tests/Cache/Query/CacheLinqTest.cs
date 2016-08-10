@@ -864,16 +864,16 @@ namespace Apache.Ignite.Core.Tests.Cache.Query
             var persons = GetPersonCache().AsCacheQueryable();
             var roles = GetRoleCache().AsCacheQueryable();
 
-            // Simple args
-            var qry0 = CompiledQuery2.Compile((int minKey, int take) => persons.Where(x => x.Key > minKey).Take(take));
-            Assert.AreEqual(3, qry0(-1, 3).GetAll().Count);
-
-            qry0 = CompiledQuery2.Compile((int take, int minKey) => persons.Where(x => x.Key > minKey).Take(take));
-            Assert.AreEqual(5, qry0(5, 3).GetAll().Count);
-
             // Embedded args
-            var qry1 = CompiledQuery2.Compile(persons.Where(x => x.Key < 3 && x.Value.Name.Contains("son")));
-            Assert.AreEqual(3, qry1().Count());
+            var qry0 = CompiledQuery2.Compile(() => persons.Where(x => x.Key < 3 && x.Value.Name.Contains("son")));
+            Assert.AreEqual(3, qry0().Count());
+
+            // Lambda args
+            var qry1 = CompiledQuery2.Compile((int minKey, int take) => persons.Where(x => x.Key > minKey).Take(take));
+            Assert.AreEqual(3, qry1(-1, 3).GetAll().Count);
+
+            qry1 = CompiledQuery2.Compile((int take, int minKey) => persons.Where(x => x.Key > minKey).Take(take));
+            Assert.AreEqual(5, qry1(5, 3).GetAll().Count);
 
             // Mixed args
 
