@@ -28,6 +28,7 @@ namespace Apache.Ignite.Core.Tests.Cache.Query
 {
     using System;
     using System.Collections;
+    using System.Diagnostics.CodeAnalysis;
     using System.Linq;
     using System.Linq.Expressions;
     using System.Text.RegularExpressions;
@@ -1214,6 +1215,7 @@ namespace Apache.Ignite.Core.Tests.Cache.Query
         /// Tests the distributed joins.
         /// </summary>
         [Test]
+        [SuppressMessage("ReSharper", "AccessToModifiedClosure")]
         public void TestDistributedJoins()
         {
             var ignite = Ignition.GetIgnite();
@@ -1241,7 +1243,22 @@ namespace Apache.Ignite.Core.Tests.Cache.Query
             Assert.Greater(res.Length, 0);
             Assert.Less(res.Length, RoleCount);
 
+            // Compiled
             res = CompiledQuery2.Compile(qry)(PersonCount).ToArray();
+
+            Assert.Greater(res.Length, 0);
+            Assert.Less(res.Length, RoleCount);
+
+            res = CompiledQuery2.Compile(() =>
+                persons.Join(roles, person => person.Key - PersonCount, role => role.Key, (person, role) => role))()
+                .ToArray();
+
+            Assert.Greater(res.Length, 0);
+            Assert.Less(res.Length, RoleCount);
+
+            res = CompiledQuery2.Compile((int x) =>
+                persons.Join(roles, person => person.Key - x, role => role.Key, (person, role) => role))(PersonCount)
+                .ToArray();
 
             Assert.Greater(res.Length, 0);
             Assert.Less(res.Length, RoleCount);
