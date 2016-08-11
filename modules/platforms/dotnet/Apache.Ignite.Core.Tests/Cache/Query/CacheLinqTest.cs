@@ -889,7 +889,13 @@ namespace Apache.Ignite.Core.Tests.Cache.Query
             Assert.AreEqual(6, qry2(10, 1).Count());
 
             // Join
-            var qry3 = CompiledQuery2.Compile(
+            var qry3 = CompiledQuery2.Compile(() =>
+                roles.Join(persons, r => r.Key.Foo, p => p.Key, (r, p) => r.Value.Name));
+
+            Assert.AreEqual(RoleCount, qry3().Count());
+
+            // Join with subquery
+            var qry4 = CompiledQuery2.Compile(
                 (int a, int b, string sep) =>
                     roles
                         .Where(x => x.Key.Bar > a)
@@ -900,21 +906,21 @@ namespace Apache.Ignite.Core.Tests.Cache.Query
                         .Skip(a).Take(1000)
                 );
 
-            Assert.AreEqual(new[] { " Person_2  =Role_2|", " Person_3  =|"}, qry3(1, PersonCount, "=").ToArray());
+            Assert.AreEqual(new[] { " Person_2  =Role_2|", " Person_3  =|"}, qry4(1, PersonCount, "=").ToArray());
 
             // Union
-            var qry4 = CompiledQuery2.Compile(() => roles.Select(x => -x.Key.Foo).Union(persons.Select(x => x.Key)));
+            var qry5 = CompiledQuery2.Compile(() => roles.Select(x => -x.Key.Foo).Union(persons.Select(x => x.Key)));
 
-            Assert.AreEqual(RoleCount + PersonCount, qry4().Count());
+            Assert.AreEqual(RoleCount + PersonCount, qry5().Count());
 
             // Projection
-            var qry5 = CompiledQuery2.Compile((int minAge) => persons
+            var qry6 = CompiledQuery2.Compile((int minAge) => persons
                 .Select(x => x.Value)
                 .Where(x => x.Age >= minAge)
                 .Select(x => new {x.Name, x.Age})
                 .OrderBy(x => x.Name));
 
-            var res = qry5(PersonCount - 3).GetAll();
+            var res = qry6(PersonCount - 3).GetAll();
 
             Assert.AreEqual(3, res.Count);
             Assert.AreEqual(PersonCount - 3, res[0].Age);
