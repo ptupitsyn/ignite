@@ -132,12 +132,7 @@ namespace Apache.Ignite.Linq.Impl
             Debug.WriteLine("\nFields Query: {0} | {1}", qryData.QueryText,
                 string.Join(", ", qryData.Parameters.Select(x => x == null ? "null" : x.ToString())));
 
-            var qry = new SqlFieldsQuery(qryData.QueryText, _local, qryData.Parameters.ToArray())
-            {
-                EnableDistributedJoins = _enableDistributedJoins,
-                PageSize = _pageSize,
-                EnforceJoinOrder = _enforceJoinOrder
-            };
+            var qry = GetFieldsQuery(qryData.QueryText, qryData.Parameters.ToArray());
 
             var selector = GetResultSelector<T>(queryModel.SelectClause.Selector);
 
@@ -177,21 +172,11 @@ namespace Apache.Ignite.Linq.Impl
 
             // Check if user param order is already correct
             if (indices.SequenceEqual(Enumerable.Range(0, indices.Length)))
-                return args => _cache.QueryFields(new SqlFieldsQuery(qryText, _local, args)
-                {
-                    EnableDistributedJoins = _enableDistributedJoins,
-                    PageSize = _pageSize,
-                    EnforceJoinOrder = _enforceJoinOrder
-                }, selector);
+                return args => _cache.QueryFields(GetFieldsQuery(qryText, args), selector);
 
             // Return delegate with reorder
-            return args => _cache.QueryFields(new SqlFieldsQuery(qryText, _local,
-                args.Select((x, i) => args[indices[i]]).ToArray())
-            {
-                EnableDistributedJoins = _enableDistributedJoins,
-                PageSize = _pageSize,
-                EnforceJoinOrder = _enforceJoinOrder
-            }, selector);
+            return args => _cache.QueryFields(GetFieldsQuery(qryText,
+                args.Select((x, i) => args[indices[i]]).ToArray()), selector);
         }
         /// <summary>
         /// Compiles the query without regard to number or order of arguments.
@@ -206,12 +191,7 @@ namespace Apache.Ignite.Linq.Impl
 
             var selector = GetResultSelector<T>(queryModel.SelectClause.Selector);
 
-            return args => _cache.QueryFields(new SqlFieldsQuery(qryText, _local, args)
-            {
-                EnableDistributedJoins = _enableDistributedJoins,
-                PageSize = _pageSize,
-                EnforceJoinOrder = _enforceJoinOrder
-            }, selector);
+            return args => _cache.QueryFields(GetFieldsQuery(qryText, args), selector);
         }
 
         /// <summary>
