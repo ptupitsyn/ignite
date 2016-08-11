@@ -110,6 +110,11 @@ namespace Apache.Ignite.Linq.Impl
         /// </summary>
         public static T EvaluateExpression<T>(Expression expr)
         {
+            var constExpr = expr as ConstantExpression;
+
+            if (constExpr != null)
+                return (T)constExpr.Value;
+
             var memberExpr = expr as MemberExpression;
 
             if (memberExpr != null)

@@ -427,16 +427,8 @@ namespace Apache.Ignite.Linq.Impl
             }
             else
             {
-                var innerExpr = joinClause.InnerSequence as ConstantExpression;
-
-                if (innerExpr == null)
-                    throw new NotSupportedException("Unexpected JOIN inner sequence (subqueries are not supported): " +
-                                                    joinClause.InnerSequence);
-
-                if (!(innerExpr.Value is ICacheQueryable))
-                    throw new NotSupportedException("Unexpected JOIN inner sequence " +
-                                                    "(only results of cache.ToQueryable() are supported): " +
-                                                    innerExpr.Value);
+                // TODO: Do we even need this?
+                ValidateJoinClause(joinClause);
 
                 var queryable = ExpressionWalker.GetCacheQueryable(joinClause);
                 var tableName = ExpressionWalker.GetTableNameWithSchema(queryable);
@@ -447,6 +439,19 @@ namespace Apache.Ignite.Linq.Impl
             BuildJoinCondition(joinClause.InnerKeySelector, joinClause.OuterKeySelector);
 
             _builder.Append(") ");
+        }
+
+        /// <summary>
+        /// Validates the join clause.
+        /// </summary>
+        private static void ValidateJoinClause(JoinClause joinClause)
+        {
+            var exprValue = ExpressionWalker.EvaluateExpression<object>(joinClause.InnerSequence);
+
+            if (!(exprValue is ICacheQueryable))
+                throw new NotSupportedException("Unexpected JOIN inner sequence " +
+                                                "(only results of cache.ToQueryable() are supported): " +
+                                                exprValue);
         }
 
         /// <summary>
