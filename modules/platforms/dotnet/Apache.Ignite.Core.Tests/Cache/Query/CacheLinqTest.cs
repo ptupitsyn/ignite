@@ -1279,7 +1279,21 @@ namespace Apache.Ignite.Core.Tests.Cache.Query
             res = qry.ToArray();
 
             Assert.AreEqual(RoleCount, res.Length);
+
+            // Compiled
             Assert.AreEqual(RoleCount, CompiledQuery2.Compile(qry)(PersonCount).Count());
+
+            res = CompiledQuery2.Compile(() =>
+                persons.Join(roles, person => person.Key - PersonCount, role => role.Key, (person, role) => role))()
+                .ToArray();
+
+            Assert.AreEqual(RoleCount, res.Length);
+
+            res = CompiledQuery2.Compile((int x) =>
+                persons.Join(roles, person => person.Key - x, role => role.Key, (person, role) => role))(PersonCount)
+                .ToArray();
+
+            Assert.AreEqual(RoleCount, res.Length);
         }
 
         /// <summary>
