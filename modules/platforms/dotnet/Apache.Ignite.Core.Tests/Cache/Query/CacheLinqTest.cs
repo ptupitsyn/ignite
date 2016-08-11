@@ -906,6 +906,17 @@ namespace Apache.Ignite.Core.Tests.Cache.Query
 
             Assert.AreEqual(RoleCount + PersonCount, qry4().Count());
 
+            // Projection
+            var qry5 = CompiledQuery2.Compile((int minAge) => persons
+                .Select(x => x.Value)
+                .Where(x => x.Age >= minAge)
+                .Select(x => new {x.Name, x.Age})
+                .OrderBy(x => x.Name));
+
+            var res = qry5(PersonCount - 3).GetAll();
+
+            Assert.AreEqual(3, res.Count);
+            Assert.AreEqual(PersonCount - 3, res[0].Age);
         }
 
         /// <summary>
