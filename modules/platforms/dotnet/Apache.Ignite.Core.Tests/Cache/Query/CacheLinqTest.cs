@@ -890,13 +890,16 @@ namespace Apache.Ignite.Core.Tests.Cache.Query
             // Join
             var qry3 = CompiledQuery2.Compile(
                 (int a, int b, string sep) =>
-                    roles.Where(x => x.Key.Bar > a).Join(
-                        persons.Where(x => x.Key < b && x.Key > 1),
-                        r => r.Key.Foo,
-                        p => p.Value.Address.Zip,
-                        (r, p) => p.Value.Name + sep + r.Value.Name + "|").Skip(a).Take(1000));
+                    roles
+                        .Where(x => x.Key.Bar > a)
+                        .Join(persons.Where(x => x.Key < b && x.Key > 0),
+                            r => r.Key.Foo,
+                            p => p.Value.Address.Zip,
+                            (r, p) => p.Value.Name + sep + r.Value.Name + "|")
+                        .Skip(a).Take(1000)
+                );
 
-            Assert.AreEqual(new[] { " Person_3  =|", ""}, qry3(1, 36, "=").ToArray());
+            Assert.AreEqual(new[] { " Person_2  =Role_2|", " Person_3  =|"}, qry3(1, PersonCount, "=").ToArray());
         }
 
         /// <summary>
