@@ -189,14 +189,14 @@ namespace Apache.Ignite.Examples.Datagrid
                 new Address("1065 East Hillsdale Blvd, Foster City, CA", 94404),
                 OrganizationType.Private,
                 DateTime.Now
-                ));
+            ));
 
             cache.Put(2, new Organization(
                 "Microsoft",
                 new Address("1096 Eddy Street, San Francisco, CA", 94109),
                 OrganizationType.Private,
                 DateTime.Now
-                ));
+            ));
         }
 
         /// <summary>
