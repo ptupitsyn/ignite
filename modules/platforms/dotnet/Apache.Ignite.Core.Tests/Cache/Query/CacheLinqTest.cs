@@ -990,7 +990,7 @@ namespace Apache.Ignite.Core.Tests.Cache.Query
 
             // Join
             var compiledJoin = CompiledQuery2.Compile(qry.Join(
-                GetOrgCache().AsCacheQueryable().Where(x=>x.Value.Name.StartsWith("Org")),
+                GetOrgCache().AsCacheQueryable().Where(x => x.Value.Name.StartsWith("Org")),
                 p => p.Value.OrganizationId, o => o.Value.Id, (p, o) => o.Key));
 
             Assert.AreEqual(1000, compiledJoin("Org", 1).Single());
