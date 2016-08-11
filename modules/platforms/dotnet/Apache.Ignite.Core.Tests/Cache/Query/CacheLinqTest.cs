@@ -900,6 +900,12 @@ namespace Apache.Ignite.Core.Tests.Cache.Query
                 );
 
             Assert.AreEqual(new[] { " Person_2  =Role_2|", " Person_3  =|"}, qry3(1, PersonCount, "=").ToArray());
+
+            // Union
+            var qry4 = CompiledQuery2.Compile(() => roles.Select(x => -x.Key.Foo).Union(persons.Select(x => x.Key)));
+
+            Assert.AreEqual(RoleCount + PersonCount, qry4().Count());
+
         }
 
         /// <summary>
