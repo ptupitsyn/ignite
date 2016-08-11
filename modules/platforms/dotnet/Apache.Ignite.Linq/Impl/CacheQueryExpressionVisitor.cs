@@ -261,9 +261,6 @@ namespace Apache.Ignite.Linq.Impl
         {
             // Count, sum, max, min expect a single field or *
             // In other cases we need both parts of cache entry
-
-            // TODO: Support nested queries
-
             var format = _useStar ? "{0}.*" : "{0}._key, {0}._val";
 
             var tableName = Aliases.GetTableAlias(expression);
