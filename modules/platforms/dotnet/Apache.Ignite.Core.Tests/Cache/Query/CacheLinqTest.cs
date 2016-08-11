@@ -1241,7 +1241,7 @@ namespace Apache.Ignite.Core.Tests.Cache.Query
             Assert.Greater(res.Length, 0);
             Assert.Less(res.Length, RoleCount);
 
-            res = CompiledQuery2.Compile(qry)().ToArray();
+            res = CompiledQuery2.Compile(qry)(PersonCount).ToArray();
 
             Assert.Greater(res.Length, 0);
             Assert.Less(res.Length, RoleCount);
@@ -1254,7 +1254,7 @@ namespace Apache.Ignite.Core.Tests.Cache.Query
             res = qry.ToArray();
 
             Assert.AreEqual(RoleCount, res.Length);
-            Assert.AreEqual(RoleCount, CompiledQuery2.Compile(qry)().Count());
+            Assert.AreEqual(RoleCount, CompiledQuery2.Compile(qry)(PersonCount).Count());
         }
 
         /// <summary>
