@@ -125,7 +125,7 @@ namespace Apache.Ignite.Examples.Datagrid
             const string orgName = "Apache";
 
             var qry = cache.Query(new SqlQuery("Employee",
-                "from Employee, 'dotnet_cache_query_organization'.Organization " +
+                "from Employee, \"dotnet_cache_query_organization\".Organization " +
                 "where Employee.organizationId = Organization._key and Organization.name = ?", orgName));
 
             Console.WriteLine();
