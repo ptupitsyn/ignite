@@ -185,10 +185,7 @@ namespace Apache.Ignite.Linq.Impl
         {
             Debug.Assert(queryModel != null);
 
-            var qryData = GetQueryData(queryModel);
-
-            var qryText = qryData.QueryText;
-
+            var qryText = GetQueryData(queryModel).QueryText;
             var selector = GetResultSelector<T>(queryModel.SelectClause.Selector);
 
             return args => _cache.QueryFields(GetFieldsQuery(qryText, args), selector);
