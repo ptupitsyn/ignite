@@ -250,7 +250,7 @@ namespace Apache.Ignite.Linq.Impl
             // Compiled query is a delegate with query parameters
             // Delegate parameters order and query parameters order may differ
 
-            // Simple case: lambda with no parameters
+            // Simple case: lambda with no parameters. Only embedded parameters are used.
             if (!queryLambda.Parameters.Any())
             {
                 return argsUnused => _cache.QueryFields(new SqlFieldsQuery(qryText, _local, qryParams)
@@ -262,13 +262,13 @@ namespace Apache.Ignite.Linq.Impl
             }
 
             // These are in order of usage in query
-            var qryOrderArgs = qryData.Parameters.OfType<ParameterExpression>().Select(x => x.Name).ToArray();
+            var qryOrderArgs = qryParams.OfType<ParameterExpression>().Select(x => x.Name).ToArray();
 
             // These are in order they come from user
             var userOrderArgs = queryLambda.Parameters.Select(x => x.Name).ToList();
 
             // Simple case: all query args directly map to the lambda args in the same order
-            if (qryOrderArgs.Length == qryData.Parameters.Count
+            if (qryOrderArgs.Length == qryParams.Length
                 && qryOrderArgs.SequenceEqual(userOrderArgs))
             {
                 return args => _cache.QueryFields(new SqlFieldsQuery(qryText, _local, args)
@@ -281,7 +281,7 @@ namespace Apache.Ignite.Linq.Impl
 
             // General case: embedded args and lambda args are mixed; same args can be used multiple times.
             // Produce a mapping that defines where query arguments come from.
-            var mapping = qryData.Parameters.Select(x =>
+            var mapping = qryParams.Select(x =>
             {
                 var pe = x as ParameterExpression;
 
