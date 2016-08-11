@@ -253,12 +253,7 @@ namespace Apache.Ignite.Linq.Impl
             // Simple case: lambda with no parameters. Only embedded parameters are used.
             if (!queryLambda.Parameters.Any())
             {
-                return argsUnused => _cache.QueryFields(new SqlFieldsQuery(qryText, _local, qryParams)
-                {
-                    EnableDistributedJoins = _enableDistributedJoins,
-                    PageSize = _pageSize,
-                    EnforceJoinOrder = _enforceJoinOrder
-                }, selector);
+                return argsUnused => _cache.QueryFields(GetFieldsQuery(qryText, qryParams), selector);
             }
 
             // These are in order of usage in query
@@ -271,12 +266,7 @@ namespace Apache.Ignite.Linq.Impl
             if (qryOrderArgs.Length == qryParams.Length
                 && qryOrderArgs.SequenceEqual(userOrderArgs))
             {
-                return args => _cache.QueryFields(new SqlFieldsQuery(qryText, _local, args)
-                {
-                    EnableDistributedJoins = _enableDistributedJoins,
-                    PageSize = _pageSize,
-                    EnforceJoinOrder = _enforceJoinOrder
-                }, selector);
+                return args => _cache.QueryFields(GetFieldsQuery(qryText, args), selector);
             }
 
             // General case: embedded args and lambda args are mixed; same args can be used multiple times.
@@ -291,23 +281,37 @@ namespace Apache.Ignite.Linq.Impl
                 return -1;
             }).ToArray();
 
-            return args =>
+            return args => _cache.QueryFields(
+                GetFieldsQuery(qryText, MapQueryArgs(args, qryParams, mapping)), selector);
+        }
+
+        /// <summary>
+        /// Maps the query arguments.
+        /// </summary>
+        private static object[] MapQueryArgs(object[] userArgs, object[] embeddedArgs, int[] mapping)
+        {
+            var mappedArgs = new object[embeddedArgs.Length];
+
+            for (var i = 0; i < mappedArgs.Length; i++)
             {
-                var mappedArgs = new object[qryParams.Length];
+                var map = mapping[i];
 
-                for (var i = 0; i < mappedArgs.Length; i++)
-                {
-                    var map = mapping[i];
+                mappedArgs[i] = map < 0 ? embeddedArgs[i] : userArgs[map];
+            }
 
-                    mappedArgs[i] = map < 0 ? qryParams[i] : args[map];
-                }
+            return mappedArgs;
+        }
 
-                return _cache.QueryFields(new SqlFieldsQuery(qryText, _local, mappedArgs)
-                {
-                    EnableDistributedJoins = _enableDistributedJoins,
-                    PageSize = _pageSize,
-                    EnforceJoinOrder = _enforceJoinOrder
-                }, selector);
+        /// <summary>
+        /// Gets the fields query.
+        /// </summary>
+        private SqlFieldsQuery GetFieldsQuery(string text, object[] args)
+        {
+            return new SqlFieldsQuery(text, _local, args)
+            {
+                EnableDistributedJoins = _enableDistributedJoins,
+                PageSize = _pageSize,
+                EnforceJoinOrder = _enforceJoinOrder
             };
         }
 
