@@ -427,9 +427,6 @@ namespace Apache.Ignite.Linq.Impl
             }
             else
             {
-                // TODO: Do we even need this?
-                ValidateJoinClause(joinClause);
-
                 var queryable = ExpressionWalker.GetCacheQueryable(joinClause);
                 var tableName = ExpressionWalker.GetTableNameWithSchema(queryable);
                 var alias = _aliases.GetTableAlias(joinClause);
@@ -439,19 +436,6 @@ namespace Apache.Ignite.Linq.Impl
             BuildJoinCondition(joinClause.InnerKeySelector, joinClause.OuterKeySelector);
 
             _builder.Append(") ");
-        }
-
-        /// <summary>
-        /// Validates the join clause.
-        /// </summary>
-        private static void ValidateJoinClause(JoinClause joinClause)
-        {
-            var exprValue = ExpressionWalker.EvaluateExpression<object>(joinClause.InnerSequence);
-
-            if (!(exprValue is ICacheQueryable))
-                throw new NotSupportedException("Unexpected JOIN inner sequence " +
-                                                "(only results of cache.ToQueryable() are supported): " +
-                                                exprValue);
         }
 
         /// <summary>

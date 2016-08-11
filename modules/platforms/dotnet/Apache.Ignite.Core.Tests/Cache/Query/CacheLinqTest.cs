@@ -509,9 +509,11 @@ namespace Apache.Ignite.Core.Tests.Cache.Query
         public void TestInvalidJoin()
         {
             // Join on non-IQueryable
-            Assert.Throws<NotSupportedException>(() =>
+            var ex = Assert.Throws<NotSupportedException>(() =>
                 // ReSharper disable once ReturnValueOfPureMethodIsNotUsed
                 GetPersonCache().AsCacheQueryable().Join(GetOrgCache(), p => p.Key, o => o.Key, (p, o) => p).ToList());
+
+            Assert.IsTrue(ex.Message.StartsWith("Unexpected query source"));
         }
 
         /// <summary>
