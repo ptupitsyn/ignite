@@ -1233,8 +1233,15 @@ namespace Apache.Ignite.Core.Tests.Cache.Query
             var persons = personCache.AsCacheQueryable();
             var roles = roleCache.AsCacheQueryable();
 
-            var res = persons.Join(roles, person => person.Key - PersonCount, role => role.Key, (person, role) => role)
-                .ToArray();
+            var qry =
+                persons.Join(roles, person => person.Key - PersonCount, role => role.Key, (person, role) => role);
+
+            var res = qry.ToArray();
+
+            Assert.Greater(res.Length, 0);
+            Assert.Less(res.Length, RoleCount);
+
+            res = CompiledQuery2.Compile(qry)().ToArray();
 
             Assert.Greater(res.Length, 0);
             Assert.Less(res.Length, RoleCount);
@@ -1243,10 +1250,11 @@ namespace Apache.Ignite.Core.Tests.Cache.Query
             persons = personCache.AsCacheQueryable(new QueryOptions {EnableDistributedJoins = true});
             roles = roleCache.AsCacheQueryable(new QueryOptions {EnableDistributedJoins = true});
 
-            res = persons.Join(roles, person => person.Key - PersonCount, role => role.Key, (person, role) => role)
-                .ToArray();
+            qry = persons.Join(roles, person => person.Key - PersonCount, role => role.Key, (person, role) => role);
+            res = qry.ToArray();
 
             Assert.AreEqual(RoleCount, res.Length);
+            Assert.AreEqual(RoleCount, CompiledQuery2.Compile(qry)().Count());
         }
 
         /// <summary>
