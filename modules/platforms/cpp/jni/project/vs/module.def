@@ -138,4 +138,3 @@ IgniteSetConsoleHandler @135
 IgniteRemoveConsoleHandler @136
 IgniteProcessorLoggerIsLevelEnabled @137
 IgniteProcessorLoggerLog @138
-IgniteProcessorLoggerIsQueit @139

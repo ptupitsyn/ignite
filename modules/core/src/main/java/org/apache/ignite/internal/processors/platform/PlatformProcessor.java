@@ -275,11 +275,4 @@ public interface PlatformProcessor extends GridProcessor {
      * @param errorInfo Error info.
      */
     public void loggerLog(int level, String message, String category, String errorInfo);
-
-    /**
-     * Returns the logger quiet mode.
-     *
-     * @return Quiet mode flag.
-     */
-    public boolean loggerIsQuiet();
 }

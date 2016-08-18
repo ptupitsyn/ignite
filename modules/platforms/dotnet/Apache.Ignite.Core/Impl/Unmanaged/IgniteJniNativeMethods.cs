@@ -117,10 +117,6 @@ namespace Apache.Ignite.Core.Impl.Unmanaged
         [return: MarshalAs(UnmanagedType.U1)]
         public static extern bool ProcessorLoggerIsLevelEnabled(void* ctx, void* obj, int level);
 
-        [DllImport(IgniteUtils.FileIgniteJniDll, EntryPoint = "IgniteProcessorLoggerIsQuiet")]
-        [return: MarshalAs(UnmanagedType.U1)]
-        public static extern bool ProcessorLoggerIsQuiet(void* ctx, void* obj);
-
         [DllImport(IgniteUtils.FileIgniteJniDll, EntryPoint = "IgniteProcessorLoggerLog")]
         public static extern void ProcessorLoggerLog(void* ctx, void* obj, int level, sbyte* messsage, sbyte* category, sbyte* errorInfo);
 

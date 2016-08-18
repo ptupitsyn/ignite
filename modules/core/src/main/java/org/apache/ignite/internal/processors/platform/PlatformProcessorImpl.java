@@ -472,11 +472,6 @@ public class PlatformProcessorImpl extends GridProcessorAdapter implements Platf
         }
     }
 
-    /** {@inheritDoc} */
-    @Override public boolean loggerIsQuiet() {
-        return ctx.grid().log().isQuiet();
-    }
-
     /**
      * Gets the near cache config.
      *
