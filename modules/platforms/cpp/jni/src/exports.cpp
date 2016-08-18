@@ -142,6 +142,10 @@ extern "C" {
         return ctx->ProcessorLoggerIsLevelEnabled(static_cast<jobject>(obj), level);
     }
 
+    bool IGNITE_CALL IgniteProcessorLoggerIsQuiet(gcj::JniContext* ctx, void* obj) {
+        return ctx->ProcessorLoggerIsQuiet(static_cast<jobject>(obj));
+    }
+
     void IGNITE_CALL IgniteProcessorLoggerLog(gcj::JniContext* ctx, void* obj, int level, char* message, char* category, char* errorInfo) {
         ctx->ProcessorLoggerLog(static_cast<jobject>(obj), level, message, category, errorInfo);
     }

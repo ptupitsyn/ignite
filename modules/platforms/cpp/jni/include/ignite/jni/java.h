@@ -110,6 +110,7 @@ namespace ignite
 
             typedef void(JNICALL *LoggerLogHandler)(void* target, int level, const char* messageChars, int messageCharsLen, const char* categoryChars, int categoryCharsLen, const char* errorInfoChars, int errorInfoCharsLen, long long memPtr);
             typedef bool(JNICALL *LoggerIsLevelEnabledHandler)(void* target, int level);
+            typedef bool(JNICALL *LoggerIsQuietHandler)(void* target);
 
             /**
              * JNI handlers holder.
@@ -197,6 +198,7 @@ namespace ignite
 
                 LoggerLogHandler loggerLog;
                 LoggerIsLevelEnabledHandler loggerIsLevelEnabled;
+                LoggerIsQuietHandler loggerIsQuiet;
             };
 
             /**
@@ -342,6 +344,7 @@ namespace ignite
                 jmethodID m_PlatformProcessor_atomicSequence;
                 jmethodID m_PlatformProcessor_atomicReference;
                 jmethodID m_PlatformProcessor_loggerIsLevelEnabled;
+                jmethodID m_PlatformProcessor_loggerIsQuiet;
                 jmethodID m_PlatformProcessor_loggerLog;
 
                 jclass c_PlatformTarget;
@@ -563,6 +566,7 @@ namespace ignite
 				void ProcessorGetIgniteConfiguration(jobject obj, long long memPtr);
 				void ProcessorGetCacheNames(jobject obj, long long memPtr);
 				bool ProcessorLoggerIsLevelEnabled(jobject obj, int level);
+				bool ProcessorLoggerIsQuiet(jobject obj);
 				void ProcessorLoggerLog(jobject obj, int level, char* message, char* category, char* errorInfo);
 
                 long long TargetInStreamOutLong(jobject obj, int type, long long memPtr, JniErrorInfo* errInfo = NULL);
@@ -780,6 +784,7 @@ namespace ignite
 
             JNIEXPORT void JNICALL JniLoggerLog(JNIEnv *env, jclass cls, jlong envPtr, jint level, jstring message, jstring category, jstring errorInfo, jlong memPtr);
             JNIEXPORT jboolean JNICALL JniLoggerIsLevelEnabled(JNIEnv *env, jclass cls, jlong envPtr, jint level);
+            JNIEXPORT jboolean JNICALL JniLoggerIsQuiet(JNIEnv *env, jclass cls, jlong envPtr, jint level);
         }
     }
 }
