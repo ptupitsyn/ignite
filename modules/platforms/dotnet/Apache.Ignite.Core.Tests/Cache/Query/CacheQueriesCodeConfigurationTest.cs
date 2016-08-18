@@ -186,6 +186,7 @@ namespace Apache.Ignite.Core.Tests.Cache.Query
             {
                 Name = name;
                 Age = age;
+                NullableDecimal = age;
             }
 
             /// <summary>
@@ -214,6 +215,12 @@ namespace Apache.Ignite.Core.Tests.Cache.Query
             /// </value>
             [QuerySqlField]
             public AttributeQueryAddress Address { get; set; }
+
+            /// <summary>
+            /// Gets or sets the nullable decimal.
+            /// </summary>
+            [QuerySqlField]
+            public decimal? NullableDecimal { get; set; }
         }
 
         /// <summary>
