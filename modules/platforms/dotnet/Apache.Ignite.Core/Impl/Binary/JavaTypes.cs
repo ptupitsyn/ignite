@@ -102,11 +102,11 @@ namespace Apache.Ignite.Core.Impl.Binary
         public static Type GetDirectlyMappedType(Type type)
         {
             // Unwrap nullable.
-            type = Nullable.GetUnderlyingType(type) ?? type;
+            var unwrapType = Nullable.GetUnderlyingType(type) ?? type;
 
             Type directType;
 
-            return !IndirectMappingTypes.TryGetValue(type, out directType) ? type : directType;
+            return IndirectMappingTypes.TryGetValue(unwrapType, out directType) ? directType : type;
         }
 
         /// <summary>
