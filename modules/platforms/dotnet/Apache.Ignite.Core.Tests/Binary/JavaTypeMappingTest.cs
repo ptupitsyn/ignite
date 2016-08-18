@@ -82,7 +82,40 @@ namespace Apache.Ignite.Core.Tests.Binary
         [Test]
         public void TestIndirectMappingCheck()
         {
-            
+            Assert.AreEqual(typeof(bool), JavaTypes.GetDirectlyMappedType(typeof(bool)));
+            Assert.AreEqual(typeof(bool), JavaTypes.GetDirectlyMappedType(typeof(bool?)));
+            Assert.AreEqual(typeof(byte), JavaTypes.GetDirectlyMappedType(typeof(byte)));
+            Assert.AreEqual(typeof(byte), JavaTypes.GetDirectlyMappedType(typeof(byte?)));
+            Assert.AreEqual(typeof(char), JavaTypes.GetDirectlyMappedType(typeof(char)));
+            Assert.AreEqual(typeof(char), JavaTypes.GetDirectlyMappedType(typeof(char?)));
+            Assert.AreEqual(typeof(DateTime), JavaTypes.GetDirectlyMappedType(typeof(DateTime)));
+            Assert.AreEqual(typeof(DateTime), JavaTypes.GetDirectlyMappedType(typeof(DateTime?)));
+            Assert.AreEqual(typeof(decimal), JavaTypes.GetDirectlyMappedType(typeof(decimal)));
+            Assert.AreEqual(typeof(decimal), JavaTypes.GetDirectlyMappedType(typeof(decimal?)));
+            Assert.AreEqual(typeof(double), JavaTypes.GetDirectlyMappedType(typeof(double)));
+            Assert.AreEqual(typeof(double), JavaTypes.GetDirectlyMappedType(typeof(double?)));
+            Assert.AreEqual(typeof(float), JavaTypes.GetDirectlyMappedType(typeof(float)));
+            Assert.AreEqual(typeof(float), JavaTypes.GetDirectlyMappedType(typeof(float?)));
+            Assert.AreEqual(typeof(Guid), JavaTypes.GetDirectlyMappedType(typeof(Guid)));
+            Assert.AreEqual(typeof(Guid), JavaTypes.GetDirectlyMappedType(typeof(Guid?)));
+            Assert.AreEqual(typeof(int), JavaTypes.GetDirectlyMappedType(typeof(int)));
+            Assert.AreEqual(typeof(int), JavaTypes.GetDirectlyMappedType(typeof(int?)));
+            Assert.AreEqual(typeof(long), JavaTypes.GetDirectlyMappedType(typeof(long)));
+            Assert.AreEqual(typeof(long), JavaTypes.GetDirectlyMappedType(typeof(long?)));
+            Assert.AreEqual(typeof(byte), JavaTypes.GetDirectlyMappedType(typeof(sbyte)));
+            Assert.AreEqual(typeof(byte), JavaTypes.GetDirectlyMappedType(typeof(sbyte?)));
+            Assert.AreEqual(typeof(short), JavaTypes.GetDirectlyMappedType(typeof(short)));
+            Assert.AreEqual(typeof(short), JavaTypes.GetDirectlyMappedType(typeof(short?)));
+            Assert.AreEqual(typeof(string), JavaTypes.GetDirectlyMappedType(typeof(string)));
+            Assert.AreEqual(typeof(int), JavaTypes.GetDirectlyMappedType(typeof(uint)));
+            Assert.AreEqual(typeof(int), JavaTypes.GetDirectlyMappedType(typeof(uint?)));
+            Assert.AreEqual(typeof(long), JavaTypes.GetDirectlyMappedType(typeof(ulong)));
+            Assert.AreEqual(typeof(long), JavaTypes.GetDirectlyMappedType(typeof(ulong?)));
+            Assert.AreEqual(typeof(short), JavaTypes.GetDirectlyMappedType(typeof(ushort)));
+            Assert.AreEqual(typeof(short), JavaTypes.GetDirectlyMappedType(typeof(ushort?)));
+
+            // Arbitrary type.
+            Assert.AreEqual(typeof(JavaTypeMappingTest), JavaTypes.GetDirectlyMappedType(typeof(JavaTypeMappingTest)));
         }
     }
 }
