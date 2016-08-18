@@ -85,6 +85,8 @@ namespace Apache.Ignite.Core.Impl.Binary
             if (type == null)
                 return;
 
+            type = Nullable.GetUnderlyingType(type) ?? type;
+
             Type directType;
             if (!IndirectMappingTypes.TryGetValue(type, out directType))
                 return;
