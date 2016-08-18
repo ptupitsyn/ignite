@@ -150,6 +150,11 @@ namespace Apache.Ignite.Core.Tests.Cache.Query
                     Assert.AreEqual(2, cursor.GetAll().Single().Key);
                 }
 
+                using (var cursor = cache.Query(new SqlQuery(typeof(AttributeQueryPerson), "salary > ?", 10)))
+                {
+                    Assert.AreEqual(2, cursor.GetAll().Single().Key);
+                }
+
                 using (var cursor = cache.Query(new SqlQuery(typeof(AttributeQueryPerson), "Country = ?", "USA")))
                 {
                     Assert.AreEqual(1, cursor.GetAll().Single().Key);
@@ -186,7 +191,7 @@ namespace Apache.Ignite.Core.Tests.Cache.Query
             {
                 Name = name;
                 Age = age;
-                NullableDecimal = age;
+                Salary = age;
             }
 
             /// <summary>
@@ -217,10 +222,10 @@ namespace Apache.Ignite.Core.Tests.Cache.Query
             public AttributeQueryAddress Address { get; set; }
 
             /// <summary>
-            /// Gets or sets the nullable decimal.
+            /// Gets or sets the salary.
             /// </summary>
             [QuerySqlField]
-            public decimal? NullableDecimal { get; set; }
+            public decimal? Salary { get; set; }
         }
 
         /// <summary>

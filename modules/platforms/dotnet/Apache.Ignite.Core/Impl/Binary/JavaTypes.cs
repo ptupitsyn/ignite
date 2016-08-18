@@ -45,8 +45,7 @@ namespace Apache.Ignite.Core.Impl.Binary
             {typeof (string), "java.lang.String"},
             {typeof (decimal), "java.math.BigDecimal"},
             {typeof (Guid), "java.util.UUID"},
-            {typeof (DateTime), "java.sql.Timestamp"},
-            {typeof (DateTime?), "java.sql.Timestamp"},
+            {typeof (DateTime), "java.sql.Timestamp"}
         };
 
         /** */
@@ -69,6 +68,9 @@ namespace Apache.Ignite.Core.Impl.Binary
         {
             if (type == null)
                 return null;
+
+            // Unwrap nullable
+            type = Nullable.GetUnderlyingType(type) ?? type;
 
             string res;
 
@@ -105,6 +107,7 @@ namespace Apache.Ignite.Core.Impl.Binary
 
             Type res;
 
+            // TODO: Always return nullable because Java?
             return JavaToNet.TryGetValue(javaTypeName, out res) ? res : null;
         }
     }
