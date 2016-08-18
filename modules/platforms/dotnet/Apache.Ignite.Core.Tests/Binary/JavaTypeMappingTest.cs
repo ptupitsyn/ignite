@@ -77,6 +77,27 @@ namespace Apache.Ignite.Core.Tests.Binary
         }
 
         /// <summary>
+        /// Tests the Java to .NET type mapping.
+        /// </summary>
+        [Test]
+        public void TestJavaToDotNetMapping()
+        {
+            Assert.AreEqual(typeof(bool), JavaTypes.GetDotNetType("java.lang.Boolean"));
+            Assert.AreEqual(typeof(byte), JavaTypes.GetDotNetType("java.lang.Byte"));
+            Assert.AreEqual(typeof(short), JavaTypes.GetDotNetType("java.lang.Short"));
+            Assert.AreEqual(typeof(int), JavaTypes.GetDotNetType("java.lang.Integer"));
+            Assert.AreEqual(typeof(long), JavaTypes.GetDotNetType("java.lang.Long"));
+            Assert.AreEqual(typeof(float), JavaTypes.GetDotNetType("java.lang.Float"));
+            Assert.AreEqual(typeof(double), JavaTypes.GetDotNetType("java.lang.Double"));
+            Assert.AreEqual(typeof(decimal), JavaTypes.GetDotNetType("java.math.BigDecimal"));
+            Assert.AreEqual(typeof(char), JavaTypes.GetDotNetType("java.lang.Character"));
+            Assert.AreEqual(typeof(string), JavaTypes.GetDotNetType("java.lang.String"));
+            Assert.AreEqual(typeof(DateTime), JavaTypes.GetDotNetType("java.sql.Timestamp"));
+            Assert.AreEqual(typeof(Guid), JavaTypes.GetDotNetType("java.util.UUID"));
+
+        }
+
+        /// <summary>
         /// Tests the indirect mapping check.
         /// </summary>
         [Test]
