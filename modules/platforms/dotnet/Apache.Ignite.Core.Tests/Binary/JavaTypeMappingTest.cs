@@ -17,6 +17,7 @@
 
 namespace Apache.Ignite.Core.Tests.Binary
 {
+    using System;
     using Apache.Ignite.Core.Impl.Binary;
     using NUnit.Framework;
 
@@ -33,6 +34,55 @@ namespace Apache.Ignite.Core.Tests.Binary
         {
             Assert.AreEqual("java.lang.Boolean", JavaTypes.GetJavaTypeName(typeof(bool)));
             Assert.AreEqual("java.lang.Boolean", JavaTypes.GetJavaTypeName(typeof(bool?)));
+
+            Assert.AreEqual("java.lang.Byte", JavaTypes.GetJavaTypeName(typeof(byte)));
+            Assert.AreEqual("java.lang.Byte", JavaTypes.GetJavaTypeName(typeof(byte?)));
+            Assert.AreEqual("java.lang.Byte", JavaTypes.GetJavaTypeName(typeof(sbyte)));
+            Assert.AreEqual("java.lang.Byte", JavaTypes.GetJavaTypeName(typeof(sbyte?)));
+
+            Assert.AreEqual("java.lang.Short", JavaTypes.GetJavaTypeName(typeof(short)));
+            Assert.AreEqual("java.lang.Short", JavaTypes.GetJavaTypeName(typeof(short?)));
+            Assert.AreEqual("java.lang.Short", JavaTypes.GetJavaTypeName(typeof(ushort)));
+            Assert.AreEqual("java.lang.Short", JavaTypes.GetJavaTypeName(typeof(ushort?)));
+
+            Assert.AreEqual("java.lang.Integer", JavaTypes.GetJavaTypeName(typeof(int)));
+            Assert.AreEqual("java.lang.Integer", JavaTypes.GetJavaTypeName(typeof(int?)));
+            Assert.AreEqual("java.lang.Integer", JavaTypes.GetJavaTypeName(typeof(uint)));
+            Assert.AreEqual("java.lang.Integer", JavaTypes.GetJavaTypeName(typeof(uint?)));
+
+            Assert.AreEqual("java.lang.Long", JavaTypes.GetJavaTypeName(typeof(long)));
+            Assert.AreEqual("java.lang.Long", JavaTypes.GetJavaTypeName(typeof(long?)));
+            Assert.AreEqual("java.lang.Long", JavaTypes.GetJavaTypeName(typeof(ulong)));
+            Assert.AreEqual("java.lang.Long", JavaTypes.GetJavaTypeName(typeof(ulong?)));
+
+            Assert.AreEqual("java.lang.Float", JavaTypes.GetJavaTypeName(typeof(float)));
+            Assert.AreEqual("java.lang.Float", JavaTypes.GetJavaTypeName(typeof(float?)));
+
+            Assert.AreEqual("java.lang.Double", JavaTypes.GetJavaTypeName(typeof(double)));
+            Assert.AreEqual("java.lang.Double", JavaTypes.GetJavaTypeName(typeof(double?)));
+
+            Assert.AreEqual("java.math.BigDecimal", JavaTypes.GetJavaTypeName(typeof(decimal)));
+            Assert.AreEqual("java.math.BigDecimal", JavaTypes.GetJavaTypeName(typeof(decimal?)));
+
+            Assert.AreEqual("java.lang.Character", JavaTypes.GetJavaTypeName(typeof(char)));
+            Assert.AreEqual("java.lang.Character", JavaTypes.GetJavaTypeName(typeof(char?)));
+
+            Assert.AreEqual("java.lang.String", JavaTypes.GetJavaTypeName(typeof(string)));
+
+            Assert.AreEqual("java.sql.Timestamp", JavaTypes.GetJavaTypeName(typeof(DateTime)));
+            Assert.AreEqual("java.sql.Timestamp", JavaTypes.GetJavaTypeName(typeof(DateTime?)));
+
+            Assert.AreEqual("java.util.UUID", JavaTypes.GetJavaTypeName(typeof(Guid)));
+            Assert.AreEqual("java.util.UUID", JavaTypes.GetJavaTypeName(typeof(Guid?)));
+        }
+
+        /// <summary>
+        /// Tests the indirect mapping check.
+        /// </summary>
+        [Test]
+        public void TestIndirectMappingCheck()
+        {
+            
         }
     }
 }
