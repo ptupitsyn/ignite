@@ -121,7 +121,6 @@ namespace Apache.Ignite.Core.Impl.Binary
 
             Type res;
 
-            // TODO: Always return nullable because Java?
             return JavaToNet.TryGetValue(javaTypeName, out res) ? res : null;
         }
     }
