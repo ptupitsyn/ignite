@@ -69,7 +69,7 @@ namespace Apache.Ignite.Core.Impl.Binary
             if (type == null)
                 return null;
 
-            // Unwrap nullable
+            // Unwrap nullable.
             type = Nullable.GetUnderlyingType(type) ?? type;
 
             string res;
@@ -85,6 +85,7 @@ namespace Apache.Ignite.Core.Impl.Binary
             if (type == null)
                 return;
 
+            // Unwrap nullable.
             type = Nullable.GetUnderlyingType(type) ?? type;
 
             Type directType;
