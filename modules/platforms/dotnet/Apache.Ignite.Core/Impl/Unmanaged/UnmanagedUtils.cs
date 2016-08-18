@@ -383,6 +383,11 @@ namespace Apache.Ignite.Core.Impl.Unmanaged
             return JNI.ProcessorLoggerIsLevelEnabled(target.Context, target.Target, level);
         }
 
+        internal static bool ProcessorLoggerIsQuiet(IUnmanagedTarget target)
+        {
+            return JNI.ProcessorLoggerIsQuiet(target.Context, target.Target);
+        }
+
         internal static void ProcessorLoggerLog(IUnmanagedTarget target, int level, string message, string category, 
             string errorInfo)
         {
