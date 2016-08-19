@@ -63,7 +63,7 @@
                                 <property name="valueType" value="QueryPerson"/>
                                 <property name="ascendingFields">
                                     <map>
-                                        <entry key="age" value="java.lang.Integer"/>
+                                        <entry key="age" value="int"/>
                                     </map>
                                 </property>
                                 <property name="queryFields">
