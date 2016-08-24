@@ -28,7 +28,6 @@ namespace Apache.Ignite.Core.Tests.Cache.Query
 {
     using System;
     using System.Collections;
-    using System.Diagnostics.CodeAnalysis;
     using System.Linq;
     using System.Linq.Expressions;
     using System.Text.RegularExpressions;
@@ -1171,6 +1170,9 @@ namespace Apache.Ignite.Core.Tests.Cache.Query
             Assert.IsFalse(fq.EnableDistributedJoins);
             Assert.IsTrue(fq.EnforceJoinOrder);
 
+            var toString = query.ToString();
+            Assert.AreEqual("TODO", toString);
+
             // Check fields query
             var fieldsQuery = (ICacheQueryable) cache.AsCacheQueryable().Select(x => x.Value.Name);
 
@@ -1184,11 +1186,20 @@ namespace Apache.Ignite.Core.Tests.Cache.Query
             Assert.IsFalse(fq.EnableDistributedJoins);
             Assert.IsFalse(fq.EnforceJoinOrder);
 
+            toString = fieldsQuery.ToString();
+            Assert.AreEqual("TODO", toString);
+            
             // Check distributed joins flag propagation
             var distrQuery = cache.AsCacheQueryable(new QueryOptions {EnableDistributedJoins = true})
                 .Where(x => x.Key > 10);
+
             query = (ICacheQueryable) distrQuery;
+
             Assert.IsTrue(query.GetFieldsQuery().EnableDistributedJoins);
+
+            toString = distrQuery.ToString();
+            Assert.AreEqual("TODO", toString);
+
         }
 
         /// <summary>
