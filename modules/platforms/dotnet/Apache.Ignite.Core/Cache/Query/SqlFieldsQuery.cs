@@ -18,6 +18,7 @@
 namespace Apache.Ignite.Core.Cache.Query
 {
     using System.Diagnostics.CodeAnalysis;
+    using System.Linq;
 
     /// <summary>
     /// SQL fields query.
@@ -111,8 +112,10 @@ namespace Apache.Ignite.Core.Cache.Query
         /// </returns>
         public override string ToString()
         {
+            var args = string.Join(", ", Arguments.Select(x => x == null ? "null" : x.ToString()));
+
             return string.Format("SqlFieldsQuery [Sql={0}, Arguments={1}, Local={2}, PageSize={3}, " +
-                                 "EnableDistributedJoins={4}, EnforceJoinOrder={5}", Sql, Arguments, Local,
+                                 "EnableDistributedJoins={4}, EnforceJoinOrder={5}", Sql, args, Local,
                                  PageSize, EnableDistributedJoins, EnforceJoinOrder);
         }
     }
