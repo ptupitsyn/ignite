@@ -114,7 +114,7 @@ namespace Apache.Ignite.Core.Cache.Query
         {
             var args = string.Join(", ", Arguments.Select(x => x == null ? "null" : x.ToString()));
 
-            return string.Format("SqlFieldsQuery [Sql={0}, Arguments={1}, Local={2}, PageSize={3}, " +
+            return string.Format("SqlFieldsQuery [Sql={0}, Arguments=[{1}], Local={2}, PageSize={3}, " +
                                  "EnableDistributedJoins={4}, EnforceJoinOrder={5}", Sql, args, Local,
                                  PageSize, EnableDistributedJoins, EnforceJoinOrder);
         }
