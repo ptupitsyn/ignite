@@ -22,7 +22,6 @@ namespace Apache.Ignite.Core.Cache
     using System.Diagnostics.CodeAnalysis;
     using System.Linq;
     using System.Runtime.Serialization;
-    using Apache.Ignite.Core.Impl.Common;
 
     /// <summary>
     /// Exception thrown from non-transactional cache in case when update succeeded only partially.
@@ -72,7 +71,8 @@ namespace Apache.Ignite.Core.Cache
         /// </summary>
         /// <param name="msg">Exception message.</param>
         /// <param name="failedKeysException">Exception occurred during failed keys read/write.</param>
-        public CachePartialUpdateException(string msg, Exception failedKeysException) : this(msg, null, failedKeysException)
+        public CachePartialUpdateException(string msg, Exception failedKeysException) 
+            : this(msg, null, failedKeysException)
         {
             // No-op.
         }
@@ -93,7 +93,8 @@ namespace Apache.Ignite.Core.Cache
         /// <param name="msg">Exception message.</param>
         /// <param name="failedKeys">Failed keys.</param>
         /// <param name="failedKeysException">Exception occurred during failed keys read/write.</param>
-        private CachePartialUpdateException(string msg, IList<object> failedKeys, Exception failedKeysException) : base(msg)
+        private CachePartialUpdateException(string msg, IList<object> failedKeys, Exception failedKeysException) 
+            : base(msg, failedKeysException)
         {
             _failedKeys = failedKeys;
             _failedKeysException = failedKeysException;

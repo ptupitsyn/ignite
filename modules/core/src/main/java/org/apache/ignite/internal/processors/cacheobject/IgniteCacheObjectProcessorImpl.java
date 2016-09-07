@@ -51,9 +51,6 @@ import static org.apache.ignite.cache.CacheMemoryMode.OFFHEAP_VALUES;
  *
  */
 public class IgniteCacheObjectProcessorImpl extends GridProcessorAdapter implements IgniteCacheObjectProcessor {
-    /** */
-    private static final sun.misc.Unsafe UNSAFE = GridUnsafe.unsafe();
-
     /** Immutable classes. */
     private static final Collection<Class<?>> IMMUTABLE_CLS = new HashSet<>();
 
@@ -86,6 +83,11 @@ public class IgniteCacheObjectProcessorImpl extends GridProcessorAdapter impleme
     }
 
     /** {@inheritDoc} */
+    @Override public String affinityField(String keyType) {
+        return null;
+    }
+
+    /** {@inheritDoc} */
     @Override public IgniteBinary binary() {
         return noOpBinary;
     }
@@ -105,17 +107,27 @@ public class IgniteCacheObjectProcessorImpl extends GridProcessorAdapter impleme
 
     /** {@inheritDoc} */
     @Override public Object unmarshal(CacheObjectContext ctx, byte[] bytes, ClassLoader clsLdr)
-        throws IgniteCheckedException
-    {
-        return ctx.kernalContext().cache().context().marshaller().unmarshal(bytes, clsLdr);
+        throws IgniteCheckedException {
+        return ctx.kernalContext().cache().context().marshaller().unmarshal(bytes, U.resolveClassLoader(clsLdr,
+            ctx.kernalContext().config()));
     }
 
     /** {@inheritDoc} */
-    @Override @Nullable public KeyCacheObject toCacheKeyObject(CacheObjectContext ctx, Object obj, boolean userObj) {
-        if (obj instanceof KeyCacheObject)
-            return (KeyCacheObject)obj;
+    @Override public KeyCacheObject toCacheKeyObject(CacheObjectContext ctx,
+        @Nullable GridCacheContext cctx,
+        Object obj,
+        boolean userObj) {
+        if (obj instanceof KeyCacheObject) {
+            KeyCacheObject key = (KeyCacheObject)obj;
 
-        return toCacheKeyObject0(obj, userObj);
+            if (key.partition() == -1)
+                // Assume all KeyCacheObjects except BinaryObject can not be reused for another cache.
+                key.partition(partition(ctx, cctx, key));
+
+            return (KeyCacheObject)obj;
+        }
+
+        return toCacheKeyObject0(ctx, cctx, obj, userObj);
     }
 
     /**
@@ -125,22 +137,26 @@ public class IgniteCacheObjectProcessorImpl extends GridProcessorAdapter impleme
      * @return Key cache object.
      */
     @SuppressWarnings("ExternalizableWithoutPublicNoArgConstructor")
-    protected KeyCacheObject toCacheKeyObject0(Object obj, boolean userObj) {
-        if (!userObj)
-            return new KeyCacheObjectImpl(obj, null);
+    protected KeyCacheObject toCacheKeyObject0(CacheObjectContext ctx,
+        @Nullable GridCacheContext cctx,
+        Object obj,
+        boolean userObj) {
+        int part = partition(ctx, cctx, obj);
 
-        return new UserKeyCacheObjectImpl(obj);
+        if (!userObj)
+            return new KeyCacheObjectImpl(obj, null, part);
+
+        return new UserKeyCacheObjectImpl(obj, part);
     }
 
     /** {@inheritDoc} */
     @Override public CacheObject toCacheObject(GridCacheContext ctx, long valPtr, boolean tmp)
-        throws IgniteCheckedException
-    {
+        throws IgniteCheckedException {
         assert valPtr != 0;
 
-        int size = UNSAFE.getInt(valPtr);
+        int size = GridUnsafe.getInt(valPtr);
 
-        byte type = UNSAFE.getByte(valPtr + 4);
+        byte type = GridUnsafe.getByte(valPtr + 4);
 
         byte[] bytes = U.copyMemory(valPtr + 5, size);
 
@@ -174,8 +190,7 @@ public class IgniteCacheObjectProcessorImpl extends GridProcessorAdapter impleme
     /** {@inheritDoc} */
     @Nullable @Override public CacheObject toCacheObject(CacheObjectContext ctx,
         @Nullable Object obj,
-        boolean userObj)
-    {
+        boolean userObj) {
         if (obj == null || obj instanceof CacheObject)
             return (CacheObject)obj;
 
@@ -205,6 +220,25 @@ public class IgniteCacheObjectProcessorImpl extends GridProcessorAdapter impleme
         return new UserCacheObjectImpl(obj, null);
     }
 
+    /**
+     * @param ctx Cache objects context.
+     * @param cctx Cache context.
+     * @param obj Object.
+     * @return Object partition.
+     */
+    protected final int partition(CacheObjectContext ctx, @Nullable GridCacheContext cctx, Object obj) {
+        try {
+            return cctx != null ?
+                cctx.affinity().partition(obj, false) :
+                ctx.kernalContext().affinity().partition0(ctx.cacheName(), obj, null);
+        }
+        catch (IgniteCheckedException e) {
+            U.error(log, "Failed to get partition");
+
+            return  -1;
+        }
+    }
+
     /** {@inheritDoc} */
     @Override public CacheObjectContext contextForCache(CacheConfiguration ccfg) throws IgniteCheckedException {
         assert ccfg != null;
@@ -216,6 +250,7 @@ public class IgniteCacheObjectProcessorImpl extends GridProcessorAdapter impleme
             !ccfg.isCopyOnRead();
 
         CacheObjectContext res = new CacheObjectContext(ctx,
+            ccfg.getName(),
             ccfg.getAffinityMapper() != null ? ccfg.getAffinityMapper() : new GridCacheDefaultAffinityKeyMapper(),
             ccfg.isCopyOnRead() && memMode != OFFHEAP_VALUES,
             storeVal,
@@ -234,6 +269,11 @@ public class IgniteCacheObjectProcessorImpl extends GridProcessorAdapter impleme
     }
 
     /** {@inheritDoc} */
+    @Override public void onContinuousProcessorStarted(GridKernalContext ctx) throws IgniteCheckedException {
+        // No-op.
+    }
+
+    /** {@inheritDoc} */
     @Override public void onUtilityCacheStarted() throws IgniteCheckedException {
         // No-op.
     }
@@ -242,7 +282,6 @@ public class IgniteCacheObjectProcessorImpl extends GridProcessorAdapter impleme
     @Override public int typeId(String typeName) {
         return 0;
     }
-
 
     /** {@inheritDoc} */
     @Override public Object unwrapTemporary(GridCacheContext ctx, Object obj) throws IgniteException {
@@ -292,7 +331,29 @@ public class IgniteCacheObjectProcessorImpl extends GridProcessorAdapter impleme
          * @param key Key.
          */
         UserKeyCacheObjectImpl(Object key) {
-            super(key, null);
+            this(key, -1);
+        }
+
+        /**
+         * @param key Key.
+         */
+        UserKeyCacheObjectImpl(Object key, int part) {
+            super(key, null, part);
+        }
+
+        /**
+         * @param key Key.
+         */
+        UserKeyCacheObjectImpl(Object key, byte[] valBytes, int part) {
+            super(key, valBytes, part);
+        }
+
+        /** {@inheritDoc} */
+        @Override public KeyCacheObject copy(int part) {
+            if (this.partition() == part)
+                return this;
+
+            return new UserKeyCacheObjectImpl(val, valBytes, part);
         }
 
         /** {@inheritDoc} */
@@ -305,7 +366,7 @@ public class IgniteCacheObjectProcessorImpl extends GridProcessorAdapter impleme
                     ClassLoader ldr = ctx.p2pEnabled() ?
                         IgniteUtils.detectClassLoader(IgniteUtils.detectClass(this.val)) : U.gridClassLoader();
 
-                     Object val = ctx.processor().unmarshal(ctx, valBytes, ldr);
+                    Object val = ctx.processor().unmarshal(ctx, valBytes, ldr);
 
                     return new KeyCacheObjectImpl(val, valBytes);
                 }

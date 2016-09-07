@@ -451,6 +451,7 @@ public class GridPartitionedGetFuture<K, V> extends CacheDistributedGetFutureAda
                     if (needVer) {
                         T2<CacheObject, GridCacheVersion> res = entry.innerGetVersioned(
                             null,
+                            null,
                             /*swap*/true,
                             /*unmarshal*/true,
                             /**update-metrics*/false,
@@ -467,11 +468,11 @@ public class GridPartitionedGetFuture<K, V> extends CacheDistributedGetFutureAda
                         }
                     }
                     else {
-                        v = entry.innerGet(null,
+                        v = entry.innerGet(
+                            null,
+                            null,
                             /*swap*/true,
                             /*read-through*/false,
-                            /*fail-fast*/true,
-                            /*unmarshal*/true,
                             /**update-metrics*/false,
                             /*event*/!skipVals,
                             /*temporary*/false,
@@ -487,20 +488,17 @@ public class GridPartitionedGetFuture<K, V> extends CacheDistributedGetFutureAda
                     // Entry was not in memory or in swap, so we remove it from cache.
                     if (v == null) {
                         if (isNew && entry.markObsoleteIfEmpty(ver))
-                            cache.removeIfObsolete(key);
+                            cache.removeEntry(entry);
                     }
                     else {
-                        if (needVer)
-                            versionedResult(locVals, key, v, ver);
-                        else {
-                            cctx.addResult(locVals,
-                                key,
-                                v,
-                                skipVals,
-                                keepCacheObjects,
-                                deserializeBinary,
-                                true);
-                        }
+                        cctx.addResult(locVals,
+                            key,
+                            v,
+                            skipVals,
+                            keepCacheObjects,
+                            deserializeBinary,
+                            true,
+                            ver);
 
                         return true;
                     }
@@ -552,17 +550,14 @@ public class GridPartitionedGetFuture<K, V> extends CacheDistributedGetFutureAda
             for (GridCacheEntryInfo info : infos) {
                 assert skipVals == (info.value() == null);
 
-                if (needVer)
-                    versionedResult(map, info.key(), info.value(), info.version());
-                else {
-                    cctx.addResult(map,
-                        info.key(),
-                        info.value(),
-                        skipVals,
-                        keepCacheObjects,
-                        deserializeBinary,
-                        false);
-                }
+                cctx.addResult(map,
+                    info.key(),
+                    info.value(),
+                    skipVals,
+                    keepCacheObjects,
+                    deserializeBinary,
+                    false,
+                    needVer ? info.version() : null);
             }
 
             return map;
@@ -747,12 +742,12 @@ public class GridPartitionedGetFuture<K, V> extends CacheDistributedGetFutureAda
                 }
 
                 // Need to wait for next topology version to remap.
-                IgniteInternalFuture<Long> topFut = cctx.discovery().topologyFuture(rmtTopVer.topologyVersion());
+                IgniteInternalFuture<AffinityTopologyVersion> topFut = cctx.affinity().affinityReadyFuture(rmtTopVer);
 
-                topFut.listen(new CIX1<IgniteInternalFuture<Long>>() {
+                topFut.listen(new CIX1<IgniteInternalFuture<AffinityTopologyVersion>>() {
                     @SuppressWarnings("unchecked")
-                    @Override public void applyx(IgniteInternalFuture<Long> fut) throws IgniteCheckedException {
-                        AffinityTopologyVersion topVer = new AffinityTopologyVersion(fut.get());
+                    @Override public void applyx(IgniteInternalFuture<AffinityTopologyVersion> fut) throws IgniteCheckedException {
+                        AffinityTopologyVersion topVer = fut.get();
 
                         // This will append new futures to compound list.
                         map(F.view(keys.keySet(), new P1<KeyCacheObject>() {

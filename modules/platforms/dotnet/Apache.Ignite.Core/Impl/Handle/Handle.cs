@@ -39,7 +39,7 @@ namespace Apache.Ignite.Core.Impl.Handle
         /// </summary>
         /// <param name="target">Target.</param>
         /// <param name="releaseAction">Release action.</param>
-        public Handle(T target, Action<T> releaseAction)
+        protected Handle(T target, Action<T> releaseAction)
         {
             _target = target;
             _releaseAction = releaseAction;
@@ -48,22 +48,18 @@ namespace Apache.Ignite.Core.Impl.Handle
         /// <summary>
         /// Target.
         /// </summary>
-        public T Target
+        protected T Target
         {
             get { return _target; }
         }
 
-        /** <inheritdoc /> */
+        /// <summary>
+        /// Release the resource.
+        /// </summary>
         public void Release()
         {
             if (Interlocked.CompareExchange(ref _released, 1, 0) == 0)
                 _releaseAction(_target);
-        }
-
-        /** <inheritdoc /> */
-        public bool Released
-        {
-            get { return Thread.VolatileRead(ref _released) == 1; }
         }
     }
 }

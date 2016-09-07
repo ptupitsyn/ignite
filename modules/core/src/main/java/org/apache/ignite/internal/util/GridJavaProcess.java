@@ -128,9 +128,6 @@ public final class GridJavaProcess {
     public static GridJavaProcess exec(String clsName, String params, @Nullable IgniteLogger log,
         @Nullable IgniteInClosure<String> printC, @Nullable GridAbsClosure procKilledC,
         @Nullable String javaHome, @Nullable Collection<String> jvmArgs, @Nullable String cp) throws Exception {
-        if (!(U.isLinux() || U.isMacOs() || U.isWindows()))
-            throw new Exception("Your OS is not supported.");
-
         GridJavaProcess gjProc = new GridJavaProcess();
 
         gjProc.log = log;
@@ -194,7 +191,10 @@ public final class GridJavaProcess {
 
         killProc.waitFor();
 
-        assert killProc.exitValue() == 0 : "Process killing was not successful";
+        int exitVal = killProc.exitValue();
+
+        if (exitVal != 0)
+            log.info(String.format("Abnormal exit value of %s for pid %s", exitVal, pid));
 
         if (procKilledC != null)
             procKilledC.apply();
