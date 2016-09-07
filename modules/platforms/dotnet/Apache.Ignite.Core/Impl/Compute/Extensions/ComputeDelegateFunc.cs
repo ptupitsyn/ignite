@@ -62,7 +62,10 @@ namespace Apache.Ignite.Core.Impl.Compute.Extensions
     internal class ComputeDelegateFunc2<TRes> : IComputeFunc<TRes>
     {
         /** */
-        private readonly Expression<Func<TRes>> _expr;
+        private readonly Expression<Func<TRes>> _expr;   // TODO: Expression is not serializable!
+
+        // MetaLinq https://github.com/mcintyre321/MetaLinq
+        // http://expressiontree.codeplex.com/
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ComputeDelegateFunc{R}"/> class.
@@ -71,7 +74,6 @@ namespace Apache.Ignite.Core.Impl.Compute.Extensions
         public ComputeDelegateFunc2(Expression<Func<TRes>> expr)
         {
             _expr = expr;
-            // No-op.
         }
 
 
