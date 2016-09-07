@@ -60,13 +60,13 @@ namespace Apache.Ignite.Core.Impl.Compute.Extensions
     /// <summary>
     /// Compute func from a delegate.
     /// </summary>
-    internal class ComputeDelegateFunc2<TRes> : IComputeFunc<TRes>
+    internal class ComputeDelegateFunc2<TRes> : IComputeFunc<TRes>, IComputeOutFunc
     {
         /** */
         private readonly Expression _body; 
 
         /** */
-        private readonly ICollection _params; 
+        private readonly ICollection _params;
 
         // MetaLinq https://github.com/mcintyre321/MetaLinq
         // http://expressiontree.codeplex.com/
@@ -74,6 +74,8 @@ namespace Apache.Ignite.Core.Impl.Compute.Extensions
         // TODO: OR don't use [Serializable] and rely on dynamic registration instead, damn it.
 
         // TODO: Or use SerializableWrapper to avoid dynamic registration, if it can handle the parameter arrays
+
+        // TODO: Implement IComputeOutFunc here and avoid registration this way?
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ComputeDelegateFunc{R}"/> class.
@@ -87,7 +89,14 @@ namespace Apache.Ignite.Core.Impl.Compute.Extensions
 
 
         /** <inheritdoc /> */
-        public TRes Invoke()
+        TRes IComputeFunc<TRes>.Invoke()
+        {
+            var e = Expression.Lambda<Func<TRes>>(_body, _params.OfType<ParameterExpression>());
+
+            return e.Compile()();
+        }
+
+        object IComputeFunc<object>.Invoke()
         {
             var e = Expression.Lambda<Func<TRes>>(_body, _params.OfType<ParameterExpression>());
 
