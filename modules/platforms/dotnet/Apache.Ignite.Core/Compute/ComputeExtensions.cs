@@ -53,12 +53,22 @@ namespace Apache.Ignite.Core.Compute
             return compute.Call(new ComputeDelegateFunc<TRes>(func));
         }
 
+        /// <summary>
+        /// Executes provided job on a node in this grid projection. The result of the
+        /// job execution is returned from the result closure.
+        /// </summary>
+        /// <typeparam name="TRes">Type of job result.</typeparam>
+        /// <param name="compute">Compute instance.</param>
+        /// <param name="func">Func to execute.</param>
+        /// <returns>
+        /// Job result for this execution.
+        /// </returns>
         public static TRes Call2<TRes>(this ICompute compute, Expression<Func<TRes>> func)
         {
             AC.NotNull(compute, "compute");
             AC.NotNull(func, "func");
 
-            return compute.Call(new ComputeDelegateFunc<TRes>(func));
+            return compute.Call(new ComputeDelegateFunc2<TRes>(func));
         }
 
         /// <summary>

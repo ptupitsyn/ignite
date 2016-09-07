@@ -18,6 +18,7 @@
 namespace Apache.Ignite.Core.Impl.Compute.Extensions
 {
     using System;
+    using System.Linq.Expressions;
     using System.Runtime.Serialization;
     using Apache.Ignite.Core.Compute;
     using Apache.Ignite.Core.Impl.Common;
@@ -51,6 +52,33 @@ namespace Apache.Ignite.Core.Impl.Compute.Extensions
         public TRes Invoke()
         {
             return WrappedObject();
+        }
+    }
+
+    /// <summary>
+    /// Compute func from a delegate.
+    /// </summary>
+    [Serializable]
+    internal class ComputeDelegateFunc2<TRes> : IComputeFunc<TRes>
+    {
+        /** */
+        private readonly Expression<Func<TRes>> _expr;
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ComputeDelegateFunc{R}"/> class.
+        /// </summary>
+        /// <param name="expr">The function to wrap.</param>
+        public ComputeDelegateFunc2(Expression<Func<TRes>> expr)
+        {
+            _expr = expr;
+            // No-op.
+        }
+
+
+        /** <inheritdoc /> */
+        public TRes Invoke()
+        {
+            return _expr.Compile()();
         }
     }
 
