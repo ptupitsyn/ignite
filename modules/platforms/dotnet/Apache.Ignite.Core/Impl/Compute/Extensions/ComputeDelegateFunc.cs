@@ -58,7 +58,6 @@ namespace Apache.Ignite.Core.Impl.Compute.Extensions
     /// <summary>
     /// Compute func from a delegate.
     /// </summary>
-    [Serializable]
     internal class ComputeDelegateFunc2<TRes> : IComputeFunc<TRes>
     {
         /** */
@@ -67,7 +66,7 @@ namespace Apache.Ignite.Core.Impl.Compute.Extensions
         // MetaLinq https://github.com/mcintyre321/MetaLinq
         // http://expressiontree.codeplex.com/
 
-        // TODO: OR register all the expressions in the marshaller! How cool is that?
+        // TODO: OR don't use [Serializable] and rely on dynamic registration instead, damn it.
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ComputeDelegateFunc{R}"/> class.
