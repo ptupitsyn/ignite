@@ -38,14 +38,23 @@ namespace Apache.Ignite.Core.Tests.Compute
         [Test]
         public void TestCall2()
         {
+            var binCfg = new BinaryConfiguration(typeof(ParameterExpression[]));
+
             var cfg = new IgniteConfiguration(TestUtils.GetTestConfiguration())
             {
-                BinaryConfiguration = new BinaryConfiguration(typeof(ParameterExpression[]))
+                BinaryConfiguration = binCfg
+            };
+
+            var cfg2 = new IgniteConfiguration(TestUtils.GetTestConfiguration())
+            {
+                BinaryConfiguration = binCfg,
+                GridName = "2"
             };
 
             using (var ignite = Ignition.Start(cfg))
+            using (Ignition.Start(cfg2))
             {
-                var compute = ignite.GetCompute();
+                var compute = ignite.GetCluster().ForRemotes().GetCompute();
 
                 // Test static
                 Assert.AreEqual(15, compute.Call2(() => 15));
