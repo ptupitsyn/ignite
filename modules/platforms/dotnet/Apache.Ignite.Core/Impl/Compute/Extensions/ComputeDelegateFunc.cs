@@ -67,6 +67,8 @@ namespace Apache.Ignite.Core.Impl.Compute.Extensions
         // MetaLinq https://github.com/mcintyre321/MetaLinq
         // http://expressiontree.codeplex.com/
 
+        // TODO: OR register all the expressions in the marshaller! How cool is that?
+
         /// <summary>
         /// Initializes a new instance of the <see cref="ComputeDelegateFunc{R}"/> class.
         /// </summary>
