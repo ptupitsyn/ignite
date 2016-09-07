@@ -43,7 +43,7 @@ namespace Apache.Ignite.Core.Tests.Cache
         /// Initializes a new instance of the <see cref="CacheExtensionsTest"/> class.
         /// </summary>
         public CacheExtensionsTest()
-            : base(3, "config\\compute\\compute-grid1.xml", "config\\native-client-test-cache-store.xml")
+            : base(3, "config\\compute\\compute-grid1.xml", "config\\compute\\compute-grid2.xml")
         {
         }
 
