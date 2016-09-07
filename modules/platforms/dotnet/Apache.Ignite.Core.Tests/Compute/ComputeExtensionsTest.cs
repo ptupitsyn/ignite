@@ -20,7 +20,6 @@ namespace Apache.Ignite.Core.Tests.Compute
 {
     using System;
     using System.Linq;
-    using System.Linq.Expressions;
     using System.Runtime.Serialization;
     using Apache.Ignite.Core.Binary;
     using Apache.Ignite.Core.Compute;
@@ -38,17 +37,10 @@ namespace Apache.Ignite.Core.Tests.Compute
         [Test]
         public void TestCall2()
         {
-            //var binCfg = new BinaryConfiguration(typeof(ParameterExpression[]));
-            var binCfg = new BinaryConfiguration();
-
-            var cfg = new IgniteConfiguration(TestUtils.GetTestConfiguration())
-            {
-                BinaryConfiguration = binCfg
-            };
+            var cfg = new IgniteConfiguration(TestUtils.GetTestConfiguration());
 
             var cfg2 = new IgniteConfiguration(TestUtils.GetTestConfiguration())
             {
-                BinaryConfiguration = binCfg,
                 GridName = "2"
             };
 
@@ -59,6 +51,7 @@ namespace Apache.Ignite.Core.Tests.Compute
 
                 // Test static
                 Assert.AreEqual(15, compute.Call2(() => 15));
+                Assert.AreEqual(new byte[15], compute.Call2(() => new byte[15]));
 
                 // Test captured variable
                 object testVal = "test";
