@@ -38,7 +38,8 @@ namespace Apache.Ignite.Core.Tests.Compute
         [Test]
         public void TestCall2()
         {
-            var binCfg = new BinaryConfiguration(typeof(ParameterExpression[]));
+            //var binCfg = new BinaryConfiguration(typeof(ParameterExpression[]));
+            var binCfg = new BinaryConfiguration();
 
             var cfg = new IgniteConfiguration(TestUtils.GetTestConfiguration())
             {

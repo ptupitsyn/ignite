@@ -18,6 +18,8 @@
 namespace Apache.Ignite.Core.Impl.Compute.Extensions
 {
     using System;
+    using System.Collections;
+    using System.Linq;
     using System.Linq.Expressions;
     using System.Runtime.Serialization;
     using Apache.Ignite.Core.Compute;
@@ -61,7 +63,10 @@ namespace Apache.Ignite.Core.Impl.Compute.Extensions
     internal class ComputeDelegateFunc2<TRes> : IComputeFunc<TRes>
     {
         /** */
-        private readonly Expression<Func<TRes>> _expr;   // TODO: Expression is not serializable!
+        private readonly Expression _body; 
+
+        /** */
+        private readonly ICollection _params; 
 
         // MetaLinq https://github.com/mcintyre321/MetaLinq
         // http://expressiontree.codeplex.com/
@@ -76,14 +81,17 @@ namespace Apache.Ignite.Core.Impl.Compute.Extensions
         /// <param name="expr">The function to wrap.</param>
         public ComputeDelegateFunc2(Expression<Func<TRes>> expr)
         {
-            _expr = expr;
+            _body = expr.Body;
+            _params = expr.Parameters;
         }
 
 
         /** <inheritdoc /> */
         public TRes Invoke()
         {
-            return _expr.Compile()();
+            var e = Expression.Lambda<Func<TRes>>(_body, _params.OfType<ParameterExpression>());
+
+            return e.Compile()();
         }
     }
 
