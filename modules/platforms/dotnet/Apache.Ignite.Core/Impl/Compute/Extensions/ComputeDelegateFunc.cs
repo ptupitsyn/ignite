@@ -68,6 +68,8 @@ namespace Apache.Ignite.Core.Impl.Compute.Extensions
 
         // TODO: OR don't use [Serializable] and rely on dynamic registration instead, damn it.
 
+        // TODO: Or use SerializableWrapper to avoid dynamic registration, if it can handle the parameter arrays
+
         /// <summary>
         /// Initializes a new instance of the <see cref="ComputeDelegateFunc{R}"/> class.
         /// </summary>
