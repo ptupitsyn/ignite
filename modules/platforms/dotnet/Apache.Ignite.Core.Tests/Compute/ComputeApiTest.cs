@@ -1293,9 +1293,17 @@ namespace Apache.Ignite.Core.Tests.Compute
         }
     }
 
-    class InvalidNetSimpleJob : NetSimpleJob
+    class InvalidNetSimpleJob : NetSimpleJob, IBinarizable
     {
-        // No-op.
+        public void WriteBinary(IBinaryWriter writer)
+        {
+            throw new BinaryObjectException("Expected");
+        }
+
+        public void ReadBinary(IBinaryReader reader)
+        {
+            throw new BinaryObjectException("Expected");
+        }
     }
 
     [Serializable]
@@ -1367,9 +1375,17 @@ namespace Apache.Ignite.Core.Tests.Compute
         }
     }
 
-    class InvalidComputeAction : ComputeAction
+    class InvalidComputeAction : ComputeAction, IBinarizable
     {
-        // No-op.
+        public void WriteBinary(IBinaryWriter writer)
+        {
+            throw new BinaryObjectException("Expected");
+        }
+
+        public void ReadBinary(IBinaryReader reader)
+        {
+            throw new BinaryObjectException("Expected");
+        }
     }
 
     interface IUserInterface<out T>

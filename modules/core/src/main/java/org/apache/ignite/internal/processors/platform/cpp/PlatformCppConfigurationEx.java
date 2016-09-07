@@ -70,6 +70,11 @@ public class PlatformCppConfigurationEx extends PlatformCppConfiguration impleme
     }
 
     /** {@inheritDoc} */
+    @Override public Byte marshallerCacheKeyPrefix() {
+        return null;
+    }
+
+    /** {@inheritDoc} */
     @Override public Collection<String> warnings() {
         return warns;
     }

@@ -62,4 +62,5 @@ ipch/
 [Rr]elease*/
 packages
 *.classname
+*.dotnettypename
 *.nupkg

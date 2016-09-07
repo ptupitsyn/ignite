@@ -209,7 +209,7 @@ namespace ignite
                 jclass c_Throwable;
                 jmethodID m_Throwable_getMessage;
                 jmethodID m_Throwable_printStackTrace;
-				
+
 				jclass c_PlatformUtils;
 				jmethodID m_PlatformUtils_getFullStackTrace;
 
@@ -226,7 +226,7 @@ namespace ignite
                 /**
                  * Write error information.
                  */
-                bool WriteErrorInfo(JNIEnv* env, char** errClsName, int* errClsNameLen, char** errMsg, int* errMsgLen, 
+                bool WriteErrorInfo(JNIEnv* env, char** errClsName, int* errClsNameLen, char** errMsg, int* errMsgLen,
 					char** stackTrace, int* stackTraceLen);
             };
 
@@ -339,6 +339,8 @@ namespace ignite
                 jmethodID m_PlatformProcessor_atomicLong;
                 jmethodID m_PlatformProcessor_getIgniteConfiguration;
                 jmethodID m_PlatformProcessor_getCacheNames;
+                jmethodID m_PlatformProcessor_registerType;
+                jmethodID m_PlatformProcessor_getClass;
                 jmethodID m_PlatformProcessor_atomicSequence;
                 jmethodID m_PlatformProcessor_atomicReference;
                 jmethodID m_PlatformProcessor_loggerIsLevelEnabled;
@@ -564,6 +566,8 @@ namespace ignite
 				void ProcessorGetCacheNames(jobject obj, long long memPtr);
 				bool ProcessorLoggerIsLevelEnabled(jobject obj, int level);
 				void ProcessorLoggerLog(jobject obj, int level, char* message, char* category, char* errorInfo);
+				bool ProcessorRegisterType(jobject obj, int id, char* name);
+				char* ProcessorGetClass(jobject obj, int id, int* resLen);
 
                 long long TargetInStreamOutLong(jobject obj, int type, long long memPtr, JniErrorInfo* errInfo = NULL);
                 void TargetInStreamOutStream(jobject obj, int opType, long long inMemPtr, long long outMemPtr, JniErrorInfo* errInfo = NULL);

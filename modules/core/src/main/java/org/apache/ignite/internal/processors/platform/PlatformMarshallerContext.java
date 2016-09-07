@@ -15,25 +15,26 @@
  * limitations under the License.
  */
 
-package org.apache.ignite.internal;
+package org.apache.ignite.internal.processors.platform;
 
 import org.apache.ignite.IgniteCheckedException;
 import org.apache.ignite.IgniteLogger;
+import org.apache.ignite.internal.GridKernalContext;
+import org.apache.ignite.internal.MarshallerCacheListener;
+import org.apache.ignite.internal.MarshallerWorkDirectory;
 import org.apache.ignite.internal.processors.cache.CachePartialUpdateCheckedException;
 import org.apache.ignite.internal.processors.cache.GridCacheAdapter;
 import org.apache.ignite.internal.processors.cache.GridCacheTryPutFailedException;
 import org.apache.ignite.internal.util.typedef.internal.CU;
 import org.apache.ignite.internal.util.typedef.internal.U;
-import org.apache.ignite.plugin.PluginProvider;
 
 import java.io.File;
-import java.util.List;
 import java.util.concurrent.CountDownLatch;
 
 /**
- * Marshaller context implementation.
+ * Platform marshaller context.
  */
-public class MarshallerContextImpl extends MarshallerContextAdapter {
+public class PlatformMarshallerContext {
     /** */
     private final CountDownLatch latch = new CountDownLatch(1);
 
@@ -41,7 +42,10 @@ public class MarshallerContextImpl extends MarshallerContextAdapter {
     private final File workDir;
 
     /** */
-    private static final String cacheName = CU.MARSH_CACHE_NAME;
+    private static final String cacheName = CU.UTILITY_CACHE_NAME_PLATFORM;
+
+    /** */
+    private final byte keyPrefix;
 
     /** */
     private IgniteLogger log;
@@ -56,31 +60,39 @@ public class MarshallerContextImpl extends MarshallerContextAdapter {
     private MarshallerCacheListener lsnr = new MarshallerCacheListener();
 
     /**
-     * @param plugins Plugins.
+     * @param keyPrefix Composite key prefix.
      * @throws IgniteCheckedException In case of error.
      */
-    public MarshallerContextImpl(List<PluginProvider> plugins)
+    public PlatformMarshallerContext(byte keyPrefix)
         throws IgniteCheckedException {
-        super(plugins);
 
         workDir = U.resolveWorkDirectory("marshaller", false);
+
+        this.keyPrefix = keyPrefix;
     }
+
     /**
-     * @param ctx Context.
+     * Called when continuous processor has started.
+     *
+     * @param ctx Kernal context.
      * @throws IgniteCheckedException If failed.
      */
     public void onContinuousProcessorStarted(GridKernalContext ctx) throws IgniteCheckedException {
+        assert ctx != null;
+
         lsnr.onContinuousProcessorStarted(ctx, cacheName, workDir);
     }
 
     /**
+     * Called when marshaller cache has started.
+     *
      * @param ctx Kernal context.
      * @throws IgniteCheckedException In case of error.
      */
     public void onMarshallerCacheStarted(GridKernalContext ctx) throws IgniteCheckedException {
         assert ctx != null;
 
-        log = ctx.log(MarshallerContextImpl.class);
+        log = ctx.log(PlatformMarshallerContext.class);
 
         cache = ctx.cache().internalCache(cacheName);
 
@@ -96,18 +108,29 @@ public class MarshallerContextImpl extends MarshallerContextAdapter {
         latch.countDown();
     }
 
-    /** {@inheritDoc} */
-    @Override public boolean registerClassName(int id, String clsName) throws IgniteCheckedException {
+    /**
+     * Registers the type name.
+     *
+     * @param id Type id.
+     * @param typName Type name.
+     * @return True on success.
+     * @throws IgniteCheckedException On collision.
+     */
+    public boolean registerTypeName(int id, String typName) throws IgniteCheckedException {
+        assert typName != null;
+
         GridCacheAdapter<Object, String> cache0 = cache;
 
         if (cache0 == null)
             return false;
 
-        try {
-            String old = cache0.tryGetAndPut(id, clsName);
+        Object key = getKey(id);
 
-            if (old != null && !old.equals(clsName))
-                throw new IgniteCheckedException("Type ID collision detected [id=" + id + ", clsName1=" + clsName +
+        try {
+            String old = cache0.tryGetAndPut(key, typName);
+
+            if (old != null && !old.equals(typName))
+                throw new IgniteCheckedException("Type ID collision detected [id=" + key + ", clsName1=" + typName +
                     ", clsName2=" + old + ']');
 
             failedCnt = 0;
@@ -117,7 +140,7 @@ public class MarshallerContextImpl extends MarshallerContextAdapter {
         catch (CachePartialUpdateCheckedException | GridCacheTryPutFailedException ignored) {
             if (++failedCnt > 10) {
                 if (log.isQuiet())
-                    U.quiet(false, "Failed to register marshalled class for more than 10 times in a row " +
+                    U.quiet(false, "Failed to register platform marshalled type for more than 10 times in a row " +
                         "(may affect performance).");
 
                 failedCnt = 0;
@@ -127,8 +150,14 @@ public class MarshallerContextImpl extends MarshallerContextAdapter {
         }
     }
 
-    /** {@inheritDoc} */
-    @Override public String className(int id) throws IgniteCheckedException {
+    /**
+     * Gets the type name.
+     *
+     * @param id Type id.
+     * @return Type name.
+     * @throws IgniteCheckedException
+     */
+    public String getTypeName(int id) throws IgniteCheckedException {
         GridCacheAdapter<Object, String> cache0 = cache;
 
         if (cache0 == null) {
@@ -137,18 +166,30 @@ public class MarshallerContextImpl extends MarshallerContextAdapter {
             cache0 = cache;
 
             if (cache0 == null)
-                throw new IllegalStateException("Failed to initialize marshaller context (grid is stopping).");
+                throw new IllegalStateException("Failed to initialize platform marshaller context (grid is stopping).");
         }
 
-        String clsName = cache0.getTopologySafe(id);
+        Object key = getKey(id);
 
-        if (clsName == null) {
-            clsName = MarshallerWorkDirectory.getTypeNameFromFile(id, workDir);
+        String typName = cache0.getTopologySafe(key);
+
+        if (typName == null) {
+            typName = MarshallerWorkDirectory.getTypeNameFromFile(key, workDir);
 
             // Must explicitly put entry to cache to invoke other continuous queries.
-            registerClassName(id, clsName);
+            registerTypeName(id, typName);
         }
 
-        return clsName;
+        return typName;
+    }
+
+    /**
+     * Gets the cache key for a type id.
+     *
+     * @param id Id.
+     * @return Cache key depending on keyPrefix.
+     */
+    private Object getKey(int id) {
+        return new PlatformUtilityCacheKey(keyPrefix, id);
     }
 }
