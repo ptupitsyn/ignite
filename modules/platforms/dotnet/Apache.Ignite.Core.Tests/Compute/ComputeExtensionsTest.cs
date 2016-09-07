@@ -20,11 +20,46 @@ namespace Apache.Ignite.Core.Tests.Compute
 {
     using System;
     using System.Linq;
+    using System.Linq.Expressions;
     using System.Runtime.Serialization;
     using Apache.Ignite.Core.Binary;
     using Apache.Ignite.Core.Compute;
     using Apache.Ignite.Core.Tests;
     using NUnit.Framework;
+
+    public class ComputeExtensionsTest2
+    {
+        /** */
+        private readonly string _testCapturedString = "testFieldValue";
+
+        /// <summary>
+        /// Tests Call methods.
+        /// </summary>
+        [Test]
+        public void TestCall2()
+        {
+            var cfg = new IgniteConfiguration(TestUtils.GetTestConfiguration())
+            {
+                BinaryConfiguration = new BinaryConfiguration(typeof(ParameterExpression[]))
+            };
+
+            using (var ignite = Ignition.Start(cfg))
+            {
+                var compute = ignite.GetCompute();
+
+                // Test static
+                Assert.AreEqual(15, compute.Call2(() => 15));
+
+                // Test captured variable
+                object testVal = "test";
+
+                Assert.AreEqual(testVal, compute.Call2(() => testVal));
+
+                // Test captured field
+                Assert.AreEqual(_testCapturedString, compute.Call2(() => _testCapturedString));
+            }
+        }
+    }
 
     /// <summary>
     /// ComputeExtensions tests.
@@ -41,24 +76,6 @@ namespace Apache.Ignite.Core.Tests.Compute
         public ComputeExtensionsTest()
             : base("config\\compute\\compute-grid1.xml", "config\\compute\\compute-grid2.xml")
         {
-        }
-
-        /// <summary>
-        /// Tests Call methods.
-        /// </summary>
-        [Test]
-        public void TestCall2()
-        {
-            // Test static
-            Assert.AreEqual(15, Compute.Call2(() => 15));
-            
-            // Test captured variable
-            object testVal = "test";
-
-            Assert.AreEqual(testVal, Compute.Call2(() => testVal));
-            
-            // Test captured field
-            Assert.AreEqual(_testCapturedString, Compute.Call2(() => _testCapturedString));
         }
 
         /// <summary>
