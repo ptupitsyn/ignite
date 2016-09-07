@@ -19,6 +19,7 @@ namespace Apache.Ignite.Core.Compute
 {
     using System;
     using System.Collections.Generic;
+    using System.Linq.Expressions;
     using System.Threading.Tasks;
     using Apache.Ignite.Core.Impl.Compute.Extensions;
     using AC = Apache.Ignite.Core.Impl.Common.IgniteArgumentCheck;
@@ -45,6 +46,14 @@ namespace Apache.Ignite.Core.Compute
         /// Job result for this execution.
         /// </returns>
         public static TRes Call<TRes>(this ICompute compute, Func<TRes> func)
+        {
+            AC.NotNull(compute, "compute");
+            AC.NotNull(func, "func");
+
+            return compute.Call(new ComputeDelegateFunc<TRes>(func));
+        }
+
+        public static TRes Call2<TRes>(this ICompute compute, Expression<Func<TRes>> func)
         {
             AC.NotNull(compute, "compute");
             AC.NotNull(func, "func");

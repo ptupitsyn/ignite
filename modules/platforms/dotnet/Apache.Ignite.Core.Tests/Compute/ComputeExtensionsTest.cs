@@ -47,6 +47,24 @@ namespace Apache.Ignite.Core.Tests.Compute
         /// Tests Call methods.
         /// </summary>
         [Test]
+        public void TestCall2()
+        {
+            // Test static
+            Assert.AreEqual(15, Compute.Call2(() => 15));
+            
+            // Test captured variable
+            object testVal = "test";
+
+            Assert.AreEqual(testVal, Compute.Call2(() => testVal));
+            
+            // Test captured field
+            Assert.AreEqual(_testCapturedString, Compute.Call2(() => _testCapturedString));
+        }
+
+        /// <summary>
+        /// Tests Call methods.
+        /// </summary>
+        [Test]
         public void TestCall()
         {
             // Test static
