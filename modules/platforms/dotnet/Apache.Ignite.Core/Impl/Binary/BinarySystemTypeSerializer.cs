@@ -25,26 +25,31 @@ namespace Apache.Ignite.Core.Impl.Binary
     /// Binary serializer for system types.
     /// </summary>
     /// <typeparam name="T">Object type.</typeparam>
-    internal class BinarySystemTypeSerializer<T> : IBinarySerializerInternal where T : IBinaryWriteAware
+    internal class BinarySystemTypeSerializer<T> : IBinarySerializerInternal
     {
         /** Ctor delegate. */
         private readonly Func<BinaryReader, T> _ctor;
+
+        /** Writer delegate. */
+        private readonly Action<BinaryWriter, T> _writer;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="BinarySystemTypeSerializer{T}"/> class.
         /// </summary>
         /// <param name="ctor">Constructor delegate.</param>
-        public BinarySystemTypeSerializer(Func<BinaryReader, T> ctor)
+        public BinarySystemTypeSerializer(Func<BinaryReader, T> ctor, Action<BinaryWriter, T> writer)
         {
             Debug.Assert(ctor != null);
+            Debug.Assert(writer != null);
 
             _ctor = ctor;
+            _writer = writer;
         }
 
         /** <inheritDoc /> */
         public void WriteBinary<T1>(T1 obj, BinaryWriter writer)
         {
-            TypeCaster<T>.Cast(obj).WriteBinary(writer);
+            _writer(writer, TypeCaster<T>.Cast(obj));
         }
 
         /** <inheritDoc /> */

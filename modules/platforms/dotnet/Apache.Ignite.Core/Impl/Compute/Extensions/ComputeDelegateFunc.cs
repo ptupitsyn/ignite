@@ -60,7 +60,7 @@ namespace Apache.Ignite.Core.Impl.Compute.Extensions
     /// <summary>
     /// Compute func from a delegate.
     /// </summary>
-    internal class ComputeDelegateFunc2<TRes> : IComputeFunc<TRes>, IComputeOutFunc
+    internal class ComputeDelegateFunc2<TRes> : IComputeFunc<TRes>
     {
         /** */
         private readonly Expression _body; 
@@ -89,14 +89,7 @@ namespace Apache.Ignite.Core.Impl.Compute.Extensions
 
 
         /** <inheritdoc /> */
-        TRes IComputeFunc<TRes>.Invoke()
-        {
-            var e = Expression.Lambda<Func<TRes>>(_body, _params.OfType<ParameterExpression>());
-
-            return e.Compile()();
-        }
-
-        object IComputeFunc<object>.Invoke()
+        public TRes Invoke()
         {
             var e = Expression.Lambda<Func<TRes>>(_body, _params.OfType<ParameterExpression>());
 

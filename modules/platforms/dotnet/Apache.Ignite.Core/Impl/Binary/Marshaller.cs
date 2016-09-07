@@ -21,6 +21,7 @@ namespace Apache.Ignite.Core.Impl.Binary
     using System.Collections.Generic;
     using System.Diagnostics;
     using System.Linq;
+    using System.Linq.Expressions;
     using Apache.Ignite.Core.Binary;
     using Apache.Ignite.Core.Cache.Affinity;
     using Apache.Ignite.Core.Impl.Binary.IO;
@@ -651,7 +652,24 @@ namespace Apache.Ignite.Core.Impl.Binary
         {
             var type = typeof(T);
 
-            serializer = serializer ?? new BinarySystemTypeSerializer<T>(ctor);
+            serializer = serializer ?? new BinarySystemTypeSerializer<T>(ctor, (w, x) => x.WriteBinary(w));
+
+            if (typeId == 0)
+                typeId = BinaryUtils.TypeId(type.Name, null, null);
+
+            AddType(type, typeId, BinaryUtils.GetTypeName(type), false, false, null, null, serializer, affKeyFldName,
+                false);
+        }
+
+        /// <summary>
+        /// Adds a predefined system type.
+        /// </summary>
+        private void AddSystemType<T>(int typeId, IBinarySerializerInternal serializer, string affKeyFldName = null)
+            where T : IBinaryWriteAware
+        {
+            var type = typeof(T);
+
+            serializer = serializer ?? new BinarySystemTypeSerializer<T>(ctor, (w, x) => x.WriteBinary(w));
 
             if (typeId == 0)
                 typeId = BinaryUtils.TypeId(type.Name, null, null);
@@ -685,6 +703,7 @@ namespace Apache.Ignite.Core.Impl.Binary
             AddSystemType(0, r => new AffinityKey(r), "affKey");
             AddSystemType(BinaryUtils.TypePlatformJavaObjectFactoryProxy, r => new PlatformJavaObjectFactoryProxy());
             AddSystemType(0, r => new ObjectInfoHolder(r));
+            AddSystemType(0, r=> r.ReadArray<ParameterExpression>());
         }
     }
 }
