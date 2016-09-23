@@ -32,6 +32,7 @@ namespace Apache.Ignite.EntityFramework.Tests
     using System.IO;
     using System.Linq;
     using System.Threading;
+    using System.Threading.Tasks;
     using System.Transactions;
     using Apache.Ignite.Core;
     using Apache.Ignite.Core.Cache;
@@ -930,17 +931,56 @@ namespace Apache.Ignite.EntityFramework.Tests
 
         private static volatile int _lastBlogId = 0;
 
+        [SetUp]
+        public void SetUp()
+        {
+            DeleteAllBlogs();
+        }
+
+        private static void DeleteAllBlogs()
+        {
+            ExecuteNonQuery("DELETE FROM [dbo].[Blogs]");
+        }
+
         [Test]
         public void MultithreadTestRaw()
         {
-            Assert.AreEqual(0, ExecuteReader("select * from [dbo].[Blogs]").Length);
+            Assert.AreEqual(0, GetAllBlogs().Length);
 
             CreateBlog();
 
-            Assert.AreEqual(1, ExecuteReader("select * from [dbo].[Blogs]").Length);
+            Assert.AreEqual(1, GetAllBlogs().Length);
+
+            // TODO: One thread spams new blogs and updates last blog id.
+            // Another thread reads max(id) and verifies it.
+
+            var spamTask = Task.Factory.StartNew(() =>
+            {
+                for (var i = 0; i < 100000; i++)
+                {
+                    DeleteAllBlogs();
+                    _lastBlogId = CreateBlog();
+                }
+            });
+
+            var readTask = Task.Factory.StartNew(() =>
+            {
+                for (var i = 0; i < 100000; i++)
+                {
+                    var maxBlogId = GetAllBlogs().Select(x => (int) x[0]).Max();
+                    Assert.AreEqual(_lastBlogId, maxBlogId);
+                }
+            });
+
+            Task.WaitAll(spamTask, readTask);
         }
 
-        private int CreateBlog()
+        private static object[][] GetAllBlogs()
+        {
+            return ExecuteReader("select BlogId from [dbo].[Blogs]");
+        }
+
+        private static int CreateBlog()
         {
             var vals =
                 ExecuteReader(
@@ -951,6 +991,22 @@ namespace Apache.Ignite.EntityFramework.Tests
 
         private static object[][] ExecuteReader(string sql)
         {
+            return RunSql(sql, cmd =>
+            {
+                using (var reader = cmd.ExecuteReader())
+                {
+                    return ReadAll(reader).ToArray();
+                }
+            });
+        }
+
+        private static int ExecuteNonQuery(string sql)
+        {
+            return RunSql(sql, cmd => cmd.ExecuteNonQuery());
+        }
+
+        private static T RunSql<T>(string sql, Func<SqlCommand, T> func)
+        {
             using (var conn = new SqlConnection(ConnectionString))
             {
                 conn.Open();
@@ -959,10 +1015,7 @@ namespace Apache.Ignite.EntityFramework.Tests
 
                 cmd.CommandText = sql;
 
-                using (var reader = cmd.ExecuteReader())
-                {
-                    return ReadAll(reader).ToArray();
-                }
+                return func(cmd);
             }
         }
 
@@ -977,7 +1030,5 @@ namespace Apache.Ignite.EntityFramework.Tests
                 yield return vals;
             }
         }
-
-
     }
 }
