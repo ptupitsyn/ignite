@@ -954,12 +954,17 @@ namespace Apache.Ignite.EntityFramework.Tests
             // TODO: One thread spams new blogs and updates last blog id.
             // Another thread reads max(id) and verifies it.
 
+            var evtRead = new AutoResetEvent(false);
+            var evtWrite = new AutoResetEvent(true);
+
             var spamTask = Task.Factory.StartNew(() =>
             {
                 for (var i = 0; i < 100000; i++)
                 {
+                    evtWrite.WaitOne();
                     DeleteAllBlogs();
                     _lastBlogId = CreateBlog();
+                    evtRead.Set();
                 }
             });
 
@@ -967,12 +972,15 @@ namespace Apache.Ignite.EntityFramework.Tests
             {
                 for (var i = 0; i < 100000; i++)
                 {
+                    evtRead.WaitOne();
                     var maxBlogId = GetAllBlogs().Select(x => (int) x[0]).Max();
                     Assert.AreEqual(_lastBlogId, maxBlogId);
+                    evtWrite.Set();
                 }
             });
 
-            Task.WaitAll(spamTask, readTask);
+            //Task.WaitAll(spamTask, readTask);
+            readTask.Wait();
         }
 
         private static object[][] GetAllBlogs()
