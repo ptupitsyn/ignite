@@ -79,7 +79,7 @@ namespace Apache.Ignite.EntityFramework.Tests
             using (var ctx = GetDbContext())
             {
                 //File.Delete(TempFile);
-                ctx.Database.Create();
+                //ctx.Database.Create();
             }
 
             // Get the caches.

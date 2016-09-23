@@ -152,8 +152,8 @@ namespace Apache.Ignite.EntityFramework.Impl
                 // Execute reader, then invalidate cached data.
                 Console.WriteLine("ExecuteReaderModify... | {0}", Thread.CurrentThread.ManagedThreadId);
 
-                var readerRes = new DataReaderResult(_command.ExecuteReader(behavior));
-                var dbReader = readerRes.CreateReader();
+                // TODO: This does not commit to DB yet!!!
+                var dbReader = _command.ExecuteReader(behavior);
 
                 Console.WriteLine("ExecuteReaderModify done | {0}", Thread.CurrentThread.ManagedThreadId);
 
