@@ -928,8 +928,28 @@ namespace Apache.Ignite.EntityFramework.Tests
     {
         private const string ConnectionString = "Server=.\\SQLExpress;Initial Catalog=Blogs;Trusted_Connection=False;Persist Security Info=True;Integrated Security=True";
 
+        private static volatile int _lastBlogId = 0;
+
         [Test]
         public void MultithreadTestRaw()
+        {
+            Assert.AreEqual(0, ExecuteReader("select * from [dbo].[Blogs]").Length);
+
+            CreateBlog();
+
+            Assert.AreEqual(1, ExecuteReader("select * from [dbo].[Blogs]").Length);
+        }
+
+        private int CreateBlog()
+        {
+            var vals =
+                ExecuteReader(
+                    "INSERT [dbo].[Blogs]([Name]) VALUES('Foo')\nSELECT[BlogId] FROM[dbo].[Blogs] WHERE @@ROWCOUNT > 0 AND [BlogId] = scope_identity()");
+
+            return (int) vals.Single().Single();
+        }
+
+        private static object[][] ExecuteReader(string sql)
         {
             using (var conn = new SqlConnection(ConnectionString))
             {
@@ -937,13 +957,11 @@ namespace Apache.Ignite.EntityFramework.Tests
 
                 var cmd = conn.CreateCommand();
 
-                cmd.CommandText = "SELECT * From [dbo].[Blogs]";
+                cmd.CommandText = sql;
 
                 using (var reader = cmd.ExecuteReader())
                 {
-                    var res = ReadAll(reader).ToArray();
-
-                    Assert.AreEqual(0, res.Length);
+                    return ReadAll(reader).ToArray();
                 }
             }
         }
@@ -955,9 +973,6 @@ namespace Apache.Ignite.EntityFramework.Tests
                 var vals = new object[reader.FieldCount];
 
                 reader.GetValues(vals);
-
-                Console.WriteLine("Values: {0} | {1}", vals.Select(x => x.ToString()).Aggregate((x, y) => x + "," + y),
-                    Thread.CurrentThread.ManagedThreadId);
 
                 yield return vals;
             }
