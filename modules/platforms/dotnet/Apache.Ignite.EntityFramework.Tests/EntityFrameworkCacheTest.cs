@@ -28,6 +28,7 @@ namespace Apache.Ignite.EntityFramework.Tests
     using System.Data.Entity;
     using System.Data.Entity.Core.EntityClient;
     using System.Data.Entity.Infrastructure;
+    using System.Data.SqlClient;
     using System.IO;
     using System.Linq;
     using System.Threading;
@@ -921,5 +922,47 @@ namespace Apache.Ignite.EntityFramework.Tests
                 return GetCachingStrategyFunc == null ? DbCachingStrategy.ReadWrite : GetCachingStrategyFunc(queryInfo);
             }
         }
+    }
+
+    public class SqlTests
+    {
+        private const string ConnectionString = "Server=.\\SQLExpress;Initial Catalog=Blogs;Trusted_Connection=False;Persist Security Info=True;Integrated Security=True";
+
+        [Test]
+        public void MultithreadTestRaw()
+        {
+            using (var conn = new SqlConnection(ConnectionString))
+            {
+                conn.Open();
+
+                var cmd = conn.CreateCommand();
+
+                cmd.CommandText = "SELECT * From [dbo].[Blogs]";
+
+                using (var reader = cmd.ExecuteReader())
+                {
+                    var res = ReadAll(reader).ToArray();
+
+                    Assert.AreEqual(0, res.Length);
+                }
+            }
+        }
+
+        private static IEnumerable<object[]> ReadAll(IDataReader reader)
+        {
+            while (reader.Read())
+            {
+                var vals = new object[reader.FieldCount];
+
+                reader.GetValues(vals);
+
+                Console.WriteLine("Values: {0} | {1}", vals.Select(x => x.ToString()).Aggregate((x, y) => x + "," + y),
+                    Thread.CurrentThread.ManagedThreadId);
+
+                yield return vals;
+            }
+        }
+
+
     }
 }
