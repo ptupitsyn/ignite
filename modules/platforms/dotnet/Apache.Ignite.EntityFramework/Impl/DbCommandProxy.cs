@@ -205,7 +205,9 @@ namespace Apache.Ignite.EntityFramework.Impl
         /// </summary>
         private void InvalidateCache()
         {
-            _commandInfo.Cache.InvalidateSets(_commandInfo.AffectedEntitySets);
+            // TODO: Unsubscribe?
+            _command.Connection.StateChange += (sender, args) =>
+                    _commandInfo.Cache.InvalidateSets(_commandInfo.AffectedEntitySets);
         }
 
         /** <inheritDoc /> */
