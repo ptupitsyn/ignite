@@ -46,10 +46,11 @@ namespace Apache.Ignite.EntityFramework.Tests
     public class EntityFrameworkCacheTest
     {
         /** */
-        private static readonly string TempFile = Path.GetTempFileName();
+        //private static readonly string TempFile = Path.GetTempFileName();
 
         /** */
-        private static readonly string ConnectionString = "Datasource = " + TempFile;
+        //private static readonly string ConnectionString = "Datasource = " + TempFile;
+        private static readonly string ConnectionString = "Server=.\\SQLExpress;Initial Catalog=Blogs;Trusted_Connection=False;Persist Security Info=True;Integrated Security=True";
 
         /** */
         private static readonly DelegateCachingPolicy Policy = new DelegateCachingPolicy();
@@ -75,7 +76,7 @@ namespace Apache.Ignite.EntityFramework.Tests
             // Create SQL CE database in a temp file.
             using (var ctx = GetDbContext())
             {
-                File.Delete(TempFile);
+                //File.Delete(TempFile);
                 ctx.Database.Create();
             }
 
@@ -96,7 +97,7 @@ namespace Apache.Ignite.EntityFramework.Tests
             }
 
             Ignition.StopAll(true);
-            File.Delete(TempFile);
+            //File.Delete(TempFile);
         }
 
         /// <summary>

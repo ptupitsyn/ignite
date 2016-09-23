@@ -39,6 +39,9 @@
     <Reference Include="EntityFramework">
       <HintPath>..\packages\EntityFramework.6.1.3\lib\net40\EntityFramework.dll</HintPath>
     </Reference>
+    <Reference Include="EntityFramework.SqlServer">
+      <HintPath>..\packages\EntityFramework.6.1.3\lib\net40\EntityFramework.SqlServer.dll</HintPath>
+    </Reference>
     <Reference Include="EntityFramework.SqlServerCompact">
       <HintPath>..\packages\EntityFramework.SqlServerCompact.6.1.3\lib\net40\EntityFramework.SqlServerCompact.dll</HintPath>
     </Reference>
