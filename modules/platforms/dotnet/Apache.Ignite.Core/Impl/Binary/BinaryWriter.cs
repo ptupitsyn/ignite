@@ -107,6 +107,8 @@ namespace Apache.Ignite.Core.Impl.Binary
         /// <param name="val">Boolean value.</param>
         public void WriteBoolean(bool val)
         {
+            EnsureRawMode();
+
             _stream.WriteBool(val);
         }
 
@@ -134,6 +136,8 @@ namespace Apache.Ignite.Core.Impl.Binary
         /// <param name="val">Boolean array.</param>
         public void WriteBooleanArray(bool[] val)
         {
+            EnsureRawMode();
+
             if (val == null)
                 WriteNullRawField();
             else
@@ -266,6 +270,8 @@ namespace Apache.Ignite.Core.Impl.Binary
         /// <param name="val">Short array.</param>
         public void WriteShortArray(short[] val)
         {
+            EnsureRawMode();
+
             if (val == null)
                 WriteNullRawField();
             else
@@ -331,6 +337,8 @@ namespace Apache.Ignite.Core.Impl.Binary
         /// <param name="val">Char array.</param>
         public void WriteCharArray(char[] val)
         {
+            EnsureRawMode();
+
             if (val == null)
                 WriteNullRawField();
             else
@@ -367,6 +375,8 @@ namespace Apache.Ignite.Core.Impl.Binary
         /// <param name="val">Int value.</param>
         public void WriteInt(int val)
         {
+            EnsureRawMode();
+
             _stream.WriteInt(val);
         }
 
@@ -394,6 +404,8 @@ namespace Apache.Ignite.Core.Impl.Binary
         /// <param name="val">Int array.</param>
         public void WriteIntArray(int[] val)
         {
+            EnsureRawMode();
+
             if (val == null)
                 WriteNullRawField();
             else
@@ -430,6 +442,8 @@ namespace Apache.Ignite.Core.Impl.Binary
         /// <param name="val">Long value.</param>
         public void WriteLong(long val)
         {
+            EnsureRawMode();
+
             _stream.WriteLong(val);
         }
 
@@ -457,6 +471,8 @@ namespace Apache.Ignite.Core.Impl.Binary
         /// <param name="val">Long array.</param>
         public void WriteLongArray(long[] val)
         {
+            EnsureRawMode();
+
             if (val == null)
                 WriteNullRawField();
             else
@@ -493,6 +509,8 @@ namespace Apache.Ignite.Core.Impl.Binary
         /// <param name="val">Float value.</param>
         public void WriteFloat(float val)
         {
+            EnsureRawMode();
+
             _stream.WriteFloat(val);
         }
 
@@ -520,6 +538,8 @@ namespace Apache.Ignite.Core.Impl.Binary
         /// <param name="val">Float array.</param>
         public void WriteFloatArray(float[] val)
         {
+            EnsureRawMode();
+
             if (val == null)
                 WriteNullRawField();
             else
@@ -556,6 +576,8 @@ namespace Apache.Ignite.Core.Impl.Binary
         /// <param name="val">Double value.</param>
         public void WriteDouble(double val)
         {
+            EnsureRawMode();
+
             _stream.WriteDouble(val);
         }
 
@@ -583,6 +605,8 @@ namespace Apache.Ignite.Core.Impl.Binary
         /// <param name="val">Double array.</param>
         public void WriteDoubleArray(double[] val)
         {
+            EnsureRawMode();
+
             if (val == null)
                 WriteNullRawField();
             else
@@ -616,6 +640,8 @@ namespace Apache.Ignite.Core.Impl.Binary
         /// <param name="val">Decimal value.</param>
         public void WriteDecimal(decimal? val)
         {
+            EnsureRawMode();
+
             if (val == null)
                 WriteNullRawField();
             else
@@ -649,6 +675,8 @@ namespace Apache.Ignite.Core.Impl.Binary
         /// <param name="val">Decimal array.</param>
         public void WriteDecimalArray(decimal?[] val)
         {
+            EnsureRawMode();
+
             if (val == null)
                 WriteNullRawField();
             else
@@ -1516,6 +1544,8 @@ namespace Apache.Ignite.Core.Impl.Binary
         /// </summary>
         private void EnsureRawMode()
         {
+            // TODO: Switch automatically instead? Why not?
+
             if (_curRawPos == 0)
                 throw new BinaryObjectException("Cannot write raw data: GetRawWriter has not been called.");
         }
