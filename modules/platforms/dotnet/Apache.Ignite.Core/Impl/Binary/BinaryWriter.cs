@@ -170,6 +170,8 @@ namespace Apache.Ignite.Core.Impl.Binary
         /// <param name="val">Byte value.</param>
         public void WriteByte(byte val)
         {
+            EnsureRawMode();
+
             _stream.WriteByte(val);
         }
 
@@ -197,6 +199,8 @@ namespace Apache.Ignite.Core.Impl.Binary
         /// <param name="val">Byte array.</param>
         public void WriteByteArray(byte[] val)
         {
+            EnsureRawMode();
+
             if (val == null)
                 WriteNullRawField();
             else
@@ -233,6 +237,8 @@ namespace Apache.Ignite.Core.Impl.Binary
         /// <param name="val">Short value.</param>
         public void WriteShort(short val)
         {
+            EnsureRawMode();
+
             _stream.WriteShort(val);
         }
 
@@ -296,6 +302,8 @@ namespace Apache.Ignite.Core.Impl.Binary
         /// <param name="val">Char value.</param>
         public void WriteChar(char val)
         {
+            EnsureRawMode();
+
             _stream.WriteChar(val);
         }
 
@@ -1501,6 +1509,15 @@ namespace Apache.Ignite.Core.Impl.Binary
                 else
                     _metas[desc.TypeId] = new BinaryType(desc, fields);
             }
+        }
+
+        /// <summary>
+        /// Ensures the raw mode.
+        /// </summary>
+        private void EnsureRawMode()
+        {
+            if (_curRawPos == 0)
+                throw new BinaryObjectException("Cannot write raw data: GetRawWriter has not been called.");
         }
     }
 }
