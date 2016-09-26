@@ -710,6 +710,8 @@ namespace Apache.Ignite.Core.Impl.Binary
         /// <param name="val">Date value.</param>
         public void WriteTimestamp(DateTime? val)
         {
+            EnsureRawMode();
+
             if (val == null)
                 WriteNullRawField();
             else
@@ -743,6 +745,8 @@ namespace Apache.Ignite.Core.Impl.Binary
         /// <param name="val">Date array.</param>
         public void WriteTimestampArray(DateTime?[] val)
         {
+            EnsureRawMode();
+
             if (val == null)
                 WriteNullRawField();
             else
@@ -776,6 +780,8 @@ namespace Apache.Ignite.Core.Impl.Binary
         /// <param name="val">String value.</param>
         public void WriteString(string val)
         {
+            EnsureRawMode();
+
             if (val == null)
                 WriteNullRawField();
             else
@@ -809,6 +815,8 @@ namespace Apache.Ignite.Core.Impl.Binary
         /// <param name="val">String array.</param>
         public void WriteStringArray(string[] val)
         {
+            EnsureRawMode();
+
             if (val == null)
                 WriteNullRawField();
             else
@@ -842,6 +850,8 @@ namespace Apache.Ignite.Core.Impl.Binary
         /// <param name="val">GUID value.</param>
         public void WriteGuid(Guid? val)
         {
+            EnsureRawMode();
+
             if (val == null)
                 WriteNullRawField();
             else
@@ -875,6 +885,8 @@ namespace Apache.Ignite.Core.Impl.Binary
         /// <param name="val">GUID array.</param>
         public void WriteGuidArray(Guid?[] val)
         {
+            EnsureRawMode();
+
             if (val == null)
                 WriteNullRawField();
             else
@@ -904,6 +916,8 @@ namespace Apache.Ignite.Core.Impl.Binary
         /// <param name="val">Enum value.</param>
         public void WriteEnum<T>(T val)
         {
+            EnsureRawMode();
+
             // ReSharper disable once CompareNonConstrainedGenericWithNull
             if (val == null)
                 WriteNullField();
@@ -949,6 +963,8 @@ namespace Apache.Ignite.Core.Impl.Binary
         /// <param name="val">Enum array.</param>
         public void WriteEnumArray<T>(T[] val)
         {
+            EnsureRawMode();
+
             WriteEnumArrayInternal(val, null);
         }
 
@@ -995,6 +1011,8 @@ namespace Apache.Ignite.Core.Impl.Binary
         /// <param name="val">Object value.</param>
         public void WriteObject<T>(T val)
         {
+            EnsureRawMode();
+
             Write(val);
         }
 
@@ -1018,6 +1036,8 @@ namespace Apache.Ignite.Core.Impl.Binary
         /// <param name="val">Object array.</param>
         public void WriteArray<T>(T[] val)
         {
+            EnsureRawMode();
+
             WriteArrayInternal(val);
         }
 
@@ -1057,6 +1077,8 @@ namespace Apache.Ignite.Core.Impl.Binary
         /// <param name="val">Collection.</param>
         public void WriteCollection(ICollection val)
         {
+            EnsureRawMode();
+
             if (val == null)
                 WriteNullField();
             else
@@ -1087,6 +1109,8 @@ namespace Apache.Ignite.Core.Impl.Binary
         /// <param name="val">Dictionary.</param>
         public void WriteDictionary(IDictionary val)
         {
+            EnsureRawMode();
+
             if (val == null)
                 WriteNullField();
             else
@@ -1540,12 +1564,11 @@ namespace Apache.Ignite.Core.Impl.Binary
         }
 
         /// <summary>
-        /// Ensures the raw mode.
+        /// Ensures that we are in raw mode.
         /// </summary>
+        [Conditional("DEBUG")]
         private void EnsureRawMode()
         {
-            // TODO: Switch automatically instead? Why not?
-
             if (_curRawPos == 0)
                 throw new BinaryObjectException("Cannot write raw data: GetRawWriter has not been called.");
         }
