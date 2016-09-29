@@ -56,10 +56,10 @@ namespace Apache.Ignite.Core.Tests
         }
 
         /// <summary>
-        /// Tests that there are no Cyrillic C instead of English C (which are on the same keyboard key).
+        /// Tests that there are no non-ASCII chars.
         /// </summary>
         [Test]
-        public void TestCyrillicChars()
+        public void TestAsciiChars()
         {
             var srcFiles = GetDotNetSourceDir().GetFiles("*.cs", SearchOption.AllDirectories);
 
