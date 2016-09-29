@@ -63,7 +63,7 @@ namespace Apache.Ignite.Core.Tests
         {
             var srcFiles = GetDotNetSourceDir().GetFiles("*.cs", SearchOption.AllDirectories);
 
-            CheckFiles(srcFiles, x => x.Any(ch => ch > 255), "Files with non-ASCII chars: ");
+            CheckFiles(srcFiles, x => x.Skip(3).Any(ch => ch > 255), "Files with non-ASCII chars: ");
         }
 
         /// <summary>
