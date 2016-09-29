@@ -63,7 +63,7 @@ namespace Apache.Ignite.Core.Tests
         {
             var srcFiles = GetDotNetSourceDir().GetFiles("*.cs", SearchOption.AllDirectories);
 
-            CheckFiles(srcFiles, x => x.Contains('\u0441') || x.Contains('\u0421'), "Files with Cyrillic 'C': ");
+            CheckFiles(srcFiles, x => x.Any(ch => ch > 255), "Files with non-ASCII chars: ");
         }
 
         /// <summary>
@@ -74,7 +74,7 @@ namespace Apache.Ignite.Core.Tests
             var invalidFiles = files.Where(x => isInvalid(File.ReadAllText(x.FullName))).ToArray();
 
             Assert.AreEqual(0, invalidFiles.Length,
-                errorText + string.Join(", ", invalidFiles.Select(x => x.FullName)));
+                errorText + string.Join("\n ", invalidFiles.Select(x => x.FullName)));
         }
 
         /// <summary>
