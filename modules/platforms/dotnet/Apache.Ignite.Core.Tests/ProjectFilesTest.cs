@@ -61,7 +61,8 @@ namespace Apache.Ignite.Core.Tests
         [Test]
         public void TestAsciiChars()
         {
-            var srcFiles = GetDotNetSourceDir().GetFiles("*.cs", SearchOption.AllDirectories);
+            var srcFiles = GetDotNetSourceDir().GetFiles("*.cs", SearchOption.AllDirectories)
+                .Where(x => x.Name != "BinaryStringTest.cs" && x.Name != "BinarySelfTest.cs");
 
             CheckFiles(srcFiles, x => x.Any(ch => ch > 255), "Files with non-ASCII chars: ");
         }
