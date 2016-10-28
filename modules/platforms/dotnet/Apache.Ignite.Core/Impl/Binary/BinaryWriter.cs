@@ -1263,7 +1263,8 @@ namespace Apache.Ignite.Core.Impl.Binary
                     throw new BinaryObjectException(string.Format(
                         "Unsupported object type [type={0}, object={1}].\nThis error indicates that specified type " +
                         "can not be serialized by Ignite: it is neither [Serializable], " +
-                        "nor registered in IgniteConfiguration.BinaryConfiguration.", type, obj));
+                        "nor registered in IgniteConfiguration.BinaryConfiguration." +
+                        "See https://apacheignite-net.readme.io/docs/serialization for more details.", type, obj));
                 
                 if (handler.SupportsHandles && WriteHandle(_stream.Position, obj))
                     return;
