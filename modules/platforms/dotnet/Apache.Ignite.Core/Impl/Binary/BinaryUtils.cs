@@ -1954,10 +1954,10 @@ namespace Apache.Ignite.Core.Impl.Binary
         public static BinaryObjectException GetUnsupportedTypeException(Type type, object obj)
         {
             return new BinaryObjectException(string.Format(
-                "Unsupported object type [type={0}, object={1}].\nThis error indicates that specified type " +
+                "Unsupported object type [type={0}, object={1}].\nSpecified type " +
                 "can not be serialized by Ignite: it is neither [Serializable], " +
                 "nor registered in IgniteConfiguration.BinaryConfiguration." +
-                "See https://apacheignite-net.readme.io/docs/serialization for more details.", type, obj));
+                "\nSee https://apacheignite-net.readme.io/docs/serialization for more details.", type, obj));
         }
 
         /// <summary>
