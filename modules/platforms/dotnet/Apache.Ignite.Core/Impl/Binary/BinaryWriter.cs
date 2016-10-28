@@ -1260,11 +1260,7 @@ namespace Apache.Ignite.Core.Impl.Binary
                 var handler = BinarySystemHandlers.GetWriteHandler(type);
 
                 if (handler == null) // We did our best, object cannot be marshalled.
-                    throw new BinaryObjectException(string.Format(
-                        "Unsupported object type [type={0}, object={1}].\nThis error indicates that specified type " +
-                        "can not be serialized by Ignite: it is neither [Serializable], " +
-                        "nor registered in IgniteConfiguration.BinaryConfiguration." +
-                        "See https://apacheignite-net.readme.io/docs/serialization for more details.", type, obj));
+                    throw BinaryUtils.GetUnsupportedTypeException(type, obj);
                 
                 if (handler.SupportsHandles && WriteHandle(_stream.Position, obj))
                     return;
@@ -1320,7 +1316,7 @@ namespace Apache.Ignite.Core.Impl.Binary
                 WriteLongField(*(long*)&val0);
             }
             else
-                throw new BinaryObjectException("Unsupported object type [type=" + type.FullName + ", object=" + val + ']');
+                throw BinaryUtils.GetUnsupportedTypeException(type, val);
         }
 
         /// <summary>
