@@ -73,6 +73,16 @@ namespace Apache.Ignite.Core.Tests
         }
 
         /// <summary>
+        /// Tests that release build settings are correct: debug information is disabled.
+        /// </summary>
+        [Test]
+        public void TestCsprojOptimizeCode()
+        {
+            CheckFiles(GetReleaseCsprojFiles(), x => !GetReleaseSection(x).Contains("<Optimize>true</Optimize>"), 
+                "Invalid optimize setting in release mode: ");
+        }
+
+        /// <summary>
         /// Gets the csproj files that go to the release binary package.
         /// </summary>
         private static IEnumerable<FileInfo> GetReleaseCsprojFiles()
