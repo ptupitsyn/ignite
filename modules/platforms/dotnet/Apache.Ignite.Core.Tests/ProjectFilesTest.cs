@@ -22,6 +22,7 @@ namespace Apache.Ignite.Core.Tests
     using System.IO;
     using System.Linq;
     using System.Reflection;
+    using System.Text.RegularExpressions;
     using NUnit.Framework;
 
     /// <summary>
@@ -39,6 +40,31 @@ namespace Apache.Ignite.Core.Tests
             Assert.GreaterOrEqual(projFiles.Length, 7);
 
             CheckFiles(projFiles, x => !x.Contains("ToolsVersion=\"4.0\""), "Invalid csproj files: ");
+        }
+
+        /// <summary>
+        /// Tests that release build settings are correct.
+        /// </summary>
+        [Test]
+        public void TestCsprojReleaseDocs()
+        {
+            var projFiles = GetDotNetSourceDir().GetFiles("*.csproj", SearchOption.AllDirectories)
+                .Where(x => x.Name != "Apache.Ignite.csproj" &&
+                            !x.Name.Contains("Test") &&
+                            !x.Name.Contains("Example") &&
+                            !x.Name.Contains("Benchmark"));
+
+            CheckFiles(projFiles, x => !GetReleaseSection(x).Contains("DocumentationFile"), 
+                "Missing XML doc in release mode: ");
+        }
+
+        /// <summary>
+        /// Gets the release section.
+        /// </summary>
+        private static string GetReleaseSection(string csproj)
+        {
+            return Regex.Match(csproj, @"<PropertyGroup[^>]*Release\|(.*?)<\/PropertyGroup>", 
+                RegexOptions.Singleline).Value;
         }
 
         /// <summary>
