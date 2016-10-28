@@ -43,15 +43,23 @@ namespace Apache.Ignite.Core.Tests
         }
 
         /// <summary>
-        /// Tests that release build settings are correct.
+        /// Tests that release build settings are correct: XML docs are generated.
         /// </summary>
         [Test]
         public void TestCsprojReleaseDocs()
         {
-            var projFiles = GetReleaseCsprojFiles();
-
-            CheckFiles(projFiles, x => !GetReleaseSection(x).Contains("DocumentationFile"), 
+            CheckFiles(GetReleaseCsprojFiles(), x => !GetReleaseSection(x).Contains("DocumentationFile"), 
                 "Missing XML doc in release mode: ");
+        }
+
+        /// <summary>
+        /// Tests that release build settings are correct: there are no DEBUG/TRACE constants.
+        /// </summary>
+        [Test]
+        public void TestCsprojBuildSettings()
+        {
+            CheckFiles(GetReleaseCsprojFiles(), x => GetReleaseSection(x).Contains("DefineConstants"), 
+                "Invalid constants in release mode: ");
         }
 
         /// <summary>
