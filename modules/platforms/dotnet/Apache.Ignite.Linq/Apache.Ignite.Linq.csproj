@@ -24,7 +24,6 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
     <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
     <Optimize>true</Optimize>
     <DebugType>none</DebugType>
     <PlatformTarget>AnyCPU</PlatformTarget>
