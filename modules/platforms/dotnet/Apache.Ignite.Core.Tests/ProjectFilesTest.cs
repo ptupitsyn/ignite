@@ -89,7 +89,7 @@ namespace Apache.Ignite.Core.Tests
         /// </summary>
         private static string GetReleaseSection(string csproj)
         {
-            return Regex.Match(csproj, @"<PropertyGroup[^>]*Release\|(.*?)<\/PropertyGroup>", 
+            return Regex.Match(csproj, @"<PropertyGroup[^>]*Release\|AnyCPU(.*?)<\/PropertyGroup>", 
                 RegexOptions.Singleline).Value;
         }
 
