@@ -48,14 +48,22 @@ namespace Apache.Ignite.Core.Tests
         [Test]
         public void TestCsprojReleaseDocs()
         {
-            var projFiles = GetDotNetSourceDir().GetFiles("*.csproj", SearchOption.AllDirectories)
+            var projFiles = GetReleaseCsprojFiles();
+
+            CheckFiles(projFiles, x => !GetReleaseSection(x).Contains("DocumentationFile"), 
+                "Missing XML doc in release mode: ");
+        }
+
+        /// <summary>
+        /// Gets the csproj files that go to the release binary package.
+        /// </summary>
+        private static IEnumerable<FileInfo> GetReleaseCsprojFiles()
+        {
+            return GetDotNetSourceDir().GetFiles("*.csproj", SearchOption.AllDirectories)
                 .Where(x => x.Name != "Apache.Ignite.csproj" &&
                             !x.Name.Contains("Test") &&
                             !x.Name.Contains("Example") &&
                             !x.Name.Contains("Benchmark"));
-
-            CheckFiles(projFiles, x => !GetReleaseSection(x).Contains("DocumentationFile"), 
-                "Missing XML doc in release mode: ");
         }
 
         /// <summary>
