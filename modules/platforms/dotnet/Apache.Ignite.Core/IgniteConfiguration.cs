@@ -203,6 +203,7 @@
             writer.WriteString(Localhost);
             writer.WriteBooleanNullable(_isDaemon);
             writer.WriteBooleanNullable(_isLateAffinityAssignment);
+            writer.WriteTimeSpanAsLongNullable(_failureDetectionTimeout);
 
             // Cache config
             var caches = CacheConfiguration;
@@ -337,6 +338,7 @@
             Localhost = r.ReadString();
             _isDaemon = r.ReadBooleanNullable();
             _isLateAffinityAssignment = r.ReadBooleanNullable();
+            _failureDetectionTimeout = r.ReadTimeSpanNullable();
 
             // Cache config
             var cacheCfgCount = r.ReadInt();
