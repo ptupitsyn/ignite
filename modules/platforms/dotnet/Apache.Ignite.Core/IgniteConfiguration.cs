@@ -784,6 +784,7 @@
         /// Gets or sets the failure detection timeout used by <see cref="TcpDiscoverySpi"/> 
         /// and <see cref="TcpCommunicationSpi"/>.
         /// </summary>
+        [DefaultValue(typeof(TimeSpan), "00:00:10")]
         public TimeSpan FailureDetectionTimeout
         {
             get { return _failureDetectionTimeout ?? DefaultFailureDetectionTimeout; }
