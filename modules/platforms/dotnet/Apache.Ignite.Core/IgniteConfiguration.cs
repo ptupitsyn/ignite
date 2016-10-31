@@ -90,6 +90,11 @@
         /// </summary>
         public static readonly TimeSpan DefaultNetworkSendRetryDelay = TimeSpan.FromMilliseconds(1000);
 
+        /// <summary>
+        /// Default failure detection timeout.
+        /// </summary>
+        public static readonly TimeSpan DefaultFailureDetectionTimeout = TimeSpan.FromSeconds(10);
+
         /** */
         private TimeSpan? _metricsExpireTime;
 
@@ -119,6 +124,9 @@
 
         /** */
         private bool? _clientMode;
+
+        /** */
+        private TimeSpan? _failureDetectionTimeout;
 
         /// <summary>
         /// Default network retry count.
@@ -769,5 +777,15 @@
         /// or logs to console otherwise.
         /// </summary>
         public ILogger Logger { get; set; }
+
+        /// <summary>
+        /// Gets or sets the failure detection timeout used by <see cref="TcpDiscoverySpi"/> 
+        /// and <see cref="TcpCommunicationSpi"/>.
+        /// </summary>
+        public TimeSpan FailureDetectionTimeout
+        {
+            get { return _failureDetectionTimeout ?? DefaultFailureDetectionTimeout; }
+            set { _failureDetectionTimeout = value; }
+        }
     }
 }
