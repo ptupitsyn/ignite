@@ -28,8 +28,6 @@ namespace Apache.Ignite.Examples.Datagrid
     using Apache.Ignite.ExamplesDll.Binary;
     using Apache.Ignite.ExamplesDll.Datagrid;
 
-namespace Apache.Ignite.Examples.Datagrid
-{
     /// <summary>
     /// This example populates cache with sample data and runs several SQL and
     /// full text queries over this data.
