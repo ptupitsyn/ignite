@@ -19,14 +19,13 @@ namespace Apache.Ignite.ExamplesDll.Datagrid
 {
     using System;
     using Apache.Ignite.Core.Cache;
-    using Apache.Ignite.Core.Cache.Event;
     using Apache.Ignite.ExamplesDll.Binary;
     
     /// <summary>
     /// Filter for scan query example.
     /// </summary>
     [Serializable]
-    public class ScanQueryFilter : ICacheEntryFilter<EmployeeKey, Employee>
+    public class ScanQueryFilter : ICacheEntryFilter<int, Employee>
     {
         /** Zip code to filter on. */
         private readonly int _zipCode;
@@ -43,7 +42,7 @@ namespace Apache.Ignite.ExamplesDll.Datagrid
         /// <summary>
         /// Returns a value indicating whether provided cache entry satisfies this predicate.
         /// </summary>
-        public bool Invoke(ICacheEntry<EmployeeKey, Employee> entry)
+        public bool Invoke(ICacheEntry<int, Employee> entry)
         {
             return entry.Value.Address.Zip == _zipCode;
         }

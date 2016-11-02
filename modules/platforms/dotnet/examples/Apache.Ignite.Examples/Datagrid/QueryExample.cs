@@ -106,11 +106,11 @@ namespace Apache.Ignite.Examples.Datagrid
         /// Queries employees that have provided ZIP code in address.
         /// </summary>
         /// <param name="cache">Cache.</param>
-        private static void ScanQueryExample(ICache<EmployeeKey, Employee> cache)
+        private static void ScanQueryExample(ICache<int, Employee> cache)
         {
             const int zip = 94109;
 
-            var qry = cache.Query(new ScanQuery<EmployeeKey, Employee>(new ScanQueryFilter(zip)));
+            var qry = cache.Query(new ScanQuery<int, Employee>(new ScanQueryFilter(zip)));
 
             Console.WriteLine();
             Console.WriteLine(">>> Employees with zipcode {0} (scan):", zip);
