@@ -25,7 +25,6 @@ namespace Apache.Ignite.ExamplesDll.Compute
     /// <summary>
     /// Average salary job.
     /// </summary>
-    [Serializable]
     public class AverageSalaryJob : ComputeJobAdapter<Tuple<long, int>>
     {
         /// <summary> Employees. </summary>
