@@ -26,6 +26,8 @@ using Apache.Ignite.ExamplesDll.Binary;
 
 namespace Apache.Ignite.Examples.Datagrid
 {
+    using Apache.Ignite.ExamplesDll.Datagrid;
+
     /// <summary>
     /// This example populates cache with sample data and runs several SQL and
     /// full text queries over this data.
@@ -73,6 +75,9 @@ namespace Apache.Ignite.Examples.Datagrid
                 // Create cache that will work with specific types.
                 var employeeCache = ignite.GetCache<EmployeeKey, Employee>(CacheName);
 
+                // Run scan query example.
+                ScanQueryExample(employeeCache);
+
                 // Run SQL query example.
                 SqlQueryExample(employeeCache);
 
@@ -97,6 +102,23 @@ namespace Apache.Ignite.Examples.Datagrid
         /// Queries employees that have provided ZIP code in address.
         /// </summary>
         /// <param name="cache">Cache.</param>
+        private static void ScanQueryExample(ICache<EmployeeKey, Employee> cache)
+        {
+            const int zip = 94109;
+
+            var qry = cache.Query(new ScanQuery<EmployeeKey, Employee>(new ScanQueryFilter(zip)));
+
+            Console.WriteLine();
+            Console.WriteLine(">>> Employees with zipcode {0} (scan):", zip);
+
+            foreach (var entry in qry)
+                Console.WriteLine(">>>    " + entry.Value);
+        }
+
+        /// <summary>
+        /// Queries employees that have provided ZIP code in address.
+        /// </summary>
+        /// <param name="cache">Cache.</param>
         private static void SqlQueryExample(ICache<EmployeeKey, Employee> cache)
         {
             const int zip = 94109;
@@ -104,7 +126,7 @@ namespace Apache.Ignite.Examples.Datagrid
             var qry = cache.Query(new SqlQuery(typeof(Employee), "zip = ?", zip));
 
             Console.WriteLine();
-            Console.WriteLine(">>> Employees with zipcode " + zip + ":");
+            Console.WriteLine(">>> Employees with zipcode {0} (SQL):", zip);
 
             foreach (var entry in qry)
                 Console.WriteLine(">>>    " + entry.Value);
