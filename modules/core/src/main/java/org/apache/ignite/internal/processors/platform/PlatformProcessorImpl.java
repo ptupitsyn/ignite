@@ -502,6 +502,18 @@ public class PlatformProcessorImpl extends GridProcessorAdapter implements Platf
         return PlatformConfigurationUtils.readNearConfiguration(reader);
     }
 
+    /** {@inheritDoc} */
+    @Override public boolean registerType(int id, String name) {
+        // TODO:
+        return false;
+    }
+
+    /** {@inheritDoc} */
+    @Override public String getClass(int id) {
+        // TODO:
+        return null;
+    }
+
     /**
      * Internal store initialization routine.
      *
