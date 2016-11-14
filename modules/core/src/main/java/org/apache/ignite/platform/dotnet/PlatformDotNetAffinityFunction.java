@@ -18,6 +18,7 @@
 package org.apache.ignite.platform.dotnet;
 
 import org.apache.ignite.Ignite;
+import org.apache.ignite.IgniteCheckedException;
 import org.apache.ignite.IgniteException;
 import org.apache.ignite.binary.BinaryRawWriter;
 import org.apache.ignite.cache.affinity.AffinityFunction;
@@ -178,7 +179,7 @@ public class PlatformDotNetAffinityFunction implements AffinityFunction, Externa
      */
     @SuppressWarnings("unused")
     @IgniteInstanceResource
-    private void setIgnite(Ignite ignite) {
+    private void setIgnite(Ignite ignite) throws IgniteCheckedException {
         assert func != null;
 
         func.setIgnite(ignite);
