@@ -433,36 +433,18 @@ namespace Apache.Ignite.Core.Tests.Cache.Query
         /// Check scan query.
         /// </summary>
         [Test]
-        public void TestScanQuery()
+        public void TestScanQuery([Values(true, false)]  bool loc)
         {
-            CheckScanQuery<QueryPerson>(false, false);
+            CheckScanQuery<QueryPerson>(loc, false);
         }
 
         /// <summary>
         /// Check scan query in binary mode.
         /// </summary>
         [Test]
-        public void TestScanQueryBinary()
+        public void TestScanQueryBinary([Values(true, false)]  bool loc)
         {
-            CheckScanQuery<BinaryObject>(false, true);
-        }
-
-        /// <summary>
-        /// Check local scan query.
-        /// </summary>
-        [Test]
-        public void TestScanQueryLocal()
-        {
-            CheckScanQuery<QueryPerson>(true, false);
-        }
-
-        /// <summary>
-        /// Check local scan query in binary mode.
-        /// </summary>
-        [Test]
-        public void TestScanQueryLocalBinary()
-        {
-            CheckScanQuery<BinaryObject>(true, true);
+            CheckScanQuery<BinaryObject>(loc, true);
         }
 
         /// <summary>
