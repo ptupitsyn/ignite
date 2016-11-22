@@ -430,6 +430,60 @@ namespace Apache.Ignite.Core.Tests.Cache.Query
         }
 
         /// <summary>
+        /// Check scan query.
+        /// </summary>
+        [Test]
+        public void TestScanQuery()
+        {
+            CheckScanQuery<QueryPerson>(false, false);
+        }
+
+        /// <summary>
+        /// Check scan query in binary mode.
+        /// </summary>
+        [Test]
+        public void TestScanQueryBinary()
+        {
+            CheckScanQuery<BinaryObject>(false, true);
+        }
+
+        /// <summary>
+        /// Check local scan query.
+        /// </summary>
+        [Test]
+        public void TestScanQueryLocal()
+        {
+            CheckScanQuery<QueryPerson>(true, false);
+        }
+
+        /// <summary>
+        /// Check local scan query in binary mode.
+        /// </summary>
+        [Test]
+        public void TestScanQueryLocalBinary()
+        {
+            CheckScanQuery<BinaryObject>(true, true);
+        }
+
+        /// <summary>
+        /// Check scan query with partitions.
+        /// </summary>
+        [Test]
+        public void TestScanQueryPartitions([Values(true, false)]  bool loc)
+        {
+            CheckScanQueryPartitions<QueryPerson>(loc, false);
+        }
+
+        /// <summary>
+        /// Check scan query with partitions in binary mode.
+        /// </summary>
+        [Test]
+        public void TestScanQueryPartitionsBinary([Values(true, false)]  bool loc)
+        {
+            CheckScanQueryPartitions<BinaryObject>(loc, true);
+        }
+
+        /// <summary>
         /// Tests that query attempt on non-indexed cache causes an exception.
         /// </summary>
         [Test]
@@ -455,11 +509,12 @@ namespace Apache.Ignite.Core.Tests.Cache.Query
         /// <summary>
         /// Check scan query.
         /// </summary>
-        [Test]
-        public void TestScanQuery<TV>([Values(true, false)] bool loc, [Values(true, false)] bool keepBinary)
+        /// <param name="loc">Local query flag.</param>
+        /// <param name="keepBinary">Keep binary flag.</param>
+        private static void CheckScanQuery<TV>(bool loc, bool keepBinary)
         {
             var cache = Cache();
-            var cnt = MaxItemCnt;
+            int cnt = MaxItemCnt;
 
             // No predicate
             var exp = PopulateCache(cache, loc, cnt, x => true);
@@ -492,14 +547,15 @@ namespace Apache.Ignite.Core.Tests.Cache.Query
         /// <summary>
         /// Checks scan query with partitions.
         /// </summary>
-        [Test]
-        public void TestScanQueryPartitions<TV>([Values(true, false)] bool loc, [Values(true, false)] bool keepBinary)
+        /// <param name="loc">Local query flag.</param>
+        /// <param name="keepBinary">Keep binary flag.</param>
+        private void CheckScanQueryPartitions<TV>(bool loc, bool keepBinary)
         {
             StopGrids();
             StartGrids();
 
             var cache = Cache();
-            var cnt = MaxItemCnt;
+            int cnt = MaxItemCnt;
 
             var aff = cache.Ignite.GetAffinity(CacheName);
             var exp = PopulateCache(cache, loc, cnt, x => true);  // populate outside the loop (slow)
