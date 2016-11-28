@@ -78,11 +78,11 @@ namespace Apache.Ignite.Examples.Misc
 
                         if (disconnectedException != null)
                         {
-                            Console.WriteLine(">>> Client disconnected from the cluster.");
+                            Console.WriteLine("\n>>> Client disconnected from the cluster.");
 
                             disconnectedException.ClientReconnectTask.Wait();
 
-                            Console.WriteLine(">>> Client reconnected to the cluster.");
+                            Console.WriteLine("\n>>> Client reconnected to the cluster.");
 
                             // Updating the reference to the cache. The client reconnected to the new cluster.
                             cache = ignite.GetCache<int, string>(CacheName);
@@ -132,7 +132,7 @@ namespace Apache.Ignite.Examples.Misc
             // Start a server node.
             using (var ignite = Ignition.Start(cfg))
             {
-                Console.WriteLine(">>> Server node started.");
+                Console.WriteLine("\n>>> Server node started.");
 
                 // Wait for the client node to join.
                 if (ignite.GetCluster().GetNodes().Count == 1)
@@ -142,10 +142,12 @@ namespace Apache.Ignite.Examples.Misc
                 Thread.Sleep(2000);
             }
 
-            // Wait for client to detect the disconnect.
-            Thread.Sleep(5000);
+            Console.WriteLine("\n>>> Server node stopped.");
 
-            Console.WriteLine(">>> Restarting server node...");
+            // Wait for client to detect the disconnect.
+            Thread.Sleep(9000);
+
+            Console.WriteLine("\n>>> Restarting server node...");
 
             // Start the server again.
             using (Ignition.Start(cfg))
