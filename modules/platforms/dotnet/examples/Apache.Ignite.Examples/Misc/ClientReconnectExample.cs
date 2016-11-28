@@ -66,11 +66,10 @@ namespace Apache.Ignite.Examples.Misc
                 {
                     try
                     {
-                        cache.Put(i, "val" + i);
-                        
-                        Thread.Sleep(500);
-
                         Console.WriteLine(">>> Put value with key:" + i);
+                        cache.Put(i, "val" + i);
+
+                        Thread.Sleep(500);
                     }
                     catch (CacheException e)
                     {
@@ -145,7 +144,7 @@ namespace Apache.Ignite.Examples.Misc
             Console.WriteLine("\n>>> Server node stopped.");
 
             // Wait for client to detect the disconnect.
-            Thread.Sleep(9000);
+            Thread.Sleep(15000);
 
             Console.WriteLine("\n>>> Restarting server node...");
 
