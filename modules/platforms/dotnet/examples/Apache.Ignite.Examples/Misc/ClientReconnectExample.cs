@@ -66,7 +66,7 @@ namespace Apache.Ignite.Examples.Misc
                 {
                     try
                     {
-                        Console.WriteLine(">>> Put value with key:" + i);
+                        Console.WriteLine(">>> Put value with key: " + i);
                         cache.Put(i, "val" + i);
 
                         Thread.Sleep(500);
@@ -77,7 +77,8 @@ namespace Apache.Ignite.Examples.Misc
 
                         if (disconnectedException != null)
                         {
-                            Console.WriteLine("\n>>> Client disconnected from the cluster.");
+                            Console.WriteLine(
+                                "\n>>> Client disconnected from the cluster. Failed to put value with key: " + i);
 
                             disconnectedException.ClientReconnectTask.Wait();
 
