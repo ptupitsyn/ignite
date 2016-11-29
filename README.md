@@ -4,7 +4,7 @@
 
 [![Join the chat at https://gitter.im/apacheignite/ignite](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/apacheignite/ignite?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
-<img src="http://ci.ignite.apache.org/app/rest/builds/buildType:(id:IgniteTests_IgniteBasic)/statusIcon" />
+<a href="http://ci.ignite.apache.org/viewType.html?buildTypeId=IgniteTests_IgniteBasic&branch_IgniteTests=%3Cdefault%3E"><img src="http://ci.ignite.apache.org/app/rest/builds/buildType:(id:IgniteTests_IgniteBasic)/statusIcon" /></a>
 
 The [Apache Ignite][apache-homepage] In-Memory Data Fabric is a high-performance, integrated and distributed in-memory platform for computing and transacting on large-scale data sets in real-time, orders of magnitude faster than possible with traditional disk-based or flash technologies.
 
