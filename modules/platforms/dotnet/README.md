@@ -118,22 +118,26 @@ Ignite allows you to control how many instances of your service should be deploy
 
 ## Distributed Data Structures
 
-Ignite supports complex data structures in a distributed fashion: 
-
-* Queues and sets: ordinary, bounded, collocated, non-collocated.
-* Atomic types: `AtomicLong` and `AtomicReference`.
-* `CountDownLatch`.
-* ID Generators.
+Ignite.NET supports complex data structures in a distributed fashion: `AtomicLong`, `AtomicReference`, `AtomicSequence`.
 
 ## Distributed Messaging
 
-Distributed messaging allows for topic based cluster-wide communication between all nodes. Messages with a specified message topic can be distributed to all or sub-group of nodes that have subscribed to that topic.
+Distributed messaging allows for topic based cluster-wide communication between all nodes. Messages with a specified message topic can be distributed to
+all or sub-group of nodes that have subscribed to that topic.
 
-Ignite messaging is based on publish-subscribe paradigm where publishers and subscribers are connected together by a common topic. When one of the nodes sends a message A for topic T, it is published on all nodes that have subscribed to T.
+Ignite messaging is based on publish-subscribe paradigm where publishers and subscribers are connected together by a common topic.
+When one of the nodes sends a message A for topic T, it is published on all nodes that have subscribed to T.
 
 ## Distributed Events
 
-Distributed events allow applications to receive notifications when a variety of events occur in the distributed grid environment. You can automatically get notified for task executions, read, write or query operations occurring on local or remote nodes within the cluster.
+Distributed events allow applications to receive notifications when a variety of events occur in the distributed grid environment.
+You can automatically get notified for task executions, read, write or query operations occurring on local or remote nodes within the cluster.
+
+## ASP.NET Integration
+
+Ignite.NET provides [Output Cache](https://apacheignite-net.readme.io/docs/aspnet-output-caching) and [Session State](https://apacheignite-net.readme.io/docs/aspnet-session-state-caching) clustering: boost performance by storing cache and session data in Ignite distributed cache. 
+
+## Entity Framework Integration
 
 ## Getting Started
 
