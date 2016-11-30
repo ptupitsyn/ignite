@@ -183,6 +183,10 @@ Apache Ignite provides an implementation of Spark RDD abstraction which allows t
     </a>
 </p>
 
+## Ignite On Other Platforms
+<a href="modules/platforms/dotnet">Ignite.NET</a>
+<a href="modules/platforms/cpp">Ignite C++</a>
+
 ## Getting Started
 
 For information on how to get started with Apache Ignite please visit: [Getting Started][getting-started].
