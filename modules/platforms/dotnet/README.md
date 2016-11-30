@@ -57,10 +57,6 @@ Our data grid offers many features, some of which are:
 * Data Loading.
 * Eviction and Expiry Policies.
 * Data Rebalancing
-* Web Session Clustering.
-* Hibernate L2 Cache.
-* JDBC Driver.
-* Spring Caching.
 * Topology Validation.
 
 ## Streaming & CEP
