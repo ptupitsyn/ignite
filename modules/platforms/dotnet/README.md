@@ -139,6 +139,8 @@ Ignite.NET provides [Output Cache](https://apacheignite-net.readme.io/docs/aspne
 
 ## Entity Framework Integration
 
+Ignite.NET [Entity Framework Second Level Cache](https://apacheignite-net.readme.io/docs/entity-framework-second-level-cache) improves Entity Framework performance by storing query results in Ignite caches. 
+
 ## Getting Started
 
 For information on how to get started with Apache Ignite please visit: [Getting Started][getting-started].
