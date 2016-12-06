@@ -150,6 +150,10 @@ extern "C" {
         ctx->ProcessorLoggerLog(static_cast<jobject>(obj), level, message, category, errorInfo);
     }
 
+    void* IGNITE_CALL IgniteProcessorBinaryProcessor(gcj::JniContext* ctx, void* obj) {
+        return ctx->ProcessorBinaryProcessor(static_cast<jobject>(obj));
+    }
+
     bool IGNITE_CALL IgniteProcessorRegisterType(gcj::JniContext* ctx, void* obj, int id, char* name) {
         return ctx->ProcessorRegisterType(static_cast<jobject>(obj), id, name);
     }
@@ -170,16 +174,8 @@ extern "C" {
         return ctx->TargetInStreamOutObject(static_cast<jobject>(obj), opType, memPtr);
     }
 
-    void IGNITE_CALL IgniteTargetInObjectStreamOutStream(gcj::JniContext* ctx, void* obj, int opType, void* arg, long long inMemPtr, long long outMemPtr) {
-        ctx->TargetInObjectStreamOutStream(static_cast<jobject>(obj), opType, arg, inMemPtr, outMemPtr);
-    }
-    
     void* IGNITE_CALL IgniteTargetInObjectStreamOutObjectStream(gcj::JniContext* ctx, void* obj, int opType, void* arg, long long inMemPtr, long long outMemPtr) {
         return ctx->TargetInObjectStreamOutObjectStream(static_cast<jobject>(obj), opType, arg, inMemPtr, outMemPtr);
-    }
-
-    long long IGNITE_CALL IgniteTargetOutLong(gcj::JniContext* ctx, void* obj, int opType) {
-        return ctx->TargetOutLong(static_cast<jobject>(obj), opType);
     }
 
     void IGNITE_CALL IgniteTargetOutStream(gcj::JniContext* ctx, void* obj, int opType, long long memPtr) {

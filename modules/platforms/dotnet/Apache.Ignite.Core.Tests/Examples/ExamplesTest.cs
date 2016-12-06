@@ -38,7 +38,7 @@ namespace Apache.Ignite.Core.Tests.Examples
         /// Tests the example in a single node mode.
         /// </summary>
         /// <param name="example">The example to run.</param>
-        [Test, TestCaseSource("TestCases")]
+        [Test, TestCaseSource("TestCasesLocal")]
         public void TestLocalNode(Example example)
         {
             example.Run();
@@ -48,7 +48,7 @@ namespace Apache.Ignite.Core.Tests.Examples
         /// Tests the example with standalone Apache.Ignite.exe nodes.
         /// </summary>
         /// <param name="example">The example to run.</param>
-        [Test, TestCaseSource("TestCases")]
+        [Test, TestCaseSource("TestCasesRemote")]
         public void TestRemoteNodes(Example example)
         {
             TestRemoteNodes(example, false);
@@ -58,7 +58,7 @@ namespace Apache.Ignite.Core.Tests.Examples
         /// Tests the example with standalone Apache.Ignite.exe nodes while local node is in client mode.
         /// </summary>
         /// <param name="example">The example to run.</param>
-        [Test, TestCaseSource("TestCases")]
+        [Test, TestCaseSource("TestCasesRemote")]
         public void TestRemoteNodesClientMode(Example example)
         {
             TestRemoteNodes(example, true);
@@ -71,13 +71,7 @@ namespace Apache.Ignite.Core.Tests.Examples
         /// <param name="clientMode">Client mode flag.</param>
         private static void TestRemoteNodes(Example example, bool clientMode)
         {
-            // Exclude LifecycleExample
-            if (string.IsNullOrEmpty(example.ConfigPath))
-            {
-                Assert.AreEqual("LifecycleExample", example.Name);
-
-                return;
-            }
+            Assert.IsNotEmpty(example.ConfigPath);
 
             var configPath = Path.Combine(PathUtil.IgniteHome, PathUtil.DevPrefix, example.ConfigPath);
 
@@ -98,8 +92,11 @@ namespace Apache.Ignite.Core.Tests.Examples
 
                     var proc = new IgniteProcess(args.ToArray());
 
-                    Assert.IsTrue(ignite.WaitTopology(i + 2));
-                    Assert.IsTrue(proc.Alive);
+                    Assert.IsTrue(ignite.WaitTopology(i + 2),
+                        string.Format("Standalone node failed to join topology: [{0}]", proc.GetInfo()));
+
+                    Assert.IsTrue(proc.Alive, string.Format("Standalone node stopped unexpectedly: [{0}]",
+                        proc.GetInfo()));
                 }
 
                 Ignition.ClientMode = clientMode;
@@ -143,13 +140,28 @@ namespace Apache.Ignite.Core.Tests.Examples
         }
 
         /// <summary>
-        /// Gets the test cases.
+        /// Gets the test cases for local-only scenario.
         /// </summary>
         // ReSharper disable once MemberCanBePrivate.Global
         // ReSharper disable once MemberCanBeMadeStatic.Global
-        public IEnumerable<Example> TestCases
+        public IEnumerable<Example> TestCasesLocal
         {
-            get { return Example.GetExamples().OrderBy(x => x.Name); }
+            get { return Example.GetExamples().Where(x => x.Name != "NearCacheExample"); }
+        }
+
+        /// <summary>
+        /// Gets the test cases for remote node scenario.
+        /// </summary>
+        // ReSharper disable once MemberCanBePrivate.Global
+        // ReSharper disable once MemberCanBeMadeStatic.Global
+        public IEnumerable<Example> TestCasesRemote
+        {
+            get
+            {
+                var localOnly = new[] {"LifecycleExample", "ClientReconnectExample", "MultiTieredCacheExample" };
+
+                return Example.GetExamples().Where(x => !localOnly.Contains(x.Name));
+            }
         }
     }
 }

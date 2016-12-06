@@ -15,21 +15,21 @@
  * limitations under the License.
  */
 
-namespace Apache.Ignite.Core.Impl.Cluster
-{
-    using Apache.Ignite.Core.Binary;
-    using Apache.Ignite.Core.Cluster;
+package org.apache.ignite.internal.processors.query.h2;
 
-    /// <summary>
-    /// Extended internal Ignite interface.
-    /// </summary>
-    internal interface IClusterGroupEx : IClusterGroup
-    {
-        /// <summary>
-        /// Gets protable metadata for type.
-        /// </summary>
-        /// <param name="typeId">Type ID.</param>
-        /// <returns>Metadata.</returns>
-        IBinaryType GetBinaryType(int typeId);
+import org.apache.ignite.configuration.IgniteConfiguration;
+import org.apache.ignite.internal.binary.BinaryMarshaller;
+
+/**
+ * Geo-indexing test for binary mode.
+ */
+public class GridBinaryH2IndexingGeoSelfTest extends GridH2IndexingGeoSelfTest {
+    /** {@inheritDoc} */
+    @Override protected IgniteConfiguration getConfiguration(String gridName) throws Exception {
+        IgniteConfiguration cfg = super.getConfiguration(gridName);
+
+        cfg.setMarshaller(new BinaryMarshaller());
+
+        return cfg;
     }
 }

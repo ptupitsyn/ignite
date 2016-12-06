@@ -33,7 +33,8 @@ namespace Apache.Ignite.ExamplesDll.Binary
         /// <param name="salary">Salary.</param>
         /// <param name="address">Address.</param>
         /// <param name="departments">Departments.</param>
-        public Employee(string name, long salary, Address address, ICollection<string> departments, 
+        /// <param name="organizationId">The organization identifier.</param>
+        public Employee(string name, long salary, Address address, ICollection<string> departments,
             int organizationId = 0)
         {
             Name = name;

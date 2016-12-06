@@ -252,7 +252,8 @@ namespace Apache.Ignite.Core.Impl.Binary
                 Debug.Assert(hdr.TypeId != BinaryUtils.TypeUnregistered);
 
                 if (marsh.Ignite != null)
-                    fieldIds = marsh.Ignite.ClusterGroup.GetSchema(hdr.TypeId, hdr.SchemaId);
+                    fieldIds = marsh.Ignite.BinaryProcessor.GetSchema(hdr.TypeId, hdr.SchemaId);
+
                 if (fieldIds == null)
                     throw new BinaryObjectException("Cannot find schema for object with compact footer [" +
                                                     "typeId=" + hdr.TypeId + ", schemaId=" + hdr.SchemaId + ']');
