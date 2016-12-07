@@ -89,6 +89,7 @@ namespace Apache.Ignite.Core.Impl.Binary
         {
             IgniteArgumentCheck.NotNullOrEmpty(typeName, "typeName");
 
+            // TODO: This can fail for a new type (classless scenario). Can we avoid the descriptor?
             IBinaryTypeDescriptor desc = _marsh.GetDescriptor(typeName);
             
             return Builder0(null, BinaryFromDescriptor(desc), desc);
