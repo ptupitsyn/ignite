@@ -28,6 +28,7 @@ import org.apache.ignite.configuration.NearCacheConfiguration;
 import org.apache.ignite.configuration.PlatformConfiguration;
 import org.apache.ignite.internal.GridKernalContext;
 import org.apache.ignite.internal.IgniteInternalFuture;
+import org.apache.ignite.internal.MarshallerPlatformIds;
 import org.apache.ignite.internal.binary.BinaryRawReaderEx;
 import org.apache.ignite.internal.binary.BinaryRawWriterEx;
 import org.apache.ignite.internal.logger.platform.PlatformLogger;
@@ -522,15 +523,15 @@ public class PlatformProcessorImpl extends GridProcessorAdapter implements Platf
     }
 
     /** {@inheritDoc} */
-    @Override public boolean registerType(int id, String name) {
-        // TODO:
-        return false;
+    @Override public boolean registerType(int id, String name) throws IgniteCheckedException {
+        // TODO: move this to PlatformBinaryProcessor!
+        return context().kernalContext().marshallerContext().registerClassName(MarshallerPlatformIds.DOTNET_ID, id, name);
     }
 
     /** {@inheritDoc} */
-    @Override public String getClass(int id) {
-        // TODO:
-        return null;
+    @Override public String getClass(int id) throws IgniteCheckedException, ClassNotFoundException {
+        // TODO: move this to PlatformBinaryProcessor!
+        return context().kernalContext().marshallerContext().getClassName(MarshallerPlatformIds.DOTNET_ID, id);
     }
 
     /**

@@ -294,5 +294,5 @@ public interface PlatformProcessor extends GridProcessor {
      * @param id Type ID.
      * @return Class name.
      */
-    public String getClass(int id) throws IgniteCheckedException;
+    public String getClass(int id) throws IgniteCheckedException, ClassNotFoundException;
 }
