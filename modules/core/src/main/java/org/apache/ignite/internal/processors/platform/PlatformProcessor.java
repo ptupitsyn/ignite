@@ -278,4 +278,21 @@ public interface PlatformProcessor extends GridProcessor {
      * @return Binary processor.
      */
     public PlatformTarget binaryProcessor();
+
+    /**
+     * Registers platform type name with provided type ID.
+     *
+     * @param id Type ID.
+     * @param name Type name.
+     * @return Whether class was registered.
+     */
+    public boolean registerType(int id, String name) throws IgniteCheckedException;
+
+    /**
+     * Gets platform class name for provided type ID.
+     *
+     * @param id Type ID.
+     * @return Class name.
+     */
+    public String getClass(int id) throws IgniteCheckedException;
 }

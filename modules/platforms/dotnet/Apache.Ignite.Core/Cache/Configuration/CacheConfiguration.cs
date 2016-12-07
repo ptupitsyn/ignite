@@ -330,6 +330,11 @@ namespace Apache.Ignite.Core.Cache.Configuration
             writer.WriteBoolean(ReadThrough);
             writer.WriteBoolean(WriteThrough);
             writer.WriteBoolean(EnableStatistics);
+
+            if (CacheStoreFactory != null && !CacheStoreFactory.GetType().IsSerializable)
+                throw new IgniteException("CacheConfiguration.CacheStoreFactory should be serializable: " +
+                                          CacheStoreFactory.GetType());
+
             writer.WriteObject(CacheStoreFactory);
 
             if (QueryEntities != null)
@@ -700,7 +705,7 @@ namespace Apache.Ignite.Core.Cache.Configuration
         public IAffinityFunction AffinityFunction { get; set; }
 
         /// <summary>
-        /// Gets or sets the factory for <see cref="IExpiryPolicy"/> to be used for all cache operations, 
+        /// Gets or sets the factory for <see cref="IExpiryPolicy"/> to be used for all cache operations,
         /// unless <see cref="ICache{TK,TV}.WithExpiryPolicy"/> is called.
         /// <para />
         /// Default is null, which means no expiration.
