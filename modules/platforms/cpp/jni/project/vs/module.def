@@ -52,6 +52,6 @@ IgniteRemoveConsoleHandler @136
 IgniteProcessorLoggerIsLevelEnabled @137
 IgniteProcessorLoggerLog @138
 IgniteProcessorBinaryProcessor @139
-IgniteProcessorRegisterType @139
-IgniteProcessorGetClass @140
-IgniteReleaseChars @141
+IgniteProcessorRegisterType @140
+IgniteProcessorGetClass @141
+IgniteReleaseChars @142
