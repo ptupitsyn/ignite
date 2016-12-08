@@ -57,6 +57,13 @@ namespace Apache.Ignite.Core.Impl.Binary
                     var f = (float) val;
                     return *(int*) &f;
                 }
+
+                if (val is double)
+                {
+                    var d = (double) val;
+                    var l = *(long*)&d;
+                    return (int)(l ^ (l >> 32));
+                }
             }
 
             // Fall back to default for all other types.
