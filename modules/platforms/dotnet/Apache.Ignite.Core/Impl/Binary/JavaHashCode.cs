@@ -25,24 +25,39 @@ namespace Apache.Ignite.Core.Impl.Binary
         /// <summary>
         /// Gets the hash code using Java algorithm for basic types.
         /// </summary>
-        public static int GetHashCode(object val)
+        public static unsafe int GetHashCode(object val)
         {
             if (val == null)
                 return 0;
 
             // Types check sequence is designed to minimize comparisons for the most frequent types.
 
-            if (val is int) // This works with nullable as well.
-                return (int) val;
-
-            if (val is long)
+            unchecked
             {
-                var l = (long) val;
-                return (int) (l ^ (l >> 32));
-            }
+                if (val is int) // This works with nullable as well.
+                    return (int) val;
 
-            if (val is bool)
-                return (bool) val ? 1231 : 1237;
+                if (val is long)
+                {
+                    var l = (long) val;
+                    return (int) (l ^ (l >> 32));
+                }
+
+                if (val is bool)
+                    return (bool) val ? 1231 : 1237;
+
+                if (val is byte)
+                    return (byte) val;
+
+                if (val is char)
+                    return (char) val;
+
+                if (val is float)
+                {
+                    var f = (float) val;
+                    return *(int*) &f;
+                }
+            }
 
             // Fall back to default for all other types.
             return val.GetHashCode();
