@@ -31,8 +31,9 @@ namespace Apache.Ignite.Core.Impl.Binary
                 return 0;
 
             // Types check sequence is designed to minimize comparisons for the most frequent types.
-            if (val is int)
-                return (int)val;
+
+            if (val is int) // This works with nullable as well.
+                return (int) val;
 
             if (val is long)
             {
