@@ -17,6 +17,8 @@
 
 namespace Apache.Ignite.Core.Impl.Binary
 {
+    using System;
+
     /// <summary>
     /// Java hash code implementations for basic types.
     /// </summary>
@@ -30,11 +32,11 @@ namespace Apache.Ignite.Core.Impl.Binary
             if (val == null)
                 return 0;
 
-            // Types check sequence is designed to minimize comparisons for the most frequent types.
-
             unchecked
             {
-                if (val is int) // This works with nullable as well.
+                // Types check sequence is designed to minimize comparisons for the most frequent types.
+                // All checks support their nullable counterparts.
+                if (val is int)
                     return (int) val;
 
                 if (val is long)
@@ -49,6 +51,9 @@ namespace Apache.Ignite.Core.Impl.Binary
                 if (val is byte)
                     return (byte) val;
 
+                if (val is short)
+                    return (short) val;
+
                 if (val is char)
                     return (char) val;
 
@@ -61,8 +66,38 @@ namespace Apache.Ignite.Core.Impl.Binary
                 if (val is double)
                 {
                     var d = (double) val;
-                    var l = *(long*)&d;
-                    return (int)(l ^ (l >> 32));
+                    var l = *(long*) &d;
+                    return (int) (l ^ (l >> 32));
+                }
+
+                if (val is sbyte)
+                    return (sbyte) val;
+
+                if (val is ushort)
+                    return (ushort) val;
+
+                if (val is uint)
+                    return (int) (uint) val;
+
+                if (val is ulong)
+                {
+                    var l = (long) (ulong) val;
+                    return (int) (l ^ (l >> 32));
+                }
+
+                if (val is Guid)
+                {
+                    // TODO
+                }
+
+                if (val is DateTime)
+                {
+                    // TODO
+                }
+
+                if (val is string)
+                {
+                    // TODO
                 }
             }
 
