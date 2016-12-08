@@ -29,8 +29,15 @@ namespace Apache.Ignite.Core.Tests.Binary
         public void TestBasicTypes()
         {
             // TODO: ExecuteJavaTask and test against real implementations.
-            Assert.AreEqual(25, JavaHashCode.GetHashCode(25));
             Assert.AreEqual(0, JavaHashCode.GetHashCode(null));
+
+            Assert.AreEqual(25, JavaHashCode.GetHashCode(25));
+            Assert.AreEqual(25, JavaHashCode.GetHashCode((long?)25));
+
+            Assert.AreEqual(1231, JavaHashCode.GetHashCode(true));
+            Assert.AreEqual(1237, JavaHashCode.GetHashCode(false));
+            Assert.AreEqual(1231, JavaHashCode.GetHashCode((bool?)true));
+            Assert.AreEqual(1237, JavaHashCode.GetHashCode((bool?)false));
         }
 
         [Test]

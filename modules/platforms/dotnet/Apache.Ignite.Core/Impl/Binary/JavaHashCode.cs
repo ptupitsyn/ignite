@@ -27,14 +27,10 @@ namespace Apache.Ignite.Core.Impl.Binary
         /// </summary>
         public static int GetHashCode(object val)
         {
-            // TODO: Think how to efficiently switch over types.
-            // All integral types just return the value.
-
             if (val == null)
                 return 0;
 
             // Types check sequence is designed to minimize comparisons for the most frequent types.
-
             if (val is int)
                 return (int)val;
 
@@ -43,6 +39,9 @@ namespace Apache.Ignite.Core.Impl.Binary
                 var l = (long) val;
                 return (int) (l ^ (l >> 32));
             }
+
+            if (val is bool)
+                return (bool) val ? 1231 : 1237;
 
             // Fall back to default for all other types.
             return val.GetHashCode();
