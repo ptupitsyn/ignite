@@ -23,11 +23,14 @@ namespace Apache.Ignite.Core.Impl.Binary
     internal static class JavaHashCode
     {
         /// <summary>
-        /// java.lang.Integer.hashCode().
+        /// Gets the hash code using Java algorithm for basic types.
         /// </summary>
-        public static int GetHashCode(int val)
+        public static int GetHashCode(object val)
         {
-            return val;
+            // TODO: Think how to efficiently switch over types.
+            // All integral types just return the value.
+            return 0;
+            //if (val is )
         }
     }
 }
