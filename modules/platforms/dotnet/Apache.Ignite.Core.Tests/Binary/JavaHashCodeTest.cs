@@ -26,9 +26,17 @@ namespace Apache.Ignite.Core.Tests.Binary
     public class JavaHashCodeTest
     {
         [Test]
-        public void TestHashCodes()
+        public void TestBasicTypes()
         {
             // TODO: ExecuteJavaTask and test against real implementations.
+            Assert.AreEqual(25, JavaHashCode.GetHashCode(25));
+            Assert.AreEqual(0, JavaHashCode.GetHashCode(null));
+        }
+
+        [Test]
+        public void TestBinaryObjects()
+        {
+            // TODO: Test nested
         }
     }
 }
