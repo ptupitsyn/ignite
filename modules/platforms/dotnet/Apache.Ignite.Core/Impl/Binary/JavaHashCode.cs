@@ -29,8 +29,23 @@ namespace Apache.Ignite.Core.Impl.Binary
         {
             // TODO: Think how to efficiently switch over types.
             // All integral types just return the value.
-            return 0;
-            //if (val is )
+
+            if (val == null)
+                return 0;
+
+            // Types check sequence is designed to minimize comparisons for the most frequent types.
+
+            if (val is int)
+                return (int)val;
+
+            if (val is long)
+            {
+                var l = (long) val;
+                return (int) (l ^ (l >> 32));
+            }
+
+            // Fall back to default for all other types.
+            return val.GetHashCode();
         }
     }
 }
