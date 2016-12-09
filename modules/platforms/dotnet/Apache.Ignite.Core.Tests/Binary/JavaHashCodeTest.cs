@@ -25,25 +25,60 @@ namespace Apache.Ignite.Core.Tests.Binary
     /// </summary>
     public class JavaHashCodeTest
     {
+        /** */
+        private const string JavaTask = "org.apache.ignite.platform.PlatformHashCodeTask";
+
+        /// <summary>
+        /// Fixture set up.
+        /// </summary>
+        [TestFixtureSetUp]
+        public void FixtureSetUp()
+        {
+            Ignition.Start(TestUtils.GetTestConfiguration());
+        }
+
+        /// <summary>
+        /// Fixture tear down.
+        /// </summary>
+        [TestFixtureTearDown]
+        public void FixtureTearDown()
+        {
+            Ignition.StopAll(true);
+        }
+
         [Test]
         public void TestBasicTypes()
         {
-            // TODO: ExecuteJavaTask and test against real implementations.
+            // 0 for null
             Assert.AreEqual(0, JavaHashCode.GetHashCode(null));
 
-            Assert.AreEqual(25, JavaHashCode.GetHashCode(25));
-            Assert.AreEqual(25, JavaHashCode.GetHashCode((long?)25));
-
-            Assert.AreEqual(1231, JavaHashCode.GetHashCode(true));
-            Assert.AreEqual(1237, JavaHashCode.GetHashCode(false));
-            Assert.AreEqual(1231, JavaHashCode.GetHashCode((bool?)true));
-            Assert.AreEqual(1237, JavaHashCode.GetHashCode((bool?)false));
+            CheckHashCode(0);
+            CheckHashCode(int.MaxValue);
+            CheckHashCode(int.MinValue);
+            CheckHashCode(int.MinValue / 2);
+            CheckHashCode(int.MaxValue / 2);
         }
 
         [Test]
         public void TestBinaryObjects()
         {
             // TODO: Test nested
+        }
+
+        /// <summary>
+        /// Checks the hash code.
+        /// </summary>
+        private void CheckHashCode(object o)
+        {
+            Assert.AreEqual(GetJavaHashCode(o), JavaHashCode.GetHashCode(o));
+        }
+
+        /// <summary>
+        /// Gets the Java hash code.
+        /// </summary>
+        private int GetJavaHashCode(object o)
+        {
+            return Ignition.GetIgnite().GetCompute().WithKeepBinary().ExecuteJavaTask<int>(JavaTask, o);
         }
     }
 }
