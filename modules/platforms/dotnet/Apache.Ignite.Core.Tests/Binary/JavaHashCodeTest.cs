@@ -47,8 +47,11 @@ namespace Apache.Ignite.Core.Tests.Binary
             Ignition.StopAll(true);
         }
 
+        /// <summary>
+        /// Tests numeric types.
+        /// </summary>
         [Test]
-        public void TestBasicTypes()
+        public void TestNumericTypes()
         {
             // 0 for null
             Assert.AreEqual(0, JavaHashCode.GetHashCode(null));
@@ -57,57 +60,57 @@ namespace Apache.Ignite.Core.Tests.Binary
             CheckHashCode((byte) 0);
             CheckHashCode(byte.MinValue);
             CheckHashCode(byte.MaxValue);
-            CheckHashCode(byte.MinValue / 2);
-            CheckHashCode(byte.MaxValue / 2);
+            CheckHashCode(byte.MinValue/2);
+            CheckHashCode(byte.MaxValue/2);
 
             // sbyte
             CheckHashCode((sbyte) 0);
             CheckHashCode(sbyte.MinValue);
             CheckHashCode(sbyte.MaxValue);
-            CheckHashCode(sbyte.MinValue / 2);
-            CheckHashCode(sbyte.MaxValue / 2);
+            CheckHashCode(sbyte.MinValue/2);
+            CheckHashCode(sbyte.MaxValue/2);
 
             // short
             CheckHashCode((short) 0);
             CheckHashCode(short.MinValue);
             CheckHashCode(short.MaxValue);
-            CheckHashCode(short.MinValue / 2);
-            CheckHashCode(short.MaxValue / 2);
+            CheckHashCode(short.MinValue/2);
+            CheckHashCode(short.MaxValue/2);
 
             // ushort
             CheckHashCode((ushort) 0);
             CheckHashCode(ushort.MinValue);
             CheckHashCode(ushort.MaxValue);
-            CheckHashCode(ushort.MinValue / 2);
-            CheckHashCode(ushort.MaxValue / 2);
+            CheckHashCode(ushort.MinValue/2);
+            CheckHashCode(ushort.MaxValue/2);
 
             // int
             CheckHashCode(0);
             CheckHashCode(int.MinValue);
             CheckHashCode(int.MaxValue);
-            CheckHashCode(int.MinValue / 2);
-            CheckHashCode(int.MaxValue / 2);
+            CheckHashCode(int.MinValue/2);
+            CheckHashCode(int.MaxValue/2);
 
             // uint
             CheckHashCode((uint) 0);
             CheckHashCode(uint.MinValue);
             CheckHashCode(uint.MaxValue);
-            CheckHashCode(uint.MinValue / 2);
-            CheckHashCode(uint.MaxValue / 2);
+            CheckHashCode(uint.MinValue/2);
+            CheckHashCode(uint.MaxValue/2);
 
             // long
             CheckHashCode((long) 0);
             CheckHashCode(long.MinValue);
             CheckHashCode(long.MaxValue);
-            CheckHashCode(long.MinValue / 2);
-            CheckHashCode(long.MaxValue / 2);
+            CheckHashCode(long.MinValue/2);
+            CheckHashCode(long.MaxValue/2);
 
             // ulong
             CheckHashCode((ulong) 0);
             CheckHashCode(ulong.MinValue);
             CheckHashCode(ulong.MaxValue);
-            CheckHashCode(ulong.MinValue / 2);
-            CheckHashCode(ulong.MaxValue / 2);
+            CheckHashCode(ulong.MinValue/2);
+            CheckHashCode(ulong.MaxValue/2);
 
             // float
             CheckHashCode((float) 0);
@@ -115,8 +118,8 @@ namespace Apache.Ignite.Core.Tests.Binary
             CheckHashCode(-(float) Math.PI);
             CheckHashCode(float.MinValue);
             CheckHashCode(float.MaxValue);
-            CheckHashCode(float.MinValue / 2);
-            CheckHashCode(float.MaxValue / 2);
+            CheckHashCode(float.MinValue/2);
+            CheckHashCode(float.MaxValue/2);
 
             // double
             CheckHashCode((double) 0);
@@ -124,8 +127,34 @@ namespace Apache.Ignite.Core.Tests.Binary
             CheckHashCode(-Math.PI);
             CheckHashCode(double.MinValue);
             CheckHashCode(double.MaxValue);
-            CheckHashCode(double.MinValue / 2);
-            CheckHashCode(double.MaxValue / 2);
+            CheckHashCode(double.MinValue/2);
+            CheckHashCode(double.MaxValue/2);
+
+            // decimal
+            CheckHashCode((decimal) 0);
+            CheckHashCode((decimal) Math.PI);
+            CheckHashCode((decimal) -Math.PI);
+            CheckHashCode(decimal.MinValue);
+            CheckHashCode(decimal.MaxValue);
+            CheckHashCode(decimal.MinValue/2);
+            CheckHashCode(decimal.MaxValue/2);
+        }
+
+        /// <summary>
+        /// Tests other types.
+        /// </summary>
+        [Test]
+        public void TestOtherTypes()
+        {
+            // bool
+
+            // char
+
+            // string
+
+            // Guid
+
+            // DateTime
         }
 
         [Test]
