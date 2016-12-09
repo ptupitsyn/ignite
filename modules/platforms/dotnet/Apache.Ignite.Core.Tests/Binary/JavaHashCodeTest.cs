@@ -52,11 +52,61 @@ namespace Apache.Ignite.Core.Tests.Binary
             // 0 for null
             Assert.AreEqual(0, JavaHashCode.GetHashCode(null));
 
+            // byte
+            CheckHashCode((byte) 0);
+            CheckHashCode(byte.MinValue);
+            CheckHashCode(byte.MaxValue);
+            CheckHashCode(byte.MinValue / 2);
+            CheckHashCode(byte.MaxValue / 2);
+
+            // sbyte
+            CheckHashCode((sbyte) 0);
+            CheckHashCode(sbyte.MinValue);
+            CheckHashCode(sbyte.MaxValue);
+            CheckHashCode(sbyte.MinValue / 2);
+            CheckHashCode(sbyte.MaxValue / 2);
+
+            // short
+            CheckHashCode((short) 0);
+            CheckHashCode(short.MinValue);
+            CheckHashCode(short.MaxValue);
+            CheckHashCode(short.MinValue / 2);
+            CheckHashCode(short.MaxValue / 2);
+
+            // ushort
+            CheckHashCode((ushort) 0);
+            CheckHashCode(ushort.MinValue);
+            CheckHashCode(ushort.MaxValue);
+            CheckHashCode(ushort.MinValue / 2);
+            CheckHashCode(ushort.MaxValue / 2);
+
+            // int
             CheckHashCode(0);
-            CheckHashCode(int.MaxValue);
             CheckHashCode(int.MinValue);
+            CheckHashCode(int.MaxValue);
             CheckHashCode(int.MinValue / 2);
             CheckHashCode(int.MaxValue / 2);
+
+            // uint
+            CheckHashCode((uint) 0);
+            CheckHashCode(uint.MinValue);
+            CheckHashCode(uint.MaxValue);
+            CheckHashCode(uint.MinValue / 2);
+            CheckHashCode(uint.MaxValue / 2);
+
+            // long
+            CheckHashCode((long) 0);
+            CheckHashCode(long.MinValue);
+            CheckHashCode(long.MaxValue);
+            CheckHashCode(long.MinValue / 2);
+            CheckHashCode(long.MaxValue / 2);
+
+            // ulong
+            CheckHashCode((ulong) 0);
+            CheckHashCode(ulong.MinValue);
+            CheckHashCode(ulong.MaxValue);
+            CheckHashCode(ulong.MinValue / 2);
+            CheckHashCode(ulong.MaxValue / 2);
         }
 
         [Test]
