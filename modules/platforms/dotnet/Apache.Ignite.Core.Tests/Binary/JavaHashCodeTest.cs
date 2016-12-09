@@ -167,8 +167,8 @@ namespace Apache.Ignite.Core.Tests.Binary
             foreach (var str in BinarySelfTest.SpecialStrings)
                 CheckHashCode(str);
 
-
             // Guid
+            CheckHashCode(Guid.Empty);
 
             // DateTime
         }
