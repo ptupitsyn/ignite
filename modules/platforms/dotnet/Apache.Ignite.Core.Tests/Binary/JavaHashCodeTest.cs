@@ -17,6 +17,7 @@
 
 namespace Apache.Ignite.Core.Tests.Binary
 {
+    using System;
     using Apache.Ignite.Core.Impl.Binary;
     using NUnit.Framework;
 
@@ -107,6 +108,15 @@ namespace Apache.Ignite.Core.Tests.Binary
             CheckHashCode(ulong.MaxValue);
             CheckHashCode(ulong.MinValue / 2);
             CheckHashCode(ulong.MaxValue / 2);
+
+            // float
+            CheckHashCode((float) 0);
+            CheckHashCode((float) Math.PI);
+            CheckHashCode(-(float) Math.PI);
+            CheckHashCode(float.MinValue);
+            CheckHashCode(float.MaxValue);
+            CheckHashCode(float.MinValue / 2);
+            CheckHashCode(float.MaxValue / 2);
         }
 
         [Test]
