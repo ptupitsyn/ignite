@@ -18,6 +18,7 @@
 namespace Apache.Ignite.Core.Tests.Binary
 {
     using System;
+    using System.Linq;
     using Apache.Ignite.Core.Impl.Binary;
     using NUnit.Framework;
 
@@ -147,10 +148,25 @@ namespace Apache.Ignite.Core.Tests.Binary
         public void TestOtherTypes()
         {
             // bool
+            CheckHashCode(true);
+            CheckHashCode(false);
 
             // char
+            CheckHashCode('a');
+            CheckHashCode('b');
+            CheckHashCode('\n');
+
+            foreach (var ch in BinarySelfTest.SpecialStrings.SelectMany(x => x))
+                CheckHashCode(ch);
 
             // string
+            CheckHashCode("");
+            CheckHashCode("foo");
+            CheckHashCode("Foo");
+
+            foreach (var str in BinarySelfTest.SpecialStrings)
+                CheckHashCode(str);
+
 
             // Guid
 
