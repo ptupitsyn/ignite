@@ -117,6 +117,15 @@ namespace Apache.Ignite.Core.Tests.Binary
             CheckHashCode(float.MaxValue);
             CheckHashCode(float.MinValue / 2);
             CheckHashCode(float.MaxValue / 2);
+
+            // double
+            CheckHashCode((double) 0);
+            CheckHashCode(Math.PI);
+            CheckHashCode(-Math.PI);
+            CheckHashCode(double.MinValue);
+            CheckHashCode(double.MaxValue);
+            CheckHashCode(double.MinValue / 2);
+            CheckHashCode(double.MaxValue / 2);
         }
 
         [Test]
