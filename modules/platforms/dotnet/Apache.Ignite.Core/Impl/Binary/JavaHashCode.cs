@@ -18,6 +18,9 @@
 namespace Apache.Ignite.Core.Impl.Binary
 {
     using System;
+    using System.IO;
+    using Apache.Ignite.Core.Impl.Binary.IO;
+    using Apache.Ignite.Core.Impl.Memory;
 
     /// <summary>
     /// Java hash code implementations for basic types.
@@ -72,7 +75,25 @@ namespace Apache.Ignite.Core.Impl.Binary
 
                 if (val is decimal)
                 {
-                    // TODO:
+                    var dc = (decimal) val;
+
+                    if (dc < long.MaxValue)
+                    {
+                        // TODO: Scale?
+                        return 31*((long) dc).GetHashCode() + 20;
+                    }
+
+                    var stream = new BinaryHeapStream(20);
+                    BinaryUtils.WriteDecimal((decimal)val, stream);
+
+                    stream.Seek(0, SeekOrigin.Begin);
+
+                    var scale = stream.ReadInt();
+                    var len = stream.ReadInt();
+                    var mag = stream.ReadByteArray(len);
+
+                    // TODO
+                    return scale.GetHashCode() + mag[0].GetHashCode();
                 }
 
                 if (val is sbyte)
