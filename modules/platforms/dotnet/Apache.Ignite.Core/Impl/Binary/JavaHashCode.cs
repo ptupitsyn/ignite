@@ -49,7 +49,7 @@ namespace Apache.Ignite.Core.Impl.Binary
                     return (bool) val ? 1231 : 1237;
 
                 if (val is byte)
-                    return (byte) val;
+                    return (sbyte) (byte) val;
 
                 if (val is short)
                     return (short) val;
@@ -74,7 +74,7 @@ namespace Apache.Ignite.Core.Impl.Binary
                     return (sbyte) val;
 
                 if (val is ushort)
-                    return (ushort) val;
+                    return (short) (ushort) val;
 
                 if (val is uint)
                     return (int) (uint) val;
