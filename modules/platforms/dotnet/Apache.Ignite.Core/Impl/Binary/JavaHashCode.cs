@@ -20,7 +20,6 @@ namespace Apache.Ignite.Core.Impl.Binary
     using System;
     using System.IO;
     using Apache.Ignite.Core.Impl.Binary.IO;
-    using Apache.Ignite.Core.Impl.Memory;
 
     /// <summary>
     /// Java hash code implementations for basic types.
