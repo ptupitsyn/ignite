@@ -70,6 +70,11 @@ namespace Apache.Ignite.Core.Impl.Binary
                     return (int) (l ^ (l >> 32));
                 }
 
+                if (val is decimal)
+                {
+                    // TODO:
+                }
+
                 if (val is sbyte)
                     return (sbyte) val;
 

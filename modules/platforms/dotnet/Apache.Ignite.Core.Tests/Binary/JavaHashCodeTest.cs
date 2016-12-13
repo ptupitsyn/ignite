@@ -135,6 +135,10 @@ namespace Apache.Ignite.Core.Tests.Binary
             CheckHashCode((decimal) 0);
             CheckHashCode((decimal) Math.PI);
             CheckHashCode((decimal) -Math.PI);
+            CheckHashCode((decimal) int.MaxValue);
+            CheckHashCode((decimal) -int.MaxValue);
+            CheckHashCode((decimal) long.MaxValue);
+            CheckHashCode((decimal) -long.MaxValue);
             CheckHashCode(decimal.MinValue);
             CheckHashCode(decimal.MaxValue);
             CheckHashCode(decimal.MinValue/2);
