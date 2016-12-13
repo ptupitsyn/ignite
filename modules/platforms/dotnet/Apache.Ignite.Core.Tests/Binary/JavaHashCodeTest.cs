@@ -132,6 +132,7 @@ namespace Apache.Ignite.Core.Tests.Binary
             CheckHashCode(double.MaxValue/2);
 
             // decimal
+            // TODO: Test with a range of values, decimal serialization is complicated
             CheckHashCode((decimal) 0);
             CheckHashCode((decimal) Math.PI);
             CheckHashCode((decimal) -Math.PI);
