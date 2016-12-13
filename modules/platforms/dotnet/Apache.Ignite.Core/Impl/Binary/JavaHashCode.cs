@@ -76,6 +76,9 @@ namespace Apache.Ignite.Core.Impl.Binary
                 {
                     var dc = (decimal) val;
 
+                    if (dc == decimal.Zero)
+                        return 0;
+
                     if (dc < long.MaxValue)
                     {
                         // TODO: Scale?
