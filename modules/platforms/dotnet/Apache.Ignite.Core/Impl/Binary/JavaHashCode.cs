@@ -71,21 +71,7 @@ namespace Apache.Ignite.Core.Impl.Binary
                 }
 
                 if (val is decimal)
-                {
-                    var dc = (decimal) val;
-
-                    if (dc == decimal.Zero)
-                        return 0;
-
-                    if (dc < long.MaxValue)
-                    {
-                        var scale = DecimalUtils.GetScale(decimal.GetBits(dc)[3]);
-
-                        return 31*((long) dc).GetHashCode() + scale;
-                    }
-
-                    return dc.GetHashCode(); // TODO
-                }
+                    return DecimalUtils.GetJavaHashCode((decimal) val);
 
                 if (val is sbyte)
                     return (sbyte) val;

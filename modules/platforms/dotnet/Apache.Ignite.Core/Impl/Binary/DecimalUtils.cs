@@ -144,7 +144,7 @@ namespace Apache.Ignite.Core.Impl.Binary
         /// <summary>
         /// Gets the sign and scale.
         /// </summary>
-        public static int GetScale(int signAndScale)
+        private static int GetScale(int signAndScale)
         {
             int expSign = signAndScale >> 16; // trim unused word
             return expSign & 0x00FF;  // clear sign flag
@@ -243,6 +243,24 @@ namespace Apache.Ignite.Core.Impl.Binary
                 vals[i] = stream.ReadByte() == BinaryUtils.HdrNull ? null : ReadDecimal(stream);
 
             return vals;
+        }
+
+        /// <summary>
+        /// Gets the decimal hash code using Java algorithm.
+        /// </summary>
+        public static int GetJavaHashCode(decimal dc)
+        {
+            if (dc == decimal.Zero)
+                return 0;
+
+            if (dc < long.MaxValue)
+            {
+                var scale = GetScale(decimal.GetBits(dc)[3]);
+
+                return 31 * ((long)dc).GetHashCode() + scale;
+            }
+
+            return dc.GetHashCode(); // TODO
         }
     }
 }
