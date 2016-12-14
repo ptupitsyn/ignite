@@ -30,11 +30,12 @@ namespace Apache.Ignite.Core.Impl.Binary
         /// </summary>
         public static void WriteDecimal(decimal val, IBinaryStream stream)
         {
+            // https://msdn.microsoft.com/en-us/library/system.decimal.getbits(v=vs.110).aspx
             // Vals are:
             // [0] = lo
             // [1] = mid
             // [2] = high
-            // [3] = flags
+            // [3] = exponent + sign
             int[] vals = decimal.GetBits(val);
 
             // Get start index skipping leading zeros.
