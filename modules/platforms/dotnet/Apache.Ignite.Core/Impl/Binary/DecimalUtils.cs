@@ -39,8 +39,10 @@ namespace Apache.Ignite.Core.Impl.Binary
             int[] vals = decimal.GetBits(val);
 
             // Write scale and negative flag.
-            bool negative;
-            var scale = GetSignAndScale(vals[3], out negative);
+            int signAndScale = vals[3];
+            bool negative = signAndScale >> 31 < 0;
+            var scale = GetScale(signAndScale);
+
             stream.WriteInt(negative ? (int)((uint)scale | 0x80000000) : scale);
 
             // Get start index skipping leading zeros.
@@ -142,12 +144,10 @@ namespace Apache.Ignite.Core.Impl.Binary
         /// <summary>
         /// Gets the sign and scale.
         /// </summary>
-        private static int GetSignAndScale(int signAndScale, out bool negative)
+        public static int GetScale(int signAndScale)
         {
             int expSign = signAndScale >> 16; // trim unused word
-            int scale = expSign & 0x00FF; // clear sign bit
-            negative = expSign >> 15 < 0;
-            return scale;
+            return expSign & 0x00FF;  // clear sign flag
         }
 
         /// <summary>
