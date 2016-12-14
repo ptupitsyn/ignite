@@ -35,7 +35,6 @@ namespace Apache.Ignite.Core.Impl
     using Apache.Ignite.Core.DataStructures;
     using Apache.Ignite.Core.Events;
     using Apache.Ignite.Core.Impl.Binary;
-    using Apache.Ignite.Core.Impl.Binary.Metadata;
     using Apache.Ignite.Core.Impl.Cache;
     using Apache.Ignite.Core.Impl.Cluster;
     using Apache.Ignite.Core.Impl.Common;
@@ -57,7 +56,7 @@ namespace Apache.Ignite.Core.Impl
     /// <summary>
     /// Native Ignite wrapper.
     /// </summary>
-    internal class Ignite : IIgnite, IClusterGroupEx, ICluster
+    internal class Ignite : IIgnite, ICluster
     {
         /** */
         private readonly IgniteConfiguration _cfg;
@@ -76,6 +75,9 @@ namespace Apache.Ignite.Core.Impl
 
         /** Binary. */
         private readonly Binary.Binary _binary;
+
+        /** Binary processor. */
+        private readonly BinaryProcessor _binaryProc;
 
         /** Cached proxy. */
         private readonly IgniteProxy _proxy;
@@ -134,6 +136,8 @@ namespace Apache.Ignite.Core.Impl
             _prj = new ClusterGroupImpl(proc, UU.ProcessorProjection(proc), marsh, this, null);
 
             _binary = new Binary.Binary(marsh);
+
+            _binaryProc = new BinaryProcessor(UU.ProcessorBinaryProcessor(proc), marsh);
 
             _proxy = new IgniteProxy(this);
 
@@ -494,7 +498,7 @@ namespace Apache.Ignite.Core.Impl
         /// </returns>
         public ICache<TK, TV> Cache<TK, TV>(IUnmanagedTarget nativeCache, bool keepBinary = false)
         {
-            return new CacheImpl<TK, TV>(this, nativeCache, _marsh, false, keepBinary, false, false);
+            return new CacheImpl<TK, TV>(this, nativeCache, _marsh, false, keepBinary, false);
         }
 
         /** <inheritdoc /> */
@@ -526,7 +530,7 @@ namespace Apache.Ignite.Core.Impl
         /** <inheritdoc /> */
         public void ResetMetrics()
         {
-            UU.ProjectionResetMetrics(_prj.Target);
+            _prj.ResetMetrics();
         }
 
         /** <inheritdoc /> */
@@ -748,26 +752,19 @@ namespace Apache.Ignite.Core.Impl
         }
 
         /// <summary>
+        /// Gets the binary processor.
+        /// </summary>
+        internal BinaryProcessor BinaryProcessor
+        {
+            get { return _binaryProc; }
+        }
+
+        /// <summary>
         /// Configuration.
         /// </summary>
         internal IgniteConfiguration Configuration
         {
             get { return _cfg; }
-        }
-
-        /// <summary>
-        /// Put metadata to Grid.
-        /// </summary>
-        /// <param name="metas">Metadata.</param>
-        internal void PutBinaryTypes(ICollection<BinaryType> metas)
-        {
-            _prj.PutBinaryTypes(metas);
-        }
-
-        /** <inheritDoc /> */
-        public IBinaryType GetBinaryType(int typeId)
-        {
-            return _prj.GetBinaryType(typeId);
         }
 
         /// <summary>
