@@ -193,7 +193,7 @@ public class PlatformNoopProcessor extends GridProcessorAdapter implements Platf
     }
 
     /** {@inheritDoc} */
-    @Override public PlatformTarget pluginTarget(String name) {
+    @Override public PlatformTargetProxy pluginTarget(String name) {
         return null;
     }
 }

@@ -285,5 +285,5 @@ public interface PlatformProcessor extends GridProcessor {
      *
      * @return Plugin target.
      */
-    public PlatformTarget pluginTarget(String name);
+    public PlatformTargetProxy pluginTarget(String name);
 }
