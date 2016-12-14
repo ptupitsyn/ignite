@@ -142,15 +142,6 @@ namespace Apache.Ignite.Core.Impl.Binary
         }
 
         /// <summary>
-        /// Gets the sign and scale.
-        /// </summary>
-        private static int GetScale(int signAndScale)
-        {
-            int expSign = signAndScale >> 16; // trim unused word
-            return expSign & 0x00FF;  // clear sign flag
-        }
-
-        /// <summary>
         /// Reads the decimal.
         /// </summary>
         public static decimal? ReadDecimal(IBinaryStream stream)
@@ -261,6 +252,25 @@ namespace Apache.Ignite.Core.Impl.Binary
             }
 
             return dc.GetHashCode(); // TODO
+        }
+
+        /// <summary>
+        /// Gets the sign and scale.
+        /// </summary>
+        private static int GetScale(int signAndScale)
+        {
+            int expSign = signAndScale >> 16; // trim unused word
+            return expSign & 0x00FF;  // clear sign flag
+        }
+
+        private static unsafe ulong GetMantissa(decimal dc)
+        {
+            int[] vals = decimal.GetBits(dc);
+
+            fixed (int* data = vals)
+            {
+                return *((ulong*) data);
+            }
         }
     }
 }
