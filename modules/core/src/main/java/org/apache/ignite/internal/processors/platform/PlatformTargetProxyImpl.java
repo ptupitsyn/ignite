@@ -24,6 +24,7 @@ import org.apache.ignite.internal.binary.BinaryRawWriterEx;
 import org.apache.ignite.internal.processors.platform.memory.PlatformMemory;
 import org.apache.ignite.internal.processors.platform.memory.PlatformOutputStream;
 import org.apache.ignite.internal.processors.platform.utils.PlatformFutureUtils;
+import org.apache.ignite.platform.PlatformTarget;
 
 /**
  * Platform target that is invoked via JNI and propagates calls to underlying {@link PlatformTarget}.

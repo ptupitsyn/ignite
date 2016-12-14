@@ -18,6 +18,7 @@
 package org.apache.ignite.internal.processors.platform;
 
 import org.apache.ignite.IgniteCheckedException;
+import org.apache.ignite.platform.PlatformTarget;
 import org.jetbrains.annotations.Nullable;
 
 /**

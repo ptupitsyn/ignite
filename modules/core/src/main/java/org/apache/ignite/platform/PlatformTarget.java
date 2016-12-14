@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.ignite.internal.processors.platform;
+package org.apache.ignite.platform;
 
 import org.apache.ignite.IgniteCheckedException;
 import org.apache.ignite.internal.binary.BinaryRawReaderEx;

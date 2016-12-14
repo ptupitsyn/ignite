@@ -59,6 +59,7 @@ import org.apache.ignite.internal.util.typedef.CI1;
 import org.apache.ignite.internal.util.typedef.F;
 import org.apache.ignite.internal.util.typedef.internal.U;
 import org.apache.ignite.lang.IgniteFuture;
+import org.apache.ignite.platform.PlatformTarget;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;

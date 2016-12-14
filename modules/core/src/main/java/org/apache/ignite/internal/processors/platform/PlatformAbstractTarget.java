@@ -28,6 +28,7 @@ import org.apache.ignite.internal.processors.platform.utils.PlatformFutureUtils;
 import org.apache.ignite.internal.processors.platform.utils.PlatformListenable;
 import org.apache.ignite.internal.processors.platform.utils.PlatformListenableTarget;
 import org.apache.ignite.lang.IgniteFuture;
+import org.apache.ignite.platform.PlatformTarget;
 import org.jetbrains.annotations.Nullable;
 
 /**

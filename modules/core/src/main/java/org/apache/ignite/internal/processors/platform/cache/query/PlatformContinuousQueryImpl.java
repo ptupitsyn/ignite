@@ -39,7 +39,7 @@ import org.apache.ignite.internal.processors.cache.IgniteCacheProxy;
 import org.apache.ignite.internal.processors.cache.query.QueryCursorEx;
 import org.apache.ignite.internal.processors.platform.PlatformContext;
 import org.apache.ignite.internal.processors.platform.PlatformJavaObjectFactoryProxy;
-import org.apache.ignite.internal.processors.platform.PlatformTarget;
+import org.apache.ignite.platform.PlatformTarget;
 import org.apache.ignite.internal.processors.platform.utils.PlatformUtils;
 import org.apache.ignite.internal.processors.query.GridQueryFieldMetadata;
 
