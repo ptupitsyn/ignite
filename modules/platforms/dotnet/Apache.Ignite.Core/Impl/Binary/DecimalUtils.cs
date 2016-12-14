@@ -43,7 +43,7 @@ namespace Apache.Ignite.Core.Impl.Binary
 
             // Write scale and negative flag.
             int expSign = vals[3] >> 16;  // trim unused word
-            int scale = expSign & 0x00FF;  // trim sign
+            int scale = expSign & 0x00FF;  // clear sign bit
             int sign = expSign >> 15;  // 0 or -1
             stream.WriteInt(sign < 0 ? (int)((uint)scale | 0x80000000) : scale);
 
