@@ -42,9 +42,10 @@ namespace Apache.Ignite.Core.Impl.Binary
             int idx = vals[2] != 0 ? 2 : vals[1] != 0 ? 1 : vals[0] != 0 ? 0 : -1;
 
             // Write scale and negative flag.
-            int scale = (vals[3] & 0x00FF0000) >> 16;
-
-            stream.WriteInt(((vals[3] & 0x80000000) == 0x80000000) ? (int)((uint)scale | 0x80000000) : scale);
+            int expSign = vals[3] >> 16;  // trim unused word
+            int scale = expSign & 0x00FF;  // trim sign
+            int sign = expSign >> 15;  // 0 or -1
+            stream.WriteInt(sign < 0 ? (int)((uint)scale | 0x80000000) : scale);
 
             if (idx == -1)
             {
