@@ -38,14 +38,13 @@ namespace Apache.Ignite.Core.Impl.Binary
             // [3] = exponent + sign
             int[] vals = decimal.GetBits(val);
 
+            // Write scale and negative flag.
+            bool negative;
+            var scale = GetSignAndScale(vals[3], out negative);
+            stream.WriteInt(negative ? (int)((uint)scale | 0x80000000) : scale);
+
             // Get start index skipping leading zeros.
             int idx = vals[2] != 0 ? 2 : vals[1] != 0 ? 1 : vals[0] != 0 ? 0 : -1;
-
-            // Write scale and negative flag.
-            int expSign = vals[3] >> 16;  // trim unused word
-            int scale = expSign & 0x00FF;  // clear sign bit
-            int sign = expSign >> 15;  // 0 or -1
-            stream.WriteInt(sign < 0 ? (int)((uint)scale | 0x80000000) : scale);
 
             if (idx == -1)
             {
@@ -138,6 +137,17 @@ namespace Apache.Ignite.Core.Impl.Binary
                     }
                 }
             }
+        }
+
+        /// <summary>
+        /// Gets the sign and scale.
+        /// </summary>
+        private static int GetSignAndScale(int signAndScale, out bool negative)
+        {
+            int expSign = signAndScale >> 16; // trim unused word
+            int scale = expSign & 0x00FF; // clear sign bit
+            negative = expSign >> 15 < 0;
+            return scale;
         }
 
         /// <summary>
