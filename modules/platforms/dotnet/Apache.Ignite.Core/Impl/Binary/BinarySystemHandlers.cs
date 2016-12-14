@@ -93,7 +93,7 @@ namespace Apache.Ignite.Core.Impl.Binary
             ReadHandlers[BinaryUtils.TypeLong] = new BinarySystemReader<long>(s => s.ReadLong());
             ReadHandlers[BinaryUtils.TypeFloat] = new BinarySystemReader<float>(s => s.ReadFloat());
             ReadHandlers[BinaryUtils.TypeDouble] = new BinarySystemReader<double>(s => s.ReadDouble());
-            ReadHandlers[BinaryUtils.TypeDecimal] = new BinarySystemReader<decimal?>(BinaryUtils.ReadDecimal);
+            ReadHandlers[BinaryUtils.TypeDecimal] = new BinarySystemReader<decimal?>(DecimalUtils.ReadDecimal);
 
             // 2. Date.
             ReadHandlers[BinaryUtils.TypeTimestamp] = new BinarySystemReader<DateTime?>(BinaryUtils.ReadTimestamp);
@@ -131,7 +131,7 @@ namespace Apache.Ignite.Core.Impl.Binary
                 new BinarySystemReader<double[]>(BinaryUtils.ReadDoubleArray);
 
             ReadHandlers[BinaryUtils.TypeArrayDecimal] =
-                new BinarySystemReader<decimal?[]>(BinaryUtils.ReadDecimalArray);
+                new BinarySystemReader<decimal?[]>(DecimalUtils.ReadDecimalArray);
 
             // 6. Date array.
             ReadHandlers[BinaryUtils.TypeArrayTimestamp] =
@@ -311,7 +311,7 @@ namespace Apache.Ignite.Core.Impl.Binary
         {
             ctx.Stream.WriteByte(BinaryUtils.TypeDecimal);
 
-            BinaryUtils.WriteDecimal((decimal)obj, ctx.Stream);
+            DecimalUtils.WriteDecimal((decimal)obj, ctx.Stream);
         }
         
         /// <summary>
@@ -501,7 +501,7 @@ namespace Apache.Ignite.Core.Impl.Binary
         {
             ctx.Stream.WriteByte(BinaryUtils.TypeArrayDecimal);
 
-            BinaryUtils.WriteDecimalArray((decimal?[])obj, ctx.Stream);
+            DecimalUtils.WriteDecimalArray((decimal?[])obj, ctx.Stream);
         }
         
         /// <summary>

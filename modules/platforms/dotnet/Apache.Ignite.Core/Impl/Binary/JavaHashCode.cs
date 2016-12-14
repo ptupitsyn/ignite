@@ -86,7 +86,8 @@ namespace Apache.Ignite.Core.Impl.Binary
                     }
 
                     var stream = new BinaryHeapStream(20);
-                    BinaryUtils.WriteDecimal((decimal)val, stream);
+                    // TODO: Use specialized method.
+                    DecimalUtils.WriteDecimal((decimal)val, stream);
 
                     stream.Seek(0, SeekOrigin.Begin);
 

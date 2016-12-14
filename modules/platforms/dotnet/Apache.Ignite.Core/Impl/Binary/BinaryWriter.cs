@@ -598,7 +598,7 @@ namespace Apache.Ignite.Core.Impl.Binary
             else
             {
                 _stream.WriteByte(BinaryUtils.TypeDecimal);
-                BinaryUtils.WriteDecimal(val.Value, _stream);
+                DecimalUtils.WriteDecimal(val.Value, _stream);
             }
         }
 
@@ -613,7 +613,7 @@ namespace Apache.Ignite.Core.Impl.Binary
             else
             {
                 _stream.WriteByte(BinaryUtils.TypeDecimal);
-                BinaryUtils.WriteDecimal(val.Value, _stream);
+                DecimalUtils.WriteDecimal(val.Value, _stream);
             }
         }
 
@@ -631,7 +631,7 @@ namespace Apache.Ignite.Core.Impl.Binary
             else
             {
                 _stream.WriteByte(BinaryUtils.TypeArrayDecimal);
-                BinaryUtils.WriteDecimalArray(val, _stream);
+                DecimalUtils.WriteDecimalArray(val, _stream);
             }
         }
         
@@ -646,7 +646,7 @@ namespace Apache.Ignite.Core.Impl.Binary
             else
             {
                 _stream.WriteByte(BinaryUtils.TypeArrayDecimal);
-                BinaryUtils.WriteDecimalArray(val, _stream);
+                DecimalUtils.WriteDecimalArray(val, _stream);
             }
         }
 

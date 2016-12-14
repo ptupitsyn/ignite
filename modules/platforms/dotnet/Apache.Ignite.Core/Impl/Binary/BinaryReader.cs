@@ -297,25 +297,25 @@ namespace Apache.Ignite.Core.Impl.Binary
         /** <inheritdoc /> */
         public decimal? ReadDecimal(string fieldName)
         {
-            return ReadField(fieldName, BinaryUtils.ReadDecimal, BinaryUtils.TypeDecimal);
+            return ReadField(fieldName, DecimalUtils.ReadDecimal, BinaryUtils.TypeDecimal);
         }
 
         /** <inheritdoc /> */
         public decimal? ReadDecimal()
         {
-            return Read(BinaryUtils.ReadDecimal, BinaryUtils.TypeDecimal);
+            return Read(DecimalUtils.ReadDecimal, BinaryUtils.TypeDecimal);
         }
 
         /** <inheritdoc /> */
         public decimal?[] ReadDecimalArray(string fieldName)
         {
-            return ReadField(fieldName, BinaryUtils.ReadDecimalArray, BinaryUtils.TypeArrayDecimal);
+            return ReadField(fieldName, DecimalUtils.ReadDecimalArray, BinaryUtils.TypeArrayDecimal);
         }
 
         /** <inheritdoc /> */
         public decimal?[] ReadDecimalArray()
         {
-            return Read(BinaryUtils.ReadDecimalArray, BinaryUtils.TypeArrayDecimal);
+            return Read(DecimalUtils.ReadDecimalArray, BinaryUtils.TypeArrayDecimal);
         }
 
         /** <inheritdoc /> */
