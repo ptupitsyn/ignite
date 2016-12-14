@@ -19,20 +19,13 @@ package org.apache.ignite.platform;
 
 import org.apache.ignite.IgniteCheckedException;
 import org.apache.ignite.IgniteException;
-import org.apache.ignite.binary.BinaryRawReader;
-import org.apache.ignite.binary.BinaryRawWriter;
 import org.apache.ignite.cluster.ClusterNode;
-import org.apache.ignite.internal.util.typedef.C1;
-import org.apache.ignite.internal.util.typedef.CI1;
-import org.apache.ignite.plugin.ExtensionRegistry;
-import org.apache.ignite.plugin.IgnitePlatformPlugin;
-import org.apache.ignite.plugin.PlatformPluginContext;
-import org.apache.ignite.plugin.PlatformPluginTarget;
-import org.apache.ignite.plugin.IgnitePlugin;
-import org.apache.ignite.plugin.PluginConfiguration;
-import org.apache.ignite.plugin.PluginContext;
-import org.apache.ignite.plugin.PluginProvider;
-import org.apache.ignite.plugin.PluginValidationException;
+import org.apache.ignite.internal.binary.BinaryRawReaderEx;
+import org.apache.ignite.internal.binary.BinaryRawWriterEx;
+import org.apache.ignite.internal.processors.platform.PlatformAbstractTarget;
+import org.apache.ignite.internal.processors.platform.PlatformContext;
+import org.apache.ignite.internal.processors.platform.PlatformTarget;
+import org.apache.ignite.plugin.*;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.Serializable;
@@ -115,10 +108,11 @@ public class PlatformTestPluginProvider implements PluginProvider<PluginConfigur
      */
     public static class PlatformTestPlugin implements IgnitePlatformPlugin {
         /** Plugin target. */
-        private final PlatformPluginTarget target = new PlatformTestPluginTarget();
+        // TODO
+        private final PlatformTarget target = new PlatformTestPluginTarget(null);
 
         /** {@inheritDoc} */
-        @Override public PlatformPluginTarget platformTarget() {
+        @Override public PlatformTarget platformTarget() {
             return target;
         }
     }
@@ -126,7 +120,7 @@ public class PlatformTestPluginProvider implements PluginProvider<PluginConfigur
     /**
      * Test target.
      */
-    public static class PlatformTestPluginTarget implements PlatformPluginTarget {
+    public static class PlatformTestPluginTarget extends PlatformAbstractTarget {
         /** */
         private static final int OP_READ_WRITE = 1;
 
@@ -157,10 +151,20 @@ public class PlatformTestPluginProvider implements PluginProvider<PluginConfigur
         /** */
         private String callbackResponse = "";
 
-        /** {@inheritDoc} */
-        @Override public PlatformPluginTarget invokeOperation(int opCode, BinaryRawReader reader,
-            BinaryRawWriter writer, PlatformPluginTarget arg, PlatformPluginContext context) {
-            switch (opCode) {
+        /**
+         * Constructor.
+         *
+         * @param platformCtx Context.
+         */
+        protected PlatformTestPluginTarget(PlatformContext platformCtx) {
+            super(platformCtx);
+        }
+
+        @Override
+        public PlatformTarget processInObjectStreamOutObjectStream(int type, @Nullable PlatformTarget arg,
+                                                                   BinaryRawReaderEx reader, BinaryRawWriterEx writer)
+                throws IgniteCheckedException {
+            switch (type) {
                 case OP_READ_WRITE: {
                     Object data = reader.readObject();
 
@@ -178,15 +182,19 @@ public class PlatformTestPluginProvider implements PluginProvider<PluginConfigur
                 case OP_INVOKE_CALLBACK: {
                     final String val = reader.readString();
 
+                    // TODO
+                    /*
                     callbackResponse = context.callback(new CI1<BinaryRawWriter>() {
-                        @Override public void apply(BinaryRawWriter writer) {
+                        @Override
+                        public void apply(BinaryRawWriter writer) {
                             writer.writeString(val);
                         }
                     }, new C1<BinaryRawReader, String>() {
-                        @Override public String apply(BinaryRawReader reader) {
+                        @Override
+                        public String apply(BinaryRawReader reader) {
                             return reader.readString();
                         }
-                    });
+                    });*/
 
                     return null;
                 }
@@ -198,7 +206,8 @@ public class PlatformTestPluginProvider implements PluginProvider<PluginConfigur
                 }
 
                 case OP_GET_CHILD: {
-                    final PlatformTestPluginTarget child = new PlatformTestPluginTarget();
+                    // TODO
+                    final PlatformTestPluginTarget child = new PlatformTestPluginTarget(null);
 
                     child.name = reader.readString();
 
@@ -206,13 +215,16 @@ public class PlatformTestPluginProvider implements PluginProvider<PluginConfigur
                 }
 
                 case OP_GET_OBJECT_NAME: {
-                    PlatformTestPluginTarget target = (PlatformTestPluginTarget)arg;
+                    PlatformTestPluginTarget target = (PlatformTestPluginTarget) arg;
 
                     writer.writeString(target.name);
                 }
 
                 case OP_GET_NODE_ID: {
+                    // TODO
+                    /**
                     writer.writeUuid(context.ignite().cluster().localNode().id());
+                     */
 
                     return null;
                 }
@@ -223,8 +235,8 @@ public class PlatformTestPluginProvider implements PluginProvider<PluginConfigur
                     return null;
                 }
             }
-
-            throw new IgniteException("Unknown op code: " + opCode);
+            return super.processInObjectStreamOutObjectStream(type, arg, reader, writer);
         }
+
     }
 }
