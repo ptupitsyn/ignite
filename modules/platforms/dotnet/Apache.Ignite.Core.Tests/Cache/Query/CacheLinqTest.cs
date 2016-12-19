@@ -752,6 +752,11 @@ namespace Apache.Ignite.Core.Tests.Cache.Query
 
             // Functions
             Assert.AreEqual("01 01 2000 00:00:00", dates.Select(x => x.ToString("DD MM YYYY HH:mm:ss")).First());
+
+            // Properties
+            Assert.AreEqual(1, dates.Select(x => x.Month).First());
+
+            // TODO: More tests
         }
 
         /// <summary>
