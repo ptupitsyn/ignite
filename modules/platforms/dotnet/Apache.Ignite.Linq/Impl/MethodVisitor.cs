@@ -38,8 +38,8 @@ namespace Apache.Ignite.Linq.Impl
         /// <summary>
         /// Delegates dictionary.
         /// </summary>
-        private static readonly Dictionary<MemberInfo, VisitMethodDelegate> Delegates = new List
-            <KeyValuePair<MemberInfo, VisitMethodDelegate>>
+        private static readonly Dictionary<MethodInfo, VisitMethodDelegate> Delegates = new List
+            <KeyValuePair<MethodInfo, VisitMethodDelegate>>
         {
             GetStringMethod("ToLower", new Type[0], GetFunc("lower")),
             GetStringMethod("ToUpper", new Type[0], GetFunc("upper")),
@@ -204,18 +204,18 @@ namespace Apache.Ignite.Linq.Impl
         /// <summary>
         /// Gets the method.
         /// </summary>
-        private static KeyValuePair<MemberInfo, VisitMethodDelegate> GetMethod(Type type, string name,
+        private static KeyValuePair<MethodInfo, VisitMethodDelegate> GetMethod(Type type, string name,
             Type[] argTypes = null, VisitMethodDelegate del = null)
         {
             var method = argTypes == null ? type.GetMethod(name) : type.GetMethod(name, argTypes);
 
-            return new KeyValuePair<MemberInfo, VisitMethodDelegate>(method, del ?? GetFunc(name));
+            return new KeyValuePair<MethodInfo, VisitMethodDelegate>(method, del ?? GetFunc(name));
         }
 
         /// <summary>
         /// Gets the string method.
         /// </summary>
-        private static KeyValuePair<MemberInfo, VisitMethodDelegate> GetStringMethod(string name,
+        private static KeyValuePair<MethodInfo, VisitMethodDelegate> GetStringMethod(string name,
             Type[] argTypes = null, VisitMethodDelegate del = null)
         {
             return GetMethod(typeof(string), name, argTypes, del);
@@ -224,7 +224,7 @@ namespace Apache.Ignite.Linq.Impl
         /// <summary>
         /// Gets the string method.
         /// </summary>
-        private static KeyValuePair<MemberInfo, VisitMethodDelegate> GetStringMethod(string name, string sqlName,
+        private static KeyValuePair<MethodInfo, VisitMethodDelegate> GetStringMethod(string name, string sqlName,
             params Type[] argTypes)
         {
             return GetMethod(typeof(string), name, argTypes, GetFunc(sqlName));
@@ -233,7 +233,7 @@ namespace Apache.Ignite.Linq.Impl
         /// <summary>
         /// Gets the math method.
         /// </summary>
-        private static KeyValuePair<MemberInfo, VisitMethodDelegate> GetMathMethod(string name, string sqlName,
+        private static KeyValuePair<MethodInfo, VisitMethodDelegate> GetMathMethod(string name, string sqlName,
             params Type[] argTypes)
         {
             return GetMethod(typeof(Math), name, argTypes, GetFunc(sqlName));
@@ -242,7 +242,7 @@ namespace Apache.Ignite.Linq.Impl
         /// <summary>
         /// Gets the math method.
         /// </summary>
-        private static KeyValuePair<MemberInfo, VisitMethodDelegate> GetMathMethod(string name, params Type[] argTypes)
+        private static KeyValuePair<MethodInfo, VisitMethodDelegate> GetMathMethod(string name, params Type[] argTypes)
         {
             return GetMathMethod(name, name, argTypes);
         }
