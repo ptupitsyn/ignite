@@ -284,6 +284,11 @@ namespace Apache.Ignite.Core.Cache.Configuration
             EvictionPolicy = EvictionPolicyBase.Read(reader);
             AffinityFunction = AffinityFunctionSerializer.Read(reader);
             ExpiryPolicyFactory = ExpiryPolicySerializer.ReadPolicyFactory(reader);
+
+            count = reader.ReadInt();
+            PluginConfigurations = count == 0
+                ? null
+                : Enumerable.Range(0, count).Select(x => reader.ReadObject<ICachePluginConfiguration>()).ToList();
         }
 
         /// <summary>
@@ -359,6 +364,18 @@ namespace Apache.Ignite.Core.Cache.Configuration
             EvictionPolicyBase.Write(writer, EvictionPolicy);
             AffinityFunctionSerializer.Write(writer, AffinityFunction);
             ExpiryPolicySerializer.WritePolicyFactory(writer, ExpiryPolicyFactory);
+
+            if (PluginConfigurations != null)
+            {
+                writer.WriteInt(PluginConfigurations.Count);
+
+                foreach (var cachePlugin in PluginConfigurations)
+                    writer.WriteObject(cachePlugin);
+            }
+            else
+            {
+                writer.WriteInt(0);
+            }
         }
 
         /// <summary>
