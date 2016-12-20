@@ -124,7 +124,6 @@ namespace Apache.Ignite.Core.Tests.Cache.Query
                 BinaryConfiguration = new BinaryConfiguration(typeof(Person),
                     typeof(Organization), typeof(Address), typeof(Role), typeof(RoleKey), typeof(Numerics)),
                 GridName = gridName,
-                // TODO: Why do we need this? Should we update docs? Check how this works in Java.
                 JvmOptions = { "-Duser.timezone=UTC" }
             };
         }
