@@ -47,4 +47,13 @@ public class PlatformCachePluginConfiguration implements CachePluginConfiguratio
         // TODO: Platform callback
         return null;
     }
+
+    /**
+     * Gets the native configuration object.
+     *
+     * @return Native configuration object.
+     */
+    public Object nativeCfg() {
+        return nativeCfg;
+    }
 }

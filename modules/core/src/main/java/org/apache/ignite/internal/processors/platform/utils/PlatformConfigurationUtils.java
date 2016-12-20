@@ -805,6 +805,23 @@ public class PlatformConfigurationUtils {
         writeEvictionPolicy(writer, ccfg.getEvictionPolicy());
         writeAffinityFunction(writer, ccfg.getAffinity());
         writeExpiryPolicyFactory(writer, ccfg.getExpiryPolicyFactory());
+
+        CachePluginConfiguration[] plugins = ccfg.getPluginConfigurations();
+        if (plugins != null) {
+            int cnt = 0;
+
+            for (CachePluginConfiguration cfg : plugins) {
+                if (cfg instanceof PlatformCachePluginConfiguration)
+                    cnt++;
+            }
+
+            writer.writeInt(cnt);
+
+            for (CachePluginConfiguration cfg : plugins) {
+                if (cfg instanceof PlatformCachePluginConfiguration)
+                    writer.writeObject(((PlatformCachePluginConfiguration)cfg).nativeCfg());
+            }
+        }
     }
 
     /**
