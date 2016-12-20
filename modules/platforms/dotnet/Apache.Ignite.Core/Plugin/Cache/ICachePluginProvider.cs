@@ -22,6 +22,22 @@ namespace Apache.Ignite.Core.Plugin.Cache
     /// </summary>
     public interface ICachePluginProvider
     {
-        
+        /// <summary>
+        /// Starts the plugin provider.
+        /// </summary>
+        void Start();
+
+        /// <summary>
+        /// Stops the plugin provider.
+        /// </summary>
+        /// <param name="cancel">if set to <c>true</c>, all ongoing operations should be canceled.</param>
+        void Stop(bool cancel);
+
+        /// <summary>
+        /// Called when Ignite has been started and is fully functional.
+        /// <para />
+        /// Use <see cref="IIgnite.Stopping"/> and <see cref="IIgnite.Stopped"/> to track shutdown process.
+        /// </summary>
+        void OnIgniteStart();
     }
 }
