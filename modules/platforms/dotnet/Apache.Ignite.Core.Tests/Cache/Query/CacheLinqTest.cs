@@ -63,7 +63,7 @@ namespace Apache.Ignite.Core.Tests.Cache.Query
         private bool _runDbConsole;
 
         /** */
-        private static readonly DateTime StartDateTime = new DateTime(2000, 5, 17, 3, 4, 5, DateTimeKind.Utc);
+        private static readonly DateTime StartDateTime = new DateTime(2000, 5, 17, 15, 4, 5, DateTimeKind.Utc);
 
         /// <summary>
         /// Fixture set up.
@@ -750,14 +750,16 @@ namespace Apache.Ignite.Core.Tests.Cache.Query
 
             Assert.AreEqual(2, join.Count());
 
+            // TODO: Create a new cache with a wide range of dates, including all borderline values.
+
             // Functions
             var strings = dates.Select(x => x.ToString("dd MM YYYY HH:mm:ss")).ToArray();
-            Assert.AreEqual(new[] {"17 05 2000 03:04:05", "29 12 2000 11:04:05", "17 05 2001 03:04:05"}, strings);
+            Assert.AreEqual(new[] {"17 05 2000 15:04:05", "29 12 2000 23:04:05", "17 05 2001 15:04:05"}, strings);
 
             // Properties
             Assert.AreEqual(new[] {2000, 2000, 2001}, dates.Select(x => x.Year).ToArray());
             Assert.AreEqual(new[] {5, 12, 5}, dates.Select(x => x.Month).ToArray());
-            Assert.AreEqual(new[] {17, 29, 17}, dates.Select(x => x.Day).ToArray());
+            Assert.AreEqual(new[] {17, 30, 17}, dates.Select(x => x.Day).ToArray());
             Assert.AreEqual(expDates.Select(x => x.DayOfYear).ToArray(), dates.Select(x => x.DayOfYear).ToArray());
             Assert.AreEqual(expDates.Select(x => x.DayOfWeek).ToArray(), dates.Select(x => x.DayOfWeek).ToArray());
             Assert.AreEqual(new[] {3, 11, 3}, dates.Select(x => x.Hour).ToArray());
