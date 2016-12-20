@@ -46,16 +46,19 @@ class PlatformCachePluginProvider implements CachePluginProvider {
     /** {@inheritDoc} */
     @Override public void start() throws IgniteCheckedException {
         // TODO: Platform callback
+        System.out.println("PlatformCachePluginProvider.start");
     }
 
     /** {@inheritDoc} */
     @Override public void stop(boolean cancel) {
         // TODO: Platform callback
+        System.out.println("PlatformCachePluginProvider.stop");
     }
 
     /** {@inheritDoc} */
     @Override public void onIgniteStart() throws IgniteCheckedException {
         // TODO: Platform callback
+        System.out.println("PlatformCachePluginProvider.igniteStart");
     }
 
     /** {@inheritDoc} */
