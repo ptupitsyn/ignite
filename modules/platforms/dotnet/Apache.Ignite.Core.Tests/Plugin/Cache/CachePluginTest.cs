@@ -17,6 +17,8 @@
 
 namespace Apache.Ignite.Core.Tests.Plugin.Cache
 {
+    using Apache.Ignite.Core.Cache.Configuration;
+
     /// <summary>
     /// Tests for cache plugins.
     /// </summary>
@@ -29,6 +31,10 @@ namespace Apache.Ignite.Core.Tests.Plugin.Cache
         {
             // TODO: Test with static and dynamic cache start.
 
+            using (var ignite = Ignition.Start(GetConfig()))
+            {
+                
+            }
         }
 
         /// <summary>
@@ -36,7 +42,27 @@ namespace Apache.Ignite.Core.Tests.Plugin.Cache
         /// </summary>
         public void TestInvalidPlugins()
         {
-            // TODO: Return null from various places, throw error, etc.
+            // TODO: Return null from various places, throw error, non-serializable provider, etc.
+        }
+
+        /// <summary>
+        /// Gets the configuration.
+        /// </summary>
+        private static IgniteConfiguration GetConfig()
+        {
+            return new IgniteConfiguration(TestUtils.GetTestConfiguration())
+            {
+                CacheConfiguration = new[]
+                {
+                    new CacheConfiguration("staticCache")
+                    {
+                        PluginConfigurations = new[]
+                        {
+                            new CachePluginConfiguration()
+                        }
+                    }
+                }
+            };
         }
     }
 }
