@@ -37,7 +37,7 @@ namespace Apache.Ignite.Linq.Impl
             {typeof(DateTime).GetProperty("Month"), "month"},
             {typeof(DateTime).GetProperty("Day"), "day_of_month"},
             {typeof(DateTime).GetProperty("DayOfYear"), "day_of_year"},
-            {typeof(DateTime).GetProperty("DayOfWeek"), "day_of_week"},
+            {typeof(DateTime).GetProperty("DayOfWeek"), "-1 + day_of_week"},
             {typeof(DateTime).GetProperty("Hour"), "hour"},
             {typeof(DateTime).GetProperty("Minute"), "minute"},
             {typeof(DateTime).GetProperty("Second"), "second"}
