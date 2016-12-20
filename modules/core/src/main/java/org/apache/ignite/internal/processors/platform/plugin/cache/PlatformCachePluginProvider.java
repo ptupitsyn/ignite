@@ -45,33 +45,33 @@ class PlatformCachePluginProvider implements CachePluginProvider {
 
     /** {@inheritDoc} */
     @Override public void start() throws IgniteCheckedException {
-
+        // TODO: Platform callback
     }
 
     /** {@inheritDoc} */
     @Override public void stop(boolean cancel) {
-
+        // TODO: Platform callback
     }
 
     /** {@inheritDoc} */
     @Override public void onIgniteStart() throws IgniteCheckedException {
-
+        // TODO: Platform callback
     }
 
     /** {@inheritDoc} */
     @Override public void onIgniteStop(boolean cancel) {
-
+        // No-op.
     }
 
     /** {@inheritDoc} */
     @Override public void validate() throws IgniteCheckedException {
-
+        // No-op.
     }
 
     /** {@inheritDoc} */
     @Override public void validateRemote(CacheConfiguration locCfg, CachePluginConfiguration locPluginCcfg,
         CacheConfiguration rmtCfg, ClusterNode rmtNode) throws IgniteCheckedException {
-
+        // No-op.
     }
 
     /** {@inheritDoc} */
