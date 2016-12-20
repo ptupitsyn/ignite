@@ -39,6 +39,7 @@ namespace Apache.Ignite.Core.Cache.Configuration
     using Apache.Ignite.Core.Impl.Cache.Affinity;
     using Apache.Ignite.Core.Impl.Cache.Expiry;
     using Apache.Ignite.Core.Log;
+    using Apache.Ignite.Core.Plugin.Cache;
 
     /// <summary>
     /// Defines grid cache configuration.
@@ -712,5 +713,11 @@ namespace Apache.Ignite.Core.Cache.Configuration
         /// These statistics can be retrieved via <see cref="ICache{TK,TV}.GetMetrics()"/>.
         /// </summary>
         public bool EnableStatistics { get; set; }
+
+        /// <summary>
+        /// Gets or sets the plugin configurations.
+        /// </summary>
+        [SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public ICollection<ICachePluginConfiguration> PluginConfigurations { get; set; }
     }
 }
