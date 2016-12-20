@@ -63,7 +63,7 @@ namespace Apache.Ignite.Core.Tests.Cache.Query
         private bool _runDbConsole;
 
         /** */
-        private static readonly DateTime StartDateTime = new DateTime(2000, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+        private static readonly DateTime StartDateTime = new DateTime(2000, 5, 17, 3, 4, 5, DateTimeKind.Utc);
 
         /// <summary>
         /// Fixture set up.
@@ -751,7 +751,7 @@ namespace Apache.Ignite.Core.Tests.Cache.Query
             Assert.AreEqual(RoleCount, join.Count());
 
             // Functions
-            Assert.AreEqual("01 01 2000 00:00:00", dates.Select(x => x.ToString("DD MM YYYY HH:mm:ss")).First());
+            Assert.AreEqual("17 05 2000 03:04:05", dates.Select(x => x.ToString("dd MM YYYY HH:mm:ss")).First());
 
             // Properties
             Assert.AreEqual(1, dates.Select(x => x.Month).First());
