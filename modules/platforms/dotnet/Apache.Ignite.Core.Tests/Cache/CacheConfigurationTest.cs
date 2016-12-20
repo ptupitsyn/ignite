@@ -573,7 +573,8 @@ namespace Apache.Ignite.Core.Tests.Cache
                     ExcludeNeighbors = true
                 },
                 ExpiryPolicyFactory = new ExpiryFactory(),
-                EnableStatistics = true
+                EnableStatistics = true,
+                PluginConfigurations = new[] { new CachePluginConfiguration() }
             };
         }
         /// <summary>
@@ -666,8 +667,7 @@ namespace Apache.Ignite.Core.Tests.Cache
                 {
                     Partitions = 113,
                     ExcludeNeighbors = false
-                },
-                PluginConfigurations = new[] {new CachePluginConfiguration()}
+                }
             };
         }
 

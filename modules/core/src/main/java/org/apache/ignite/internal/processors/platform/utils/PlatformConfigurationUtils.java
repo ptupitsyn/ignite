@@ -197,10 +197,12 @@ public class PlatformConfigurationUtils {
         int pluginCnt = in.readInt();
 
         if (pluginCnt > 0) {
-            Collection<CachePluginConfiguration> plugins = new ArrayList<>(pluginCnt);
+            CachePluginConfiguration[] plugins = new CachePluginConfiguration[pluginCnt];
 
             for (int i = 0; i < pluginCnt; i++)
-                plugins.add(new PlatformCachePluginConfiguration(in.readObjectDetached()));
+                plugins[i] = new PlatformCachePluginConfiguration(in.readObjectDetached());
+
+            ccfg.setPluginConfigurations(plugins);
         }
 
         return ccfg;
