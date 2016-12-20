@@ -17,8 +17,12 @@
 
 namespace Apache.Ignite.Core.Plugin.Cache
 {
+    using System;
+
     /// <summary>
     /// Cache plugin provider.
+    /// <para />
+    /// Implementations will be passed to remote nodes and should be marked with <see cref="SerializableAttribute"/>.
     /// </summary>
     public interface ICachePluginProvider
     {
