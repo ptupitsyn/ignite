@@ -111,7 +111,7 @@ namespace Apache.Ignite.Core.Tests.Cache.Query
 
             roleCache[new RoleKey(1, 101)] = new Role {Name = "Role_1", Date = StartDateTime};
             roleCache[new RoleKey(2, 102)] = new Role {Name = "Role_2", Date = StartDateTime.AddYears(1)};
-            roleCache[new RoleKey(3, 103)] = new Role {Name = null, Date = StartDateTime.AddYears(2)};
+            roleCache[new RoleKey(3, 103)] = new Role {Name = null, Date = StartDateTime.AddHours(5432)};
         }
 
         /// <summary>
@@ -735,7 +735,7 @@ namespace Apache.Ignite.Core.Tests.Cache.Query
 
             // Test retrieval
             var dates = roles.OrderBy(x => x.Value.Date).Select(x => x.Value.Date);
-            var expDates = new[] {StartDateTime, StartDateTime.AddYears(1), StartDateTime.AddYears(2)};
+            var expDates = GetRoleCache().Select(x => x.Value.Date).OrderBy(x => x).ToArray();
             Assert.AreEqual(expDates, dates.ToArray());
 
             // Filtering
@@ -748,13 +748,14 @@ namespace Apache.Ignite.Core.Tests.Cache.Query
                 join person in persons on role.Value.Date equals person.Value.Birthday
                 select person;
 
-            Assert.AreEqual(RoleCount, join.Count());
+            Assert.AreEqual(2, join.Count());
 
             // Functions
-            Assert.AreEqual("17 05 2000 03:04:05", dates.Select(x => x.ToString("dd MM YYYY HH:mm:ss")).First());
+            var strings = dates.Select(x => x.ToString("dd MM YYYY HH:mm:ss")).ToArray();
+            Assert.AreEqual(new[] {"17 05 2000 03:04:05", "29 12 2000 11:04:05", "17 05 2001 03:04:05"}, strings);
 
             // Properties
-            Assert.AreEqual(1, dates.Select(x => x.Month).First());
+            Assert.AreEqual(new[] {5, 12, 5}, dates.Select(x => x.Month).ToArray());
 
             // TODO: More tests
         }
