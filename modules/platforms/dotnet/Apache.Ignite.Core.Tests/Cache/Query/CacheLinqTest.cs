@@ -755,9 +755,14 @@ namespace Apache.Ignite.Core.Tests.Cache.Query
             Assert.AreEqual(new[] {"17 05 2000 03:04:05", "29 12 2000 11:04:05", "17 05 2001 03:04:05"}, strings);
 
             // Properties
+            Assert.AreEqual(new[] {2000, 2000, 2001}, dates.Select(x => x.Year).ToArray());
             Assert.AreEqual(new[] {5, 12, 5}, dates.Select(x => x.Month).ToArray());
-
-            // TODO: More tests
+            Assert.AreEqual(new[] {17, 29, 17}, dates.Select(x => x.Day).ToArray());
+            Assert.AreEqual(new[] {17, 29, 17}, dates.Select(x => x.DayOfYear).ToArray());
+            Assert.AreEqual(new[] {17, 29, 17}, dates.Select(x => x.DayOfWeek).ToArray());
+            Assert.AreEqual(new[] {3, 11, 3}, dates.Select(x => x.Hour).ToArray());
+            Assert.AreEqual(new[] {4, 4, 4}, dates.Select(x => x.Minute).ToArray());
+            Assert.AreEqual(new[] {5, 5, 5}, dates.Select(x => x.Second).ToArray());
         }
 
         /// <summary>
