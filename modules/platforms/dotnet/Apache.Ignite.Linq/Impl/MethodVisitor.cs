@@ -33,7 +33,14 @@ namespace Apache.Ignite.Linq.Impl
         private static readonly Dictionary<MemberInfo, string> Properties = new Dictionary<MemberInfo, string>
         {
             {typeof(string).GetProperty("Length"), "length"},
-            {typeof(DateTime).GetProperty("Month"), "month"}
+            {typeof(DateTime).GetProperty("Year"), "year"},
+            {typeof(DateTime).GetProperty("Month"), "month"},
+            {typeof(DateTime).GetProperty("Day"), "day_of_month"},
+            {typeof(DateTime).GetProperty("DayOfYear"), "day_of_year"},
+            {typeof(DateTime).GetProperty("DayOfWeek"), "day_of_week"},
+            {typeof(DateTime).GetProperty("Hour"), "hour"},
+            {typeof(DateTime).GetProperty("Minute"), "minute"},
+            {typeof(DateTime).GetProperty("Second"), "second"}
         };
 
         /// <summary> Method visit delegate. </summary>
