@@ -465,6 +465,9 @@
     <Compile Include="Binary\BinaryObjectException.cs" />
     <Compile Include="Binary\BinaryTypeConfiguration.cs" />
     <Compile Include="Binary\BinaryTypeNames.cs" />
+    <Compile Include="Plugin\Cache\ICachePluginConfiguration.cs" />
+    <Compile Include="Plugin\Cache\ICachePluginContext.cs" />
+    <Compile Include="Plugin\Cache\ICachePluginProvider.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Resource\InstanceResourceAttribute.cs" />
     <Compile Include="Resource\Package-Info.cs" />
