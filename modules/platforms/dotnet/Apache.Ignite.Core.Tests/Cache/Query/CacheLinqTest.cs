@@ -123,7 +123,9 @@ namespace Apache.Ignite.Core.Tests.Cache.Query
             {
                 BinaryConfiguration = new BinaryConfiguration(typeof(Person),
                     typeof(Organization), typeof(Address), typeof(Role), typeof(RoleKey), typeof(Numerics)),
-                GridName = gridName
+                GridName = gridName,
+                // TODO: Why do we need this? Should we update docs? Check how this works in Java.
+                JvmOptions = { "-Duser.timezone=UTC" }
             };
         }
 
@@ -759,7 +761,7 @@ namespace Apache.Ignite.Core.Tests.Cache.Query
             // Properties
             Assert.AreEqual(new[] {2000, 2000, 2001}, dates.Select(x => x.Year).ToArray());
             Assert.AreEqual(new[] {5, 12, 5}, dates.Select(x => x.Month).ToArray());
-            Assert.AreEqual(new[] {17, 30, 17}, dates.Select(x => x.Day).ToArray());
+            Assert.AreEqual(new[] {17, 29, 17}, dates.Select(x => x.Day).ToArray());
             Assert.AreEqual(expDates.Select(x => x.DayOfYear).ToArray(), dates.Select(x => x.DayOfYear).ToArray());
             Assert.AreEqual(expDates.Select(x => x.DayOfWeek).ToArray(), dates.Select(x => x.DayOfWeek).ToArray());
             Assert.AreEqual(new[] {3, 11, 3}, dates.Select(x => x.Hour).ToArray());
