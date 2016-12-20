@@ -17,7 +17,6 @@
 
 namespace Apache.Ignite.Core.Tests.Plugin.Cache
 {
-    using System;
     using System.IO;
     using Apache.Ignite.Core.Plugin.Cache;
 
@@ -85,15 +84,6 @@ namespace Apache.Ignite.Core.Tests.Plugin.Cache
         {
             if (ThrowError)
                 throw new IOException("Failure in cache plugin provider");
-        }
-    }
-
-    [Serializable]
-    public class CachePluginConfiguration : ICachePluginConfiguration
-    {
-        public ICachePluginProvider CreateProvider(ICachePluginContext pluginContext)
-        {
-            return new CachePlugin(pluginContext);
         }
     }
 }

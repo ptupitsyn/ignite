@@ -17,29 +17,40 @@
 
 namespace Apache.Ignite.Core.Tests.Plugin.Cache
 {
+    using System.Linq;
     using Apache.Ignite.Core.Cache.Configuration;
+    using NUnit.Framework;
 
     /// <summary>
     /// Tests for cache plugins.
     /// </summary>
     public class CachePluginTest
     {
+        /** */
+        private const string CacheName = "staticCache";
+
         /// <summary>
         /// Tests the full plugin lifecycle.
         /// </summary>
+        [Test]
         public void TestStartStop()
         {
             // TODO: Test with static and dynamic cache start.
 
             using (var ignite = Ignition.Start(GetConfig()))
             {
-                
+                var cache = ignite.GetCache<int, int>(CacheName);
+                var cacheCfg = cache.GetConfiguration();
+                var plugCfg = cacheCfg.PluginConfigurations.Cast<CachePluginConfiguration>().Single();
+
+                Assert.AreEqual("foo", plugCfg.TestProperty);
             }
         }
 
         /// <summary>
         /// Tests invalid plugins.
         /// </summary>
+        [Test]
         public void TestInvalidPlugins()
         {
             // TODO: Return null from various places, throw error, non-serializable provider, etc.
@@ -54,11 +65,11 @@ namespace Apache.Ignite.Core.Tests.Plugin.Cache
             {
                 CacheConfiguration = new[]
                 {
-                    new CacheConfiguration("staticCache")
+                    new CacheConfiguration(CacheName)
                     {
                         PluginConfigurations = new[]
                         {
-                            new CachePluginConfiguration()
+                            new CachePluginConfiguration {TestProperty = "foo"}
                         }
                     }
                 }
