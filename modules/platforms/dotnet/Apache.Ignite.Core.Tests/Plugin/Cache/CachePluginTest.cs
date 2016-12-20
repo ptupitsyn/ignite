@@ -39,11 +39,17 @@ namespace Apache.Ignite.Core.Tests.Plugin.Cache
 
             using (var ignite = Ignition.Start(GetConfig()))
             {
+                // Check config.
                 var cache = ignite.GetCache<int, int>(CacheName);
                 var cacheCfg = cache.GetConfiguration();
                 var plugCfg = cacheCfg.PluginConfigurations.Cast<CachePluginConfiguration>().Single();
-
                 Assert.AreEqual("foo", plugCfg.TestProperty);
+
+                // Check started plugin.
+                var plugin = CachePlugin.GetInstances().Single();
+                Assert.IsTrue(plugin.Started);
+                Assert.IsTrue(plugin.IgniteStarted);
+                Assert.IsNull(plugin.Stopped);
             }
         }
 

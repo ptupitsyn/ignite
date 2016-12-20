@@ -17,6 +17,8 @@
 
 namespace Apache.Ignite.Core.Tests.Plugin.Cache
 {
+    using System.Collections.Concurrent;
+    using System.Collections.Generic;
     using System.IO;
     using Apache.Ignite.Core.Plugin.Cache;
 
@@ -25,6 +27,17 @@ namespace Apache.Ignite.Core.Tests.Plugin.Cache
     /// </summary>
     public class CachePlugin : ICachePluginProvider
     {
+        /** */
+        private static readonly ConcurrentBag<CachePlugin> Instances = new ConcurrentBag<CachePlugin>();
+
+        /// <summary>
+        /// Gets the instances.
+        /// </summary>
+        public static IEnumerable<CachePlugin> GetInstances()
+        {
+            return Instances;
+        }
+
         /// <summary>
         /// Initializes a new instance of the <see cref="CachePlugin"/> class.
         /// </summary>
@@ -32,6 +45,8 @@ namespace Apache.Ignite.Core.Tests.Plugin.Cache
         public CachePlugin(ICachePluginContext pluginContext)
         {
             Context = pluginContext;
+
+            Instances.Add(this);
         }
 
         /** <inheritdoc /> */
