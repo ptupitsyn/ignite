@@ -30,6 +30,7 @@ namespace Apache.Ignite.Core.Tests.Cache
     using Apache.Ignite.Core.Cache.Store;
     using Apache.Ignite.Core.Common;
     using Apache.Ignite.Core.Impl.Cache.Affinity;
+    using Apache.Ignite.Core.Plugin.Cache;
     using NUnit.Framework;
 
     /// <summary>
@@ -263,6 +264,13 @@ namespace Apache.Ignite.Core.Tests.Cache
             AssertConfigsAreEqual(x.NearConfiguration, y.NearConfiguration);
             AssertConfigsAreEqual(x.EvictionPolicy, y.EvictionPolicy);
             AssertConfigsAreEqual(x.AffinityFunction, y.AffinityFunction);
+
+            if (x.PluginConfigurations != null)
+            {
+                Assert.IsNotNull(y.PluginConfigurations);
+                Assert.AreEqual(x.PluginConfigurations.Select(p => p.GetType()),
+                    y.PluginConfigurations.Select(p => p.GetType()));
+            }
         }
 
         /// <summary>
@@ -622,17 +630,17 @@ namespace Apache.Ignite.Core.Tests.Cache
                         ValueTypeName = "java.lang.String",
                         Fields = new[]
                         {
-                            new QueryField("length", typeof(int)), 
-                            new QueryField("name", typeof(string)), 
+                            new QueryField("length", typeof(int)),
+                            new QueryField("name", typeof(string)),
                             new QueryField("location", typeof(string)),
                         },
-                        Aliases = new [] {new QueryAlias("length", "len") },
+                        Aliases = new[] {new QueryAlias("length", "len")},
                         Indexes = new[]
                         {
-                            new QueryIndex("name") {Name = "index1" },
+                            new QueryIndex("name") {Name = "index1"},
                             new QueryIndex(new QueryIndexField("location", true))
                             {
-                                Name= "index2",
+                                Name = "index2",
                                 IndexType = QueryIndexType.Sorted
                             }
                         }
@@ -658,7 +666,8 @@ namespace Apache.Ignite.Core.Tests.Cache
                 {
                     Partitions = 113,
                     ExcludeNeighbors = false
-                }
+                },
+                PluginConfigurations = new[] {new CachePluginConfiguration()}
             };
         }
 
@@ -735,6 +744,19 @@ namespace Apache.Ignite.Core.Tests.Cache
             public IExpiryPolicy CreateInstance()
             {
                 return new ExpiryPolicy(null, null, null);
+            }
+        }
+
+        /// <summary>
+        /// Test plugin config.
+        /// </summary>
+        [Serializable]
+        private class CachePluginConfiguration : ICachePluginConfiguration
+        {
+            /** <inheritdoc /> */
+            public ICachePluginProvider CreateProvider(ICachePluginContext pluginContext)
+            {
+                return null;  // TODO
             }
         }
     }

@@ -370,7 +370,17 @@ namespace Apache.Ignite.Core.Cache.Configuration
                 writer.WriteInt(PluginConfigurations.Count);
 
                 foreach (var cachePlugin in PluginConfigurations)
+                {
+                    if (cachePlugin == null)
+                        throw new InvalidOperationException("Invalid cache configuration: " +
+                                                            "ICachePluginConfiguration can't be null.");
+
+                    if (!cachePlugin.GetType().IsSerializable)
+                        throw new InvalidOperationException("Invalid cache configuration: " +
+                                                            "ICachePluginConfiguration should be Serializable.");
+
                     writer.WriteObject(cachePlugin);
+                }
             }
             else
             {
