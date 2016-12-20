@@ -1127,6 +1127,40 @@ public class PlatformCallbackGateway {
     }
 
     /**
+     * Create cache plugin.
+     *
+     * @param memPtr Memory pointer.
+     * @return Pointer.
+     */
+    public long cachePluginCreate(long memPtr) {
+        enter();
+
+        try {
+            return PlatformCallbackUtils.inLongOutLong(envPtr, PlatformCallbackOp.CachePluginCreate, memPtr);
+        }
+        finally {
+            leave();
+        }
+    }
+
+    /**
+     * Destroy cache plugin.
+     *
+     * @param objPtr Object pointer.
+     */
+    public void cachePluginDestroy(long objPtr) {
+        if (!lock.enterBusy())
+            return;  // no need to destroy plugins on grid stop
+
+        try {
+            PlatformCallbackUtils.inLongOutLong(envPtr, PlatformCallbackOp.CachePluginDestroy, objPtr);
+        }
+        finally {
+            leave();
+        }
+    }
+
+    /**
      * Enter gateway.
      */
     protected void enter() {

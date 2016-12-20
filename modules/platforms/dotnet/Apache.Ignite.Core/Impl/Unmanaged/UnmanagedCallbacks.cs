@@ -232,6 +232,8 @@ namespace Apache.Ignite.Core.Impl.Unmanaged
             AddHandler(UnmanagedCallbackOp.AffinityFunctionDestroy, AffinityFunctionDestroy);
             AddHandler(UnmanagedCallbackOp.ComputeTaskLocalJobResult, ComputeTaskLocalJobResult);
             AddHandler(UnmanagedCallbackOp.ComputeJobExecuteLocal, ComputeJobExecuteLocal);
+            AddHandler(UnmanagedCallbackOp.CachePluginCreate, CachePluginCreate);
+            AddHandler(UnmanagedCallbackOp.CachePluginDestroy, CachePluginDestroy);
         }
 
         /// <summary>
@@ -1201,6 +1203,23 @@ namespace Apache.Ignite.Core.Impl.Unmanaged
         private long AffinityFunctionDestroy(long ptr)
         {
             _handleRegistry.Release(ptr);
+
+            return 0;
+        }
+
+        #endregion
+
+        #region PLUGINS
+
+        private long CachePluginCreate(long objPtr)
+        {
+            // TODO
+            return 0;
+        }
+
+        private long CachePluginDestroy(long objPtr)
+        {
+            _ignite.HandleRegistry.Release(objPtr);
 
             return 0;
         }

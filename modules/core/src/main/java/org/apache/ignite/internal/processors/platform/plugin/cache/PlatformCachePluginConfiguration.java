@@ -44,7 +44,6 @@ public class PlatformCachePluginConfiguration implements CachePluginConfiguratio
 
     /** {@inheritDoc} */
     @Override public CachePluginProvider createProvider(CachePluginContext ctx) {
-        // TODO: Platform callback
         return new PlatformCachePluginProvider(ctx);
     }
 
