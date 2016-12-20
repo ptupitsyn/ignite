@@ -43,7 +43,9 @@ import org.apache.ignite.configuration.TransactionConfiguration;
 import org.apache.ignite.internal.binary.*;
 import org.apache.ignite.internal.processors.platform.cache.affinity.PlatformAffinityFunction;
 import org.apache.ignite.internal.processors.platform.cache.expiry.PlatformExpiryPolicyFactory;
+import org.apache.ignite.internal.processors.platform.plugin.cache.PlatformCachePluginConfiguration;
 import org.apache.ignite.platform.dotnet.*;
+import org.apache.ignite.plugin.CachePluginConfiguration;
 import org.apache.ignite.spi.communication.CommunicationSpi;
 import org.apache.ignite.spi.communication.tcp.TcpCommunicationSpi;
 import org.apache.ignite.spi.communication.tcp.TcpCommunicationSpiMBean;
@@ -191,6 +193,15 @@ public class PlatformConfigurationUtils {
         ccfg.setEvictionPolicy(readEvictionPolicy(in));
         ccfg.setAffinity(readAffinityFunction(in));
         ccfg.setExpiryPolicyFactory(readExpiryPolicyFactory(in));
+
+        int pluginCnt = in.readInt();
+
+        if (pluginCnt > 0) {
+            Collection<CachePluginConfiguration> plugins = new ArrayList<>(pluginCnt);
+
+            for (int i = 0; i < pluginCnt; i++)
+                plugins.add(new PlatformCachePluginConfiguration(in.readObjectDetached()));
+        }
 
         return ccfg;
     }
