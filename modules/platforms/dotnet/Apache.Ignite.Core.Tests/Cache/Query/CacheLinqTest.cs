@@ -751,8 +751,6 @@ namespace Apache.Ignite.Core.Tests.Cache.Query
 
             Assert.AreEqual(2, join.Count());
 
-            // TODO: Create a new cache with a wide range of dates, including all borderline values.
-
             // Functions
             var strings = dates.Select(x => x.ToString("dd MM YYYY HH:mm:ss")).ToArray();
             Assert.AreEqual(new[] {"17 05 2000 15:04:05", "29 12 2000 23:04:05", "17 05 2001 15:04:05"}, strings);
