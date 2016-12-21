@@ -37,25 +37,27 @@ namespace Apache.Ignite.Core.Tests.Plugin.Cache
         {
             // TODO: Test with static and dynamic cache start.
 
-            using (var ignite = Ignition.Start(GetConfig()))
+            using (var ignite1 = Ignition.Start(GetConfig("grid1")))
+            using (var ignite2 = Ignition.Start(GetConfig("grid2")))
             {
-                // Check config.
-                var cache = ignite.GetCache<int, int>(CacheName);
-                var cacheCfg = cache.GetConfiguration();
-                var plugCfg = cacheCfg.PluginConfigurations.Cast<CachePluginConfiguration>().Single();
-                Assert.AreEqual("foo", plugCfg.TestProperty);
+                foreach (var ignite in new[] {ignite1, ignite2})
+                {
+                    // Check config.
+                    var plugCfg = ignite.GetCache<int, int>(CacheName).GetConfiguration()
+                        .PluginConfigurations.Cast<CachePluginConfiguration>().Single();
+                    Assert.AreEqual("foo", plugCfg.TestProperty);
 
-                // Check started plugin.
-                var plugin = CachePlugin.GetInstances().Single();
-                Assert.IsTrue(plugin.Started);
-                Assert.IsTrue(plugin.IgniteStarted);
-                Assert.IsNull(plugin.Stopped);
+                    // Check started plugin.
+                    var plugin = CachePlugin.GetInstances().Single(x => x.Context.Ignite == ignite);
+                    Assert.IsTrue(plugin.Started);
+                    Assert.IsTrue(plugin.IgniteStarted);
+                    Assert.IsNull(plugin.Stopped);
 
-                var ctx = plugin.Context;
-                Assert.AreEqual(ignite, ctx.Ignite);
-                Assert.AreEqual(ignite.Name, ctx.IgniteConfiguration.GridName);
-                Assert.AreEqual(CacheName, ctx.CacheConfiguration.Name);
-                Assert.AreEqual("foo", ((CachePluginConfiguration)ctx.CachePluginConfiguration).TestProperty);
+                    var ctx = plugin.Context;
+                    Assert.AreEqual(ignite.Name, ctx.IgniteConfiguration.GridName);
+                    Assert.AreEqual(CacheName, ctx.CacheConfiguration.Name);
+                    Assert.AreEqual("foo", ((CachePluginConfiguration) ctx.CachePluginConfiguration).TestProperty);
+                }
             }
         }
 
@@ -71,11 +73,11 @@ namespace Apache.Ignite.Core.Tests.Plugin.Cache
         /// <summary>
         /// Gets the configuration.
         /// </summary>
-        private static IgniteConfiguration GetConfig()
+        private static IgniteConfiguration GetConfig(string name)
         {
             return new IgniteConfiguration(TestUtils.GetTestConfiguration())
             {
-                GridName = "grid1",
+                GridName = name,
                 CacheConfiguration = new[]
                 {
                     new CacheConfiguration(CacheName)
