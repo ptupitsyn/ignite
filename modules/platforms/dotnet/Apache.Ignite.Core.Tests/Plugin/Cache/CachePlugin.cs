@@ -21,6 +21,7 @@ namespace Apache.Ignite.Core.Tests.Plugin.Cache
     using System.Collections.Generic;
     using System.IO;
     using Apache.Ignite.Core.Plugin.Cache;
+    using NUnit.Framework;
 
     /// <summary>
     /// Test cache plugin.
@@ -28,14 +29,15 @@ namespace Apache.Ignite.Core.Tests.Plugin.Cache
     public class CachePlugin : ICachePluginProvider
     {
         /** */
-        private static readonly ConcurrentBag<CachePlugin> Instances = new ConcurrentBag<CachePlugin>();
+        private static readonly ConcurrentDictionary<CachePlugin, object> Instances = 
+            new ConcurrentDictionary<CachePlugin, object>();
 
         /// <summary>
         /// Gets the instances.
         /// </summary>
         public static IEnumerable<CachePlugin> GetInstances()
         {
-            return Instances;
+            return Instances.Keys;
         }
 
         /// <summary>
@@ -46,7 +48,7 @@ namespace Apache.Ignite.Core.Tests.Plugin.Cache
         {
             Context = pluginContext;
 
-            Instances.Add(this);
+            Assert.IsTrue(Instances.TryAdd(this, null));
         }
 
         /** <inheritdoc /> */
@@ -59,6 +61,9 @@ namespace Apache.Ignite.Core.Tests.Plugin.Cache
         public void Stop(bool cancel)
         {
             Stopped = cancel;
+
+            object unused;
+            Assert.IsTrue(Instances.TryRemove(this, out unused));
         }
 
         /** <inheritdoc /> */
@@ -70,17 +75,17 @@ namespace Apache.Ignite.Core.Tests.Plugin.Cache
         /// <summary>
         /// Gets or sets a value indicating whether this <see cref="CachePlugin"/> is started.
         /// </summary>
-        public bool Started { get; set; }
+        public bool Started { get; private set; }
 
         /// <summary>
         /// Gets or sets a value indicating whether this <see cref="CachePlugin"/> is started.
         /// </summary>
-        public bool IgniteStarted { get; set; }
+        public bool IgniteStarted { get; private set; }
 
         /// <summary>
         /// Gets or sets a value indicating whether this <see cref="CachePlugin"/> is stopped.
         /// </summary>
-        public bool? Stopped { get; set; }
+        public bool? Stopped { get; private set; }
 
         /// <summary>
         /// Gets the context.
