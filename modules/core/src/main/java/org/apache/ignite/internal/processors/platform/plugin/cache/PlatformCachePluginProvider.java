@@ -40,9 +40,6 @@ class PlatformCachePluginProvider implements CachePluginProvider {
     /** Context. */
     private final CachePluginContext ctx;
 
-    /** Platform context. */
-    private final PlatformContext platformCtx;
-
     /** Native config. */
     private final Object nativeCfg;
 
@@ -59,12 +56,13 @@ class PlatformCachePluginProvider implements CachePluginProvider {
         assert nativeCfg != null;
 
         this.ctx = ctx;
-        this.platformCtx = PlatformUtils.platformContext(ctx.grid());
         this.nativeCfg = nativeCfg;
     }
 
     /** {@inheritDoc} */
     @Override public void start() throws IgniteCheckedException {
+        PlatformContext platformCtx = PlatformUtils.platformContext(ctx.grid());
+
         try (PlatformMemory mem = platformCtx.memory().allocate()) {
             PlatformOutputStream out = mem.output();
 
@@ -83,6 +81,8 @@ class PlatformCachePluginProvider implements CachePluginProvider {
 
     /** {@inheritDoc} */
     @Override public void stop(boolean cancel) {
+        PlatformContext platformCtx = PlatformUtils.platformContext(ctx.grid());
+
         platformCtx.gateway().cachePluginDestroy(ptr, cancel);
     }
 
