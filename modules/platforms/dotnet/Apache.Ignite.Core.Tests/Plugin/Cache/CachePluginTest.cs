@@ -68,22 +68,28 @@ namespace Apache.Ignite.Core.Tests.Plugin.Cache
         {
             foreach (var ignite in new[] {_grid1, _grid2})
             {
-                // Check config.
-                var plugCfg = ignite.GetCache<int, int>(CacheName).GetConfiguration()
-                    .PluginConfigurations.Cast<CachePluginConfiguration>().Single();
-                Assert.AreEqual("foo", plugCfg.TestProperty);
-
-                // Check started plugin.
-                var plugin = CachePlugin.GetInstances().Single(x => x.Context.Ignite == ignite);
-                Assert.IsTrue(plugin.Started);
-                Assert.IsTrue(plugin.IgniteStarted);
-                Assert.IsNull(plugin.Stopped);
-
-                var ctx = plugin.Context;
-                Assert.AreEqual(ignite.Name, ctx.IgniteConfiguration.GridName);
-                Assert.AreEqual(CacheName, ctx.CacheConfiguration.Name);
-                Assert.AreEqual("foo", ((CachePluginConfiguration) ctx.CachePluginConfiguration).TestProperty);
+                CheckCachePlugin(ignite, CacheName, "foo");
             }
+        }
+
+        private static void CheckCachePlugin(IIgnite ignite, string cacheName, string propValue)
+        {
+            // Check config.
+            var plugCfg = ignite.GetCache<int, int>(cacheName).GetConfiguration()
+                .PluginConfigurations.Cast<CachePluginConfiguration>().Single();
+            Assert.AreEqual(propValue, plugCfg.TestProperty);
+
+            // Check started plugin.
+            var plugin = CachePlugin.GetInstances().Single(x => x.Context.Ignite == ignite &&
+                                                                x.Context.CacheConfiguration.Name == cacheName);
+            Assert.IsTrue(plugin.Started);
+            Assert.IsTrue(plugin.IgniteStarted);
+            Assert.IsNull(plugin.Stopped);
+
+            var ctx = plugin.Context;
+            Assert.AreEqual(ignite.Name, ctx.IgniteConfiguration.GridName);
+            Assert.AreEqual(cacheName, ctx.CacheConfiguration.Name);
+            Assert.AreEqual(propValue, ((CachePluginConfiguration) ctx.CachePluginConfiguration).TestProperty);
         }
 
         /// <summary>
@@ -97,11 +103,12 @@ namespace Apache.Ignite.Core.Tests.Plugin.Cache
                 PluginConfigurations = new[] {new CachePluginConfiguration {TestProperty = "bar"}}
             };
 
-            var cache = _grid1.CreateCache<int, int>(cacheConfig);
+            _grid1.CreateCache<int, int>(cacheConfig);
 
-            // Check config.
-            var plugCfg = cache.GetConfiguration().PluginConfigurations.Cast<CachePluginConfiguration>().Single();
-            Assert.AreEqual("bar", plugCfg.TestProperty);
+            foreach (var ignite in new[] { _grid1, _grid2 })
+            {
+                CheckCachePlugin(ignite, DynCacheName, "bar");
+            }
 
             // Destroy cache to remove plugin from handle registry.
             _grid1.DestroyCache(DynCacheName);
