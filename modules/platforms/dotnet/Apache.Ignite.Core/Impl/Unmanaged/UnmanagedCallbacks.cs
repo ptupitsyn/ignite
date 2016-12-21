@@ -25,6 +25,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged
     using System.Runtime.InteropServices;
     using System.Threading;
     using Apache.Ignite.Core.Cache.Affinity;
+    using Apache.Ignite.Core.Cache.Configuration;
     using Apache.Ignite.Core.Cluster;
     using Apache.Ignite.Core.Common;
     using Apache.Ignite.Core.Impl.Binary;
@@ -1216,7 +1217,12 @@ namespace Apache.Ignite.Core.Impl.Unmanaged
         {
             using (var stream = IgniteManager.Memory.Get(objPtr).GetStream())
             {
-                var cfg = BinaryUtils.Marshaller.Unmarshal<ICachePluginConfiguration>(stream);
+                var reader = BinaryUtils.Marshaller.StartUnmarshal(stream);
+
+                var cfg = reader.ReadObject<ICachePluginConfiguration>();
+
+                var igniteCfg = new IgniteConfiguration(reader);
+                var cacheCfg = new CacheConfiguration(reader);
 
                 // TODO: context
                 var pluginProvider = cfg.CreateProvider(null);
