@@ -45,7 +45,7 @@ public class PlatformCachePluginConfiguration implements CachePluginConfiguratio
 
     /** {@inheritDoc} */
     @Override public CachePluginProvider createProvider(CachePluginContext ctx) {
-        return new PlatformCachePluginProvider(PlatformUtils.platformContext(ctx.grid()), nativeCfg);
+        return new PlatformCachePluginProvider(ctx, nativeCfg);
     }
 
     /**

@@ -24,7 +24,10 @@ import org.apache.ignite.internal.binary.BinaryRawWriterEx;
 import org.apache.ignite.internal.processors.platform.PlatformContext;
 import org.apache.ignite.internal.processors.platform.memory.PlatformMemory;
 import org.apache.ignite.internal.processors.platform.memory.PlatformOutputStream;
+import org.apache.ignite.internal.processors.platform.utils.PlatformConfigurationUtils;
+import org.apache.ignite.internal.processors.platform.utils.PlatformUtils;
 import org.apache.ignite.plugin.CachePluginConfiguration;
+import org.apache.ignite.plugin.CachePluginContext;
 import org.apache.ignite.plugin.CachePluginProvider;
 import org.jetbrains.annotations.Nullable;
 
@@ -35,7 +38,10 @@ import javax.cache.Cache;
  */
 class PlatformCachePluginProvider implements CachePluginProvider {
     /** Context. */
-    private final PlatformContext ctx;
+    private final CachePluginContext ctx;
+
+    /** Platform context. */
+    private final PlatformContext platformCtx;
 
     /** Native config. */
     private final Object nativeCfg;
@@ -48,32 +54,36 @@ class PlatformCachePluginProvider implements CachePluginProvider {
      *
      * @param ctx Context.
      */
-    PlatformCachePluginProvider(PlatformContext ctx, Object nativeCfg) {
+    PlatformCachePluginProvider(CachePluginContext ctx, Object nativeCfg) {
         assert ctx != null;
         assert nativeCfg != null;
 
         this.ctx = ctx;
+        this.platformCtx = PlatformUtils.platformContext(ctx.grid());
         this.nativeCfg = nativeCfg;
     }
 
     /** {@inheritDoc} */
     @Override public void start() throws IgniteCheckedException {
-        try (PlatformMemory mem = ctx.memory().allocate()) {
+        try (PlatformMemory mem = platformCtx.memory().allocate()) {
             PlatformOutputStream out = mem.output();
 
-            BinaryRawWriterEx writer = ctx.writer(out);
+            BinaryRawWriterEx writer = platformCtx.writer(out);
 
             writer.writeObjectDetached(nativeCfg);
 
+            PlatformConfigurationUtils.writeIgniteConfiguration(writer, ctx.igniteConfiguration());
+            PlatformConfigurationUtils.writeCacheConfiguration(writer, ctx.igniteCacheConfiguration());
+
             out.synchronize();
 
-            ptr = ctx.gateway().cachePluginCreate(mem.pointer());
+            ptr = platformCtx.gateway().cachePluginCreate(mem.pointer());
         }
     }
 
     /** {@inheritDoc} */
     @Override public void stop(boolean cancel) {
-        ctx.gateway().cachePluginDestroy(ptr, cancel);
+        platformCtx.gateway().cachePluginDestroy(ptr, cancel);
     }
 
     /** {@inheritDoc} */
