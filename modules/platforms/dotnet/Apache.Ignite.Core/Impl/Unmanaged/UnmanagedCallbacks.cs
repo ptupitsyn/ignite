@@ -42,6 +42,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged
     using Apache.Ignite.Core.Impl.Log;
     using Apache.Ignite.Core.Impl.Memory;
     using Apache.Ignite.Core.Impl.Messaging;
+    using Apache.Ignite.Core.Impl.Plugin.Cache;
     using Apache.Ignite.Core.Impl.Resource;
     using Apache.Ignite.Core.Impl.Services;
     using Apache.Ignite.Core.Lifecycle;
@@ -1219,13 +1220,14 @@ namespace Apache.Ignite.Core.Impl.Unmanaged
             {
                 var reader = BinaryUtils.Marshaller.StartUnmarshal(stream);
 
-                var cfg = reader.ReadObject<ICachePluginConfiguration>();
-
+                var cachePluginCfg = reader.ReadObject<ICachePluginConfiguration>();
                 var igniteCfg = new IgniteConfiguration(reader);
                 var cacheCfg = new CacheConfiguration(reader);
 
-                // TODO: context
-                var pluginProvider = cfg.CreateProvider(null);
+                // TODO: Ignite is null?
+                var pluginCtx = new CachePluginContext(igniteCfg, cacheCfg, cachePluginCfg, _ignite);
+
+                var pluginProvider = cachePluginCfg.CreateProvider(pluginCtx);
 
                 pluginProvider.Start();
 
