@@ -1235,8 +1235,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged
                 var igniteCfg = new IgniteConfiguration(reader, _igniteConfiguration);
                 var cacheCfg = new CacheConfiguration(reader);
 
-                // TODO: Ignite is null?
-                var pluginCtx = new CachePluginContext(igniteCfg, cacheCfg, cachePluginCfg, _ignite);
+                var pluginCtx = new CachePluginContext(igniteCfg, cacheCfg, cachePluginCfg, () => _ignite);
 
                 var pluginProvider = cachePluginCfg.CreateProvider(pluginCtx);
 

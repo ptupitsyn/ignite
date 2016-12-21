@@ -50,6 +50,9 @@ namespace Apache.Ignite.Core.Tests.Plugin.Cache
                 Assert.IsTrue(plugin.Started);
                 Assert.IsTrue(plugin.IgniteStarted);
                 Assert.IsNull(plugin.Stopped);
+
+                var ctx = plugin.Context;
+                Assert.AreEqual(ignite, ctx.Ignite);
             }
         }
 
