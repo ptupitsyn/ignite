@@ -1225,7 +1225,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged
                 var reader = BinaryUtils.Marshaller.StartUnmarshal(stream);
 
                 var cachePluginCfg = reader.ReadObject<ICachePluginConfiguration>();
-                var igniteCfg = new IgniteConfiguration(reader);
+                var igniteCfg = new IgniteConfiguration(reader, null); // TODO: Where do we get config?
                 var cacheCfg = new CacheConfiguration(reader);
 
                 // TODO: Ignite is null?
