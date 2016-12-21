@@ -17,6 +17,7 @@
 
 package org.apache.ignite.internal.processors.platform.plugin.cache;
 
+import org.apache.ignite.internal.processors.platform.utils.PlatformUtils;
 import org.apache.ignite.plugin.CachePluginConfiguration;
 import org.apache.ignite.plugin.CachePluginContext;
 import org.apache.ignite.plugin.CachePluginProvider;
@@ -44,7 +45,7 @@ public class PlatformCachePluginConfiguration implements CachePluginConfiguratio
 
     /** {@inheritDoc} */
     @Override public CachePluginProvider createProvider(CachePluginContext ctx) {
-        return new PlatformCachePluginProvider(ctx);
+        return new PlatformCachePluginProvider(PlatformUtils.platformContext(ctx.grid()), nativeCfg);
     }
 
     /**

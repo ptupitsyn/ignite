@@ -20,8 +20,8 @@ package org.apache.ignite.internal.processors.platform.plugin.cache;
 import org.apache.ignite.IgniteCheckedException;
 import org.apache.ignite.cluster.ClusterNode;
 import org.apache.ignite.configuration.CacheConfiguration;
+import org.apache.ignite.internal.processors.platform.PlatformContext;
 import org.apache.ignite.plugin.CachePluginConfiguration;
-import org.apache.ignite.plugin.CachePluginContext;
 import org.apache.ignite.plugin.CachePluginProvider;
 import org.jetbrains.annotations.Nullable;
 
@@ -32,19 +32,30 @@ import javax.cache.Cache;
  */
 class PlatformCachePluginProvider implements CachePluginProvider {
     /** Context. */
-    private final CachePluginContext ctx;
+    private final PlatformContext ctx;
+
+    /** Native config. */
+    private final Object nativeCfg;
+
+    /** Pointer to native plugin. */
+    protected long ptr;
 
     /**
      * Ctor.
      *
      * @param ctx Context.
      */
-    PlatformCachePluginProvider(CachePluginContext ctx) {
+    PlatformCachePluginProvider(PlatformContext ctx, Object nativeCfg) {
+        assert ctx != null;
+        assert nativeCfg != null;
+
         this.ctx = ctx;
+        this.nativeCfg = nativeCfg;
     }
 
     /** {@inheritDoc} */
     @Override public void start() throws IgniteCheckedException {
+        //ctx.gateway().cachePluginCreate()
         // TODO: Platform callback
         System.out.println("PlatformCachePluginProvider.start");
     }
