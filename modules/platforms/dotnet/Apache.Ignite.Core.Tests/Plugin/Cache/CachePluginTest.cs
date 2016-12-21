@@ -51,7 +51,9 @@ namespace Apache.Ignite.Core.Tests.Plugin.Cache
         [TestFixtureTearDown]
         public void FixtureTearDown()
         {
-            TestUtils.AssertHandleRegistryHasItems(10, 2, _grid1, _grid2);
+            // One plugin is expected in registry.
+            TestUtils.AssertHandleRegistryHasItems(10, 1, _grid1, _grid2);
+
             Ignition.StopAll(true);
         }
 
