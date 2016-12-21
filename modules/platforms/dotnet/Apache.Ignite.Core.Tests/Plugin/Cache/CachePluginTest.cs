@@ -53,6 +53,9 @@ namespace Apache.Ignite.Core.Tests.Plugin.Cache
 
                 var ctx = plugin.Context;
                 Assert.AreEqual(ignite, ctx.Ignite);
+                Assert.AreEqual(ignite.Name, ctx.IgniteConfiguration.GridName);
+                Assert.AreEqual(CacheName, ctx.CacheConfiguration.Name);
+                Assert.AreEqual("foo", ((CachePluginConfiguration)ctx.CachePluginConfiguration).TestProperty);
             }
         }
 
@@ -72,6 +75,7 @@ namespace Apache.Ignite.Core.Tests.Plugin.Cache
         {
             return new IgniteConfiguration(TestUtils.GetTestConfiguration())
             {
+                GridName = "grid1",
                 CacheConfiguration = new[]
                 {
                     new CacheConfiguration(CacheName)
