@@ -1144,6 +1144,22 @@ public class PlatformCallbackGateway {
     }
 
     /**
+     * Create cache plugin.
+     *
+     * @param objPtr Object pointer.
+     */
+    public void cachePluginIgniteStart(long objPtr) {
+        enter();
+
+        try {
+            PlatformCallbackUtils.inLongOutLong(envPtr, PlatformCallbackOp.CachePluginIgniteStart, objPtr);
+        }
+        finally {
+            leave();
+        }
+    }
+
+    /**
      * Destroy cache plugin.
      *
      * @param objPtr Object pointer.

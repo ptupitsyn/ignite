@@ -209,4 +209,7 @@ class PlatformCallbackOp {
 
     /** */
     public static final int CachePluginDestroy = 63;
+
+    /** */
+    public static final int CachePluginIgniteStart = 64;
 }

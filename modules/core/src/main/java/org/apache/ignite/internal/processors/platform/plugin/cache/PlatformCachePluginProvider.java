@@ -88,8 +88,9 @@ class PlatformCachePluginProvider implements CachePluginProvider {
 
     /** {@inheritDoc} */
     @Override public void onIgniteStart() throws IgniteCheckedException {
-        // TODO: Platform callback
-        System.out.println("PlatformCachePluginProvider.igniteStart");
+        PlatformContext platformCtx = PlatformUtils.platformContext(ctx.grid());
+
+        platformCtx.gateway().cachePluginIgniteStart(ptr);
     }
 
     /** {@inheritDoc} */

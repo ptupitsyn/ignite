@@ -83,6 +83,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged
         ComputeTaskLocalJobResult = 60,
         ComputeJobExecuteLocal = 61,
         CachePluginCreate = 62,
-        CachePluginDestroy = 63
+        CachePluginDestroy = 63,
+        CachePluginIgniteStart = 64
     }
 }
