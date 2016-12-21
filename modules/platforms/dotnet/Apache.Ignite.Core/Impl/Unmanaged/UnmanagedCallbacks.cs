@@ -1217,8 +1217,10 @@ namespace Apache.Ignite.Core.Impl.Unmanaged
             return 0;
         }
 
-        private long CachePluginDestroy(long objPtr)
+        private long CachePluginDestroy(long objPtr, long cancel, long unused, void* arg)
         {
+            // TODO: Call stop
+
             _ignite.HandleRegistry.Release(objPtr);
 
             return 0;

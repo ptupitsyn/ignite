@@ -20,7 +20,10 @@ package org.apache.ignite.internal.processors.platform.plugin.cache;
 import org.apache.ignite.IgniteCheckedException;
 import org.apache.ignite.cluster.ClusterNode;
 import org.apache.ignite.configuration.CacheConfiguration;
+import org.apache.ignite.internal.binary.BinaryRawWriterEx;
 import org.apache.ignite.internal.processors.platform.PlatformContext;
+import org.apache.ignite.internal.processors.platform.memory.PlatformMemory;
+import org.apache.ignite.internal.processors.platform.memory.PlatformOutputStream;
 import org.apache.ignite.plugin.CachePluginConfiguration;
 import org.apache.ignite.plugin.CachePluginProvider;
 import org.jetbrains.annotations.Nullable;
@@ -55,15 +58,22 @@ class PlatformCachePluginProvider implements CachePluginProvider {
 
     /** {@inheritDoc} */
     @Override public void start() throws IgniteCheckedException {
-        //ctx.gateway().cachePluginCreate()
-        // TODO: Platform callback
-        System.out.println("PlatformCachePluginProvider.start");
+        try (PlatformMemory mem = ctx.memory().allocate()) {
+            PlatformOutputStream out = mem.output();
+
+            BinaryRawWriterEx writer = ctx.writer(out);
+
+            writer.writeObjectDetached(nativeCfg);
+
+            out.synchronize();
+
+            ptr = ctx.gateway().cachePluginCreate(mem.pointer());
+        }
     }
 
     /** {@inheritDoc} */
     @Override public void stop(boolean cancel) {
-        // TODO: Platform callback
-        System.out.println("PlatformCachePluginProvider.stop");
+        ctx.gateway().cachePluginDestroy(ptr, cancel);
     }
 
     /** {@inheritDoc} */

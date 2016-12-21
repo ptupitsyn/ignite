@@ -1148,12 +1148,13 @@ public class PlatformCallbackGateway {
      *
      * @param objPtr Object pointer.
      */
-    public void cachePluginDestroy(long objPtr) {
+    public void cachePluginDestroy(long objPtr, boolean cancel) {
         if (!lock.enterBusy())
             return;  // no need to destroy plugins on grid stop
 
         try {
-            PlatformCallbackUtils.inLongOutLong(envPtr, PlatformCallbackOp.CachePluginDestroy, objPtr);
+            PlatformCallbackUtils.inLongLongLongObjectOutLong(envPtr, PlatformCallbackOp.CachePluginDestroy,
+                    objPtr, cancel ? 1 : 0, 0, null);
         }
         finally {
             leave();
