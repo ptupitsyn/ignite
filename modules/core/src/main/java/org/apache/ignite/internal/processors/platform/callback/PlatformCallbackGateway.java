@@ -1144,7 +1144,7 @@ public class PlatformCallbackGateway {
     }
 
     /**
-     * Create cache plugin.
+     * Notify cache plugin on ignite start.
      *
      * @param objPtr Object pointer.
      */
