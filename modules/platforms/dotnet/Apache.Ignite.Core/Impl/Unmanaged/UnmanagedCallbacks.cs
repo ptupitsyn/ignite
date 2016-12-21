@@ -45,6 +45,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged
     using Apache.Ignite.Core.Impl.Services;
     using Apache.Ignite.Core.Lifecycle;
     using Apache.Ignite.Core.Log;
+    using Apache.Ignite.Core.Plugin.Cache;
     using Apache.Ignite.Core.Services;
     using UU = UnmanagedUtils;
 
@@ -1213,13 +1214,24 @@ namespace Apache.Ignite.Core.Impl.Unmanaged
 
         private long CachePluginCreate(long objPtr)
         {
-            // TODO
-            return 0;
+            using (var stream = IgniteManager.Memory.Get(objPtr).GetStream())
+            {
+                var cfg = BinaryUtils.Marshaller.Unmarshal<ICachePluginConfiguration>(stream);
+
+                // TODO: context
+                var pluginProvider = cfg.CreateProvider(null);
+
+                pluginProvider.Start();
+
+                return _handleRegistry.Allocate(pluginProvider);
+            }
         }
 
         private long CachePluginDestroy(long objPtr, long cancel, long unused, void* arg)
         {
-            // TODO: Call stop
+            var pluginProvider = _handleRegistry.Get<ICachePluginProvider>(objPtr, true);
+
+            pluginProvider.Stop(cancel != 0);
 
             _ignite.HandleRegistry.Release(objPtr);
 
