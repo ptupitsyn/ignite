@@ -30,6 +30,9 @@ namespace Apache.Ignite.Core.Tests.Plugin.Cache
         private const string CacheName = "staticCache";
 
         /** */
+        private const string DynCacheName = "dynamicCache";
+
+        /** */
         private IIgnite _grid1;
 
         /** */
@@ -89,7 +92,19 @@ namespace Apache.Ignite.Core.Tests.Plugin.Cache
         [Test]
         public void TestDynamicCache()
         {
-            // TODO
+            var cacheConfig = new CacheConfiguration(DynCacheName)
+            {
+                PluginConfigurations = new[] {new CachePluginConfiguration {TestProperty = "bar"}}
+            };
+
+            var cache = _grid1.CreateCache<int, int>(cacheConfig);
+
+            // Check config.
+            var plugCfg = cache.GetConfiguration().PluginConfigurations.Cast<CachePluginConfiguration>().Single();
+            Assert.AreEqual("bar", plugCfg.TestProperty);
+
+            // Destroy cache to remove plugin from handle registry.
+            _grid1.DestroyCache(DynCacheName);
         }
 
         /// <summary>
