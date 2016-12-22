@@ -107,6 +107,7 @@ namespace Apache.Ignite.Core.Tests
                                     </nearConfiguration>
                                     <affinityFunction type='RendezvousAffinityFunction' partitions='99' excludeNeighbors='true' />
                                     <expiryPolicyFactory type='Apache.Ignite.Core.Tests.IgniteConfigurationSerializerTest+MyPolicyFactory, Apache.Ignite.Core.Tests' />
+                                    <pluginConfigurations><iCachePluginConfiguration type='Apache.Ignite.Core.Tests.Plugin.Cache.CachePluginConfiguration, Apache.Ignite.Core.Tests' testProperty='baz' /></pluginConfigurations>
                                 </cacheConfiguration>
                                 <cacheConfiguration name='secondCache' />
                             </cacheConfiguration>
@@ -215,6 +216,9 @@ namespace Apache.Ignite.Core.Tests
             Assert.AreEqual(25, swap.MaximumWriteQueueSize);
             Assert.AreEqual(36, swap.ReadStripesNumber);
             Assert.AreEqual(47, swap.WriteBufferSize);
+
+            var cachePlugCfg = cacheCfg.PluginConfigurations.Cast<CachePluginConfiguration>().Single();
+            Assert.AreEqual("baz", cachePlugCfg.TestProperty);
         }
 
         /// <summary>
