@@ -116,6 +116,7 @@ namespace Apache.Ignite.Core.Tests.Plugin.Cache
         /// Errors in plugin configuration result in meaningful exception.
         /// </summary>
         [Test]
+        [Ignore("IGNITE-4474 Ignite.createCache hangs on exception in CachePluginConfiguration.createProvider")]
         public void TestErrorInPlugin()
         {
             // Returns null plugin.
