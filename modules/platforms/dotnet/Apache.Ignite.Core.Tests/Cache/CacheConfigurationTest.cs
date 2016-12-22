@@ -31,6 +31,7 @@ namespace Apache.Ignite.Core.Tests.Cache
     using Apache.Ignite.Core.Common;
     using Apache.Ignite.Core.Impl.Cache.Affinity;
     using Apache.Ignite.Core.Plugin.Cache;
+    using Apache.Ignite.Core.Tests.Plugin.Cache;
     using NUnit.Framework;
 
     /// <summary>
@@ -756,7 +757,7 @@ namespace Apache.Ignite.Core.Tests.Cache
             /** <inheritdoc /> */
             public ICachePluginProvider CreateProvider(ICachePluginContext pluginContext)
             {
-                return null;  // TODO
+                return new CachePlugin(pluginContext);
             }
         }
     }
