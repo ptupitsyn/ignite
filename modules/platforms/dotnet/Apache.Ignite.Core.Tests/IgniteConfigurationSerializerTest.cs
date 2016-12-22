@@ -50,6 +50,7 @@ namespace Apache.Ignite.Core.Tests
     using Apache.Ignite.Core.Log;
     using Apache.Ignite.Core.SwapSpace.File;
     using Apache.Ignite.Core.Tests.Binary;
+    using Apache.Ignite.Core.Tests.Plugin.Cache;
     using Apache.Ignite.Core.Transactions;
     using Apache.Ignite.NLog;
     using NUnit.Framework;
@@ -642,7 +643,11 @@ namespace Apache.Ignite.Core.Tests
                             Partitions = 48
                         },
                         ExpiryPolicyFactory = new MyPolicyFactory(),
-                        EnableStatistics = true
+                        EnableStatistics = true,
+                        PluginConfigurations = new[]
+                        {
+                            new CachePluginConfiguration {TestProperty = "baz"}
+                        }
                     }
                 },
                 ClientMode = true,
