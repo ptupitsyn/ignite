@@ -646,7 +646,7 @@ namespace Apache.Ignite.Core.Tests
                         EnableStatistics = true,
                         PluginConfigurations = new[]
                         {
-                            new CachePluginConfiguration {TestProperty = "baz"}
+                            new CachePluginConfiguration()
                         }
                     }
                 },
