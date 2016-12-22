@@ -350,7 +350,6 @@
     </None>
     <None Include="packages.config" />
   </ItemGroup>
-  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup Condition="'$(Platform)' != 'AnyCPU'">
     <PostBuildEvent>copy /Y $(SolutionDir)Apache.Ignite\bin\$(PlatformName)\$(ConfigurationName)\Apache.Ignite.exe $(ProjectDir)$(OutDir)

@@ -20,6 +20,7 @@ namespace Apache.Ignite.Core.Impl.Plugin.Cache
     using System;
     using Apache.Ignite.Core.Cache.Configuration;
     using Apache.Ignite.Core.Plugin.Cache;
+
     /// <summary>
     /// Cache plugin context.
     /// </summary>

@@ -636,13 +636,13 @@ namespace Apache.Ignite.Core.Tests.Cache
                             new QueryField("name", typeof(string)),
                             new QueryField("location", typeof(string)),
                         },
-                        Aliases = new[] {new QueryAlias("length", "len")},
+                        Aliases = new [] {new QueryAlias("length", "len") },
                         Indexes = new[]
                         {
-                            new QueryIndex("name") {Name = "index1"},
+                            new QueryIndex("name") {Name = "index1" },
                             new QueryIndex(new QueryIndexField("location", true))
                             {
-                                Name = "index2",
+                                Name= "index2",
                                 IndexType = QueryIndexType.Sorted
                             }
                         }

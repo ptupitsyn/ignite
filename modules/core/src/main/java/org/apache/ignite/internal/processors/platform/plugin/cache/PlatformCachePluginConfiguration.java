@@ -17,7 +17,6 @@
 
 package org.apache.ignite.internal.processors.platform.plugin.cache;
 
-import org.apache.ignite.internal.processors.platform.utils.PlatformUtils;
 import org.apache.ignite.plugin.CachePluginConfiguration;
 import org.apache.ignite.plugin.CachePluginContext;
 import org.apache.ignite.plugin.CachePluginProvider;
