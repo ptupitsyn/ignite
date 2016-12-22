@@ -17,8 +17,10 @@
 
 namespace Apache.Ignite.Core.Tests.Plugin.Cache
 {
+    using System;
     using System.Linq;
     using Apache.Ignite.Core.Cache.Configuration;
+    using Apache.Ignite.Core.Plugin.Cache;
     using NUnit.Framework;
 
     /// <summary>
@@ -101,6 +103,13 @@ namespace Apache.Ignite.Core.Tests.Plugin.Cache
         public void TestInvalidPlugins()
         {
             // TODO: Return null from various places, throw error, non-serializable provider, etc.
+            var ex = Assert.Throws<InvalidOperationException>(() => _grid1.CreateCache<int, int>(new CacheConfiguration
+            {
+                PluginConfigurations = new[] {new NonSerializableCachePluginConfig()}
+            }));
+
+            Assert.AreEqual("Invalid cache configuration: ICachePluginConfiguration should be Serializable.", 
+                ex.Message);
         }
 
         /// <summary>
@@ -145,6 +154,14 @@ namespace Apache.Ignite.Core.Tests.Plugin.Cache
                     }
                 }
             };
+        }
+
+        private class NonSerializableCachePluginConfig : ICachePluginConfiguration
+        {
+            public ICachePluginProvider CreateProvider(ICachePluginContext pluginContext)
+            {
+                return new CachePlugin(pluginContext);
+            }
         }
     }
 }
