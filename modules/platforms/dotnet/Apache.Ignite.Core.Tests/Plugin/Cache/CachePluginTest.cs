@@ -19,6 +19,7 @@ namespace Apache.Ignite.Core.Tests.Plugin.Cache
 {
     using System;
     using System.Linq;
+    using Apache.Ignite.Core.Cache;
     using Apache.Ignite.Core.Cache.Configuration;
     using Apache.Ignite.Core.Plugin.Cache;
     using NUnit.Framework;
@@ -97,12 +98,11 @@ namespace Apache.Ignite.Core.Tests.Plugin.Cache
         }
 
         /// <summary>
-        /// Tests invalid plugins.
+        /// Non-serializable plugin config results in a meaningful exception.
         /// </summary>
         [Test]
-        public void TestInvalidPlugins()
+        public void TestNonSerializablePlugin()
         {
-            // TODO: Return null from various places, throw error, non-serializable provider, etc.
             var ex = Assert.Throws<InvalidOperationException>(() => _grid1.CreateCache<int, int>(new CacheConfiguration
             {
                 PluginConfigurations = new[] {new NonSerializableCachePluginConfig()}
@@ -110,6 +110,29 @@ namespace Apache.Ignite.Core.Tests.Plugin.Cache
 
             Assert.AreEqual("Invalid cache configuration: ICachePluginConfiguration should be Serializable.", 
                 ex.Message);
+        }
+
+        /// <summary>
+        /// Errors in plugin configuration result in meaningful exception.
+        /// </summary>
+        [Test]
+        public void TestErrorInPlugin()
+        {
+            // Returns null plugin.
+            var cacheEx = Assert.Throws<CacheException>(() => _grid1.CreateCache<int, int>(new CacheConfiguration
+            {
+                PluginConfigurations = new[] { new NullCachePluginConfig()  }
+            }));
+
+            Assert.AreEqual("ICachePluginConfiguration.CreateProvider should not return null.", cacheEx.Message);
+            
+            // Throws exception.
+            cacheEx = Assert.Throws<CacheException>(() => _grid1.CreateCache<int, int>(new CacheConfiguration
+            {
+                PluginConfigurations = new[] { new ThrowCachePluginConfig()  }
+            }));
+
+            Assert.AreEqual("hi!", cacheEx.Message);
         }
 
         /// <summary>
@@ -161,6 +184,24 @@ namespace Apache.Ignite.Core.Tests.Plugin.Cache
             public ICachePluginProvider CreateProvider(ICachePluginContext pluginContext)
             {
                 return new CachePlugin(pluginContext);
+            }
+        }
+
+        [Serializable]
+        private class NullCachePluginConfig : ICachePluginConfiguration
+        {
+            public ICachePluginProvider CreateProvider(ICachePluginContext pluginContext)
+            {
+                return null;
+            }
+        }
+
+        [Serializable]
+        private class ThrowCachePluginConfig : ICachePluginConfiguration
+        {
+            public ICachePluginProvider CreateProvider(ICachePluginContext pluginContext)
+            {
+                throw new ApplicationException("hi!");
             }
         }
     }

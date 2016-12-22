@@ -1239,6 +1239,10 @@ namespace Apache.Ignite.Core.Impl.Unmanaged
 
                 var pluginProvider = cachePluginCfg.CreateProvider(pluginCtx);
 
+                if (pluginProvider == null)
+                    throw new IgniteException(string.Format("{0}.CreateProvider should not return null.", 
+                        typeof(ICachePluginProvider).Name));
+
                 pluginProvider.Start();
 
                 return _handleRegistry.Allocate(pluginProvider);
