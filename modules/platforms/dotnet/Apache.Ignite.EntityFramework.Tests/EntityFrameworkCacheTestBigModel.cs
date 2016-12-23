@@ -129,6 +129,7 @@ namespace Apache.Ignite.EntityFramework.Tests
             return new BudgetContext(ConnectionString);
         }
 
+        [DbConfigurationType(typeof(MyDbConfiguration))]
         private class BudgetContext : DbContext
         {
             public BudgetContext(string nameOrConnectionString) : base(nameOrConnectionString)
@@ -178,7 +179,6 @@ namespace Apache.Ignite.EntityFramework.Tests
             public string InvestTitleName { get; set; }
         }
 
-        [DbConfigurationType(typeof(MyDbConfiguration))]
         private class MyDbConfiguration : IgniteDbConfiguration
         {
             public MyDbConfiguration() : base(Ignition.GetIgnite(), null, null, null)
