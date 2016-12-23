@@ -127,6 +127,7 @@ namespace Apache.Ignite.EntityFramework.Impl
 
             expression.Accept(visitor);
 
+            // TODO: Should be sorted and unique. SortedSet?
             return visitor.EntitySets.ToArray();
         }
 
