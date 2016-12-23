@@ -127,7 +127,7 @@ namespace Apache.Ignite.EntityFramework.Impl
 
             expression.Accept(visitor);
 
-            // TODO: Should be sorted and unique. SortedSet?
+            // Should be sorted and unique.
             return visitor.EntitySets.ToArray();
         }
 
@@ -136,8 +136,9 @@ namespace Apache.Ignite.EntityFramework.Impl
         /// </summary>
         private class ScanExpressionVisitor : BasicCommandTreeVisitor
         {
-            /** */
-            private readonly List<EntitySetBase> _entitySets = new List<EntitySetBase>();
+            /** Unique and sorted entity sets. */
+            private readonly SortedSet<EntitySetBase> _entitySets = 
+                new SortedSet<EntitySetBase>(EntitySetComparer.Instance);
 
             /// <summary>
             /// Gets the entity sets.
@@ -153,6 +154,21 @@ namespace Apache.Ignite.EntityFramework.Impl
                 _entitySets.Add(expression.Target);
 
                 base.Visit(expression);
+            }
+        }
+
+        /// <summary>
+        /// Compares entity sets by name.
+        /// </summary>
+        private class EntitySetComparer : IComparer<EntitySetBase>
+        {
+            /** Default instance. */
+            public static readonly EntitySetComparer Instance = new EntitySetComparer();
+
+            /** <inheritdoc /> */
+            public int Compare(EntitySetBase x, EntitySetBase y)
+            {
+                return string.CompareOrdinal(x.Name, y.Name);
             }
         }
     }
