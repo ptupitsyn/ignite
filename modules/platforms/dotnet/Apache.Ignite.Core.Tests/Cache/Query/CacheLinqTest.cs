@@ -771,9 +771,9 @@ namespace Apache.Ignite.Core.Tests.Cache.Query
             var persons = GetPersonCache().AsCacheQueryable();
 
             // Invalid dateTime
-            var now = DateTime.Now;
             // ReSharper disable once ReturnValueOfPureMethodIsNotUsed
-            var ex = Assert.Throws<InvalidOperationException>(() => roles.Where(x => x.Value.Date > now).ToArray());
+            var ex = Assert.Throws<InvalidOperationException>(() =>
+                roles.Where(x => x.Value.Date > DateTime.Now).ToArray());
             Assert.AreEqual("DateTime is not UTC. Only UTC DateTime can be used for interop with other platforms.", 
                 ex.Message);
 
@@ -785,6 +785,8 @@ namespace Apache.Ignite.Core.Tests.Cache.Query
             // Filtering
             Assert.AreEqual(1, persons.Count(x => x.Value.Birthday == StartDateTime));
             Assert.AreEqual(PersonCount, persons.Count(x => x.Value.Birthday >= StartDateTime));
+            Assert.Greater(persons.Count(x => x.Value.Birthday > DateTime.UtcNow), 1);
+            Assert.AreEqual(PersonCount, persons.Count(x => x.Value.Birthday > DateTime.UtcNow.AddYears(-100)));
 
             // Joins
             var join = 
