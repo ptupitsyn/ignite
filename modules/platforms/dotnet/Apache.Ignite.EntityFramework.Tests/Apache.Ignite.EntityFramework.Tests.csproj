@@ -61,6 +61,7 @@
     <Compile Include="DbCachingPolicyTest.cs" />
     <Compile Include="EntityFrameworkCacheInitializationTest.cs" />
     <Compile Include="EntityFrameworkCacheTest.cs" />
+    <Compile Include="EntityFrameworkCacheTestBigModel.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -84,6 +85,7 @@
       <SubType>Designer</SubType>
     </None>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>
