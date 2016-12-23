@@ -96,6 +96,29 @@ namespace Apache.Ignite.EntityFramework.Tests
                     .Select(d => new {Distributor = d.DistributorName, RegionAsm = d.Region, d})
                     .SelectMany(dr => allInvestTitle,
                         (dr, t) => new {dr.Distributor, dr.RegionAsm, InvestTitle = t, dr.d});
+
+                var allBudgets = resultAllBudgets
+                    .Select(b => new BudgetResult
+                    {
+                        AsmRegionId = b.RegionAsm.Id,
+                        AsmRegionName = b.RegionAsm.Name,
+                        DistributorId = b.Distributor.Length,
+                        DistributorName = b.Distributor,
+                        //RsmRegionId = b.RegionAsm.RegionExpand
+                        //    .Where(w => w.Region1.RegionToRole.Any(a => a.RoleID == (int)UserRoles.RSM))
+                        //    .Select(ss => ss.ParentRegionID)
+                        //    .FirstOrDefault(),
+                        //RsmRegionName = b.RegionAsm.RegionExpand
+                        //    .Where(w => w.Region1.RegionToRole.Any(a => a.RoleID == (int)UserRoles.RSM))
+                        //    .Select(ss => ss.Region1.Name)
+                        //    .FirstOrDefault(),
+                        InvestTitleId = b.InvestTitle.Length,
+                        InvestTitleName = b.InvestTitle,
+                    });
+
+                var result = allBudgets.ToList();
+
+                Assert.AreEqual(0, result.Count);
             }
         }
 
@@ -121,6 +144,7 @@ namespace Apache.Ignite.EntityFramework.Tests
         private class Region
         {
             public int Id { get; set; }
+            public string Name { get; set; }
 
             public virtual ICollection<Role> Roles { get; set; }
             public virtual ICollection<Distributor> Distributors { get; set; }
@@ -141,6 +165,18 @@ namespace Apache.Ignite.EntityFramework.Tests
             public string DistributorName { get; set; }
 
             public virtual Region Region { get; set; }
+        }
+
+        private class BudgetResult
+        {
+            public int AsmRegionId { get; set; }
+            public string AsmRegionName { get; set; }
+            public int DistributorId { get; set; }
+            public string DistributorName { get; set; }
+            public int RsmRegionId { get; set; }
+            public string RsmRegionName { get; set; }
+            public int InvestTitleId { get; set; }
+            public string InvestTitleName { get; set; }
         }
     }
 }
