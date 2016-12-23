@@ -350,7 +350,7 @@ namespace Apache.Ignite.EntityFramework.Tests
                 }).ToArray();
 
                 Assert.AreEqual(1, res.Length);
-                Assert.AreEqual("Foo", res[0].X);
+                Assert.AreEqual("Foo", res[0].X.Title);
                 Assert.AreEqual(3, res[0].Y);
 
                 // Modify and check updated result.
@@ -364,7 +364,7 @@ namespace Apache.Ignite.EntityFramework.Tests
                 }).ToArray();
 
                 Assert.AreEqual(1, res.Length);
-                Assert.AreEqual("Foo", res[0].X);
+                Assert.AreEqual("Foo", res[0].X.Title);
                 Assert.AreEqual(2, res[0].Y);
             }
         }
