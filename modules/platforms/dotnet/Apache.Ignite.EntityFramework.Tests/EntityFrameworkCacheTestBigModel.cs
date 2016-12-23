@@ -23,6 +23,7 @@
 
 namespace Apache.Ignite.EntityFramework.Tests
 {
+    using System.Collections.Generic;
     using System.Data.Entity;
     using System.IO;
     using System.Linq;
@@ -80,6 +81,24 @@ namespace Apache.Ignite.EntityFramework.Tests
             Assert.AreEqual(0, GetDbContext().Roles.Count());
         }
 
+        [Test]
+        public void TestBigQuery()
+        {
+            using (var ctx = GetDbContext())
+            {
+                var regionsAsm = ctx.Regions.Where(w => w.Roles.Any(a => a.Id == 1));
+
+                var distributorToRegionAsmBindings = regionsAsm.SelectMany(s => s.Distributors);
+
+                var allInvestTitle = new[] {"abc", "foo"};
+
+                var resultAllBudgets = distributorToRegionAsmBindings
+                    .Select(d => new {Distributor = d.DistributorName, RegionAsm = d.Region, d})
+                    .SelectMany(dr => allInvestTitle,
+                        (dr, t) => new {dr.Distributor, dr.RegionAsm, InvestTitle = t, dr.d});
+            }
+        }
+
         /// <summary>
         /// Gets the database context.
         /// </summary>
@@ -102,12 +121,26 @@ namespace Apache.Ignite.EntityFramework.Tests
         private class Region
         {
             public int Id { get; set; }
-            public int RoleId { get; set; }
+
+            public virtual ICollection<Role> Roles { get; set; }
+            public virtual ICollection<Distributor> Distributors { get; set; }
         }
 
         private class Role
         {
             public int Id { get; set; }
+            public int RegionId { get; set; }
+
+            public virtual Region Region { get; set; }
+        }
+
+        private class Distributor
+        {
+            public int Id { get; set; }
+            public int RegionId { get; set; }
+            public string DistributorName { get; set; }
+
+            public virtual Region Region { get; set; }
         }
     }
 }
