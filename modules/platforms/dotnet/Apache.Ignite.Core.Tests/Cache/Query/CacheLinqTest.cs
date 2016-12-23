@@ -557,11 +557,6 @@ namespace Apache.Ignite.Core.Tests.Cache.Query
         [Test]
         public void TestMultipleFromInline()
         {
-            // TODO: Why this fails? Remotion bug?
-            //var all = GetPersonCache().AsCacheQueryable().SelectMany(
-            //    person => GetRoleCache().AsCacheQueryable().Select(role => new {role, person}));
-            //Assert.AreEqual(RoleCount * PersonCount, all.Count());
-
             var filtered =
                 from person in GetPersonCache().AsCacheQueryable()
                 from role in GetRoleCache().AsCacheQueryable()
