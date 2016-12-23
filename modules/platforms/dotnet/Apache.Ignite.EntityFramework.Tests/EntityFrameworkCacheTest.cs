@@ -352,6 +352,20 @@ namespace Apache.Ignite.EntityFramework.Tests
                 Assert.AreEqual(1, res.Length);
                 Assert.AreEqual("Foo", res[0].X);
                 Assert.AreEqual(3, res[0].Y);
+
+                // Modify and check updated result.
+                ctx.Posts.Remove(ctx.Posts.First(x => x.Title == "Foo"));
+                Assert.AreEqual(1, ctx.SaveChanges());
+
+                res = ctx.Blogs.Select(b => new
+                {
+                    X = b.Posts.FirstOrDefault(p => p.Title == b.Name),
+                    Y = b.Posts.Count(p => p.Title == b.Name)
+                }).ToArray();
+
+                Assert.AreEqual(1, res.Length);
+                Assert.AreEqual("Foo", res[0].X);
+                Assert.AreEqual(2, res[0].Y);
             }
         }
 
