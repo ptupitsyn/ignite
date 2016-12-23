@@ -321,6 +321,15 @@ namespace Apache.Ignite.EntityFramework.Tests
         }
 
         /// <summary>
+        /// Queries with entity sets used multiple times are handled correctly.
+        /// </summary>
+        [Test]
+        public void TestDuplicateEntitySets()
+        {
+            // TODO: Self-join?
+        }
+
+        /// <summary>
         /// Tests transactions created with BeginTransaction.
         /// </summary>
         [Test]
