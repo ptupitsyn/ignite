@@ -51,7 +51,7 @@ More info: https://apacheignite-net.readme.io/
         <tags>Apache Ignite In-Memory Distributed Computing SQL NoSQL LINQ Grid Map Reduce Cache linqpad-samples</tags>
         <dependencies>
             <dependency id="Apache.Ignite" version="[$version$]" />
-            <dependency id="Remotion.Linq" version="[2.0.1]" />
+            <dependency id="Remotion.Linq" version="[2.0.1,3.0.0)" />
         </dependencies>    
     </metadata>
     <files>
