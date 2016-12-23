@@ -326,7 +326,33 @@ namespace Apache.Ignite.EntityFramework.Tests
         [Test]
         public void TestDuplicateEntitySets()
         {
-            // TODO: Self-join?
+            using (var ctx = GetDbContext())
+            {
+                var blog = new Blog
+                {
+                    Name = "Foo",
+                    Posts = new List<Post>
+                    {
+                        new Post {Title = "Foo"},
+                        new Post {Title = "Foo"},
+                        new Post {Title = "Foo"},
+                        new Post {Title = "Bar"}
+                    }
+                };
+                ctx.Blogs.Add(blog);
+
+                Assert.AreEqual(5, ctx.SaveChanges());
+
+                var res = ctx.Blogs.Select(b => new
+                {
+                    X = b.Posts.FirstOrDefault(p => p.Title == b.Name),
+                    Y = b.Posts.Count(p => p.Title == b.Name)
+                }).ToArray();
+
+                Assert.AreEqual(1, res.Length);
+                Assert.AreEqual("Foo", res[0].X);
+                Assert.AreEqual(3, res[0].Y);
+            }
         }
 
         /// <summary>
