@@ -104,7 +104,6 @@ namespace Apache.Ignite.Linq.Impl
             if (callExpr != null)
             {
                 // This is usually a nested query with a call to AsCacheQueryable().
-                // TODO: Compiling is slow
                 return (ICacheQueryableInternal) Expression.Lambda(callExpr).Compile().DynamicInvoke();
             }
 
