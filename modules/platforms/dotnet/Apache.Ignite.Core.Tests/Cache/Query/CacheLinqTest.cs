@@ -562,7 +562,7 @@ namespace Apache.Ignite.Core.Tests.Cache.Query
             //    person => GetRoleCache().AsCacheQueryable().Select(role => new {role, person}));
             //Assert.AreEqual(RoleCount * PersonCount, all.Count());
 
-            var filtered = 
+            var filtered =
                 from person in GetPersonCache().AsCacheQueryable()
                 from role in GetRoleCache().AsCacheQueryable()
                 where person.Key == role.Key.Foo
@@ -589,6 +589,18 @@ namespace Apache.Ignite.Core.Tests.Cache.Query
             // Same queryables
             var qry2 = p1.Join(p1, x => x.Value.Age, x => x.Key, (x, y) => x.Key);
             Assert.AreEqual(PersonCount, qry2.ToArray().Distinct().Count());
+        }
+
+        /// <summary>
+        /// Tests the join of a table to itself with inline queryable.
+        /// </summary>
+        [Test]
+        public void TestSelfJoinInline()
+        {
+            var qry = GetPersonCache().AsCacheQueryable().Join(GetPersonCache().AsCacheQueryable(), 
+                x => x.Value.Age, x => x.Key, (x, y) => x.Key);
+
+            Assert.AreEqual(PersonCount, qry.ToArray().Distinct().Count());
         }
 
         /// <summary>
