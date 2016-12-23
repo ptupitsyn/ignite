@@ -786,7 +786,6 @@ namespace Apache.Ignite.Core.Tests.Cache.Query
             Assert.AreEqual(1, persons.Count(x => x.Value.Birthday == StartDateTime));
             Assert.AreEqual(PersonCount, persons.Count(x => x.Value.Birthday >= StartDateTime));
             Assert.Greater(persons.Count(x => x.Value.Birthday > DateTime.UtcNow), 1);
-            Assert.AreEqual(PersonCount, persons.Count(x => x.Value.Birthday > DateTime.UtcNow.AddYears(-100)));
 
             // Joins
             var join = 
