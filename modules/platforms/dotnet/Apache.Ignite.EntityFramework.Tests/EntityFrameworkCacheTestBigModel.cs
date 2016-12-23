@@ -154,12 +154,10 @@ namespace Apache.Ignite.EntityFramework.Tests
         private class RegionExpand
         {
             public int Id { get; set; }
-            public int RoleId { get; set; }
             public int RegionId { get; set; }
             public string Name { get; set; }
             public int ParentRegionId { get; set; }
 
-            public virtual Role Role { get; set; }
             public virtual Region Region { get; set; }
         }
 
