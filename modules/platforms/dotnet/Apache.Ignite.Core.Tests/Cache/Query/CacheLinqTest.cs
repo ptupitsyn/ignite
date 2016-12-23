@@ -425,6 +425,19 @@ namespace Apache.Ignite.Core.Tests.Cache.Query
         }
 
         /// <summary>
+        /// Tests the cross cache join.
+        /// </summary>
+        [Test]
+        public void TestCrossCacheJoinInline()
+        {
+            var res = GetPersonCache().AsCacheQueryable().Join(GetRoleCache().AsCacheQueryable(), 
+                person => person.Key, role => role.Key.Foo, (person, role) => role).ToArray();
+
+            Assert.AreEqual(RoleCount, res.Length);
+            Assert.AreEqual(101, res[0].Key.Bar);
+        }
+
+        /// <summary>
         /// Tests the multi cache join.
         /// </summary>
         [Test]
@@ -516,7 +529,7 @@ namespace Apache.Ignite.Core.Tests.Cache.Query
         }
 
         /// <summary>
-        /// Tests the multiple from.
+        /// Tests query with multiple from clause.
         /// </summary>
         [Test]
         public void TestMultipleFrom()
@@ -530,6 +543,27 @@ namespace Apache.Ignite.Core.Tests.Cache.Query
             var filtered = 
                 from person in persons
                 from role in roles
+                where person.Key == role.Key.Foo
+                select new {Person = person.Value.Name, Role = role.Value.Name};
+
+            var res = filtered.ToArray();
+
+            Assert.AreEqual(RoleCount, res.Length);
+        }
+
+        /// <summary>
+        /// Tests query with multiple from clause with inline query sources.
+        /// </summary>
+        [Test]
+        public void TestMultipleFromInline()
+        {
+            var all = GetPersonCache().AsCacheQueryable().SelectMany(
+                person => GetRoleCache().AsCacheQueryable().Select(role => new {role, person}));
+            Assert.AreEqual(RoleCount * PersonCount, all.Count());
+
+            var filtered = 
+                from person in GetPersonCache().AsCacheQueryable()
+                from role in GetRoleCache().AsCacheQueryable()
                 where person.Key == role.Key.Foo
                 select new {Person = person.Value.Name, Role = role.Value.Name};
 
