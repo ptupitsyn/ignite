@@ -103,14 +103,14 @@ namespace Apache.Ignite.EntityFramework.Tests
                         AsmRegionName = b.RegionAsm.Name,
                         DistributorId = b.Distributor.Length,
                         DistributorName = b.Distributor,
-                        //RsmRegionId = b.RegionAsm.RegionExpand
-                        //    .Where(w => w.Region1.RegionToRole.Any(a => a.RoleID == (int)UserRoles.RSM))
-                        //    .Select(ss => ss.ParentRegionID)
-                        //    .FirstOrDefault(),
-                        //RsmRegionName = b.RegionAsm.RegionExpand
-                        //    .Where(w => w.Region1.RegionToRole.Any(a => a.RoleID == (int)UserRoles.RSM))
-                        //    .Select(ss => ss.Region1.Name)
-                        //    .FirstOrDefault(),
+                        RsmRegionId = b.RegionAsm.RegionExpands
+                            .Where(w => w.Region.Roles.Any(a => a.Id == 5))
+                            .Select(ss => ss.ParentRegionId)
+                            .FirstOrDefault(),
+                        RsmRegionName = b.RegionAsm.RegionExpands
+                            .Where(w => w.Region.Roles.Any(a => a.Id == 6))
+                            .Select(ss => ss.Region.Name)
+                            .FirstOrDefault(),
                         InvestTitleId = b.InvestTitle.Length,
                         InvestTitleName = b.InvestTitle,
                     });
@@ -148,6 +148,19 @@ namespace Apache.Ignite.EntityFramework.Tests
 
             public virtual ICollection<Role> Roles { get; set; }
             public virtual ICollection<Distributor> Distributors { get; set; }
+            public virtual ICollection<RegionExpand> RegionExpands { get; set; }
+        }
+
+        private class RegionExpand
+        {
+            public int Id { get; set; }
+            public int RoleId { get; set; }
+            public int RegionId { get; set; }
+            public string Name { get; set; }
+            public int ParentRegionId { get; set; }
+
+            public virtual Role Role { get; set; }
+            public virtual Region Region { get; set; }
         }
 
         private class Role
