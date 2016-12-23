@@ -713,8 +713,11 @@ namespace Apache.Ignite.EntityFramework.Tests
         {
             TestUtils.RunMultiThreaded(CreateRemoveBlog, 4, 5);
 
+            // Run once again to force cleanup.
+            CreateRemoveBlog();
+
             // Wait for the cleanup to complete.
-            Thread.Sleep(2000);
+            Thread.Sleep(1000);
 
             // Only one version of data is in the cache.
             Assert.AreEqual(1, _cache.GetSize());
