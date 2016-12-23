@@ -48,9 +48,8 @@ namespace Apache.Ignite.EntityFramework.Tests
         [TestFixtureSetUp]
         public void FixtureSetUp()
         {
-            // Start 2 nodes.
-            var cfg = TestUtils.GetTestConfiguration();
-            var ignite = Ignition.Start(cfg);
+            // Start Ignite.
+            Ignition.Start(TestUtils.GetTestConfiguration());
 
             // Create SQL CE database in a temp file.
             using (var ctx = GetDbContext())
@@ -177,6 +176,15 @@ namespace Apache.Ignite.EntityFramework.Tests
             public string RsmRegionName { get; set; }
             public int InvestTitleId { get; set; }
             public string InvestTitleName { get; set; }
+        }
+
+        [DbConfigurationType(typeof(MyDbConfiguration))]
+        private class MyDbConfiguration : IgniteDbConfiguration
+        {
+            public MyDbConfiguration() : base(Ignition.GetIgnite(), null, null, null)
+            {
+                // No-op.
+            }
         }
     }
 }
