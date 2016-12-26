@@ -32,9 +32,6 @@ namespace Apache.Ignite.Core.Tests.Examples
     public class ExamplesTest
     {
         /** */
-        private const string AppConfigPath = @"platforms\dotnet\examples\apache.ignite.examples\app.config";
-
-        /** */
         private static readonly Example[] AllExamples = Example.GetExamples().ToArray();
 
         /** */
@@ -93,8 +90,8 @@ namespace Apache.Ignite.Core.Tests.Examples
         /// <param name="clientMode">Client mode flag.</param>
         private void TestRemoteNodes(Example example, bool clientMode)
         {
-            Assert.AreEqual(AppConfigPath, example.ConfigPath, "All examples should use the same app.config.");
-            Assert.IsTrue(example.NeedsTestDll, "Examples that allow standalone nodes should mention test dll.");
+            Assert.AreEqual(PathUtil.ExamplesAppConfigPath, example.ConfigPath, 
+                "All examples should use the same app.config.");
 
             StartRemoteNodes();
 
@@ -113,7 +110,7 @@ namespace Apache.Ignite.Core.Tests.Examples
             if (_remoteNodeStarted)
                 return;
 
-            var configPath = Path.Combine(PathUtil.IgniteHome, PathUtil.DevPrefix, AppConfigPath);
+            var configPath = Path.Combine(PathUtil.IgniteHome, PathUtil.DevPrefix, PathUtil.ExamplesAppConfigPath);
 
             // Start a grid to monitor topology;
             // Stop it after topology check so we don't interfere with example.
@@ -172,6 +169,7 @@ namespace Apache.Ignite.Core.Tests.Examples
         public void FixtureTearDown()
         {
             _changedConfig.Dispose();
+            StopRemoteNodes();
         }
 
         /// <summary>
