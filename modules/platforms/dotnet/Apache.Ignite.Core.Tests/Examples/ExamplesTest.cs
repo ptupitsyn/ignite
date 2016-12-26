@@ -93,6 +93,9 @@ namespace Apache.Ignite.Core.Tests.Examples
             Assert.AreEqual(PathUtil.ExamplesAppConfigPath, example.ConfigPath, 
                 "All examples should use the same app.config.");
 
+            Assert.IsTrue(example.NeedsTestDll || example.Name == "BinaryModeExample", 
+                "Examples that allow standalone nodes should mention test dll.");
+
             StartRemoteNodes();
 
             Ignition.ClientMode = clientMode;
@@ -110,7 +113,7 @@ namespace Apache.Ignite.Core.Tests.Examples
             if (_remoteNodeStarted)
                 return;
 
-            var configPath = Path.Combine(PathUtil.IgniteHome, PathUtil.DevPrefix, PathUtil.ExamplesAppConfigPath);
+            var configPath = Path.Combine(PathUtil.IgniteHome, PathUtil.DevPrefix);
 
             // Start a grid to monitor topology;
             // Stop it after topology check so we don't interfere with example.
