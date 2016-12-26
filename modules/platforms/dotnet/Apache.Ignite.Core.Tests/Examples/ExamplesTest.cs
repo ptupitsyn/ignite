@@ -41,6 +41,9 @@ namespace Apache.Ignite.Core.Tests.Examples
         };
 
         /** */
+        private static readonly string[] NoDllExamples = { "BinaryModeExample", "NearCacheExample" };
+
+        /** */
         private IDisposable _changedConfig;
 
         /** */
@@ -90,10 +93,10 @@ namespace Apache.Ignite.Core.Tests.Examples
         /// <param name="clientMode">Client mode flag.</param>
         private void TestRemoteNodes(Example example, bool clientMode)
         {
-            Assert.AreEqual(PathUtil.ExamplesAppConfigPath, example.ConfigPath, 
-                "All examples should use the same app.config.");
+            Assert.IsTrue(PathUtil.ExamplesAppConfigPath.EndsWith(example.ConfigPath,
+                StringComparison.OrdinalIgnoreCase), "All examples should use the same app.config.");
 
-            Assert.IsTrue(example.NeedsTestDll || example.Name == "BinaryModeExample", 
+            Assert.IsTrue(example.NeedsTestDll || NoDllExamples.Contains(example.Name),
                 "Examples that allow standalone nodes should mention test dll.");
 
             StartRemoteNodes();
@@ -113,18 +116,16 @@ namespace Apache.Ignite.Core.Tests.Examples
             if (_remoteNodeStarted)
                 return;
 
-            var configPath = Path.Combine(PathUtil.IgniteHome, PathUtil.DevPrefix);
-
             // Start a grid to monitor topology;
             // Stop it after topology check so we don't interfere with example.
             Ignition.ClientMode = false;
 
             using (var ignite = Ignition.StartFromApplicationConfiguration(
-                "igniteConfiguration", configPath))
+                "igniteConfiguration", PathUtil.ExamplesAppConfigPath))
             {
                 var args = new List<string>
                 {
-                    "-configFileName=" + configPath,
+                    "-configFileName=" + PathUtil.ExamplesAppConfigPath,
                     " -assembly=" + typeof(AverageSalaryJob).Assembly.Location
                 };
 
