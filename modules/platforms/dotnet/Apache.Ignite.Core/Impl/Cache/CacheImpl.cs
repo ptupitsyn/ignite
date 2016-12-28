@@ -464,8 +464,9 @@ namespace Apache.Ignite.Core.Impl.Cache
         public CacheResult<TV> GetAndReplace(TK key, TV val)
         {
             IgniteArgumentCheck.NotNull(key, "key");
-
             IgniteArgumentCheck.NotNull(val, "val");
+
+            StartTx();
 
             return DoOutInOpNullable(CacheOp.GetAndReplace, key, val);
         }
@@ -475,6 +476,8 @@ namespace Apache.Ignite.Core.Impl.Cache
         {
             IgniteArgumentCheck.NotNull(key, "key");
             IgniteArgumentCheck.NotNull(val, "val");
+
+            StartTx();
 
             return DoOutOpAsync(CacheOp.GetAndReplaceAsync, w =>
             {
@@ -488,6 +491,8 @@ namespace Apache.Ignite.Core.Impl.Cache
         {
             IgniteArgumentCheck.NotNull(key, "key");
 
+            StartTx();
+
             return DoOutInOpNullable(CacheOp.GetAndRemove, key);
         }
 
@@ -496,6 +501,8 @@ namespace Apache.Ignite.Core.Impl.Cache
         {
             IgniteArgumentCheck.NotNull(key, "key");
 
+            StartTx();
+
             return DoOutOpAsync(CacheOp.GetAndRemoveAsync, w => w.WriteObject(key), r => GetCacheResult(r));
         }
 
@@ -503,8 +510,9 @@ namespace Apache.Ignite.Core.Impl.Cache
         public bool PutIfAbsent(TK key, TV val)
         {
             IgniteArgumentCheck.NotNull(key, "key");
-
             IgniteArgumentCheck.NotNull(val, "val");
+
+            StartTx();
 
             return DoOutOp(CacheOp.PutIfAbsent, key, val);
         }
@@ -515,6 +523,8 @@ namespace Apache.Ignite.Core.Impl.Cache
             IgniteArgumentCheck.NotNull(key, "key");
             IgniteArgumentCheck.NotNull(val, "val");
 
+            StartTx();
+
             return DoOutOpAsync<TK, TV, bool>(CacheOp.PutIfAbsentAsync, key, val);
         }
 
@@ -522,8 +532,9 @@ namespace Apache.Ignite.Core.Impl.Cache
         public CacheResult<TV> GetAndPutIfAbsent(TK key, TV val)
         {
             IgniteArgumentCheck.NotNull(key, "key");
-
             IgniteArgumentCheck.NotNull(val, "val");
+
+            StartTx();
 
             return DoOutInOpNullable(CacheOp.GetAndPutIfAbsent, key, val);
         }
@@ -533,6 +544,8 @@ namespace Apache.Ignite.Core.Impl.Cache
         {
             IgniteArgumentCheck.NotNull(key, "key");
             IgniteArgumentCheck.NotNull(val, "val");
+
+            StartTx();
 
             return DoOutOpAsync(CacheOp.GetAndPutIfAbsentAsync, w =>
             {
@@ -545,8 +558,9 @@ namespace Apache.Ignite.Core.Impl.Cache
         public bool Replace(TK key, TV val)
         {
             IgniteArgumentCheck.NotNull(key, "key");
-
             IgniteArgumentCheck.NotNull(val, "val");
+
+            StartTx();
 
             return DoOutOp(CacheOp.Replace2, key, val);
         }
@@ -557,6 +571,8 @@ namespace Apache.Ignite.Core.Impl.Cache
             IgniteArgumentCheck.NotNull(key, "key");
             IgniteArgumentCheck.NotNull(val, "val");
 
+            StartTx();
+
             return DoOutOpAsync<TK, TV, bool>(CacheOp.Replace2Async, key, val);
         }
 
@@ -564,10 +580,10 @@ namespace Apache.Ignite.Core.Impl.Cache
         public bool Replace(TK key, TV oldVal, TV newVal)
         {
             IgniteArgumentCheck.NotNull(key, "key");
-
             IgniteArgumentCheck.NotNull(oldVal, "oldVal");
-
             IgniteArgumentCheck.NotNull(newVal, "newVal");
+
+            StartTx();
 
             return DoOutOp(CacheOp.Replace3, key, oldVal, newVal);
         }
@@ -578,6 +594,8 @@ namespace Apache.Ignite.Core.Impl.Cache
             IgniteArgumentCheck.NotNull(key, "key");
             IgniteArgumentCheck.NotNull(oldVal, "oldVal");
             IgniteArgumentCheck.NotNull(newVal, "newVal");
+
+            StartTx();
 
             return DoOutOpAsync<bool>(CacheOp.Replace3Async, w =>
             {
@@ -592,6 +610,8 @@ namespace Apache.Ignite.Core.Impl.Cache
         {
             IgniteArgumentCheck.NotNull(vals, "vals");
 
+            StartTx();
+
             DoOutOp(CacheOp.PutAll, writer => WriteDictionary(writer, vals));
         }
 
@@ -599,6 +619,8 @@ namespace Apache.Ignite.Core.Impl.Cache
         public Task PutAllAsync(IDictionary<TK, TV> vals)
         {
             IgniteArgumentCheck.NotNull(vals, "vals");
+
+            StartTx();
 
             return DoOutOpAsync(CacheOp.PutAllAsync, writer => WriteDictionary(writer, vals));
         }
@@ -676,6 +698,8 @@ namespace Apache.Ignite.Core.Impl.Cache
         {
             IgniteArgumentCheck.NotNull(key, "key");
 
+            StartTx();
+
             return DoOutOp(CacheOp.RemoveObj, key);
         }
 
@@ -683,6 +707,8 @@ namespace Apache.Ignite.Core.Impl.Cache
         public Task<bool> RemoveAsync(TK key)
         {
             IgniteArgumentCheck.NotNull(key, "key");
+
+            StartTx();
 
             return DoOutOpAsync<TK, bool>(CacheOp.RemoveObjAsync, key);
         }
@@ -693,6 +719,8 @@ namespace Apache.Ignite.Core.Impl.Cache
             IgniteArgumentCheck.NotNull(key, "key");
             IgniteArgumentCheck.NotNull(val, "val");
 
+            StartTx();
+
             return DoOutOp(CacheOp.RemoveBool, key, val);
         }
 
@@ -702,6 +730,8 @@ namespace Apache.Ignite.Core.Impl.Cache
             IgniteArgumentCheck.NotNull(key, "key");
             IgniteArgumentCheck.NotNull(val, "val");
 
+            StartTx();
+
             return DoOutOpAsync<TK, TV, bool>(CacheOp.RemoveBoolAsync, key, val);
         }
 
@@ -709,6 +739,8 @@ namespace Apache.Ignite.Core.Impl.Cache
         public void RemoveAll(IEnumerable<TK> keys)
         {
             IgniteArgumentCheck.NotNull(keys, "keys");
+
+            StartTx();
 
             DoOutOp(CacheOp.RemoveAll, writer => WriteEnumerable(writer, keys));
         }
@@ -718,18 +750,24 @@ namespace Apache.Ignite.Core.Impl.Cache
         {
             IgniteArgumentCheck.NotNull(keys, "keys");
 
+            StartTx();
+
             return DoOutOpAsync(CacheOp.RemoveAllAsync, writer => WriteEnumerable(writer, keys));
         }
 
         /** <inheritDoc /> */
         public void RemoveAll()
         {
+            StartTx();
+
             DoOutInOp((int) CacheOp.RemoveAll2);
         }
 
         /** <inheritDoc /> */
         public Task RemoveAllAsync()
         {
+            StartTx();
+
             return DoOutOpAsync(CacheOp.RemoveAll2Async);
         }
 
@@ -780,8 +818,9 @@ namespace Apache.Ignite.Core.Impl.Cache
         public TRes Invoke<TArg, TRes>(TK key, ICacheEntryProcessor<TK, TV, TArg, TRes> processor, TArg arg)
         {
             IgniteArgumentCheck.NotNull(key, "key");
-
             IgniteArgumentCheck.NotNull(processor, "processor");
+
+            StartTx();
 
             var holder = new CacheEntryProcessorHolder(processor, arg,
                 (e, a) => processor.Process((IMutableCacheEntry<TK, TV>)e, (TArg)a), typeof(TK), typeof(TV));
@@ -801,6 +840,8 @@ namespace Apache.Ignite.Core.Impl.Cache
         {
             IgniteArgumentCheck.NotNull(key, "key");
             IgniteArgumentCheck.NotNull(processor, "processor");
+
+            StartTx();
 
             var holder = new CacheEntryProcessorHolder(processor, arg,
                 (e, a) => processor.Process((IMutableCacheEntry<TK, TV>)e, (TArg)a), typeof(TK), typeof(TV));
@@ -829,8 +870,9 @@ namespace Apache.Ignite.Core.Impl.Cache
             ICacheEntryProcessor<TK, TV, TArg, TRes> processor, TArg arg)
         {
             IgniteArgumentCheck.NotNull(keys, "keys");
-
             IgniteArgumentCheck.NotNull(processor, "processor");
+
+            StartTx();
 
             var holder = new CacheEntryProcessorHolder(processor, arg,
                 (e, a) => processor.Process((IMutableCacheEntry<TK, TV>)e, (TArg)a), typeof(TK), typeof(TV));
@@ -849,8 +891,9 @@ namespace Apache.Ignite.Core.Impl.Cache
             ICacheEntryProcessor<TK, TV, TArg, TRes> processor, TArg arg)
         {
             IgniteArgumentCheck.NotNull(keys, "keys");
-
             IgniteArgumentCheck.NotNull(processor, "processor");
+
+            StartTx();
 
             var holder = new CacheEntryProcessorHolder(processor, arg,
                 (e, a) => processor.Process((IMutableCacheEntry<TK, TV>)e, (TArg)a), typeof(TK), typeof(TV));
