@@ -72,7 +72,6 @@ namespace Apache.Ignite.Core.Impl.Cache
 
             if (ambientTx != null)
             {
-                // TODO: use ambientTx ambientTx.IsolationLevel
                 _transactions.TxStart(_transactions.DefaultTransactionConcurrency, 
                     ConvertTransactionIsolation(ambientTx.IsolationLevel));
 

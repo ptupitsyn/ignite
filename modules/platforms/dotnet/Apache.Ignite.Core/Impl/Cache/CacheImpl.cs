@@ -79,8 +79,9 @@ namespace Apache.Ignite.Core.Impl.Cache
             _flagKeepBinary = flagKeepBinary;
             _flagNoRetries = flagNoRetries;
 
-            // TODO: Do not do this for non-TX caches.
-            _txManager = new CacheTransactionManager(grid.GetTransactions());
+            _txManager = GetConfiguration().AtomicityMode == CacheAtomicityMode.Transactional
+                ? new CacheTransactionManager(grid.GetTransactions())
+                : null;
         }
 
         /** <inheritDoc /> */
@@ -417,7 +418,7 @@ namespace Apache.Ignite.Core.Impl.Cache
             IgniteArgumentCheck.NotNull(key, "key");
             IgniteArgumentCheck.NotNull(val, "val");
 
-            _txManager.StartTx();
+            StartTx();
             DoOutOp(CacheOp.Put, key, val);
         }
 
@@ -1306,6 +1307,16 @@ namespace Apache.Ignite.Core.Impl.Cache
         public void Close(long id)
         {
             DoOutInOp((int) CacheOp.CloseLock, id);
+        }
+
+
+        /// <summary>
+        /// Starts a transaction when applicable.
+        /// </summary>
+        private void StartTx()
+        {
+            if (_txManager != null)
+                _txManager.StartTx();
         }
     }
 }
