@@ -79,6 +79,7 @@ namespace Apache.Ignite.Core.Impl.Cache
             _flagKeepBinary = flagKeepBinary;
             _flagNoRetries = flagNoRetries;
 
+            // TODO: Do not do this for non-TX caches.
             _txManager = new CacheTransactionManager(grid.GetTransactions());
         }
 
