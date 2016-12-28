@@ -406,6 +406,8 @@ namespace Apache.Ignite.Core.Tests.Cache
             Assert.AreEqual(Transactions.DefaultTransactionConcurrency, tx.Concurrency);
             Assert.AreEqual(Transactions.DefaultTransactionIsolation, tx.Isolation);
             Assert.AreEqual(Transactions.DefaultTimeout, tx.Timeout);
+
+            tx.Commit();
         }
 
         /// <summary>
