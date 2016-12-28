@@ -406,8 +406,9 @@ namespace Apache.Ignite.Core.Impl.Cache
         public void Put(TK key, TV val)
         {
             IgniteArgumentCheck.NotNull(key, "key");
-
             IgniteArgumentCheck.NotNull(val, "val");
+
+            // TODO: Enlist
 
             DoOutOp(CacheOp.Put, key, val);
         }
