@@ -419,6 +419,7 @@ namespace Apache.Ignite.Core.Impl.Cache
             IgniteArgumentCheck.NotNull(val, "val");
 
             StartTx();
+
             DoOutOp(CacheOp.Put, key, val);
         }
 
@@ -427,6 +428,8 @@ namespace Apache.Ignite.Core.Impl.Cache
         {
             IgniteArgumentCheck.NotNull(key, "key");
             IgniteArgumentCheck.NotNull(val, "val");
+
+            StartTx();
 
             return DoOutOpAsync(CacheOp.PutAsync, key, val);
         }
@@ -437,6 +440,8 @@ namespace Apache.Ignite.Core.Impl.Cache
             IgniteArgumentCheck.NotNull(key, "key");
             IgniteArgumentCheck.NotNull(val, "val");
 
+            StartTx();
+
             return DoOutInOpNullable(CacheOp.GetAndPut, key, val);
         }
 
@@ -445,6 +450,8 @@ namespace Apache.Ignite.Core.Impl.Cache
         {
             IgniteArgumentCheck.NotNull(key, "key");
             IgniteArgumentCheck.NotNull(val, "val");
+
+            StartTx();
 
             return DoOutOpAsync(CacheOp.GetAndPutAsync, w =>
             {
@@ -1308,7 +1315,6 @@ namespace Apache.Ignite.Core.Impl.Cache
         {
             DoOutInOp((int) CacheOp.CloseLock, id);
         }
-
 
         /// <summary>
         /// Starts a transaction when applicable.
