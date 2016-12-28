@@ -184,7 +184,7 @@ namespace Apache.Ignite.Core.Impl.Transactions
         /// </summary>
         internal void TxPrepare(TransactionImpl tx)
         {
-            DoOutOp(OpPrepare, (IBinaryStream w) => w.WriteLong(tx.Id));
+            DoOutInOp(OpPrepare, tx.Id);
         }
 
         /// <summary>
