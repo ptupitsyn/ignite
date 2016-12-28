@@ -32,7 +32,7 @@ namespace Apache.Ignite.Core.Impl.Cache
         private readonly ITransactions _transactions;
 
         /** */
-        private readonly ThreadLocal<Enlistment> _enlistment = new ThreadLocal<Enlistment>();
+        private static readonly ThreadLocal<Enlistment> Enlistment = new ThreadLocal<Enlistment>();
 
         /// <summary>
         /// Initializes a new instance of <see cref="CacheTransactionManager"/> class.
@@ -57,7 +57,7 @@ namespace Apache.Ignite.Core.Impl.Cache
                 return;
             }
 
-            if (_enlistment.Value != null)
+            if (Enlistment.Value != null)
             {
                 // We are already enlisted.
                 // .NET transaction mechanism allows nested transactions,
@@ -74,7 +74,7 @@ namespace Apache.Ignite.Core.Impl.Cache
                 // TODO: use ambientTx ambientTx.IsolationLevel
                 _transactions.TxStart();
 
-                _enlistment.Value = ambientTx.EnlistVolatile(this, EnlistmentOptions.None);
+                Enlistment.Value = ambientTx.EnlistVolatile(this, EnlistmentOptions.None);
             }
         }
 
@@ -89,11 +89,11 @@ namespace Apache.Ignite.Core.Impl.Cache
         {
             var igniteTx = _transactions.Tx;
 
-            if (igniteTx != null && _enlistment.Value != null)
+            if (igniteTx != null && Enlistment.Value != null)
             {
                 igniteTx.Commit();
 
-                _enlistment.Value = null;
+                Enlistment.Value = null;
             }
 
             enlistment.Done();
@@ -104,11 +104,11 @@ namespace Apache.Ignite.Core.Impl.Cache
         {
             var igniteTx = _transactions.Tx;
 
-            if (igniteTx != null && _enlistment.Value != null)
+            if (igniteTx != null && Enlistment.Value != null)
             {
                 igniteTx.Rollback();
 
-                _enlistment.Value = null;
+                Enlistment.Value = null;
             }
 
             enlistment.Done();
