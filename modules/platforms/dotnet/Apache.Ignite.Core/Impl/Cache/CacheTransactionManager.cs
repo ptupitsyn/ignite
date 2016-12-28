@@ -81,6 +81,8 @@ namespace Apache.Ignite.Core.Impl.Cache
         /** <inheritdoc /> */
         void IEnlistmentNotification.Prepare(PreparingEnlistment preparingEnlistment)
         {
+            // TODO: IgniteInternalTx.Prepare
+
             preparingEnlistment.Prepared();
         }
 
