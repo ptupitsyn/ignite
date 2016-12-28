@@ -21,6 +21,7 @@ namespace Apache.Ignite.Core.Tests.Cache
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
+    using System.Transactions;
     using Apache.Ignite.Core.Cache;
     using Apache.Ignite.Core.Transactions;
     using NUnit.Framework;
@@ -551,6 +552,40 @@ namespace Apache.Ignite.Core.Tests.Cache
 
             var deadlockEx = aex.InnerExceptions.OfType<TransactionDeadlockException>().First();
             Assert.IsTrue(deadlockEx.Message.Trim().StartsWith("Deadlock detected:"), deadlockEx.Message);
+        }
+
+        /// <summary>
+        /// Test Ignite transaction enlistment in ambient <see cref="TestTransactionScope"/>.
+        /// </summary>
+        [Test]
+        public void TestTransactionScope()
+        {
+            var cache = Cache();
+
+            cache[1] = 1;
+            cache[2] = 2;
+
+            // Commit.
+            using (var ts = new TransactionScope())
+            {
+                cache[1] = 10;
+                cache[2] = 20;
+
+                ts.Complete();
+            }
+
+            Assert.AreEqual(10, cache[1]);
+            Assert.AreEqual(20, cache[2]);
+
+            // Rollback.
+            using (new TransactionScope())
+            {
+                cache[1] = 100;
+                cache[2] = 200;
+            }
+
+            Assert.AreEqual(10, cache[1]);
+            Assert.AreEqual(20, cache[2]);
         }
     }
 }
