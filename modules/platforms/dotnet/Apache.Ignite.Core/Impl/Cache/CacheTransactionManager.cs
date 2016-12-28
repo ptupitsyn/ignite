@@ -17,6 +17,7 @@
 
 namespace Apache.Ignite.Core.Impl.Cache
 {
+    using System;
     using System.Diagnostics;
     using System.Threading;
     using System.Transactions;
@@ -72,7 +73,8 @@ namespace Apache.Ignite.Core.Impl.Cache
             if (ambientTx != null)
             {
                 // TODO: use ambientTx ambientTx.IsolationLevel
-                _transactions.TxStart();
+                _transactions.TxStart(_transactions.DefaultTransactionConcurrency, 
+                    ConvertTransactionIsolation(ambientTx.IsolationLevel));
 
                 Enlistment.Value = ambientTx.EnlistVolatile(this, EnlistmentOptions.None);
             }
@@ -122,6 +124,27 @@ namespace Apache.Ignite.Core.Impl.Cache
         void IEnlistmentNotification.InDoubt(Enlistment enlistment)
         {
             enlistment.Done();
+        }
+
+        /// <summary>
+        /// Converts the isolation level from .NET-specific to Ignite-specific.
+        /// </summary>
+        private static TransactionIsolation ConvertTransactionIsolation(IsolationLevel isolation)
+        {
+            switch (isolation)
+            {
+                case IsolationLevel.Serializable:
+                    return TransactionIsolation.Serializable;
+                case IsolationLevel.RepeatableRead:
+                    return TransactionIsolation.RepeatableRead;
+                case IsolationLevel.ReadCommitted:
+                case IsolationLevel.ReadUncommitted:
+                case IsolationLevel.Snapshot:
+                case IsolationLevel.Chaos:
+                    return TransactionIsolation.ReadCommitted;
+                default:
+                    throw new ArgumentOutOfRangeException("isolation", isolation, null);
+            }
         }
     }
 }
