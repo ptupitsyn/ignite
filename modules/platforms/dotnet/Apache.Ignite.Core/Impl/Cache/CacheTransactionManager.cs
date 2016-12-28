@@ -93,6 +93,8 @@ namespace Apache.Ignite.Core.Impl.Cache
 
             if (igniteTx != null && Enlistment.Value != null)
             {
+                Debug.Assert(ReferenceEquals(enlistment, Enlistment.Value));
+
                 igniteTx.Commit();
 
                 Enlistment.Value = null;
@@ -108,6 +110,8 @@ namespace Apache.Ignite.Core.Impl.Cache
 
             if (igniteTx != null && Enlistment.Value != null)
             {
+                Debug.Assert(ReferenceEquals(enlistment, Enlistment.Value));
+
                 igniteTx.Rollback();
 
                 Enlistment.Value = null;
