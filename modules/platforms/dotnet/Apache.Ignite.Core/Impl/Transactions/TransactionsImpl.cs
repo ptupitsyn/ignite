@@ -22,6 +22,7 @@ namespace Apache.Ignite.Core.Impl.Transactions
     using System.Threading.Tasks;
     using Apache.Ignite.Core.Binary;
     using Apache.Ignite.Core.Impl.Binary;
+    using Apache.Ignite.Core.Impl.Binary.IO;
     using Apache.Ignite.Core.Impl.Unmanaged;
     using Apache.Ignite.Core.Transactions;
 
@@ -63,6 +64,8 @@ namespace Apache.Ignite.Core.Impl.Transactions
         /** */
         private const int OpResetMetrics = 11;
 
+        /** */
+        private const int OpPrepare = 12;
 
         /** */
         private readonly TransactionConcurrency _dfltConcurrency;
@@ -177,6 +180,14 @@ namespace Apache.Ignite.Core.Impl.Transactions
         }
 
         /// <summary>
+        /// Executes prepare step of the two phase commit.
+        /// </summary>
+        internal void TxPrepare(TransactionImpl tx)
+        {
+            DoOutOp(OpPrepare, (IBinaryStream w) => w.WriteLong(tx.Id));
+        }
+
+        /// <summary>
         /// Commit transaction.
         /// </summary>
         /// <param name="tx">Transaction.</param>
@@ -241,5 +252,6 @@ namespace Apache.Ignite.Core.Impl.Transactions
         {
             return DoOutOpAsync(OpRollbackAsync, w => w.WriteLong(tx.Id));
         }
+
     }
 }

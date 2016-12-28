@@ -55,6 +55,8 @@ namespace Apache.Ignite.Core.Impl.Cache
             {
                 // Ignite transaction is already present.
                 // We have either enlisted it already, or it has been started manually and should not be enlisted.
+
+                // TODO: Java uses existing tx in this case, see CacheJtaManager.java:154
                 return;
             }
 
