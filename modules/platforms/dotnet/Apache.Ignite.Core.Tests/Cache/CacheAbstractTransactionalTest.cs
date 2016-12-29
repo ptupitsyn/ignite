@@ -631,6 +631,9 @@ namespace Apache.Ignite.Core.Tests.Cache
             CheckTxOp((cache, key) => cache.GetAndRemoveAsync(key));
             CheckTxOp((cache, key) => cache.GetAndReplace(key, -11));
             CheckTxOp((cache, key) => cache.GetAndReplaceAsync(key, -11));
+
+            CheckTxOp((cache, key) => cache.Invoke(key, new AddProcessor(), 1));
+            CheckTxOp((cache, key) => cache.InvokeAsync(key, new AddProcessor(), 1));
         }
 
         /// <summary>
@@ -680,6 +683,16 @@ namespace Apache.Ignite.Core.Tests.Cache
 
             Assert.IsTrue(!cache.ContainsKey(1) || cache[1] != 1);
             Assert.IsTrue(!cache.ContainsKey(2) || cache[2] != 2);
+        }
+
+        [Serializable]
+        private class AddProcessor : ICacheEntryProcessor<int, int, int, int>
+        {
+            public int Process(IMutableCacheEntry<int, int> entry, int arg)
+            {
+                entry.Value += arg;
+                return arg;
+            }
         }
     }
 }
