@@ -610,8 +610,27 @@ namespace Apache.Ignite.Core.Tests.Cache
         public void TestTransactionScopeAllOperations()
         {
             CheckTxOp((cache, key) => cache.Put(key, -5));
+            CheckTxOp((cache, key) => cache.PutAsync(key, -5).Wait());
             CheckTxOp((cache, key) => cache.PutAll(new Dictionary<int, int> {{key, -7}}));
+            CheckTxOp((cache, key) => cache.PutAllAsync(new Dictionary<int, int> {{key, -7}}).Wait());
             CheckTxOp((cache, key) => cache.RemoveAll(new[] {key}));
+            CheckTxOp((cache, key) => cache.RemoveAllAsync(new[] {key}).Wait());
+            CheckTxOp((cache, key) => cache.GetAndPut(key, -9));
+            CheckTxOp((cache, key) => cache.GetAndPutAsync(key, -9).Wait());
+            CheckTxOp((cache, key) =>
+            {
+                cache.Remove(key);
+                cache.GetAndPutIfAbsent(key, -10);
+            });
+            CheckTxOp((cache, key) =>
+            {
+                cache.Remove(key);
+                cache.GetAndPutIfAbsentAsync(key, -10).Wait();
+            });
+            CheckTxOp((cache, key) => cache.GetAndRemove(key));
+            CheckTxOp((cache, key) => cache.GetAndRemoveAsync(key));
+            CheckTxOp((cache, key) => cache.GetAndReplace(key, -11));
+            CheckTxOp((cache, key) => cache.GetAndReplaceAsync(key, -11));
         }
 
         /// <summary>
