@@ -148,7 +148,8 @@ namespace Apache.Ignite.Core.Impl.Cache
                 case IsolationLevel.Chaos:
                     return TransactionIsolation.ReadCommitted;
                 default:
-                    throw new ArgumentOutOfRangeException("isolation", isolation, null);
+                    throw new ArgumentOutOfRangeException("isolation", isolation, 
+                        "Unsupported transaction isolation level: " + isolation);
             }
         }
     }
