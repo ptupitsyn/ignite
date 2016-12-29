@@ -600,6 +600,7 @@ namespace Apache.Ignite.Core.Tests.Cache
             // TODO: Test ALL cache operations!
             // TODO: Test nested scopes.
             // TODO: Test manual tx start.
+            // TODO: Test multi-cache transactions.
         }
 
         /// <summary>
