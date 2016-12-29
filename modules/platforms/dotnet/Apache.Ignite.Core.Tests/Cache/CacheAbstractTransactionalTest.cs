@@ -18,6 +18,7 @@
 namespace Apache.Ignite.Core.Tests.Cache
 {
     using System;
+    using System.Collections.Generic;
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
@@ -599,6 +600,66 @@ namespace Apache.Ignite.Core.Tests.Cache
             // TODO: Test ALL cache operations!
             // TODO: Test nested scopes.
             // TODO: Test manual tx start.
+        }
+
+        /// <summary>
+        /// Tests all transactional operations with <see cref="TestTransactionScope"/>.
+        /// </summary>
+        [Test]
+        public void TestTransactionScopeAllOperations()
+        {
+            CheckTxOp((cache, key) => cache.Put(key, -5));
+            CheckTxOp((cache, key) => cache.PutAll(new Dictionary<int, int> {{key, -7}}));
+            CheckTxOp((cache, key) => cache.RemoveAll(new[] {key}));
+        }
+
+        /// <summary>
+        /// Checks that cache operation behaves transactionally.
+        /// </summary>
+        private void CheckTxOp(Action<ICache<int, int>, int> act)
+        {
+            var cache = Cache();
+
+            cache[1] = 1;
+            cache[2] = 2;
+
+            // Rollback.
+            using (new TransactionScope())
+            {
+                act(cache, 1);
+            }
+
+            Assert.AreEqual(1, cache[1]);
+            Assert.AreEqual(2, cache[2]);
+
+            using (new TransactionScope())
+            {
+                act(cache, 1);
+                act(cache, 2);
+            }
+
+            Assert.AreEqual(1, cache[1]);
+            Assert.AreEqual(2, cache[2]);
+
+            // Commit.
+            using (var ts = new TransactionScope())
+            {
+                act(cache, 1);
+                ts.Complete();
+            }
+
+            Assert.IsTrue(!cache.ContainsKey(1) || cache[1] != 1);
+            Assert.AreEqual(2, cache[2]);
+
+            using (var ts = new TransactionScope())
+            {
+                act(cache, 1);
+                act(cache, 2);
+                ts.Complete();
+            }
+
+            Assert.IsTrue(!cache.ContainsKey(1) || cache[1] != 1);
+            Assert.IsTrue(!cache.ContainsKey(2) || cache[2] != 2);
         }
     }
 }
