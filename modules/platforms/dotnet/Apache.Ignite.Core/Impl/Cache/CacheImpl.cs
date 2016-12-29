@@ -79,6 +79,7 @@ namespace Apache.Ignite.Core.Impl.Cache
             _flagKeepBinary = flagKeepBinary;
             _flagNoRetries = flagNoRetries;
 
+            // TODO: In Java this happens only when configured in TransactionConfiguration!
             _txManager = GetConfiguration().AtomicityMode == CacheAtomicityMode.Transactional
                 ? new CacheTransactionManager(grid.GetTransactions())
                 : null;
