@@ -626,7 +626,27 @@ namespace Apache.Ignite.Core.Tests.Cache
         [Test]
         public void TestNestedTransactionScope()
         {
-            // TODO
+            var cache = Cache();
+
+            cache[1] = 1;
+
+            // Reused scope.
+            using (var ts1 = new TransactionScope())
+            {
+                using (var ts2 = new TransactionScope())
+                {
+                    cache[1] = 2;
+
+                    ts2.Complete();
+                }
+
+                cache[1] = 3;
+                ts1.Complete();
+            }
+
+            Assert.AreEqual(3, cache[1]);
+
+            // TODO: required scope
         }
 
         /// <summary>
