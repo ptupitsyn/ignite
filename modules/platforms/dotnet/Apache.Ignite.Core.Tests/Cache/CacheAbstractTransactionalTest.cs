@@ -630,23 +630,22 @@ namespace Apache.Ignite.Core.Tests.Cache
 
             cache[1] = 1;
 
-            // Reused scope.
-            using (var ts1 = new TransactionScope())
+            foreach (var option in new[] {TransactionScopeOption.Required, TransactionScopeOption.RequiresNew})
             {
-                using (var ts2 = new TransactionScope())
+                using (var ts1 = new TransactionScope())
                 {
-                    cache[1] = 2;
+                    using (var ts2 = new TransactionScope(option))
+                    {
+                        cache[1] = 2;
+                        ts2.Complete();
+                    }
 
-                    ts2.Complete();
+                    cache[1] = 3;
+                    ts1.Complete();
                 }
-
-                cache[1] = 3;
-                ts1.Complete();
             }
 
             Assert.AreEqual(3, cache[1]);
-
-            // TODO: required scope
         }
 
         /// <summary>
