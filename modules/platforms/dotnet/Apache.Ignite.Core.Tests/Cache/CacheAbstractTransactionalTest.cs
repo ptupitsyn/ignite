@@ -568,7 +568,7 @@ namespace Apache.Ignite.Core.Tests.Cache
         /// Test Ignite transaction enlistment in ambient <see cref="TestTransactionScope"/>.
         /// </summary>
         [Test]
-        public void TestTransactionScope()
+        public new void TestTransactionScope()
         {
             var cache = Cache();
 
@@ -658,11 +658,17 @@ namespace Apache.Ignite.Core.Tests.Cache
             CheckTxOp((cache, key) =>
             {
                 cache.RemoveAll();
-                cache[2] = 2;
+                if (key != 2)
+                    cache[2] = 2;
             });
             CheckTxOp((cache, key) => cache.RemoveAll(new[] { key }));
             CheckTxOp((cache, key) => cache.RemoveAllAsync(new[] { key }).Wait());
 
+            CheckTxOp((cache, key) => cache.Replace(key, 100));
+            CheckTxOp((cache, key) => cache.ReplaceAsync(key, 100));
+
+            CheckTxOp((cache, key) => cache.Replace(key, cache[key], 100));
+            CheckTxOp((cache, key) => cache.ReplaceAsync(key, cache[key], 100));
         }
 
         /// <summary>
