@@ -655,7 +655,11 @@ namespace Apache.Ignite.Core.Tests.Cache
             CheckTxOp((cache, key) => cache.Remove(key));
             CheckTxOp((cache, key) => cache.RemoveAsync(key));
 
-            CheckTxOp((cache, key) => cache.RemoveAll());
+            CheckTxOp((cache, key) =>
+            {
+                cache.RemoveAll();
+                cache[2] = 2;
+            });
             CheckTxOp((cache, key) => cache.RemoveAll(new[] { key }));
             CheckTxOp((cache, key) => cache.RemoveAllAsync(new[] { key }).Wait());
 

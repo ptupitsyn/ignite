@@ -2658,6 +2658,8 @@ namespace Apache.Ignite.Core.Tests.Cache
             using (var ts = new TransactionScope())
             {
                 cache[1] = 2;
+
+                ts.Complete();
             }
 
             Assert.AreEqual(2, cache[1]);
