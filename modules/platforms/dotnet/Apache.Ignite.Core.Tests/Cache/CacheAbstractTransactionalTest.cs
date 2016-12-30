@@ -641,7 +641,30 @@ namespace Apache.Ignite.Core.Tests.Cache
         [Test]
         public void TestTransactionScopeConcurrency()
         {
-            // TODO
+            var cache = Cache();
+            var transactions = cache.Ignite.GetTransactions();
+
+            var modes = new[]
+            {
+                Tuple.Create(IsolationLevel.Serializable, TransactionIsolation.Serializable)
+            };
+
+            foreach (var mode in modes)
+            {
+                using (new TransactionScope(TransactionScopeOption.Required, new TransactionOptions
+                {
+                    IsolationLevel = mode.Item1,
+                    Timeout = TimeSpan.FromSeconds(5)
+                }))
+                {
+                    cache[1] = 1;
+
+                    var tx = transactions.Tx;
+                    Assert.AreEqual(mode.Item2, tx.Isolation);
+                    Assert.AreEqual(transactions.DefaultTransactionConcurrency, tx.Concurrency);
+                    Assert.AreEqual(5, tx.Timeout.TotalSeconds);
+                }
+            }
         }
 
         /// <summary>
