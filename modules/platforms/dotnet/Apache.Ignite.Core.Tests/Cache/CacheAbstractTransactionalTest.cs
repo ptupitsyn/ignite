@@ -716,12 +716,6 @@ namespace Apache.Ignite.Core.Tests.Cache
             CheckTxOp((cache, key) => cache.Remove(key));
             CheckTxOp((cache, key) => cache.RemoveAsync(key));
 
-            CheckTxOp((cache, key) =>
-            {
-                cache.RemoveAll();
-                if (key != 2)
-                    cache[2] = 2;
-            });
             CheckTxOp((cache, key) => cache.RemoveAll(new[] { key }));
             CheckTxOp((cache, key) => cache.RemoveAllAsync(new[] { key }).Wait());
 
@@ -746,6 +740,8 @@ namespace Apache.Ignite.Core.Tests.Cache
             using (new TransactionScope())
             {
                 act(cache, 1);
+
+                Assert.IsNotNull(cache.Ignite.GetTransactions().Tx, "Transaction has not started.");
             }
 
             Assert.AreEqual(1, cache[1]);
