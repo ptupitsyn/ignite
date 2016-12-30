@@ -636,10 +636,10 @@ namespace Apache.Ignite.Core.Tests.Cache
         }
 
         /// <summary>
-        /// Test that ambient <see cref="TransactionScope"/> concurrency propagates to Ignite transaction.
+        /// Test that ambient <see cref="TransactionScope"/> options propagate to Ignite transaction.
         /// </summary>
         [Test]
-        public void TestTransactionScopeConcurrency()
+        public void TestTransactionScopeOptions()
         {
             var cache = Cache();
             var transactions = cache.Ignite.GetTransactions();
@@ -658,8 +658,7 @@ namespace Apache.Ignite.Core.Tests.Cache
             {
                 using (new TransactionScope(TransactionScopeOption.Required, new TransactionOptions
                 {
-                    IsolationLevel = mode.Item1,
-                    Timeout = TimeSpan.FromSeconds(5)
+                    IsolationLevel = mode.Item1
                 }))
                 {
                     cache[1] = 1;
@@ -667,7 +666,6 @@ namespace Apache.Ignite.Core.Tests.Cache
                     var tx = transactions.Tx;
                     Assert.AreEqual(mode.Item2, tx.Isolation);
                     Assert.AreEqual(transactions.DefaultTransactionConcurrency, tx.Concurrency);
-                    Assert.AreEqual(5, tx.Timeout.TotalSeconds);
                 }
             }
         }
