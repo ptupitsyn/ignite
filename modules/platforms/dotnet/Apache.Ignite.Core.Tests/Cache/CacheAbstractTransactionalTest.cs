@@ -565,10 +565,10 @@ namespace Apache.Ignite.Core.Tests.Cache
         }
 
         /// <summary>
-        /// Test Ignite transaction enlistment in ambient <see cref="TestTransactionScope"/>.
+        /// Test Ignite transaction enlistment in ambient <see cref="TransactionScope"/>.
         /// </summary>
         [Test]
-        public new void TestTransactionScope()
+        public void TestTransactionScopeSingleCache()
         {
             var cache = Cache();
 
@@ -580,6 +580,8 @@ namespace Apache.Ignite.Core.Tests.Cache
             {
                 cache[1] = 10;
                 cache[2] = 20;
+
+                Assert.IsNotNull(cache.Ignite.GetTransactions().Tx);
 
                 ts.Complete();
             }
@@ -597,14 +599,53 @@ namespace Apache.Ignite.Core.Tests.Cache
             Assert.AreEqual(10, cache[1]);
             Assert.AreEqual(20, cache[2]);
 
-            // TODO: Test ALL cache operations!
+            // Manual tx start.
+
             // TODO: Test nested scopes.
             // TODO: Test manual tx start.
             // TODO: Test multi-cache transactions.
         }
 
         /// <summary>
-        /// Tests all transactional operations with <see cref="TestTransactionScope"/>.
+        /// Test Ignite transaction enlistment in ambient <see cref="TransactionScope"/> 
+        /// with multiple participating caches.
+        /// </summary>
+        [Test]
+        public void TestTransactionScopeMultiCache()
+        {
+            // TODO
+        }
+
+        /// <summary>
+        /// Test Ignite transaction enlistment in ambient <see cref="TransactionScope"/> 
+        /// when Ignite tx is started manually.
+        /// </summary>
+        [Test]
+        public void TestTransactionScopeWithManualIgniteTx()
+        {
+            // TODO
+        }
+
+        /// <summary>
+        /// Test Ignite transaction enlistment in ambient <see cref="TransactionScope"/> with nested scopes.
+        /// </summary>
+        [Test]
+        public void TestNestedTransactionScope()
+        {
+            // TODO
+        }
+
+        /// <summary>
+        /// Test that ambient <see cref="TransactionScope"/> concurrency propagates to Ignite transaction.
+        /// </summary>
+        [Test]
+        public void TestTransactionScopeConcurrency()
+        {
+            // TODO
+        }
+
+        /// <summary>
+        /// Tests all transactional operations with <see cref="TransactionScope"/>.
         /// </summary>
         [Test]
         public void TestTransactionScopeAllOperations()
