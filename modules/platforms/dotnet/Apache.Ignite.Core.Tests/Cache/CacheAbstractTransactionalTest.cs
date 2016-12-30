@@ -646,7 +646,12 @@ namespace Apache.Ignite.Core.Tests.Cache
 
             var modes = new[]
             {
-                Tuple.Create(IsolationLevel.Serializable, TransactionIsolation.Serializable)
+                Tuple.Create(IsolationLevel.Serializable, TransactionIsolation.Serializable),
+                Tuple.Create(IsolationLevel.RepeatableRead, TransactionIsolation.RepeatableRead),
+                Tuple.Create(IsolationLevel.ReadCommitted, TransactionIsolation.ReadCommitted),
+                Tuple.Create(IsolationLevel.ReadUncommitted, TransactionIsolation.ReadCommitted),
+                Tuple.Create(IsolationLevel.Snapshot, TransactionIsolation.ReadCommitted),
+                Tuple.Create(IsolationLevel.Chaos, TransactionIsolation.ReadCommitted),
             };
 
             foreach (var mode in modes)
