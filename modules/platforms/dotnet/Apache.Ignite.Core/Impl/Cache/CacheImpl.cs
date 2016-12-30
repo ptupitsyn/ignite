@@ -37,6 +37,7 @@ namespace Apache.Ignite.Core.Impl.Cache
     using Apache.Ignite.Core.Impl.Cache.Query.Continuous;
     using Apache.Ignite.Core.Impl.Cluster;
     using Apache.Ignite.Core.Impl.Common;
+    using Apache.Ignite.Core.Impl.Transactions;
     using Apache.Ignite.Core.Impl.Unmanaged;
 
     /// <summary>

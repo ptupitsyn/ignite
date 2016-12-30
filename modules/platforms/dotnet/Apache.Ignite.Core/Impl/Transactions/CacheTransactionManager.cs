@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-namespace Apache.Ignite.Core.Impl.Cache
+namespace Apache.Ignite.Core.Impl.Transactions
 {
     using System;
     using System.Diagnostics;
@@ -69,7 +69,7 @@ namespace Apache.Ignite.Core.Impl.Cache
                 return;
             }
 
-            var ambientTx = Transaction.Current;
+            var ambientTx = System.Transactions.Transaction.Current;
 
             if (ambientTx != null)
             {
