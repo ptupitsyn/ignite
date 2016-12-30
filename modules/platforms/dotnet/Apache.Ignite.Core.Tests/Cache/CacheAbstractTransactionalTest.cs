@@ -598,12 +598,6 @@ namespace Apache.Ignite.Core.Tests.Cache
 
             Assert.AreEqual(10, cache[1]);
             Assert.AreEqual(20, cache[2]);
-
-            // Manual tx start.
-
-            // TODO: Test nested scopes.
-            // TODO: Test manual tx start.
-            // TODO: Test multi-cache transactions.
         }
 
         /// <summary>
