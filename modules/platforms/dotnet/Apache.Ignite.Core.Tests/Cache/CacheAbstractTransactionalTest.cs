@@ -632,6 +632,7 @@ namespace Apache.Ignite.Core.Tests.Cache
 
             foreach (var option in new[] {TransactionScopeOption.Required, TransactionScopeOption.RequiresNew})
             {
+                // Commit.
                 using (var ts1 = new TransactionScope())
                 {
                     using (var ts2 = new TransactionScope(option))
@@ -643,9 +644,21 @@ namespace Apache.Ignite.Core.Tests.Cache
                     cache[1] = 3;
                     ts1.Complete();
                 }
+
+                Assert.AreEqual(3, cache[1]);
+
+                // Rollback.
+                using (new TransactionScope())
+                {
+                    using (new TransactionScope(option))
+                        cache[1] = 4;
+
+                    cache[1] = 5;
+                }
+
+                Assert.AreEqual(3, cache[1], option.ToString());
             }
 
-            Assert.AreEqual(3, cache[1]);
         }
 
         /// <summary>

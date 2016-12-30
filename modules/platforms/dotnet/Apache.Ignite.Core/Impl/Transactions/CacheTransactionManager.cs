@@ -71,7 +71,7 @@ namespace Apache.Ignite.Core.Impl.Transactions
 
             var ambientTx = System.Transactions.Transaction.Current;
 
-            if (ambientTx != null)
+            if (ambientTx != null && ambientTx.TransactionInformation.Status == TransactionStatus.Active)
             {
                 _transactions.TxStart(_transactions.DefaultTransactionConcurrency, 
                     ConvertTransactionIsolation(ambientTx.IsolationLevel));
@@ -87,7 +87,7 @@ namespace Apache.Ignite.Core.Impl.Transactions
 
             if (igniteTx != null && Enlistment.Value != null)
             {
-                ((Transactions.Transaction) igniteTx).Prepare();
+                ((Transaction) igniteTx).Prepare();
             }
 
             preparingEnlistment.Prepared();
