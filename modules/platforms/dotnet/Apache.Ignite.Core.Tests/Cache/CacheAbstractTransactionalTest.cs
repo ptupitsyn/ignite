@@ -659,10 +659,9 @@ namespace Apache.Ignite.Core.Tests.Cache
                 using (var ts = new TransactionScope())
                 {
                     cache[1] = 2;
-                    // Do not commit.
-                }
+                }  // Revert transaction scope.
 
-                tx.Commit();
+                tx.Commit();  // Commit manual tx.
             }
 
             Assert.AreEqual(2, cache[1]);
