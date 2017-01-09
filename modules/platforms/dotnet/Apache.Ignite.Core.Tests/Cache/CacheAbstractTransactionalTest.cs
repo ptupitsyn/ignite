@@ -609,6 +609,7 @@ namespace Apache.Ignite.Core.Tests.Cache
         public void TestTransactionScopeMultiCache()
         {
             var cache1 = Cache();
+
             var cache2 = GetIgnite(0).GetOrCreateCache<int, int>(new CacheConfiguration(cache1.Name + "_")
             {
                 AtomicityMode = CacheAtomicityMode.Transactional
@@ -647,7 +648,24 @@ namespace Apache.Ignite.Core.Tests.Cache
         [Test]
         public void TestTransactionScopeWithManualIgniteTx()
         {
-            // TODO
+            var cache = Cache();
+            var transactions = cache.Ignite.GetTransactions();
+
+            cache[1] = 1;
+
+            // When Ignite tx is started manually, it won't be enlisted in TransactionScope.
+            using (var tx = transactions.TxStart())            
+            {
+                using (var ts = new TransactionScope())
+                {
+                    cache[1] = 2;
+                    // Do not commit.
+                }
+
+                tx.Commit();
+            }
+
+            Assert.AreEqual(2, cache[1]);
         }
 
         /// <summary>
