@@ -252,6 +252,5 @@ namespace Apache.Ignite.Core.Impl.Transactions
         {
             return DoOutOpAsync(OpRollbackAsync, w => w.WriteLong(tx.Id));
         }
-
     }
 }

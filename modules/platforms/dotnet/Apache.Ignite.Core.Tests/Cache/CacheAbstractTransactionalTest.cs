@@ -722,8 +722,8 @@ namespace Apache.Ignite.Core.Tests.Cache
                     cache[1] = 5;
                 }
                 
-                // First tx gets aborted, second put executes outside the tx.
-                // Should we abort all operations then??
+                // In case with Required option there is a single tx
+                // that gets aborted, second put executes outside the tx.
                 Assert.AreEqual(option == TransactionScopeOption.Required ? 5 : 3, cache[1], option.ToString());
             }
         }
