@@ -621,6 +621,19 @@ namespace Apache.Ignite.Core.Tests.Cache
         }
 
         /// <summary>
+        /// Test Ignite transaction with <see cref="TransactionScopeOption.Suppress"/> option.
+        /// </summary>
+        [Test]
+        public void TestSuppressedTransactionScope()
+        {
+            var cache = Cache();
+
+            cache[1] = 1;
+
+            // TODO: Test nested.
+        }
+
+        /// <summary>
         /// Test Ignite transaction enlistment in ambient <see cref="TransactionScope"/> with nested scopes.
         /// </summary>
         [Test]
