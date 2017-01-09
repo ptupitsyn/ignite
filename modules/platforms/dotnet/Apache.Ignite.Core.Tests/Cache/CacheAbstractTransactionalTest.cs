@@ -679,7 +679,6 @@ namespace Apache.Ignite.Core.Tests.Cache
                 // Should we abort all operations then??
                 Assert.AreEqual(5, cache[1], option.ToString());
             }
-
         }
 
         /// <summary>
