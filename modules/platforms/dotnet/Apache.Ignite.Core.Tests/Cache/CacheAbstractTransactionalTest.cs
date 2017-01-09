@@ -24,6 +24,7 @@ namespace Apache.Ignite.Core.Tests.Cache
     using System.Threading.Tasks;
     using System.Transactions;
     using Apache.Ignite.Core.Cache;
+    using Apache.Ignite.Core.Cache.Configuration;
     using Apache.Ignite.Core.Transactions;
     using NUnit.Framework;
 
@@ -608,7 +609,10 @@ namespace Apache.Ignite.Core.Tests.Cache
         public void TestTransactionScopeMultiCache()
         {
             var cache1 = Cache();
-            var cache2 = Cache(1);
+            var cache2 = GetIgnite(0).GetOrCreateCache<int, int>(new CacheConfiguration(cache1.Name + "_")
+            {
+                AtomicityMode = CacheAtomicityMode.Transactional
+            });
 
             cache1[1] = 1;
             cache2[1] = 2;
@@ -626,7 +630,7 @@ namespace Apache.Ignite.Core.Tests.Cache
             Assert.AreEqual(20, cache2[1]);
 
             // Rollback.
-            using (var ts = new TransactionScope())
+            using (new TransactionScope())
             {
                 cache1[1] = 100;
                 cache2[1] = 200;
