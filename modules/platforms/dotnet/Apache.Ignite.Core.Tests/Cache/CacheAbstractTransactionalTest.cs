@@ -630,7 +630,13 @@ namespace Apache.Ignite.Core.Tests.Cache
 
             cache[1] = 1;
 
-            // TODO: Test nested.
+            using (new TransactionScope(TransactionScopeOption.Suppress))
+            {
+                cache[1] = 2;
+            }
+
+            // Even though transaction is not completed, the value is updated, because tx is suppressed.
+            Assert.AreEqual(2, cache[1]);
         }
 
         /// <summary>
