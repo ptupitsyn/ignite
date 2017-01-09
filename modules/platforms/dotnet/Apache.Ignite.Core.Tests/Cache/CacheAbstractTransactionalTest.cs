@@ -607,7 +607,33 @@ namespace Apache.Ignite.Core.Tests.Cache
         [Test]
         public void TestTransactionScopeMultiCache()
         {
-            // TODO
+            var cache1 = Cache();
+            var cache2 = Cache(1);
+
+            cache1[1] = 1;
+            cache2[1] = 2;
+
+            // Commit.
+            using (var ts = new TransactionScope())
+            {
+                cache1[1] = 10;
+                cache2[1] = 20;
+
+                ts.Complete();
+            }
+
+            Assert.AreEqual(10, cache1[1]);
+            Assert.AreEqual(20, cache2[1]);
+
+            // Rollback.
+            using (var ts = new TransactionScope())
+            {
+                cache1[1] = 100;
+                cache2[1] = 200;
+            }
+
+            Assert.AreEqual(10, cache1[1]);
+            Assert.AreEqual(20, cache2[1]);
         }
 
         /// <summary>
