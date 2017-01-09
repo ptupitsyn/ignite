@@ -104,6 +104,8 @@ namespace Apache.Ignite.Core.Impl.Transactions
 
                 igniteTx.Commit();
 
+                igniteTx.Dispose();
+
                 Enlistment.Value = null;
             }
 
@@ -118,6 +120,8 @@ namespace Apache.Ignite.Core.Impl.Transactions
             if (igniteTx != null && Enlistment.Value != null)
             {
                 igniteTx.Rollback();
+
+                igniteTx.Dispose();
 
                 Enlistment.Value = null;
             }
