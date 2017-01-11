@@ -37,7 +37,6 @@ namespace Apache.Ignite.Core.Tests.Binary
         {
             // Start separate Ignite process without loading current dll.
             var appConfig = AppDomain.CurrentDomain.SetupInformation.ConfigurationFile;
-            // TODO: This includes assembly, remove it.
             var proc = new IgniteProcess(true, "-ConfigFileName="+appConfig, "-ConfigSectionName=igniteConfiguration");
             Assert.IsTrue(proc.Alive);
 
