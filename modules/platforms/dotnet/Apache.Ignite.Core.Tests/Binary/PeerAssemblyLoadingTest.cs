@@ -38,7 +38,7 @@ namespace Apache.Ignite.Core.Tests.Binary
             // Start separate Ignite process without loading current dll.
             var appConfig = AppDomain.CurrentDomain.SetupInformation.ConfigurationFile;
             // TODO: This includes assembly, remove it.
-            var proc = new IgniteProcess("-ConfigFileName="+appConfig, "-ConfigSectionName=igniteConfiguration");
+            var proc = new IgniteProcess(true, "-ConfigFileName="+appConfig, "-ConfigSectionName=igniteConfiguration");
             Assert.IsTrue(proc.Alive);
 
             // Start Ignite node in client mode to ensure that computations execute on standalone node.
@@ -47,7 +47,7 @@ namespace Apache.Ignite.Core.Tests.Binary
             {
                 var result = ignite.GetCompute().Call(new GetProcessNameFunc());
 
-                Assert.IsNotNullOrEmpty(result);
+                Assert.AreEqual("Apache.Ignite", result);
             }
         }
 
