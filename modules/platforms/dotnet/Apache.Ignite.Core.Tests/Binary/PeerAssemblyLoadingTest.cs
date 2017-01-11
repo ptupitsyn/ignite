@@ -18,7 +18,6 @@
 namespace Apache.Ignite.Core.Tests.Binary
 {
     using System;
-    using System.Reflection;
     using Apache.Ignite.Core.Compute;
     using Apache.Ignite.Core.Tests.Process;
     using NUnit.Framework;
@@ -37,17 +36,18 @@ namespace Apache.Ignite.Core.Tests.Binary
         public void TestStaticAssembly()
         {
             // Start separate Ignite process without loading current dll.
-            var proc = new IgniteProcess();
+            var appConfig = AppDomain.CurrentDomain.SetupInformation.ConfigurationFile;
+            var proc = new IgniteProcess("-ConfigFileName="+appConfig, "-ConfigSectionName=igniteConfiguration");
+            Assert.IsTrue(proc.Alive);
 
             // Start Ignite node in client mode to ensure that computations execute on standalone node.
-            using (var ignite = Ignition.Start(TestUtils.GetTestConfiguration()))
+            var cfg = new IgniteConfiguration(TestUtils.GetTestConfiguration()) {ClientMode = true};
+            using (var ignite = Ignition.Start(cfg))
             {
                 var result = ignite.GetCompute().Call(new GetProcessNameFunc());
 
                 Assert.IsNotNullOrEmpty(result);
             }
-
-            proc.Kill();
         }
 
         /// <summary>
@@ -74,7 +74,7 @@ namespace Apache.Ignite.Core.Tests.Binary
         {
             public string Invoke()
             {
-                return Assembly.GetEntryAssembly().FullName;
+                return System.Diagnostics.Process.GetCurrentProcess().ProcessName;
             }
         }
     }
