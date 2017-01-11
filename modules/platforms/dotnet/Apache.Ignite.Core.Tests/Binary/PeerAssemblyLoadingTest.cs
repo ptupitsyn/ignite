@@ -18,6 +18,7 @@
 namespace Apache.Ignite.Core.Tests.Binary
 {
     using System;
+    using System.Diagnostics;
     using Apache.Ignite.Core.Compute;
     using Apache.Ignite.Core.Tests.Process;
     using NUnit.Framework;
@@ -39,6 +40,9 @@ namespace Apache.Ignite.Core.Tests.Binary
             var appConfig = AppDomain.CurrentDomain.SetupInformation.ConfigurationFile;
             var proc = new IgniteProcess(true, "-ConfigFileName="+appConfig, "-ConfigSectionName=igniteConfiguration");
             Assert.IsTrue(proc.Alive);
+
+            // TODO: Since the assembly is in the same folder, it gets loaded automatically.
+            // We should use different exe path.
 
             // Start Ignite node in client mode to ensure that computations execute on standalone node.
             var cfg = new IgniteConfiguration(TestUtils.GetTestConfiguration()) {ClientMode = true};
@@ -74,6 +78,7 @@ namespace Apache.Ignite.Core.Tests.Binary
         {
             public string Invoke()
             {
+                // Debugger.Launch();
                 return System.Diagnostics.Process.GetCurrentProcess().ProcessName;
             }
         }
