@@ -17,6 +17,10 @@
 
 namespace Apache.Ignite.Core.Tests.Binary
 {
+    using System;
+    using System.Reflection;
+    using Apache.Ignite.Core.Compute;
+    using Apache.Ignite.Core.Tests.Process;
     using NUnit.Framework;
 
     /// <summary>
@@ -32,7 +36,28 @@ namespace Apache.Ignite.Core.Tests.Binary
         [Test]
         public void TestStaticAssembly()
         {
-            
+            // Start separate Ignite process without loading current dll.
+            var proc = new IgniteProcess();
+
+            // Start Ignite node in client mode to ensure that computations execute on standalone node.
+            using (var ignite = Ignition.Start(TestUtils.GetTestConfiguration()))
+            {
+                var result = ignite.GetCompute().Call(new GetProcessNameFunc());
+
+                Assert.IsNotNullOrEmpty(result);
+            }
+
+            proc.Kill();
+        }
+
+        /// <summary>
+        /// Tears down the test.
+        /// </summary>
+        [TearDown]
+        public void TearDown()
+        {
+            Ignition.StopAll(true);
+            IgniteProcess.KillAll();
         }
 
         /// <summary>
@@ -42,6 +67,15 @@ namespace Apache.Ignite.Core.Tests.Binary
         public void TestDynamicAssembly()
         {
             // TODO: ???
+        }
+
+        [Serializable]
+        private class GetProcessNameFunc : IComputeFunc<string>
+        {
+            public string Invoke()
+            {
+                return Assembly.GetEntryAssembly().FullName;
+            }
         }
     }
 }
