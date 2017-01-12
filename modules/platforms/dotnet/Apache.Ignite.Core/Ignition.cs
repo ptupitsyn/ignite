@@ -79,7 +79,8 @@ namespace Apache.Ignite.Core
         [SuppressMessage("Microsoft.Performance", "CA1810:InitializeReferenceTypeStaticFieldsInline")]
         static Ignition()
         {
-            AppDomain.CurrentDomain.AssemblyResolve += CurrentDomain_AssemblyResolve;
+            // TODO: Looks like we don't need this at all! Check if all tests pass.
+            //AppDomain.CurrentDomain.AssemblyResolve += CurrentDomain_AssemblyResolve;
         }
 
         /// <summary>
