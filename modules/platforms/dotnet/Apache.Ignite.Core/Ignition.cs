@@ -79,8 +79,11 @@ namespace Apache.Ignite.Core
         [SuppressMessage("Microsoft.Performance", "CA1810:InitializeReferenceTypeStaticFieldsInline")]
         static Ignition()
         {
-            // TODO: Looks like we don't need this at all! Check if all tests pass.
-            //AppDomain.CurrentDomain.AssemblyResolve += CurrentDomain_AssemblyResolve;
+            // TODO: This is likely needed with [Serializable] user types
+            // When assemblies differ slightly, but we want to resolve them loosely.
+            // Should we move this subscription to a place where we use BinaryFormatter?
+            // To avoid interfering with other user-defined code.
+            AppDomain.CurrentDomain.AssemblyResolve += CurrentDomain_AssemblyResolve;
         }
 
         /// <summary>
