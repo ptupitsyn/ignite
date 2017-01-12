@@ -70,7 +70,7 @@
     <Compile Include="Binary\BinaryReaderWriterTest.cs" />
     <Compile Include="Binary\IO\BinaryStreamsTest.cs" />
     <Compile Include="Binary\JavaTypeMappingTest.cs" />
-    <Compile Include="Binary\PeerAssemblyLoadingTest.cs" />
+    <Compile Include="Binary\Deployment\PeerAssemblyLoadingTest.cs" />
     <Compile Include="Binary\TypeResolverTest.cs" />
     <Compile Include="Cache\Affinity\AffinityKeyTest.cs" />
     <Compile Include="Cache\Affinity\AffinityTopologyVersionTest.cs" />
@@ -340,6 +340,9 @@
   <ItemGroup>
     <None Include="Apache.Ignite.Core.Tests.nunit" />
     <None Include="Apache.Ignite.Core.Tests.snk" />
+    <None Include="Binary\Deployment\peer_assembly_app.config">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Include="custom_app.config">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
