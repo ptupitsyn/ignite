@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-namespace Apache.Ignite.Core.Tests.Binary
+namespace Apache.Ignite.Core.Tests.Binary.Deployment
 {
     using System;
     using System.IO;
@@ -51,9 +51,12 @@ namespace Apache.Ignite.Core.Tests.Binary
             var exePath = Path.Combine(folder, "Apache.Ignite.exe");
 
             // Start separate Ignite process without loading current dll.
-            var appConfig = AppDomain.CurrentDomain.SetupInformation.ConfigurationFile;
-            var proc = IgniteProcess.Start(exePath, IgniteHome.Resolve(null) , null,
-                "-ConfigFileName=" + appConfig, "-ConfigSectionName=igniteConfiguration");
+            // ReSharper disable once AssignNullToNotNullAttribute
+            var config = Path.Combine(Path.GetDirectoryName(GetType().Assembly.Location),
+                "Binary\\Deployment\\peer_assembly_app.config");
+
+            var proc = IgniteProcess.Start(exePath, IgniteHome.Resolve(null), null,
+                "-ConfigFileName=" + config, "-ConfigSectionName=igniteConfiguration");
 
             Thread.Sleep(300);
             Assert.IsFalse(proc.HasExited);
