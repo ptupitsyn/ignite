@@ -43,7 +43,7 @@ namespace Apache.Ignite.Core.Impl.Binary.Deployment
 
             // TODO: Send GetAssemblyFunc to nodes one by one.
             // TODO: Track new nodes? Not sure if this makes sense, since some of the old nodes caused this call.
-            var dotNetNodes = ignite.GetCluster().ForDotNet().GetNodes();
+            var dotNetNodes = ignite.GetCluster().ForDotNet().ForRemotes().GetNodes();
             var func = new GetAssemblyFunc();
 
             foreach (var node in dotNetNodes)
