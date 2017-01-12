@@ -18,8 +18,9 @@
 namespace Apache.Ignite.Core.Tests.Binary
 {
     using System;
-    using System.Diagnostics;
+    using System.IO;
     using Apache.Ignite.Core.Compute;
+    using Apache.Ignite.Core.Impl;
     using Apache.Ignite.Core.Tests.Process;
     using NUnit.Framework;
 
@@ -36,13 +37,21 @@ namespace Apache.Ignite.Core.Tests.Binary
         [Test]
         public void TestStaticAssembly()
         {
+            // Copy Apache.Ignite.exe and Apache.Ignite.Core.dll 
+            // to a separate folder so that it does not locate our assembly automatically.
+            var folder = IgniteUtils.GetTempDirectoryName();
+            foreach (var asm in new[] {typeof(IgniteRunner).Assembly, typeof(Ignition).Assembly})
+            {
+                Assert.IsNotNull(asm.Location);
+                File.Copy(asm.Location, Path.Combine(folder, Path.GetFileName(asm.Location)));
+            }
+
+            var exePath = Path.Combine(folder, "Apache.Ignite.exe");
+
             // Start separate Ignite process without loading current dll.
             var appConfig = AppDomain.CurrentDomain.SetupInformation.ConfigurationFile;
-            var proc = new IgniteProcess(true, "-ConfigFileName="+appConfig, "-ConfigSectionName=igniteConfiguration");
-            Assert.IsTrue(proc.Alive);
-
-            // TODO: Since the assembly is in the same folder, it gets loaded automatically.
-            // We should use different exe path.
+            IgniteProcess.Start(exePath, string.Empty, null,
+                "-ConfigFileName=" + appConfig, "-ConfigSectionName=igniteConfiguration");
 
             // Start Ignite node in client mode to ensure that computations execute on standalone node.
             var cfg = new IgniteConfiguration(TestUtils.GetTestConfiguration()) {ClientMode = true};

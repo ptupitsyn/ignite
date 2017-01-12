@@ -132,42 +132,20 @@ namespace Apache.Ignite.Core.Tests.Process
         }
 
         /// <summary>
-        /// Constructor.
+        /// Construector.
         /// </summary>
         /// <param name="args">Arguments</param>
-        public IgniteProcess(params string[] args) : this(false, args) { }
+        public IgniteProcess(params string[] args) : this(DfltOutReader, args) { }
 
         /// <summary>
-        /// Constructor.
-        /// </summary>
-        /// <param name="skipTestAssembly">Skips test assembly.</param>
-        /// <param name="args">Arguments</param>
-        public IgniteProcess(bool skipTestAssembly, params string[] args) : this(skipTestAssembly, DfltOutReader, args)
-        {
-            // No-op.
-        }
-
-        /// <summary>
-        /// Constructor.
+        /// Construector.
         /// </summary>
         /// <param name="outReader">Output reader.</param>
         /// <param name="args">Arguments.</param>
-        public IgniteProcess(IIgniteProcessOutputReader outReader, params string[] args) : this (false, outReader, args)
-        {
-            // No-op.
-        }
-
-        /// <summary>
-        /// Constructor.
-        /// </summary>
-        /// <param name="skipTestAssembly">Skips test assembly.</param>
-        /// <param name="outReader">Output reader.</param>
-        /// <param name="args">Arguments.</param>
-        public IgniteProcess(bool skipTestAssembly, IIgniteProcessOutputReader outReader, params string[] args)
+        public IgniteProcess(IIgniteProcessOutputReader outReader, params string[] args)
         {
             // Add test dll path
-            if (!skipTestAssembly)
-                args = args.Concat(new[] {"-assembly=" + GetType().Assembly.Location}).ToArray();
+            args = args.Concat(new[] {"-assembly=" + GetType().Assembly.Location}).ToArray();
 
             _proc = Start(ExePath, IgniteHome.Resolve(null), outReader, args);
         }
