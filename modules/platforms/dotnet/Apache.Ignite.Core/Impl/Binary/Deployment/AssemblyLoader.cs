@@ -18,6 +18,7 @@
 namespace Apache.Ignite.Core.Impl.Binary.Deployment
 {
     using System.Diagnostics;
+    using System.IO;
     using System.Reflection;
 
     /// <summary>
@@ -32,6 +33,8 @@ namespace Apache.Ignite.Core.Impl.Binary.Deployment
         {
             Debug.Assert(bytes != null);
 
+            // TODO: Can this assembly be loaded from disk after that?
+            // We should make sure that THIS node can re-send the assembly down the line later.
             return Assembly.Load(bytes);
         }
 
@@ -42,8 +45,10 @@ namespace Apache.Ignite.Core.Impl.Binary.Deployment
         {
             Debug.Assert(assembly != null);
 
-            //  TODO: File.ReadAllBytes.
-            return null;
+            if (assembly.IsDynamic)
+                return null;
+
+            return File.ReadAllBytes(assembly.Location);
         }
     }
 }

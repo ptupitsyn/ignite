@@ -31,7 +31,11 @@ namespace Apache.Ignite.Core.Impl.Binary.Deployment
         {
             var type = new TypeResolver().ResolveType(arg);
 
-            return type == null ? null : AssemblyLoader.GetAssemblyBytes(type.Assembly);
+            // Dynamic assemblies are not supported.
+            if (type == null || type.Assembly.IsDynamic)
+                return null;
+
+            return AssemblyLoader.GetAssemblyBytes(type.Assembly);
         }
     }
 }
