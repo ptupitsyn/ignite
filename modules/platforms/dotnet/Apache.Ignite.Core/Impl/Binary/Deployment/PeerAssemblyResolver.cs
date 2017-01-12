@@ -28,12 +28,12 @@ namespace Apache.Ignite.Core.Impl.Binary.Deployment
         /// <summary>
         /// Gets the assembly from remote nodes.
         /// </summary>
-        /// <param name="typeName">Name of the type.</param>
+        /// <param name="assemblyName">Name of the type.</param>
         /// <param name="marshaller">The marshaller.</param>
-        public static Assembly GetAssembly(string typeName, Marshaller marshaller)
+        public static Assembly GetAssembly(string assemblyName, Marshaller marshaller)
         {
             // TODO: We may get type name or assembly name!
-            Debug.Assert(!string.IsNullOrWhiteSpace(typeName));
+            Debug.Assert(!string.IsNullOrWhiteSpace(assemblyName));
             Debug.Assert(marshaller != null);
 
             var ignite = marshaller.Ignite;
@@ -42,17 +42,16 @@ namespace Apache.Ignite.Core.Impl.Binary.Deployment
             if (!ignite.Configuration.IsPeerAssemblyLoadingEnabled)
                 return null;
 
-            // TODO: Send GetAssemblyFunc to nodes one by one.
             // TODO: Track new nodes? Not sure if this makes sense, since some of the old nodes caused this call.
             var dotNetNodes = ignite.GetCluster().ForDotNet().ForRemotes().GetNodes();
-            var func = new GetAssemblyFunc();
+            var func = new GetAssemblyByNameFunc();
 
             foreach (var node in dotNetNodes)
             {
                 var compute = ignite.GetCluster().ForNodes(node).GetCompute();
 
                 // TODO: What if the node leaves in process? We should handle this. Add test.
-                var asmBytes = compute.Apply(func, typeName);
+                var asmBytes = compute.Apply(func, assemblyName);
 
                 if (asmBytes != null)
                     return AssemblyLoader.LoadAssembly(asmBytes);

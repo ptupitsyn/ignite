@@ -14,18 +14,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-
 namespace Apache.Ignite.Core.Impl.Binary.Deployment
 {
-    using System;
     using Apache.Ignite.Core.Binary;
     using Apache.Ignite.Core.Compute;
 
     /// <summary>
-    /// Compute func that returns assembly for a specified type.
+    /// Compute func that returns assembly for a specified type name.
     /// </summary>
-    internal class GetAssemblyFunc : IComputeFunc<string, byte[]>, IBinaryWriteAware
+    internal class GetAssemblyByTypeNameFunc : IComputeFunc<string, byte[]>, IBinaryWriteAware
     {
         /** <inheritdoc /> */
         public byte[] Invoke(string arg)

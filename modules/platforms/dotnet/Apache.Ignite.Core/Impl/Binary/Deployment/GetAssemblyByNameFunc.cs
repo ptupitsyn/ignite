@@ -14,39 +14,34 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
+ 
 namespace Apache.Ignite.Core.Impl.Binary.Deployment
 {
-    using System.Diagnostics;
-    using System.IO;
-    using System.Reflection;
+    using Apache.Ignite.Core.Binary;
+    using Apache.Ignite.Core.Compute;
+    using Apache.Ignite.Core.Impl.Common;
 
     /// <summary>
-    /// Handles assembly loading and serialization.
+    /// Compute func that returns assembly for a specified name.
     /// </summary>
-    internal static class AssemblyLoader
+    internal class GetAssemblyByNameFunc : IComputeFunc<string, byte[]>, IBinaryWriteAware
     {
-        /// <summary>
-        /// Loads the assembly from bytes.
-        /// </summary>
-        public static Assembly LoadAssembly(byte[] bytes)
+        /** <inheritdoc /> */
+        public byte[] Invoke(string arg)
         {
-            Debug.Assert(bytes != null);
+            var asm = LoadedAssembliesResolver.Instance.GetAssembly(arg);
 
-            // TODO: Can this assembly be loaded from disk after that?
-            // We should make sure that THIS node can re-send the assembly down the line later.
-            return Assembly.Load(bytes);
+            // Dynamic assemblies are not supported.
+            if (asm.IsDynamic)
+                return null;
+
+            return AssemblyLoader.GetAssemblyBytes(asm);
         }
 
-        /// <summary>
-        /// Gets the assembly bytes.
-        /// </summary>
-        public static byte[] GetAssemblyBytes(Assembly assembly)
+        /** <inheritdoc /> */
+        public void WriteBinary(IBinaryWriter writer)
         {
-            Debug.Assert(assembly != null);
-            Debug.Assert(!assembly.IsDynamic);
-
-            return File.ReadAllBytes(assembly.Location);
+            // No-op.
         }
     }
 }
