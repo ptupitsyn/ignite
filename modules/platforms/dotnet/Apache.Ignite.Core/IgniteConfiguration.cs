@@ -32,6 +32,7 @@
     using Apache.Ignite.Core.Cluster;
     using Apache.Ignite.Core.Communication;
     using Apache.Ignite.Core.Communication.Tcp;
+    using Apache.Ignite.Core.Compute;
     using Apache.Ignite.Core.DataStructures.Configuration;
     using Apache.Ignite.Core.Discovery;
     using Apache.Ignite.Core.Discovery.Tcp;
@@ -805,5 +806,15 @@
         /// Gets or sets the swap space SPI.
         /// </summary>
         public ISwapSpaceSpi SwapSpaceSpi { get; set; }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether user assemblies should be loaded on remote nodes automatically.
+        /// <para />
+        /// For example, when executing <see cref="ICompute.Call{TRes}(IComputeFunc{TRes})"/>,
+        /// the assembly with corresponding <see cref="IComputeFunc{TRes}"/> should be present
+        /// in <see cref="AppDomain"/> on remote nodes. With this option enabled,
+        /// Ignite will attempt to send the assembly to remote nodes and load it there automatically.
+        /// </summary>
+        public bool IsPeerAssemblyLoadingEnabled { get; set; }
     }
 }

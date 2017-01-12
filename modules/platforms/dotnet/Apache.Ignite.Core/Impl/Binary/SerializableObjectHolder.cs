@@ -36,7 +36,7 @@ namespace Apache.Ignite.Core.Impl.Binary
         private readonly object _item;
 
         /** */
-        private static readonly ThreadLocal<bool> IsDeserializing = new ThreadLocal<bool>();
+        private static readonly ThreadLocal<BinaryReader> CurrentReader = new ThreadLocal<BinaryReader>();
 
         /// <summary>
         /// Initializes the <see cref="SerializableObjectHolder"/> class.
@@ -90,11 +90,18 @@ namespace Apache.Ignite.Core.Impl.Binary
         {
             Debug.Assert(reader != null);
 
-            IsDeserializing.Value = true;
+            CurrentReader.Value = reader;
 
-            using (var streamAdapter = new BinaryStreamAdapter(reader.Stream))
+            try
             {
-                _item = new BinaryFormatter().Deserialize(streamAdapter, null);
+                using (var streamAdapter = new BinaryStreamAdapter(reader.Stream))
+                {
+                    _item = new BinaryFormatter().Deserialize(streamAdapter, null);
+                }
+            }
+            finally
+            {
+                CurrentReader.Value = null;
             }
         }
 
@@ -106,14 +113,26 @@ namespace Apache.Ignite.Core.Impl.Binary
         /// <returns>Manually resolved assembly, or null.</returns>
         private static Assembly CurrentDomain_AssemblyResolve(object sender, ResolveEventArgs args)
         {
-            if (!IsDeserializing.Value)
+            var reader = CurrentReader.Value;
+
+            if (reader == null)
             {
                 // Use our resolvers only when actually deserializing a user object.
                 // Do not interfere with any other assembly loading process that user code may have.
                 return null;
             }
 
-            return LoadedAssembliesResolver.Instance.GetAssembly(args.Name);
+            var asm = LoadedAssembliesResolver.Instance.GetAssembly(args.Name);
+
+            if (asm != null)
+                return asm;
+
+            // TODO: move this to a separate class
+            if (!reader.Marshaller.Ignite.Configuration.IsPeerAssemblyLoadingEnabled)
+                return null;
+
+            // Peer loading is enabled, request assembly from other nodes.
+            return Assembly.Load(args.Name);  // TODO
         }
     }
 }
