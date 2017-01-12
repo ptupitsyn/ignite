@@ -29,7 +29,8 @@ namespace Apache.Ignite.Core.Impl.Common
     public class LoadedAssembliesResolver
     {
         // The lazy singleton instance.
-        private static readonly Lazy<LoadedAssembliesResolver> LazyInstance = new Lazy<LoadedAssembliesResolver>();
+        private static readonly Lazy<LoadedAssembliesResolver> LazyInstance =
+            new Lazy<LoadedAssembliesResolver>(() => new LoadedAssembliesResolver());
 
         // Assemblies map.
         private volatile Dictionary<string, Assembly> _map;
