@@ -32,6 +32,7 @@ namespace Apache.Ignite.Core.Impl.Binary.Deployment
         /// <param name="marshaller">The marshaller.</param>
         public static Assembly GetAssembly(string typeName, Marshaller marshaller)
         {
+            // TODO: We may get type name or assembly name!
             Debug.Assert(!string.IsNullOrWhiteSpace(typeName));
             Debug.Assert(marshaller != null);
 

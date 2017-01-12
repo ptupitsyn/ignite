@@ -19,12 +19,13 @@
 namespace Apache.Ignite.Core.Impl.Binary.Deployment
 {
     using System;
+    using Apache.Ignite.Core.Binary;
     using Apache.Ignite.Core.Compute;
 
     /// <summary>
     /// Compute func that returns assembly for a specified type.
     /// </summary>
-    internal class GetAssemblyFunc : IComputeFunc<string, byte[]>
+    internal class GetAssemblyFunc : IComputeFunc<string, byte[]>, IBinaryWriteAware
     {
         /** <inheritdoc /> */
         public byte[] Invoke(string arg)
@@ -36,6 +37,12 @@ namespace Apache.Ignite.Core.Impl.Binary.Deployment
                 return null;
 
             return AssemblyLoader.GetAssemblyBytes(type.Assembly);
+        }
+
+        /** <inheritdoc /> */
+        public void WriteBinary(IBinaryWriter writer)
+        {
+            // No-op.
         }
     }
 }
