@@ -20,6 +20,7 @@ namespace Apache.Ignite.Core.Tests.Binary.Deployment
     using System;
     using System.IO;
     using System.Threading;
+    using Apache.Ignite.Core.Binary;
     using Apache.Ignite.Core.Compute;
     using Apache.Ignite.Core.Impl;
     using Apache.Ignite.Core.Impl.Common;
@@ -34,10 +35,37 @@ namespace Apache.Ignite.Core.Tests.Binary.Deployment
     public class PeerAssemblyLoadingTest
     {
         /// <summary>
-        /// Tests that a normal assembly (loaded from disk) can be peer deployed.
+        /// Tests that a [Serializable] type can be peer deployed.
         /// </summary>
         [Test]
-        public void TestStaticAssembly()
+        public void TestSerializable()
+        {
+            TestDeployment(ignite =>
+            {
+                var result = ignite.GetCluster().ForRemotes().GetCompute().Call(new ProcessNameFuncSerializable());
+
+                Assert.AreEqual("Apache.Ignite", result);
+            });
+        }
+
+        /// <summary>
+        /// Tests that a binarizable type can be peer deployed.
+        /// </summary>
+        [Test]
+        public void TestBinarizable()
+        {
+            TestDeployment(ignite =>
+            {
+                var result = ignite.GetCluster().ForRemotes().GetCompute().Call(new ProcessNameFuncBinarizable());
+
+                Assert.AreEqual("Apache.Ignite", result);
+            });
+        }
+
+        /// <summary>
+        /// Tests the peer deployment.
+        /// </summary>
+        private void TestDeployment(Action<IIgnite> test)
         {
             // Copy Apache.Ignite.exe and Apache.Ignite.Core.dll 
             // to a separate folder so that it does not locate our assembly automatically.
@@ -62,17 +90,18 @@ namespace Apache.Ignite.Core.Tests.Binary.Deployment
             Assert.IsFalse(proc.HasExited);
 
             // Start Ignite and execute computation on remote node.
-            var cfg = new IgniteConfiguration(TestUtils.GetTestConfiguration());
+            var cfg = new IgniteConfiguration(TestUtils.GetTestConfiguration())
+            {
+                BinaryConfiguration = new BinaryConfiguration(typeof(ProcessNameFuncBinarizable))
+            };
 
             using (var ignite = Ignition.Start(cfg))
             {
                 Assert.IsTrue(ignite.WaitTopology(2));
 
-                for (int i = 0; i < 10; i++)
+                for (var i = 0; i < 10; i++)
                 {
-                    var result = ignite.GetCluster().ForRemotes().GetCompute().Call(new GetProcessNameFunc());
-
-                    Assert.AreEqual("Apache.Ignite", result);
+                    test(ignite);
                 }
             }
         }
@@ -97,7 +126,16 @@ namespace Apache.Ignite.Core.Tests.Binary.Deployment
         }
 
         [Serializable]
-        private class GetProcessNameFunc : IComputeFunc<string>
+        private class ProcessNameFuncSerializable : IComputeFunc<string>
+        {
+            public string Invoke()
+            {
+                // Debugger.Launch();
+                return System.Diagnostics.Process.GetCurrentProcess().ProcessName;
+            }
+        }
+
+        private class ProcessNameFuncBinarizable : IComputeFunc<string>
         {
             public string Invoke()
             {
