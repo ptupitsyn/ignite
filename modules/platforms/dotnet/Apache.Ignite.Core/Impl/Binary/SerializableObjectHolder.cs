@@ -24,6 +24,7 @@ namespace Apache.Ignite.Core.Impl.Binary
     using System.Runtime.Serialization.Formatters.Binary;
     using System.Threading;
     using Apache.Ignite.Core.Binary;
+    using Apache.Ignite.Core.Impl.Binary.Deployment;
     using Apache.Ignite.Core.Impl.Binary.IO;
     using Apache.Ignite.Core.Impl.Common;
 
@@ -122,17 +123,8 @@ namespace Apache.Ignite.Core.Impl.Binary
                 return null;
             }
 
-            var asm = LoadedAssembliesResolver.Instance.GetAssembly(args.Name);
-
-            if (asm != null)
-                return asm;
-
-            // TODO: move this to a separate class
-            if (!reader.Marshaller.Ignite.Configuration.IsPeerAssemblyLoadingEnabled)
-                return null;
-
-            // Peer loading is enabled, request assembly from other nodes.
-            return Assembly.Load(args.Name);  // TODO
+            return LoadedAssembliesResolver.Instance.GetAssembly(args.Name)
+                   ?? PeerAssemblyResolver.GetAssembly(args.Name, reader.Marshaller);
         }
     }
 }
