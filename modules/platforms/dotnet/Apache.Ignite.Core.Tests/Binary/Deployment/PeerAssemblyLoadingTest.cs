@@ -61,13 +61,19 @@ namespace Apache.Ignite.Core.Tests.Binary.Deployment
             Thread.Sleep(300);
             Assert.IsFalse(proc.HasExited);
 
-            // Start Ignite node in client mode to ensure that computations execute on standalone node.
-            var cfg = new IgniteConfiguration(TestUtils.GetTestConfiguration()) {ClientMode = true};
+            // Start Ignite and execute computation on remote node.
+            var cfg = new IgniteConfiguration(TestUtils.GetTestConfiguration());
+
             using (var ignite = Ignition.Start(cfg))
             {
-                var result = ignite.GetCompute().Call(new GetProcessNameFunc());
+                Assert.IsTrue(ignite.WaitTopology(2));
 
-                Assert.AreEqual("Apache.Ignite", result);
+                for (int i = 0; i < 10; i++)
+                {
+                    var result = ignite.GetCluster().ForRemotes().GetCompute().Call(new GetProcessNameFunc());
+
+                    Assert.AreEqual("Apache.Ignite", result);
+                }
             }
         }
 
