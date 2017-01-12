@@ -74,19 +74,6 @@ namespace Apache.Ignite.Core
         private static bool _clientMode;
 
         /// <summary>
-        /// Static initializer.
-        /// </summary>
-        [SuppressMessage("Microsoft.Performance", "CA1810:InitializeReferenceTypeStaticFieldsInline")]
-        static Ignition()
-        {
-            // TODO: This is likely needed with [Serializable] user types
-            // When assemblies differ slightly, but we want to resolve them loosely.
-            // Should we move this subscription to a place where we use BinaryFormatter?
-            // To avoid interfering with other user-defined code.
-            AppDomain.CurrentDomain.AssemblyResolve += CurrentDomain_AssemblyResolve;
-        }
-
-        /// <summary>
         /// Gets or sets a value indicating whether Ignite should be started in client mode.
         /// Client nodes cannot hold data in caches.
         /// </summary>
@@ -677,17 +664,6 @@ namespace Apache.Ignite.Core
             GC.Collect();
         }
         
-        /// <summary>
-        /// Handles the AssemblyResolve event of the CurrentDomain control.
-        /// </summary>
-        /// <param name="sender">The source of the event.</param>
-        /// <param name="args">The <see cref="ResolveEventArgs"/> instance containing the event data.</param>
-        /// <returns>Manually resolved assembly, or null.</returns>
-        private static Assembly CurrentDomain_AssemblyResolve(object sender, ResolveEventArgs args)
-        {
-            return LoadedAssembliesResolver.Instance.GetAssembly(args.Name);
-        }
-
         /// <summary>
         /// Grid key.
         /// </summary>

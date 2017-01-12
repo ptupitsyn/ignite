@@ -17,10 +17,15 @@
 
 namespace Apache.Ignite.Core.Impl.Binary
 {
+    using System;
     using System.Diagnostics;
+    using System.Diagnostics.CodeAnalysis;
+    using System.Reflection;
     using System.Runtime.Serialization.Formatters.Binary;
+    using System.Threading;
     using Apache.Ignite.Core.Binary;
     using Apache.Ignite.Core.Impl.Binary.IO;
+    using Apache.Ignite.Core.Impl.Common;
 
     /// <summary>
     /// Wraps Serializable item in a binarizable.
@@ -29,6 +34,20 @@ namespace Apache.Ignite.Core.Impl.Binary
     {
         /** */
         private readonly object _item;
+
+        /** */
+        private static readonly ThreadLocal<bool> IsDeserializing = new ThreadLocal<bool>();
+
+        /// <summary>
+        /// Initializes the <see cref="SerializableObjectHolder"/> class.
+        /// </summary>
+        [SuppressMessage("Microsoft.Performance", "CA1810:InitializeReferenceTypeStaticFieldsInline")]
+        static SerializableObjectHolder()
+        {
+            // This is needed with [Serializable] user types.
+            // When want to resolve assemblies based only on their name, excluding version.
+            AppDomain.CurrentDomain.AssemblyResolve += CurrentDomain_AssemblyResolve;
+        }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="SerializableObjectHolder"/> class.
@@ -71,10 +90,30 @@ namespace Apache.Ignite.Core.Impl.Binary
         {
             Debug.Assert(reader != null);
 
+            IsDeserializing.Value = true;
+
             using (var streamAdapter = new BinaryStreamAdapter(reader.Stream))
             {
                 _item = new BinaryFormatter().Deserialize(streamAdapter, null);
             }
+        }
+
+        /// <summary>
+        /// Handles the AssemblyResolve event of the CurrentDomain control.
+        /// </summary>
+        /// <param name="sender">The source of the event.</param>
+        /// <param name="args">The <see cref="ResolveEventArgs"/> instance containing the event data.</param>
+        /// <returns>Manually resolved assembly, or null.</returns>
+        private static Assembly CurrentDomain_AssemblyResolve(object sender, ResolveEventArgs args)
+        {
+            if (!IsDeserializing.Value)
+            {
+                // Use our resolvers only when actually deserializing a user object.
+                // Do not interfere with any other assembly loading process that user code may have.
+                return null;
+            }
+
+            return LoadedAssembliesResolver.Instance.GetAssembly(args.Name);
         }
     }
 }

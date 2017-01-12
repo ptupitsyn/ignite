@@ -37,7 +37,7 @@ namespace Apache.Ignite.Core.Impl.Common
         /// <summary>
         /// Initializes a new instance of the <see cref="LoadedAssembliesResolver"/> class.
         /// </summary>
-        public LoadedAssembliesResolver()
+        private LoadedAssembliesResolver()
         {
             lock (this)
             {
