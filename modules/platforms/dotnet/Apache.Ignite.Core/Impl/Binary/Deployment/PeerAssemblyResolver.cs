@@ -57,6 +57,7 @@ namespace Apache.Ignite.Core.Impl.Binary.Deployment
                     return AssemblyLoader.LoadAssembly(asmBytes);
             }
 
+            // TODO: Cache non-resolvable types (per Ignite instance).
             return null;
         }
     }

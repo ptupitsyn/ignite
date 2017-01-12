@@ -29,7 +29,9 @@ namespace Apache.Ignite.Core.Impl.Binary.Deployment
         /** <inheritdoc /> */
         public byte[] Invoke(string arg)
         {
-            throw new NotImplementedException();
+            var type = new TypeResolver().ResolveType(arg);
+
+            return type == null ? null : AssemblyLoader.GetAssemblyBytes(type.Assembly);
         }
     }
 }

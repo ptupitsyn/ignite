@@ -34,5 +34,16 @@ namespace Apache.Ignite.Core.Impl.Binary.Deployment
 
             return Assembly.Load(bytes);
         }
+
+        /// <summary>
+        /// Gets the assembly bytes.
+        /// </summary>
+        public static byte[] GetAssemblyBytes(Assembly assembly)
+        {
+            Debug.Assert(assembly != null);
+
+            //  TODO: File.ReadAllBytes.
+            return null;
+        }
     }
 }
