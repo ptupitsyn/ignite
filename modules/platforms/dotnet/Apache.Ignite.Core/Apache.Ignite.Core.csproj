@@ -99,6 +99,7 @@
     <Compile Include="Discovery\Tcp\Static\Package-Info.cs" />
     <Compile Include="Impl\Binary\BinaryProcessor.cs" />
     <Compile Include="Impl\Binary\BinaryReflectiveSerializerInternal.cs" />
+    <Compile Include="Impl\Binary\Deployment\AssemblyLoader.cs" />
     <Compile Include="Impl\Binary\Deployment\GetAssemblyFunc.cs" />
     <Compile Include="Impl\Binary\Deployment\PeerAssemblyResolver.cs" />
     <Compile Include="Impl\Binary\IBinarySerializerInternal.cs" />

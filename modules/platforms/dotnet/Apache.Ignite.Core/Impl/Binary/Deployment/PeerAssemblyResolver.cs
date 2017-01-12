@@ -34,10 +34,28 @@ namespace Apache.Ignite.Core.Impl.Binary.Deployment
         {
             Debug.Assert(!string.IsNullOrWhiteSpace(typeName));
             Debug.Assert(marshaller != null);
-            Debug.Assert(marshaller.Ignite != null);
 
-            if (!marshaller.Ignite.Configuration.IsPeerAssemblyLoadingEnabled)
+            var ignite = marshaller.Ignite;
+            Debug.Assert(ignite != null);
+
+            if (!ignite.Configuration.IsPeerAssemblyLoadingEnabled)
                 return null;
+
+            // TODO: Send GetAssemblyFunc to nodes one by one.
+            // TODO: Track new nodes? Not sure if this makes sense, since some of the old nodes caused this call.
+            var dotNetNodes = ignite.GetCluster().ForDotNet().GetNodes();
+            var func = new GetAssemblyFunc();
+
+            foreach (var node in dotNetNodes)
+            {
+                var compute = ignite.GetCluster().ForNodes(node).GetCompute();
+
+                // TODO: What if the node leaves in process? We should handle this. Add test.
+                var asmBytes = compute.Apply(func, typeName);
+
+                if (asmBytes != null)
+                    return AssemblyLoader.LoadAssembly(asmBytes);
+            }
 
             return null;
         }
