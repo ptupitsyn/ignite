@@ -19,8 +19,10 @@ namespace Apache.Ignite.Core.Tests.Binary
 {
     using System;
     using System.IO;
+    using System.Threading;
     using Apache.Ignite.Core.Compute;
     using Apache.Ignite.Core.Impl;
+    using Apache.Ignite.Core.Impl.Common;
     using Apache.Ignite.Core.Tests.Process;
     using NUnit.Framework;
 
@@ -50,8 +52,11 @@ namespace Apache.Ignite.Core.Tests.Binary
 
             // Start separate Ignite process without loading current dll.
             var appConfig = AppDomain.CurrentDomain.SetupInformation.ConfigurationFile;
-            IgniteProcess.Start(exePath, string.Empty, null,
+            var proc = IgniteProcess.Start(exePath, IgniteHome.Resolve(null) , null,
                 "-ConfigFileName=" + appConfig, "-ConfigSectionName=igniteConfiguration");
+
+            Thread.Sleep(300);
+            Assert.IsFalse(proc.HasExited);
 
             // Start Ignite node in client mode to ensure that computations execute on standalone node.
             var cfg = new IgniteConfiguration(TestUtils.GetTestConfiguration()) {ClientMode = true};
