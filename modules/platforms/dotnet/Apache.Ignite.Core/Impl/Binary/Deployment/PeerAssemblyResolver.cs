@@ -34,8 +34,6 @@ namespace Apache.Ignite.Core.Impl.Binary.Deployment
         /// <returns>Peer-loaded assembly or null.</returns>
         public static Assembly GetAssembly(string assemblyName, string typeName, Marshaller marshaller)
         {
-            // TODO: We may get type name or assembly name!
-            Debug.Assert(!string.IsNullOrWhiteSpace(assemblyName));
             Debug.Assert(marshaller != null);
 
             var ignite = marshaller.Ignite;
