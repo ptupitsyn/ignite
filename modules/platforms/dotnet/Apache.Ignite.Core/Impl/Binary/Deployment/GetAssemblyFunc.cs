@@ -82,7 +82,7 @@ namespace Apache.Ignite.Core.Impl.Binary.Deployment
                         "Peer assembly loading does not support dynamic assemblies: " + type.Assembly);
                 }
 
-                return new AssemblyRequestResult(AssemblyLoader.GetAssemblyBytes(type.Assembly));
+                return new AssemblyRequestResult(AssemblyLoader.GetAssemblyBytes(type.Assembly), type.FullName);
             }
 
             throw new IgniteException("AssemblyName and TypeId are null in AssemblyRequest.");

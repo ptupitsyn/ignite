@@ -17,6 +17,7 @@
 
 namespace Apache.Ignite.Core.Impl.Binary.Deployment
 {
+    using System;
     using System.Diagnostics;
     using System.Reflection;
 
@@ -35,7 +36,9 @@ namespace Apache.Ignite.Core.Impl.Binary.Deployment
         {
             Debug.Assert(string.IsNullOrEmpty(assemblyName));
 
-            return GetAssembly(assemblyName, null, marshaller);
+            var res = GetAssembly(assemblyName, null, marshaller);
+
+            return res == null ? null : AssemblyLoader.LoadAssembly(res.AssemblyBytes);
         }
 
         /// <summary>
@@ -44,9 +47,16 @@ namespace Apache.Ignite.Core.Impl.Binary.Deployment
         /// <param name="typeId">Type id.</param>
         /// <param name="marshaller">The marshaller.</param>
         /// <returns>Peer-loaded assembly or null.</returns>
-        public static Assembly GetAssembly(int typeId, Marshaller marshaller)
+        public static Type LoadAssemblyAndGetType(int typeId, Marshaller marshaller)
         {
-            return GetAssembly(null, typeId, marshaller);
+            var res =  GetAssembly(null, typeId, marshaller);
+
+            if (res == null)
+                return null;
+
+            var asm = AssemblyLoader.LoadAssembly(res.AssemblyBytes);
+
+            return asm.GetType(res.Message);
         }
 
         /// <summary>
@@ -55,8 +65,8 @@ namespace Apache.Ignite.Core.Impl.Binary.Deployment
         /// <param name="assemblyName">Name of the assembly.</param>
         /// <param name="typeId">Type id.</param>
         /// <param name="marshaller">The marshaller.</param>
-        /// <returns>Peer-loaded assembly or null.</returns>
-        private static Assembly GetAssembly(string assemblyName, int? typeId, Marshaller marshaller)
+        /// <returns>Successful result or null.</returns>
+        private static AssemblyRequestResult GetAssembly(string assemblyName, int? typeId, Marshaller marshaller)
         {
             Debug.Assert(marshaller != null);
 
@@ -80,7 +90,7 @@ namespace Apache.Ignite.Core.Impl.Binary.Deployment
 
                 if (result != null && result.AssemblyBytes != null)
                 {
-                    return AssemblyLoader.LoadAssembly(result.AssemblyBytes);
+                    return result;
                 }
 
                 // TODO: Handle error messages
