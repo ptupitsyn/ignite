@@ -23,6 +23,7 @@ namespace Apache.Ignite.Core.Impl.Binary
     using System.Diagnostics.CodeAnalysis;
     using System.IO;
     using Apache.Ignite.Core.Binary;
+    using Apache.Ignite.Core.Impl.Binary.Deployment;
     using Apache.Ignite.Core.Impl.Binary.IO;
     using Apache.Ignite.Core.Impl.Binary.Structure;
     using Apache.Ignite.Core.Impl.Common;
@@ -692,9 +693,10 @@ namespace Apache.Ignite.Core.Impl.Binary
                 {
                     // Find descriptor.
                     var desc = _marsh.GetDescriptor(hdr.IsUserType, hdr.TypeId);
+                    var type = desc.Type;
 
                     // Instantiate object. 
-                    if (desc.Type == null)
+                    if (type == null)
                     {
                         if (desc is BinarySurrogateTypeDescriptor)
                         {
@@ -704,11 +706,21 @@ namespace Apache.Ignite.Core.Impl.Binary
                                 "Make sure that all nodes have the same BinaryConfiguration.", hdr.TypeId));
                         }
 
-                        throw new BinaryObjectException(string.Format(
-                            "No matching type found for object [typeId={0}, typeName={1}]." +
-                            "This usually indicates that assembly with specified type is not loaded on a node." +
-                            "When using Apache.Ignite.exe, make sure to load assemblies with -assembly parameter.",
-                            desc.TypeId, desc.TypeName));
+                        var asm = PeerAssemblyResolver.GetAssembly(null, desc.TypeName, Marshaller);
+                        if (asm != null)
+                        {
+                            // TODO: Inefficient
+                            type = new TypeResolver().ResolveType(desc.TypeName, asm.FullName);
+                        }
+
+                        if (type == null)
+                        {
+                            throw new BinaryObjectException(string.Format(
+                                "No matching type found for object [typeId={0}, typeName={1}]." +
+                                "This usually indicates that assembly with specified type is not loaded on a node." +
+                                "When using Apache.Ignite.exe, make sure to load assemblies with -assembly parameter.",
+                                desc.TypeId, desc.TypeName));
+                        }
                     }
 
                     // Preserve old frame.
@@ -729,7 +741,7 @@ namespace Apache.Ignite.Core.Impl.Binary
                     // Read object.
                     Stream.Seek(pos + BinaryObjectHeader.Size, SeekOrigin.Begin);
 
-                    var obj = desc.Serializer.ReadBinary<T>(this, desc.Type, pos);
+                    var obj = desc.Serializer.ReadBinary<T>(this, type, pos);
 
                     _curStruct.UpdateReaderStructure();
 
