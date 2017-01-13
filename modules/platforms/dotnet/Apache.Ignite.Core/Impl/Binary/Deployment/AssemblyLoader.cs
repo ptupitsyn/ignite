@@ -20,6 +20,7 @@ namespace Apache.Ignite.Core.Impl.Binary.Deployment
     using System.Diagnostics;
     using System.IO;
     using System.Reflection;
+    using Apache.Ignite.Core.Impl.Common;
 
     /// <summary>
     /// Handles assembly loading and serialization.
@@ -27,15 +28,24 @@ namespace Apache.Ignite.Core.Impl.Binary.Deployment
     internal static class AssemblyLoader
     {
         /// <summary>
+        /// Cache of assemblies that are peer-loaded from byte array.
+        /// Keep these byte arrays to be able to send them further, because Location for such assemblies is empty.
+        /// </summary>
+        private static readonly CopyOnWriteConcurrentDictionary<Assembly, byte[]> InMemoryAssemblies 
+            = new CopyOnWriteConcurrentDictionary<Assembly, byte[]>();
+
+        /// <summary>
         /// Loads the assembly from bytes.
         /// </summary>
         public static Assembly LoadAssembly(byte[] bytes)
         {
             Debug.Assert(bytes != null);
 
-            // TODO: Can this assembly be loaded from disk after that?
-            // We should make sure that THIS node can re-send the assembly down the line later.
-            return Assembly.Load(bytes);
+            var asm = Assembly.Load(bytes);
+
+            InMemoryAssemblies.GetOrAdd(asm, _ => bytes);
+
+            return asm;
         }
 
         /// <summary>
@@ -45,6 +55,14 @@ namespace Apache.Ignite.Core.Impl.Binary.Deployment
         {
             Debug.Assert(assembly != null);
             Debug.Assert(!assembly.IsDynamic);
+
+            byte[] bytes;
+
+            if (InMemoryAssemblies.TryGetValue(assembly, out bytes))
+                return bytes;
+
+            if (string.IsNullOrEmpty(assembly.Location))
+                return null;
 
             return File.ReadAllBytes(assembly.Location);
         }
