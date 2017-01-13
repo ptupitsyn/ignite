@@ -65,7 +65,7 @@ namespace Apache.Ignite.Core.Tests
         [Test]
         public void TestPredefinedXml()
         {
-            var xml = @"<igniteConfig workDirectory='c:' JvmMaxMemoryMb='1024' MetricsLogFrequency='0:0:10' isDaemon='true' isLateAffinityAssignment='false' springConfigUrl='c:\myconfig.xml'>
+            var xml = @"<igniteConfig workDirectory='c:' JvmMaxMemoryMb='1024' MetricsLogFrequency='0:0:10' isDaemon='true' isLateAffinityAssignment='false' springConfigUrl='c:\myconfig.xml' isPeerAssemblyLoadingEnabled='true'>
                             <localhost>127.1.1.1</localhost>
                             <binaryConfiguration compactFooter='false'>
                                 <defaultNameMapper type='Apache.Ignite.Core.Tests.IgniteConfigurationSerializerTest+NameMapper' bar='testBar' />
@@ -214,6 +214,8 @@ namespace Apache.Ignite.Core.Tests
             Assert.AreEqual(25, swap.MaximumWriteQueueSize);
             Assert.AreEqual(36, swap.ReadStripesNumber);
             Assert.AreEqual(47, swap.WriteBufferSize);
+
+            Assert.IsTrue(cfg.IsPeerAssemblyLoadingEnabled);
         }
 
         /// <summary>
@@ -739,7 +741,8 @@ namespace Apache.Ignite.Core.Tests
                     WriteBufferSize = 66,
                     ReadStripesNumber = 77,
                     BaseDirectory = "test"
-                }
+                },
+                IsPeerAssemblyLoadingEnabled = true
             };
         }
 
