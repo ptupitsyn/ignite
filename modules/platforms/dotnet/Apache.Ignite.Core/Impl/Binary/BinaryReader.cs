@@ -708,6 +708,8 @@ namespace Apache.Ignite.Core.Impl.Binary
                         }
 
                         // TODO: Cache result in the descriptor.
+                        // TODO: Move p2p logic to Marshaller, 
+                        // so when specified it automatically loads assembly and updates mappings.
                         type = PeerAssemblyResolver.LoadAssemblyAndGetType(hdr.TypeId, Marshaller);
 
                         if (type == null)
