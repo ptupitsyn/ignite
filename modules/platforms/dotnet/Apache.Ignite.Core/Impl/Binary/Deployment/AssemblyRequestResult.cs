@@ -34,6 +34,24 @@ namespace Apache.Ignite.Core.Impl.Binary.Deployment
         /// Initializes a new instance of the <see cref="AssemblyRequestResult"/> class.
         /// </summary>
         /// <param name="assemblyBytes">The assembly bytes.</param>
+        public AssemblyRequestResult(byte[] assemblyBytes) : this(assemblyBytes, null)
+        {
+            // No-op.
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="AssemblyRequestResult"/> class.
+        /// </summary>
+        /// <param name="message">The message.</param>
+        public AssemblyRequestResult(string message) : this(null, message)
+        {
+            // No-op.
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="AssemblyRequestResult"/> class.
+        /// </summary>
+        /// <param name="assemblyBytes">The assembly bytes.</param>
         /// <param name="message">The message.</param>
         public AssemblyRequestResult(byte[] assemblyBytes, string message)
         {

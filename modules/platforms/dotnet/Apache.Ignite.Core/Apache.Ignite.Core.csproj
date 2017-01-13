@@ -102,8 +102,7 @@
     <Compile Include="Impl\Binary\Deployment\AssemblyLoader.cs" />
     <Compile Include="Impl\Binary\Deployment\AssemblyRequest.cs" />
     <Compile Include="Impl\Binary\Deployment\AssemblyRequestResult.cs" />
-    <Compile Include="Impl\Binary\Deployment\GetAssemblyByNameFunc.cs" />
-    <Compile Include="Impl\Binary\Deployment\GetAssemblyByTypeNameFunc.cs" />
+    <Compile Include="Impl\Binary\Deployment\GetAssemblyFunc.cs" />
     <Compile Include="Impl\Binary\Deployment\PeerAssemblyResolver.cs" />
     <Compile Include="Impl\Binary\IBinarySerializerInternal.cs" />
     <Compile Include="Binary\Package-Info.cs" />

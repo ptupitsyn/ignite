@@ -18,6 +18,7 @@
 namespace Apache.Ignite.Core.Impl.Binary.Deployment
 {
     using Apache.Ignite.Core.Binary;
+    using Apache.Ignite.Core.Impl.Common;
 
     /// <summary>
     /// Peer assembly request.
@@ -37,6 +38,9 @@ namespace Apache.Ignite.Core.Impl.Binary.Deployment
         /// <param name="typeName">Name of the type.</param>
         public AssemblyRequest(string assemblyName, string typeName)
         {
+            IgniteArgumentCheck.Ensure(assemblyName != null || typeName != null, 
+                "assemblyName", "AssemblyRequest must have either type of assembly specified");
+
             _assemblyName = assemblyName;
             _typeName = typeName;
         }

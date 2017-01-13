@@ -124,7 +124,7 @@ namespace Apache.Ignite.Core.Impl.Binary
             }
 
             return LoadedAssembliesResolver.Instance.GetAssembly(args.Name)
-                   ?? PeerAssemblyResolver.GetAssembly(args.Name, reader.Marshaller);
+                   ?? PeerAssemblyResolver.GetAssembly(args.Name, null, reader.Marshaller);
         }
     }
 }
