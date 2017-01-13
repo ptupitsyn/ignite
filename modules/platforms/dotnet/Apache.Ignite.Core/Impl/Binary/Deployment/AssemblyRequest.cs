@@ -20,35 +20,35 @@ namespace Apache.Ignite.Core.Impl.Binary.Deployment
     using Apache.Ignite.Core.Binary;
 
     /// <summary>
-    /// Peer assembly request result.
+    /// Peer assembly request.
     /// </summary>
-    internal class AssemblyRequestResult : IBinaryWriteAware
+    internal class AssemblyRequest : IBinaryWriteAware
     {
-        /** Assembly bytes. */
-        private readonly byte[] _assemblyBytes;
+        /** */
+        private readonly string _assemblyName;
 
-        /** Error message. */
-        private readonly string _message;
+        /** */
+        private readonly string _typeName;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="AssemblyRequestResult"/> class.
+        /// Initializes a new instance of the <see cref="AssemblyRequest"/> class.
         /// </summary>
-        /// <param name="assemblyBytes">The assembly bytes.</param>
-        /// <param name="message">The message.</param>
-        public AssemblyRequestResult(byte[] assemblyBytes, string message)
+        /// <param name="assemblyName">Name of the assembly.</param>
+        /// <param name="typeName">Name of the type.</param>
+        public AssemblyRequest(string assemblyName, string typeName)
         {
-            _assemblyBytes = assemblyBytes;
-            _message = message;
+            _assemblyName = assemblyName;
+            _typeName = typeName;
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="AssemblyRequestResult"/> class.
+        /// Initializes a new instance of the <see cref="AssemblyRequest"/> class.
         /// </summary>
         /// <param name="reader">The reader.</param>
-        public AssemblyRequestResult(IBinaryRawReader reader)
+        public AssemblyRequest(IBinaryRawReader reader)
         {
-            _assemblyBytes = reader.ReadByteArray();
-            _message = reader.ReadString();
+            _assemblyName = reader.ReadString();
+            _typeName = reader.ReadString();
         }
 
         /** <inheritdoc /> */
@@ -56,24 +56,24 @@ namespace Apache.Ignite.Core.Impl.Binary.Deployment
         {
             var raw = writer.GetRawWriter();
 
-            raw.WriteByteArray(_assemblyBytes);
-            raw.WriteString(_message);
+            raw.WriteString(_assemblyName);
+            raw.WriteString(_typeName);
         }
 
         /// <summary>
-        /// Gets the assembly bytes.
+        /// Gets the name of the assembly.
         /// </summary>
-        public byte[] AssemblyBytes
+        public string AssemblyName
         {
-            get { return _assemblyBytes; }
+            get { return _assemblyName; }
         }
 
         /// <summary>
-        /// Gets the message.
+        /// Gets the name of the type.
         /// </summary>
-        public string Message
+        public string TypeName
         {
-            get { return _message; }
+            get { return _typeName; }
         }
     }
 }
