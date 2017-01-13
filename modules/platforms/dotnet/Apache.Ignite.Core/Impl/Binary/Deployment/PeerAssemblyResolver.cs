@@ -32,11 +32,11 @@ namespace Apache.Ignite.Core.Impl.Binary.Deployment
         /// <param name="assemblyName">Name of the assembly.</param>
         /// <param name="marshaller">The marshaller.</param>
         /// <returns>Peer-loaded assembly or null.</returns>
-        public static Assembly GetAssembly(string assemblyName, Marshaller marshaller)
+        public static Assembly LoadAssembly(string assemblyName, Marshaller marshaller)
         {
-            Debug.Assert(string.IsNullOrEmpty(assemblyName));
+            Debug.Assert(!string.IsNullOrEmpty(assemblyName));
 
-            var res = GetAssembly(assemblyName, null, marshaller);
+            var res = RequestAssembly(assemblyName, null, marshaller);
 
             return res == null ? null : AssemblyLoader.LoadAssembly(res.AssemblyBytes);
         }
@@ -49,7 +49,7 @@ namespace Apache.Ignite.Core.Impl.Binary.Deployment
         /// <returns>Peer-loaded assembly or null.</returns>
         public static Type LoadAssemblyAndGetType(int typeId, Marshaller marshaller)
         {
-            var res =  GetAssembly(null, typeId, marshaller);
+            var res =  RequestAssembly(null, typeId, marshaller);
 
             if (res == null)
                 return null;
@@ -66,7 +66,7 @@ namespace Apache.Ignite.Core.Impl.Binary.Deployment
         /// <param name="typeId">Type id.</param>
         /// <param name="marshaller">The marshaller.</param>
         /// <returns>Successful result or null.</returns>
-        private static AssemblyRequestResult GetAssembly(string assemblyName, int? typeId, Marshaller marshaller)
+        private static AssemblyRequestResult RequestAssembly(string assemblyName, int? typeId, Marshaller marshaller)
         {
             Debug.Assert(marshaller != null);
 

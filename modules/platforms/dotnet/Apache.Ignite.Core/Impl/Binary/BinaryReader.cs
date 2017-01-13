@@ -20,6 +20,7 @@ namespace Apache.Ignite.Core.Impl.Binary
     using System;
     using System.Collections;
     using System.Collections.Generic;
+    using System.Diagnostics;
     using System.Diagnostics.CodeAnalysis;
     using System.IO;
     using Apache.Ignite.Core.Binary;
@@ -706,6 +707,7 @@ namespace Apache.Ignite.Core.Impl.Binary
                                 "Make sure that all nodes have the same BinaryConfiguration.", hdr.TypeId));
                         }
 
+                        // TODO: Cache result in the descriptor.
                         type = PeerAssemblyResolver.LoadAssemblyAndGetType(hdr.TypeId, Marshaller);
 
                         if (type == null)
@@ -736,6 +738,7 @@ namespace Apache.Ignite.Core.Impl.Binary
                     // Read object.
                     Stream.Seek(pos + BinaryObjectHeader.Size, SeekOrigin.Begin);
 
+                    // TODO: Serializer is null for p2p
                     var obj = desc.Serializer.ReadBinary<T>(this, type, pos);
 
                     _curStruct.UpdateReaderStructure();
