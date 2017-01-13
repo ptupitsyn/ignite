@@ -706,6 +706,9 @@ namespace Apache.Ignite.Core.Impl.Binary
                                 "Make sure that all nodes have the same BinaryConfiguration.", hdr.TypeId));
                         }
 
+                        // TODO: Resolve via type id, this is easier on the executing node 
+                        // than scanning everything with TypeResolver.
+                        // We can also get back a qualified type name.
                         var asm = PeerAssemblyResolver.GetAssembly(null, desc.TypeName, Marshaller);
                         if (asm != null)
                         {
