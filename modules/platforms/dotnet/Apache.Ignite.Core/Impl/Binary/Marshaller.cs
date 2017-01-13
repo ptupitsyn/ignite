@@ -602,6 +602,7 @@ namespace Apache.Ignite.Core.Impl.Binary
             AddSystemType(0, r => new ObjectInfoHolder(r));
             AddSystemType(0, r => new GetAssemblyByNameFunc());
             AddSystemType(0, r => new GetAssemblyByTypeNameFunc());
+            AddSystemType(0, r => new AssemblyRequestResult(r));
         }
     }
 }

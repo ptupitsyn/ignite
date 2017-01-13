@@ -14,35 +14,39 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
+
 namespace Apache.Ignite.Core.Impl.Binary.Deployment
 {
     using Apache.Ignite.Core.Binary;
-    using Apache.Ignite.Core.Compute;
-    using Apache.Ignite.Core.Impl.Common;
 
     /// <summary>
-    /// Compute func that returns assembly for a specified name.
+    /// Peer assembly request result.
     /// </summary>
-    internal class GetAssemblyByNameFunc : IComputeFunc<string, byte[]>, IBinaryWriteAware
+    internal class AssemblyRequestResult : IBinaryWriteAware
     {
-        /** <inheritdoc /> */
-        public byte[] Invoke(string arg)
+        /** Assembly bytes. */
+        private readonly byte[] _assemblyBytes;
+
+        /** Error message. */
+        private readonly string _message;
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="AssemblyRequestResult"/> class.
+        /// </summary>
+        /// <param name="reader">The reader.</param>
+        public AssemblyRequestResult(IBinaryRawReader reader)
         {
-            // TODO: Return an object with status code and error messages.
-            var asm = LoadedAssembliesResolver.Instance.GetAssembly(arg);
-
-            // Dynamic assemblies are not supported.
-            if (asm.IsDynamic)
-                return null;
-
-            return AssemblyLoader.GetAssemblyBytes(asm);
+            _assemblyBytes = reader.ReadByteArray();
+            _message = reader.ReadString();
         }
 
         /** <inheritdoc /> */
         public void WriteBinary(IBinaryWriter writer)
         {
-            // No-op.
+            var raw = writer.GetRawWriter();
+
+            raw.WriteByteArray(_assemblyBytes);
+            raw.WriteString(_message);
         }
     }
 }
