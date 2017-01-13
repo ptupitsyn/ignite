@@ -29,10 +29,34 @@ namespace Apache.Ignite.Core.Impl.Binary.Deployment
         /// Gets the assembly from remote nodes.
         /// </summary>
         /// <param name="assemblyName">Name of the assembly.</param>
+        /// <param name="marshaller">The marshaller.</param>
+        /// <returns>Peer-loaded assembly or null.</returns>
+        public static Assembly GetAssembly(string assemblyName, Marshaller marshaller)
+        {
+            Debug.Assert(string.IsNullOrEmpty(assemblyName));
+
+            return GetAssembly(assemblyName, null, marshaller);
+        }
+
+        /// <summary>
+        /// Gets the assembly from remote nodes.
+        /// </summary>
         /// <param name="typeId">Type id.</param>
         /// <param name="marshaller">The marshaller.</param>
         /// <returns>Peer-loaded assembly or null.</returns>
-        public static Assembly GetAssembly(string assemblyName, int? typeId, Marshaller marshaller)
+        public static Assembly GetAssembly(int typeId, Marshaller marshaller)
+        {
+            return GetAssembly(null, typeId, marshaller);
+        }
+
+        /// <summary>
+        /// Gets the assembly from remote nodes.
+        /// </summary>
+        /// <param name="assemblyName">Name of the assembly.</param>
+        /// <param name="typeId">Type id.</param>
+        /// <param name="marshaller">The marshaller.</param>
+        /// <returns>Peer-loaded assembly or null.</returns>
+        private static Assembly GetAssembly(string assemblyName, int? typeId, Marshaller marshaller)
         {
             Debug.Assert(marshaller != null);
 

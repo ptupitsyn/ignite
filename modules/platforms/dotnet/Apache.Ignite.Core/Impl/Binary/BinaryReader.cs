@@ -707,7 +707,7 @@ namespace Apache.Ignite.Core.Impl.Binary
                         }
 
                         // We can also get back a qualified type name.
-                        var asm = PeerAssemblyResolver.GetAssembly(null, hdr.TypeId, Marshaller);
+                        var asm = PeerAssemblyResolver.GetAssembly(hdr.TypeId, Marshaller);
                         if (asm != null)
                         {
                             // TODO: Inefficient, get fully qualified type name from assembly resolver
