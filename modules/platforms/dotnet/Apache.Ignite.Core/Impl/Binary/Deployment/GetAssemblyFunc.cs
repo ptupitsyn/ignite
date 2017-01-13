@@ -17,6 +17,7 @@
  
 namespace Apache.Ignite.Core.Impl.Binary.Deployment
 {
+    using System.Diagnostics;
     using Apache.Ignite.Core.Binary;
     using Apache.Ignite.Core.Common;
     using Apache.Ignite.Core.Compute;
@@ -27,6 +28,20 @@ namespace Apache.Ignite.Core.Impl.Binary.Deployment
     /// </summary>
     internal class GetAssemblyFunc : IComputeFunc<AssemblyRequest, AssemblyRequestResult>, IBinaryWriteAware
     {
+        /** Marshaller. */
+        private readonly Marshaller _marshaller;
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="GetAssemblyFunc"/> class.
+        /// </summary>
+        /// <param name="marshaller">The marshaller.</param>
+        public GetAssemblyFunc(Marshaller marshaller)
+        {
+            Debug.Assert(marshaller != null);
+
+            _marshaller = marshaller;
+        }
+
         /** <inheritdoc /> */
         public AssemblyRequestResult Invoke(AssemblyRequest arg)
         {
@@ -51,14 +66,15 @@ namespace Apache.Ignite.Core.Impl.Binary.Deployment
                 return new AssemblyRequestResult(AssemblyLoader.GetAssemblyBytes(asm));
             }
 
-            if (arg.TypeName != null)
+            if (arg.TypeId != null)
             {
-                var type = new TypeResolver().ResolveType(arg.TypeName);
+                var desc = _marshaller.GetDescriptor(true, arg.TypeId.Value);
 
-                if (type == null)
+                if (desc == null || desc.Type == null)
                     return null;
 
-                // Dynamic assemblies are not supported.
+                var type = desc.Type;
+
                 // Dynamic assemblies are not supported.
                 if (type.Assembly.IsDynamic)
                 {
@@ -69,7 +85,7 @@ namespace Apache.Ignite.Core.Impl.Binary.Deployment
                 return new AssemblyRequestResult(AssemblyLoader.GetAssemblyBytes(type.Assembly));
             }
 
-            throw new IgniteException("AssemblyName and TypeName are null in AssemblyRequest.");
+            throw new IgniteException("AssemblyName and TypeId are null in AssemblyRequest.");
         }
 
         /** <inheritdoc /> */

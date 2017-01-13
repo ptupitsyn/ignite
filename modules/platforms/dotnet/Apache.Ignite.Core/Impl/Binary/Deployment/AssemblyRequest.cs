@@ -29,20 +29,20 @@ namespace Apache.Ignite.Core.Impl.Binary.Deployment
         private readonly string _assemblyName;
 
         /** */
-        private readonly string _typeName;
+        private readonly int? _typeId;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="AssemblyRequest"/> class.
         /// </summary>
         /// <param name="assemblyName">Name of the assembly.</param>
-        /// <param name="typeName">Name of the type.</param>
-        public AssemblyRequest(string assemblyName, string typeName)
+        /// <param name="typeId">Type id.</param>
+        public AssemblyRequest(string assemblyName, int? typeId)
         {
-            IgniteArgumentCheck.Ensure(assemblyName != null || typeName != null, 
+            IgniteArgumentCheck.Ensure(assemblyName != null || typeId != null, 
                 "assemblyName", "AssemblyRequest must have either type of assembly specified");
 
             _assemblyName = assemblyName;
-            _typeName = typeName;
+            _typeId = typeId;
         }
 
         /// <summary>
@@ -52,7 +52,7 @@ namespace Apache.Ignite.Core.Impl.Binary.Deployment
         public AssemblyRequest(IBinaryRawReader reader)
         {
             _assemblyName = reader.ReadString();
-            _typeName = reader.ReadString();
+            _typeId = reader.ReadIntNullable();
         }
 
         /** <inheritdoc /> */
@@ -61,7 +61,7 @@ namespace Apache.Ignite.Core.Impl.Binary.Deployment
             var raw = writer.GetRawWriter();
 
             raw.WriteString(_assemblyName);
-            raw.WriteString(_typeName);
+            raw.WriteIntNullable(_typeId);
         }
 
         /// <summary>
@@ -73,11 +73,11 @@ namespace Apache.Ignite.Core.Impl.Binary.Deployment
         }
 
         /// <summary>
-        /// Gets the name of the type.
+        /// Gets the type id.
         /// </summary>
-        public string TypeName
+        public int? TypeId
         {
-            get { return _typeName; }
+            get { return _typeId; }
         }
     }
 }

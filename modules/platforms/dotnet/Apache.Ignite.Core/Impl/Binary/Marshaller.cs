@@ -600,7 +600,7 @@ namespace Apache.Ignite.Core.Impl.Binary
             AddSystemType(0, r => new AffinityKey(r), "affKey");
             AddSystemType(BinaryUtils.TypePlatformJavaObjectFactoryProxy, r => new PlatformJavaObjectFactoryProxy());
             AddSystemType(0, r => new ObjectInfoHolder(r));
-            AddSystemType(0, r => new GetAssemblyFunc());
+            AddSystemType(0, r => new GetAssemblyFunc(r.Marshaller));
             AddSystemType(0, r => new AssemblyRequest(r));
             AddSystemType(0, r => new AssemblyRequestResult(r));
         }

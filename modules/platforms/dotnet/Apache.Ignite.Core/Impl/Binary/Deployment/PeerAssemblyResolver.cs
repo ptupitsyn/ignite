@@ -29,10 +29,10 @@ namespace Apache.Ignite.Core.Impl.Binary.Deployment
         /// Gets the assembly from remote nodes.
         /// </summary>
         /// <param name="assemblyName">Name of the assembly.</param>
-        /// <param name="typeName">Name of the type.</param>
+        /// <param name="typeId">Type id.</param>
         /// <param name="marshaller">The marshaller.</param>
         /// <returns>Peer-loaded assembly or null.</returns>
-        public static Assembly GetAssembly(string assemblyName, string typeName, Marshaller marshaller)
+        public static Assembly GetAssembly(string assemblyName, int? typeId, Marshaller marshaller)
         {
             Debug.Assert(marshaller != null);
 
@@ -44,8 +44,8 @@ namespace Apache.Ignite.Core.Impl.Binary.Deployment
 
             // TODO: Track new nodes? Not sure if this makes sense, since some of the old nodes caused this call.
             var dotNetNodes = ignite.GetCluster().ForDotNet().ForRemotes().GetNodes();
-            var func = new GetAssemblyFunc();
-            var req = new AssemblyRequest(assemblyName, typeName);
+            var func = new GetAssemblyFunc(marshaller);
+            var req = new AssemblyRequest(assemblyName, typeId);
 
             foreach (var node in dotNetNodes)
             {
