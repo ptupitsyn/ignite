@@ -699,6 +699,7 @@ namespace Apache.Ignite.Core.Impl.Binary
                         if (desc is BinarySurrogateTypeDescriptor)
                             throw new BinaryObjectException("Unknown type ID: " + hdr.TypeId);
 
+                        // TODO: Trigger peer loading.
                         throw new BinaryObjectException("No matching type found for object [typeId=" +
                                                         desc.TypeId + ", typeName=" + desc.TypeName + ']');
                     }

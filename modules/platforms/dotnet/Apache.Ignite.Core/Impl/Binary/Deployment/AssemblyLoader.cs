@@ -41,6 +41,7 @@ namespace Apache.Ignite.Core.Impl.Binary.Deployment
         {
             Debug.Assert(bytes != null);
 
+            // It is fine to load the same assembly twice => no synchronization needed.
             var asm = Assembly.Load(bytes);
 
             InMemoryAssemblies.GetOrAdd(asm, _ => bytes);
