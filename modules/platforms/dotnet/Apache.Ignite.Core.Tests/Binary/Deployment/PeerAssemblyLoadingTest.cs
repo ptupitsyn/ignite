@@ -21,7 +21,6 @@ namespace Apache.Ignite.Core.Tests.Binary.Deployment
     using System.IO;
     using System.Threading;
     using Apache.Ignite.Core.Binary;
-    using Apache.Ignite.Core.Compute;
     using Apache.Ignite.Core.Impl;
     using Apache.Ignite.Core.Impl.Common;
     using Apache.Ignite.Core.Tests.Process;
@@ -123,25 +122,6 @@ namespace Apache.Ignite.Core.Tests.Binary.Deployment
         public void TestDynamicAssembly()
         {
             // TODO: ???
-        }
-
-        [Serializable]
-        private class ProcessNameFuncSerializable : IComputeFunc<string>
-        {
-            public string Invoke()
-            {
-                // Debugger.Launch();
-                return System.Diagnostics.Process.GetCurrentProcess().ProcessName;
-            }
-        }
-
-        private class ProcessNameFuncBinarizable : IComputeFunc<string>
-        {
-            public string Invoke()
-            {
-                // Debugger.Launch();
-                return System.Diagnostics.Process.GetCurrentProcess().ProcessName;
-            }
         }
     }
 }

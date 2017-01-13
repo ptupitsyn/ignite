@@ -68,6 +68,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Binary\BinaryReaderWriterTest.cs" />
+    <Compile Include="Binary\Deployment\ProcessNameFuncBinarizable.cs" />
+    <Compile Include="Binary\Deployment\ProcessNameFuncSerializable.cs" />
     <Compile Include="Binary\IO\BinaryStreamsTest.cs" />
     <Compile Include="Binary\JavaTypeMappingTest.cs" />
     <Compile Include="Binary\Deployment\PeerAssemblyLoadingTest.cs" />
