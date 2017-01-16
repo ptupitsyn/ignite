@@ -126,5 +126,21 @@ namespace Apache.Ignite.Core.Impl.Binary
             return LoadedAssembliesResolver.Instance.GetAssembly(args.Name)
                    ?? PeerAssemblyResolver.LoadAssembly(args.Name, reader.Marshaller);
         }
+
+        /** <inheritdoc /> */
+        public override bool Equals(object obj)
+        {
+            if (ReferenceEquals(null, obj)) return false;
+            if (ReferenceEquals(this, obj)) return true;
+            if (obj.GetType() != GetType()) return false;
+
+            return Equals(_item, ((SerializableObjectHolder) obj)._item);
+        }
+
+        /** <inheritdoc /> */
+        public override int GetHashCode()
+        {
+            return _item != null ? _item.GetHashCode() : 0;
+        }
     }
 }
