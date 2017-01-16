@@ -404,7 +404,17 @@ namespace Apache.Ignite.Core.Impl.Binary
 
             if (_idToDesc.TryGetValue(typeKey, out desc))
             {
-                // TODO: Peer loading
+                if (desc.Type == null && allowPeerAssemblyLoading && Ignite.Configuration.IsPeerAssemblyLoadingEnabled)
+                {
+                    var type = PeerAssemblyResolver.LoadAssemblyAndGetType(typeId, this);
+
+                    desc = new BinaryFullTypeDescriptor(type, desc.TypeId, desc.TypeName, desc.UserType, 
+                        desc.NameMapper, desc.IdMapper, desc.Serializer, desc.KeepDeserialized, 
+                        desc.AffinityKeyFieldName, desc.IsEnum);
+
+                    _idToDesc.Set(typeKey, desc);
+                }
+
                 return desc;
             }
 
