@@ -41,7 +41,8 @@ namespace Apache.Ignite.Core.Impl.Binary.Deployment
         {
             Debug.Assert(bytes != null);
 
-            // It is fine to load the same assembly twice => no synchronization needed.
+            // TODO: We must be sure to never load the same assembly twice, because it leads to
+            // InvalidCastException with message like "Type A originates from <>. Type A originates from <>."
             var asm = Assembly.Load(bytes);
 
             InMemoryAssemblies.GetOrAdd(asm, _ => bytes);
