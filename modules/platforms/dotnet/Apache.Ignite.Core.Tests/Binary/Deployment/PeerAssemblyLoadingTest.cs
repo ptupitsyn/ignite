@@ -52,6 +52,15 @@ namespace Apache.Ignite.Core.Tests.Binary.Deployment
         }
 
         /// <summary>
+        /// Tests that a [Serializable] type which requires multiple assemblies can be peer deployed.
+        /// </summary>
+        [Test]
+        public void TestSerializableMultipleAssemblies()
+        {
+            // TODO
+        }
+
+        /// <summary>
         /// Tests that a binarizable type can be peer deployed.
         /// </summary>
         [Test]
@@ -63,6 +72,15 @@ namespace Apache.Ignite.Core.Tests.Binary.Deployment
 
                 Assert.AreEqual("Apache.Ignite", result);
             });
+        }
+
+        /// <summary>
+        /// Tests that a binarizable type which requires multiple assemblies can be peer deployed.
+        /// </summary>
+        [Test]
+        public void TestBinarizableMultipleAssemblies()
+        {
+            // TODO
         }
 
         /// <summary>
