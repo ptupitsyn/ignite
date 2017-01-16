@@ -693,7 +693,7 @@ namespace Apache.Ignite.Core.Impl.Binary
                 else
                 {
                     // Find descriptor.
-                    var desc = _marsh.GetDescriptor(hdr.IsUserType, hdr.TypeId);
+                    var desc = _marsh.GetDescriptor(hdr.IsUserType, hdr.TypeId, true);
                     var type = desc.Type;
 
                     // Instantiate object. 
@@ -707,19 +707,11 @@ namespace Apache.Ignite.Core.Impl.Binary
                                 "Make sure that all nodes have the same BinaryConfiguration.", hdr.TypeId));
                         }
 
-                        // TODO: Cache result in the descriptor.
-                        // TODO: Move p2p logic to Marshaller, 
-                        // so when specified it automatically loads assembly and updates mappings.
-                        type = PeerAssemblyResolver.LoadAssemblyAndGetType(hdr.TypeId, Marshaller);
-
-                        if (type == null)
-                        {
-                            throw new BinaryObjectException(string.Format(
-                                "No matching type found for object [typeId={0}, typeName={1}]." +
-                                "This usually indicates that assembly with specified type is not loaded on a node." +
-                                "When using Apache.Ignite.exe, make sure to load assemblies with -assembly parameter.",
-                                desc.TypeId, desc.TypeName));
-                        }
+                        throw new BinaryObjectException(string.Format(
+                            "No matching type found for object [typeId={0}, typeName={1}]." +
+                            "This usually indicates that assembly with specified type is not loaded on a node." +
+                            "When using Apache.Ignite.exe, make sure to load assemblies with -assembly parameter.",
+                            desc.TypeId, desc.TypeName));
                     }
 
                     // Preserve old frame.

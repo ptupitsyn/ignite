@@ -391,15 +391,22 @@ namespace Apache.Ignite.Core.Impl.Binary
         /// </summary>
         /// <param name="userType">User type flag.</param>
         /// <param name="typeId">Type id.</param>
-        /// <returns>Descriptor.</returns>
-        public IBinaryTypeDescriptor GetDescriptor(bool userType, int typeId)
+        /// <param name="allowPeerAssemblyLoading">if set to <c>true</c>, attempt to load the assembly and
+        /// populate IBinaryTypeDescriptor.Type property (when enabled in IgniteConfiguration).</param>
+        /// <returns>
+        /// Descriptor.
+        /// </returns>
+        public IBinaryTypeDescriptor GetDescriptor(bool userType, int typeId, bool allowPeerAssemblyLoading = false)
         {
             IBinaryTypeDescriptor desc;
 
             var typeKey = BinaryUtils.TypeKey(userType, typeId);
 
             if (_idToDesc.TryGetValue(typeKey, out desc))
+            {
+                // TODO: Peer loading
                 return desc;
+            }
 
             if (!userType)
                 return null;
@@ -408,7 +415,11 @@ namespace Apache.Ignite.Core.Impl.Binary
 
             if (meta != BinaryType.Empty)
             {
-                desc = new BinaryFullTypeDescriptor(null, meta.TypeId, meta.TypeName, true, null, null, null, false, 
+                var type = allowPeerAssemblyLoading && Ignite.Configuration.IsPeerAssemblyLoadingEnabled
+                    ? PeerAssemblyResolver.LoadAssemblyAndGetType(typeId, this)
+                    : null;
+
+                desc = new BinaryFullTypeDescriptor(type, meta.TypeId, meta.TypeName, true, null, null, null, false, 
                     meta.AffinityKeyFieldName, meta.IsEnum);
 
                 _idToDesc.GetOrAdd(typeKey, _ => desc);
