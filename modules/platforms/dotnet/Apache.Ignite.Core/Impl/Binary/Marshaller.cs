@@ -410,7 +410,7 @@ namespace Apache.Ignite.Core.Impl.Binary
 
                     if (type != null)
                     {
-                        // TODO: Find corresponding type configuration?
+                        // TODO: Find corresponding type configuration? Should we store it in descriptor?
                         var serializer = desc.Serializer ??
                                          GetSerializer(_cfg, null, type, typeId, desc.NameMapper, desc.IdMapper);
 
@@ -436,8 +436,10 @@ namespace Apache.Ignite.Core.Impl.Binary
                     ? PeerAssemblyResolver.LoadAssemblyAndGetType(typeId, this)
                     : null;
 
-                desc = new BinaryFullTypeDescriptor(type, meta.TypeId, meta.TypeName, true, null, null, null, false, 
-                    meta.AffinityKeyFieldName, meta.IsEnum);
+                var serializer = GetSerializer(_cfg, null, type, typeId, desc.NameMapper, desc.IdMapper);
+
+                desc = new BinaryFullTypeDescriptor(type, meta.TypeId, meta.TypeName, true, null, null, serializer,
+                    false, meta.AffinityKeyFieldName, meta.IsEnum);
 
                 _idToDesc.GetOrAdd(typeKey, _ => desc);
 
