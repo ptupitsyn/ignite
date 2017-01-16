@@ -732,7 +732,6 @@ namespace Apache.Ignite.Core.Impl.Binary
                     // Read object.
                     Stream.Seek(pos + BinaryObjectHeader.Size, SeekOrigin.Begin);
 
-                    // TODO: Serializer is null for p2p
                     var obj = desc.Serializer.ReadBinary<T>(this, type, pos);
 
                     _curStruct.UpdateReaderStructure();

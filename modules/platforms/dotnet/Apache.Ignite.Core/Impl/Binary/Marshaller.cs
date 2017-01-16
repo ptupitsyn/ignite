@@ -408,6 +408,7 @@ namespace Apache.Ignite.Core.Impl.Binary
                 {
                     var type = PeerAssemblyResolver.LoadAssemblyAndGetType(typeId, this);
 
+                    // TODO: Serializer is null for p2p
                     desc = new BinaryFullTypeDescriptor(type, desc.TypeId, desc.TypeName, desc.UserType, 
                         desc.NameMapper, desc.IdMapper, desc.Serializer, desc.KeepDeserialized, 
                         desc.AffinityKeyFieldName, desc.IsEnum);
