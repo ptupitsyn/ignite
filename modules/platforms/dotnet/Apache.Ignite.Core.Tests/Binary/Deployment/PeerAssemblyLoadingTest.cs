@@ -58,6 +58,8 @@ namespace Apache.Ignite.Core.Tests.Binary.Deployment
                 var result = ignite.GetCluster().ForRemotes().GetCompute().Call(new ProcessNameFuncBinarizable());
 
                 Assert.AreEqual("Apache.Ignite", result);
+
+                // TODO: Test with binary object
             });
         }
 
