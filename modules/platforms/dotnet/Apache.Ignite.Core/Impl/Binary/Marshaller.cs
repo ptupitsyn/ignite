@@ -406,7 +406,11 @@ namespace Apache.Ignite.Core.Impl.Binary
             {
                 if (desc.Type == null && allowPeerAssemblyLoading && Ignite.Configuration.IsPeerAssemblyLoadingEnabled)
                 {
-                    var type = PeerAssemblyResolver.LoadAssemblyAndGetType(typeId, this);
+                    // TODO: Do everything in a lock. We do not want to do the same peer loading twice.
+
+                    // Call TypeResolver first: assembly may be already loaded.
+                    var type = new TypeResolver().ResolveType(desc.TypeName) ??
+                        PeerAssemblyResolver.LoadAssemblyAndGetType(typeId, this);
 
                     if (type != null)
                     {
@@ -432,8 +436,10 @@ namespace Apache.Ignite.Core.Impl.Binary
 
             if (meta != BinaryType.Empty)
             {
+                // Call TypeResolver first: assembly may be already loaded.
                 var type = allowPeerAssemblyLoading && Ignite.Configuration.IsPeerAssemblyLoadingEnabled
-                    ? PeerAssemblyResolver.LoadAssemblyAndGetType(typeId, this)
+                    ? new TypeResolver().ResolveType(meta.TypeName) ??
+                      PeerAssemblyResolver.LoadAssemblyAndGetType(typeId, this)
                     : null;
 
                 var serializer = GetSerializer(_cfg, null, type, typeId, desc.NameMapper, desc.IdMapper);
