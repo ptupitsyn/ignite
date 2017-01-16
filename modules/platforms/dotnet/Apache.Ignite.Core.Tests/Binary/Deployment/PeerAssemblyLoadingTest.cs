@@ -21,6 +21,7 @@ namespace Apache.Ignite.Core.Tests.Binary.Deployment
     using System.IO;
     using System.Threading;
     using Apache.Ignite.Core.Binary;
+    using Apache.Ignite.Core.Cache;
     using Apache.Ignite.Core.Impl;
     using Apache.Ignite.Core.Impl.Common;
     using Apache.Ignite.Core.Tests.Process;
@@ -41,9 +42,12 @@ namespace Apache.Ignite.Core.Tests.Binary.Deployment
         {
             TestDeployment(ignite =>
             {
+                ignite.GetOrCreateCache<int, ProcessNameFuncBinarizable>((string)null)[1] =
+                    new ProcessNameFuncBinarizable { Foo = "foo" };
+
                 var result = ignite.GetCluster().ForRemotes().GetCompute().Call(new ProcessNameFuncSerializable());
 
-                Assert.AreEqual("Apache.Ignite", result);
+                Assert.AreEqual("fooApache.Ignite", result);
             });
         }
 
@@ -58,8 +62,6 @@ namespace Apache.Ignite.Core.Tests.Binary.Deployment
                 var result = ignite.GetCluster().ForRemotes().GetCompute().Call(new ProcessNameFuncBinarizable());
 
                 Assert.AreEqual("Apache.Ignite", result);
-
-                // TODO: Test with binary object
             });
         }
 

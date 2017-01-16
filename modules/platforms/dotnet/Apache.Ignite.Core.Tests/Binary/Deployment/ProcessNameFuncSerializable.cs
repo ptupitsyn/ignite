@@ -18,7 +18,9 @@
 namespace Apache.Ignite.Core.Tests.Binary.Deployment
 {
     using System;
+    using Apache.Ignite.Core.Binary;
     using Apache.Ignite.Core.Compute;
+    using Apache.Ignite.Core.Resource;
 
     /// <summary>
     /// Serializable func.
@@ -26,10 +28,18 @@ namespace Apache.Ignite.Core.Tests.Binary.Deployment
     [Serializable]
     public class ProcessNameFuncSerializable : IComputeFunc<string>
     {
+        /** Ignite instance. */
+        [InstanceResource]
+        private readonly IIgnite _ignite = null;
+
         /** <inheritdoc /> */
         public string Invoke()
         {
-            return System.Diagnostics.Process.GetCurrentProcess().ProcessName;
+            var binObj = _ignite.GetCache<int, int>(null).WithKeepBinary<int, IBinaryObject>()[1];
+
+            var cacheObj = binObj.Deserialize<ProcessNameFuncBinarizable>();
+
+            return cacheObj.Foo + System.Diagnostics.Process.GetCurrentProcess().ProcessName;
         }
     }
 }

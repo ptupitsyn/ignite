@@ -24,6 +24,11 @@ namespace Apache.Ignite.Core.Tests.Binary.Deployment
     /// </summary>
     public class ProcessNameFuncBinarizable : IComputeFunc<string>
     {
+        /// <summary>
+        /// Gets or sets the foo.
+        /// </summary>
+        public string Foo { get; set; }
+
         /** <inheritdoc /> */
         public string Invoke()
         {
