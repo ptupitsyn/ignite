@@ -408,12 +408,18 @@ namespace Apache.Ignite.Core.Impl.Binary
                 {
                     var type = PeerAssemblyResolver.LoadAssemblyAndGetType(typeId, this);
 
-                    // TODO: Serializer is null for p2p
-                    desc = new BinaryFullTypeDescriptor(type, desc.TypeId, desc.TypeName, desc.UserType, 
-                        desc.NameMapper, desc.IdMapper, desc.Serializer, desc.KeepDeserialized, 
-                        desc.AffinityKeyFieldName, desc.IsEnum);
+                    if (type != null)
+                    {
+                        // TODO: Find corresponding type configuration?
+                        var serializer = desc.Serializer ??
+                                         GetSerializer(_cfg, null, type, typeId, desc.NameMapper, desc.IdMapper);
 
-                    _idToDesc.Set(typeKey, desc);
+                        desc = new BinaryFullTypeDescriptor(type, desc.TypeId, desc.TypeName, desc.UserType,
+                            desc.NameMapper, desc.IdMapper, serializer, desc.KeepDeserialized,
+                            desc.AffinityKeyFieldName, desc.IsEnum);
+
+                        _idToDesc.Set(typeKey, desc);
+                    }
                 }
 
                 return desc;
@@ -496,7 +502,10 @@ namespace Apache.Ignite.Core.Impl.Binary
         private static IBinarySerializerInternal GetSerializer(BinaryConfiguration cfg, BinaryTypeConfiguration typeCfg,
             Type type, int typeId, IBinaryNameMapper nameMapper, IBinaryIdMapper idMapper)
         {
-            var serializer = typeCfg.Serializer ?? cfg.DefaultSerializer;
+            Debug.Assert(type != null);
+
+            var serializer = (typeCfg == null ? null : typeCfg.Serializer) ??
+                             (cfg == null ? null : cfg.DefaultSerializer);
 
             if (serializer == null)
             {
