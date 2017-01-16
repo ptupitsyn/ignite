@@ -407,6 +407,7 @@ namespace Apache.Ignite.Core.Impl.Binary
                 if (desc.Type == null && allowPeerAssemblyLoading && Ignite.Configuration.IsPeerAssemblyLoadingEnabled)
                 {
                     // TODO: Do everything in a lock. We do not want to do the same peer loading twice.
+                    // TODO: desc.TypeName is a simple name. We need to preserve full name from config. Probably store initial config in the descriptor.
 
                     // Call TypeResolver first: assembly may be already loaded.
                     var type = new TypeResolver().ResolveType(desc.TypeName) ??
