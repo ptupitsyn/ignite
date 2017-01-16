@@ -42,10 +42,25 @@ namespace Apache.Ignite.Core.Tests.Binary.Deployment
         {
             TestDeployment(ignite =>
             {
+                var result = ignite.GetCluster().ForRemotes().GetCompute().Call(new ProcessNameFuncSerializable());
+
+                Assert.AreEqual("Apache.Ignite", result);
+            });
+        }
+
+        /// <summary>
+        /// Tests that a [Serializable] type which uses binarizable inside can be peer deployed.
+        /// </summary>
+        [Test]
+        public void TestSerializableBinarizable()
+        {
+            TestDeployment(ignite =>
+            {
                 ignite.GetOrCreateCache<int, ProcessNameFuncBinarizable>((string)null)[1] =
                     new ProcessNameFuncBinarizable { Foo = "foo" };
 
-                var result = ignite.GetCluster().ForRemotes().GetCompute().Call(new ProcessNameFuncSerializable());
+                var result = ignite.GetCluster().ForRemotes().GetCompute().Call(
+                    new ProcessNameFuncSerializableBinarizable());
 
                 Assert.AreEqual("fooApache.Ignite", result);
             });
