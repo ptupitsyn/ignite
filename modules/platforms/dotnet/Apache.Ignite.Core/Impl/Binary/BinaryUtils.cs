@@ -257,6 +257,14 @@ namespace Apache.Ignite.Core.Impl.Binary
         public static readonly Func<IBinaryStream, Guid?> ReadGuid = IsGuidSequential
             ? (Func<IBinaryStream, Guid?>)ReadGuidFast : ReadGuidSlow;
 
+        /** Guid bytes retriever delegate. */
+        public unsafe delegate void GetGuidBytesDelegate(Guid guid, byte* ptr);
+
+        /** Guid bytes retriever. */
+        public static unsafe GetGuidBytesDelegate GetGuidBytes = IsGuidSequential
+            ? (GetGuidBytesDelegate) GetGuidBytesFast
+            : GetGuidBytesSlow;
+
         /** String mode environment variable. */
         public const string IgniteBinaryMarshallerUseStringSerializationVer2 =
             "IGNITE_BINARY_MARSHALLER_USE_STRING_SERIALIZATION_VER_2";

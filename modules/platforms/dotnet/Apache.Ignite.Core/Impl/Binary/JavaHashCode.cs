@@ -90,7 +90,7 @@ namespace Apache.Ignite.Core.Impl.Binary
 
                 if (val is Guid)
                 {
-                    // TODO
+                    return GetGuidHashCode((Guid) val);
                 }
 
                 if (val is DateTime)
@@ -107,6 +107,22 @@ namespace Apache.Ignite.Core.Impl.Binary
 
             // Fall back to default for all other types.
             return val.GetHashCode();
+        }
+
+        /// <summary>
+        /// Gets the Guid (UUID) hash code.
+        /// </summary>
+        private static unsafe int GetGuidHashCode(Guid val)
+        {
+            byte* guidBytes = stackalloc byte[16];
+
+            BinaryUtils.GetGuidBytes(val, guidBytes);
+
+            var mostSig = *(long*) guidBytes;
+            var leastSig = *((long*) guidBytes + 1);
+
+            var hash = mostSig ^ leastSig;
+            return (int) ((hash >> 32) ^ hash);
         }
 
         /// <summary>
