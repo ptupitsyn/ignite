@@ -172,12 +172,22 @@ namespace Apache.Ignite.Core.Tests.Binary
             CheckHashCode('\n');
 
             foreach (var ch in BinarySelfTest.SpecialStrings.SelectMany(x => x))
+            {
                 CheckHashCode(ch);
+            }
 
             // Guid
             CheckHashCode(Guid.Empty);
 
+            for (var i = 0; i < 1000; i++)
+            {
+                CheckHashCode(Guid.NewGuid());
+            }
+
             // DateTime
+            CheckHashCode(DateTime.MinValue);
+            CheckHashCode(DateTime.MaxValue);
+            CheckHashCode(DateTime.Now);
         }
 
         [Test]

@@ -51,7 +51,6 @@ namespace Apache.Ignite.Core.Tests.Binary
             }
         }
 
-
         /// <summary>
         /// Checks the strings.
         /// </summary>
