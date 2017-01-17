@@ -56,7 +56,7 @@ namespace Apache.Ignite.Core.Impl.Binary.Deployment
 
             var asm = AssemblyLoader.LoadAssembly(res.AssemblyBytes);
 
-            return asm.GetType(res.Message);
+            return asm.GetType(res.TypeName);
         }
 
         /// <summary>

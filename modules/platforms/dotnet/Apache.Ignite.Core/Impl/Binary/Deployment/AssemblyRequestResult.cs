@@ -30,33 +30,34 @@ namespace Apache.Ignite.Core.Impl.Binary.Deployment
         /** Error message. */
         private readonly string _message;
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="AssemblyRequestResult"/> class.
-        /// </summary>
-        /// <param name="assemblyBytes">The assembly bytes.</param>
-        public AssemblyRequestResult(byte[] assemblyBytes) : this(assemblyBytes, null)
-        {
-            // No-op.
-        }
+        /** Resolved type name. */
+        private readonly string _typeName;
+
+        /** Full assembly name. */
+        private readonly string _assemblyName;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="AssemblyRequestResult"/> class.
         /// </summary>
         /// <param name="message">The message.</param>
-        public AssemblyRequestResult(string message) : this(null, message)
+        public AssemblyRequestResult(string message) : this(null, message, null, null)
         {
             // No-op.
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="AssemblyRequestResult"/> class.
+        /// Initializes a new instance of the <see cref="AssemblyRequestResult" /> class.
         /// </summary>
         /// <param name="assemblyBytes">The assembly bytes.</param>
         /// <param name="message">The message.</param>
-        public AssemblyRequestResult(byte[] assemblyBytes, string message)
+        /// <param name="typeName">Name of the type.</param>
+        /// <param name="assemblyName">Name of the assembly.</param>
+        public AssemblyRequestResult(byte[] assemblyBytes, string message, string typeName, string assemblyName)
         {
             _assemblyBytes = assemblyBytes;
             _message = message;
+            _typeName = typeName;
+            _assemblyName = assemblyName;
         }
 
         /// <summary>
@@ -67,6 +68,8 @@ namespace Apache.Ignite.Core.Impl.Binary.Deployment
         {
             _assemblyBytes = reader.ReadByteArray();
             _message = reader.ReadString();
+            _typeName = reader.ReadString();
+            _assemblyName = reader.ReadString();
         }
 
         /** <inheritdoc /> */
@@ -76,6 +79,8 @@ namespace Apache.Ignite.Core.Impl.Binary.Deployment
 
             raw.WriteByteArray(_assemblyBytes);
             raw.WriteString(_message);
+            raw.WriteString(_typeName);
+            raw.WriteString(_assemblyName);
         }
 
         /// <summary>
@@ -92,6 +97,22 @@ namespace Apache.Ignite.Core.Impl.Binary.Deployment
         public string Message
         {
             get { return _message; }
+        }
+
+        /// <summary>
+        /// Gets the name of the type.
+        /// </summary>
+        public string TypeName
+        {
+            get { return _typeName; }
+        }
+
+        /// <summary>
+        /// Gets the name of the assembly.
+        /// </summary>
+        public string AssemblyName
+        {
+            get { return _assemblyName; }
         }
     }
 }

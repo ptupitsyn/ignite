@@ -45,7 +45,6 @@ namespace Apache.Ignite.Core.Impl.Binary.Deployment
         /** <inheritdoc /> */
         public AssemblyRequestResult Invoke(AssemblyRequest arg)
         {
-            // TODO: Return an object with status code and error messages.
             if (arg == null)
                 throw new IgniteException("GetAssemblyFunc does not allow null arguments.");
 
@@ -63,7 +62,7 @@ namespace Apache.Ignite.Core.Impl.Binary.Deployment
                         "Peer assembly loading does not support dynamic assemblies: " + asm);
                 }
 
-                return new AssemblyRequestResult(AssemblyLoader.GetAssemblyBytes(asm));
+                return new AssemblyRequestResult(AssemblyLoader.GetAssemblyBytes(asm), null, null, asm.FullName);
             }
 
             if (arg.TypeId != null)
@@ -82,7 +81,8 @@ namespace Apache.Ignite.Core.Impl.Binary.Deployment
                         "Peer assembly loading does not support dynamic assemblies: " + type.Assembly);
                 }
 
-                return new AssemblyRequestResult(AssemblyLoader.GetAssemblyBytes(type.Assembly), type.FullName);
+                return new AssemblyRequestResult(AssemblyLoader.GetAssemblyBytes(type.Assembly), null, 
+                    type.FullName, type.Assembly.FullName);
             }
 
             throw new IgniteException("AssemblyName and TypeId are null in AssemblyRequest.");
