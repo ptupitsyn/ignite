@@ -114,6 +114,14 @@ namespace Apache.Ignite.Core.Impl.Binary
         public bool CompactFooter { get; set; }
 
         /// <summary>
+        /// Gets an object that can be used to synchronize peer assembly loading process.
+        /// </summary>
+        public object PeerLoadingSyncRoot
+        {
+            get { return _peerLoadingSyncRoot; }
+        }
+
+        /// <summary>
         /// Marshal object.
         /// </summary>
         /// <param name="val">Value.</param>

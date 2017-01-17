@@ -123,8 +123,11 @@ namespace Apache.Ignite.Core.Impl.Binary
                 return null;
             }
 
-            return LoadedAssembliesResolver.Instance.GetAssembly(args.Name)
-                   ?? PeerAssemblyResolver.LoadAssembly(args.Name, reader.Marshaller);
+            lock (reader.Marshaller.PeerLoadingSyncRoot)
+            {
+                return LoadedAssembliesResolver.Instance.GetAssembly(args.Name)
+                       ?? PeerAssemblyResolver.LoadAssembly(args.Name, reader.Marshaller);
+            }
         }
 
         /** <inheritdoc /> */
