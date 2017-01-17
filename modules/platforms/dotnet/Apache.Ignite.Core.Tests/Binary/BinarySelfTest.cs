@@ -536,7 +536,7 @@ namespace Apache.Ignite.Core.Tests.Binary
 
 
             stream.Seek(0, SeekOrigin.Begin);
-            BinaryUtils.WriteGuidFast(guid, stream);
+            BinaryUtils.WriteGuidSlow(guid, stream);
 
             stream.Seek(0, SeekOrigin.Begin);
             Assert.AreEqual(guid, BinaryUtils.ReadGuidFast(stream));
