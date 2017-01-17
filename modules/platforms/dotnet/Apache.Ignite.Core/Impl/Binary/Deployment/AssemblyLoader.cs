@@ -44,6 +44,11 @@ namespace Apache.Ignite.Core.Impl.Binary.Deployment
             // TODO: We must be sure to never load the same assembly twice, because it leads to
             // InvalidCastException with message like "Type A originates from <>. Type A originates from <>."
 
+            // TODO: We should not use Load(byte[]) overload, because it loads an assembly outside any context.
+            // Instead, we should probably use LoadFrom: https://msdn.microsoft.com/en-us/library/1009fa28(v=vs.110).aspx
+            // This one suits us well:
+            // * If an assembly with the same identity is already loaded, LoadFrom returns the loaded assembly even if a different path was specified.
+
             // Even though we synchronize peer loading in marshaller, there can be multiple nodes.
             var asm = Assembly.Load(bytes);
 
