@@ -157,34 +157,6 @@ namespace Apache.Ignite.Core.Tests.Binary
         }
 
         /// <summary>
-        /// Tests strings hash codes.
-        /// </summary>
-        [Test]
-        public void TestStrings()
-        {
-            CheckHashCode("");
-            CheckHashCode("foo");
-            CheckHashCode("Foo");
-            CheckHashCode(new string(Enumerable.Range(1, 255).Select(x => (char) x).ToArray()));
-
-            if (!"true".Equals(Environment.GetEnvironmentVariable(
-                BinaryUtils.IgniteBinaryMarshallerUseStringSerializationVer2), StringComparison.OrdinalIgnoreCase))
-            {
-                // Run "TestOldMode" in a separate process with changed setting.
-                Environment.SetEnvironmentVariable(BinaryUtils.IgniteBinaryMarshallerUseStringSerializationVer2, "true");
-
-                TestUtils.RunTestInNewProcess(GetType().FullName, "TestStrings");
-            }
-            else
-            {
-                CheckHashCode(new string(new[] {(char) 0xD800}));
-
-                foreach (var str in BinarySelfTest.SpecialStrings)
-                    CheckHashCode(str);
-            }
-        }
-
-        /// <summary>
         /// Tests other types.
         /// </summary>
         [Test]
@@ -217,7 +189,7 @@ namespace Apache.Ignite.Core.Tests.Binary
         /// <summary>
         /// Checks the hash code.
         /// </summary>
-        private void CheckHashCode(object o)
+        public static void CheckHashCode(object o)
         {
             Assert.AreEqual(GetJavaHashCode(o), JavaHashCode.GetHashCode(o), "Invalid hash code: " + o);
         }
@@ -225,7 +197,7 @@ namespace Apache.Ignite.Core.Tests.Binary
         /// <summary>
         /// Gets the Java hash code.
         /// </summary>
-        private int GetJavaHashCode(object o)
+        private static int GetJavaHashCode(object o)
         {
             return Ignition.GetIgnite().GetCompute().WithKeepBinary().ExecuteJavaTask<int>(JavaTask, o);
         }

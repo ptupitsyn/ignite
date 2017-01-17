@@ -72,6 +72,7 @@
     <Compile Include="Binary\BinaryReaderWriterTest.cs" />
     <Compile Include="Binary\IO\BinaryStreamsTest.cs" />
     <Compile Include="Binary\JavaHashCodeTest.cs" />
+    <Compile Include="Binary\JavaStringHashCodeTest.cs" />
     <Compile Include="Binary\JavaTypeMappingTest.cs" />
     <Compile Include="Binary\TypeResolverTest.cs" />
     <Compile Include="Cache\Affinity\AffinityKeyTest.cs" />
