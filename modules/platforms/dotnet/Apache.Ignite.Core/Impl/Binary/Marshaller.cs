@@ -436,6 +436,9 @@ namespace Apache.Ignite.Core.Impl.Binary
 
             if (meta != BinaryType.Empty)
             {
+                // TODO: meta.TypeName is a simple name. We have no access to the full name here.
+                // When this code is called?
+
                 // Call TypeResolver first: assembly may be already loaded.
                 var type = allowPeerAssemblyLoading && Ignite.Configuration.IsPeerAssemblyLoadingEnabled
                     ? new TypeResolver().ResolveType(meta.TypeName) ??
