@@ -36,7 +36,7 @@ namespace Apache.Ignite.Core.Tests.Binary
         [TestFixtureSetUp]
         public void FixtureSetUp()
         {
-            Ignition.Start(TestUtils.GetTestConfiguration());
+            Ignition.Start(TestUtils.GetTestConfiguration(false));
         }
 
         /// <summary>
@@ -166,16 +166,22 @@ namespace Apache.Ignite.Core.Tests.Binary
             CheckHashCode("foo");
             CheckHashCode("Foo");
             CheckHashCode(new string(Enumerable.Range(1, 255).Select(x => (char) x).ToArray()));
-            
-            
-            // TODO: Run in a separate process.
-            // TODO: IGNITE_BINARY_MARSHALLER_USE_STRING_SERIALIZATION_VER_2
-            /**
-            CheckHashCode(new string(new[] { (char)0xD800 }));
 
-            foreach (var str in BinarySelfTest.SpecialStrings)
-                CheckHashCode(str);
-            */
+            if (!"true".Equals(Environment.GetEnvironmentVariable(
+                BinaryUtils.IgniteBinaryMarshallerUseStringSerializationVer2), StringComparison.OrdinalIgnoreCase))
+            {
+                // Run "TestOldMode" in a separate process with changed setting.
+                Environment.SetEnvironmentVariable(BinaryUtils.IgniteBinaryMarshallerUseStringSerializationVer2, "true");
+
+                TestUtils.RunTestInNewProcess(GetType().FullName, "TestStrings");
+            }
+            else
+            {
+                CheckHashCode(new string(new[] {(char) 0xD800}));
+
+                foreach (var str in BinarySelfTest.SpecialStrings)
+                    CheckHashCode(str);
+            }
         }
 
         /// <summary>
