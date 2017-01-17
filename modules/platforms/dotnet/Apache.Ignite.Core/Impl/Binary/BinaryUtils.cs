@@ -894,6 +894,17 @@ namespace Apache.Ignite.Core.Impl.Binary
         }
 
         /// <summary>
+        /// Gets guid bytes with bitwise conversion, assuming that <see cref="Guid"/> 
+        /// is laid out in memory sequentially and without gaps between fields.
+        /// </summary>
+        /// <param name="val">The value.</param>
+        /// <param name="ptr">Memory to write to.</param>
+        public static unsafe void GetGuidBytesFast(Guid val, byte* ptr)
+        {
+            *(JavaGuid*) ptr = new JavaGuid(val);
+        }
+
+        /// <summary>
         /// Writes a guid with bitwise conversion, assuming that <see cref="Guid"/> 
         /// is laid out in memory sequentially and without gaps between fields.
         /// </summary>
@@ -909,36 +920,47 @@ namespace Apache.Ignite.Core.Impl.Binary
         }
 
         /// <summary>
+        /// Gets guid bytes, writing them one by one.
+        /// </summary>
+        /// <param name="val">The value.</param>
+        /// <param name="ptr">Memory to write to.</param>
+        public static unsafe void GetGuidBytesSlow(Guid val, byte* ptr)
+        {
+            var bytes = val.ToByteArray();
+
+            ptr[0] = bytes[6]; // c1
+            ptr[1] = bytes[7]; // c2
+
+            ptr[2] = bytes[4]; // b1
+            ptr[3] = bytes[5]; // b2
+
+            ptr[4] = bytes[0]; // a1
+            ptr[5] = bytes[1]; // a2
+            ptr[6] = bytes[2]; // a3
+            ptr[7] = bytes[3]; // a4
+
+            ptr[8] = bytes[15]; // k
+            ptr[9] = bytes[14]; // j
+            ptr[10] = bytes[13]; // i
+            ptr[11] = bytes[12]; // h
+            ptr[12] = bytes[11]; // g
+            ptr[13] = bytes[10]; // f
+            ptr[14] = bytes[9]; // e
+            ptr[15] = bytes[8]; // d
+        }
+
+        /// <summary>
         /// Writes a guid byte by byte.
         /// </summary>
         /// <param name="val">The value.</param>
         /// <param name="stream">The stream.</param>
         public static unsafe void WriteGuidSlow(Guid val, IBinaryStream stream)
         {
-            var bytes = val.ToByteArray();
-            byte* jBytes = stackalloc byte[16];
+            byte* jbytes = stackalloc byte[16];
 
-            jBytes[0] = bytes[6]; // c1
-            jBytes[1] = bytes[7]; // c2
-
-            jBytes[2] = bytes[4]; // b1
-            jBytes[3] = bytes[5]; // b2
-
-            jBytes[4] = bytes[0]; // a1
-            jBytes[5] = bytes[1]; // a2
-            jBytes[6] = bytes[2]; // a3
-            jBytes[7] = bytes[3]; // a4
-
-            jBytes[8] = bytes[15]; // k
-            jBytes[9] = bytes[14]; // j
-            jBytes[10] = bytes[13]; // i
-            jBytes[11] = bytes[12]; // h
-            jBytes[12] = bytes[11]; // g
-            jBytes[13] = bytes[10]; // f
-            jBytes[14] = bytes[9]; // e
-            jBytes[15] = bytes[8]; // d
+            GetGuidBytesSlow(val, jbytes);
             
-            stream.Write(jBytes, 16);
+            stream.Write(jbytes, 16);
         }
 
         /// <summary>
