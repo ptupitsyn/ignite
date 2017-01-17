@@ -185,6 +185,8 @@ namespace Apache.Ignite.Core.Tests.Binary
             }
 
             // DateTime
+            // TODO: These are written as Serializable.
+            // Use a binary object with a field to fix this.
             CheckHashCode(DateTime.MinValue);
             CheckHashCode(DateTime.MaxValue);
             CheckHashCode(DateTime.Now);
