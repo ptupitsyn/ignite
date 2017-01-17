@@ -520,29 +520,55 @@ namespace Apache.Ignite.Core.Tests.Binary
         /// Checks that both methods produce identical results.
         /// </summary>
         [Test]
-        public void TestGuidSlowFast()
+        public unsafe void TestGuidSlowFast()
         {
-            var stream = new BinaryHeapStream(128);
+            for (int i = 0; i < 100; i++)
+            {
+                var stream = new BinaryHeapStream(128);
 
-            var guid = Guid.NewGuid();
+                var guid = Guid.NewGuid();
 
-            BinaryUtils.WriteGuidFast(guid, stream);
+                // WriteGuidFast
+                BinaryUtils.WriteGuidFast(guid, stream);
 
-            stream.Seek(0, SeekOrigin.Begin);
-            Assert.AreEqual(guid, BinaryUtils.ReadGuidFast(stream));
+                stream.Seek(0, SeekOrigin.Begin);
+                Assert.AreEqual(guid, BinaryUtils.ReadGuidFast(stream));
 
-            stream.Seek(0, SeekOrigin.Begin);
-            Assert.AreEqual(guid, BinaryUtils.ReadGuidSlow(stream));
+                stream.Seek(0, SeekOrigin.Begin);
+                Assert.AreEqual(guid, BinaryUtils.ReadGuidSlow(stream));
 
 
-            stream.Seek(0, SeekOrigin.Begin);
-            BinaryUtils.WriteGuidSlow(guid, stream);
+                // WriteGuidSlow
+                stream.Seek(0, SeekOrigin.Begin);
+                BinaryUtils.WriteGuidSlow(guid, stream);
 
-            stream.Seek(0, SeekOrigin.Begin);
-            Assert.AreEqual(guid, BinaryUtils.ReadGuidFast(stream));
+                stream.Seek(0, SeekOrigin.Begin);
+                Assert.AreEqual(guid, BinaryUtils.ReadGuidFast(stream));
 
-            stream.Seek(0, SeekOrigin.Begin);
-            Assert.AreEqual(guid, BinaryUtils.ReadGuidSlow(stream));
+                stream.Seek(0, SeekOrigin.Begin);
+                Assert.AreEqual(guid, BinaryUtils.ReadGuidSlow(stream));
+
+
+                // GetGuidBytesFast
+                byte* bytes = stackalloc byte[16];
+                BinaryUtils.GetGuidBytesFast(guid, bytes);
+
+                stream.Seek(0, SeekOrigin.Begin);
+                Assert.AreEqual(guid, BinaryUtils.ReadGuidFast(stream));
+
+                stream.Seek(0, SeekOrigin.Begin);
+                Assert.AreEqual(guid, BinaryUtils.ReadGuidSlow(stream));
+
+
+                // GetGuidBytesSlow
+                BinaryUtils.GetGuidBytesSlow(guid, bytes);
+
+                stream.Seek(0, SeekOrigin.Begin);
+                Assert.AreEqual(guid, BinaryUtils.ReadGuidFast(stream));
+
+                stream.Seek(0, SeekOrigin.Begin);
+                Assert.AreEqual(guid, BinaryUtils.ReadGuidSlow(stream));
+            }
         }
 
         /**
