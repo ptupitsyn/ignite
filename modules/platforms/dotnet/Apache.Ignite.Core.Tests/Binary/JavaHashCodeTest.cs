@@ -157,6 +157,28 @@ namespace Apache.Ignite.Core.Tests.Binary
         }
 
         /// <summary>
+        /// Tests strings hash codes.
+        /// </summary>
+        [Test]
+        public void TestStrings()
+        {
+            CheckHashCode("");
+            CheckHashCode("foo");
+            CheckHashCode("Foo");
+            CheckHashCode(new string(Enumerable.Range(1, 255).Select(x => (char) x).ToArray()));
+            
+            
+            // TODO: Run in a separate process.
+            // TODO: IGNITE_BINARY_MARSHALLER_USE_STRING_SERIALIZATION_VER_2
+            /**
+            CheckHashCode(new string(new[] { (char)0xD800 }));
+
+            foreach (var str in BinarySelfTest.SpecialStrings)
+                CheckHashCode(str);
+            */
+        }
+
+        /// <summary>
         /// Tests other types.
         /// </summary>
         [Test]
@@ -173,14 +195,6 @@ namespace Apache.Ignite.Core.Tests.Binary
 
             foreach (var ch in BinarySelfTest.SpecialStrings.SelectMany(x => x))
                 CheckHashCode(ch);
-
-            // string
-            CheckHashCode("");
-            CheckHashCode("foo");
-            CheckHashCode("Foo");
-
-            foreach (var str in BinarySelfTest.SpecialStrings)
-                CheckHashCode(str);
 
             // Guid
             CheckHashCode(Guid.Empty);
