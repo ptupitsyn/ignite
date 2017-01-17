@@ -21,7 +21,6 @@ namespace Apache.Ignite.Core.Tests.Binary.Deployment
     using System.IO;
     using System.Threading;
     using Apache.Ignite.Core.Binary;
-    using Apache.Ignite.Core.Cache;
     using Apache.Ignite.Core.Impl;
     using Apache.Ignite.Core.Impl.Common;
     using Apache.Ignite.Core.Tests.Process;

@@ -19,6 +19,7 @@ namespace Apache.Ignite.Core.Impl.Binary
 {
     using System;
     using System.Collections.Generic;
+    using System.Diagnostics;
     using Apache.Ignite.Core.Binary;
     using Apache.Ignite.Core.Common;
     using Apache.Ignite.Core.Impl.Binary.Structure;
@@ -70,6 +71,9 @@ namespace Apache.Ignite.Core.Impl.Binary
         /** Comparer. */
         private readonly IBinaryEqualityComparer _equalityComparer;
 
+        /** Type configuration. */
+        private readonly BinaryTypeConfiguration _typeConfiguration;
+
         /// <summary>
         /// Constructor.
         /// </summary>
@@ -82,8 +86,7 @@ namespace Apache.Ignite.Core.Impl.Binary
         /// <param name="serializer">Serializer.</param>
         /// <param name="keepDeserialized">Whether to cache deserialized value in IBinaryObject</param>
         /// <param name="affKeyFieldName">Affinity field key name.</param>
-        /// <param name="isEnum">Enum flag.</param>
-        /// <param name="comparer">Equality comparer.</param>
+        /// <param name="typeCfg">Binary type configuration.</param>
         public BinaryFullTypeDescriptor(
             Type type, 
             int typeId, 
@@ -94,8 +97,7 @@ namespace Apache.Ignite.Core.Impl.Binary
             IBinarySerializerInternal serializer, 
             bool keepDeserialized, 
             string affKeyFieldName,
-            bool isEnum, 
-            IEqualityComparer<IBinaryObject> comparer)
+            BinaryTypeConfiguration typeCfg)
         {
             _type = type;
             _typeId = typeId;
@@ -106,14 +108,21 @@ namespace Apache.Ignite.Core.Impl.Binary
             _serializer = serializer;
             _keepDeserialized = keepDeserialized;
             _affKeyFieldName = affKeyFieldName;
-            _isEnum = isEnum;
+            _typeConfiguration = typeCfg;
 
-            _equalityComparer = comparer as IBinaryEqualityComparer;
+            Debug.Assert(typeCfg != null || !userType);  // user types must have configuration.
 
-            if (comparer != null && _equalityComparer == null)
-                throw new IgniteException(string.Format("Unsupported IEqualityComparer<IBinaryObject> " +
-                                                        "implementation: {0}. Only predefined implementations " +
-                                                        "are supported.", comparer.GetType()));
+            if (typeCfg != null)
+            {
+                _isEnum = typeCfg.IsEnum;
+
+                _equalityComparer = typeCfg.EqualityComparer as IBinaryEqualityComparer;
+
+                if (typeCfg.EqualityComparer != null && _equalityComparer == null)
+                    throw new IgniteException(string.Format("Unsupported IEqualityComparer<IBinaryObject> " +
+                                                            "implementation: {0}. Only predefined implementations " +
+                                                            "are supported.", typeCfg.EqualityComparer.GetType()));
+            }
         }
 
         /// <summary>
@@ -236,6 +245,14 @@ namespace Apache.Ignite.Core.Impl.Binary
         public BinaryObjectSchema Schema
         {
             get { return _schema; }
+        }
+
+        /// <summary>
+        /// Gets the type configuration. Null for system types, non-null for user types.
+        /// </summary>
+        public BinaryTypeConfiguration TypeConfiguration
+        {
+            get { return _typeConfiguration; }
         }
     }
 }
