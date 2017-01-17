@@ -58,6 +58,9 @@ namespace Apache.Ignite.Core.Impl.Binary
         private volatile IDictionary<int, BinaryTypeHolder> _metas =
             new Dictionary<int, BinaryTypeHolder>();
 
+        /** Locker for peer assembly loading. */
+        private readonly object _peerLoadingSyncRoot = new object();
+
         /// <summary>
         /// Constructor.
         /// </summary>
@@ -407,10 +410,9 @@ namespace Apache.Ignite.Core.Impl.Binary
                 if (desc.Type == null && desc.UserType && 
                     allowPeerAssemblyLoading && Ignite.Configuration.IsPeerAssemblyLoadingEnabled)
                 {
-                    // Lock on descriptor to avoid launching peer loading for the same type twice.
-                    var syncRoot = desc;
-
-                    lock (syncRoot)
+                    // Perform only one peer loading operation at a time.
+                    // Multiple types can be in one assembly, we do not want to load same assembly multiple times.
+                    lock (_peerLoadingSyncRoot)
                     {
                         // Call TypeResolver first: assembly may be already loaded.
                         var type = new TypeResolver().ResolveType(desc.TypeConfiguration.TypeName) ??
