@@ -17,6 +17,7 @@
 
 namespace Apache.Ignite.Core.Impl.Binary.Deployment
 {
+    using System.Collections.Generic;
     using System.Diagnostics;
     using System.IO;
     using System.Reflection;
@@ -31,15 +32,17 @@ namespace Apache.Ignite.Core.Impl.Binary.Deployment
         /// Cache of assemblies that are peer-loaded from byte array.
         /// Keep these byte arrays to be able to send them further, because Location for such assemblies is empty.
         /// </summary>
-        private static readonly CopyOnWriteConcurrentDictionary<Assembly, byte[]> InMemoryAssemblies 
-            = new CopyOnWriteConcurrentDictionary<Assembly, byte[]>();
+        private static readonly CopyOnWriteConcurrentDictionary<string, KeyValuePair<Assembly, byte[]>>
+            InMemoryAssemblies
+                = new CopyOnWriteConcurrentDictionary<string, KeyValuePair<Assembly, byte[]>>();
 
         /// <summary>
         /// Loads the assembly from bytes.
         /// </summary>
-        public static Assembly LoadAssembly(byte[] bytes)
+        public static Assembly LoadAssembly(byte[] bytes, string assemblyName)
         {
             Debug.Assert(bytes != null);
+            Debug.Assert(!string.IsNullOrWhiteSpace(assemblyName));
 
             // TODO: We must be sure to never load the same assembly twice, because it leads to
             // InvalidCastException with message like "Type A originates from <>. Type A originates from <>."
@@ -50,11 +53,15 @@ namespace Apache.Ignite.Core.Impl.Binary.Deployment
             // * If an assembly with the same identity is already loaded, LoadFrom returns the loaded assembly even if a different path was specified.
 
             // Even though we synchronize peer loading in marshaller, there can be multiple nodes.
-            var asm = Assembly.Load(bytes);
 
-            InMemoryAssemblies.GetOrAdd(asm, _ => bytes);
+            return InMemoryAssemblies.GetOrAdd(assemblyName, _ =>
+            {
+                var asm = Assembly.Load(bytes);
 
-            return asm;
+                Debug.Assert(assemblyName == asm.FullName);
+
+                return new KeyValuePair<Assembly, byte[]>(asm, bytes);
+            }).Key;
         }
 
         /// <summary>
@@ -65,10 +72,10 @@ namespace Apache.Ignite.Core.Impl.Binary.Deployment
             Debug.Assert(assembly != null);
             Debug.Assert(!assembly.IsDynamic);
 
-            byte[] bytes;
+            KeyValuePair<Assembly, byte[]> pair;
 
-            if (InMemoryAssemblies.TryGetValue(assembly, out bytes))
-                return bytes;
+            if (InMemoryAssemblies.TryGetValue(assembly.FullName, out pair))
+                return pair.Value;
 
             if (string.IsNullOrEmpty(assembly.Location))
                 return null;

@@ -38,7 +38,7 @@ namespace Apache.Ignite.Core.Impl.Binary.Deployment
 
             var res = RequestAssembly(assemblyName, null, marshaller);
 
-            return res == null ? null : AssemblyLoader.LoadAssembly(res.AssemblyBytes);
+            return res == null ? null : AssemblyLoader.LoadAssembly(res.AssemblyBytes, res.AssemblyName);
         }
 
         /// <summary>
@@ -54,7 +54,7 @@ namespace Apache.Ignite.Core.Impl.Binary.Deployment
             if (res == null)
                 return null;
 
-            var asm = AssemblyLoader.LoadAssembly(res.AssemblyBytes);
+            var asm = AssemblyLoader.LoadAssembly(res.AssemblyBytes, res.AssemblyName);
 
             return asm.GetType(res.TypeName);
         }
