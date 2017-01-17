@@ -98,9 +98,11 @@ namespace Apache.Ignite.Core.Impl.Binary
                     // TODO
                 }
 
-                if (val is string)
+                var str = val as string;
+                if (str != null)
                 {
-                    // TODO
+                    // TODO: Case sensitive!
+                    return BinaryUtils.GetStringHashCode(str);
                 }
             }
 
