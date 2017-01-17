@@ -407,22 +407,26 @@ namespace Apache.Ignite.Core.Impl.Binary
                 if (desc.Type == null && desc.UserType && 
                     allowPeerAssemblyLoading && Ignite.Configuration.IsPeerAssemblyLoadingEnabled)
                 {
-                    // TODO: Do everything in a lock. We do not want to do the same peer loading twice.
+                    // Lock on descriptor to avoid launching peer loading for the same type twice.
+                    var syncRoot = desc;
 
-                    // Call TypeResolver first: assembly may be already loaded.
-                    var type = new TypeResolver().ResolveType(desc.TypeConfiguration.TypeName) ??
-                        PeerAssemblyResolver.LoadAssemblyAndGetType(typeId, this);
-
-                    if (type != null)
+                    lock (syncRoot)
                     {
-                        var serializer = desc.Serializer ?? GetSerializer(_cfg, desc.TypeConfiguration,
-                                             type, typeId, desc.NameMapper, desc.IdMapper);
+                        // Call TypeResolver first: assembly may be already loaded.
+                        var type = new TypeResolver().ResolveType(desc.TypeConfiguration.TypeName) ??
+                                   PeerAssemblyResolver.LoadAssemblyAndGetType(typeId, this);
 
-                        desc = new BinaryFullTypeDescriptor(type, desc.TypeId, desc.TypeName, desc.UserType,
-                            desc.NameMapper, desc.IdMapper, serializer, desc.KeepDeserialized,
-                            desc.AffinityKeyFieldName, desc.TypeConfiguration);
+                        if (type != null)
+                        {
+                            var serializer = desc.Serializer ?? GetSerializer(_cfg, desc.TypeConfiguration,
+                                                 type, typeId, desc.NameMapper, desc.IdMapper);
 
-                        _idToDesc.Set(typeKey, desc);
+                            desc = new BinaryFullTypeDescriptor(type, desc.TypeId, desc.TypeName, desc.UserType,
+                                desc.NameMapper, desc.IdMapper, serializer, desc.KeepDeserialized,
+                                desc.AffinityKeyFieldName, desc.TypeConfiguration);
+
+                            _idToDesc.Set(typeKey, desc);
+                        }
                     }
                 }
 
