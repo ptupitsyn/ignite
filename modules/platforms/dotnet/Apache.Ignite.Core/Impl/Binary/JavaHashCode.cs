@@ -113,7 +113,7 @@ namespace Apache.Ignite.Core.Impl.Binary
         /// Gets the string hash code.
         /// This corresponds to BinaryBasicIdMapper.lowerCaseHashCode.
         /// </summary>
-        public static int GetStringHashCodeLowerCase(string val)
+        public static int GetBinaryBasicIdMapperLowerCaseHashCode(string val)
         {
             if (val == null)
                 return 0;

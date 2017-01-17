@@ -1464,7 +1464,7 @@ namespace Apache.Ignite.Core.Impl.Binary
             }
 
             if (id == 0)
-                id = JavaHashCode.GetStringHashCodeLowerCase(typeName);
+                id = JavaHashCode.GetBinaryBasicIdMapperLowerCaseHashCode(typeName);
 
             return id;
         }
@@ -1517,7 +1517,7 @@ namespace Apache.Ignite.Core.Impl.Binary
             }
 
             if (id == 0)
-                id = JavaHashCode.GetStringHashCodeLowerCase(fieldName);
+                id = JavaHashCode.GetBinaryBasicIdMapperLowerCaseHashCode(fieldName);
 
             if (id == 0)
                 throw new BinaryObjectException("Field ID is zero (please provide ID mapper or change field name) " + 
