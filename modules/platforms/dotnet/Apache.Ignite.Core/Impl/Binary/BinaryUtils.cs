@@ -1358,28 +1358,6 @@ namespace Apache.Ignite.Core.Impl.Binary
             return res;
         }
 
-        /**
-         * <summary>Get string hash code.</summary>
-         * <param name="val">Value.</param>
-         * <returns>Hash code.</returns>
-         */
-        public static int GetStringHashCode(string val)
-        {
-            if (val == null)
-                return 0;
-
-            int hash = 0;
-
-            unchecked
-            {
-                // ReSharper disable once LoopCanBeConvertedToQuery (performance)
-                foreach (var c in val)
-                    hash = 31 * hash + ('A' <= c && c <= 'Z' ? c | 0x20 : c);
-            }
-
-            return hash;
-        }
-
         public static string CleanFieldName(string fieldName)
         {
             if (fieldName.StartsWith("<", StringComparison.Ordinal)
@@ -1486,7 +1464,7 @@ namespace Apache.Ignite.Core.Impl.Binary
             }
 
             if (id == 0)
-                id = GetStringHashCode(typeName);
+                id = JavaHashCode.GetStringHashCodeLowerCase(typeName);
 
             return id;
         }
@@ -1539,7 +1517,7 @@ namespace Apache.Ignite.Core.Impl.Binary
             }
 
             if (id == 0)
-                id = GetStringHashCode(fieldName);
+                id = JavaHashCode.GetStringHashCodeLowerCase(fieldName);
 
             if (id == 0)
                 throw new BinaryObjectException("Field ID is zero (please provide ID mapper or change field name) " + 

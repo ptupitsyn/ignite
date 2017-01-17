@@ -101,13 +101,52 @@ namespace Apache.Ignite.Core.Impl.Binary
                 var str = val as string;
                 if (str != null)
                 {
-                    // TODO: Case sensitive!
-                    return BinaryUtils.GetStringHashCode(str);
+                    return GetStringHashCode(str);
                 }
             }
 
             // Fall back to default for all other types.
             return val.GetHashCode();
+        }
+
+        /// <summary>
+        /// Gets the string hash code.
+        /// </summary>
+        public static int GetStringHashCodeLowerCase(string val)
+        {
+            if (val == null)
+                return 0;
+
+            int hash = 0;
+
+            unchecked
+            {
+                // ReSharper disable once LoopCanBeConvertedToQuery (performance)
+                foreach (var c in val)
+                    hash = 31 * hash + ('A' <= c && c <= 'Z' ? c | 0x20 : c);
+            }
+
+            return hash;
+        }
+
+        /// <summary>
+        /// Gets the string hash code.
+        /// </summary>
+        public static int GetStringHashCode(string val)
+        {
+            if (val == null)
+                return 0;
+
+            int hash = 0;
+
+            unchecked
+            {
+                // ReSharper disable once LoopCanBeConvertedToQuery (performance)
+                foreach (var c in val)
+                    hash = 31 * hash + c;
+            }
+
+            return hash;
         }
     }
 }

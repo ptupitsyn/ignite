@@ -1615,7 +1615,7 @@ namespace Apache.Ignite.Core.Tests.Binary
 
             Assert.AreEqual(IdMapper.TestTypeId, _grid.GetBinary().GetTypeId(IdMapper.TestTypeName));
             
-            Assert.AreEqual(BinaryUtils.GetStringHashCode("someTypeName"), _grid.GetBinary().GetTypeId("someTypeName"));
+            Assert.AreEqual(JavaHashCode.GetStringHashCodeLowerCase("someTypeName"), _grid.GetBinary().GetTypeId("someTypeName"));
         }
 
         /// <summary>
@@ -1630,7 +1630,7 @@ namespace Apache.Ignite.Core.Tests.Binary
 
             var binType = bin.GetBinaryType();
 
-            Assert.AreEqual(BinaryUtils.GetStringHashCode(NameMapper.TestTypeName + "_"), binType.TypeId);
+            Assert.AreEqual(JavaHashCode.GetStringHashCodeLowerCase(NameMapper.TestTypeName + "_"), binType.TypeId);
             Assert.AreEqual(17, bin.GetField<int>(NameMapper.TestFieldName));
         }
 

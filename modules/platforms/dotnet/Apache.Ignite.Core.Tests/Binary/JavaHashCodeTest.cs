@@ -199,7 +199,7 @@ namespace Apache.Ignite.Core.Tests.Binary
         /// </summary>
         private void CheckHashCode(object o)
         {
-            Assert.AreEqual(GetJavaHashCode(o), JavaHashCode.GetHashCode(o));
+            Assert.AreEqual(GetJavaHashCode(o), JavaHashCode.GetHashCode(o), "Invalid hash code: " + o);
         }
 
         /// <summary>
