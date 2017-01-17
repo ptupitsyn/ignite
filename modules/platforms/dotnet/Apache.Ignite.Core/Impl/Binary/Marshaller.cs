@@ -436,18 +436,9 @@ namespace Apache.Ignite.Core.Impl.Binary
 
             if (meta != BinaryType.Empty)
             {
-                // TODO: meta.TypeName is a simple name. We have no access to the full name here.
-                // When this code is called?
-
-                // Call TypeResolver first: assembly may be already loaded.
-                var type = allowPeerAssemblyLoading && Ignite.Configuration.IsPeerAssemblyLoadingEnabled
-                    ? new TypeResolver().ResolveType(meta.TypeName) ??
-                      PeerAssemblyResolver.LoadAssemblyAndGetType(typeId, this)
-                    : null;
-
-                var serializer = GetSerializer(_cfg, null, type, typeId, desc.NameMapper, desc.IdMapper);
-
-                desc = new BinaryFullTypeDescriptor(type, meta.TypeId, meta.TypeName, true, null, null, serializer,
+                // This code is executed when a BinaryObject with unknown type is constructed.
+                // Peer loading is not applicable here.
+                desc = new BinaryFullTypeDescriptor(null, meta.TypeId, meta.TypeName, true, null, null, null,
                     false, meta.AffinityKeyFieldName,
                     new BinaryTypeConfiguration
                     {
