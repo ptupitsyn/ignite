@@ -19,6 +19,7 @@ namespace Apache.Ignite.Core.Tests.Binary
 {
     using System;
     using System.Linq;
+    using Apache.Ignite.Core.Binary;
     using Apache.Ignite.Core.Impl.Binary;
     using NUnit.Framework;
 
@@ -36,7 +37,10 @@ namespace Apache.Ignite.Core.Tests.Binary
         [TestFixtureSetUp]
         public void FixtureSetUp()
         {
-            Ignition.Start(TestUtils.GetTestConfiguration(false));
+            Ignition.Start(new IgniteConfiguration(TestUtils.GetTestConfiguration(false))
+            {
+                BinaryConfiguration = new BinaryConfiguration(typeof(DateTimeWrapper))
+            });
         }
 
         /// <summary>
@@ -201,6 +205,17 @@ namespace Apache.Ignite.Core.Tests.Binary
         /// <summary>
         /// Checks the hash code.
         /// </summary>
+        private static void CheckHashCode(DateTime o)
+        {
+            o = o.ToUniversalTime();
+
+            Assert.AreEqual(GetJavaHashCode(new DateTimeWrapper(o)), JavaHashCode.GetHashCode(o), 
+                "Invalid hash code: " + o);
+        }
+
+        /// <summary>
+        /// Checks the hash code.
+        /// </summary>
         public static void CheckHashCode(object o)
         {
             Assert.AreEqual(GetJavaHashCode(o), JavaHashCode.GetHashCode(o), "Invalid hash code: " + o);
@@ -212,6 +227,26 @@ namespace Apache.Ignite.Core.Tests.Binary
         private static int GetJavaHashCode(object o)
         {
             return Ignition.GetIgnite().GetCompute().WithKeepBinary().ExecuteJavaTask<int>(JavaTask, o);
+        }
+
+        private class DateTimeWrapper : IBinarizable
+        {
+            public DateTimeWrapper(DateTime dateTime)
+            {
+                Value = dateTime;
+            }
+
+            public DateTime Value { get; private set; }
+
+            public void WriteBinary(IBinaryWriter writer)
+            {
+                writer.WriteTimestamp("value", Value);
+            }
+
+            public void ReadBinary(IBinaryReader reader)
+            {
+                Value = reader.ReadTimestamp("value").GetValueOrDefault();
+            }
         }
     }
 }

@@ -18,6 +18,7 @@
 package org.apache.ignite.platform;
 
 import org.apache.ignite.IgniteException;
+import org.apache.ignite.binary.BinaryObject;
 import org.apache.ignite.cluster.ClusterNode;
 import org.apache.ignite.compute.ComputeJob;
 import org.apache.ignite.compute.ComputeJobAdapter;
@@ -68,6 +69,12 @@ public class PlatformHashCodeTask extends ComputeTaskAdapter<Object, Integer> {
 
         /** {@inheritDoc} */
         @Override public Object execute() throws IgniteException {
+            if (arg instanceof BinaryObject) {
+                Object val = ((BinaryObject)arg).field("value");
+
+                return val.hashCode();
+            }
+
             return arg.hashCode();
         }
     }
