@@ -95,26 +95,7 @@ namespace Apache.Ignite.Core.Impl.Binary
 
                 if (val is DateTime)
                 {
-                    long hi;
-                    int lo;
-                    BinaryUtils.ToJavaDate((DateTime) val, out hi, out lo);
-
-                    int nanos = (int) (hi % 1000L * 1000000L);
-
-                    long time = hi / 1000L * 1000L;
-
-                    if (nanos < 0)
-                    {
-                        nanos += 1000000000;
-
-                        time = (hi / 1000L - 1L) * 1000L;
-                    }
-
-                    nanos += lo;
-
-                    time += nanos / 1000000;
-
-                    return (int) time ^ (int) (time >> 32);
+                    return GetTimestampHashCode((DateTime) val);
                 }
 
                 var str = val as string;
@@ -126,6 +107,33 @@ namespace Apache.Ignite.Core.Impl.Binary
 
             // Fall back to default for all other types.
             return val.GetHashCode();
+        }
+
+        /// <summary>
+        /// Gets the timestamp hash code.
+        /// </summary>
+        private static int GetTimestampHashCode(DateTime val)
+        {
+            long hi;
+            int lo;
+            BinaryUtils.ToJavaDate(val, out hi, out lo);
+
+            int nanos = (int) (hi % 1000L * 1000000L);
+
+            long time = hi / 1000L * 1000L;
+
+            if (nanos < 0)
+            {
+                nanos += 1000000000;
+
+                time = (hi / 1000L - 1L) * 1000L;
+            }
+
+            nanos += lo;
+
+            time += nanos / 1000000;
+
+            return (int) time ^ (int) (time >> 32);
         }
 
         /// <summary>
