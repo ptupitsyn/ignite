@@ -191,10 +191,12 @@ namespace Apache.Ignite.Core.Tests.Binary
             // DateTime (written as TimeStamp).
             CheckHashCode(new DateTime(636203316866420093, DateTimeKind.Utc));
             CheckHashCode(new DateTime(2016, 1, 1, 1, 1, 1, DateTimeKind.Utc));
-            CheckHashCode(new DateTime(1, DateTimeKind.Utc));
             CheckHashCode(DateTime.MinValue);
             CheckHashCode(DateTime.Now);
             CheckHashCode(DateTime.MaxValue);
+
+            for (int i = 0; i < 10000; i++)
+                CheckHashCode(new DateTime(i, DateTimeKind.Utc));
         }
 
         [Test]
