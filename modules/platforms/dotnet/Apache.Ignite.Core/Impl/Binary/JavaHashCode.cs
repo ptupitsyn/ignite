@@ -101,9 +101,14 @@ namespace Apache.Ignite.Core.Impl.Binary
 
                     int nanos = (int) (hi % 1000L * 1000000L);
 
-                    long time = nanos < 0 
-                        ? (hi / 1000L - 1L) * 1000L 
-                        : hi / 1000L * 1000L;
+                    long time = hi / 1000L * 1000L;
+
+                    if (nanos < 0)
+                    {
+                        nanos += 1000000000;
+
+                        time = (hi / 1000L - 1L) * 1000L;
+                    }
 
                     nanos += lo;
 
