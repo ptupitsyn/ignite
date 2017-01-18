@@ -232,20 +232,31 @@ namespace Apache.Ignite.Core.Tests.Binary
             return Ignition.GetIgnite().GetCompute().WithKeepBinary().ExecuteJavaTask<int>(JavaTask, o);
         }
 
+        /// <summary>
+        /// Binary object with Timestamp field.
+        /// </summary>
         private class DateTimeWrapper : IBinarizable
         {
+            /// <summary>
+            /// Initializes a new instance of the <see cref="DateTimeWrapper"/> class.
+            /// </summary>
             public DateTimeWrapper(DateTime dateTime)
             {
                 Value = dateTime;
             }
 
+            /// <summary>
+            /// Gets or sets the value.
+            /// </summary>
             public DateTime Value { get; private set; }
 
+            /** <inheritdoc / */
             public void WriteBinary(IBinaryWriter writer)
             {
                 writer.WriteTimestamp("value", Value);
             }
 
+            /** <inheritdoc / */
             public void ReadBinary(IBinaryReader reader)
             {
                 Value = reader.ReadTimestamp("value").GetValueOrDefault();
