@@ -188,7 +188,7 @@ namespace Apache.Ignite.Core.Tests.Binary
                 CheckHashCode(Guid.NewGuid());
             }
 
-            // DateTime
+            // DateTime (written as TimeStamp).
             // TODO: These are written as Serializable.
             // Use a binary object with a field to fix this.
             CheckHashCode(DateTime.MinValue);

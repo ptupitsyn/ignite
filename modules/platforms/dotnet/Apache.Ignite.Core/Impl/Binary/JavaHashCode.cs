@@ -95,7 +95,17 @@ namespace Apache.Ignite.Core.Impl.Binary
 
                 if (val is DateTime)
                 {
-                    // TODO
+                    long hi;
+                    int lo;
+                    BinaryUtils.ToJavaDate((DateTime) val, out hi, out lo);
+
+                    long nanos = hi % 1000L * 1000000L;
+
+                    long time = nanos < 0 
+                        ? (hi / 1000L - 1L) * 1000L 
+                        : hi / 1000L * 1000L;
+
+                    return (int) time ^ (int) (time >> 32);
                 }
 
                 var str = val as string;

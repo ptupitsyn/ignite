@@ -1656,13 +1656,13 @@ namespace Apache.Ignite.Core.Impl.Binary
                 throw new BinaryObjectException("Unsupported protocol version: " + version);
         }
 
-        /**
-         * <summary>Convert date to Java ticks.</summary>
-         * <param name="date">Date</param>
-         * <param name="high">High part (milliseconds).</param>
-         * <param name="low">Low part (nanoseconds)</param>
-         */
-        private static void ToJavaDate(DateTime date, out long high, out int low)
+        /// <summary>
+        /// Convert date to Java ticks.
+        /// </summary>
+        /// <param name="date">Date.</param>
+        /// <param name="high">High part (milliseconds).</param>
+        /// <param name="low">Low part (nanoseconds).</param>
+        public static void ToJavaDate(DateTime date, out long high, out int low)
         {
             if (date.Kind != DateTimeKind.Utc)
                 throw new InvalidOperationException(
@@ -1672,7 +1672,7 @@ namespace Apache.Ignite.Core.Impl.Binary
 
             high = diff / TimeSpan.TicksPerMillisecond;
 
-            low = (int)(diff % TimeSpan.TicksPerMillisecond) * 100; 
+            low = (int)(diff % TimeSpan.TicksPerMillisecond) * 100;
         }
 
         /// <summary>
