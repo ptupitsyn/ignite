@@ -105,6 +105,10 @@ namespace Apache.Ignite.Core.Impl.Binary
                         ? (hi / 1000L - 1L) * 1000L 
                         : hi / 1000L * 1000L;
 
+                    nanos += lo;
+
+                    time += nanos / 1000000;
+
                     return (int) time ^ (int) (time >> 32);
                 }
 

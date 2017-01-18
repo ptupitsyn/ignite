@@ -37,7 +37,7 @@ namespace Apache.Ignite.Core.Tests.Binary
         [TestFixtureSetUp]
         public void FixtureSetUp()
         {
-            Ignition.Start(new IgniteConfiguration(TestUtils.GetTestConfiguration(false))
+            Ignition.Start(new IgniteConfiguration(TestUtils.GetTestConfiguration())
             {
                 BinaryConfiguration = new BinaryConfiguration(typeof(DateTimeWrapper))
             });
