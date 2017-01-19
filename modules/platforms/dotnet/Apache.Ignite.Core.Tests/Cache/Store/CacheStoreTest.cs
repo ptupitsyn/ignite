@@ -545,7 +545,7 @@ namespace Apache.Ignite.Core.Tests.Cache.Store
             };
 
             // Null.
-            cache.LoadCache(null, null, null);
+            cache.LoadCache(null, null);
             Assert.AreEqual(0, cache.GetSize());
 
             // Simple types.
