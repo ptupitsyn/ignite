@@ -544,6 +544,10 @@ namespace Apache.Ignite.Core.Tests.Cache.Store
                 Assert.AreEqual(o, cache[1]);
             };
 
+            // Null.
+            cache.LoadCache(null, null, null);
+            Assert.AreEqual(0, cache.GetSize());
+
             // Simple types.
             checkValue(1);
             checkValue("1");
