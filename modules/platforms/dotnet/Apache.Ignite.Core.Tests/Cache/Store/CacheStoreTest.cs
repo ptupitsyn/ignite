@@ -548,12 +548,22 @@ namespace Apache.Ignite.Core.Tests.Cache.Store
             cache.LoadCache(null, null);
             Assert.AreEqual(0, cache.GetSize());
 
+            // Empty array.
+            cache.LoadCache(null, new object[0]);
+            Assert.AreEqual(0, cache.GetSize());
+
             // Simple types.
             checkValue(1);
-            checkValue("1");
-            checkValue(Guid.NewGuid());
-            checkValue(DateTime.Now);
             checkValue(new[] {1, 2, 3});
+
+            checkValue("1");
+            checkValue(new[] {"1", "2"});
+
+            checkValue(Guid.NewGuid());
+            checkValue(new[] {Guid.NewGuid(), Guid.NewGuid()});
+
+            checkValue(DateTime.Now);
+            checkValue(new[] {DateTime.Now, DateTime.UtcNow});
         }
 
         /// <summary>
