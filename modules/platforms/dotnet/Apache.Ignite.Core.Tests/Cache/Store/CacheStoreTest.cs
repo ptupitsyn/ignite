@@ -529,6 +529,21 @@ namespace Apache.Ignite.Core.Tests.Cache.Store
         }
 
         /// <summary>
+        /// Tests the argument passing to LoadCache method.
+        /// </summary>
+        [Test]
+        public void TestArgumentPassing()
+        {
+            var cache = GetCache();
+
+            Assert.AreEqual(0, cache.GetSize());
+
+            cache.LoadCache(null, null, 1, "1");
+
+            Assert.AreEqual("1", cache[1]);
+        }
+
+        /// <summary>
         /// Get's grid name for this test.
         /// </summary>
         /// <value>Grid name.</value>
