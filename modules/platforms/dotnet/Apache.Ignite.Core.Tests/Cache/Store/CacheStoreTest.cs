@@ -534,13 +534,22 @@ namespace Apache.Ignite.Core.Tests.Cache.Store
         [Test]
         public void TestArgumentPassing()
         {
-            var cache = GetCache();
+            var cache = GetBinaryStoreCache<object, object>();
 
-            Assert.AreEqual(0, cache.GetSize());
+            Action<object> checkValue = o =>
+            {
+                cache.Clear();
+                Assert.AreEqual(0, cache.GetSize());
+                cache.LoadCache(null, null, 1, o);
+                Assert.AreEqual(o, cache[1]);
+            };
 
-            cache.LoadCache(null, null, 1, "1");
-
-            Assert.AreEqual("1", cache[1]);
+            // Simple types.
+            checkValue(1);
+            checkValue("1");
+            checkValue(Guid.NewGuid());
+            checkValue(DateTime.Now);
+            checkValue(new[] {1, 2, 3});
         }
 
         /// <summary>
