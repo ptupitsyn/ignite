@@ -99,7 +99,7 @@ namespace Apache.Ignite.Core.Impl.Binary
             bool keepDeserialized, 
             string affKeyFieldName,
             bool isEnum,
-            IEqualityComparer<IBinaryObject> comparer)
+            IEqualityComparer<IBinaryObject> comparer,
             bool isRegistered = true)
         {
             _type = type;

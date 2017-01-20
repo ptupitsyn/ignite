@@ -67,7 +67,7 @@ namespace Apache.Ignite.Core.Impl.Binary
             _marsh = marsh;
             _mode = mode;
             _builder = builder;
-            _curPos = stream.Position;
+            _frame.Pos = stream.Position;
 
             Stream = stream;
         }
@@ -757,7 +757,9 @@ namespace Apache.Ignite.Core.Impl.Binary
 
                 Debug.Assert(typeId != BinaryUtils.TypeUnregistered);
 
-                var schema = ignite == null ? null : ignite..BinaryProcessor.GetSchema(_curHdr.TypeId, _curHdr.SchemaId);
+                var schema = ignite == null 
+                    ? null 
+                    : ignite.BinaryProcessor.GetSchema(_frame.Hdr.TypeId, _frame.Hdr.SchemaId);
 
                 if (schema == null)
                     throw new BinaryObjectException("Cannot find schema for object with compact footer [" +
