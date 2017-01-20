@@ -153,16 +153,6 @@ public class PlatformNoopProcessor extends GridProcessorAdapter implements Platf
     }
 
     /** {@inheritDoc} */
-    @Override public boolean registerType(int id, String name) {
-        return false;
-    }
-
-    /** {@inheritDoc} */
-    @Override public String getClass(int id) {
-        return null;
-    }
-
-    /** {@inheritDoc} */
     @Override public void getCacheNames(long memPtr) {
         // No-op.
     }
