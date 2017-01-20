@@ -51,7 +51,8 @@ namespace Apache.Ignite.Core.Impl.Binary
             Debug.Assert(type != null);
             Debug.Assert(id != BinaryUtils.TypeUnregistered);
 
-            return UnmanagedUtils.ProcessorRegisterType(_ignite.InteropProcessor, id, type.AssemblyQualifiedName);
+            // TODO: BinaryProcessor
+            return false;
         }
 
         /// <summary>
@@ -61,9 +62,12 @@ namespace Apache.Ignite.Core.Impl.Binary
         /// <returns>Type or null.</returns>
         public Type GetType(int id)
         {
-            var name = UnmanagedUtils.ProcessorGetClass(_ignite.InteropProcessor, id);
+            // TODO: BinaryProcessor
+            return null;
 
-            return name == null ? null : Type.GetType(name, true);
+            //var name = UnmanagedUtils.ProcessorGetClass(_ignite.InteropProcessor, id);
+
+            //return name == null ? null : Type.GetType(name, true);
         }
     }
 }
