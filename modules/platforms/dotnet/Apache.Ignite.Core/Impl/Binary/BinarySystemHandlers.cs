@@ -600,7 +600,9 @@ namespace Apache.Ignite.Core.Impl.Binary
          */
         private static object ReadEnumArray(BinaryReader ctx, Type type)
         {
-            return BinaryUtils.ReadTypedArray(ctx, true, type.GetElementType());
+            var elemType = type.GetElementType() ?? typeof(object);
+
+            return BinaryUtils.ReadTypedArray(ctx, true, elemType);
         }
 
         /**
@@ -608,7 +610,7 @@ namespace Apache.Ignite.Core.Impl.Binary
          */
         private static object ReadArray(BinaryReader ctx, Type type)
         {
-            var elemType = type.IsArray ? type.GetElementType() : typeof(object);
+            var elemType = type.GetElementType() ?? typeof(object);
 
             return BinaryUtils.ReadTypedArray(ctx, true, elemType);
         }

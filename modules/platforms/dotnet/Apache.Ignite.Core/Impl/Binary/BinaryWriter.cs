@@ -1197,13 +1197,14 @@ namespace Apache.Ignite.Core.Impl.Binary
 
             var schemaIdx = _schema.PushSchema();
 
-            try
-            {
-                // Write object fields.
-                desc.Serializer.WriteBinary(obj, this);
+                try
+                {
+                    // Write object fields.
+                    desc.Serializer.WriteBinary(obj, this);
+                    var dataEnd = _stream.Position;
 
-                // Write schema
-                var schemaOffset = _stream.Position - pos;
+                    // Write schema
+                    var schemaOffset = dataEnd - pos;
 
                 int schemaId;
                     
@@ -1236,8 +1237,12 @@ namespace Apache.Ignite.Core.Impl.Binary
 
                 var len = _stream.Position - pos;
 
-                var header = new BinaryObjectHeader(desc.IsRegistered ? desc.TypeId : BinaryUtils.TypeUnregistered,
-                    obj.GetHashCode(), len, schemaId, schemaOffset, flags);
+                    var hashCode = desc.EqualityComparer != null
+                        ? desc.EqualityComparer.GetHashCode(Stream, pos + BinaryObjectHeader.Size,
+                            dataEnd - pos - BinaryObjectHeader.Size, _schema, schemaIdx, _marsh, desc)
+                        : obj.GetHashCode();
+
+                    var header = new BinaryObjectHeader(desc.IsRegistered ? desc.TypeId : BinaryUtils.TypeUnregistered, hashCode, len, schemaId, schemaOffset, flags);
 
                 BinaryObjectHeader.Write(header, _stream, pos);
 

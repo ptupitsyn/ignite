@@ -30,84 +30,7 @@ namespace Apache.Ignite.Core.Tests.Cache.Store
     using NUnit.Framework;
 
     /// <summary>
-    ///
-    /// </summary>
-    class Key
-    {
-        private readonly int _idx;
-
-        public Key(int idx)
-        {
-            _idx = idx;
-        }
-
-        public int Index()
-        {
-            return _idx;
-        }
-
-        public override bool Equals(object obj)
-        {
-            if (obj == null || obj.GetType() != GetType())
-                return false;
-
-            Key key = (Key)obj;
-
-            return key._idx == _idx;
-        }
-
-        public override int GetHashCode()
-        {
-            return _idx;
-        }
-    }
-
-    /// <summary>
-    ///
-    /// </summary>
-    class Value
-    {
-        private int _idx;
-
-        public Value(int idx)
-        {
-            _idx = idx;
-        }
-
-        public int Index()
-        {
-            return _idx;
-        }
-    }
-
-    /// <summary>
-    /// Cache entry predicate.
-    /// </summary>
-    [Serializable]
-    public class CacheEntryFilter : ICacheEntryFilter<int, string>
-    {
-        /** <inheritdoc /> */
-        public bool Invoke(ICacheEntry<int, string> entry)
-        {
-            return entry.Key >= 105;
-        }
-    }
-
-    /// <summary>
-    /// Cache entry predicate that throws an exception.
-    /// </summary>
-    [Serializable]
-    public class ExceptionalEntryFilter : ICacheEntryFilter<int, string>
-    {
-        /** <inheritdoc /> */
-        public bool Invoke(ICacheEntry<int, string> entry)
-        {
-            throw new Exception("Expected exception in ExceptionalEntryFilter");
-        }
-    }
-
-    /// <summary>
-    ///
+    /// Tests cache store functionality.
     /// </summary>
     public class CacheStoreTest
     {
@@ -123,19 +46,12 @@ namespace Apache.Ignite.Core.Tests.Cache.Store
         /** */
         private const string TemplateStoreCacheName = "template_store*";
 
-        /** */
-        private volatile int _storeCount = 3;
-
         /// <summary>
-        ///
+        /// Fixture set up.
         /// </summary>
         [TestFixtureSetUp]
         public virtual void BeforeTests()
         {
-            TestUtils.KillProcesses();
-
-            TestUtils.JvmDebug = true;
-
             var cfg = new IgniteConfiguration
             {
                 GridName = GridName,
@@ -149,7 +65,7 @@ namespace Apache.Ignite.Core.Tests.Cache.Store
         }
 
         /// <summary>
-        ///
+        /// Fixture tear down.
         /// </summary>
         [TestFixtureTearDown]
         public void AfterTests()
@@ -158,16 +74,7 @@ namespace Apache.Ignite.Core.Tests.Cache.Store
         }
 
         /// <summary>
-        ///
-        /// </summary>
-        [SetUp]
-        public void BeforeTest()
-        {
-            Console.WriteLine("Test started: " + TestContext.CurrentContext.Test.Name);
-        }
-
-        /// <summary>
-        ///
+        /// Test tear down.
         /// </summary>
         [TearDown]
         public void AfterTest()
@@ -182,11 +89,12 @@ namespace Apache.Ignite.Core.Tests.Cache.Store
                 "Cache is not empty: " +
                 string.Join(", ", cache.Select(x => string.Format("[{0}:{1}]", x.Key, x.Value))));
 
-            TestUtils.AssertHandleRegistryHasItems(300, _storeCount, Ignition.GetIgnite(GridName));
-
-            Console.WriteLine("Test finished: " + TestContext.CurrentContext.Test.Name);
+            TestUtils.AssertHandleRegistryHasItems(300, 3, Ignition.GetIgnite(GridName));
         }
 
+        /// <summary>
+        /// Tests that simple cache loading works and exceptions are propagated properly.
+        /// </summary>
         [Test]
         public void TestLoadCache()
         {
@@ -210,6 +118,9 @@ namespace Apache.Ignite.Core.Tests.Cache.Store
                 cache.LoadCache(new CacheEntryFilter(), 100, 10)).InnerException);
         }
 
+        /// <summary>
+        /// Tests cache loading in local mode.
+        /// </summary>
         [Test]
         public void TestLocalLoadCache()
         {
@@ -225,6 +136,9 @@ namespace Apache.Ignite.Core.Tests.Cache.Store
                 Assert.AreEqual("val_" + i, cache.Get(i));
         }
 
+        /// <summary>
+        /// Tests that object metadata propagates properly during cache loading.
+        /// </summary>
         [Test]
         public void TestLoadCacheMetadata()
         {
@@ -245,6 +159,9 @@ namespace Apache.Ignite.Core.Tests.Cache.Store
             Assert.AreEqual("Value", meta.TypeName);
         }
 
+        /// <summary>
+        /// Tests asynchronous cache load.
+        /// </summary>
         [Test]
         public void TestLoadCacheAsync()
         {
@@ -269,6 +186,9 @@ namespace Apache.Ignite.Core.Tests.Cache.Store
                     .InnerException);
         }
 
+        /// <summary>
+        /// Tests write-through and read-through behavior.
+        /// </summary>
         [Test]
         public void TestPutLoad()
         {
@@ -276,7 +196,7 @@ namespace Apache.Ignite.Core.Tests.Cache.Store
 
             cache.Put(1, "val");
 
-            IDictionary map = StoreMap();
+            IDictionary map = GetStoreMap();
 
             Assert.AreEqual(1, map.Count);
 
@@ -296,6 +216,9 @@ namespace Apache.Ignite.Core.Tests.Cache.Store
             CheckCustomStoreError(Assert.Throws<CacheStoreException>(() => cache.Get(1)).InnerException);
         }
 
+        /// <summary>
+        /// Tests write-through and read-through behavior with binarizable values.
+        /// </summary>
         [Test]
         public void TestPutLoadBinarizable()
         {
@@ -303,7 +226,7 @@ namespace Apache.Ignite.Core.Tests.Cache.Store
 
             cache.Put(1, new Value(1));
 
-            IDictionary map = StoreMap();
+            IDictionary map = GetStoreMap();
 
             Assert.AreEqual(1, map.Count);
 
@@ -315,11 +238,14 @@ namespace Apache.Ignite.Core.Tests.Cache.Store
 
             Assert.AreEqual(0, cache.GetSize());
 
-            Assert.AreEqual(1, cache.Get(1).Index());
+            Assert.AreEqual(1, cache.Get(1).Index);
 
             Assert.AreEqual(1, cache.GetSize());
         }
 
+        /// <summary>
+        /// Tests write-through and read-through behavior with storeKeepBinary=false.
+        /// </summary>
         [Test]
         public void TestPutLoadObjects()
         {
@@ -327,23 +253,26 @@ namespace Apache.Ignite.Core.Tests.Cache.Store
 
             cache.Put(1, new Value(1));
 
-            IDictionary map = StoreMap();
+            IDictionary map = GetStoreMap();
 
             Assert.AreEqual(1, map.Count);
 
             Value v = (Value)map[1];
 
-            Assert.AreEqual(1, v.Index());
+            Assert.AreEqual(1, v.Index);
 
             cache.LocalEvict(new[] { 1 });
 
             Assert.AreEqual(0, cache.GetSize());
 
-            Assert.AreEqual(1, cache.Get(1).Index());
+            Assert.AreEqual(1, cache.Get(1).Index);
 
             Assert.AreEqual(1, cache.GetSize());
         }
 
+        /// <summary>
+        /// Tests cache store LoadAll functionality.
+        /// </summary>
         [Test]
         public void TestPutLoadAll()
         {
@@ -356,7 +285,7 @@ namespace Apache.Ignite.Core.Tests.Cache.Store
 
             cache.PutAll(putMap);
 
-            IDictionary map = StoreMap();
+            IDictionary map = GetStoreMap();
 
             Assert.AreEqual(10, map.Count);
 
@@ -382,6 +311,9 @@ namespace Apache.Ignite.Core.Tests.Cache.Store
             Assert.AreEqual(10, cache.GetSize());
         }
 
+        /// <summary>
+        /// Tests cache store removal.
+        /// </summary>
         [Test]
         public void TestRemove()
         {
@@ -390,7 +322,7 @@ namespace Apache.Ignite.Core.Tests.Cache.Store
             for (int i = 0; i < 10; i++)
                 cache.Put(i, "val_" + i);
 
-            IDictionary map = StoreMap();
+            IDictionary map = GetStoreMap();
 
             Assert.AreEqual(10, map.Count);
 
@@ -403,6 +335,9 @@ namespace Apache.Ignite.Core.Tests.Cache.Store
                 Assert.AreEqual("val_" + i, map[i]);
         }
 
+        /// <summary>
+        /// Tests cache store removal.
+        /// </summary>
         [Test]
         public void TestRemoveAll()
         {
@@ -411,7 +346,7 @@ namespace Apache.Ignite.Core.Tests.Cache.Store
             for (int i = 0; i < 10; i++)
                 cache.Put(i, "val_" + i);
 
-            IDictionary map = StoreMap();
+            IDictionary map = GetStoreMap();
 
             Assert.AreEqual(10, map.Count);
 
@@ -423,6 +358,9 @@ namespace Apache.Ignite.Core.Tests.Cache.Store
                 Assert.AreEqual("val_" + i, map[i]);
         }
 
+        /// <summary>
+        /// Tests cache store with transactions.
+        /// </summary>
         [Test]
         public void TestTx()
         {
@@ -437,13 +375,16 @@ namespace Apache.Ignite.Core.Tests.Cache.Store
                 tx.Commit();
             }
 
-            IDictionary map = StoreMap();
+            IDictionary map = GetStoreMap();
 
             Assert.AreEqual(1, map.Count);
 
             Assert.AreEqual("val", map[1]);
         }
 
+        /// <summary>
+        /// Tests multithreaded cache loading.
+        /// </summary>
         [Test]
         public void TestLoadCacheMultithreaded()
         {
@@ -461,6 +402,9 @@ namespace Apache.Ignite.Core.Tests.Cache.Store
                 Assert.AreEqual("val_" + i, cache.Get(i));
         }
 
+        /// <summary>
+        /// Tests that cache store property values are propagated from Spring XML.
+        /// </summary>
         [Test]
         public void TestCustomStoreProperties()
         {
@@ -471,6 +415,9 @@ namespace Apache.Ignite.Core.Tests.Cache.Store
             Assert.AreEqual("String value", CacheTestStore.stringProperty);
         }
 
+        /// <summary>
+        /// Tests cache store with dynamically started cache.
+        /// </summary>
         [Test]
         public void TestDynamicStoreStart()
         {
@@ -489,6 +436,9 @@ namespace Apache.Ignite.Core.Tests.Cache.Store
             Assert.AreEqual(handleCount, reg.Count);
         }
 
+        /// <summary>
+        /// Tests the load all.
+        /// </summary>
         [Test]
         public void TestLoadAll([Values(true, false)] bool isAsync)
         {
@@ -520,6 +470,49 @@ namespace Apache.Ignite.Core.Tests.Cache.Store
         }
 
         /// <summary>
+        /// Tests the argument passing to LoadCache method.
+        /// </summary>
+        [Test]
+        public void TestArgumentPassing()
+        {
+            var cache = GetBinaryStoreCache<object, object>();
+
+            Action<object> checkValue = o =>
+            {
+                cache.Clear();
+                Assert.AreEqual(0, cache.GetSize());
+                cache.LoadCache(null, null, 1, o);
+                Assert.AreEqual(o, cache[1]);
+            };
+
+            // Null.
+            cache.LoadCache(null, null);
+            Assert.AreEqual(0, cache.GetSize());
+
+            // Empty args array.
+            cache.LoadCache(null);
+            Assert.AreEqual(0, cache.GetSize());
+
+            // Simple types.
+            checkValue(1);
+            checkValue(new[] {1, 2, 3});
+
+            checkValue("1");
+            checkValue(new[] {"1", "2"});
+
+            checkValue(Guid.NewGuid());
+            checkValue(new[] {Guid.NewGuid(), Guid.NewGuid()});
+
+            checkValue(DateTime.Now);
+            checkValue(new[] {DateTime.Now, DateTime.UtcNow});
+
+            // Collections.
+            checkValue(new ArrayList {1, "2", 3.3});
+            checkValue(new List<int> {1, 2});
+            checkValue(new Dictionary<int, string> {{1, "foo"}});
+        }
+
+        /// <summary>
         /// Tests the non serializable store factory.
         /// </summary>
         [Test]
@@ -547,31 +540,49 @@ namespace Apache.Ignite.Core.Tests.Cache.Store
             get { return null; }
         }
 
-        private IDictionary StoreMap()
+        /// <summary>
+        /// Gets the store map.
+        /// </summary>
+        private static IDictionary GetStoreMap()
         {
             return CacheTestStore.Map;
         }
 
+        /// <summary>
+        /// Gets the cache.
+        /// </summary>
         private ICache<int, string> GetCache()
         {
             return GetBinaryStoreCache<int, string>();
         }
 
+        /// <summary>
+        /// Gets the binary store cache.
+        /// </summary>
         private ICache<TK, TV> GetBinaryStoreCache<TK, TV>()
         {
             return Ignition.GetIgnite(GridName).GetCache<TK, TV>(BinaryStoreCacheName);
         }
 
+        /// <summary>
+        /// Gets the object store cache.
+        /// </summary>
         private ICache<TK, TV> GetObjectStoreCache<TK, TV>()
         {
             return Ignition.GetIgnite(GridName).GetCache<TK, TV>(ObjectStoreCacheName);
         }
 
+        /// <summary>
+        /// Gets the custom store cache.
+        /// </summary>
         private ICache<int, string> GetCustomStoreCache()
         {
             return Ignition.GetIgnite(GridName).GetCache<int, string>(CustomStoreCacheName);
         }
 
+        /// <summary>
+        /// Gets the template store cache.
+        /// </summary>
         private ICache<int, string> GetTemplateStoreCache()
         {
             var cacheName = TemplateStoreCacheName.Replace("*", Guid.NewGuid().ToString());
@@ -579,6 +590,9 @@ namespace Apache.Ignite.Core.Tests.Cache.Store
             return Ignition.GetIgnite(GridName).GetOrCreateCache<int, string>(cacheName);
         }
 
+        /// <summary>
+        /// Checks the custom store error.
+        /// </summary>
         private static void CheckCustomStoreError(Exception err)
         {
             var customErr = err as CacheTestStore.CustomStoreException ??
@@ -599,14 +613,93 @@ namespace Apache.Ignite.Core.Tests.Cache.Store
     }
 
     /// <summary>
-    /// 
+    /// Cache key.
     /// </summary>
-    public class NamedNodeCacheStoreTest : CacheStoreTest
+    internal class Key
     {
-        /** <inheritDoc /> */
-        protected override string GridName
+        /** */
+        private readonly int _idx;
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="Key"/> class.
+        /// </summary>
+        public Key(int idx)
         {
-            get { return "name"; }
+            _idx = idx;
         }
+
+        /** <inheritdoc /> */
+        public override bool Equals(object obj)
+        {
+            if (obj == null || obj.GetType() != GetType())
+                return false;
+
+            return ((Key)obj)._idx == _idx;
+        }
+
+        /** <inheritdoc /> */
+        public override int GetHashCode()
+        {
+            return _idx;
+        }
+    }
+
+    /// <summary>
+    /// Cache value.
+    /// </summary>
+    internal class Value
+    {
+        /** */
+        private readonly int _idx;
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="Value"/> class.
+        /// </summary>
+        public Value(int idx)
+        {
+            _idx = idx;
+        }
+
+        /// <summary>
+        /// Gets the index.
+        /// </summary>
+        public int Index
+        {
+            get { return _idx; }
+        }
+    }
+
+    /// <summary>
+    /// Cache entry predicate.
+    /// </summary>
+    [Serializable]
+    public class CacheEntryFilter : ICacheEntryFilter<int, string>
+    {
+        /** <inheritdoc /> */
+        public bool Invoke(ICacheEntry<int, string> entry)
+        {
+            return entry.Key >= 105;
+        }
+    }
+
+    /// <summary>
+    /// Cache entry predicate that throws an exception.
+    /// </summary>
+    [Serializable]
+    public class ExceptionalEntryFilter : ICacheEntryFilter<int, string>
+    {
+        /** <inheritdoc /> */
+        public bool Invoke(ICacheEntry<int, string> entry)
+        {
+            throw new Exception("Expected exception in ExceptionalEntryFilter");
+        }
+    }
+
+    /// <summary>
+    /// Filter that can't be serialized.
+    /// </summary>
+    public class InvalidCacheEntryFilter : CacheEntryFilter
+    {
+        // No-op.
     }
 }
