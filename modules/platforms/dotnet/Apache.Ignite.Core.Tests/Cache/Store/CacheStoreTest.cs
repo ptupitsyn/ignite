@@ -50,10 +50,6 @@ namespace Apache.Ignite.Core.Tests.Cache.Store
         [TestFixtureSetUp]
         public virtual void BeforeTests()
         {
-            TestUtils.KillProcesses();
-
-            TestUtils.JvmDebug = true;
-
             var cfg = new IgniteConfiguration
             {
                 GridName = GridName,
