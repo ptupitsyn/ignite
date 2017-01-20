@@ -26,7 +26,7 @@ namespace Apache.Ignite.Core.Tests.Binary
     public class BinaryBuilderSelfTestDynamicRegistration : BinaryBuilderSelfTest
     {
         /** <inheritdoc /> */
-        protected override ICollection<BinaryTypeConfiguration> GetTypeConfigurations()
+        protected ICollection<BinaryTypeConfiguration> GetTypeConfigurations()  // TODO: Override
         {
             // The only type to be registered is TestEnumRegistered,
             // because unregistered enums are handled differently.

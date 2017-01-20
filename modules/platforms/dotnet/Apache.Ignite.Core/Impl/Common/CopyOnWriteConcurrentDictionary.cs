@@ -20,6 +20,7 @@ namespace Apache.Ignite.Core.Impl.Common
     using System;
     using System.Collections.Generic;
     using System.Diagnostics.CodeAnalysis;
+    using Apache.Ignite.Core.Impl.Binary;
 
     /// <summary>
     /// Concurrent dictionary with CopyOnWrite mechanism inside. 
@@ -76,6 +77,14 @@ namespace Apache.Ignite.Core.Impl.Common
         public bool ContainsKey(TKey key)
         {
             return _dict.ContainsKey(key);
+        }
+
+        /// <summary>
+        /// Gets the values.
+        /// </summary>
+        public ICollection<TValue> Values
+        {
+            get { return _dict.Values; }
         }
     }
 }

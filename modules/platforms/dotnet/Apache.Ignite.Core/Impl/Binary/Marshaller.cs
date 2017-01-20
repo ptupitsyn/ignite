@@ -488,7 +488,7 @@ namespace Apache.Ignite.Core.Impl.Binary
             var ser = GetSerializer(_cfg, null, type, typeId, null, null);
 
             var desc = new BinaryFullTypeDescriptor(type, typeId, typeName, true, _cfg.DefaultNameMapper,
-                _cfg.DefaultIdMapper, ser, false, null, type.IsEnum, registered);
+                _cfg.DefaultIdMapper, ser, false, null, type.IsEnum, null, registered);
 
             if (registered)
             {

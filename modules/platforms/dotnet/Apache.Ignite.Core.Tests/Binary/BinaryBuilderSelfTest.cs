@@ -115,6 +115,10 @@ namespace Apache.Ignite.Core.Tests.Binary
                     CompactFooter = GetCompactFooter()
                 }
             };
+
+            _grid = (Ignite) Ignition.Start(cfg);
+
+            _marsh = _grid.Marshaller;
         }
 
         /// <summary>
