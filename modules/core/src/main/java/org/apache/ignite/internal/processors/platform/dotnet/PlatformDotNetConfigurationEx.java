@@ -79,11 +79,6 @@ public class PlatformDotNetConfigurationEx extends PlatformDotNetConfiguration i
     }
 
     /** {@inheritDoc} */
-    @Override public Byte marshallerCacheKeyPrefix() {
-        return PlatformUtils.MARSH_CACHE_PREFIX_DOTNET;
-    }
-
-    /** {@inheritDoc} */
     @Override public Collection<String> warnings() {
         return warnings;
     }
