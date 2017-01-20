@@ -195,8 +195,6 @@ namespace ignite
                 jmethodID m_PlatformProcessor_atomicLong;
                 jmethodID m_PlatformProcessor_getIgniteConfiguration;
                 jmethodID m_PlatformProcessor_getCacheNames;
-                jmethodID m_PlatformProcessor_registerType;
-                jmethodID m_PlatformProcessor_getClass;
                 jmethodID m_PlatformProcessor_atomicSequence;
                 jmethodID m_PlatformProcessor_atomicReference;
                 jmethodID m_PlatformProcessor_loggerIsLevelEnabled;
@@ -379,8 +377,6 @@ namespace ignite
 				bool ProcessorLoggerIsLevelEnabled(jobject obj, int level);
 				void ProcessorLoggerLog(jobject obj, int level, char* message, char* category, char* errorInfo);
                 jobject ProcessorBinaryProcessor(jobject obj);
-				bool ProcessorRegisterType(jobject obj, int id, char* name);
-				char* ProcessorGetClass(jobject obj, int id, int* resLen);
 
                 long long TargetInLongOutLong(jobject obj, int type, long long memPtr, JniErrorInfo* errInfo = NULL);
                 long long TargetInStreamOutLong(jobject obj, int type, long long memPtr, JniErrorInfo* errInfo = NULL);
