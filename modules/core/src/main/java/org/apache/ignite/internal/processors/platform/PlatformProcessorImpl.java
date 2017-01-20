@@ -248,6 +248,7 @@ public class PlatformProcessorImpl extends GridProcessorAdapter implements Platf
     }
 
     /** {@inheritDoc} */
+    @SuppressWarnings("ConditionalExpressionWithIdenticalBranches")
     @Override public PlatformTargetProxy createCacheFromConfig(long memPtr) throws IgniteCheckedException {
         BinaryRawReaderEx reader = platformCtx.reader(platformCtx.memory().get(memPtr));
         CacheConfiguration cfg = PlatformConfigurationUtils.readCacheConfiguration(reader);
@@ -260,6 +261,7 @@ public class PlatformProcessorImpl extends GridProcessorAdapter implements Platf
     }
 
     /** {@inheritDoc} */
+    @SuppressWarnings("ConditionalExpressionWithIdenticalBranches")
     @Override public PlatformTargetProxy getOrCreateCacheFromConfig(long memPtr) throws IgniteCheckedException {
         BinaryRawReaderEx reader = platformCtx.reader(platformCtx.memory().get(memPtr));
         CacheConfiguration cfg = PlatformConfigurationUtils.readCacheConfiguration(reader);
@@ -523,18 +525,6 @@ public class PlatformProcessorImpl extends GridProcessorAdapter implements Platf
 
         BinaryRawReaderEx reader = platformCtx.reader(platformCtx.memory().get(memPtr));
         return PlatformConfigurationUtils.readNearConfiguration(reader);
-    }
-
-    /** {@inheritDoc} */
-    @Override public boolean registerType(int id, String name) {
-        // TODO:
-        return false;
-    }
-
-    /** {@inheritDoc} */
-    @Override public String getClass(int id) {
-        // TODO:
-        return null;
     }
 
     /**
