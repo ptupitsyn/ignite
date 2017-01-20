@@ -237,7 +237,6 @@ namespace Apache.Ignite.Core.Impl.Cache
             else
                 writer.WriteObject<CacheEntryFilterHolder>(null);
 
-            // TODO: Common method for this.
             if (args != null && args.Length > 0)
             {
                 writer.WriteInt(args.Length);

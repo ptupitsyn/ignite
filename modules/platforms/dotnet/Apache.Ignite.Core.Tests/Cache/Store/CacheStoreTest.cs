@@ -548,8 +548,8 @@ namespace Apache.Ignite.Core.Tests.Cache.Store
             cache.LoadCache(null, null);
             Assert.AreEqual(0, cache.GetSize());
 
-            // Empty array.
-            cache.LoadCache(null, new object[0]);
+            // Empty args array.
+            cache.LoadCache(null);
             Assert.AreEqual(0, cache.GetSize());
 
             // Simple types.
@@ -564,6 +564,11 @@ namespace Apache.Ignite.Core.Tests.Cache.Store
 
             checkValue(DateTime.Now);
             checkValue(new[] {DateTime.Now, DateTime.UtcNow});
+
+            // Collections.
+            checkValue(new ArrayList {1, "2", 3.3});
+            checkValue(new List<int> {1, 2});
+            checkValue(new Dictionary<int, string> {{1, "foo"}});
         }
 
         /// <summary>
