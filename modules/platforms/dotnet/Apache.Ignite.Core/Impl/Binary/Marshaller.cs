@@ -59,9 +59,6 @@ namespace Apache.Ignite.Core.Impl.Binary
         /** */
         private volatile Ignite _ignite;
 
-        /** */
-        private volatile MarshallerContext _ctx;
-
         /// <summary>
         /// Constructor.
         /// </summary>
@@ -111,7 +108,6 @@ namespace Apache.Ignite.Core.Impl.Binary
                 Debug.Assert(value != null);
 
                 _ignite = value;
-                _ctx = new MarshallerContext(_ignite);
             }
         }
 
@@ -400,7 +396,7 @@ namespace Apache.Ignite.Core.Impl.Binary
 
             var typeId = BinaryUtils.TypeId(typeName, _cfg.DefaultNameMapper, _cfg.DefaultIdMapper);
 
-            var type = _ctx == null ? null : _ctx.GetType(typeId);
+            var type = _ignite == null ? null : _ignite.BinaryProcessor.GetType(typeId);
 
             if (type == null)
                 return new BinarySurrogateTypeDescriptor(_cfg, typeId, typeName);
@@ -427,7 +423,7 @@ namespace Apache.Ignite.Core.Impl.Binary
                 return null;
 
             // Check marshaller cache for dynamically registered type
-            var type = _ctx == null ? null : _ctx.GetType(typeId);
+            var type = _ignite == null ? null : _ignite.BinaryProcessor.GetType(typeId);
 
             if (type != null)
                 return AddUserType(type, typeId, BinaryUtils.GetTypeName(type), true);
@@ -459,7 +455,7 @@ namespace Apache.Ignite.Core.Impl.Binary
             var typeName = BinaryUtils.GetTypeName(type);
             var typeId = BinaryUtils.TypeId(typeName, _cfg.DefaultNameMapper, _cfg.DefaultIdMapper);
 
-            var registered = _ctx != null && _ctx.RegisterType(typeId, type);
+            var registered = _ignite != null && _ignite.BinaryProcessor.RegisterType(typeId, type);
 
             return AddUserType(type, typeId, typeName, registered);
         }

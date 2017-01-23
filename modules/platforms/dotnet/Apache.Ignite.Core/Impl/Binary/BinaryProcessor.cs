@@ -17,6 +17,7 @@
 
 namespace Apache.Ignite.Core.Impl.Binary
 {
+    using System;
     using System.Collections.Generic;
     using System.Diagnostics;
     using Apache.Ignite.Core.Binary;
@@ -101,7 +102,7 @@ namespace Apache.Ignite.Core.Impl.Binary
         /// Put binary types to Grid.
         /// </summary>
         /// <param name="types">Binary types.</param>
-        internal void PutBinaryTypes(ICollection<BinaryType> types)
+        public void PutBinaryTypes(ICollection<BinaryType> types)
         {
             DoOutOp((int) Op.PutMeta, w =>
             {
@@ -151,6 +152,36 @@ namespace Apache.Ignite.Core.Impl.Binary
             });
 
             Marshaller.OnBinaryTypesSent(types);
+        }
+
+        /// <summary>
+        /// Registers the type.
+        /// </summary>
+        /// <param name="id">The identifier.</param>
+        /// <param name="type">The type.</param>
+        /// <returns>True if registration succeeded; otherwise, false.</returns>
+        public bool RegisterType(int id, Type type)
+        {
+            Debug.Assert(type != null);
+            Debug.Assert(id != BinaryUtils.TypeUnregistered);
+
+            // TODO: BinaryProcessor
+            return false;
+        }
+
+        /// <summary>
+        /// Gets the type by id.
+        /// </summary>
+        /// <param name="id">The identifier.</param>
+        /// <returns>Type or null.</returns>
+        public Type GetType(int id)
+        {
+            // TODO: BinaryProcessor
+            return null;
+
+            //var name = UnmanagedUtils.ProcessorGetClass(_ignite.InteropProcessor, id);
+
+            //return name == null ? null : Type.GetType(name, true);
         }
     }
 }
