@@ -413,7 +413,6 @@ namespace Apache.Ignite.Core.Impl.Binary
             if (!userType)
                 return null;
 
-            // Check metadata cache for type information (this works for binary mode)
             var meta = GetBinaryType(typeId);
 
             if (meta != BinaryType.Empty)
