@@ -18,6 +18,7 @@
 package org.apache.ignite.internal.processors.platform.binary;
 
 import org.apache.ignite.IgniteCheckedException;
+import org.apache.ignite.binary.BinaryObjectException;
 import org.apache.ignite.internal.MarshallerPlatformIds;
 import org.apache.ignite.internal.binary.BinaryRawReaderEx;
 import org.apache.ignite.internal.binary.BinaryRawWriterEx;
@@ -114,7 +115,7 @@ public class PlatformBinaryProcessor extends PlatformAbstractTarget {
 
                     writer.writeString(typeName);
                 } catch (ClassNotFoundException e) {
-                    throw new IgniteCheckedException(e);
+                    throw new BinaryObjectException(e);
                 }
 
                 break;
