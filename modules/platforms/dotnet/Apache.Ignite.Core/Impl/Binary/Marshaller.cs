@@ -497,7 +497,7 @@ namespace Apache.Ignite.Core.Impl.Binary
                 if (desc0.Type != type)
                     ThrowConflictingTypeError(type, desc0.Type, typeId);
 
-                _typeToDesc.GetOrAdd(type, x => desc);
+                _typeToDesc.Set(type, desc);
             }
 
             return desc;

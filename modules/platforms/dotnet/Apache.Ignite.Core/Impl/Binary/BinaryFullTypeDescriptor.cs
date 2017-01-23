@@ -19,6 +19,7 @@ namespace Apache.Ignite.Core.Impl.Binary
 {
     using System;
     using System.Collections.Generic;
+    using System.Diagnostics;
     using Apache.Ignite.Core.Binary;
     using Apache.Ignite.Core.Common;
     using Apache.Ignite.Core.Impl.Binary.Structure;
@@ -145,7 +146,8 @@ namespace Apache.Ignite.Core.Impl.Binary
             {
                 if (_type == null && _typeFactory != null)
                 {
-                    _type = _typeFactory();
+                    throw new Exception("Omg");
+                    //_type = _typeFactory();
                 }
 
                 return _type;
