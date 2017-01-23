@@ -27,6 +27,8 @@ git-patch-prop-local.sh
 .project
 /modules/platforms/**/*.VC.db
 **/dotnet/libs/
+*.classname
+*.classname1
 
 #Visual Studio files
 *.[Oo]bj
@@ -58,5 +60,4 @@ ipch/
 [Dd]ebug*/
 [Rr]elease*/
 packages
-*.classname
 *.nupkg
