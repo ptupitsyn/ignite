@@ -417,9 +417,10 @@ namespace Apache.Ignite.Core.Impl.Binary
 
             if (meta != BinaryType.Empty)
             {
-                desc = new BinaryFullTypeDescriptor(null, meta.TypeId, meta.TypeName, true, null, null, null, false, 
-                    meta.AffinityKeyFieldName, meta.IsEnum, null, true, 
-                    _ignite != null ? _ignite.BinaryProcessor : null);
+                desc = new BinaryFullTypeDescriptor(null, meta.TypeId, meta.TypeName, true, null, null, null, false,
+                    meta.AffinityKeyFieldName, meta.IsEnum, null, true,
+                    () => _ignite.BinaryProcessor.GetType(typeId),
+                    type => GetSerializer(_cfg, null, type, typeId, null, null));
 
                 _idToDesc.GetOrAdd(typeKey, _ => desc);
 

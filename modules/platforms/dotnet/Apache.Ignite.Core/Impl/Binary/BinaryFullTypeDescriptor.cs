@@ -47,7 +47,7 @@ namespace Apache.Ignite.Core.Impl.Binary
         private readonly IBinaryIdMapper _idMapper;
 
         /** Serializer. */
-        private readonly IBinarySerializerInternal _serializer;
+        private volatile IBinarySerializerInternal _serializer;
 
         /** Whether to cache deserialized value in IBinaryObject */
         private readonly bool _keepDeserialized;
@@ -73,8 +73,11 @@ namespace Apache.Ignite.Core.Impl.Binary
         /** Register flag. */
         private readonly bool _isRegistered;
 
-        /** Binary processor. */
-        private BinaryProcessor _binaryProcessor;
+        /** Type factory. */
+        private readonly Func<Type> _typeFactory;
+
+        /** Serializer factory. */
+        private readonly Func<Type, IBinarySerializerInternal> _serializerFactory;
 
         /// <summary>
         /// Constructor.
@@ -91,7 +94,9 @@ namespace Apache.Ignite.Core.Impl.Binary
         /// <param name="isEnum">Enum flag.</param>
         /// <param name="comparer">Equality comparer.</param>
         /// <param name="isRegistered">Registered flag.</param>
-        /// <param name="binaryProcessor">The binary processor.</param>
+        /// <param name="typeFactory">Type factory.</param>
+        /// <param name="serializerFactory">Serializer factory.</param>
+        /// <exception cref="IgniteException"></exception>
         public BinaryFullTypeDescriptor(
             Type type, 
             int typeId, 
@@ -105,7 +110,8 @@ namespace Apache.Ignite.Core.Impl.Binary
             bool isEnum,
             IEqualityComparer<IBinaryObject> comparer,
             bool isRegistered = true,
-            BinaryProcessor binaryProcessor = null)
+            Func<Type> typeFactory = null,
+            Func<Type, IBinarySerializerInternal> serializerFactory = null)
         {
             _type = type;
             _typeId = typeId;
@@ -124,8 +130,10 @@ namespace Apache.Ignite.Core.Impl.Binary
                 throw new IgniteException(string.Format("Unsupported IEqualityComparer<IBinaryObject> " +
                                                         "implementation: {0}. Only predefined implementations " +
                                                         "are supported.", comparer.GetType()));
+
             _isRegistered = isRegistered;
-            _binaryProcessor = binaryProcessor;
+            _typeFactory = typeFactory;
+            _serializerFactory = serializerFactory;
         }
 
         /// <summary>
@@ -135,11 +143,9 @@ namespace Apache.Ignite.Core.Impl.Binary
         {
             get
             {
-                // TODO: We can use some sort of descriptor proxy which replaces itself when Type is requested.
-                // TODO: Concurrency?
-                if (_type == null && _binaryProcessor != null)
+                if (_type == null && _typeFactory != null)
                 {
-                    _type = _binaryProcessor.GetType(_typeId);
+                    _type = _typeFactory();
                 }
 
                 return _type;
@@ -199,7 +205,13 @@ namespace Apache.Ignite.Core.Impl.Binary
         /// </summary>
         public IBinarySerializerInternal Serializer
         {
-            get { return _serializer; }
+            get
+            {
+                if (_serializer == null && _serializerFactory != null)
+                    _serializer = _serializerFactory(Type);
+
+                return _serializer;
+            }
         }
 
         /// <summary>
