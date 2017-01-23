@@ -757,8 +757,8 @@ namespace Apache.Ignite.Core.Impl.Binary
 
                 Debug.Assert(typeId != BinaryUtils.TypeUnregistered);
 
-                var schema = ignite == null 
-                    ? null 
+                var schema = ignite == null
+                    ? null
                     : ignite.BinaryProcessor.GetSchema(_frame.Hdr.TypeId, _frame.Hdr.SchemaId);
 
                 if (schema == null)
