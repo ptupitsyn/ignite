@@ -29,7 +29,7 @@ namespace Apache.Ignite.Core.Impl.Binary
     internal class BinaryFullTypeDescriptor : IBinaryTypeDescriptor
     {
         /** Type. */
-        private readonly Type _type;
+        private volatile Type _type;
 
         /** Type ID. */
         private readonly int _typeId;
@@ -73,6 +73,9 @@ namespace Apache.Ignite.Core.Impl.Binary
         /** Register flag. */
         private readonly bool _isRegistered;
 
+        /** Binary processor. */
+        private BinaryProcessor _binaryProcessor;
+
         /// <summary>
         /// Constructor.
         /// </summary>
@@ -88,6 +91,7 @@ namespace Apache.Ignite.Core.Impl.Binary
         /// <param name="isEnum">Enum flag.</param>
         /// <param name="comparer">Equality comparer.</param>
         /// <param name="isRegistered">Registered flag.</param>
+        /// <param name="binaryProcessor">The binary processor.</param>
         public BinaryFullTypeDescriptor(
             Type type, 
             int typeId, 
@@ -100,7 +104,8 @@ namespace Apache.Ignite.Core.Impl.Binary
             string affKeyFieldName,
             bool isEnum,
             IEqualityComparer<IBinaryObject> comparer,
-            bool isRegistered = true)
+            bool isRegistered = true,
+            BinaryProcessor binaryProcessor = null)
         {
             _type = type;
             _typeId = typeId;
@@ -120,6 +125,7 @@ namespace Apache.Ignite.Core.Impl.Binary
                                                         "implementation: {0}. Only predefined implementations " +
                                                         "are supported.", comparer.GetType()));
             _isRegistered = isRegistered;
+            _binaryProcessor = binaryProcessor;
         }
 
         /// <summary>
@@ -127,7 +133,17 @@ namespace Apache.Ignite.Core.Impl.Binary
         /// </summary>
         public Type Type
         {
-            get { return _type; }
+            get
+            {
+                // TODO: We can use some sort of descriptor proxy which replaces itself when Type is requested.
+                // TODO: Concurrency?
+                if (_type == null && _binaryProcessor != null)
+                {
+                    _type = _binaryProcessor.GetType(_typeId);
+                }
+
+                return _type;
+            }
         }
 
         /// <summary>

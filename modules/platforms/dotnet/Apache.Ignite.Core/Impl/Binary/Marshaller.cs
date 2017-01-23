@@ -413,19 +413,14 @@ namespace Apache.Ignite.Core.Impl.Binary
             if (!userType)
                 return null;
 
-            // Check marshaller cache for dynamically registered type
-            var type = _ignite == null ? null : _ignite.BinaryProcessor.GetType(typeId);
-
-            if (type != null)
-                return AddUserType(type, typeId, BinaryUtils.GetTypeName(type), true);
-
             // Check metadata cache for type information (this works for binary mode)
             var meta = GetBinaryType(typeId);
 
             if (meta != BinaryType.Empty)
             {
                 desc = new BinaryFullTypeDescriptor(null, meta.TypeId, meta.TypeName, true, null, null, null, false, 
-                    meta.AffinityKeyFieldName, meta.IsEnum, null);
+                    meta.AffinityKeyFieldName, meta.IsEnum, null, true, 
+                    _ignite != null ? _ignite.BinaryProcessor : null);
 
                 _idToDesc.GetOrAdd(typeKey, _ => desc);
 
