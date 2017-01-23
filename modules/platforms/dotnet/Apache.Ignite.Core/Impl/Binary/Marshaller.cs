@@ -410,7 +410,7 @@ namespace Apache.Ignite.Core.Impl.Binary
 
             var typeKey = BinaryUtils.TypeKey(userType, typeId);
 
-            if (_idToDesc.TryGetValue(typeKey, out desc))
+            if (_idToDesc.TryGetValue(typeKey, out desc) && (!requiresType || desc.Type != null))
                 return desc;
 
             if (!userType)
@@ -429,11 +429,8 @@ namespace Apache.Ignite.Core.Impl.Binary
 
             if (meta != BinaryType.Empty)
             {
-                // TODO: Are these factories ever used?
                 desc = new BinaryFullTypeDescriptor(null, meta.TypeId, meta.TypeName, true, null, null, null, false,
-                    meta.AffinityKeyFieldName, meta.IsEnum, null, true,
-                    () => _ignite.BinaryProcessor.GetType(typeId),
-                    type => GetSerializer(_cfg, null, type, typeId, null, null));
+                    meta.AffinityKeyFieldName, meta.IsEnum, null);
 
                 _idToDesc.GetOrAdd(typeKey, _ => desc);
 
@@ -490,11 +487,11 @@ namespace Apache.Ignite.Core.Impl.Binary
                 var typeKey = BinaryUtils.TypeKey(true, typeId);
 
                 var desc0 = _idToDesc.GetOrAdd(typeKey, x => desc);
-                if (desc0.Type != type)
+                if (desc0.Type != null && desc0.Type != type)
                     ThrowConflictingTypeError(type, desc0.Type, typeId);
 
                 desc0 = _typeNameToDesc.GetOrAdd(typeName, x => desc);
-                if (desc0.Type != type)
+                if (desc0.Type != null && desc0.Type != type)
                     ThrowConflictingTypeError(type, desc0.Type, typeId);
 
                 _typeToDesc.Set(type, desc);

@@ -19,7 +19,6 @@ namespace Apache.Ignite.Core.Impl.Binary
 {
     using System;
     using System.Collections.Generic;
-    using System.Diagnostics;
     using Apache.Ignite.Core.Binary;
     using Apache.Ignite.Core.Common;
     using Apache.Ignite.Core.Impl.Binary.Structure;
@@ -74,12 +73,6 @@ namespace Apache.Ignite.Core.Impl.Binary
         /** Register flag. */
         private readonly bool _isRegistered;
 
-        /** Type factory. */
-        private readonly Func<Type> _typeFactory;
-
-        /** Serializer factory. */
-        private readonly Func<Type, IBinarySerializerInternal> _serializerFactory;
-
         /// <summary>
         /// Constructor.
         /// </summary>
@@ -95,9 +88,6 @@ namespace Apache.Ignite.Core.Impl.Binary
         /// <param name="isEnum">Enum flag.</param>
         /// <param name="comparer">Equality comparer.</param>
         /// <param name="isRegistered">Registered flag.</param>
-        /// <param name="typeFactory">Type factory.</param>
-        /// <param name="serializerFactory">Serializer factory.</param>
-        /// <exception cref="IgniteException"></exception>
         public BinaryFullTypeDescriptor(
             Type type, 
             int typeId, 
@@ -110,9 +100,7 @@ namespace Apache.Ignite.Core.Impl.Binary
             string affKeyFieldName,
             bool isEnum,
             IEqualityComparer<IBinaryObject> comparer,
-            bool isRegistered = true,
-            Func<Type> typeFactory = null,
-            Func<Type, IBinarySerializerInternal> serializerFactory = null)
+            bool isRegistered = true)
         {
             _type = type;
             _typeId = typeId;
@@ -133,8 +121,6 @@ namespace Apache.Ignite.Core.Impl.Binary
                                                         "are supported.", comparer.GetType()));
 
             _isRegistered = isRegistered;
-            _typeFactory = typeFactory;
-            _serializerFactory = serializerFactory;
         }
 
         /// <summary>
@@ -142,16 +128,7 @@ namespace Apache.Ignite.Core.Impl.Binary
         /// </summary>
         public Type Type
         {
-            get
-            {
-                if (_type == null && _typeFactory != null)
-                {
-                    throw new Exception("Omg");
-                    //_type = _typeFactory();
-                }
-
-                return _type;
-            }
+            get { return _type; }
         }
 
         /// <summary>
@@ -207,13 +184,7 @@ namespace Apache.Ignite.Core.Impl.Binary
         /// </summary>
         public IBinarySerializerInternal Serializer
         {
-            get
-            {
-                if (_serializer == null && _serializerFactory != null)
-                    _serializer = _serializerFactory(Type);
-
-                return _serializer;
-            }
+            get { return _serializer; }
         }
 
         /// <summary>
