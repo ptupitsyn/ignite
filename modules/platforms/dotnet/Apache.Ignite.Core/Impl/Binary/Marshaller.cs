@@ -368,15 +368,14 @@ namespace Apache.Ignite.Core.Impl.Binary
         /// Gets descriptor for type.
         /// </summary>
         /// <param name="type">Type.</param>
-        /// <param name="registerWhenMissing">if set to <c>true</c>, registers missing type.</param>
         /// <returns>
         /// Descriptor.
         /// </returns>
-        public IBinaryTypeDescriptor GetDescriptor(Type type, bool registerWhenMissing = true)
+        public IBinaryTypeDescriptor GetDescriptor(Type type)
         {
             IBinaryTypeDescriptor desc;
 
-            if (!_typeToDesc.TryGetValue(type, out desc) && registerWhenMissing)
+            if (!_typeToDesc.TryGetValue(type, out desc))
                 desc = RegisterType(type);
 
             return desc;

@@ -1528,9 +1528,9 @@ namespace Apache.Ignite.Core.Impl.Binary
         {
             if (Enum.GetUnderlyingType(enumType) == TypInt)
             {
-                var desc = marshaller.GetDescriptor(enumType, false);
+                var desc = marshaller.GetDescriptor(enumType);
 
-                return desc == null ? ObjTypeId : desc.TypeId;
+                return desc.TypeId;
             }
 
             throw new BinaryObjectException("Only Int32 underlying type is supported for enums: " +

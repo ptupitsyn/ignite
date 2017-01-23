@@ -858,23 +858,15 @@ namespace Apache.Ignite.Core.Impl.Binary
                 WriteNullField();
             else
             {
-                var desc = _marsh.GetDescriptor(val.GetType(), false);
+                var desc = _marsh.GetDescriptor(val.GetType());
 
-                if (desc != null)
-                {
-                    var metaHnd = _marsh.GetBinaryTypeHandler(desc);
+                var metaHnd = _marsh.GetBinaryTypeHandler(desc);
 
-                    _stream.WriteByte(BinaryUtils.TypeEnum);
+                _stream.WriteByte(BinaryUtils.TypeEnum);
 
-                    BinaryUtils.WriteEnum(this, val);
+                BinaryUtils.WriteEnum(this, val);
 
-                    SaveMetadata(desc, metaHnd.OnObjectWriteFinished());
-                }
-                else
-                {
-                    // Unregistered enum, write as serializable
-                    Write(new SerializableObjectHolder(val));
-                }
+                SaveMetadata(desc, metaHnd.OnObjectWriteFinished());
             }
         }
 
@@ -1155,21 +1147,8 @@ namespace Apache.Ignite.Core.Impl.Binary
                 return;
             }
 
-            var isSerializable = type.IsSerializable;
-
             // Suppose that we faced normal object and perform descriptor lookup.
-            // Do not dynamically register serializable types for compatibility.
-            var desc = _marsh.GetDescriptor(type, !isSerializable);
-
-            if (desc == null)
-            {
-                if (!isSerializable)
-                    throw new BinaryObjectException("Unsupported object type [type=" + type + ", object=" + obj + ']');
-
-                Write(new SerializableObjectHolder(obj));
-
-                return;
-            }
+            var desc = _marsh.GetDescriptor(type);
 
             // Writing normal object.
             var pos = _stream.Position;
