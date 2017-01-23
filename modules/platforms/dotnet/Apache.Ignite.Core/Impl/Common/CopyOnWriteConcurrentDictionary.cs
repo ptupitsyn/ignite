@@ -15,12 +15,12 @@
  * limitations under the License.
  */
 
+// ReSharper disable InconsistentlySynchronizedField
 namespace Apache.Ignite.Core.Impl.Common
 {
     using System;
     using System.Collections.Generic;
     using System.Diagnostics.CodeAnalysis;
-    using Apache.Ignite.Core.Impl.Binary;
 
     /// <summary>
     /// Concurrent dictionary with CopyOnWrite mechanism inside. 
