@@ -400,8 +400,11 @@ namespace Apache.Ignite.Core.Impl.Binary
         /// </summary>
         /// <param name="userType">User type flag.</param>
         /// <param name="typeId">Type id.</param>
-        /// <returns>Descriptor.</returns>
-        public IBinaryTypeDescriptor GetDescriptor(bool userType, int typeId)
+        /// <param name="requiresType">If set to true, resulting descriptor must have Type property populated.</param>
+        /// <returns>
+        /// Descriptor.
+        /// </returns>
+        public IBinaryTypeDescriptor GetDescriptor(bool userType, int typeId, bool requiresType = false)
         {
             IBinaryTypeDescriptor desc;
 
@@ -413,10 +416,20 @@ namespace Apache.Ignite.Core.Impl.Binary
             if (!userType)
                 return null;
 
+            if (requiresType)
+            {
+                // Check marshaller context for dynamically registered type
+                var type = _ignite == null ? null : _ignite.BinaryProcessor.GetType(typeId);
+
+                if (type != null)
+                    return AddUserType(type, typeId, BinaryUtils.GetTypeName(type), true);
+            }
+
             var meta = GetBinaryType(typeId);
 
             if (meta != BinaryType.Empty)
             {
+                // TODO: Are these factories ever used?
                 desc = new BinaryFullTypeDescriptor(null, meta.TypeId, meta.TypeName, true, null, null, null, false,
                     meta.AffinityKeyFieldName, meta.IsEnum, null, true,
                     () => _ignite.BinaryProcessor.GetType(typeId),
