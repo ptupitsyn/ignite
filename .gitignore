@@ -27,9 +27,7 @@ git-patch-prop-local.sh
 .project
 /modules/platforms/**/*.VC.db
 **/dotnet/libs/
-*.classname
-*.classname0
-*.classname1
+*.classname*
 
 #Visual Studio files
 *.[Oo]bj

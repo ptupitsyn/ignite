@@ -315,7 +315,7 @@ namespace Apache.Ignite.Core.Tests.Binary
             // Delete all *.classname files within IGNITE_HOME
             var home = IgniteHome.Resolve(null);
 
-            var files = Directory.GetFiles(home, "*.classname", SearchOption.AllDirectories);
+            var files = Directory.GetFiles(home, "*.classname*", SearchOption.AllDirectories);
 
             files.ToList().ForEach(File.Delete);
         }
