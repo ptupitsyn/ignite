@@ -29,7 +29,7 @@ namespace Apache.Ignite.Core.Impl.Binary
     internal class BinaryFullTypeDescriptor : IBinaryTypeDescriptor
     {
         /** Type. */
-        private volatile Type _type;
+        private readonly Type _type;
 
         /** Type ID. */
         private readonly int _typeId;
@@ -47,7 +47,7 @@ namespace Apache.Ignite.Core.Impl.Binary
         private readonly IBinaryIdMapper _idMapper;
 
         /** Serializer. */
-        private volatile IBinarySerializerInternal _serializer;
+        private readonly IBinarySerializerInternal _serializer;
 
         /** Whether to cache deserialized value in IBinaryObject */
         private readonly bool _keepDeserialized;
