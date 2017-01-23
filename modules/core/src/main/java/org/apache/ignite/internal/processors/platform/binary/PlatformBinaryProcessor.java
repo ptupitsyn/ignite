@@ -18,6 +18,7 @@
 package org.apache.ignite.internal.processors.platform.binary;
 
 import org.apache.ignite.IgniteCheckedException;
+import org.apache.ignite.internal.MarshallerPlatformIds;
 import org.apache.ignite.internal.binary.BinaryRawReaderEx;
 import org.apache.ignite.internal.binary.BinaryRawWriterEx;
 import org.apache.ignite.internal.processors.platform.PlatformAbstractTarget;
@@ -66,7 +67,10 @@ public class PlatformBinaryProcessor extends PlatformAbstractTarget {
                 int typeId = reader.readInt();
                 String typeName = reader.readString();
 
-                return TRUE;  // TODO
+                // TODO: Exceptions?
+                return platformContext().kernalContext().marshallerContext()
+                        .registerClassName(MarshallerPlatformIds.DOTNET_ID, typeId, typeName)
+                        ? TRUE : FALSE;
             }
         }
 
@@ -105,7 +109,14 @@ public class PlatformBinaryProcessor extends PlatformAbstractTarget {
             case OP_GET_TYPE: {
                 int typeId = reader.readInt();
 
-                // TODO
+                try {
+                    String typeName = platformContext().kernalContext().marshallerContext()
+                            .getClassName(MarshallerPlatformIds.DOTNET_ID, typeId);
+
+                    writer.writeString(typeName);
+                } catch (ClassNotFoundException e) {
+                    throw new IgniteCheckedException(e);
+                }
 
                 break;
             }
