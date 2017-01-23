@@ -400,7 +400,14 @@ namespace Apache.Ignite.Core.Impl.Binary
         /// </summary>
         /// <param name="userType">User type flag.</param>
         /// <param name="typeId">Type id.</param>
-        /// <param name="requiresType">If set to true, resulting descriptor must have Type property populated.</param>
+        /// <param name="requiresType">
+        /// If set to true, resulting descriptor must have Type property populated.
+        /// <para />
+        /// When working in binary mode, we don't need Type. And there is no Type at all in some cases.
+        /// So we should not attempt to call BinaryProcessor right away.
+        /// Only when we really deserilize the value, requiresType is set to true
+        /// and we attempt to resolve the type by all means.
+        /// </param>
         /// <returns>
         /// Descriptor.
         /// </returns>
@@ -418,7 +425,7 @@ namespace Apache.Ignite.Core.Impl.Binary
 
             if (requiresType)
             {
-                // Check marshaller context for dynamically registered type
+                // Check marshaller context for dynamically registered type.
                 var type = _ignite == null ? null : _ignite.BinaryProcessor.GetType(typeId);
 
                 if (type != null)
