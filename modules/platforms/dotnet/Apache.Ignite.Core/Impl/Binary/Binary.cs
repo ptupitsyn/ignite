@@ -89,8 +89,6 @@ namespace Apache.Ignite.Core.Impl.Binary
         {
             IgniteArgumentCheck.NotNullOrEmpty(typeName, "typeName");
 
-            // TODO: It is normal to have no descriptor for binary-only types.
-            // Do we really need a descriptor at this point?
             IBinaryTypeDescriptor desc = _marsh.GetDescriptor(typeName);
             
             return Builder0(null, null, desc);

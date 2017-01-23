@@ -391,17 +391,8 @@ namespace Apache.Ignite.Core.Impl.Binary
         {
             IBinaryTypeDescriptor desc;
 
-            if (_typeNameToDesc.TryGetValue(typeName, out desc))
-                return desc;
-
-            var typeId = BinaryUtils.TypeId(typeName, _cfg.DefaultNameMapper, _cfg.DefaultIdMapper);
-
-            var type = _ignite == null ? null : _ignite.BinaryProcessor.GetType(typeId);
-
-            if (type == null)
-                return new BinarySurrogateTypeDescriptor(_cfg, typeId, typeName);
-
-            return AddUserType(type, typeId, typeName, true);
+            return _typeNameToDesc.TryGetValue(typeName, out desc) ? desc :
+                new BinarySurrogateTypeDescriptor(_cfg, typeName);
         }
 
         /// <summary>
