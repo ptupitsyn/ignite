@@ -1067,12 +1067,13 @@ namespace Apache.Ignite.Core.Tests.Binary
             Assert.AreEqual(nDate, binObj.GetField<DateTime?>("fNDate"));
             Assert.AreEqual(nDate, binObj.GetField<DateTime?>("fNTimestamp"));
             Assert.AreEqual(nGuid, binObj.GetField<Guid?>("fNGuid"));
-            Assert.AreEqual(TestEnum.One, binObj.GetField<TestEnum>("fEnum"));
+            Assert.AreEqual(TestEnum.One, binObj.GetField<IBinaryObject>("fEnum").Deserialize<TestEnum>());
             Assert.AreEqual(new[] {"str"}, binObj.GetField<string[]>("fStrArr"));
             Assert.AreEqual(new[] {nDate}, binObj.GetField<DateTime?[]>("fDateArr"));
             Assert.AreEqual(new[] {nDate}, binObj.GetField<DateTime?[]>("fTimestampArr"));
             Assert.AreEqual(new[] {nGuid}, binObj.GetField<Guid?[]>("fGuidArr"));
-            Assert.AreEqual(new[] {TestEnum.One}, binObj.GetField<TestEnum[]>("fEnumArr"));
+            Assert.AreEqual(new[] {TestEnum.One}, 
+                binObj.GetField<IBinaryObject[]>("fEnumArr").Select(x=>x.Deserialize<TestEnum>()).ToArray());
 
             StringDateGuidEnum obj = binObj.Deserialize<StringDateGuidEnum>();
 
@@ -1093,12 +1094,13 @@ namespace Apache.Ignite.Core.Tests.Binary
             Assert.AreEqual(nDate, builder.GetField<DateTime?>("fNDate"));
             Assert.AreEqual(nDate, builder.GetField<DateTime?>("fNTimestamp"));
             Assert.AreEqual(nGuid, builder.GetField<Guid?>("fNGuid"));
-            Assert.AreEqual(TestEnum.One, builder.GetField<TestEnum>("fEnum"));
+            Assert.AreEqual(TestEnum.One, binObj.GetField<IBinaryObject>("fEnum").Deserialize<TestEnum>());
             Assert.AreEqual(new[] {"str"}, builder.GetField<string[]>("fStrArr"));
             Assert.AreEqual(new[] {nDate}, builder.GetField<DateTime?[]>("fDateArr"));
             Assert.AreEqual(new[] {nDate}, builder.GetField<DateTime?[]>("fTimestampArr"));
             Assert.AreEqual(new[] {nGuid}, builder.GetField<Guid?[]>("fGuidArr"));
-            Assert.AreEqual(new[] {TestEnum.One}, builder.GetField<TestEnum[]>("fEnumArr"));
+            Assert.AreEqual(new[] {TestEnum.One},
+                binObj.GetField<IBinaryObject[]>("fEnumArr").Select(x => x.Deserialize<TestEnum>()).ToArray());
 
             // Check reassemble.
             binObj = builder.Build();
@@ -1107,12 +1109,13 @@ namespace Apache.Ignite.Core.Tests.Binary
             Assert.AreEqual(nDate, binObj.GetField<DateTime?>("fNDate"));
             Assert.AreEqual(nDate, binObj.GetField<DateTime?>("fNTimestamp"));
             Assert.AreEqual(nGuid, binObj.GetField<Guid?>("fNGuid"));
-            Assert.AreEqual(TestEnum.One, binObj.GetField<TestEnum>("fEnum"));
+            Assert.AreEqual(TestEnum.One, binObj.GetField<IBinaryObject>("fEnum").Deserialize<TestEnum>());
             Assert.AreEqual(new[] {"str"}, binObj.GetField<string[]>("fStrArr"));
             Assert.AreEqual(new[] {nDate}, binObj.GetField<DateTime?[]>("fDateArr"));
             Assert.AreEqual(new[] {nDate}, binObj.GetField<DateTime?[]>("fTimestampArr"));
             Assert.AreEqual(new[] {nGuid}, binObj.GetField<Guid?[]>("fGuidArr"));
-            Assert.AreEqual(new[] {TestEnum.One}, binObj.GetField<TestEnum[]>("fEnumArr"));
+            Assert.AreEqual(new[] {TestEnum.One},
+                binObj.GetField<IBinaryObject[]>("fEnumArr").Select(x => x.Deserialize<TestEnum>()).ToArray());
 
             obj = binObj.Deserialize<StringDateGuidEnum>();
 
