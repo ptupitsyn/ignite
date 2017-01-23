@@ -37,7 +37,9 @@ namespace Apache.Ignite.Core.Impl.Binary
             GetMeta = 1,
             GetAllMeta = 2,
             PutMeta = 3,
-            GetSchema = 4
+            GetSchema = 4,
+            RegisterType = 5,
+            GetType = 6
         }
 
         /// <summary>
@@ -165,8 +167,11 @@ namespace Apache.Ignite.Core.Impl.Binary
             Debug.Assert(type != null);
             Debug.Assert(id != BinaryUtils.TypeUnregistered);
 
-            // TODO: BinaryProcessor
-            return false;
+            return DoOutOp((int) Op.RegisterType, w =>
+            {
+                w.WriteInt(id);
+                w.WriteString(type.FullName);
+            }) == True;
         }
 
         /// <summary>
@@ -176,12 +181,10 @@ namespace Apache.Ignite.Core.Impl.Binary
         /// <returns>Type or null.</returns>
         public Type GetType(int id)
         {
-            // TODO: BinaryProcessor
-            return null;
+            var typeName = DoOutInOp((int) Op.GetType, w => w.WriteInt(id),
+                r => Marshaller.StartUnmarshal(r).ReadString());
 
-            //var name = UnmanagedUtils.ProcessorGetClass(_ignite.InteropProcessor, id);
-
-            //return name == null ? null : Type.GetType(name, true);
+            return new TypeResolver().ResolveType(typeName);
         }
     }
 }

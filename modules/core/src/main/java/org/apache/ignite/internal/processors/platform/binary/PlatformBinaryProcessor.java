@@ -39,6 +39,12 @@ public class PlatformBinaryProcessor extends PlatformAbstractTarget {
     /** */
     private static final int OP_GET_SCHEMA = 4;
 
+    /** */
+    private static final int OP_REGISTER_TYPE = 5;
+
+    /** */
+    private static final int OP_GET_TYPE = 6;
+
     /**
      * Constructor.
      *
@@ -50,10 +56,18 @@ public class PlatformBinaryProcessor extends PlatformAbstractTarget {
 
     /** {@inheritDoc} */
     @Override public long processInStreamOutLong(int type, BinaryRawReaderEx reader) throws IgniteCheckedException {
-        if (type == OP_PUT_META) {
-            platformCtx.processMetadata(reader);
+        switch (type) {
+            case OP_PUT_META:
+                platformCtx.processMetadata(reader);
 
-            return TRUE;
+                return TRUE;
+
+            case OP_REGISTER_TYPE: {
+                int typeId = reader.readInt();
+                String typeName = reader.readString();
+
+                return TRUE;  // TODO
+            }
         }
 
         return super.processInStreamOutLong(type, reader);
@@ -84,6 +98,14 @@ public class PlatformBinaryProcessor extends PlatformAbstractTarget {
                 int schemaId = reader.readInt();
 
                 platformCtx.writeSchema(writer, typeId, schemaId);
+
+                break;
+            }
+
+            case OP_GET_TYPE: {
+                int typeId = reader.readInt();
+
+                // TODO
 
                 break;
             }
