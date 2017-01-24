@@ -1848,8 +1848,8 @@ namespace Apache.Ignite.Core.Tests.Binary
                 PString = "abc";
                 PGuid = Guid.NewGuid();
                 PnGuid = Guid.NewGuid();
-                PDate = DateTime.Now;
-                PnDate = DateTime.Now;
+                PDate = DateTime.UtcNow;
+                PnDate = DateTime.UtcNow;
                 IgniteGuid = new IgniteGuid(Guid.NewGuid(), 123);
             }
 
