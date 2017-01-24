@@ -633,10 +633,20 @@ namespace Apache.Ignite.Core.Impl.Binary
          */
         private static object ReadArray(BinaryReader ctx, Type type)
         {
-            var elemType = type.GetElementType() ?? typeof(object);
+            var elemType = type.GetElementType();
 
-            // TODO: Infer type from id when it is not known.
+            if (elemType == null)
+            {
+                // Infer element type from typeId.
+                var typeId = ctx.ReadInt();
 
+                var desc = ctx.Marshaller.GetDescriptor(true, typeId, true);
+
+                return BinaryUtils.ReadTypedArray(ctx, false, desc.Type ?? typeof(object));
+            }
+
+            // Element type is known, no need to check typeId.
+            // In case of incompatible types we'll get exception either way.
             return BinaryUtils.ReadTypedArray(ctx, true, elemType);
         }
 
