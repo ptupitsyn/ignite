@@ -645,9 +645,12 @@ namespace Apache.Ignite.Core.Impl.Binary
                 // Infer element type from typeId.
                 var typeId = ctx.ReadInt();
 
-                var desc = ctx.Marshaller.GetDescriptor(true, typeId, true);
+                if (typeId != BinaryUtils.ObjTypeId)
+                {
+                    elemType = ctx.Marshaller.GetDescriptor(true, typeId, true).Type ?? type;
+                }
 
-                return BinaryUtils.ReadTypedArray(ctx, false, desc.Type ?? typeof(object));
+                return BinaryUtils.ReadTypedArray(ctx, false, elemType ?? typeof(object));
             }
 
             // Element type is known, no need to check typeId.
