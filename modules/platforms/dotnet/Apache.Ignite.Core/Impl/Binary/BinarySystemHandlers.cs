@@ -532,7 +532,9 @@ namespace Apache.Ignite.Core.Impl.Binary
         {
             ctx.Stream.WriteByte(BinaryUtils.TypeArrayEnum);
 
-            var desc = ctx.Marshaller.GetDescriptor(obj.GetType());
+            var elemType = obj.GetType().GetElementType();
+
+            var desc = ctx.Marshaller.GetDescriptor(elemType);
 
             // TODO: Handle unregistered.
 
