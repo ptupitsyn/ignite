@@ -63,16 +63,16 @@ namespace Apache.Ignite.Core.Tests.Binary
         [TestFixtureSetUp]
         public void BeforeTest()
         {
-            _marsh = new Marshaller(GetBinaryConfiguration());
+            _marsh = new Marshaller(new BinaryConfiguration{CompactFooter = GetCompactFooter()});
         }
 
         /// <summary>
         /// Gets the binary configuration.
         /// </summary>
         /// <returns></returns>
-        protected virtual BinaryConfiguration GetBinaryConfiguration()
+        protected virtual bool GetCompactFooter()
         {
-            return new BinaryConfiguration { CompactFooter = true };
+            return true;
         }
         
         /**
@@ -791,20 +791,17 @@ namespace Apache.Ignite.Core.Tests.Binary
             CheckPrimitiveFields(marsh, obj);
         }
 
-        /**
-         * <summary>Check write of primitive fields through binary interface.</summary>
-         */
+        /// <summary>
+        /// Check write of primitive fields through binary interface.
+        /// </summary>
         [Test]
         public void TestPrimitiveFieldsBinary()
         {
-            ICollection<BinaryTypeConfiguration> typeCfgs = 
-                new List<BinaryTypeConfiguration>();
-
-            typeCfgs.Add(new BinaryTypeConfiguration(typeof(PrimitiveFieldBinaryType)));
-
-            BinaryConfiguration cfg = new BinaryConfiguration();
-
-            cfg.TypeConfigurations = typeCfgs;
+            var cfg = new BinaryConfiguration
+            {
+                TypeConfigurations = new[] { new BinaryTypeConfiguration(typeof(PrimitiveFieldBinaryType)) },
+                CompactFooter = GetCompactFooter()
+            };
 
             Marshaller marsh = new Marshaller(cfg);
 
@@ -813,43 +810,40 @@ namespace Apache.Ignite.Core.Tests.Binary
             CheckPrimitiveFields(marsh, obj);
         }
 
-        /**
-         * <summary>Check write of primitive fields through binary interface.</summary>
-         */
+        /// <summary>
+        /// Check write of primitive fields through binary interface.
+        /// </summary>
         [Test]
         public void TestPrimitiveFieldsRawBinary()
         {
-            ICollection<BinaryTypeConfiguration> typeCfgs = 
-                new List<BinaryTypeConfiguration>();
+            var marsh = new Marshaller(new BinaryConfiguration
+            {
+                TypeConfigurations = new[] { new BinaryTypeConfiguration(typeof(PrimitiveFieldRawBinaryType)) },
+                CompactFooter = GetCompactFooter()
+            });
 
-            typeCfgs.Add(new BinaryTypeConfiguration(typeof(PrimitiveFieldRawBinaryType)));
-
-            BinaryConfiguration cfg = new BinaryConfiguration();
-
-            cfg.TypeConfigurations = typeCfgs;
-
-            Marshaller marsh = new Marshaller(cfg);
-
-            PrimitiveFieldRawBinaryType obj = new PrimitiveFieldRawBinaryType();
+            var obj = new PrimitiveFieldRawBinaryType();
 
             CheckPrimitiveFields(marsh, obj);
         }
 
-        /**
-         * <summary>Check write of primitive fields through binary interface.</summary>
-         */
+        /// <summary>
+        /// Check write of primitive fields through binary interface.
+        /// </summary>
         [Test]
         public void TestPrimitiveFieldsSerializer()
         {
-            var typeCfgs = new List<BinaryTypeConfiguration>
+            var cfg = new BinaryConfiguration
             {
-                new BinaryTypeConfiguration(typeof (PrimitiveFieldType))
+                TypeConfigurations = new[]
                 {
-                    Serializer = new PrimitiveFieldsSerializer()
-                }
+                    new BinaryTypeConfiguration(typeof(PrimitiveFieldType))
+                    {
+                        Serializer = new PrimitiveFieldsSerializer(),
+                    }
+                },
+                CompactFooter = GetCompactFooter()
             };
-
-            BinaryConfiguration cfg = new BinaryConfiguration {TypeConfigurations = typeCfgs};
 
             Marshaller marsh = new Marshaller(cfg);
 
@@ -909,31 +903,25 @@ namespace Apache.Ignite.Core.Tests.Binary
             Assert.AreEqual(obj2.RawValArr, portObj.Deserialize<DecimalMarshalAware>().RawValArr);
         }
 
-        /**
-         * <summary>Check write of primitive fields through raw serializer.</summary>
-         */
+        /// <summary>
+        /// Check write of primitive fields through raw serializer.
+        /// </summary>
         [Test]
         public void TestPrimitiveFieldsRawSerializer()
         {
-            ICollection<BinaryTypeConfiguration> typeCfgs = 
-                new List<BinaryTypeConfiguration>();
+            Marshaller marsh = new Marshaller(new BinaryConfiguration
+            {
+                TypeConfigurations = new[]
+                {
+                    new BinaryTypeConfiguration(typeof(PrimitiveFieldType))
+                    {
+                        Serializer = new PrimitiveFieldsRawSerializer()
+                    }
+                },
+                CompactFooter = GetCompactFooter()
+            });
 
-            BinaryTypeConfiguration typeCfg =
-                new BinaryTypeConfiguration(typeof(PrimitiveFieldType));
-
-            typeCfg.Serializer = new PrimitiveFieldsRawSerializer();
-
-            typeCfgs.Add(typeCfg);
-
-            BinaryConfiguration cfg = new BinaryConfiguration();
-
-            cfg.TypeConfigurations = typeCfgs;
-
-            Marshaller marsh = new Marshaller(cfg);
-
-            PrimitiveFieldType obj = new PrimitiveFieldType();
-
-            CheckPrimitiveFields(marsh, obj);
+            CheckPrimitiveFields(marsh, new PrimitiveFieldType());
         }
 
         private void CheckPrimitiveFields(Marshaller marsh, PrimitiveFieldType obj)
@@ -941,7 +929,7 @@ namespace Apache.Ignite.Core.Tests.Binary
             CheckPrimitiveFieldsSerialization(marsh, obj);
         }
 
-        private void CheckPrimitiveFieldsSerialization(Marshaller marsh, PrimitiveFieldType obj)
+        private static void CheckPrimitiveFieldsSerialization(Marshaller marsh, PrimitiveFieldType obj)
         {
             byte[] bytes = marsh.Marshal(obj);
 
@@ -1033,7 +1021,8 @@ namespace Apache.Ignite.Core.Tests.Binary
                     {
                         Serializer = new BinaryReflectiveSerializer {RawMode = raw}
                     }
-                }
+                },
+                CompactFooter = GetCompactFooter()
             });
             
             var obj = new CollectionsType
@@ -1527,7 +1516,7 @@ namespace Apache.Ignite.Core.Tests.Binary
         [Test]
         public void TestCompactFooterSetting()
         {
-            Assert.AreEqual(GetBinaryConfiguration().CompactFooter, _marsh.CompactFooter);
+            Assert.AreEqual(GetCompactFooter(), _marsh.CompactFooter);
         }
 
         private static void CheckKeepSerialized(BinaryConfiguration cfg, bool expKeep)
