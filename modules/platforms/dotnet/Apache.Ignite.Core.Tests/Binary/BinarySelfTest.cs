@@ -691,7 +691,8 @@ namespace Apache.Ignite.Core.Tests.Binary
                 {
                     new BinaryTypeConfiguration(typeof (PrimitiveFieldType)),
                     new BinaryTypeConfiguration(typeof (GenericCollectionsType<PrimitiveFieldType, SerializableObject>))
-                }
+                },
+                CompactFooter = GetCompactFooter()
             });
 
             var obj = new GenericCollectionsType<PrimitiveFieldType, SerializableObject>
@@ -778,7 +779,8 @@ namespace Apache.Ignite.Core.Tests.Binary
                     {
                         Serializer = serializer
                     }
-                }
+                },
+                CompactFooter = GetCompactFooter()
             });
 
             // Use utc date fields because reflective serializer writes [QuerySqlField] fields as timestamp
@@ -1265,7 +1267,8 @@ namespace Apache.Ignite.Core.Tests.Binary
                 TypeConfigurations = new[]
                 {
                     new BinaryTypeConfiguration(typeof (HandleCollection))
-                }
+                },
+                CompactFooter = GetCompactFooter()
             });
 
             // Collection in collection dependency loop

@@ -1551,7 +1551,7 @@ namespace Apache.Ignite.Core.Impl.Binary
             var desc = marsh.GetDescriptor(true, typeId, true);
 
             if (desc == null || desc.Type == null)
-                throw new BinaryObjectException("Unknown enum type id: " + typeId);
+                return TypeCaster<T>.Cast(value);
 
             return (T)Enum.ToObject(desc.Type, value);
         }
