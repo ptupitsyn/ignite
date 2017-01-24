@@ -550,11 +550,16 @@ namespace Apache.Ignite.Core.Impl.Binary
 
             var elemType = obj.GetType().GetElementType();
 
-            var desc = ctx.Marshaller.GetDescriptor(elemType);
+            var typeId = BinaryUtils.ObjTypeId;
+
+            if (elemType != typeof(object))
+            {
+                typeId = ctx.Marshaller.GetDescriptor(elemType).TypeId;
+            }
 
             // TODO: Handle unregistered.
 
-            BinaryUtils.WriteArray((Array) obj, ctx, desc.TypeId);
+            BinaryUtils.WriteArray((Array) obj, ctx, typeId);
         }
 
         /// <summary>
