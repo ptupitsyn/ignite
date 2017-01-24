@@ -250,11 +250,9 @@ namespace Apache.Ignite.Core.Impl.Binary
                 // Enums.
                 if (elemType.IsEnum || elemType == typeof(BinaryEnum))
                     return WriteEnumArray;
-                
+
                 // Object array.
-                if (elemType == typeof (object) || elemType == typeof (IBinaryObject) ||
-                    elemType == typeof (BinaryObject))
-                    return WriteArray;
+                return WriteArray;
             }
 
             return null;
