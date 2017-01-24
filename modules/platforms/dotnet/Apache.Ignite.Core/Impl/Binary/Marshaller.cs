@@ -687,8 +687,6 @@ namespace Apache.Ignite.Core.Impl.Binary
             AddSystemType(BinaryUtils.TypeComputeFuncJob, r => new ComputeFuncJob(r));
             AddSystemType(BinaryUtils.TypeComputeActionJob, r => new ComputeActionJob(r));
             AddSystemType(BinaryUtils.TypeContinuousQueryRemoteFilterHolder, r => new ContinuousQueryFilterHolder(r));
-            AddSystemType(BinaryUtils.TypeSerializableHolder, r => new SerializableObjectHolder(r),
-                serializer: new SerializableSerializer());
             AddSystemType(BinaryUtils.TypeDateTimeHolder, r => new DateTimeHolder(r),
                 serializer: new DateTimeSerializer());
             AddSystemType(BinaryUtils.TypeCacheEntryProcessorHolder, r => new CacheEntryProcessorHolder(r));
