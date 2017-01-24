@@ -533,9 +533,7 @@ namespace Apache.Ignite.Core.Impl.Binary
 
             var desc = ctx.Marshaller.GetDescriptor(obj.GetType());
 
-            int typeId = desc == null ? BinaryUtils.ObjTypeId : desc.TypeId;
-
-            BinaryUtils.WriteArray((Array)obj, ctx, typeId);
+            BinaryUtils.WriteArray((Array) obj, ctx, desc.TypeId);
         }
 
         /**
@@ -545,7 +543,11 @@ namespace Apache.Ignite.Core.Impl.Binary
         {
             ctx.Stream.WriteByte(BinaryUtils.TypeArray);
 
-            BinaryUtils.WriteArray((Array)obj, ctx);
+            var elemType = obj.GetType().GetElementType();
+
+            var desc = ctx.Marshaller.GetDescriptor(elemType);
+
+            BinaryUtils.WriteArray((Array) obj, ctx, desc.TypeId);
         }
 
         /**
