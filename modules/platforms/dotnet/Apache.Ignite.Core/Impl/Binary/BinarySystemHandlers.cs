@@ -251,6 +251,10 @@ namespace Apache.Ignite.Core.Impl.Binary
                 if (elemType.IsEnum || elemType == typeof(BinaryEnum))
                     return WriteEnumArray;
 
+                // DateTime wrapper array.
+                if (elemType == typeof(DateTime?) || elemType == typeof(DateTime))
+                    return WriteDateTimeArray;
+
                 // Object array.
                 return WriteArray;
             }
@@ -534,9 +538,9 @@ namespace Apache.Ignite.Core.Impl.Binary
             BinaryUtils.WriteArray((Array) obj, ctx, desc.TypeId);
         }
 
-        /**
-         * <summary>Write array.</summary>
-         */
+        /// <summary>
+        /// Writes the array.
+        /// </summary>
         private static void WriteArray(BinaryWriter ctx, object obj)
         {
             ctx.Stream.WriteByte(BinaryUtils.TypeArray);
@@ -546,6 +550,16 @@ namespace Apache.Ignite.Core.Impl.Binary
             var desc = ctx.Marshaller.GetDescriptor(elemType);
 
             BinaryUtils.WriteArray((Array) obj, ctx, desc.TypeId);
+        }
+
+        /// <summary>
+        /// Writes DateTime array.
+        /// </summary>
+        private static void WriteDateTimeArray(BinaryWriter ctx, object obj)
+        {
+            ctx.Stream.WriteByte(BinaryUtils.TypeArray);
+
+            BinaryUtils.WriteArray((Array) obj, ctx, BinaryUtils.TypeDateTimeHolder);
         }
 
         /**
