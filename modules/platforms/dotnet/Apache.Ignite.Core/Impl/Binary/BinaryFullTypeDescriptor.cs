@@ -62,7 +62,7 @@ namespace Apache.Ignite.Core.Impl.Binary
         private volatile BinaryStructure _readerTypeStructure = BinaryStructure.CreateEmpty();
         
         /** Type schema. */
-        private readonly BinaryObjectSchema _schema = new BinaryObjectSchema();
+        private readonly BinaryObjectSchema _schema;
 
         /** Enum flag. */
         private readonly bool _isEnum;
@@ -121,6 +121,36 @@ namespace Apache.Ignite.Core.Impl.Binary
                                                         "are supported.", comparer.GetType()));
 
             _isRegistered = isRegistered;
+            _schema = new BinaryObjectSchema();
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="BinaryFullTypeDescriptor"/> class,
+        /// copying values from specified descriptor.
+        /// </summary>
+        /// <param name="desc">The descriptor to copy from.</param>
+        /// <param name="type">Type.</param>
+        /// <param name="serializer">Serializer.</param>
+        /// <param name="isRegistered">Registered flag.</param>
+        public BinaryFullTypeDescriptor(BinaryFullTypeDescriptor desc, Type type,
+            IBinarySerializerInternal serializer, bool isRegistered)
+        {
+            _type = type;
+            _typeId = desc._typeId;
+            _typeName = desc._typeName;
+            _userType = desc._userType;
+            _nameMapper = desc._nameMapper;
+            _idMapper = desc._idMapper;
+            _serializer = serializer;
+            _keepDeserialized = desc._keepDeserialized;
+            _affKeyFieldName = desc._affKeyFieldName;
+            _isEnum = desc._isEnum;
+            _equalityComparer = desc._equalityComparer;
+            _isRegistered = isRegistered;
+
+            _schema = desc._schema;
+            _writerTypeStruct = desc._writerTypeStruct;
+            _readerTypeStructure = desc._readerTypeStructure;
         }
 
         /// <summary>

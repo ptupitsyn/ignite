@@ -43,16 +43,16 @@ namespace Apache.Ignite.Core.Impl.Binary
         private readonly BinaryConfiguration _cfg;
 
         /** Type to descriptor map. */
-        private readonly CopyOnWriteConcurrentDictionary<Type, IBinaryTypeDescriptor> _typeToDesc =
-            new CopyOnWriteConcurrentDictionary<Type, IBinaryTypeDescriptor>();
+        private readonly CopyOnWriteConcurrentDictionary<Type, BinaryFullTypeDescriptor> _typeToDesc =
+            new CopyOnWriteConcurrentDictionary<Type, BinaryFullTypeDescriptor>();
 
         /** Type name to descriptor map. */
-        private readonly CopyOnWriteConcurrentDictionary<string, IBinaryTypeDescriptor> _typeNameToDesc =
-            new CopyOnWriteConcurrentDictionary<string, IBinaryTypeDescriptor>();
+        private readonly CopyOnWriteConcurrentDictionary<string, BinaryFullTypeDescriptor> _typeNameToDesc =
+            new CopyOnWriteConcurrentDictionary<string, BinaryFullTypeDescriptor>();
 
         /** ID to descriptor map. */
-        private readonly CopyOnWriteConcurrentDictionary<long, IBinaryTypeDescriptor> _idToDesc =
-            new CopyOnWriteConcurrentDictionary<long, IBinaryTypeDescriptor>();
+        private readonly CopyOnWriteConcurrentDictionary<long, BinaryFullTypeDescriptor> _idToDesc =
+            new CopyOnWriteConcurrentDictionary<long, BinaryFullTypeDescriptor>();
 
         /** Cached binary types. */
         private volatile IDictionary<int, BinaryTypeHolder> _metas = new Dictionary<int, BinaryTypeHolder>();
@@ -374,10 +374,10 @@ namespace Apache.Ignite.Core.Impl.Binary
         /// </returns>
         public IBinaryTypeDescriptor GetDescriptor(Type type)
         {
-            IBinaryTypeDescriptor desc;
+            BinaryFullTypeDescriptor desc;
 
-            if (!_typeToDesc.TryGetValue(type, out desc))
-                desc = RegisterType(type);
+            if (!_typeToDesc.TryGetValue(type, out desc) || !desc.IsRegistered)
+                desc = RegisterType(type, desc);
 
             return desc;
         }
@@ -389,10 +389,11 @@ namespace Apache.Ignite.Core.Impl.Binary
         /// <returns>Descriptor.</returns>
         public IBinaryTypeDescriptor GetDescriptor(string typeName)
         {
-            IBinaryTypeDescriptor desc;
+            BinaryFullTypeDescriptor desc;
 
-            return _typeNameToDesc.TryGetValue(typeName, out desc) ? desc :
-                new BinarySurrogateTypeDescriptor(_cfg, typeName);
+            return _typeNameToDesc.TryGetValue(typeName, out desc)
+                ? (IBinaryTypeDescriptor) desc
+                : new BinarySurrogateTypeDescriptor(_cfg, typeName);
         }
 
         /// <summary>
@@ -413,7 +414,7 @@ namespace Apache.Ignite.Core.Impl.Binary
         /// </returns>
         public IBinaryTypeDescriptor GetDescriptor(bool userType, int typeId, bool requiresType = false)
         {
-            IBinaryTypeDescriptor desc;
+            BinaryFullTypeDescriptor desc;
 
             var typeKey = BinaryUtils.TypeKey(userType, typeId);
 
@@ -429,7 +430,7 @@ namespace Apache.Ignite.Core.Impl.Binary
                 var type = _ignite == null ? null : _ignite.BinaryProcessor.GetType(typeId);
 
                 if (type != null)
-                    return AddUserType(type, typeId, BinaryUtils.GetTypeName(type), true);
+                    return AddUserType(type, typeId, BinaryUtils.GetTypeName(type), true, desc);
             }
 
             var meta = GetBinaryType(typeId);
@@ -451,7 +452,8 @@ namespace Apache.Ignite.Core.Impl.Binary
         /// Registers the type.
         /// </summary>
         /// <param name="type">The type.</param>
-        private IBinaryTypeDescriptor RegisterType(Type type)
+        /// <param name="desc">Existing descriptor.</param>
+        private BinaryFullTypeDescriptor RegisterType(Type type, BinaryFullTypeDescriptor desc)
         {
             Debug.Assert(type != null);
 
@@ -460,13 +462,13 @@ namespace Apache.Ignite.Core.Impl.Binary
 
             var registered = _ignite != null && _ignite.BinaryProcessor.RegisterType(typeId, type);
 
-            return AddUserType(type, typeId, typeName, registered);
+            return AddUserType(type, typeId, typeName, registered, desc);
         }
 
         /// <summary>
         /// Gets the user type descriptors.
         /// </summary>
-        public ICollection<IBinaryTypeDescriptor> GetUserTypeDescriptors()
+        public ICollection<BinaryFullTypeDescriptor> GetUserTypeDescriptors()
         {
             return _typeNameToDesc.Values;
         }
@@ -478,31 +480,32 @@ namespace Apache.Ignite.Core.Impl.Binary
         /// <param name="typeId">The type id.</param>
         /// <param name="typeName">Name of the type.</param>
         /// <param name="registered">Registered flag.</param>
+        /// <param name="desc">Existing descriptor.</param>
         /// <returns>Descriptor.</returns>
-        private BinaryFullTypeDescriptor AddUserType(Type type, int typeId, string typeName, bool registered)
+        private BinaryFullTypeDescriptor AddUserType(Type type, int typeId, string typeName, bool registered, 
+            BinaryFullTypeDescriptor desc)
         {
             Debug.Assert(type != null);
             Debug.Assert(typeName != null);
 
             var ser = GetSerializer(_cfg, null, type, typeId, null, null);
 
-            var desc = new BinaryFullTypeDescriptor(type, typeId, typeName, true, _cfg.DefaultNameMapper,
-                _cfg.DefaultIdMapper, ser, false, null, type.IsEnum, null, registered);
+            desc = desc == null
+                ? new BinaryFullTypeDescriptor(type, typeId, typeName, true, _cfg.DefaultNameMapper,
+                    _cfg.DefaultIdMapper, ser, false, null, type.IsEnum, null, registered)
+                : new BinaryFullTypeDescriptor(desc, type, ser, registered);
 
-            if (registered)
-            {
-                var typeKey = BinaryUtils.TypeKey(true, typeId);
+            var typeKey = BinaryUtils.TypeKey(true, typeId);
 
-                var desc0 = _idToDesc.GetOrAdd(typeKey, x => desc);
-                if (desc0.Type != null && desc0.Type != type)
-                    ThrowConflictingTypeError(type, desc0.Type, typeId);
+            var desc0 = _idToDesc.GetOrAdd(typeKey, x => desc);
+            if (desc0.Type != null && desc0.Type != type)
+                ThrowConflictingTypeError(type, desc0.Type, typeId);
 
-                desc0 = _typeNameToDesc.GetOrAdd(typeName, x => desc);
-                if (desc0.Type != null && desc0.Type != type)
-                    ThrowConflictingTypeError(type, desc0.Type, typeId);
+            desc0 = _typeNameToDesc.GetOrAdd(typeName, x => desc);
+            if (desc0.Type != null && desc0.Type != type)
+                ThrowConflictingTypeError(type, desc0.Type, typeId);
 
-                _typeToDesc.Set(type, desc);
-            }
+            _typeToDesc.Set(type, desc);
 
             return desc;
         }
@@ -628,7 +631,7 @@ namespace Apache.Ignite.Core.Impl.Binary
         {
             long typeKey = BinaryUtils.TypeKey(userType, typeId);
 
-            IBinaryTypeDescriptor conflictingType;
+            BinaryFullTypeDescriptor conflictingType;
 
             if (_idToDesc.TryGetValue(typeKey, out conflictingType))
             {
