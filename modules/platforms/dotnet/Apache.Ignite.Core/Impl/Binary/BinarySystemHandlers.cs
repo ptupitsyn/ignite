@@ -635,6 +635,8 @@ namespace Apache.Ignite.Core.Impl.Binary
         {
             var elemType = type.GetElementType() ?? typeof(object);
 
+            // TODO: Infer type from id when it is not known.
+
             return BinaryUtils.ReadTypedArray(ctx, true, elemType);
         }
 
