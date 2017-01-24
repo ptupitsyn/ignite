@@ -967,9 +967,12 @@ namespace Apache.Ignite.Core.Impl.Binary
                 case BinaryUtils.TypeArrayTimestamp:
                 case BinaryUtils.TypeArrayEnum:
                 case BinaryUtils.TypeArray:
+                    // TODO: This is not tested! Add tests.
                     int arrLen = inStream.ReadInt();
+                    int type = inStream.ReadInt();
 
                     outStream.WriteInt(arrLen);
+                    outStream.WriteInt(type);
 
                     for (int i = 0; i < arrLen; i++)
                         Mutate0(ctx, inStream, outStream, false, 0, null);

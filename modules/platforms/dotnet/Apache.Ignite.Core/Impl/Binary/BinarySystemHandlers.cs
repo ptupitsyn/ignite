@@ -22,7 +22,6 @@ namespace Apache.Ignite.Core.Impl.Binary
     using System.Collections.Generic;
     using System.Diagnostics;
     using System.Diagnostics.CodeAnalysis;
-    using Apache.Ignite.Core.Binary;
     using Apache.Ignite.Core.Impl.Binary.IO;
     using Apache.Ignite.Core.Impl.Common;
 
@@ -535,6 +534,8 @@ namespace Apache.Ignite.Core.Impl.Binary
 
             var desc = ctx.Marshaller.GetDescriptor(obj.GetType());
 
+            // TODO: Handle unregistered.
+
             BinaryUtils.WriteArray((Array) obj, ctx, desc.TypeId);
         }
 
@@ -548,6 +549,8 @@ namespace Apache.Ignite.Core.Impl.Binary
             var elemType = obj.GetType().GetElementType();
 
             var desc = ctx.Marshaller.GetDescriptor(elemType);
+
+            // TODO: Handle unregistered.
 
             BinaryUtils.WriteArray((Array) obj, ctx, desc.TypeId);
         }
