@@ -45,6 +45,9 @@ namespace Apache.Ignite.Core.Impl.Binary
 
             ser.GetObjectData(serInfo, ctx);
 
+            // TODO: ISerializable implementation may have no constructor,
+            // and return a different type that implements IObjectReference instead.
+
             // Write custom fields.
             foreach (var entry in serInfo)
             {
@@ -68,6 +71,8 @@ namespace Apache.Ignite.Core.Impl.Binary
 
                 serInfo.AddValue(fieldName, fieldVal);
             }
+
+            // TODO: Unwrap IObjectReference when needed.
 
             return (T) _ctorFunc(serInfo, ctx);
         }
