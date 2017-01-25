@@ -25,6 +25,16 @@ namespace Apache.Ignite.Core.Impl.Binary
     /// </summary>
     internal class SerializableSerializer : IBinarySerializerInternal
     {
+        /** */
+        private readonly Func<SerializationInfo, StreamingContext, object> _ctorFunc;
+
+        /** */
+        public SerializableSerializer(Type type)
+        {
+            // TODO: DelegateTypeDescriptor.
+            _ctorFunc = (info, ctx) => Activator.CreateInstance(type, info, ctx);
+        }
+
         /** <inheritdoc /> */
         public void WriteBinary<T>(T obj, BinaryWriter writer)
         {
@@ -59,8 +69,7 @@ namespace Apache.Ignite.Core.Impl.Binary
                 serInfo.AddValue(fieldName, fieldVal);
             }
 
-            // TODO: Compiled delegate.
-            return (T) Activator.CreateInstance(desc.Type, serInfo, ctx);
+            return (T) _ctorFunc(serInfo, ctx);
         }
 
         /** <inheritdoc /> */
