@@ -110,15 +110,41 @@ namespace Apache.Ignite.Core.Tests.Binary
         [Test]
         public void TestNestedRaw()
         {
-            var marsh = new Marshaller(new BinaryConfiguration(typeof(RawContainerType), typeof(RawType)));
+            var marsh = new Marshaller(new BinaryConfiguration(typeof(RawContainer), typeof(RawNested)));
 
-            var obj = new RawContainerType {Int = 3, Raw = new RawType {Int = 5}};
+            var obj = new RawContainer {Int = 3, Raw = new RawNested {Int = 5}};
 
-            var res = marsh.Unmarshal<RawContainerType>(marsh.Marshal(obj));
+            var res = marsh.Unmarshal<RawContainer>(marsh.Marshal(obj));
 
             Assert.AreEqual(obj.Int, res.Int);
-            Assert.IsNotNull(res.Raw);
             Assert.AreEqual(0, res.Raw.Int);  // Int is not written and can't be read.
+        }
+
+        /// <summary>
+        /// Tests that nested object schemas do not interfere.
+        /// </summary>
+        [Test]
+        public void TestNested()
+        {
+            var marsh = new Marshaller(new BinaryConfiguration(typeof(Container), typeof(Nested)));
+
+            var obj = new Container
+            {
+                Foo = 2,
+                Bar = 4,
+                Nested = new Nested
+                {
+                    Foo = 3,
+                    Bar = 5
+                }
+            };
+
+            var res = marsh.Unmarshal<Container>(marsh.Marshal(obj));
+
+            Assert.AreEqual(2, res.Foo);
+            Assert.AreEqual(4, res.Bar);
+            Assert.AreEqual(3, res.Nested.Foo);
+            Assert.AreEqual(5, res.Nested.Bar);
         }
     }
 
@@ -282,11 +308,11 @@ namespace Apache.Ignite.Core.Tests.Binary
         }
     }
 
-    public class RawContainerType : IBinarizable
+    public class RawContainer : IBinarizable
     {
         public int Int { get; set; }
 
-        public RawType Raw { get; set; }
+        public RawNested Raw { get; set; }
 
         public void WriteBinary(IBinaryWriter writer)
         {
@@ -297,11 +323,11 @@ namespace Apache.Ignite.Core.Tests.Binary
         public void ReadBinary(IBinaryReader reader)
         {
             Int = reader.ReadInt("int");
-            Raw = reader.ReadObject<RawType>("raw");
+            Raw = reader.ReadObject<RawNested>("raw");
         }
     }
 
-    public class RawType : IBinarizable
+    public class RawNested : IBinarizable
     {
         public int Int { get; set; }
 
@@ -316,6 +342,47 @@ namespace Apache.Ignite.Core.Tests.Binary
             // Attempt to read even though we did not write fields.
             // If schema is carried over, there will be a broken result.
             Int = reader.ReadInt("int");
+        }
+    }
+
+    public class Container : IBinarizable
+    {
+        public int Foo { get; set; }
+        public int Bar { get; set; }
+        public Nested Nested { get; set; }
+
+        public void WriteBinary(IBinaryWriter writer)
+        {
+            writer.WriteInt("foo", Foo);
+            writer.WriteInt("bar", Bar);
+            writer.WriteObject("nested", Nested);
+        }
+
+        public void ReadBinary(IBinaryReader reader)
+        {
+            // Read in reverse order to defeat structure optimization.
+            Bar = reader.ReadInt("bar");
+            Foo = reader.ReadInt("foo");
+            reader.ReadObject<Nested>("nested");
+        }
+    }
+
+    public class Nested : IBinarizable
+    {
+        public int Foo { get; set; }
+        public int Bar { get; set; }
+
+        public void WriteBinary(IBinaryWriter writer)
+        {
+            writer.WriteInt("foo", Foo);
+            writer.WriteInt("bar", Bar);
+        }
+
+        public void ReadBinary(IBinaryReader reader)
+        {
+            // Read in reverse order to defeat structure optimization.
+            Bar = reader.ReadInt("bar");
+            Foo = reader.ReadInt("foo");
         }
     }
 }
