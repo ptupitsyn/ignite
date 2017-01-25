@@ -21,6 +21,7 @@ namespace Apache.Ignite.Core.Tests.Binary
     using System.Collections.Generic;
     using System.Diagnostics.CodeAnalysis;
     using System.IO;
+    using System.Linq;
     using Apache.Ignite.Core.Binary;
     using Apache.Ignite.Core.Impl;
     using Apache.Ignite.Core.Impl.Binary;
@@ -101,6 +102,21 @@ namespace Apache.Ignite.Core.Tests.Binary
                 CollectionAssert.AreEquivalent(new[] {"mode", "f2", "f3", "f4", "f5", "f6", "f7", "f8"},
                     desc.WriterTypeStructure.FieldTypes.Keys);
             }
+        }
+
+        /// <summary>
+        /// Tests that nested raw object does not inherit outer schema.
+        /// </summary>
+        [Test]
+        public void TestNestedRaw()
+        {
+            var marsh = new Marshaller(new BinaryConfiguration(typeof(RawContainerType), typeof(RawType)));
+
+            var obj = new RawContainerType {Int = 3};
+
+            var res = marsh.Unmarshal<RawContainerType>(marsh.Marshal(obj));
+
+            Assert.AreEqual(obj.Int, res.Int);
         }
     }
 
@@ -261,6 +277,39 @@ namespace Apache.Ignite.Core.Tests.Binary
         {
             return mode == other.mode && f2 == other.f2 && f3 == other.f3 && f4 == other.f4 && f5 == other.f5 &&
                    f6 == other.f6 && f7 == other.f7 && f8 == other.f8;
+        }
+    }
+
+    public class RawContainerType : IBinarizable
+    {
+        public int Int { get; set; }
+
+        public void WriteBinary(IBinaryWriter writer)
+        {
+            writer.WriteInt("int", Int);
+            writer.WriteObject("raw", new RawType());
+        }
+
+        public void ReadBinary(IBinaryReader reader)
+        {
+            Int = reader.ReadInt("int");
+            reader.ReadObject<RawType>("raw");
+        }
+    }
+
+    public class RawType : IBinarizable
+    {
+        public void WriteBinary(IBinaryWriter writer)
+        {
+            // Write only raw data.
+            writer.GetRawWriter().WriteIntArray(Enumerable.Range(1, 100).ToArray());
+        }
+
+        public void ReadBinary(IBinaryReader reader)
+        {
+            // Attempt to read even though we did not write fields.
+            // If schema is carried over, there will be a broken result.
+            reader.ReadInt("int");
         }
     }
 }
