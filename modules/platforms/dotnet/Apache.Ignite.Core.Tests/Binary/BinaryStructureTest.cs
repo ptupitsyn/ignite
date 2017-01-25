@@ -112,11 +112,13 @@ namespace Apache.Ignite.Core.Tests.Binary
         {
             var marsh = new Marshaller(new BinaryConfiguration(typeof(RawContainerType), typeof(RawType)));
 
-            var obj = new RawContainerType {Int = 3};
+            var obj = new RawContainerType {Int = 3, Raw = new RawType {Int = 5}};
 
             var res = marsh.Unmarshal<RawContainerType>(marsh.Marshal(obj));
 
             Assert.AreEqual(obj.Int, res.Int);
+            Assert.IsNotNull(res.Raw);
+            Assert.AreEqual(0, res.Raw.Int);  // Int is not written and can't be read.
         }
     }
 
@@ -284,21 +286,25 @@ namespace Apache.Ignite.Core.Tests.Binary
     {
         public int Int { get; set; }
 
+        public RawType Raw { get; set; }
+
         public void WriteBinary(IBinaryWriter writer)
         {
             writer.WriteInt("int", Int);
-            writer.WriteObject("raw", new RawType());
+            writer.WriteObject("raw", Raw);
         }
 
         public void ReadBinary(IBinaryReader reader)
         {
             Int = reader.ReadInt("int");
-            reader.ReadObject<RawType>("raw");
+            Raw = reader.ReadObject<RawType>("raw");
         }
     }
 
     public class RawType : IBinarizable
     {
+        public int Int { get; set; }
+
         public void WriteBinary(IBinaryWriter writer)
         {
             // Write only raw data.
@@ -309,7 +315,7 @@ namespace Apache.Ignite.Core.Tests.Binary
         {
             // Attempt to read even though we did not write fields.
             // If schema is carried over, there will be a broken result.
-            reader.ReadInt("int");
+            Int = reader.ReadInt("int");
         }
     }
 }
