@@ -729,6 +729,10 @@ namespace Apache.Ignite.Core.Impl.Binary
         /// </summary>
         private void SetCurSchema(IBinaryTypeDescriptor desc)
         {
+            // TODO: 
+            //_frame.Schema = null;
+            //_frame.SchemaMap = null;
+
             if (_frame.Hdr.HasSchema)
             {
                 _frame.Schema = desc.Schema.Get(_frame.Hdr.SchemaId);
