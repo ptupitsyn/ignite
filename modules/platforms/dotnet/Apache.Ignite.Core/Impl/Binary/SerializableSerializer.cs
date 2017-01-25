@@ -50,12 +50,14 @@ namespace Apache.Ignite.Core.Impl.Binary
             var serInfo = new SerializationInfo(desc.Type, new FormatterConverter());
             var ctx = new StreamingContext(StreamingContextStates.All);
 
-            // TODO: How do we know field names?
-            // 1) Get schema from reader
-            // 2) Get BinaryType from marhaller
-            // 3) Read fields one by one.
+            var binaryType = reader.Marshaller.GetBinaryType(desc.TypeId);
 
-            //reader.Marshaller.GetBinaryType()
+            foreach (var fieldName in binaryType.Fields)
+            {
+                var fieldVal = reader.ReadObject<object>(fieldName);
+
+                serInfo.AddValue(fieldName, fieldVal);
+            }
 
             // TODO: Compiled delegate.
             return (T) Activator.CreateInstance(desc.Type, serInfo, ctx);
