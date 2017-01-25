@@ -381,8 +381,8 @@ namespace Apache.Ignite.Core.Tests.Binary
         public void ReadBinary(IBinaryReader reader)
         {
             // Read in reverse order to defeat structure optimization.
-            Baz = reader.ReadInt("baz");
             Qux = reader.ReadInt("qux");
+            Baz = reader.ReadInt("baz");
         }
     }
 }
