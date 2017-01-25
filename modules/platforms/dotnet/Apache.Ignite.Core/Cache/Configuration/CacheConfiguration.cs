@@ -337,10 +337,7 @@ namespace Apache.Ignite.Core.Cache.Configuration
             writer.WriteBoolean(WriteThrough);
             writer.WriteBoolean(EnableStatistics);
 
-            if (CacheStoreFactory != null && !CacheStoreFactory.GetType().IsSerializable)
-                throw new IgniteException("CacheConfiguration.CacheStoreFactory should be serializable: " +
-                                          CacheStoreFactory.GetType());
-
+            // TODO: Should be written without compact footers!!
             writer.WriteObject(CacheStoreFactory);
 
             if (QueryEntities != null)
