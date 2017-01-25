@@ -45,9 +45,9 @@ namespace Apache.Ignite.Core.Impl.Binary
         }
 
         /** <inheritdoc /> */
-        public T ReadBinary<T>(BinaryReader reader, Type type, int pos)
+        public T ReadBinary<T>(BinaryReader reader, IBinaryTypeDescriptor desc, int pos)
         {
-            var serInfo = new SerializationInfo(type, new FormatterConverter());
+            var serInfo = new SerializationInfo(desc.Type, new FormatterConverter());
             var ctx = new StreamingContext(StreamingContextStates.All);
 
             // TODO: How do we know field names?
@@ -55,8 +55,10 @@ namespace Apache.Ignite.Core.Impl.Binary
             // 2) Get BinaryType from marhaller
             // 3) Read fields one by one.
 
+            //reader.Marshaller.GetBinaryType()
+
             // TODO: Compiled delegate.
-            return (T) Activator.CreateInstance(type, serInfo, ctx);
+            return (T) Activator.CreateInstance(desc.Type, serInfo, ctx);
         }
 
         /** <inheritdoc /> */

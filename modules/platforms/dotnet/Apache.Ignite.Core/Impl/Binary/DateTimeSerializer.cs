@@ -17,7 +17,6 @@
 
 namespace Apache.Ignite.Core.Impl.Binary
 {
-    using System;
     using Apache.Ignite.Core.Impl.Common;
 
     /// <summary>
@@ -32,7 +31,7 @@ namespace Apache.Ignite.Core.Impl.Binary
         }
 
         /** <inheritdoc /> */
-        public T ReadBinary<T>(BinaryReader reader, Type type, int pos)
+        public T ReadBinary<T>(BinaryReader reader, IBinaryTypeDescriptor desc, int pos)
         {
             var holder = new DateTimeHolder(reader);
 

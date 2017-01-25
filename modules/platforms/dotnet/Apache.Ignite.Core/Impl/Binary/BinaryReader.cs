@@ -710,7 +710,7 @@ namespace Apache.Ignite.Core.Impl.Binary
                     _frame.Raw = false;
 
                     // Read object.
-                    var obj = desc.Serializer.ReadBinary<T>(this, desc.Type, pos);
+                    var obj = desc.Serializer.ReadBinary<T>(this, desc, pos);
 
                     _frame.Struct.UpdateReaderStructure();
 
