@@ -134,8 +134,8 @@ namespace Apache.Ignite.Core.Tests.Binary
                 Bar = 4,
                 Nested = new Nested
                 {
-                    Foo = 3,
-                    Bar = 5
+                    Baz = 3,
+                    Qux = 5
                 }
             };
 
@@ -143,8 +143,8 @@ namespace Apache.Ignite.Core.Tests.Binary
 
             Assert.AreEqual(2, res.Foo);
             Assert.AreEqual(4, res.Bar);
-            Assert.AreEqual(3, res.Nested.Foo);
-            Assert.AreEqual(5, res.Nested.Bar);
+            Assert.AreEqual(3, res.Nested.Baz);
+            Assert.AreEqual(5, res.Nested.Qux);
         }
     }
 
@@ -363,26 +363,26 @@ namespace Apache.Ignite.Core.Tests.Binary
             // Read in reverse order to defeat structure optimization.
             Bar = reader.ReadInt("bar");
             Foo = reader.ReadInt("foo");
-            reader.ReadObject<Nested>("nested");
+            Nested = reader.ReadObject<Nested>("nested");
         }
     }
 
     public class Nested : IBinarizable
     {
-        public int Foo { get; set; }
-        public int Bar { get; set; }
+        public int Baz { get; set; }
+        public int Qux { get; set; }
 
         public void WriteBinary(IBinaryWriter writer)
         {
-            writer.WriteInt("foo", Foo);
-            writer.WriteInt("bar", Bar);
+            writer.WriteInt("baz", Baz);
+            writer.WriteInt("qux", Qux);
         }
 
         public void ReadBinary(IBinaryReader reader)
         {
             // Read in reverse order to defeat structure optimization.
-            Bar = reader.ReadInt("bar");
-            Foo = reader.ReadInt("foo");
+            Baz = reader.ReadInt("baz");
+            Qux = reader.ReadInt("qux");
         }
     }
 }
