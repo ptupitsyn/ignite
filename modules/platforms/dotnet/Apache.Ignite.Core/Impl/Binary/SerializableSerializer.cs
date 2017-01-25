@@ -32,8 +32,7 @@ namespace Apache.Ignite.Core.Impl.Binary
         /** */
         public SerializableSerializer(Type type)
         {
-            // TODO: DelegateTypeDescriptor.
-            _ctorFunc = (info, ctx) => Activator.CreateInstance(type, info, ctx);
+            _ctorFunc = GetSerializationConstructor(type);
         }
 
         /** <inheritdoc /> */
@@ -108,7 +107,48 @@ namespace Apache.Ignite.Core.Impl.Binary
                 serInfo.AddValue(fieldName, fieldVal);
             }
 
-            // TODO: Unwrap IObjectReference when needed.
+            var raw = reader.GetRawReader();
+
+            if (raw.ReadBoolean())
+            {
+                // Custom type is present.
+                Type customType;
+
+                if (raw.ReadBoolean())
+                {
+                    // Registered type written as type id.
+                    var typeId = raw.ReadInt();
+                    customType = reader.Marshaller.GetDescriptor(true, typeId, true).Type;
+
+                    if (customType == null)
+                    {
+                        throw new BinaryObjectException(string.Format(
+                            "Failed to resolve custom type provided by SerializationInfo: [typeId={0}]", typeId));
+                    }
+                }
+                else
+                {
+                    // Unregistered type written as type name.
+                    var typeName = reader.ReadString();
+                    customType = new TypeResolver().ResolveType(typeName);
+
+                    if (customType == null)
+                    {
+                        throw new BinaryObjectException(string.Format(
+                            "Failed to resolve custom type provided by SerializationInfo: [typeName={0}]", typeName));
+                    }
+                }
+
+                var ctorFunc = GetSerializationConstructor(customType);
+
+                var customObj = ctorFunc(serInfo, ctx);
+
+                var wrapper = customObj as IObjectReference;
+
+                return wrapper == null
+                    ? (T) customObj
+                    : (T) wrapper.GetRealObject(ctx);
+            }
 
             return (T) _ctorFunc(serInfo, ctx);
         }
@@ -118,6 +158,15 @@ namespace Apache.Ignite.Core.Impl.Binary
         {
             // Can't support handles, since deserialization happens via constructor call.
             get { return false; }
+        }
+
+        /// <summary>
+        /// Gets the serialization constructor.
+        /// </summary>
+        private static Func<SerializationInfo, StreamingContext, object> GetSerializationConstructor(Type type)
+        {
+            // TODO: DelegateTypeDescriptor.
+            return (info, ctx) => Activator.CreateInstance(type, info, ctx);
         }
     }
 }
