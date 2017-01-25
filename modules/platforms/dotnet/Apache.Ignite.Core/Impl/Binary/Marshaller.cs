@@ -584,7 +584,7 @@ namespace Apache.Ignite.Core.Impl.Binary
                     return BinarizableSerializer.Instance;
 
                 if (type.GetInterfaces().Contains(typeof(ISerializable)))
-                    return new SerializableSerializer();
+                    return new SerializableSerializer(type);
 
                 serializer = new BinaryReflectiveSerializer();
             }
