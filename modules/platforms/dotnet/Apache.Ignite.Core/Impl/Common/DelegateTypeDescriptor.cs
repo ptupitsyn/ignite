@@ -359,7 +359,7 @@ namespace Apache.Ignite.Core.Impl.Common
             if (serializationCtorInfo != null)
             {
                 _serializationCtor = DelegateConverter.CompileCtor<Func<SerializationInfo, StreamingContext, object>>(
-                    serializationCtorInfo, argTypes);
+                    serializationCtorInfo, argTypes, convertParamsFromObject: false);
             }
         }
     }

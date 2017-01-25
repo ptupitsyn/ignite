@@ -203,13 +203,16 @@ namespace Apache.Ignite.Core.Impl.Common
         /// <typeparam name="T">Result func type.</typeparam>
         /// <param name="ctor">Contructor info.</param>
         /// <param name="argTypes">Argument types.</param>
-        /// <param name="convertResultToObject">if set to <c>true</c> [convert result to object].
+        /// <param name="convertResultToObject">
         /// Flag that indicates whether ctor return value should be converted to object.</param>
+        /// <param name="convertParamsFromObject">
+        /// Flag that indicates whether ctor args are object and should be converted to concrete type.</param>
         /// <returns>
         /// Compiled generic constructor.
         /// </returns>
         [SuppressMessage("Microsoft.Design", "CA1062:Validate arguments of public methods")]
-        public static T CompileCtor<T>(ConstructorInfo ctor, Type[] argTypes, bool convertResultToObject = true)
+        public static T CompileCtor<T>(ConstructorInfo ctor, Type[] argTypes, bool convertResultToObject = true,
+            bool convertParamsFromObject = true)
         {
             Debug.Assert(ctor != null);
 
@@ -218,9 +221,16 @@ namespace Apache.Ignite.Core.Impl.Common
 
             for (var i = 0; i < argTypes.Length; i++)
             {
-                var arg = Expression.Parameter(typeof(object));
-                args[i] = arg;
-                argsConverted[i] = Expression.Convert(arg, argTypes[i]);
+                if (convertParamsFromObject)
+                {
+                    var arg = Expression.Parameter(typeof(object));
+                    args[i] = arg;
+                    argsConverted[i] = Expression.Convert(arg, argTypes[i]);
+                }
+                else
+                {
+                    argsConverted[i] = args[i] = Expression.Parameter(argTypes[i]);
+                }
             }
 
             Expression ctorExpr = Expression.New(ctor, argsConverted);  // ctor takes args of specific types
