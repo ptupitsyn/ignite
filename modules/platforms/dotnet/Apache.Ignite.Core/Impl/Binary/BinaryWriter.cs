@@ -1176,14 +1176,14 @@ namespace Apache.Ignite.Core.Impl.Binary
 
             var schemaIdx = _schema.PushSchema();
 
-                try
-                {
-                    // Write object fields.
-                    desc.Serializer.WriteBinary(obj, this);
-                    var dataEnd = _stream.Position;
+            try
+            {
+                // Write object fields.
+                desc.Serializer.WriteBinary(obj, this);
+                var dataEnd = _stream.Position;
 
-                    // Write schema
-                    var schemaOffset = dataEnd - pos;
+                // Write schema
+                var schemaOffset = dataEnd - pos;
 
                 int schemaId;
                     

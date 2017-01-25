@@ -21,6 +21,7 @@ namespace Apache.Ignite.Core.Impl.Binary
     using System.Collections.Generic;
     using System.Diagnostics;
     using System.Linq;
+    using System.Runtime.Serialization;
     using Apache.Ignite.Core.Binary;
     using Apache.Ignite.Core.Cache.Affinity;
     using Apache.Ignite.Core.Common;
@@ -581,6 +582,9 @@ namespace Apache.Ignite.Core.Impl.Binary
             {
                 if (type.GetInterfaces().Contains(typeof(IBinarizable)))
                     return BinarizableSerializer.Instance;
+
+                if (type.GetInterfaces().Contains(typeof(ISerializable)))
+                    return new SerializableSerializer();
 
                 serializer = new BinaryReflectiveSerializer();
             }

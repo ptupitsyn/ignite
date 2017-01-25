@@ -908,10 +908,12 @@ namespace Apache.Ignite.Core.Tests.Compute
             Assert.AreEqual(1, res.GetField<int>("field"));
 
             // This call must fail because "keepBinary" flag is reset.
-            Assert.Catch(typeof(BinaryObjectException), () =>
+            var ex = Assert.Throws<BinaryObjectException>(() =>
             {
                 compute.ExecuteJavaTask<IBinaryObject>(EchoTask, EchoTypeBinarizableJava);
             });
+
+            Assert.AreEqual("Unknown pair [platformId= 1, typeId=2009791293]", ex.Message);
         }
 
         /// <summary>
