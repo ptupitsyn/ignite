@@ -729,9 +729,7 @@ namespace Apache.Ignite.Core.Impl.Binary
         /// </summary>
         private void SetCurSchema(IBinaryTypeDescriptor desc)
         {
-            // TODO: 
-            //_frame.Schema = null;
-            //_frame.SchemaMap = null;
+            _frame.SchemaMap = null;
 
             if (_frame.Hdr.HasSchema)
             {
@@ -743,6 +741,10 @@ namespace Apache.Ignite.Core.Impl.Binary
 
                     desc.Schema.Add(_frame.Hdr.SchemaId, _frame.Schema);
                 }
+            }
+            else
+            {
+                _frame.Schema = null;
             }
         }
 
