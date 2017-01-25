@@ -19,7 +19,8 @@ namespace Apache.Ignite.Core.Impl.Common
 {
     using System;
     using System.Globalization;
-
+    using System.Reflection;
+    using System.Runtime.Serialization;
     using Apache.Ignite.Core.Cache;
     using Apache.Ignite.Core.Cache.Event;
     using Apache.Ignite.Core.Compute;
@@ -74,6 +75,9 @@ namespace Apache.Ignite.Core.Impl.Common
 
         /** */
         private readonly Func<object, object, object> _continuousQueryFilterCtor;
+
+        /** */
+        private Func<SerializationInfo, StreamingContext, object> _serializationCtor;
 
         /// <summary>
         /// Gets the <see cref="IComputeFunc{T}" /> invocator.
@@ -187,6 +191,16 @@ namespace Apache.Ignite.Core.Impl.Common
         public static Func<object, object, object> GetContinuousQueryFilterCtor(Type type)
         {
             return Get(type)._continuousQueryFilterCtor;
+        }
+
+        /// <summary>
+        /// Gets the ctor for <see cref="ISerializable"/>.
+        /// </summary>
+        /// <param name="type">Type.</param>
+        /// <returns>Precompiled invocator delegate.</returns>
+        public static Func<SerializationInfo, StreamingContext, object> GetSerializationConstructor(Type type)
+        {
+            return Get(type)._serializationCtor;
         }
 
         /// <summary>
@@ -334,6 +348,18 @@ namespace Apache.Ignite.Core.Impl.Common
                         DelegateConverter.CompileCtor<Func<object, object, object>>(
                             typeof(ContinuousQueryFilter<,>).MakeGenericType(args), new[] { iface, typeof(bool) });
                 }
+            }
+
+            // Check if there is a serialization ctor.
+            var argTypes = new[] {typeof(SerializationInfo), typeof(StreamingContext)};
+
+            var serializationCtorInfo = type.GetConstructor(
+                BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance, null, argTypes, null);
+
+            if (serializationCtorInfo != null)
+            {
+                _serializationCtor = DelegateConverter.CompileCtor<Func<SerializationInfo, StreamingContext, object>>(
+                    serializationCtorInfo, argTypes);
             }
         }
     }

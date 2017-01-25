@@ -20,6 +20,7 @@ namespace Apache.Ignite.Core.Impl.Binary
     using System;
     using System.Runtime.Serialization;
     using Apache.Ignite.Core.Binary;
+    using Apache.Ignite.Core.Impl.Common;
 
     /// <summary>
     /// Serializes classes that implement <see cref="ISerializable"/>
@@ -29,10 +30,12 @@ namespace Apache.Ignite.Core.Impl.Binary
         /** */
         private readonly Func<SerializationInfo, StreamingContext, object> _ctorFunc;
 
-        /** */
+        /// <summary>
+        /// Initializes a new instance of the <see cref="SerializableSerializer"/> class.
+        /// </summary>
         public SerializableSerializer(Type type)
         {
-            _ctorFunc = GetSerializationConstructor(type);
+            _ctorFunc = DelegateTypeDescriptor.GetSerializationConstructor(type);
         }
 
         /** <inheritdoc /> */
@@ -139,7 +142,7 @@ namespace Apache.Ignite.Core.Impl.Binary
                     }
                 }
 
-                var ctorFunc = GetSerializationConstructor(customType);
+                var ctorFunc = DelegateTypeDescriptor.GetSerializationConstructor(customType);
 
                 var customObj = ctorFunc(serInfo, ctx);
 
@@ -158,15 +161,6 @@ namespace Apache.Ignite.Core.Impl.Binary
         {
             // Can't support handles, since deserialization happens via constructor call.
             get { return false; }
-        }
-
-        /// <summary>
-        /// Gets the serialization constructor.
-        /// </summary>
-        private static Func<SerializationInfo, StreamingContext, object> GetSerializationConstructor(Type type)
-        {
-            // TODO: DelegateTypeDescriptor.
-            return (info, ctx) => Activator.CreateInstance(type, info, ctx);
         }
     }
 }
