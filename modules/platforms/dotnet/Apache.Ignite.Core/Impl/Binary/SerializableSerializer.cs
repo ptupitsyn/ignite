@@ -19,6 +19,7 @@ namespace Apache.Ignite.Core.Impl.Binary
 {
     using System;
     using System.Runtime.Serialization;
+    using Apache.Ignite.Core.Binary;
 
     /// <summary>
     /// Serializes classes that implement <see cref="ISerializable"/>
@@ -39,14 +40,12 @@ namespace Apache.Ignite.Core.Impl.Binary
         public void WriteBinary<T>(T obj, BinaryWriter writer)
         {
             var ser = (ISerializable) obj;
+            var objType = obj.GetType();
 
-            var serInfo = new SerializationInfo(ser.GetType(), new FormatterConverter());
+            var serInfo = new SerializationInfo(objType, new FormatterConverter());
             var ctx = new StreamingContext(StreamingContextStates.All);
 
             ser.GetObjectData(serInfo, ctx);
-
-            // TODO: ISerializable implementation may have no constructor,
-            // and return a different type that implements IObjectReference instead.
 
             // Write custom fields.
             foreach (var entry in serInfo)
@@ -54,7 +53,44 @@ namespace Apache.Ignite.Core.Impl.Binary
                 writer.WriteObject(entry.Name, entry.Value);
             }
 
-            // TODO: Write type info??
+            // Write custom type information.
+            // ISerializable implementor may call SerializationInfo.SetType() or FullTypeName setter.
+            // In that case there is no serialization ctor on objType. 
+            // Instead, we should instantiate specified custom type and then call IObjectReference.GetRealObject().
+            Type customType = null;
+
+            if (serInfo.IsFullTypeNameSetExplicit)
+            {
+                customType = Type.GetType(serInfo.FullTypeName, true);
+            }
+            else if (serInfo.ObjectType != ser.GetType())
+            {
+                customType = serInfo.ObjectType;
+            }
+
+            var raw = writer.GetRawWriter();
+
+            if (customType != null)
+            {
+                raw.WriteBoolean(true);
+
+                var desc = writer.Marshaller.GetDescriptor(customType);
+
+                if (desc.IsRegistered)
+                {
+                    raw.WriteBoolean(true);
+                    raw.WriteInt(desc.TypeId);
+                }
+                else
+                {
+                    raw.WriteBoolean(false);
+                    raw.WriteString(customType.FullName);
+                }
+            }
+            else
+            {
+                raw.WriteBoolean(false);
+            }
         }
 
         /** <inheritdoc /> */
