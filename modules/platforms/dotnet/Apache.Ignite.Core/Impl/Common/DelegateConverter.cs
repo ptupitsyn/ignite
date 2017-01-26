@@ -263,10 +263,16 @@ namespace Apache.Ignite.Core.Impl.Common
             var helperMethod = new DynamicMethod(string.Empty, typeof(void), argTypes, ctor.Module, true);
             var ilGenerator = helperMethod.GetILGenerator();
 
-            foreach (var _ in argTypes)
-            {
-                ilGenerator.Emit(OpCodes.Ldarg_0);
-            }
+            ilGenerator.Emit(OpCodes.Ldarg_0);
+
+            if (argTypes.Length > 1)
+                ilGenerator.Emit(OpCodes.Ldarg_1);
+
+            if (argTypes.Length > 2)
+                ilGenerator.Emit(OpCodes.Ldarg_2);
+
+            if (argTypes.Length > 3)
+                throw new NotSupportedException("No supported: too many ctor args.");
 
             ilGenerator.Emit(OpCodes.Call, ctor);
             ilGenerator.Emit(OpCodes.Ret);
