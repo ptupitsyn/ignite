@@ -93,19 +93,15 @@ namespace Apache.Ignite.Core.Impl.Cache.Store
         /// Creates interop cache store from a stream.
         /// </summary>
         /// <param name="memPtr">Memory pointer.</param>
-        /// <param name="registry">The handle registry.</param>
         /// <param name="ignite">Ignite.</param>
         /// <returns>
         /// Interop cache store.
         /// </returns>
-        internal static CacheStore CreateInstance(long memPtr, HandleRegistry registry, Ignite ignite)
+        internal static CacheStore CreateInstance(long memPtr, Ignite ignite)
         {
             using (var stream = IgniteManager.Memory.Get(memPtr).GetStream())
             {
-                // TODO: Do we ever need BinaryUtils.Marshaller? Does it make sense?
-                var marsh = ignite != null ? ignite.Marshaller : BinaryUtils.Marshaller;
-
-                var reader = marsh.StartUnmarshal(stream);
+                var reader = ignite.Marshaller.StartUnmarshal(stream);
 
                 var convertBinary = reader.ReadBoolean();
                 var factory = reader.ReadObject<IFactory<ICacheStore>>();
@@ -123,7 +119,7 @@ namespace Apache.Ignite.Core.Impl.Cache.Store
                 }
 
 
-                return new CacheStore(store, convertBinary, registry);
+                return new CacheStore(store, convertBinary, ignite.HandleRegistry);
             }
         }
 

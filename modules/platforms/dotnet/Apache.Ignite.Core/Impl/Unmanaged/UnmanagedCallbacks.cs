@@ -341,7 +341,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged
 
         private long CacheStoreCreate(long memPtr)
         {
-            var cacheStore = CacheStore.CreateInstance(memPtr, _handleRegistry, _ignite);
+            var cacheStore = CacheStore.CreateInstance(memPtr, _ignite);
 
             if (_ignite != null)
                 cacheStore.Init(_ignite);
@@ -1241,7 +1241,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged
         {
             using (var stream = IgniteManager.Memory.Get(objPtr).GetStream())
             {
-                var reader = BinaryUtils.Marshaller.StartUnmarshal(stream);
+                var reader = _ignite.Marshaller.StartUnmarshal(stream);
 
                 var cachePluginCfg = reader.ReadObject<ICachePluginConfiguration>();
                 var providerProxy = CachePluginProcessor.CreateProviderProxy(cachePluginCfg);
