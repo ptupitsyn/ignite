@@ -40,7 +40,7 @@ namespace Apache.Ignite.Core.Impl.Binary
         /// <summary>
         /// Writes an instance.
         /// </summary>
-        public static void Write(IBinaryRawWriter writer, IEqualityComparer<IBinaryObject> comparer)
+        public static void Write(IBinaryRawWriter writer, IBinaryEqualityComparer comparer)
         {
             if (comparer == null)
             {
