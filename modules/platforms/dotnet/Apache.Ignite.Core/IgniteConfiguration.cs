@@ -276,7 +276,7 @@
 
                 // Send only descriptors with non-null EqualityComparer to preserve old behavior where
                 // remote nodes can have no BinaryConfiguration.
-                var types = writer.Marshaller.GetUserTypeDescriptors().Where(x => x.EqualityComparer != null).ToList();
+                var types = BinaryConfiguration.TypeConfigurations.Where(x => x.EqualityComparer != null).ToList();
 
                 writer.WriteInt(types.Count);
 
