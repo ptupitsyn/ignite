@@ -144,6 +144,8 @@ namespace Apache.Ignite.Core.Impl.Binary
 
             ReadObject(res, reader, desc);
 
+            // TODO: We should invoke callback on exact instance, not the one we copied data from.
+            // We should track references and their targets and copy data in the very end.
             SerializableCallback.OnDeserialized();
 
             return res;
