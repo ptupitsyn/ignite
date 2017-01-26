@@ -746,6 +746,8 @@ namespace Apache.Ignite.Core.Tests.Binary
 
         /// <summary>
         /// Tests the circular reference handling with Dictionary.
+        /// This test checks proper handle support in combination with OnDeserialization callback,
+        /// which has to be called after entire graph is deserialized.
         /// </summary>
         [Test]
         public void TestDictionaryCircularReference()
