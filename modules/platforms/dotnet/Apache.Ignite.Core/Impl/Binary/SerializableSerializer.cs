@@ -98,9 +98,76 @@ namespace Apache.Ignite.Core.Impl.Binary
         /** <inheritdoc /> */
         public T ReadBinary<T>(BinaryReader reader, IBinaryTypeDescriptor desc, int pos)
         {
-            var serInfo = new SerializationInfo(desc.Type, new FormatterConverter());
-            var ctx = new StreamingContext(StreamingContextStates.All);
+            var serInfo = GetSerializationInfo<T>(reader, desc);
 
+            var raw = reader.GetRawReader();
+
+            if (raw.ReadBoolean())
+            {
+                // Custom type is present.
+                return ReadAsCustomType<T>(raw, serInfo, reader.Marshaller);
+            }
+
+            return (T) _ctorFunc(serInfo, DefaultStreamingContext);
+        }
+
+        /// <summary>
+        /// Reads the object as a custom type.
+        /// </summary>
+        private static T ReadAsCustomType<T>(IBinaryRawReader raw, SerializationInfo serInfo, Marshaller marsh)
+        {
+            Type customType;
+
+            if (raw.ReadBoolean())
+            {
+                // Registered type written as type id.
+                var typeId = raw.ReadInt();
+                customType = marsh.GetDescriptor(true, typeId, true).Type;
+
+                if (customType == null)
+                {
+                    throw new BinaryObjectException(string.Format(
+                        "Failed to resolve custom type provided by SerializationInfo: [typeId={0}]", typeId));
+                }
+            }
+            else
+            {
+                // Unregistered type written as type name.
+                var typeName = raw.ReadString();
+                customType = new TypeResolver().ResolveType(typeName);
+
+                if (customType == null)
+                {
+                    throw new BinaryObjectException(string.Format(
+                        "Failed to resolve custom type provided by SerializationInfo: [typeName={0}]", typeName));
+                }
+            }
+
+            var ctorFunc = DelegateTypeDescriptor.GetSerializationConstructor(customType);
+
+            var customObj = ctorFunc(serInfo, DefaultStreamingContext);
+
+            var wrapper = customObj as IObjectReference;
+
+            return wrapper == null
+                ? (T) customObj
+                : (T) wrapper.GetRealObject(DefaultStreamingContext);
+        }
+
+        /// <summary>
+        /// Gets the default streaming context.
+        /// </summary>
+        private static StreamingContext DefaultStreamingContext
+        {
+            get { return new StreamingContext(StreamingContextStates.All); }
+        }
+
+        /// <summary>
+        /// Gets the serialization information.
+        /// </summary>
+        private static SerializationInfo GetSerializationInfo<T>(BinaryReader reader, IBinaryTypeDescriptor desc)
+        {
+            var serInfo = new SerializationInfo(desc.Type, new FormatterConverter());
             var binaryType = reader.Marshaller.GetBinaryType(desc.TypeId);
 
             foreach (var fieldName in binaryType.Fields)
@@ -109,51 +176,7 @@ namespace Apache.Ignite.Core.Impl.Binary
 
                 serInfo.AddValue(fieldName, fieldVal);
             }
-
-            var raw = reader.GetRawReader();
-
-            if (raw.ReadBoolean())
-            {
-                // Custom type is present.
-                Type customType;
-
-                if (raw.ReadBoolean())
-                {
-                    // Registered type written as type id.
-                    var typeId = raw.ReadInt();
-                    customType = reader.Marshaller.GetDescriptor(true, typeId, true).Type;
-
-                    if (customType == null)
-                    {
-                        throw new BinaryObjectException(string.Format(
-                            "Failed to resolve custom type provided by SerializationInfo: [typeId={0}]", typeId));
-                    }
-                }
-                else
-                {
-                    // Unregistered type written as type name.
-                    var typeName = reader.ReadString();
-                    customType = new TypeResolver().ResolveType(typeName);
-
-                    if (customType == null)
-                    {
-                        throw new BinaryObjectException(string.Format(
-                            "Failed to resolve custom type provided by SerializationInfo: [typeName={0}]", typeName));
-                    }
-                }
-
-                var ctorFunc = DelegateTypeDescriptor.GetSerializationConstructor(customType);
-
-                var customObj = ctorFunc(serInfo, ctx);
-
-                var wrapper = customObj as IObjectReference;
-
-                return wrapper == null
-                    ? (T) customObj
-                    : (T) wrapper.GetRealObject(ctx);
-            }
-
-            return (T) _ctorFunc(serInfo, ctx);
+            return serInfo;
         }
 
         /** <inheritdoc /> */
