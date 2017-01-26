@@ -1162,7 +1162,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged
         {
             using (var stream = IgniteManager.Memory.Get(memPtr).GetStream())
             {
-                var reader = _ignite.Marshaller.StartUnmarshal(stream);
+                var reader = BinaryUtils.Marshaller.StartUnmarshal(stream);
 
                 var func = reader.ReadObjectEx<IAffinityFunction>();
 
