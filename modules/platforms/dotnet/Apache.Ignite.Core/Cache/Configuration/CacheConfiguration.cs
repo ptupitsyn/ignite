@@ -297,6 +297,9 @@ namespace Apache.Ignite.Core.Cache.Configuration
         /// <param name="writer">The writer.</param>
         internal void Write(IBinaryRawWriter writer)
         {
+            // Make sure system marshaller is used.
+            Debug.Assert(((BinaryWriter)writer).Marshaller == BinaryUtils.Marshaller);
+
             writer.WriteInt((int) AtomicityMode);
             writer.WriteInt((int) AtomicWriteOrderMode);
             writer.WriteInt(Backups);
@@ -337,7 +340,6 @@ namespace Apache.Ignite.Core.Cache.Configuration
             writer.WriteBoolean(WriteThrough);
             writer.WriteBoolean(EnableStatistics);
 
-            // TODO: Should be written without compact footers!!
             writer.WriteObject(CacheStoreFactory);
 
             if (QueryEntities != null)
