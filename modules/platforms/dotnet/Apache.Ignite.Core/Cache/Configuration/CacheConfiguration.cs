@@ -235,6 +235,9 @@ namespace Apache.Ignite.Core.Cache.Configuration
         /// <param name="reader">The reader.</param>
         internal CacheConfiguration(IBinaryRawReader reader)
         {
+            // Make sure system marshaller is used.
+            Debug.Assert(((BinaryReader) reader).Marshaller == BinaryUtils.Marshaller);
+
             AtomicityMode = (CacheAtomicityMode) reader.ReadInt();
             AtomicWriteOrderMode = (CacheAtomicWriteOrderMode) reader.ReadInt();
             Backups = reader.ReadInt();
@@ -298,7 +301,7 @@ namespace Apache.Ignite.Core.Cache.Configuration
         internal void Write(IBinaryRawWriter writer)
         {
             // Make sure system marshaller is used.
-            Debug.Assert(((BinaryWriter)writer).Marshaller == BinaryUtils.Marshaller);
+            Debug.Assert(((BinaryWriter) writer).Marshaller == BinaryUtils.Marshaller);
 
             writer.WriteInt((int) AtomicityMode);
             writer.WriteInt((int) AtomicWriteOrderMode);
