@@ -259,8 +259,7 @@ namespace Apache.Ignite.Core.Impl.Binary
         /** <inheritdoc /> */
         public bool SupportsHandles
         {
-            // TODO: We can do this! Via GetUninitializedObject!
-            get { return false; }
+            get { return true; }
         }
     }
 }
