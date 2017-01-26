@@ -102,7 +102,7 @@ namespace Apache.Ignite.Core.Impl.Binary
             var res = ReadObject<T>(reader, desc);
 
             // TODO: Invoke callbacks only when entire graph has been deserialized.
-            var cb = (IDeserializationCallback) res;
+            var cb = res as IDeserializationCallback;
 
             if (cb != null)
                 cb.OnDeserialization(this);
