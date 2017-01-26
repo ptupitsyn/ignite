@@ -21,6 +21,7 @@ namespace Apache.Ignite.Core.Impl.Common
     using System.Collections.Generic;
     using System.Diagnostics;
     using System.Diagnostics.CodeAnalysis;
+    using System.Linq;
     using System.Linq.Expressions;
     using System.Reflection;
     using System.Reflection.Emit;
@@ -239,6 +240,40 @@ namespace Apache.Ignite.Core.Impl.Common
                 ctorExpr = Expression.Convert(ctorExpr, typeof(object)); // convert ctor result to object
 
             return Expression.Lambda<T>(ctorExpr, args).Compile();  // lambda takes args as objects
+        }
+
+        /// <summary>
+        /// Compiles a generic ctor with arbitrary number of arguments
+        /// that takes an uninitialized object as a first arguments.
+        /// </summary>
+        /// <typeparam name="T">Result func type.</typeparam>
+        /// <param name="ctor">Contructor info.</param>
+        /// <param name="argTypes">Argument types.</param>
+        /// <returns>
+        /// Compiled generic constructor.
+        /// </returns>
+        [SuppressMessage("Microsoft.Design", "CA1062:Validate arguments of public methods")]
+        public static T CompileUninitializedObjectCtor<T>(ConstructorInfo ctor, Type[] argTypes)
+        {
+            Debug.Assert(ctor != null);
+            Debug.Assert(argTypes != null);
+
+            argTypes = new[] {typeof(object)}.Concat(argTypes).ToArray();
+
+            var helperMethod = new DynamicMethod(string.Empty, typeof(void), argTypes, ctor.Module, true);
+            var ilGenerator = helperMethod.GetILGenerator();
+
+            foreach (var _ in argTypes)
+            {
+                ilGenerator.Emit(OpCodes.Ldarg_0);
+            }
+
+            ilGenerator.Emit(OpCodes.Call, ctor);
+            ilGenerator.Emit(OpCodes.Ret);
+
+            var constructorInvoker = helperMethod.CreateDelegate(typeof(T));
+
+            return (T) (object) constructorInvoker;
         }
 
         /// <summary>

@@ -77,7 +77,10 @@ namespace Apache.Ignite.Core.Impl.Common
         private readonly Func<object, object, object> _continuousQueryFilterCtor;
 
         /** */
-        private Func<SerializationInfo, StreamingContext, object> _serializationCtor;
+        private readonly Func<SerializationInfo, StreamingContext, object> _serializationCtor;
+
+        /** */
+        private readonly Action<object, SerializationInfo, StreamingContext> _serializationCtorUninitialized;
 
         /// <summary>
         /// Gets the <see cref="IComputeFunc{T}" /> invocator.
@@ -201,6 +204,18 @@ namespace Apache.Ignite.Core.Impl.Common
         public static Func<SerializationInfo, StreamingContext, object> GetSerializationConstructor(Type type)
         {
             return Get(type)._serializationCtor;
+        }
+
+        /// <summary>
+        /// Gets the ctor for <see cref="ISerializable"/> that acts on a
+        /// result of <see cref="FormatterServices.GetUninitializedObject"/>.
+        /// </summary>
+        /// <param name="type">Type.</param>
+        /// <returns>Precompiled invocator delegate.</returns>
+        public static Action<object, SerializationInfo, StreamingContext> GetSerializationConstructorUninitialized(
+            Type type)
+        {
+            return Get(type)._serializationCtorUninitialized;
         }
 
         /// <summary>
@@ -360,6 +375,9 @@ namespace Apache.Ignite.Core.Impl.Common
             {
                 _serializationCtor = DelegateConverter.CompileCtor<Func<SerializationInfo, StreamingContext, object>>(
                     serializationCtorInfo, argTypes, convertParamsFromObject: false);
+
+                _serializationCtorUninitialized = DelegateConverter.CompileUninitializedObjectCtor<
+                    Action<object, SerializationInfo, StreamingContext>>(serializationCtorInfo, argTypes);
             }
         }
     }

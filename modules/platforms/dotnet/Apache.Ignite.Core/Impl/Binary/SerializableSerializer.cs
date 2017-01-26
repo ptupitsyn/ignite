@@ -33,14 +33,14 @@ namespace Apache.Ignite.Core.Impl.Binary
         private const string FieldNamesField = "Ignite.NET_SerializableSerializer_FieldNames";
 
         /** */
-        private readonly Func<SerializationInfo, StreamingContext, object> _ctorFunc;
+        private readonly Action<object, SerializationInfo, StreamingContext> _ctorFunc;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="SerializableSerializer"/> class.
         /// </summary>
         public SerializableSerializer(Type type)
         {
-            _ctorFunc = DelegateTypeDescriptor.GetSerializationConstructor(type);
+            _ctorFunc = DelegateTypeDescriptor.GetSerializationConstructorUninitialized(type);
         }
 
         /** <inheritdoc /> */
@@ -170,11 +170,7 @@ namespace Apache.Ignite.Core.Impl.Binary
             }
             else
             {
-                // TODO: Call directly on obj.
-                var res = _ctorFunc(serInfo, DefaultStreamingContext);
-
-                BinaryUtils.CopyFields(res, obj);
-                SerializableCallback.SetReference(objId, res);
+                _ctorFunc(obj, serInfo, DefaultStreamingContext);
             }
         }
 
