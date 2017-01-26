@@ -98,7 +98,23 @@ namespace Apache.Ignite.Core.Impl.Binary
         /** <inheritdoc /> */
         public T ReadBinary<T>(BinaryReader reader, IBinaryTypeDescriptor desc, int pos)
         {
-            var serInfo = GetSerializationInfo<T>(reader, desc);
+            var res = ReadObject<T>(reader, desc);
+
+            // TODO: Invoke callbacks only when entire graph has been deserialized.
+            var cb = (IDeserializationCallback) res;
+
+            if (cb != null)
+                cb.OnDeserialization(this);
+
+            return res;
+        }
+
+        /// <summary>
+        /// Reads the object.
+        /// </summary>
+        private T ReadObject<T>(BinaryReader reader, IBinaryTypeDescriptor desc)
+        {
+            var serInfo = GetSerializationInfo(reader, desc);
 
             var raw = reader.GetRawReader();
 
@@ -165,7 +181,7 @@ namespace Apache.Ignite.Core.Impl.Binary
         /// <summary>
         /// Gets the serialization information.
         /// </summary>
-        private static SerializationInfo GetSerializationInfo<T>(BinaryReader reader, IBinaryTypeDescriptor desc)
+        private static SerializationInfo GetSerializationInfo(BinaryReader reader, IBinaryTypeDescriptor desc)
         {
             var serInfo = new SerializationInfo(desc.Type, new FormatterConverter());
             var binaryType = reader.Marshaller.GetBinaryType(desc.TypeId);
