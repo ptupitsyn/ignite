@@ -722,6 +722,47 @@ namespace Apache.Ignite.Core.Tests.Binary
             CollectionAssert.AreEquivalent(obj.Objects, result.Objects);
         }
 
+        /// <summary>
+        /// Tests the circular reference handling with List<>.
+        /// </summary>
+        [Test]
+        public void TestListCircularReference()
+        {
+            var list1 = new List<object> {1};
+            var list2 = new List<object> {2};
+
+            list1.Add(list2);
+            list2.Add(list1);
+
+            var data = _marsh.Marshal(list1);
+
+            var resList1 = _marsh.Unmarshal<List<object>>(data);
+            Assert.AreEqual(1, resList1[0]);
+
+            var resList2 = (List<object>) resList1[1];
+            Assert.AreEqual(2, resList2[0]);
+            Assert.AreEqual(resList1, resList2[1]);
+        }
+
+        /// <summary>
+        /// Tests the circular reference handling with Dictionary<>.
+        /// </summary>
+        [Test]
+        public void TestDictionaryCircularReference()
+        {
+            var list1 = new List<object> {1};
+            var list2 = new List<object> {2};
+
+            list1.Add(list2);
+            list2.Add(list1);
+
+            var data = _marsh.Marshal(list1);
+
+            var result = _marsh.Unmarshal<List<object>>(data);
+
+            Assert.AreEqual(1, result[0]);
+        }
+
         /**
          * <summary>Check property read.</summary>
          */
