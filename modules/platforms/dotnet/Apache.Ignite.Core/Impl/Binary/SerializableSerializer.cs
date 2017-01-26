@@ -138,15 +138,15 @@ namespace Apache.Ignite.Core.Impl.Binary
         {
             var res = (T)FormatterServices.GetUninitializedObject(desc.Type);
 
-            SerializableCallback.OnDeserializing(res);
+            int objId = SerializableCallback.Push(res);
 
             reader.AddHandle(pos, res);
 
-            ReadObject(res, reader, desc);
+            ReadObject(res, reader, desc, objId);
 
             // TODO: We should invoke callback on exact instance, not the one we copied data from.
             // We should track references and their targets and copy data in the very end.
-            SerializableCallback.OnDeserialized();
+            SerializableCallback.Pop();
 
             return res;
         }
@@ -154,7 +154,7 @@ namespace Apache.Ignite.Core.Impl.Binary
         /// <summary>
         /// Reads the object.
         /// </summary>
-        private void ReadObject(object obj, BinaryReader reader, IBinaryTypeDescriptor desc)
+        private void ReadObject(object obj, BinaryReader reader, IBinaryTypeDescriptor desc, int objId)
         {
             var serInfo = GetSerializationInfo(reader, desc);
 
@@ -163,30 +163,16 @@ namespace Apache.Ignite.Core.Impl.Binary
             if (raw.ReadBoolean())
             {
                 // Custom type is present.
-                var customObj = ReadAsCustomType(raw, serInfo, reader.Marshaller);
+                var res = ReadAsCustomType(raw, serInfo, reader.Marshaller);
 
-                CopyFields(customObj, obj);
+                SerializableCallback.SetReference(objId, res);
             }
             else
             {
-                // TODO: Call on obj.
+                // TODO: Call directly on obj.
                 var res = _ctorFunc(serInfo, DefaultStreamingContext);
 
-                CopyFields(res, obj);
-            }
-        }
-
-        /// <summary>
-        /// Copies the fields.
-        /// </summary>
-        private static void CopyFields(object x, object y)
-        {
-            // TODO: Compiled delegate?
-            foreach (var fieldInfo in BinaryUtils.GetAllFields(x.GetType()))
-            {
-                var val = fieldInfo.GetValue(x);
-
-                fieldInfo.SetValue(y, val);
+                SerializableCallback.SetReference(objId, res);
             }
         }
 

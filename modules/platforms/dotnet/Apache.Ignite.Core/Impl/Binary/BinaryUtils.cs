@@ -1997,6 +1997,20 @@ namespace Apache.Ignite.Core.Impl.Binary
         }
 
         /// <summary>
+        /// Copies the fields.
+        /// </summary>
+        public static void CopyFields(object x, object y)
+        {
+            // TODO: Compiled delegate?
+            foreach (var fieldInfo in BinaryUtils.GetAllFields(x.GetType()))
+            {
+                var val = fieldInfo.GetValue(x);
+
+                fieldInfo.SetValue(y, val);
+            }
+        }
+
+        /// <summary>
         /// Creates and instance from the type name in reader.
         /// </summary>
         private static T CreateInstance<T>(BinaryReader reader)
