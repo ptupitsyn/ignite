@@ -282,12 +282,12 @@ namespace Apache.Ignite.Core.Tests.Binary
         {
             const string cacheName = "cache";
 
-            // Put on one grid
+            // Put on one grid.
             var cache1 = ignite1.CreateCache<int, object>(cacheName);
             cache1[1] = new Foo {Int = 1, Str = "1"};
             cache1[2] = ignite1.GetBinary().GetBuilder(typeof (Bar)).SetField("Int", 5).SetField("Str", "s").Build();
 
-            // Get on another grid
+            // Get on another grid.
             var cache2 = ignite2.GetCache<int, Foo>(cacheName);
             var foo = cache2[1];
 
@@ -304,9 +304,15 @@ namespace Apache.Ignite.Core.Tests.Binary
             Assert.AreEqual("s", bar0.Str);
             Assert.AreEqual(5, bar0.Int);
 
-            // Test compute
+            // Test compute.
+            var serverNodeCount = ignite1.GetCluster().ForServers().GetNodes().Count;
+
             var res = ignite1.GetCompute().Broadcast(new CompFn<DateTime>(() => DateTime.Now));
-            Assert.AreEqual(ignite1.GetCluster().ForServers().GetNodes().Count, res.Count);
+            Assert.AreEqual(serverNodeCount, res.Count);
+
+            // Variable capture.
+            var res2 = ignite1.GetCompute().Broadcast(new CompFn<string>(() => bar0.Str));
+            Assert.AreEqual(Enumerable.Repeat(bar0.Str, serverNodeCount), res2);
         }
 
         /// <summary>
