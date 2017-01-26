@@ -176,7 +176,7 @@ namespace Apache.Ignite.Core.Tests.Binary
 
             using (var ignite = Ignition.Start(cfg))
             {
-                var ex = Assert.Throws<IgniteException>(() => ignite.GetCache<int, Foo>(null).Get(1));
+                var ex = Assert.Throws<BinaryObjectException>(() => ignite.GetCache<int, Foo>(null).Get(1));
 
                 Assert.IsTrue(ex.Message.Contains("Unknown pair"));
             }
