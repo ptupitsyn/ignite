@@ -172,7 +172,9 @@ namespace Apache.Ignite.Core.Impl.Binary
             else
             {
                 // TODO: Call on obj.
-                _ctorFunc(serInfo, DefaultStreamingContext);
+                var res = _ctorFunc(serInfo, DefaultStreamingContext);
+
+                CopyFields(res, obj);
             }
         }
 
