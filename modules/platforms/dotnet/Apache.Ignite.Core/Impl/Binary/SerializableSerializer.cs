@@ -259,7 +259,7 @@ namespace Apache.Ignite.Core.Impl.Binary
         /** <inheritdoc /> */
         public bool SupportsHandles
         {
-            // Can't support handles, since deserialization happens via constructor call.
+            // TODO: We can do this! Via GetUninitializedObject!
             get { return false; }
         }
     }
