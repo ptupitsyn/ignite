@@ -60,7 +60,6 @@ namespace Apache.Ignite.Core.Impl.Binary
 
         /** */
         private volatile Ignite _ignite;
-        private bool _compactFooter;
 
         /// <summary>
         /// Constructor.
@@ -117,12 +116,7 @@ namespace Apache.Ignite.Core.Impl.Binary
         /// <summary>
         /// Gets the compact footer flag.
         /// </summary>
-        public bool CompactFooter
-        {
-            // Everything that is serialized before Ignite has started has to be written with full footer.
-            get { return _compactFooter && _ignite != null; }
-            set { _compactFooter = value; }
-        }
+        public bool CompactFooter { get; set; }
 
         /// <summary>
         /// Marshal object.
