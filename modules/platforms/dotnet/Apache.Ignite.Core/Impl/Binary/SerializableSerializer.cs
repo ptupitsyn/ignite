@@ -20,6 +20,7 @@ namespace Apache.Ignite.Core.Impl.Binary
     using System;
     using System.Runtime.Serialization;
     using Apache.Ignite.Core.Binary;
+    using Apache.Ignite.Core.Impl.Binary.Metadata;
     using Apache.Ignite.Core.Impl.Common;
 
     /// <summary>
@@ -185,6 +186,12 @@ namespace Apache.Ignite.Core.Impl.Binary
         {
             var serInfo = new SerializationInfo(desc.Type, new FormatterConverter());
             var binaryType = reader.Marshaller.GetBinaryType(desc.TypeId);
+
+            if (binaryType == BinaryType.Empty)
+            {
+                throw new BinaryObjectException(string.Format(
+                    "Failed to find BinaryType for type [typeId={0}, typeName={1}]", desc.TypeId, desc.Type));
+            }
 
             foreach (var fieldName in binaryType.Fields)
             {
