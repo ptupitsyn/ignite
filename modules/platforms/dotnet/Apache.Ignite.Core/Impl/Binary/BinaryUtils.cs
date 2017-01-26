@@ -2001,8 +2001,8 @@ namespace Apache.Ignite.Core.Impl.Binary
         /// </summary>
         public static void CopyFields(object x, object y)
         {
-            // TODO: Compiled delegate?
-            foreach (var fieldInfo in BinaryUtils.GetAllFields(x.GetType()))
+            // TODO: Compiled delegate
+            foreach (var fieldInfo in GetAllFields(x.GetType()))
             {
                 var val = fieldInfo.GetValue(x);
 
