@@ -272,7 +272,7 @@ namespace Apache.Ignite.Core.Impl.Common
                 ilGenerator.Emit(OpCodes.Ldarg_2);
 
             if (argTypes.Length > 3)
-                throw new NotSupportedException("No supported: too many ctor args.");
+                throw new NotSupportedException("Not supported: too many ctor args.");
 
             ilGenerator.Emit(OpCodes.Call, ctor);
             ilGenerator.Emit(OpCodes.Ret);
