@@ -165,6 +165,7 @@ namespace Apache.Ignite.Core.Impl.Binary
                 // Custom type is present.
                 var res = ReadAsCustomType(raw, serInfo, reader.Marshaller);
 
+                BinaryUtils.CopyFields(res, obj);
                 SerializableCallback.SetReference(objId, res);
             }
             else
@@ -172,6 +173,7 @@ namespace Apache.Ignite.Core.Impl.Binary
                 // TODO: Call directly on obj.
                 var res = _ctorFunc(serInfo, DefaultStreamingContext);
 
+                BinaryUtils.CopyFields(res, obj);
                 SerializableCallback.SetReference(objId, res);
             }
         }
