@@ -19,7 +19,6 @@ namespace Apache.Ignite.Core.Impl.Binary
 {
     using System;
     using System.Collections.Generic;
-    using System.Reflection;
     using System.Runtime.Serialization;
     using Apache.Ignite.Core.Binary;
     using Apache.Ignite.Core.Impl.Binary.Metadata;
@@ -139,16 +138,13 @@ namespace Apache.Ignite.Core.Impl.Binary
         {
             var res = (T)FormatterServices.GetUninitializedObject(desc.Type);
 
+            SerializableCallback.OnDeserializing(res);
+
             reader.AddHandle(pos, res);
 
             ReadObject(res, reader, desc);
 
-            // TODO: Invoke callbacks only when entire graph has been deserialized. Does it mean downward graph only?
-            // I think with out handle support it is safe to call this here.
-            var cb = res as IDeserializationCallback;
-
-            if (cb != null)
-                cb.OnDeserialization(this);
+            SerializableCallback.OnDeserialized();
 
             return res;
         }
