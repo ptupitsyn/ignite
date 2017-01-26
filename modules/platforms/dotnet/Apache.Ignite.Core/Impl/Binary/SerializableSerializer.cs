@@ -19,6 +19,7 @@ namespace Apache.Ignite.Core.Impl.Binary
 {
     using System;
     using System.Collections.Generic;
+    using System.Reflection;
     using System.Runtime.Serialization;
     using Apache.Ignite.Core.Binary;
     using Apache.Ignite.Core.Impl.Binary.Metadata;
@@ -54,7 +55,7 @@ namespace Apache.Ignite.Core.Impl.Binary
 
             serializable.GetObjectData(serInfo, ctx);
 
-            WriteFieldNames<T>(writer, serInfo);
+            WriteFieldNames(writer, serInfo);
 
             // Write fields.
             foreach (var entry in serInfo)
@@ -68,7 +69,7 @@ namespace Apache.Ignite.Core.Impl.Binary
         /// <summary>
         /// Writes the field names.
         /// </summary>
-        private static void WriteFieldNames<T>(BinaryWriter writer, SerializationInfo serInfo)
+        private static void WriteFieldNames(BinaryWriter writer, SerializationInfo serInfo)
         {
             if (serInfo.MemberCount <= 0 || writer.Marshaller.Ignite != null)
             {
@@ -136,10 +137,14 @@ namespace Apache.Ignite.Core.Impl.Binary
         /** <inheritdoc /> */
         public T ReadBinary<T>(BinaryReader reader, IBinaryTypeDescriptor desc, int pos)
         {
-            var res = ReadObject<T>(reader, desc);
+            var res = (T)FormatterServices.GetUninitializedObject(desc.Type);
 
-            // TODO: Invoke callbacks only when entire graph has been deserialized.
-            // Need a test to prove this useful.
+            reader.AddHandle(pos, res);
+
+            ReadObject(res, reader, desc);
+
+            // TODO: Invoke callbacks only when entire graph has been deserialized. Does it mean downward graph only?
+            // I think with out handle support it is safe to call this here.
             var cb = res as IDeserializationCallback;
 
             if (cb != null)
@@ -151,7 +156,7 @@ namespace Apache.Ignite.Core.Impl.Binary
         /// <summary>
         /// Reads the object.
         /// </summary>
-        private T ReadObject<T>(BinaryReader reader, IBinaryTypeDescriptor desc)
+        private void ReadObject(object obj, BinaryReader reader, IBinaryTypeDescriptor desc)
         {
             var serInfo = GetSerializationInfo(reader, desc);
 
@@ -160,16 +165,35 @@ namespace Apache.Ignite.Core.Impl.Binary
             if (raw.ReadBoolean())
             {
                 // Custom type is present.
-                return ReadAsCustomType<T>(raw, serInfo, reader.Marshaller);
-            }
+                var customObj = ReadAsCustomType(raw, serInfo, reader.Marshaller);
 
-            return (T) _ctorFunc(serInfo, DefaultStreamingContext);
+                CopyFields(customObj, obj);
+            }
+            else
+            {
+                // TODO: Call on obj.
+                _ctorFunc(serInfo, DefaultStreamingContext);
+            }
+        }
+
+        /// <summary>
+        /// Copies the fields.
+        /// </summary>
+        private static void CopyFields(object x, object y)
+        {
+            // TODO: Compiled delegate?
+            foreach (var fieldInfo in BinaryUtils.GetAllFields(x.GetType()))
+            {
+                var val = fieldInfo.GetValue(x);
+
+                fieldInfo.SetValue(y, val);
+            }
         }
 
         /// <summary>
         /// Reads the object as a custom type.
         /// </summary>
-        private static T ReadAsCustomType<T>(IBinaryRawReader raw, SerializationInfo serInfo, Marshaller marsh)
+        private static object ReadAsCustomType(IBinaryRawReader raw, SerializationInfo serInfo, Marshaller marsh)
         {
             Type customType;
 
@@ -205,8 +229,8 @@ namespace Apache.Ignite.Core.Impl.Binary
             var wrapper = customObj as IObjectReference;
 
             return wrapper == null
-                ? (T) customObj
-                : (T) wrapper.GetRealObject(DefaultStreamingContext);
+                ? customObj
+                : wrapper.GetRealObject(DefaultStreamingContext);
         }
 
         /// <summary>

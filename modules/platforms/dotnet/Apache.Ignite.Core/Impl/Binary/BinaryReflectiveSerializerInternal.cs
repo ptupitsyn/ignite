@@ -20,6 +20,7 @@ namespace Apache.Ignite.Core.Impl.Binary
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
+    using System.Linq;
     using System.Reflection;
     using System.Runtime.Serialization;
     using Apache.Ignite.Core.Binary;
@@ -29,10 +30,6 @@ namespace Apache.Ignite.Core.Impl.Binary
     /// </summary>
     internal sealed class BinaryReflectiveSerializerInternal : IBinarySerializerInternal
     {
-        /** Cached binding flags. */
-        private const BindingFlags Flags = BindingFlags.Instance | BindingFlags.Public |
-                                           BindingFlags.NonPublic | BindingFlags.DeclaredOnly;
-
         /** Raw mode flag. */
         private readonly bool _rawMode;
 
@@ -103,20 +100,7 @@ namespace Apache.Ignite.Core.Impl.Binary
         {
             Debug.Assert(_wActions == null && _rActions == null);
 
-            List<FieldInfo> fields = new List<FieldInfo>();
-
-            Type curType = type;
-
-            while (curType != null)
-            {
-                foreach (FieldInfo field in curType.GetFields(Flags))
-                {
-                    if (!field.IsNotSerialized)
-                        fields.Add(field);
-                }
-
-                curType = curType.BaseType;
-            }
+            var fields = BinaryUtils.GetAllFields(type).Where(x => !x.IsNotSerialized).ToList();
 
             IDictionary<int, string> idMap = new Dictionary<int, string>();
 
