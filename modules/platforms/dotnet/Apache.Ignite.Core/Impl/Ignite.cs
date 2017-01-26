@@ -463,7 +463,8 @@ namespace Apache.Ignite.Core.Impl
 
             using (var stream = IgniteManager.Memory.Allocate().GetStream())
             {
-                var writer = Marshaller.StartMarshal(stream);
+                // Use system marshaller: full footers, always unregistered mode.
+                var writer = BinaryUtils.Marshaller.StartMarshal(stream);
 
                 configuration.Write(writer);
 

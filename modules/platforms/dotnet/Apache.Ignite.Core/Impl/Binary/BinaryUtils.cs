@@ -232,8 +232,8 @@ namespace Apache.Ignite.Core.Impl.Binary
         /** Bindig flags for static search. */
         private const BindingFlags BindFlagsStatic = BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic;
 
-        /** Default poratble marshaller. */
-        private static readonly Marshaller Marsh = new Marshaller(null);
+        /** System marshaller. */
+        private static readonly Marshaller Marsh = new Marshaller(new BinaryConfiguration {CompactFooter = false});
 
         /** Method: ReadArray. */
         public static readonly MethodInfo MtdhReadArray =

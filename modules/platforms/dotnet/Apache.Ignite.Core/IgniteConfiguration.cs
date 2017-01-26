@@ -159,7 +159,7 @@
 
             using (var stream = IgniteManager.Memory.Allocate().GetStream())
             {
-                var marsh = new Marshaller(configuration.BinaryConfiguration);
+                var marsh = BinaryUtils.Marshaller;
 
                 configuration.Write(marsh.StartMarshal(stream));
 
