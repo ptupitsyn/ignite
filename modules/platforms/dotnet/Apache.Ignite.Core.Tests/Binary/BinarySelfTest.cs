@@ -723,7 +723,7 @@ namespace Apache.Ignite.Core.Tests.Binary
         }
 
         /// <summary>
-        /// Tests the circular reference handling with List<>.
+        /// Tests the circular reference handling with List.
         /// </summary>
         [Test]
         public void TestListCircularReference()
@@ -745,22 +745,25 @@ namespace Apache.Ignite.Core.Tests.Binary
         }
 
         /// <summary>
-        /// Tests the circular reference handling with Dictionary<>.
+        /// Tests the circular reference handling with Dictionary.
         /// </summary>
         [Test]
         public void TestDictionaryCircularReference()
         {
-            var list1 = new List<object> {1};
-            var list2 = new List<object> {2};
+            var dict1 = new Dictionary<object, object> {{0, 1}};
+            var dict2 = new Dictionary<object, object> {{0, 2}};
 
-            list1.Add(list2);
-            list2.Add(list1);
+            dict1[1] = dict2;
+            dict2[1] = dict1;
 
-            var data = _marsh.Marshal(list1);
+            var data = _marsh.Marshal(dict1);
 
-            var result = _marsh.Unmarshal<List<object>>(data);
+            var resDict1 = _marsh.Unmarshal<Dictionary<object, object>>(data);
+            Assert.AreEqual(1, resDict1[0]);
 
-            Assert.AreEqual(1, result[0]);
+            var resDict2 = (Dictionary<object, object>) resDict1[1];
+            Assert.AreEqual(2, resDict2[0]);
+            Assert.AreEqual(resDict1, resDict2[1]);
         }
 
         /**
