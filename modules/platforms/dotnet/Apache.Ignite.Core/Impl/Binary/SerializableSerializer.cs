@@ -18,6 +18,7 @@
 namespace Apache.Ignite.Core.Impl.Binary
 {
     using System;
+    using System.Collections.Generic;
     using System.Runtime.Serialization;
     using Apache.Ignite.Core.Binary;
     using Apache.Ignite.Core.Impl.Binary.Metadata;
@@ -28,6 +29,9 @@ namespace Apache.Ignite.Core.Impl.Binary
     /// </summary>
     internal class SerializableSerializer : IBinarySerializerInternal
     {
+        /** */
+        private const string FieldNamesField = "Ignite.NET_SerializableSerializer_FieldNames";
+
         /** */
         private readonly Func<SerializationInfo, StreamingContext, object> _ctorFunc;
 
@@ -42,21 +46,51 @@ namespace Apache.Ignite.Core.Impl.Binary
         /** <inheritdoc /> */
         public void WriteBinary<T>(T obj, BinaryWriter writer)
         {
-            var ser = (ISerializable) obj;
+            var serializable = (ISerializable) obj;
             var objType = obj.GetType();
 
             var serInfo = new SerializationInfo(objType, new FormatterConverter());
             var ctx = new StreamingContext(StreamingContextStates.All);
 
-            ser.GetObjectData(serInfo, ctx);
+            serializable.GetObjectData(serInfo, ctx);
 
-            // Write custom fields.
+            WriteFieldNames<T>(writer, serInfo);
+
+            // Write fields.
             foreach (var entry in serInfo)
             {
                 writer.WriteObject(entry.Name, entry.Value);
             }
 
-            // Write custom type information.
+            WriteCustomTypeInfo(writer, serInfo, serializable);
+        }
+
+        /// <summary>
+        /// Writes the field names.
+        /// </summary>
+        private static void WriteFieldNames<T>(BinaryWriter writer, SerializationInfo serInfo)
+        {
+            if (serInfo.MemberCount > 0 && writer.Marshaller.Ignite == null)
+            {
+                // Offline mode: write all field names.
+                var fieldNames = new string[serInfo.MemberCount];
+                int i = 0;
+
+                foreach (var entry in serInfo)
+                {
+                    fieldNames[i++] = entry.Name;
+                }
+
+                writer.WriteStringArray(FieldNamesField, fieldNames);
+            }
+        }
+
+        /// <summary>
+        /// Writes the custom type information.
+        /// </summary>
+        private static void WriteCustomTypeInfo(BinaryWriter writer, SerializationInfo serInfo, 
+            ISerializable serializable)
+        {
             // ISerializable implementor may call SerializationInfo.SetType() or FullTypeName setter.
             // In that case there is no serialization ctor on objType. 
             // Instead, we should instantiate specified custom type and then call IObjectReference.GetRealObject().
@@ -66,7 +100,7 @@ namespace Apache.Ignite.Core.Impl.Binary
             {
                 customType = Type.GetType(serInfo.FullTypeName, true);
             }
-            else if (serInfo.ObjectType != ser.GetType())
+            else if (serInfo.ObjectType != serializable.GetType())
             {
                 customType = serInfo.ObjectType;
             }
@@ -186,6 +220,28 @@ namespace Apache.Ignite.Core.Impl.Binary
         private static SerializationInfo GetSerializationInfo(BinaryReader reader, IBinaryTypeDescriptor desc)
         {
             var serInfo = new SerializationInfo(desc.Type, new FormatterConverter());
+            var fieldNames = GetFieldNames(reader, desc);
+
+            foreach (var fieldName in fieldNames)
+            {
+                var fieldVal = reader.ReadObject<object>(fieldName);
+
+                serInfo.AddValue(fieldName, fieldVal);
+            }
+
+            return serInfo;
+        }
+
+        /// <summary>
+        /// Gets the field names.
+        /// </summary>
+        private static IEnumerable<string> GetFieldNames(BinaryReader reader, IBinaryTypeDescriptor desc)
+        {
+            var fieldNames = reader.ReadStringArray(FieldNamesField);
+
+            if (fieldNames != null)
+                return fieldNames;
+
             var binaryType = reader.Marshaller.GetBinaryType(desc.TypeId);
 
             if (binaryType == BinaryType.Empty)
@@ -194,13 +250,7 @@ namespace Apache.Ignite.Core.Impl.Binary
                     "Failed to find BinaryType for type [typeId={0}, typeName={1}]", desc.TypeId, desc.Type));
             }
 
-            foreach (var fieldName in binaryType.Fields)
-            {
-                var fieldVal = reader.ReadObject<object>(fieldName);
-
-                serInfo.AddValue(fieldName, fieldVal);
-            }
-            return serInfo;
+            return binaryType.Fields;
         }
 
         /** <inheritdoc /> */
