@@ -142,7 +142,7 @@ public class PlatformProcessorImpl extends GridProcessorAdapter implements Platf
             interopCfg.logger().setContext(platformCtx);
 
         // Initialize extensions.
-        // TODO: Call IgnitePluginProcessor.extensions
+        // TODO: Place in array by id.
         extensions = ctx.plugins().extensions(PlatformExtension.class);
     }
 
@@ -340,6 +340,18 @@ public class PlatformProcessorImpl extends GridProcessorAdapter implements Platf
     /** {@inheritDoc} */
     @Override public PlatformTargetProxy extensions() {
         return null;
+    }
+
+    /** {@inheritDoc} */
+    @Override public PlatformTargetProxy extension(int id) {
+        if (extensions != null && id < extensions.length) {
+            PlatformExtension ext = extensions[id];
+
+            if (ext != null)
+                return proxy(ext.createTarget());
+        }
+
+        throw new IgniteException("Platform extension is not registered [id=" + id + ']');
     }
 
     /** {@inheritDoc} */
