@@ -77,7 +77,7 @@ namespace Apache.Ignite.Core.Impl
         /// </summary>
         /// <param name="target">Target.</param>
         /// <param name="marsh">Marshaller.</param>
-        protected PlatformTarget(IUnmanagedTarget target, Marshaller marsh)
+        public PlatformTarget(IUnmanagedTarget target, Marshaller marsh)
         {
             Debug.Assert(target != null);
             Debug.Assert(marsh != null);
