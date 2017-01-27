@@ -17,6 +17,9 @@
 
 namespace Apache.Ignite.Core.Interop
 {
+    using System;
+    using Apache.Ignite.Core.Binary;
+
     /// <summary>
     /// Interface to interoperate with
     /// org.apache.ignite.internal.processors.platform.PlatformTarget on Java side.
@@ -30,5 +33,43 @@ namespace Apache.Ignite.Core.Interop
         /// <param name="val">Value.</param>
         /// <returns>Result.</returns>
         long InLongOutLong(int type, long val);
+
+        /// <summary>
+        /// Performs InStreamOutLong operation.
+        /// </summary>
+        /// <param name="type">Operation type code.</param>
+        /// <param name="writeAction">Write action.</param>
+        /// <returns>Result.</returns>
+        long InStreamOutLong(int type, Action<IBinaryRawWriter> writeAction);
+
+        /// <summary>
+        /// Performs InStreamOutStream operation.
+        /// </summary>
+        /// <typeparam name="T">Result type.</typeparam>
+        /// <param name="type">Operation type code.</param>
+        /// <param name="writeAction">Write action.</param>
+        /// <param name="readAction">Read action.</param>
+        /// <returns>Result.</returns>
+        T InStreamOutStream<T>(int type, Action<IBinaryRawWriter> writeAction, Func<IBinaryRawReader, T> readAction);
+
+        /// <summary>
+        /// Performs InStreamOutObject operation.
+        /// </summary>
+        /// <param name="type">Operation type code.</param>
+        /// <param name="writeAction">Write action.</param>
+        /// <returns>Result.</returns>
+        IPlatformTarget InStreamOutObject(int type, Action<IBinaryRawWriter> writeAction);
+
+        /// <summary>
+        /// Performs InObjectStreamOutObjectStream operation.
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="type">Operation type code.</param>
+        /// <param name="arg">Target argument.</param>
+        /// <param name="writeAction">Write action.</param>
+        /// <param name="readAction">Read action.</param>
+        /// <returns></returns>
+        T InObjectStreamOutObjectStream<T>(int type, IPlatformTarget arg, Action<IBinaryRawWriter> writeAction,
+            Func<IBinaryRawReader, IPlatformTarget, T> readAction);
     }
 }
