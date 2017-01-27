@@ -17,12 +17,7 @@
 
 package org.apache.ignite.internal.processors.platform;
 
-import org.apache.ignite.Ignite;
-import org.apache.ignite.IgniteAtomicSequence;
-import org.apache.ignite.IgniteCheckedException;
-import org.apache.ignite.IgniteDataStreamer;
-import org.apache.ignite.IgniteException;
-import org.apache.ignite.IgniteLogger;
+import org.apache.ignite.*;
 import org.apache.ignite.configuration.CacheConfiguration;
 import org.apache.ignite.configuration.NearCacheConfiguration;
 import org.apache.ignite.configuration.PlatformConfiguration;
@@ -58,11 +53,13 @@ import org.apache.ignite.internal.processors.platform.utils.PlatformUtils;
 import org.apache.ignite.internal.util.typedef.CI1;
 import org.apache.ignite.internal.util.typedef.F;
 import org.apache.ignite.internal.util.typedef.internal.U;
-import org.apache.ignite.lang.IgniteClosure;
 import org.apache.ignite.lang.IgniteFuture;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.locks.ReadWriteLock;
@@ -134,24 +131,13 @@ public class PlatformProcessorImpl extends GridProcessorAdapter implements Platf
         platformCtx = new PlatformContextImpl(ctx, interopCfg.gate(), interopCfg.memory(), interopCfg.platform());
 
         // Initialize cache extensions (if any).
-        cacheExts = prepareExtensions(interopCfg.cacheExtensions(),
-                new IgniteClosure<PlatformCacheExtension, Integer>() {
-            @Override public Integer apply(PlatformCacheExtension ext) {
-                return ext.id();
-            }
-        });
+        cacheExts = prepareCacheExtensions(interopCfg.cacheExtensions());
 
         if (interopCfg.logger() != null)
             interopCfg.logger().setContext(platformCtx);
 
         // Initialize extensions (if any).
-        List<PlatformExtension> exts = Arrays.asList(ctx.plugins().extensions(PlatformExtension.class));
-
-        extensions = prepareExtensions(exts, new IgniteClosure<PlatformExtension, Integer>() {
-            @Override public Integer apply(PlatformExtension ext) {
-                return ext.id();
-            }
-        });
+        extensions = prepareExtensions(ctx.plugins().extensions(PlatformExtension.class));
     }
 
     /** {@inheritDoc} */
@@ -570,46 +556,85 @@ public class PlatformProcessorImpl extends GridProcessorAdapter implements Platf
     }
 
     /**
-     * Prepare extensions.
+     * Prepare cache extensions.
      *
-     * @param exts Original extensions.
+     * @param cacheExts Original extensions.
      * @return Prepared extensions.
      */
-    private static <T> T[] prepareExtensions(Collection<T> exts, IgniteClosure<T, Integer> idClo) {
-        if (!F.isEmpty(exts)) {
+    private static PlatformCacheExtension[] prepareCacheExtensions(Collection<PlatformCacheExtension> cacheExts) {
+        if (!F.isEmpty(cacheExts)) {
             int maxExtId = 0;
 
-            Map<Integer, T> idToExt = new HashMap<>();
+            Map<Integer, PlatformCacheExtension> idToExt = new HashMap<>();
 
-            for (T ext : exts) {
-                if (ext == null)
-                    throw new IgniteException("Platform extension cannot be null.");
+            for (PlatformCacheExtension cacheExt : cacheExts) {
+                if (cacheExt == null)
+                    throw new IgniteException("Platform cache extension cannot be null.");
 
-                int id = idClo.apply(ext);
+                if (cacheExt.id() < 0)
+                    throw new IgniteException("Platform cache extension ID cannot be negative: " + cacheExt);
 
-                if (id < 0)
-                    throw new IgniteException("Platform extension ID cannot be negative: " + ext);
+                PlatformCacheExtension oldCacheExt = idToExt.put(cacheExt.id(), cacheExt);
 
-                T oldExt = idToExt.put(id, ext);
+                if (oldCacheExt != null)
+                    throw new IgniteException("Platform cache extensions cannot have the same ID [" +
+                            "id=" + cacheExt.id() + ", first=" + oldCacheExt + ", second=" + cacheExt + ']');
 
-                if (oldExt != null)
-                    throw new IgniteException("Platform extensions cannot have the same ID [" +
-                        "id=" + id + ", first=" + oldExt + ", second=" + ext + ']');
-
-                if (id > maxExtId)
-                    maxExtId = id;
+                if (cacheExt.id() > maxExtId)
+                    maxExtId = cacheExt.id();
             }
 
-            T[] res = (T[]) new Object[maxExtId + 1];
+            PlatformCacheExtension[] res = new PlatformCacheExtension[maxExtId + 1];
 
-            for (T ext : exts)
-                res[idClo.apply(ext)]= ext;
+            for (PlatformCacheExtension cacheExt : cacheExts)
+                res[cacheExt.id()]= cacheExt;
 
             return res;
         }
         else
             //noinspection ZeroLengthArrayAllocation
-            return (T[]) new Object[0];
+            return new PlatformCacheExtension[0];
+    }
+
+    /**
+     * Prepare extensions.
+     *
+     * @param exts Original extensions.
+     * @return Prepared extensions.
+     */
+    private static PlatformExtension[] prepareExtensions(PlatformExtension[] exts) {
+        if (!F.isEmpty(exts)) {
+            int maxExtId = 0;
+
+            Map<Integer, PlatformExtension> idToExt = new HashMap<>();
+
+            for (PlatformExtension ext : exts) {
+                if (ext == null)
+                    throw new IgniteException("Platform extension cannot be null.");
+
+                if (ext.id() < 0)
+                    throw new IgniteException("Platform extension ID cannot be negative: " + ext);
+
+                PlatformExtension oldCacheExt = idToExt.put(ext.id(), ext);
+
+                if (oldCacheExt != null)
+                    throw new IgniteException("Platform extensions cannot have the same ID [" +
+                            "id=" + ext.id() + ", first=" + oldCacheExt + ", second=" + ext + ']');
+
+                if (ext.id() > maxExtId)
+                    maxExtId = ext.id();
+            }
+
+            PlatformExtension[] res = new PlatformExtension[maxExtId + 1];
+
+            for (PlatformExtension ext : exts)
+                res[ext.id()]= ext;
+
+            return res;
+        }
+        else
+            //noinspection ZeroLengthArrayAllocation
+            return new PlatformExtension[0];
     }
 
     /**
