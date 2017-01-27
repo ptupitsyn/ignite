@@ -137,6 +137,9 @@ public class PlatformProcessorImpl extends GridProcessorAdapter implements Platf
 
         if (interopCfg.logger() != null)
             interopCfg.logger().setContext(platformCtx);
+
+        // Initialize extensions.
+        // TODO: Call IgnitePluginProcessor.extensions
     }
 
     /** {@inheritDoc} */
