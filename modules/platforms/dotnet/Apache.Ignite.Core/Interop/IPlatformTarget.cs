@@ -63,13 +63,29 @@ namespace Apache.Ignite.Core.Interop
         /// <summary>
         /// Performs InObjectStreamOutObjectStream operation.
         /// </summary>
-        /// <typeparam name="T"></typeparam>
+        /// <typeparam name="T">Result type.</typeparam>
         /// <param name="type">Operation type code.</param>
         /// <param name="arg">Target argument.</param>
         /// <param name="writeAction">Write action.</param>
         /// <param name="readAction">Read action.</param>
-        /// <returns></returns>
+        /// <returns>Result.</returns>
         T InObjectStreamOutObjectStream<T>(int type, IPlatformTarget arg, Action<IBinaryRawWriter> writeAction,
             Func<IBinaryRawReader, IPlatformTarget, T> readAction);
+
+        /// <summary>
+        /// Performs OutStream operation.
+        /// </summary>
+        /// <typeparam name="T">Result type.</typeparam>
+        /// <param name="type">Operation type code.</param>
+        /// <param name="readAction">Read action.</param>
+        /// <returns>Result.</returns>
+        T OutStream<T>(int type, Func<IBinaryRawReader, T> readAction);
+
+        /// <summary>
+        /// Performs the OutObject operation.
+        /// </summary>
+        /// <param name="type">Operation type code.</param>
+        /// <returns>Result.</returns>
+        IPlatformTarget OutObject(int type);
     }
 }
