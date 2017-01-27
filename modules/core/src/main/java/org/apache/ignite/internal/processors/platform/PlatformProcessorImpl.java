@@ -94,6 +94,9 @@ public class PlatformProcessorImpl extends GridProcessorAdapter implements Platf
     /** Interop configuration. */
     private final PlatformConfigurationEx interopCfg;
 
+    /** Extensions. */
+    private final PlatformExtension[] extensions;
+
     /** Whether processor is started. */
     private boolean started;
 
@@ -140,6 +143,7 @@ public class PlatformProcessorImpl extends GridProcessorAdapter implements Platf
 
         // Initialize extensions.
         // TODO: Call IgnitePluginProcessor.extensions
+        extensions = ctx.plugins().extensions(PlatformExtension.class);
     }
 
     /** {@inheritDoc} */
