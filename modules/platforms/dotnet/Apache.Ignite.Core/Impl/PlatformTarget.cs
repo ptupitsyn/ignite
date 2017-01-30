@@ -953,13 +953,13 @@ namespace Apache.Ignite.Core.Impl
         /** <inheritdoc /> */
         public T OutStream<T>(int type, Func<IBinaryRawReader, T> readAction)
         {
-            throw new NotImplementedException();
+            return DoInOp(type, stream => readAction(Marshaller.StartUnmarshal(stream)));
         }
 
         /** <inheritdoc /> */
         public IPlatformTarget OutObject(int type)
         {
-            throw new NotImplementedException();
+            return GetPlatformTarget(DoOutOpObject(type));
         }
 
         /// <summary>
