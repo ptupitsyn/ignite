@@ -21,6 +21,7 @@ namespace Apache.Ignite.Core.Tests.Plugin
     using System.Collections.Generic;
     using System.IO;
     using Apache.Ignite.Core.Common;
+    using Apache.Ignite.Core.Interop;
     using Apache.Ignite.Core.Plugin;
     using NUnit.Framework;
 
@@ -67,10 +68,20 @@ namespace Apache.Ignite.Core.Tests.Plugin
 
                 var plugin2 = ignite.GetPlugin<TestIgnitePlugin>(TestIgnitePluginProvider.PluginName);
                 Assert.AreEqual(plugin, plugin2);
+
+                CheckPluginTarget(plugin.Provider.Context.GetExtension(0));
             }
 
             Assert.AreEqual(true, plugin.Provider.Stopped);
             Assert.AreEqual(true, plugin.Provider.IgniteStopped);
+        }
+
+        /// <summary>
+        /// Checks the plugin target.
+        /// </summary>
+        private static void CheckPluginTarget(IPlatformTarget target)
+        {
+            Assert.IsNotNull(target);
         }
 
         /// <summary>
