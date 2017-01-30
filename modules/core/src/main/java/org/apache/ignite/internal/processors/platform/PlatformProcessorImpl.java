@@ -17,7 +17,12 @@
 
 package org.apache.ignite.internal.processors.platform;
 
-import org.apache.ignite.*;
+import org.apache.ignite.Ignite;
+import org.apache.ignite.IgniteAtomicSequence;
+import org.apache.ignite.IgniteCheckedException;
+import org.apache.ignite.IgniteDataStreamer;
+import org.apache.ignite.IgniteException;
+import org.apache.ignite.IgniteLogger;
 import org.apache.ignite.configuration.CacheConfiguration;
 import org.apache.ignite.configuration.NearCacheConfiguration;
 import org.apache.ignite.configuration.PlatformConfiguration;
@@ -68,6 +73,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 /**
  * GridGain platform processor.
  */
+@SuppressWarnings({"ConditionalExpressionWithIdenticalBranches", "unchecked"})
 public class PlatformProcessorImpl extends GridProcessorAdapter implements PlatformProcessor {
     /** Start latch. */
     private final CountDownLatch startLatch = new CountDownLatch(1);
