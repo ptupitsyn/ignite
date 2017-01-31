@@ -45,7 +45,8 @@ namespace Apache.Ignite.Core.Tests.Binary
 
             var val = new Primitives
             {
-                Byte = 1
+                Byte = 1,
+                Bytes = new byte[] {2, 3}
             };
 
             Assert.IsFalse(val.GetObjectDataCalled);
@@ -60,6 +61,9 @@ namespace Apache.Ignite.Core.Tests.Binary
             Assert.IsTrue(res.SerializationCtorCalled);
 
             Assert.AreEqual(val.Byte, res.Byte);
+            Assert.AreEqual(val.Bytes, res.Bytes);
+
+            // TODO: Test fields in binary mode.
         }
 
         [Serializable]
@@ -69,17 +73,47 @@ namespace Apache.Ignite.Core.Tests.Binary
             public bool SerializationCtorCalled { get; private set; }
 
             public byte Byte { get; set; }
+            public byte[] Bytes { get; set; }
+            public bool Bool { get; set; }
+            public bool[] Bools { get; set; }
+            public char Char { get; set; }
+            public char[] Chars { get; set; }
+            public short Short { get; set; }
+            public short[] Shorts { get; set; }
+            public ushort Ushort { get; set; }
+            public ushort[] Ushorts { get; set; }
+            public int Int { get; set; }
+            public int[] Ints { get; set; }
+            public uint Uint { get; set; }
+            public uint[] Uints { get; set; }
+            public long Long { get; set; }
+            public long[] Longs { get; set; }
+            public ulong Ulong { get; set; }
+            public ulong[] Ulongs { get; set; }
+            public float Float { get; set; }
+            public float[] Floats { get; set; }
+            public double Double { get; set; }
+            public double[] Doubles { get; set; }
+            public decimal Decimal { get; set; }
+            public decimal[] Decimals { get; set; }
+            public Guid Guid { get; set; }
+            public Guid[] Guids { get; set; }
+            public DateTime DateTime { get; set; }
+            public DateTime[] DateTimes { get; set; }
+            public string String { get; set; }
+            public string[] Strings { get; set; }
 
             public Primitives()
             {
                 // No-op.
             }
 
-            public Primitives(SerializationInfo info, StreamingContext context)
+            protected Primitives(SerializationInfo info, StreamingContext context)
             {
                 SerializationCtorCalled = true;
 
                 Byte = info.GetByte("byte");
+                Bytes = (byte[]) info.GetValue("bytes", typeof(byte[]));
             }
 
             public void GetObjectData(SerializationInfo info, StreamingContext context)
@@ -87,6 +121,7 @@ namespace Apache.Ignite.Core.Tests.Binary
                 GetObjectDataCalled = true;
 
                 info.AddValue("byte", Byte);
+                info.AddValue("bytes", Bytes);
             }
         }
     }
