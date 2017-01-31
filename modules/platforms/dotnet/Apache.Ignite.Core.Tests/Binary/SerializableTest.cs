@@ -202,6 +202,16 @@ namespace Apache.Ignite.Core.Tests.Binary
         }
 
         /// <summary>
+        /// Tests that primitive types in nullable form can be serialized with ISerializable mechanism.
+        /// </summary>
+        [Test]
+        public void TestPrimitivesNullable()
+        {
+            // TODO: All value types in nullable form.
+        }
+
+
+        /// <summary>
         /// Gets the marshaller.
         /// </summary>
         private static Marshaller GetMarshaller()
