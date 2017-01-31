@@ -42,7 +42,7 @@ namespace Apache.Ignite.Core.Tests.Binary
         [Test]
         public void TestPrimitives()
         {
-            var marsh = new Marshaller(null);
+            var marsh = GetMarshaller();
 
             var val = new Primitives
             {
@@ -71,6 +71,17 @@ namespace Apache.Ignite.Core.Tests.Binary
 
             Assert.AreEqual(val.Bytes, res.Bytes);
             Assert.AreEqual(val.Bytes, bin.GetField<byte[]>("bytes"));
+
+            Assert.AreEqual(val.Bools, res.Bools);
+            Assert.AreEqual(val.Bools, bin.GetField<bool[]>("bools"));
+        }
+
+        /// <summary>
+        /// Gets the marshaller.
+        /// </summary>
+        private static Marshaller GetMarshaller()
+        {
+            return new Marshaller(null) {CompactFooter = false};
         }
 
         [Serializable]
@@ -121,6 +132,8 @@ namespace Apache.Ignite.Core.Tests.Binary
 
                 Byte = info.GetByte("byte");
                 Bytes = (byte[]) info.GetValue("bytes", typeof(byte[]));
+                Bool = info.GetBoolean("bool");
+                Bools = (bool[]) info.GetValue("bools", typeof(bool[]));
             }
 
             public void GetObjectData(SerializationInfo info, StreamingContext context)
@@ -129,6 +142,8 @@ namespace Apache.Ignite.Core.Tests.Binary
 
                 info.AddValue("byte", Byte);
                 info.AddValue("bytes", Bytes);
+                info.AddValue("bool", Bool);
+                info.AddValue("bools", Bools);
             }
         }
     }
