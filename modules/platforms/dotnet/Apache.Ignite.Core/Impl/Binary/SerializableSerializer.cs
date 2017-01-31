@@ -63,6 +63,14 @@ namespace Apache.Ignite.Core.Impl.Binary
             foreach (var entry in serInfo)
             {
                 writer.WriteObject(entry.Name, entry.Value);
+
+                var type = entry.ObjectType;
+
+                if (type == typeof(sbyte) || type == typeof(ushort) || type == typeof(uint) || type == typeof(ulong))
+                {
+                    // Denote .NET-specific type.
+                    writer.WriteBoolean(FieldTypeField + entry.Name, true);
+                }
             }
 
             WriteCustomTypeInfo(writer, serInfo, serializable);
@@ -262,22 +270,22 @@ namespace Apache.Ignite.Core.Impl.Binary
 
             if (fieldType == typeof(byte) && IsSpecialType(reader, fieldName))
             {
-                return (sbyte) fieldVal;
+                return (sbyte) (byte) fieldVal;
             }
 
             if (fieldType == typeof(short) && IsSpecialType(reader, fieldName))
             {
-                return (ushort) fieldVal;
+                return (ushort) (short) fieldVal;
             }
 
             if (fieldType == typeof(int) && IsSpecialType(reader, fieldName))
             {
-                return (uint) fieldVal;
+                return (uint) (int) fieldVal;
             }
 
             if (fieldType == typeof(long) && IsSpecialType(reader, fieldName))
             {
-                return (ulong) fieldVal;
+                return (ulong) (long) fieldVal;
             }
 
             return fieldVal;
