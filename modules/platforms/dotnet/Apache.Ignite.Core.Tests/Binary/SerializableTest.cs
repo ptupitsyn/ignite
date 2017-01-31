@@ -72,8 +72,89 @@ namespace Apache.Ignite.Core.Tests.Binary
             Assert.AreEqual(val.Bytes, res.Bytes);
             Assert.AreEqual(val.Bytes, bin.GetField<byte[]>("bytes"));
 
+            Assert.AreEqual(val.Bool, res.Bool);
+            Assert.AreEqual(val.Bool, bin.GetField<bool>("bool"));
+
             Assert.AreEqual(val.Bools, res.Bools);
             Assert.AreEqual(val.Bools, bin.GetField<bool[]>("bools"));
+
+            Assert.AreEqual(val.Char, res.Char);
+            Assert.AreEqual(val.Char, bin.GetField<char>("char"));
+
+            Assert.AreEqual(val.Chars, res.Chars);
+            Assert.AreEqual(val.Chars, bin.GetField<char[]>("chars"));
+
+            Assert.AreEqual(val.Short, res.Short);
+            Assert.AreEqual(val.Short, bin.GetField<short>("short"));
+
+            Assert.AreEqual(val.Shorts, res.Shorts);
+            Assert.AreEqual(val.Shorts, bin.GetField<short[]>("shorts"));
+
+            Assert.AreEqual(val.Ushort, res.Ushort);
+            Assert.AreEqual(val.Ushort, bin.GetField<ushort>("ushort"));
+
+            Assert.AreEqual(val.Ushorts, res.Ushorts);
+            Assert.AreEqual(val.Ushorts, bin.GetField<ushort[]>("ushorts"));
+
+            Assert.AreEqual(val.Int, res.Int);
+            Assert.AreEqual(val.Int, bin.GetField<int>("int"));
+
+            Assert.AreEqual(val.Ints, res.Ints);
+            Assert.AreEqual(val.Ints, bin.GetField<int[]>("ints"));
+
+            Assert.AreEqual(val.Uint, res.Uint);
+            Assert.AreEqual(val.Uint, bin.GetField<uint>("uint"));
+
+            Assert.AreEqual(val.Uints, res.Uints);
+            Assert.AreEqual(val.Uints, bin.GetField<uint[]>("uints"));
+
+            Assert.AreEqual(val.Long, res.Long);
+            Assert.AreEqual(val.Long, bin.GetField<long>("long"));
+
+            Assert.AreEqual(val.Longs, res.Longs);
+            Assert.AreEqual(val.Longs, bin.GetField<long[]>("longs"));
+
+            Assert.AreEqual(val.Ulong, res.Ulong);
+            Assert.AreEqual(val.Ulong, bin.GetField<ulong>("ulong"));
+
+            Assert.AreEqual(val.Ulongs, res.Ulongs);
+            Assert.AreEqual(val.Ulongs, bin.GetField<ulong[]>("ulongs"));
+
+            Assert.AreEqual(val.Float, res.Float);
+            Assert.AreEqual(val.Float, bin.GetField<float>("float"));
+
+            Assert.AreEqual(val.Floats, res.Floats);
+            Assert.AreEqual(val.Floats, bin.GetField<float[]>("floats"));
+
+            Assert.AreEqual(val.Double, res.Double);
+            Assert.AreEqual(val.Double, bin.GetField<double>("double"));
+
+            Assert.AreEqual(val.Doubles, res.Doubles);
+            Assert.AreEqual(val.Doubles, bin.GetField<double[]>("doubles"));
+
+            Assert.AreEqual(val.Decimal, res.Decimal);
+            Assert.AreEqual(val.Decimal, bin.GetField<decimal>("decimal"));
+
+            Assert.AreEqual(val.Decimals, res.Decimals);
+            Assert.AreEqual(val.Decimals, bin.GetField<decimal[]>("decimals"));
+
+            Assert.AreEqual(val.Guid, res.Guid);
+            Assert.AreEqual(val.Guid, bin.GetField<Guid>("guid"));
+
+            Assert.AreEqual(val.Guids, res.Guids);
+            Assert.AreEqual(val.Guids, bin.GetField<Guid[]>("guids"));
+
+            Assert.AreEqual(val.DateTime, res.DateTime);
+            Assert.AreEqual(val.DateTime, bin.GetField<DateTime>("datetime"));
+
+            Assert.AreEqual(val.DateTimes, res.DateTimes);
+            Assert.AreEqual(val.DateTimes, bin.GetField<DateTime[]>("datetimes"));
+
+            Assert.AreEqual(val.String, res.String);
+            Assert.AreEqual(val.String, bin.GetField<string>("string"));
+
+            Assert.AreEqual(val.Strings, res.Strings);
+            Assert.AreEqual(val.Strings, bin.GetField<string[]>("strings"));
         }
 
         /// <summary>
