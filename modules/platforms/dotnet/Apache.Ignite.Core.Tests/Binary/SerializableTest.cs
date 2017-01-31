@@ -603,7 +603,7 @@ namespace Apache.Ignite.Core.Tests.Binary
                 Ulong = (ulong?) info.GetValue("ulong", typeof(ulong?));
                 Ulongs = (ulong?[]) info.GetValue("ulongs", typeof(ulong?[]));
 
-                Float = (float?) info.GetValue("floas", typeof(float?));
+                Float = (float?) info.GetValue("float", typeof(float?));
                 Floats = (float?[]) info.GetValue("floats", typeof(float?[]));
 
                 Double = (double?) info.GetValue("double", typeof(double?));
