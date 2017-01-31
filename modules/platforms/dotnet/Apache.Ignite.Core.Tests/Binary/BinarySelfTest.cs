@@ -1483,8 +1483,10 @@ namespace Apache.Ignite.Core.Tests.Binary
 
             Assert.AreEqual(guidArr, portObj.GetField<Guid[]>("guidArr"));
             Assert.AreEqual(nGuidArr, portObj.GetField<Guid?[]>("nGuidArr"));
-            Assert.AreEqual(dateArr, portObj.GetField<DateTime[]>("dateArr"));
-            Assert.AreEqual(nDateArr, portObj.GetField<DateTime?[]>("nDateArr"));
+            Assert.AreEqual(dateArr, portObj.GetField<IBinaryObject[]>("dateArr")
+                .Select(x => x.Deserialize<DateTime>()));
+            Assert.AreEqual(nDateArr, portObj.GetField<IBinaryObject[]>("nDateArr")
+                .Select(x => x.Deserialize<DateTime?>()));
 
             obj1 = portObj.Deserialize<SpecialArray>();
 
@@ -1494,12 +1496,13 @@ namespace Apache.Ignite.Core.Tests.Binary
             Assert.AreEqual(nDateArr, obj1.NDateArr);
 
             // Use special with IGridbinaryMarshalAware.
-            SpecialArrayMarshalAware obj2 = new SpecialArrayMarshalAware();
-
-            obj2.GuidArr = guidArr;
-            obj2.NGuidArr = nGuidArr;
-            obj2.DateArr = dateArr;
-            obj2.NDateArr = nDateArr;
+            SpecialArrayMarshalAware obj2 = new SpecialArrayMarshalAware
+            {
+                GuidArr = guidArr,
+                NGuidArr = nGuidArr,
+                DateArr = dateArr,
+                NDateArr = nDateArr
+            };
 
             bytes = marsh.Marshal(obj2);
 
@@ -1507,8 +1510,8 @@ namespace Apache.Ignite.Core.Tests.Binary
 
             Assert.AreEqual(guidArr, portObj.GetField<Guid[]>("a"));
             Assert.AreEqual(nGuidArr, portObj.GetField<Guid?[]>("b"));
-            Assert.AreEqual(dateArr, portObj.GetField<DateTime[]>("c"));
-            Assert.AreEqual(nDateArr, portObj.GetField<DateTime?[]>("d"));
+            Assert.AreEqual(dateArr, portObj.GetField<IBinaryObject[]>("c").Select(x => x.Deserialize<DateTime>()));
+            Assert.AreEqual(nDateArr, portObj.GetField<IBinaryObject[]>("d").Select(x => x.Deserialize<DateTime?>()));
 
             obj2 = portObj.Deserialize<SpecialArrayMarshalAware>();
 
