@@ -169,9 +169,6 @@ namespace Apache.Ignite.Core.Impl.Binary
         /** Type: Compute job wrapper. */
         public const byte TypeComputeJobWrapper = 86;
 
-        /** Type: DateTime wrapper. */
-        public const byte TypeDateTimeHolder = 93;
-
         /** Type: action wrapper. */
         public const byte TypeComputeActionJob = 88;
 

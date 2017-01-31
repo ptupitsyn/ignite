@@ -248,10 +248,6 @@ namespace Apache.Ignite.Core.Impl.Binary
                 if (elemType.IsEnum || elemType == typeof(BinaryEnum))
                     return WriteEnumArray;
 
-                // DateTime wrapper array.
-                if (elemType == typeof(DateTime?) || elemType == typeof(DateTime))
-                    return WriteDateTimeArray;
-
                 // Object array.
                 return WriteArray;
             }
@@ -550,16 +546,6 @@ namespace Apache.Ignite.Core.Impl.Binary
             BinaryUtils.WriteArray((Array) obj, ctx, typeId);
         }
 
-        /// <summary>
-        /// Writes DateTime array.
-        /// </summary>
-        private static void WriteDateTimeArray(BinaryWriter ctx, object obj)
-        {
-            ctx.Stream.WriteByte(BinaryUtils.TypeArray);
-
-            BinaryUtils.WriteArray((Array) obj, ctx, BinaryUtils.TypeDateTimeHolder);
-        }
-
         /**
          * <summary>Write ArrayList.</summary>
          */
@@ -633,11 +619,7 @@ namespace Apache.Ignite.Core.Impl.Binary
                 // Infer element type from typeId.
                 var typeId = ctx.ReadInt();
 
-                if (typeId == BinaryUtils.TypeDateTimeHolder)
-                {
-                    elemType = typeof(DateTime);
-                }
-                else if (typeId != BinaryUtils.ObjTypeId)
+                if (typeId != BinaryUtils.ObjTypeId)
                 {
                     elemType = ctx.Marshaller.GetDescriptor(true, typeId, true).Type;
                 }

@@ -18,6 +18,7 @@
 namespace Apache.Ignite.Core.Tests.Binary
 {
     using System;
+    using System.Linq;
     using System.Runtime.Serialization;
     using Apache.Ignite.Core.Binary;
     using Apache.Ignite.Core.Impl.Binary;
@@ -211,10 +212,11 @@ namespace Apache.Ignite.Core.Tests.Binary
                 Assert.AreEqual(val.Guids, bin.GetField<Guid[]>("guids"));
 
                 Assert.AreEqual(val.DateTime, res.DateTime);
-                Assert.AreEqual(val.DateTime, bin.GetField<DateTime>("datetime"));
+                Assert.AreEqual(val.DateTime, bin.GetField<IBinaryObject>("datetime").Deserialize<DateTime>());
 
                 Assert.AreEqual(val.DateTimes, res.DateTimes);
-                Assert.AreEqual(val.DateTimes, bin.GetField<DateTime[]>("datetimes"));
+                var dts = bin.GetField<IBinaryObject[]>("datetimes");
+                Assert.AreEqual(val.DateTimes, dts == null ? null : dts.Select(x => x.Deserialize<DateTime>()));
 
                 Assert.AreEqual(val.String, res.String);
                 Assert.AreEqual(val.String, bin.GetField<string>("string"));
@@ -388,10 +390,14 @@ namespace Apache.Ignite.Core.Tests.Binary
                 Assert.AreEqual(val.Guids, bin.GetField<Guid?[]>("guids"));
 
                 Assert.AreEqual(val.DateTime, res.DateTime);
-                Assert.AreEqual(val.DateTime, bin.GetField<DateTime?>("datetime"));
+                var dt = bin.GetField<IBinaryObject>("datetime");
+                Assert.AreEqual(val.DateTime, dt == null ? null : dt.Deserialize<DateTime?>());
 
                 Assert.AreEqual(val.DateTimes, res.DateTimes);
-                Assert.AreEqual(val.DateTimes, bin.GetField<DateTime?[]>("datetimes"));
+                var dts = bin.GetField<IBinaryObject[]>("datetimes");
+                Assert.AreEqual(val.DateTimes, dts == null
+                    ? null
+                    : dts.Select(x => x == null ? null : x.Deserialize<DateTime?>()));
             }
         }
 
