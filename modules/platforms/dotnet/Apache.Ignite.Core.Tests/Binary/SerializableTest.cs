@@ -47,7 +47,35 @@ namespace Apache.Ignite.Core.Tests.Binary
             var val = new Primitives
             {
                 Byte = 1,
-                Bytes = new byte[] {2, 3}
+                Bytes = new byte[] {2, 3},
+                Bool = true,
+                Bools = new[] {true, true, false},
+                Char = 'x',
+                Chars = new[] {'a', 'z'},
+                Short = -25,
+                Shorts = new short[] {5, -7, 9},
+                Ushort = 99,
+                Ushorts = new ushort[] {10, 20, 12},
+                Int = -456,
+                Ints = new[] {-100, 200, -300},
+                Uint = 456,
+                Uints = new uint[] {100, 200, 300},
+                Long = long.MaxValue,
+                Longs = new[] {long.MinValue, long.MaxValue, 33, -44},
+                Ulong = ulong.MaxValue,
+                Ulongs = new ulong[] {ulong.MinValue, ulong.MaxValue, 33},
+                Float = 1.33f,
+                Floats = new[]
+                {
+                    float.MinValue, float.MaxValue,
+                    float.Epsilon, float.NegativeInfinity, float.PositiveInfinity, float.NaN, 1.23f
+                },
+                Double = -6.78,
+                Doubles = new[]
+                {
+                    double.MinValue, double.MaxValue, double.Epsilon,
+                    double.NegativeInfinity, double.PositiveInfinity
+                }
             };
 
             Assert.IsFalse(val.GetObjectDataCalled);
