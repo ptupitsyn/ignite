@@ -19,6 +19,7 @@ namespace Apache.Ignite.Core.Tests.Binary
 {
     using System;
     using System.Runtime.Serialization;
+    using Apache.Ignite.Core.Binary;
     using Apache.Ignite.Core.Impl.Binary;
     using NUnit.Framework;
 
@@ -52,18 +53,24 @@ namespace Apache.Ignite.Core.Tests.Binary
             Assert.IsFalse(val.GetObjectDataCalled);
             Assert.IsFalse(val.SerializationCtorCalled);
 
-            var res = marsh.Unmarshal<Primitives>(marsh.Marshal(val));
+            // Unmarshal in full and binary form.
+            var bytes = marsh.Marshal(val);
+            var res = marsh.Unmarshal<Primitives>(bytes);
+            var bin = marsh.Unmarshal<IBinaryObject>(bytes, BinaryMode.ForceBinary);
 
+            // Verify flags.
             Assert.IsTrue(val.GetObjectDataCalled);
             Assert.IsFalse(val.SerializationCtorCalled);
 
             Assert.IsFalse(res.GetObjectDataCalled);
             Assert.IsTrue(res.SerializationCtorCalled);
 
+            // Verify values.
             Assert.AreEqual(val.Byte, res.Byte);
-            Assert.AreEqual(val.Bytes, res.Bytes);
+            Assert.AreEqual(val.Byte, bin.GetField<byte>("byte"));
 
-            // TODO: Test fields in binary mode.
+            Assert.AreEqual(val.Bytes, res.Bytes);
+            Assert.AreEqual(val.Bytes, bin.GetField<byte[]>("bytes"));
         }
 
         [Serializable]
