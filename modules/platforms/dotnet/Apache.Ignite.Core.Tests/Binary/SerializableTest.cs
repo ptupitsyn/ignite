@@ -573,7 +573,7 @@ namespace Apache.Ignite.Core.Tests.Binary
             {
                 SerializationCtorCalled = true;
 
-                Byte = info.GetByte("byte");
+                Byte = (byte?) info.GetValue("byte", typeof(byte?));
                 Bytes = (byte?[]) info.GetValue("bytes", typeof(byte?[]));
 
                 Sbyte = info.GetSByte("sbyte");
