@@ -116,6 +116,12 @@ namespace Apache.Ignite.Core.Tests.Binary
             Assert.AreEqual(val.Bytes, res.Bytes);
             Assert.AreEqual(val.Bytes, bin.GetField<byte[]>("bytes"));
 
+            Assert.AreEqual(val.Sbyte, res.Sbyte);
+            Assert.AreEqual(val.Sbyte, bin.GetField<sbyte>("sbyte"));
+
+            Assert.AreEqual(val.Sbytes, res.Sbytes);
+            Assert.AreEqual(val.Sbytes, bin.GetField<sbyte[]>("sbytes"));
+
             Assert.AreEqual(val.Bool, res.Bool);
             Assert.AreEqual(val.Bool, bin.GetField<bool>("bool"));
 
