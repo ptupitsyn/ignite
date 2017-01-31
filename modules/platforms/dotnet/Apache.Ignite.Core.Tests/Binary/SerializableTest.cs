@@ -213,8 +213,48 @@ namespace Apache.Ignite.Core.Tests.Binary
 
                 Byte = info.GetByte("byte");
                 Bytes = (byte[]) info.GetValue("bytes", typeof(byte[]));
+
                 Bool = info.GetBoolean("bool");
                 Bools = (bool[]) info.GetValue("bools", typeof(bool[]));
+
+                Char = info.GetChar("char");
+                Chars = (char[]) info.GetValue("chars", typeof(char[]));
+
+                Short = (short) info.GetValue("short", typeof(short));
+                Shorts = (short[]) info.GetValue("shorts", typeof(short[]));
+
+                Ushort = (ushort) info.GetValue("ushort", typeof(ushort));
+                Ushorts = (ushort[]) info.GetValue("ushorts", typeof(ushort[]));
+
+                Int = (int) info.GetValue("int", typeof(int));
+                Ints = (int[]) info.GetValue("ints", typeof(int[]));
+
+                Uint = (uint) info.GetValue("uint", typeof(uint));
+                Uints = (uint[]) info.GetValue("uints", typeof(uint[]));
+
+                Long = (long) info.GetValue("long", typeof(long));
+                Longs = (long[]) info.GetValue("longs", typeof(long[]));
+
+                Ulong = (ulong) info.GetValue("ulong", typeof(ulong));
+                Ulongs = (ulong[]) info.GetValue("ulongs", typeof(ulong[]));
+
+                Float = (float) info.GetValue("float", typeof(float));
+                Floats = (float[]) info.GetValue("floats", typeof(float[]));
+
+                Double = (double) info.GetValue("double", typeof(double));
+                Doubles = (double[]) info.GetValue("doubles", typeof(double[]));
+
+                Decimal = (decimal) info.GetValue("decimal", typeof(decimal));
+                Decimals = (decimal[]) info.GetValue("decimals", typeof(decimal[]));
+
+                Guid = (Guid) info.GetValue("guid", typeof(Guid));
+                Guids = (Guid[]) info.GetValue("guids", typeof(Guid[]));
+
+                DateTime = (DateTime) info.GetValue("datetime", typeof(DateTime));
+                DateTimes = (DateTime[]) info.GetValue("datetimes", typeof(DateTime[]));
+
+                String = (string) info.GetValue("string", typeof(string));
+                Strings = (string[]) info.GetValue("strings", typeof(string[]));
             }
 
             public void GetObjectData(SerializationInfo info, StreamingContext context)
