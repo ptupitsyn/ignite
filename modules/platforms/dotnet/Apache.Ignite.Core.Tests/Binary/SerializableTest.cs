@@ -576,46 +576,46 @@ namespace Apache.Ignite.Core.Tests.Binary
                 Byte = (byte?) info.GetValue("byte", typeof(byte?));
                 Bytes = (byte?[]) info.GetValue("bytes", typeof(byte?[]));
 
-                Sbyte = info.GetSByte("sbyte");
+                Sbyte = (sbyte?) info.GetValue("sbyte", typeof(sbyte?));
                 Sbytes = (sbyte?[]) info.GetValue("sbytes", typeof(sbyte?[]));
 
-                Bool = info.GetBoolean("bool");
+                Bool = (bool?) info.GetValue("bool", typeof(bool?));
                 Bools = (bool?[]) info.GetValue("bools", typeof(bool?[]));
 
-                Char = info.GetChar("char");
+                Char = (char?) info.GetValue("char", typeof(char?));
                 Chars = (char?[]) info.GetValue("chars", typeof(char?[]));
 
-                Short = info.GetInt16("short");
+                Short = (short?) info.GetValue("short", typeof(short?));
                 Shorts = (short?[]) info.GetValue("shorts", typeof(short?[]));
 
-                Ushort = info.GetUInt16("ushort");
+                Ushort = (ushort?) info.GetValue("ushort", typeof(ushort?));
                 Ushorts = (ushort?[]) info.GetValue("ushorts", typeof(ushort?[]));
 
-                Int = info.GetInt32("int");
+                Int = (int?) info.GetValue("int", typeof(int?));
                 Ints = (int?[]) info.GetValue("ints", typeof(int?[]));
 
-                Uint = info.GetUInt32("uint");
+                Uint = (uint?) info.GetValue("uint", typeof(uint?));
                 Uints = (uint?[]) info.GetValue("uints", typeof(uint?[]));
 
-                Long = info.GetInt64("long");
+                Long = (long?) info.GetValue("long", typeof(long?));
                 Longs = (long?[]) info.GetValue("longs", typeof(long?[]));
 
-                Ulong = info.GetUInt64("ulong");
+                Ulong = (ulong?) info.GetValue("ulong", typeof(ulong?));
                 Ulongs = (ulong?[]) info.GetValue("ulongs", typeof(ulong?[]));
 
-                Float = info.GetSingle("float");
+                Float = (float?) info.GetValue("floas", typeof(float?));
                 Floats = (float?[]) info.GetValue("floats", typeof(float?[]));
 
-                Double = info.GetDouble("double");
+                Double = (double?) info.GetValue("double", typeof(double?));
                 Doubles = (double?[]) info.GetValue("doubles", typeof(double?[]));
 
-                Decimal = info.GetDecimal("decimal");
+                Decimal = (decimal?) info.GetValue("decimal", typeof(decimal?));
                 Decimals = (decimal?[]) info.GetValue("decimals", typeof(decimal?[]));
 
                 Guid = (Guid?) info.GetValue("guid", typeof(Guid?));
                 Guids = (Guid?[]) info.GetValue("guids", typeof(Guid?[]));
 
-                DateTime = info.GetDateTime("datetime");
+                DateTime = (DateTime?) info.GetValue("datetime", typeof(DateTime?));
                 DateTimes = (DateTime?[]) info.GetValue("datetimes", typeof(DateTime?[]));
             }
 
