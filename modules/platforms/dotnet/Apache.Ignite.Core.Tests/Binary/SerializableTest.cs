@@ -48,6 +48,8 @@ namespace Apache.Ignite.Core.Tests.Binary
             {
                 Byte = 1,
                 Bytes = new byte[] {2, 3, byte.MinValue, byte.MaxValue},
+                Sbyte = -64,
+                Sbytes = new sbyte[] {sbyte.MinValue, sbyte.MaxValue, 1, 2, -4, -5},
                 Bool = true,
                 Bools = new[] {true, true, false},
                 Char = 'x',
@@ -215,6 +217,8 @@ namespace Apache.Ignite.Core.Tests.Binary
 
             public byte Byte { get; set; }
             public byte[] Bytes { get; set; }
+            public sbyte Sbyte { get; set; }
+            public sbyte[] Sbytes { get; set; }
             public bool Bool { get; set; }
             public bool[] Bools { get; set; }
             public char Char { get; set; }
@@ -255,6 +259,9 @@ namespace Apache.Ignite.Core.Tests.Binary
 
                 Byte = info.GetByte("byte");
                 Bytes = (byte[]) info.GetValue("bytes", typeof(byte[]));
+
+                Sbyte = info.GetSByte("sbyte");
+                Sbytes = (sbyte[]) info.GetValue("sbytes", typeof(sbyte[]));
 
                 Bool = info.GetBoolean("bool");
                 Bools = (bool[]) info.GetValue("bools", typeof(bool[]));
@@ -305,6 +312,8 @@ namespace Apache.Ignite.Core.Tests.Binary
 
                 info.AddValue("byte", Byte);
                 info.AddValue("bytes", Bytes);
+                info.AddValue("sbyte", Sbyte);
+                info.AddValue("sbytes", Sbytes);
                 info.AddValue("bool", Bool);
                 info.AddValue("bools", Bools);
                 info.AddValue("char", Char);
