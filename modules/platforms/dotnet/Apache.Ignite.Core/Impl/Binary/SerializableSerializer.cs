@@ -66,7 +66,9 @@ namespace Apache.Ignite.Core.Impl.Binary
 
                 var type = entry.ObjectType;
 
-                if (type == typeof(sbyte) || type == typeof(ushort) || type == typeof(uint) || type == typeof(ulong))
+                if (type == typeof(sbyte) || type == typeof(ushort) || type == typeof(uint) || type == typeof(ulong)
+                    || type == typeof(sbyte[]) || type == typeof(ushort[])
+                    || type == typeof(uint[]) || type == typeof(ulong[]))
                 {
                     // Denote .NET-specific type.
                     writer.WriteBoolean(FieldTypeField + entry.Name, true);
@@ -268,27 +270,66 @@ namespace Apache.Ignite.Core.Impl.Binary
 
             var fieldType = fieldVal.GetType();
 
-            if (fieldType == typeof(byte) && IsSpecialType(reader, fieldName))
+            unchecked
             {
-                return (sbyte) (byte) fieldVal;
-            }
+                if (fieldType == typeof(byte))
+                {
+                    return IsSpecialType(reader, fieldName) ? (sbyte) (byte) fieldVal : fieldVal;
+                }
 
-            if (fieldType == typeof(short) && IsSpecialType(reader, fieldName))
-            {
-                return (ushort) (short) fieldVal;
-            }
+                if (fieldType == typeof(short))
+                {
+                    return IsSpecialType(reader, fieldName) ? (ushort) (short) fieldVal : fieldVal;
+                }
 
-            if (fieldType == typeof(int) && IsSpecialType(reader, fieldName))
-            {
-                return (uint) (int) fieldVal;
-            }
+                if (fieldType == typeof(int))
+                {
+                    return IsSpecialType(reader, fieldName) ? (uint) (int) fieldVal : fieldVal;
+                }
 
-            if (fieldType == typeof(long) && IsSpecialType(reader, fieldName))
-            {
-                return (ulong) (long) fieldVal;
+                if (fieldType == typeof(long))
+                {
+                    return IsSpecialType(reader, fieldName) ? (ulong) (long) fieldVal : fieldVal;
+                }
+
+                if (fieldType == typeof(byte[]))
+                {
+                    return IsSpecialType(reader, fieldName) ? ConvertArray<byte, sbyte>((byte[]) fieldVal) : fieldVal;
+                }
+
+                if (fieldType == typeof(short[]))
+                {
+                    return IsSpecialType(reader, fieldName) 
+                        ? ConvertArray<short, ushort>((short[]) fieldVal) : fieldVal;
+                }
+
+                if (fieldType == typeof(int[]))
+                {
+                    return IsSpecialType(reader, fieldName) ? ConvertArray<int, uint>((int[]) fieldVal) : fieldVal;
+                }
+
+                if (fieldType == typeof(long[]))
+                {
+                    return IsSpecialType(reader, fieldName) ? ConvertArray<long, ulong>((long[]) fieldVal) : fieldVal;
+                }
             }
 
             return fieldVal;
+        }
+
+        /// <summary>
+        /// Converts the array.
+        /// </summary>
+        private static TU[] ConvertArray<T, TU>(T[] arr)
+        {
+            var res = new TU[arr.Length];
+
+            for (var i = 0; i < arr.Length; i++)
+            {
+                res[i] = TypeCaster<TU>.Cast(arr[i]);
+            }
+
+            return res;
         }
 
         /// <summary>
