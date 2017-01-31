@@ -47,9 +47,12 @@ namespace Apache.Ignite.Core.Tests.Binary
 
             var val = DateTime.Now;
 
-            var res = marsh.Unmarshal<DateTime>(marsh.Marshal(val));
+            Assert.AreEqual(val, marsh.Unmarshal<DateTime>(marsh.Marshal(val)));
 
-            Assert.AreEqual(val, res);
+            Assert.AreEqual(new[] {val}, marsh.Unmarshal<DateTime[]>(marsh.Marshal(new[] {val})));
+
+            Assert.AreEqual(new DateTime?[] {val, null},
+                marsh.Unmarshal<DateTime?[]>(marsh.Marshal(new DateTime?[] {val, null})));
         }
 
         /// <summary>
