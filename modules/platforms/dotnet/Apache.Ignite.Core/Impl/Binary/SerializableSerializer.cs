@@ -33,6 +33,9 @@ namespace Apache.Ignite.Core.Impl.Binary
         private const string FieldNamesField = "Ignite.NET_SerializableSerializer_FieldNames";
 
         /** */
+        private const string FieldTypeField = "Ignite.NET_SerializableSerializer_FieldType_";
+
+        /** */
         private readonly Action<object, SerializationInfo, StreamingContext> _ctorAction;
 
         /// <summary>
@@ -233,12 +236,59 @@ namespace Apache.Ignite.Core.Impl.Binary
 
             foreach (var fieldName in fieldNames)
             {
-                var fieldVal = reader.ReadObject<object>(fieldName);
+                var fieldVal = ReadField(reader, fieldName);
 
                 serInfo.AddValue(fieldName, fieldVal);
             }
 
             return serInfo;
+        }
+
+        /// <summary>
+        /// Reads the field.
+        /// <para />
+        /// Java side does not have counterparts for byte, ushort, uint, ulong.
+        /// For such fields we write a special boolean field indicating the type.
+        /// If special field is present, then the value has to be converted to .NET-specific type.
+        /// </summary>
+        private static object ReadField(IBinaryReader reader, string fieldName)
+        {
+            var fieldVal = reader.ReadObject<object>(fieldName);
+
+            if (fieldVal == null)
+                return null;
+
+            var fieldType = fieldVal.GetType();
+
+            if (fieldType == typeof(byte) && IsSpecialType(reader, fieldName))
+            {
+                return (sbyte) fieldVal;
+            }
+
+            if (fieldType == typeof(short) && IsSpecialType(reader, fieldName))
+            {
+                return (ushort) fieldVal;
+            }
+
+            if (fieldType == typeof(int) && IsSpecialType(reader, fieldName))
+            {
+                return (uint) fieldVal;
+            }
+
+            if (fieldType == typeof(long) && IsSpecialType(reader, fieldName))
+            {
+                return (ulong) fieldVal;
+            }
+
+            return fieldVal;
+        }
+
+        /// <summary>
+        /// Determines whether specified field is of a special .NET type, such as byte, uint, ushort, ulong.
+        /// </summary>
+        private static bool IsSpecialType(IBinaryReader reader, string fieldName)
+        {
+            return reader.ReadObject<bool?>(FieldTypeField + fieldName) == true;
         }
 
         /// <summary>
