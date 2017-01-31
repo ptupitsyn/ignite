@@ -37,6 +37,9 @@ namespace Apache.Ignite.Core.Tests.Binary
         // check built-in types: collections, delegates, types, memberInfos, etc
         // structs!!
 
+        /// <summary>
+        /// Tests the DateTime which is ISerializable struct.
+        /// </summary>
         [Test]
         public void TestDateTime()
         {
