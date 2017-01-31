@@ -256,26 +256,30 @@ namespace Apache.Ignite.Core.Impl.Common
         public static T CompileUninitializedObjectCtor<T>(ConstructorInfo ctor, Type[] argTypes)
         {
             Debug.Assert(ctor != null);
+            Debug.Assert(ctor.DeclaringType != null);
             Debug.Assert(argTypes != null);
 
             argTypes = new[] {typeof(object)}.Concat(argTypes).ToArray();
 
             var helperMethod = new DynamicMethod(string.Empty, typeof(void), argTypes, ctor.Module, true);
-            var ilGenerator = helperMethod.GetILGenerator();
+            var il = helperMethod.GetILGenerator();
 
-            ilGenerator.Emit(OpCodes.Ldarg_0);
+            il.Emit(OpCodes.Ldarg_0);
+
+            if (ctor.DeclaringType.IsValueType)
+                il.Emit(OpCodes.Unbox, ctor.DeclaringType);   // modify boxed copy
 
             if (argTypes.Length > 1)
-                ilGenerator.Emit(OpCodes.Ldarg_1);
+                il.Emit(OpCodes.Ldarg_1);
 
             if (argTypes.Length > 2)
-                ilGenerator.Emit(OpCodes.Ldarg_2);
+                il.Emit(OpCodes.Ldarg_2);
 
             if (argTypes.Length > 3)
                 throw new NotSupportedException("Not supported: too many ctor args.");
 
-            ilGenerator.Emit(OpCodes.Call, ctor);
-            ilGenerator.Emit(OpCodes.Ret);
+            il.Emit(OpCodes.Call, ctor);
+            il.Emit(OpCodes.Ret);
 
             var constructorInvoker = helperMethod.CreateDelegate(typeof(T));
 

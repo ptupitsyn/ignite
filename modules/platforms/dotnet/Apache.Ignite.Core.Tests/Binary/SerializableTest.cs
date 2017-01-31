@@ -34,7 +34,19 @@ namespace Apache.Ignite.Core.Tests.Binary
         // with ISerializable
         // without ISerializable
         // check built-in types: collections, delegates, types, memberInfos, etc
+        // structs!!
 
+        [Test]
+        public void TestDateTime()
+        {
+            var marsh = GetMarshaller();
+
+            var val = DateTime.Now;
+
+            var res = marsh.Unmarshal<DateTime>(marsh.Marshal(val));
+
+            Assert.AreEqual(val, res);
+        }
 
         /// <summary>
         /// Tests that primitive types can be serialized with ISerializable mechanism.

@@ -36,14 +36,20 @@ namespace Apache.Ignite.Core.Impl.Binary
         private const string FieldTypeField = "Ignite.NET_SerializableSerializer_FieldType_";
 
         /** */
-        private readonly Action<object, SerializationInfo, StreamingContext> _ctorAction;
+        private readonly Action<object, SerializationInfo, StreamingContext> _ctorActionUninitialized;
+
+        /** */
+        private readonly Func<SerializationInfo, StreamingContext, object> _ctorFunc;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="SerializableSerializer"/> class.
         /// </summary>
         public SerializableSerializer(Type type)
         {
-            _ctorAction = DelegateTypeDescriptor.GetSerializationConstructorUninitialized(type);
+            IgniteArgumentCheck.NotNull(type, "type");
+
+            _ctorActionUninitialized = DelegateTypeDescriptor.GetSerializationConstructorUninitialized(type);
+            _ctorFunc = DelegateTypeDescriptor.GetSerializationConstructor(type);
         }
 
         /** <inheritdoc /> */
@@ -149,7 +155,7 @@ namespace Apache.Ignite.Core.Impl.Binary
         /** <inheritdoc /> */
         public T ReadBinary<T>(BinaryReader reader, IBinaryTypeDescriptor desc, int pos)
         {
-            var res = (T)FormatterServices.GetUninitializedObject(desc.Type);
+            var res = FormatterServices.GetUninitializedObject(desc.Type);
 
             int objId = SerializableCallback.Push(res);
 
@@ -159,7 +165,7 @@ namespace Apache.Ignite.Core.Impl.Binary
 
             SerializableCallback.Pop();
 
-            return res;
+            return (T) res;
         }
 
         /// <summary>
@@ -181,7 +187,7 @@ namespace Apache.Ignite.Core.Impl.Binary
             }
             else
             {
-                _ctorAction(obj, serInfo, DefaultStreamingContext);
+                _ctorActionUninitialized(obj, serInfo, DefaultStreamingContext);
             }
         }
 

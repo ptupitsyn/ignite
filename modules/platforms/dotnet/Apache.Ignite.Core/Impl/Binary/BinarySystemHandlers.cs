@@ -189,8 +189,6 @@ namespace Apache.Ignite.Core.Impl.Binary
                 return WriteString;
             if (type == typeof(decimal))
                 return WriteDecimal;
-            if (type == typeof(DateTime))
-                return WriteDate;
             if (type == typeof(Guid))
                 return WriteGuid;
             if (type == typeof (BinaryObject))
@@ -309,16 +307,6 @@ namespace Apache.Ignite.Core.Impl.Binary
             ctx.Stream.WriteByte(BinaryUtils.TypeDecimal);
 
             BinaryUtils.WriteDecimal((decimal)obj, ctx.Stream);
-        }
-        
-        /// <summary>
-        /// Write date.
-        /// </summary>
-        /// <param name="ctx">Context.</param>
-        /// <param name="obj">Value.</param>
-        private static void WriteDate(BinaryWriter ctx, object obj)
-        {
-            ctx.Write(new DateTimeHolder((DateTime) obj));
         }
         
         /// <summary>
