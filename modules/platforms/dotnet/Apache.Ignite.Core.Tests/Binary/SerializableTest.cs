@@ -56,6 +56,19 @@ namespace Apache.Ignite.Core.Tests.Binary
         }
 
         /// <summary>
+        /// Tests that delegates can be serialized.
+        /// </summary>
+        [Test]
+        public void TestDelegates()
+        {
+            var val = new Primitives {Int = 135};
+            Action act = () => val.Int++;
+            var res = SerializeDeserialize(act);
+            res();
+            Assert.AreEqual(136, val.Int);
+        }
+
+        /// <summary>
         /// Tests that primitive types can be serialized with ISerializable mechanism.
         /// </summary>
         [Test]
@@ -413,6 +426,16 @@ namespace Apache.Ignite.Core.Tests.Binary
         private static Marshaller GetMarshaller()
         {
             return new Marshaller(null) {CompactFooter = false};
+        }
+
+        /// <summary>
+        /// Serializes and deserializes back an object.
+        /// </summary>
+        private static T SerializeDeserialize<T>(T obj)
+        {
+            var marsh = GetMarshaller();
+
+            return marsh.Unmarshal<T>(marsh.Marshal(obj));
         }
 
         [Serializable]
