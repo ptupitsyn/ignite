@@ -225,6 +225,32 @@ namespace Apache.Ignite.Core.Tests.Binary
                 info.AddValue("bytes", Bytes);
                 info.AddValue("bool", Bool);
                 info.AddValue("bools", Bools);
+                info.AddValue("char", Char);
+                info.AddValue("chars", Chars);
+                info.AddValue("short", Short);
+                info.AddValue("shorts", Shorts);
+                info.AddValue("ushort", Ushort);
+                info.AddValue("ushorts", Ushorts);
+                info.AddValue("int", Int);
+                info.AddValue("ints", Ints);
+                info.AddValue("uint", Uint);
+                info.AddValue("uints", Uints);
+                info.AddValue("long", Long);
+                info.AddValue("longs", Longs);
+                info.AddValue("ulong", Ulong);
+                info.AddValue("ulongs", Ulongs);
+                info.AddValue("float", Float);
+                info.AddValue("floats", Floats);
+                info.AddValue("double", Double);
+                info.AddValue("doubles", Doubles);
+                info.AddValue("decimal", Decimal);
+                info.AddValue("decimals", Decimals);
+                info.AddValue("guid", Guid);
+                info.AddValue("guids", Guids);
+                info.AddValue("datetime", DateTime);
+                info.AddValue("datetimes", DateTimes);
+                info.AddValue("string", String);
+                info.AddValue("strings", Strings);
             }
         }
     }
