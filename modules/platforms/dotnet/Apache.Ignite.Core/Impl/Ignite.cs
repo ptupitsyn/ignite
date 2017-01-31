@@ -424,7 +424,7 @@ namespace Apache.Ignite.Core.Impl
 
             using (var stream = IgniteManager.Memory.Allocate().GetStream())
             {
-                var writer = Marshaller.StartMarshal(stream);
+                var writer = BinaryUtils.Marshaller.StartMarshal(stream);
 
                 configuration.Write(writer);
 
