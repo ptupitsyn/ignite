@@ -220,40 +220,40 @@ namespace Apache.Ignite.Core.Tests.Binary
                 Char = info.GetChar("char");
                 Chars = (char[]) info.GetValue("chars", typeof(char[]));
 
-                Short = (short) info.GetValue("short", typeof(short));
+                Short = info.GetInt16("short");
                 Shorts = (short[]) info.GetValue("shorts", typeof(short[]));
 
-                Ushort = (ushort) info.GetValue("ushort", typeof(ushort));
+                Ushort = info.GetUInt16("ushort");
                 Ushorts = (ushort[]) info.GetValue("ushorts", typeof(ushort[]));
 
-                Int = (int) info.GetValue("int", typeof(int));
+                Int = info.GetInt32("int");
                 Ints = (int[]) info.GetValue("ints", typeof(int[]));
 
-                Uint = (uint) info.GetValue("uint", typeof(uint));
+                Uint = info.GetUInt32("uint");
                 Uints = (uint[]) info.GetValue("uints", typeof(uint[]));
 
-                Long = (long) info.GetValue("long", typeof(long));
+                Long = info.GetInt64("long");
                 Longs = (long[]) info.GetValue("longs", typeof(long[]));
 
-                Ulong = (ulong) info.GetValue("ulong", typeof(ulong));
+                Ulong = info.GetUInt64("ulong");
                 Ulongs = (ulong[]) info.GetValue("ulongs", typeof(ulong[]));
 
-                Float = (float) info.GetValue("float", typeof(float));
+                Float = info.GetSingle("float");
                 Floats = (float[]) info.GetValue("floats", typeof(float[]));
 
-                Double = (double) info.GetValue("double", typeof(double));
+                Double = info.GetDouble("double");
                 Doubles = (double[]) info.GetValue("doubles", typeof(double[]));
 
-                Decimal = (decimal) info.GetValue("decimal", typeof(decimal));
+                Decimal = info.GetDecimal("decimal");
                 Decimals = (decimal[]) info.GetValue("decimals", typeof(decimal[]));
 
                 Guid = (Guid) info.GetValue("guid", typeof(Guid));
                 Guids = (Guid[]) info.GetValue("guids", typeof(Guid[]));
 
-                DateTime = (DateTime) info.GetValue("datetime", typeof(DateTime));
+                DateTime = info.GetDateTime("datetime");
                 DateTimes = (DateTime[]) info.GetValue("datetimes", typeof(DateTime[]));
 
-                String = (string) info.GetValue("string", typeof(string));
+                String = info.GetString("string");
                 Strings = (string[]) info.GetValue("strings", typeof(string[]));
             }
 
