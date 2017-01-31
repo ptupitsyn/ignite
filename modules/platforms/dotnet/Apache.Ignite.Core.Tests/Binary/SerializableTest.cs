@@ -68,14 +68,28 @@ namespace Apache.Ignite.Core.Tests.Binary
                 Floats = new[]
                 {
                     float.MinValue, float.MaxValue,
-                    float.Epsilon, float.NegativeInfinity, float.PositiveInfinity, float.NaN, 1.23f
+                    float.Epsilon, float.NegativeInfinity, float.PositiveInfinity, float.NaN,
+                    1.23f, -2.5f
                 },
                 Double = -6.78,
                 Doubles = new[]
                 {
                     double.MinValue, double.MaxValue, double.Epsilon,
-                    double.NegativeInfinity, double.PositiveInfinity
-                }
+                    double.NegativeInfinity, double.PositiveInfinity,
+                    3.76, -9.89
+                },
+                Decimal = 1.23456789m,
+                Decimals = new[]
+                {
+                    decimal.MinValue, decimal.MaxValue, decimal.One, decimal.MinusOne, decimal.Zero,
+                    1.35m, -2.46m
+                },
+                DateTime = DateTime.UtcNow,
+                DateTimes = new[] {DateTime.Now, DateTime.MinValue, DateTime.MaxValue, DateTime.UtcNow},
+                Guid = Guid.NewGuid(),
+                Guids = new[] {Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid()},
+                String = "hello world",
+                Strings = new[] {"hello", "world"}
             };
 
             Assert.IsFalse(val.GetObjectDataCalled);
