@@ -29,6 +29,9 @@ namespace Apache.Ignite.Core.Tests.Binary
     /// </summary>
     public class SerializableTest
     {
+        /** Test int value. */
+        private static int _int;
+
         // TODO: 
         // Attribute Callbacks
         // IDeserializationCallback
@@ -61,11 +64,20 @@ namespace Apache.Ignite.Core.Tests.Binary
         [Test]
         public void TestDelegates()
         {
+            // Action with captured variable.
             var val = new Primitives {Int = 135};
-            Action act = () => val.Int++;
+
+            Action act = () => {
+                val.Int++;
+                _int = val.Int;
+            };
+
             var res = SerializeDeserialize(act);
+
             res();
-            Assert.AreEqual(136, val.Int);
+
+            Assert.AreEqual(135, val.Int);   // Captured variable is deserialized to a new instance.
+            Assert.AreEqual(136, _int);
         }
 
         /// <summary>

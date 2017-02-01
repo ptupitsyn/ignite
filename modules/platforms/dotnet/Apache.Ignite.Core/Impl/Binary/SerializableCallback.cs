@@ -44,7 +44,9 @@ namespace Apache.Ignite.Core.Impl.Binary
 
             graph.Objects.Add(new KeyValuePair<object, object>(obj, null));
 
-            return graph.Depth++;
+            graph.Depth++;
+
+            return graph.Objects.Count - 1;
         }
 
         /// <summary>
