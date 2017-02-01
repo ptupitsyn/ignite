@@ -73,9 +73,10 @@ namespace Apache.Ignite.Core.Impl.Binary
 
             if (graph.Depth == 0)
             {
-                // Entire graph has been deserialized: invoke callbacks.
-                foreach (var obj in graph.Objects)
+                // Entire graph has been deserialized: invoke callbacks in reverse order.
+                for (var index = graph.Objects.Count - 1; index >= 0; index--)
                 {
+                    var obj = graph.Objects[index];
                     if (obj.Value != null)
                     {
                         if (InvokeOnDeserialization(obj.Value))
