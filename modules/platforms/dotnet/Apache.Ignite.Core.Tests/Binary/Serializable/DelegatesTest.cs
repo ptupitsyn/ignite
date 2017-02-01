@@ -32,7 +32,7 @@ namespace Apache.Ignite.Core.Tests.Binary.Serializable
         /// Tests that delegates can be serialized.
         /// </summary>
         [Test]
-        public void TestDelegates()
+        public void TestAction()
         {
             // Action with captured variable.
             var val = new PrimitivesTest.Primitives {Int = 135};
@@ -43,11 +43,30 @@ namespace Apache.Ignite.Core.Tests.Binary.Serializable
             };
 
             var res = PrimitivesTest.SerializeDeserialize(act);
+            Assert.AreEqual(act.Method, res.Method);
+            Assert.AreNotEqual(act.Target, res.Target);
 
             res();
-
             Assert.AreEqual(135, val.Int);   // Captured variable is deserialized to a new instance.
             Assert.AreEqual(136, _int);
+
+            // Action with arguments.
+            Action<PrimitivesTest.Primitives, int> act1 = (p, i) => { p.Int = i; };
+
+            var res1 = PrimitivesTest.SerializeDeserialize(act1);
+            Assert.AreEqual(act1.Method, res1.Method);
+
+            res1(val, 33);
+            Assert.AreEqual(33, val.Int);
+        }
+
+        /// <summary>
+        /// Tests the recursive function.
+        /// </summary>
+        [Test]
+        public void TestRecursiveFunc()
+        {
+            // TODO: Fibonacci
         }
     }
 }
