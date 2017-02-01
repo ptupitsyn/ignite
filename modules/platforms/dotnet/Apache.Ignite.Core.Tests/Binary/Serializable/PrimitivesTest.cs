@@ -25,13 +25,10 @@ namespace Apache.Ignite.Core.Tests.Binary.Serializable
     using NUnit.Framework;
 
     /// <summary>
-    /// Tests [Serializable] mechanism handling.
+    /// Tests [Serializable] mechanism handling primitive types.
     /// </summary>
-    public class SerializableTest
+    public class PrimitivesTest
     {
-        /** Test int value. */
-        private static int _int;
-
         // TODO: 
         // Attribute Callbacks
         // IDeserializationCallback
@@ -56,28 +53,6 @@ namespace Apache.Ignite.Core.Tests.Binary.Serializable
 
             Assert.AreEqual(new DateTime?[] {val, null},
                 marsh.Unmarshal<DateTime?[]>(marsh.Marshal(new DateTime?[] {val, null})));
-        }
-
-        /// <summary>
-        /// Tests that delegates can be serialized.
-        /// </summary>
-        [Test]
-        public void TestDelegates()
-        {
-            // Action with captured variable.
-            var val = new Primitives {Int = 135};
-
-            Action act = () => {
-                val.Int++;
-                _int = val.Int;
-            };
-
-            var res = SerializeDeserialize(act);
-
-            res();
-
-            Assert.AreEqual(135, val.Int);   // Captured variable is deserialized to a new instance.
-            Assert.AreEqual(136, _int);
         }
 
         /// <summary>
@@ -443,7 +418,7 @@ namespace Apache.Ignite.Core.Tests.Binary.Serializable
         /// <summary>
         /// Serializes and deserializes back an object.
         /// </summary>
-        private static T SerializeDeserialize<T>(T obj)
+        public static T SerializeDeserialize<T>(T obj)
         {
             var marsh = GetMarshaller();
 
@@ -451,7 +426,7 @@ namespace Apache.Ignite.Core.Tests.Binary.Serializable
         }
 
         [Serializable]
-        private class Primitives : ISerializable
+        public class Primitives : ISerializable
         {
             public bool GetObjectDataCalled { get; private set; }
             public bool SerializationCtorCalled { get; private set; }
