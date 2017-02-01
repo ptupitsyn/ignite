@@ -78,9 +78,10 @@ namespace Apache.Ignite.Core.Impl.Binary
                 {
                     if (obj.Value != null)
                     {
-                        InvokeOnDeserialization(obj.Value);
-
-                        BinaryUtils.CopyFields(obj.Value, obj.Key);
+                        if (InvokeOnDeserialization(obj.Value))
+                        {
+                            BinaryUtils.CopyFields(obj.Value, obj.Key);
+                        }
                     }
                     else
                     {
@@ -96,14 +97,17 @@ namespace Apache.Ignite.Core.Impl.Binary
         /// Invokes the OnDeserialization callback.
         /// </summary>
         /// <param name="obj">The object.</param>
-        private static void InvokeOnDeserialization(object obj)
+        private static bool InvokeOnDeserialization(object obj)
         {
             var cb = obj as IDeserializationCallback;
 
             if (cb != null)
             {
                 cb.OnDeserialization(null);
+                return true;
             }
+
+            return false;
         }
 
         /// <summary>
