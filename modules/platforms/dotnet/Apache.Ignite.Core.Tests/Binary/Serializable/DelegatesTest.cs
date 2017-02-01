@@ -42,7 +42,7 @@ namespace Apache.Ignite.Core.Tests.Binary.Serializable
                 _int = val.Int;
             };
 
-            var res = PrimitivesTest.SerializeDeserialize(act);
+            var res = TestUtils.SerializeDeserialize(act);
             Assert.AreEqual(act.Method, res.Method);
             Assert.AreNotEqual(act.Target, res.Target);
 
@@ -53,7 +53,7 @@ namespace Apache.Ignite.Core.Tests.Binary.Serializable
             // Action with arguments.
             Action<PrimitivesTest.Primitives, int> act1 = (p, i) => { p.Int = i; };
 
-            var res1 = PrimitivesTest.SerializeDeserialize(act1);
+            var res1 = TestUtils.SerializeDeserialize(act1);
             Assert.AreEqual(act1.Method, res1.Method);
 
             res1(val, 33);
@@ -66,7 +66,22 @@ namespace Apache.Ignite.Core.Tests.Binary.Serializable
         [Test]
         public void TestRecursiveFunc()
         {
-            // TODO: Fibonacci
+            Func<int, int> fib = null;
+            fib = x => x == 0
+                ? 0
+                : x == 1
+                    ? 1
+                    : fib(x - 2) + fib(x - 1);
+
+            Assert.AreEqual(89, fib(11));
+            Assert.AreEqual(144, fib(12));
+
+            var resFib = TestUtils.SerializeDeserialize(fib);
+
+            Assert.AreEqual(fib.Method, resFib.Method);
+
+            Assert.AreEqual(89, resFib(11));
+            Assert.AreEqual(144, resFib(12));
         }
     }
 }

@@ -415,16 +415,6 @@ namespace Apache.Ignite.Core.Tests.Binary.Serializable
             return new Marshaller(null) {CompactFooter = false};
         }
 
-        /// <summary>
-        /// Serializes and deserializes back an object.
-        /// </summary>
-        public static T SerializeDeserialize<T>(T obj)
-        {
-            var marsh = GetMarshaller();
-
-            return marsh.Unmarshal<T>(marsh.Marshal(obj));
-        }
-
         [Serializable]
         public class Primitives : ISerializable
         {
