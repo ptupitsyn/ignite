@@ -111,6 +111,8 @@ public class PlatformTransactions extends PlatformAbstractTarget {
 
         assert old == null : "Duplicate TX ids: " + old;
 
+        System.out.println("Registered tx: " + txMap.size());
+
         return id;
     }
 
@@ -121,6 +123,8 @@ public class PlatformTransactions extends PlatformAbstractTarget {
      */
     private void unregisterTx(long id) {
         Transaction tx = txMap.remove(id);
+
+        System.out.println("UnRegistered tx: " + txMap.size());
 
         assert tx != null : "Failed to unregister transaction: " + id;
     }

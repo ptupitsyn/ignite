@@ -35,7 +35,7 @@ import static org.apache.ignite.transactions.TransactionState.ACTIVE;
  */
 public abstract class AbstractCacheJtaSelfTest extends GridCacheAbstractSelfTest {
     /** */
-    private static final int GRID_CNT = 1;
+    private static final int GRID_CNT = 3;
 
     /** Java Open Transaction Manager facade. */
     protected static Jotm jotm;
@@ -129,6 +129,51 @@ public abstract class AbstractCacheJtaSelfTest extends GridCacheAbstractSelfTest
         }
 
         assertEquals((Integer)1, cache.get("key"));
+    }
+
+    /**
+     * JUnit.
+     *
+     * @throws Exception If failed.
+     */
+    public void testJta2() throws Exception {
+        IgniteCache<String, Integer> cache = jcache();
+
+        for (int i = 0; i < 1000; i++) {
+            cache.removeAll();
+
+            cache.put("k1", -1);
+            cache.put("k2", -2);
+
+            assertEquals((Integer) (-1), cache.get("k1"));
+            assertEquals((Integer) (-2), cache.get("k2"));
+
+            UserTransaction jtaTx = jotm.getUserTransaction();
+            jtaTx.begin();
+
+            cache.put("k1", 1);
+            cache.put("k2", 2);
+
+            assertEquals((Integer) 1, cache.get("k1"));
+            assertEquals((Integer) 2, cache.get("k2"));
+
+            jtaTx.commit();
+
+            assertEquals((Integer) 1, cache.get("k1"));
+            assertEquals((Integer) 2, cache.get("k2"));
+
+            jtaTx = jotm.getUserTransaction();
+            jtaTx.begin();
+
+            cache.remove("k1");
+            cache.remove("k2");
+            cache.put("k3", 3);
+
+            jtaTx.rollback();
+
+            assertEquals((Integer) 1, cache.get("k1"));
+            assertEquals((Integer) 2, cache.get("k2"));
+        }
     }
 
     /**

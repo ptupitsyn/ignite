@@ -773,7 +773,7 @@ namespace Apache.Ignite.Core.Tests.Cache
         /// Tests all transactional operations with <see cref="TransactionScope"/>.
         /// </summary>
         [Test]
-        [Ignore("IGNITE-3430")]
+        //[Ignore("IGNITE-3430")]
         public void TestTransactionScopeAllOperations()
         {
             for (var i = 0; i < 100; i++)
@@ -833,6 +833,8 @@ namespace Apache.Ignite.Core.Tests.Cache
                 CheckTxOp((cache, key) => cache.Replace(key, cache[key], 100));
                 CheckTxOp((cache, key) => cache.ReplaceAsync(key, cache[key], 100));
             }
+
+            Assert.Fail("Test ended");
         }
 
         /// <summary>
@@ -841,12 +843,14 @@ namespace Apache.Ignite.Core.Tests.Cache
         private void CheckTxOp(Action<ICache<int, int>, int> act)
         {
             var cache = Cache();
+            var transactionOptions = new TransactionOptions{IsolationLevel = IsolationLevel.RepeatableRead};
+            var option = TransactionScopeOption.Required;
 
             cache[1] = 1;
             cache[2] = 2;
 
             // Rollback.
-            using (new TransactionScope())
+            using (new TransactionScope(option, transactionOptions))
             {
                 act(cache, 1);
 
@@ -856,7 +860,7 @@ namespace Apache.Ignite.Core.Tests.Cache
             Assert.AreEqual(1, cache[1]);
             Assert.AreEqual(2, cache[2]);
 
-            using (new TransactionScope())
+            using (new TransactionScope(option, transactionOptions))
             {
                 act(cache, 1);
                 act(cache, 2);
@@ -866,7 +870,7 @@ namespace Apache.Ignite.Core.Tests.Cache
             Assert.AreEqual(2, cache[2]);
 
             // Commit.
-            using (var ts = new TransactionScope())
+            using (var ts = new TransactionScope(option, transactionOptions))
             {
                 act(cache, 1);
                 ts.Complete();
@@ -875,7 +879,7 @@ namespace Apache.Ignite.Core.Tests.Cache
             Assert.IsTrue(!cache.ContainsKey(1) || cache[1] != 1);
             Assert.AreEqual(2, cache[2]);
 
-            using (var ts = new TransactionScope())
+            using (var ts = new TransactionScope(option, transactionOptions))
             {
                 act(cache, 1);
                 act(cache, 2);
