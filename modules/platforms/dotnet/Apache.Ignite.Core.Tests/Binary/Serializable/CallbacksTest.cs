@@ -111,25 +111,25 @@ namespace Apache.Ignite.Core.Tests.Binary.Serializable
             }
 
             [OnSerializing]
-            public void OnSerializing()
+            public void OnSerializing(StreamingContext context)
             {
                 Messages.Add(string.Format("{0}.OnSerializing", Name));
             }
 
             [OnSerialized]
-            public void OnSerialized()
+            public void OnSerialized(StreamingContext context)
             {
                 Messages.Add(string.Format("{0}.OnSerialized", Name));
             }
 
             [OnDeserializing]
-            public void OnDeserializing()
+            public void OnDeserializing(StreamingContext context)
             {
                 Messages.Add(string.Format("{0}.OnDeserializing", Name));
             }
 
             [OnDeserialized]
-            public void OnDeserialized()
+            public void OnDeserialized(StreamingContext context)
             {
                 Messages.Add(string.Format("{0}.OnDeserialized", Name));
             }
