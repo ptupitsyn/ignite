@@ -61,7 +61,42 @@ namespace Apache.Ignite.Core.Tests.Binary.Serializable
         }
 
         /// <summary>
-        /// Tests the recursive function.
+        /// Tests that anonymous function can be serialized.
+        /// </summary>
+        [Test]
+        public void TestFunc()
+        {
+            int ms = DateTime.Now.Millisecond;
+
+            Func<int, int> func = x => x + ms;
+
+            var resFunc = TestUtils.SerializeDeserialize(func);
+            Assert.AreEqual(func.Method, resFunc.Method);
+            Assert.AreNotEqual(func.Target, resFunc.Target);
+
+            Assert.AreEqual(ms + 20, resFunc(20));
+        }
+
+        /// <summary>
+        /// Tests that old-fashioned delegate can be serialized.
+        /// </summary>
+        [Test]
+        public void TestDelegate()
+        {
+            
+        }
+
+        /// <summary>
+        /// Tests that MethodInfo can be serialized.
+        /// </summary>
+        [Test]
+        public void TestMethodInfo()
+        {
+            
+        }
+
+        /// <summary>
+        /// Tests that recursive anonymous function can be serialized.
         /// </summary>
         [Test]
         public void TestRecursiveFunc()
