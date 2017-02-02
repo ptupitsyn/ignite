@@ -28,6 +28,9 @@ namespace Apache.Ignite.Core.Tests.Binary.Serializable
         /** Test int value. */
         private static int _int;
 
+        /** Test delegate. */
+        private delegate string LowerSubStringDelegate(string s, int startIndex);
+
         /// <summary>
         /// Tests that delegates can be serialized.
         /// </summary>
@@ -83,7 +86,25 @@ namespace Apache.Ignite.Core.Tests.Binary.Serializable
         [Test]
         public void TestDelegate()
         {
-            
+            // Delegate to a static method.
+            LowerSubStringDelegate del1 = LowerSubString;
+
+            var del1Res = TestUtils.SerializeDeserialize(del1);
+
+            Assert.AreEqual(del1.Method, del1Res.Method);
+            Assert.IsNull(del1Res.Target);
+
+            Assert.AreEqual("ooz", del1Res("FOOZ", 1));
+
+            // Delegate to an anonymous method.
+            LowerSubStringDelegate del2 = (s, i) => s.Substring(i).ToLower();
+
+            var del2Res = TestUtils.SerializeDeserialize(del2);
+
+            Assert.AreEqual(del2.Method, del2Res.Method);
+            Assert.AreNotEqual(del2.Target, del2Res.Target);
+
+            Assert.AreEqual("ooz", del2Res("FOOZ", 1));
         }
 
         /// <summary>
@@ -117,6 +138,11 @@ namespace Apache.Ignite.Core.Tests.Binary.Serializable
 
             Assert.AreEqual(89, resFib(11));
             Assert.AreEqual(144, resFib(12));
+        }
+
+        private static string LowerSubString(string s, int startIndex)
+        {
+            return s.Substring(startIndex).ToLower();
         }
     }
 }
