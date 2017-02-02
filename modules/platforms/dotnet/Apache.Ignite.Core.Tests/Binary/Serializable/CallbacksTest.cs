@@ -17,8 +17,8 @@
 
 namespace Apache.Ignite.Core.Tests.Binary.Serializable
 {
+    using System;
     using System.Collections.Generic;
-    using System.Runtime.InteropServices;
     using System.Runtime.Serialization;
     using NUnit.Framework;
 
@@ -77,6 +77,7 @@ namespace Apache.Ignite.Core.Tests.Binary.Serializable
             // TODO: Class without ISerializable
         }
 
+        [Serializable]
         private class SerCallbacks : IDeserializationCallback, ISerializable
         {
             public string Name { get; set; }
@@ -87,7 +88,7 @@ namespace Apache.Ignite.Core.Tests.Binary.Serializable
             {
             }
 
-            public SerCallbacks(SerializationInfo info, StreamingContext context)
+            protected SerCallbacks(SerializationInfo info, StreamingContext context)
             {
                 Name = info.GetString("name");
                 Inner = (SerCallbacks) info.GetValue("inner", typeof(SerCallbacks));
