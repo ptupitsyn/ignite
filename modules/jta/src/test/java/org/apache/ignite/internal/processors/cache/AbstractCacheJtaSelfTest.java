@@ -140,8 +140,6 @@ public abstract class AbstractCacheJtaSelfTest extends GridCacheAbstractSelfTest
         IgniteCache<String, Integer> cache = jcache();
 
         for (int i = 0; i < 1000; i++) {
-            cache.removeAll();
-
             cache.put("k1", -1);
             cache.put("k2", -2);
 
