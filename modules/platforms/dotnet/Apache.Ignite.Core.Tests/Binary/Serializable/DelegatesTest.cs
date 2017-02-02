@@ -123,7 +123,6 @@ namespace Apache.Ignite.Core.Tests.Binary.Serializable
             {
                 var res = TestUtils.SerializeDeserialize(methodInfo);
 
-                Assert.AreNotSame(methodInfo, res);
                 Assert.AreEqual(methodInfo.Name, res.Name);
                 Assert.AreEqual(methodInfo.DeclaringType, res.DeclaringType);
                 Assert.AreEqual(methodInfo.ReturnType, res.ReturnType);
