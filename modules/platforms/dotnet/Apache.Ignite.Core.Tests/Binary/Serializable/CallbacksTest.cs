@@ -66,6 +66,8 @@ namespace Apache.Ignite.Core.Tests.Binary.Serializable
                 "Bar.OnDeserialization",
                 "Foo.OnDeserialization"
             }, Messages);
+
+            // TODO: Check attributes
         }
 
         /// <summary>
@@ -96,15 +98,40 @@ namespace Apache.Ignite.Core.Tests.Binary.Serializable
                 Messages.Add(string.Format("{0}.ctor", Name));
             }
 
+            public void GetObjectData(SerializationInfo info, StreamingContext context)
+            {
+                info.AddValue("name", Name);
+                info.AddValue("inner", Inner);
+            }
+
+
             public void OnDeserialization(object sender)
             {
                 Messages.Add(string.Format("{0}.OnDeserialization", Name));
             }
 
-            public void GetObjectData(SerializationInfo info, StreamingContext context)
+            [OnSerializing]
+            public void OnSerializing()
             {
-                info.AddValue("name", Name);
-                info.AddValue("inner", Inner);
+                Messages.Add(string.Format("{0}.OnSerializing", Name));
+            }
+
+            [OnSerialized]
+            public void OnSerialized()
+            {
+                Messages.Add(string.Format("{0}.OnSerialized", Name));
+            }
+
+            [OnDeserializing]
+            public void OnDeserializing()
+            {
+                Messages.Add(string.Format("{0}.OnDeserializing", Name));
+            }
+
+            [OnDeserialized]
+            public void OnDeserialized()
+            {
+                Messages.Add(string.Format("{0}.OnDeserialized", Name));
             }
         }
     }
