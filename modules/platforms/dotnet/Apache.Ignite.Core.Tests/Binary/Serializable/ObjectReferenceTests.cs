@@ -17,11 +17,13 @@
 
 namespace Apache.Ignite.Core.Tests.Binary.Serializable
 {
+    using System.Runtime.Serialization;
+
     /// <summary>
-    /// Tests that deserialization callbacks are invoked correctly.
+    /// Tests that <see cref="IObjectReference"/> objects are deserialized properly.
     /// </summary>
-    public class CallbacksTest
+    public class ObjectReferenceTests
     {
-        // TODO
+        // TODO:
     }
 }

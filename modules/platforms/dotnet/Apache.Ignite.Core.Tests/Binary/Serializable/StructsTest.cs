@@ -18,9 +18,9 @@
 namespace Apache.Ignite.Core.Tests.Binary.Serializable
 {
     /// <summary>
-    /// Tests that deserialization callbacks are invoked correctly.
+    /// Tests that ISerializable structs are handled properly by Ignite marshaller.
     /// </summary>
-    public class CallbacksTest
+    public class StructsTest
     {
         // TODO
     }
