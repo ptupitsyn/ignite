@@ -62,9 +62,9 @@ namespace Apache.Ignite.Core.Tests.Binary.Serializable
                 "Baz.ctor",
                 "Bar.ctor",
                 "Foo.ctor",
-                "Baz.OnDeserialization",
+                "Foo.OnDeserialization",
                 "Bar.OnDeserialization",
-                "Foo.OnDeserialization"
+                "Baz.OnDeserialization"
             }, Messages);
 
             // TODO: Check attributes
