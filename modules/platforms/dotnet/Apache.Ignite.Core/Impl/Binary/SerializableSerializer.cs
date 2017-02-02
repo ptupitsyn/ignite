@@ -48,8 +48,8 @@ namespace Apache.Ignite.Core.Impl.Binary
         {
             IgniteArgumentCheck.NotNull(type, "type");
 
-            _ctorActionUninitialized = DelegateTypeDescriptor.GetSerializationConstructorUninitialized(type);
-            _ctorFunc = DelegateTypeDescriptor.GetSerializationConstructor(type);
+            _ctorActionUninitialized = SerializableTypeDescriptor.GetSerializationConstructorUninitialized(type);
+            _ctorFunc = SerializableTypeDescriptor.GetSerializationConstructor(type);
         }
 
         /** <inheritdoc /> */
@@ -223,7 +223,7 @@ namespace Apache.Ignite.Core.Impl.Binary
                 }
             }
 
-            var ctorFunc = DelegateTypeDescriptor.GetSerializationConstructor(customType);
+            var ctorFunc = SerializableTypeDescriptor.GetSerializationConstructor(customType);
 
             var customObj = ctorFunc(serInfo, DefaultStreamingContext);
 

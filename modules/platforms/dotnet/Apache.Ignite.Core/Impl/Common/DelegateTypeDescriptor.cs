@@ -76,12 +76,6 @@ namespace Apache.Ignite.Core.Impl.Common
         /** */
         private readonly Func<object, object, object> _continuousQueryFilterCtor;
 
-        /** */
-        private readonly Func<SerializationInfo, StreamingContext, object> _serializationCtor;
-
-        /** */
-        private readonly Action<object, SerializationInfo, StreamingContext> _serializationCtorUninitialized;
-
         /// <summary>
         /// Gets the <see cref="IComputeFunc{T}" /> invocator.
         /// </summary>
@@ -194,28 +188,6 @@ namespace Apache.Ignite.Core.Impl.Common
         public static Func<object, object, object> GetContinuousQueryFilterCtor(Type type)
         {
             return Get(type)._continuousQueryFilterCtor;
-        }
-
-        /// <summary>
-        /// Gets the ctor for <see cref="ISerializable"/>.
-        /// </summary>
-        /// <param name="type">Type.</param>
-        /// <returns>Precompiled invocator delegate.</returns>
-        public static Func<SerializationInfo, StreamingContext, object> GetSerializationConstructor(Type type)
-        {
-            return Get(type)._serializationCtor;
-        }
-
-        /// <summary>
-        /// Gets the ctor for <see cref="ISerializable"/> that acts on a
-        /// result of <see cref="FormatterServices.GetUninitializedObject"/>.
-        /// </summary>
-        /// <param name="type">Type.</param>
-        /// <returns>Precompiled invocator delegate.</returns>
-        public static Action<object, SerializationInfo, StreamingContext> GetSerializationConstructorUninitialized(
-            Type type)
-        {
-            return Get(type)._serializationCtorUninitialized;
         }
 
         /// <summary>
@@ -363,21 +335,6 @@ namespace Apache.Ignite.Core.Impl.Common
                         DelegateConverter.CompileCtor<Func<object, object, object>>(
                             typeof(ContinuousQueryFilter<,>).MakeGenericType(args), new[] { iface, typeof(bool) });
                 }
-            }
-
-            // Check if there is a serialization ctor.
-            var argTypes = new[] {typeof(SerializationInfo), typeof(StreamingContext)};
-
-            var serializationCtorInfo = type.GetConstructor(
-                BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance, null, argTypes, null);
-
-            if (serializationCtorInfo != null)
-            {
-                _serializationCtor = DelegateConverter.CompileCtor<Func<SerializationInfo, StreamingContext, object>>(
-                    serializationCtorInfo, argTypes, convertParamsFromObject: false);
-
-                _serializationCtorUninitialized = DelegateConverter.CompileUninitializedObjectCtor<
-                    Action<object, SerializationInfo, StreamingContext>>(serializationCtorInfo, argTypes);
             }
         }
     }
