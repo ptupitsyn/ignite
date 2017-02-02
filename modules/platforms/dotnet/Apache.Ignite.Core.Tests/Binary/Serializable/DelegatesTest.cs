@@ -18,6 +18,7 @@
 namespace Apache.Ignite.Core.Tests.Binary.Serializable
 {
     using System;
+    using System.Reflection;
     using NUnit.Framework;
 
     /// <summary>
@@ -113,7 +114,21 @@ namespace Apache.Ignite.Core.Tests.Binary.Serializable
         [Test]
         public void TestMethodInfo()
         {
-            
+            var methods = typeof(string).GetMethods(BindingFlags.Public | BindingFlags.NonPublic
+                                                    | BindingFlags.Instance | BindingFlags.Static);
+
+            Assert.IsNotEmpty(methods);
+
+            foreach (var methodInfo in methods)
+            {
+                var res = TestUtils.SerializeDeserialize(methodInfo);
+
+                Assert.AreNotSame(methodInfo, res);
+                Assert.AreEqual(methodInfo.Name, res.Name);
+                Assert.AreEqual(methodInfo.DeclaringType, res.DeclaringType);
+                Assert.AreEqual(methodInfo.ReturnType, res.ReturnType);
+                Assert.AreEqual(methodInfo.GetParameters(), res.GetParameters());
+            }
         }
 
         /// <summary>
