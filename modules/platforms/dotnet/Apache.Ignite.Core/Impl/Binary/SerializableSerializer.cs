@@ -55,7 +55,7 @@ namespace Apache.Ignite.Core.Impl.Binary
             var objType = obj.GetType();
 
             var serInfo = new SerializationInfo(objType, new FormatterConverter());
-            var ctx = new StreamingContext(StreamingContextStates.All);
+            var ctx = GetStreamingContext(writer);
 
             serializable.GetObjectData(serInfo, ctx);
 
@@ -183,7 +183,7 @@ namespace Apache.Ignite.Core.Impl.Binary
             }
             else
             {
-                _serializableTypeDesc.SerializationCtorUninitialized(obj, serInfo, DefaultStreamingContext);
+                _serializableTypeDesc.SerializationCtorUninitialized(obj, serInfo, GetStreamingContext(reader));
             }
         }
 
@@ -221,21 +221,31 @@ namespace Apache.Ignite.Core.Impl.Binary
 
             var ctorFunc = SerializableTypeDescriptor.Get(customType).SerializationCtor;
 
-            var customObj = ctorFunc(serInfo, DefaultStreamingContext);
+            var ctx = GetStreamingContext((IBinaryReader) raw);
+
+            var customObj = ctorFunc(serInfo, ctx);
 
             var wrapper = customObj as IObjectReference;
 
             return wrapper == null
                 ? customObj
-                : wrapper.GetRealObject(DefaultStreamingContext);
+                : wrapper.GetRealObject(ctx);
         }
 
         /// <summary>
-        /// Gets the default streaming context.
+        /// Gets the streaming context.
         /// </summary>
-        private static StreamingContext DefaultStreamingContext
+        private static StreamingContext GetStreamingContext(IBinaryReader reader)
         {
-            get { return new StreamingContext(StreamingContextStates.All); }
+            return new StreamingContext(StreamingContextStates.All, reader);
+        }
+
+        /// <summary>
+        /// Gets the streaming context.
+        /// </summary>
+        private static StreamingContext GetStreamingContext(IBinaryWriter writer)
+        {
+            return new StreamingContext(StreamingContextStates.All, writer);
         }
 
         /// <summary>
