@@ -36,10 +36,7 @@ namespace Apache.Ignite.Core.Impl.Binary
         private const string FieldTypeField = "Ignite.NET_SerializableSerializer_FieldType_";
 
         /** */
-        private readonly Action<object, SerializationInfo, StreamingContext> _ctorActionUninitialized;
-
-        /** */
-        private readonly Func<SerializationInfo, StreamingContext, object> _ctorFunc;
+        private readonly SerializableTypeDescriptor _serializableTypeDesc;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="SerializableSerializer"/> class.
@@ -48,8 +45,7 @@ namespace Apache.Ignite.Core.Impl.Binary
         {
             IgniteArgumentCheck.NotNull(type, "type");
 
-            _ctorActionUninitialized = SerializableTypeDescriptor.GetSerializationConstructorUninitialized(type);
-            _ctorFunc = SerializableTypeDescriptor.GetSerializationConstructor(type);
+            _serializableTypeDesc = SerializableTypeDescriptor.Get(type);
         }
 
         /** <inheritdoc /> */
@@ -187,7 +183,7 @@ namespace Apache.Ignite.Core.Impl.Binary
             }
             else
             {
-                _ctorActionUninitialized(obj, serInfo, DefaultStreamingContext);
+                _serializableTypeDesc.SerializationCtorUninitialized(obj, serInfo, DefaultStreamingContext);
             }
         }
 
@@ -223,7 +219,7 @@ namespace Apache.Ignite.Core.Impl.Binary
                 }
             }
 
-            var ctorFunc = SerializableTypeDescriptor.GetSerializationConstructor(customType);
+            var ctorFunc = SerializableTypeDescriptor.Get(customType).SerializationCtor;
 
             var customObj = ctorFunc(serInfo, DefaultStreamingContext);
 

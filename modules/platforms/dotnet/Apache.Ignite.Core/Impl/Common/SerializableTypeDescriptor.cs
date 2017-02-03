@@ -18,6 +18,7 @@
 namespace Apache.Ignite.Core.Impl.Common
 {
     using System;
+    using System.Diagnostics;
     using System.Reflection;
     using System.Runtime.Serialization;
 
@@ -31,6 +32,9 @@ namespace Apache.Ignite.Core.Impl.Common
             = new CopyOnWriteConcurrentDictionary<Type, SerializableTypeDescriptor>();
 
         /** */
+        private readonly Type _type;
+
+        /** */
         private readonly Func<SerializationInfo, StreamingContext, object> _serializationCtor;
 
         /** */
@@ -42,6 +46,10 @@ namespace Apache.Ignite.Core.Impl.Common
         /// <param name="type">The type.</param>
         private SerializableTypeDescriptor(Type type)
         {
+            Debug.Assert(type != null);
+
+            _type = type;
+
             // Check if there is a serialization ctor.
             var argTypes = new[] {typeof(SerializationInfo), typeof(StreamingContext)};
 
@@ -59,31 +67,37 @@ namespace Apache.Ignite.Core.Impl.Common
         }
 
         /// <summary>
-        /// Gets the ctor for <see cref="ISerializable"/>.
+        /// Gets the serialization ctor.
         /// </summary>
-        /// <param name="type">Type.</param>
-        /// <returns>Precompiled invocator delegate.</returns>
-        public static Func<SerializationInfo, StreamingContext, object> GetSerializationConstructor(Type type)
+        public Func<SerializationInfo, StreamingContext, object> SerializationCtor
         {
-            return Get(type)._serializationCtor;
+            get
+            {
+                if (_serializationCtor == null)
+                    throw GetMissingCtorException();
+
+                return _serializationCtor;
+            }
         }
 
         /// <summary>
-        /// Gets the ctor for <see cref="ISerializable"/> that acts on a
-        /// result of <see cref="FormatterServices.GetUninitializedObject"/>.
+        /// Gets the serialization ctor to call on an uninitialized instance.
         /// </summary>
-        /// <param name="type">Type.</param>
-        /// <returns>Precompiled invocator delegate.</returns>
-        public static Action<object, SerializationInfo, StreamingContext> GetSerializationConstructorUninitialized(
-            Type type)
+        public Action<object, SerializationInfo, StreamingContext> SerializationCtorUninitialized
         {
-            return Get(type)._serializationCtorUninitialized;
+            get
+            {
+                if (_serializationCtorUninitialized == null)
+                    throw GetMissingCtorException();
+
+                return _serializationCtorUninitialized;
+            }
         }
 
         /// <summary>
         /// Gets the <see cref="DelegateTypeDescriptor" /> by type.
         /// </summary>
-        private static SerializableTypeDescriptor Get(Type type)
+        public static SerializableTypeDescriptor Get(Type type)
         {
             SerializableTypeDescriptor result;
 
@@ -91,7 +105,15 @@ namespace Apache.Ignite.Core.Impl.Common
                 ? result
                 : Descriptors.GetOrAdd(type, t => new SerializableTypeDescriptor(t));
         }
-
-
+                
+        /// <summary>
+        /// Gets the missing ctor exception.
+        /// </summary>
+        private SerializationException GetMissingCtorException()
+        {
+            // Same exception as .NET code throws.
+            return new SerializationException(
+                string.Format("The constructor to deserialize an object of type '{0}' was not found.", _type));
+        }
     }
 }
