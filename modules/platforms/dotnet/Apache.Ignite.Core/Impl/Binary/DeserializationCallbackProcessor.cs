@@ -25,7 +25,7 @@ namespace Apache.Ignite.Core.Impl.Binary
     /// Invokes [Serializable] system callbacks, such as
     /// <see cref="IDeserializationCallback" /> and <see cref="OnDeserializedAttribute"/>.
     /// </summary>
-    internal static class SerializableCallback
+    internal static class DeserializationCallbackProcessor
     {
         /// <summary>
         /// Object graph for current thread.

@@ -154,7 +154,7 @@ namespace Apache.Ignite.Core.Impl.Binary
         {
             var res = FormatterServices.GetUninitializedObject(desc.Type);
 
-            int objId = SerializableCallback.Push(res);
+            int objId = DeserializationCallbackProcessor.Push(res);
 
             try
             {
@@ -164,7 +164,7 @@ namespace Apache.Ignite.Core.Impl.Binary
             }
             finally
             {
-                SerializableCallback.Pop();
+                DeserializationCallbackProcessor.Pop();
             }
 
             return (T) res;
@@ -185,7 +185,7 @@ namespace Apache.Ignite.Core.Impl.Binary
                 var res = ReadAsCustomType(raw, serInfo, reader.Marshaller);
 
                 BinaryUtils.CopyFields(res, obj);
-                SerializableCallback.SetReference(objId, res);
+                DeserializationCallbackProcessor.SetReference(objId, res);
             }
             else
             {
