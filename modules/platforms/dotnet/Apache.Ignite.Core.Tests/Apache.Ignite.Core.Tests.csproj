@@ -75,6 +75,7 @@
     <Compile Include="Binary\JavaTypeMappingTest.cs" />
     <Compile Include="Binary\Serializable\CallbacksTest.cs" />
     <Compile Include="Binary\Serializable\DelegatesTest.cs" />
+    <Compile Include="Binary\Serializable\InvalidObjectsTest.cs" />
     <Compile Include="Binary\Serializable\ObjectReferenceTests.cs" />
     <Compile Include="Binary\Serializable\PrimitivesTest.cs" />
     <Compile Include="Binary\Serializable\StructsTest.cs" />
