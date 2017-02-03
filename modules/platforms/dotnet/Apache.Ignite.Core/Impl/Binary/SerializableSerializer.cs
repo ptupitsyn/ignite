@@ -81,7 +81,7 @@ namespace Apache.Ignite.Core.Impl.Binary
 
             WriteCustomTypeInfo(writer, serInfo, serializable);
 
-            // TODO: OnSerialized
+            _serializableTypeDesc.OnSerialized(obj, ctx);
         }
 
         /// <summary>
@@ -158,18 +158,24 @@ namespace Apache.Ignite.Core.Impl.Binary
         {
             var res = FormatterServices.GetUninitializedObject(desc.Type);
 
+            var ctx = GetStreamingContext(reader);
+
+            _serializableTypeDesc.OnDeserializing(res, ctx);
+
             int objId = DeserializationCallbackProcessor.Push(res);
 
             try
             {
                 reader.AddHandle(pos, res);
 
-                ReadObject(res, reader, desc, objId);
+                ReadObject(res, reader, desc, objId, ctx);
             }
             finally
             {
                 DeserializationCallbackProcessor.Pop();
             }
+
+            _serializableTypeDesc.OnDeserialized(res, ctx);
 
             return (T) res;
         }
@@ -177,7 +183,8 @@ namespace Apache.Ignite.Core.Impl.Binary
         /// <summary>
         /// Reads the object.
         /// </summary>
-        private void ReadObject(object obj, BinaryReader reader, IBinaryTypeDescriptor desc, int objId)
+        private void ReadObject(object obj, BinaryReader reader, IBinaryTypeDescriptor desc, int objId, 
+            StreamingContext ctx)
         {
             var serInfo = GetSerializationInfo(reader, desc);
 
@@ -186,21 +193,22 @@ namespace Apache.Ignite.Core.Impl.Binary
             if (raw.ReadBoolean())
             {
                 // Custom type is present.
-                var res = ReadAsCustomType(raw, serInfo, reader.Marshaller);
+                var res = ReadAsCustomType(raw, serInfo, reader.Marshaller, ctx);
 
                 BinaryUtils.CopyFields(res, obj);
                 DeserializationCallbackProcessor.SetReference(objId, res);
             }
             else
             {
-                _serializableTypeDesc.SerializationCtorUninitialized(obj, serInfo, GetStreamingContext(reader));
+                _serializableTypeDesc.SerializationCtorUninitialized(obj, serInfo, ctx);
             }
         }
 
         /// <summary>
         /// Reads the object as a custom type.
         /// </summary>
-        private static object ReadAsCustomType(IBinaryRawReader raw, SerializationInfo serInfo, Marshaller marsh)
+        private static object ReadAsCustomType(IBinaryRawReader raw, SerializationInfo serInfo, Marshaller marsh, 
+            StreamingContext ctx)
         {
             Type customType;
 
@@ -230,8 +238,6 @@ namespace Apache.Ignite.Core.Impl.Binary
             }
 
             var ctorFunc = SerializableTypeDescriptor.Get(customType).SerializationCtor;
-
-            var ctx = GetStreamingContext((IBinaryReader) raw);
 
             var customObj = ctorFunc(serInfo, ctx);
 
