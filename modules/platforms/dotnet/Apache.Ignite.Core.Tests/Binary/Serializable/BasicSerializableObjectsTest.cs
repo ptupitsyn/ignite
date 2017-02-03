@@ -21,17 +21,29 @@ namespace Apache.Ignite.Core.Tests.Binary.Serializable
     using NUnit.Framework;
 
     /// <summary>
-    /// Tests invalid <see cref="ISerializable" /> implementations.
+    /// Tests basic ISerializable scenarios.
     /// </summary>
-    public class InvalidObjectsTest
+    public class BasicSerializableObjectsTest
     {
+        /// <summary>
+        /// Tests the object with no fields.
+        /// </summary>
+        [Test]
+        public void TestEmptyObject()
+        {
+            var res = TestUtils.SerializeDeserialize(new EmptyObject());
+
+            Assert.IsNotNull(res);
+        }
+
         /// <summary>
         /// Tests ISerializable without serialization ctor.
         /// </summary>
         [Test]
         public void TestMissingCtor()
         {
-            TestUtils.SerializeDeserialize(new MissingCtor());
+            var ex = Assert.Throws<SerializationException>(() => TestUtils.SerializeDeserialize(new MissingCtor()));
+            Assert.AreEqual("", ex.Message);
         }
 
         /// <summary>
@@ -39,6 +51,35 @@ namespace Apache.Ignite.Core.Tests.Binary.Serializable
         /// </summary>
         private class MissingCtor : ISerializable
         {
+            /** <inheritdoc /> */
+            public void GetObjectData(SerializationInfo info, StreamingContext context)
+            {
+                // No-op.
+            }
+        }
+
+        /// <summary>
+        /// Object with no fields.
+        /// </summary>
+        private class EmptyObject : ISerializable
+        {
+            /// <summary>
+            /// Initializes a new instance of the <see cref="EmptyObject"/> class.
+            /// </summary>
+            public EmptyObject()
+            {
+                // No-op.
+            }
+
+            /// <summary>
+            /// Initializes a new instance of the <see cref="EmptyObject"/> class.
+            /// </summary>
+            private EmptyObject(SerializationInfo info, StreamingContext context)
+            {
+                // No-op.
+            }
+
+            /** <inheritdoc /> */
             public void GetObjectData(SerializationInfo info, StreamingContext context)
             {
                 // No-op.
