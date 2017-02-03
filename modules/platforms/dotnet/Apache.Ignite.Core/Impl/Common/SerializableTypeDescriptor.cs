@@ -40,6 +40,9 @@ namespace Apache.Ignite.Core.Impl.Common
         /** */
         private readonly Action<object, SerializationInfo, StreamingContext> _serializationCtorUninitialized;
 
+        /** */
+        private readonly Action<object, StreamingContext> _onSerializing;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="SerializableTypeDescriptor"/> class.
         /// </summary>
@@ -63,6 +66,30 @@ namespace Apache.Ignite.Core.Impl.Common
 
                 _serializationCtorUninitialized = DelegateConverter.CompileUninitializedObjectCtor<
                     Action<object, SerializationInfo, StreamingContext>>(serializationCtorInfo, argTypes);
+            }
+
+            // Scan methods for callback attributes.
+            _onSerializing = (o, c) => { };
+
+            var baseType = type;
+
+            while (baseType != typeof(object) && baseType != null)
+            {
+                var methods = baseType.GetMethods(BindingFlags.DeclaredOnly | BindingFlags.Instance
+                                                  | BindingFlags.NonPublic | BindingFlags.Public);
+
+                foreach (var method in methods)
+                {
+                    if (method.IsDefined(typeof(OnSerializingAttribute), false))
+                    {
+                        ValidateCallbackMethod(method);
+
+                        _onSerializing += DelegateConverter.CompileFunc<Action<object, StreamingContext>>(
+                            type, method, new[] {typeof(object), typeof(StreamingContext)});
+                    }
+                }
+
+                baseType = baseType.BaseType;
             }
         }
 
@@ -95,6 +122,14 @@ namespace Apache.Ignite.Core.Impl.Common
         }
 
         /// <summary>
+        /// Gets the OnSerializing callback action.
+        /// </summary>
+        public Action<object, StreamingContext> OnSerializing
+        {
+            get { return _onSerializing; }
+        }
+
+        /// <summary>
         /// Gets the <see cref="DelegateTypeDescriptor" /> by type.
         /// </summary>
         public static SerializableTypeDescriptor Get(Type type)
@@ -114,6 +149,23 @@ namespace Apache.Ignite.Core.Impl.Common
             // Same exception as .NET code throws.
             return new SerializationException(
                 string.Format("The constructor to deserialize an object of type '{0}' was not found.", _type));
+        }
+                
+        /// <summary>
+        /// Checks that callback method has signature "void (StreamingContext)".
+        /// </summary>
+        private static void ValidateCallbackMethod(MethodInfo method)
+        {
+            Debug.Assert(method != null);
+            Debug.Assert(method.DeclaringType != null);
+
+            if (method.ReturnType != typeof(void))
+            {
+                throw new TypeLoadException(
+                    string.Format("Type '{0}' in assembly '{1}' has method '{2}' with an incorrect " +
+                                  "signature for the serialization attribute that it is decorated with.",
+                        method.DeclaringType, method.DeclaringType.Assembly, method.Name));
+            }
         }
     }
 }

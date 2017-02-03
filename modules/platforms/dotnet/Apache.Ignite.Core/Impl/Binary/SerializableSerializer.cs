@@ -51,13 +51,13 @@ namespace Apache.Ignite.Core.Impl.Binary
         /** <inheritdoc /> */
         public void WriteBinary<T>(T obj, BinaryWriter writer)
         {
-            // TODO: OnSerializing
+            var ctx = GetStreamingContext(writer);
+            _serializableTypeDesc.OnSerializing(obj, ctx);
 
             var serializable = (ISerializable) obj;
             var objType = obj.GetType();
 
             var serInfo = new SerializationInfo(objType, new FormatterConverter());
-            var ctx = GetStreamingContext(writer);
 
             serializable.GetObjectData(serInfo, ctx);
 
