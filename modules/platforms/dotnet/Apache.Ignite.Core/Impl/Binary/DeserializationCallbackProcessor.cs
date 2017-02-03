@@ -22,8 +22,7 @@ namespace Apache.Ignite.Core.Impl.Binary
     using System.Threading;
 
     /// <summary>
-    /// Invokes [Serializable] system callbacks, such as
-    /// <see cref="IDeserializationCallback" /> and <see cref="OnDeserializedAttribute"/>.
+    /// Tracks object graph and invokes <see cref="IDeserializationCallback" />.
     /// </summary>
     internal static class DeserializationCallbackProcessor
     {
@@ -34,7 +33,7 @@ namespace Apache.Ignite.Core.Impl.Binary
             = new ThreadLocal<ObjectGraph>(() => new ObjectGraph());
 
         /// <summary>
-        /// Called when deserialization of an object has started.
+        /// Register an object for deserialization callback.
         /// </summary>
         /// <param name="obj">The object.</param>
         /// <returns>Id of the object.</returns>
@@ -64,6 +63,7 @@ namespace Apache.Ignite.Core.Impl.Binary
 
         /// <summary>
         /// Called when deserialization of an object has completed.
+        /// When Pop() has been called for all registered objects, all callbacks are invoked.
         /// </summary>
         public static void Pop()
         {
