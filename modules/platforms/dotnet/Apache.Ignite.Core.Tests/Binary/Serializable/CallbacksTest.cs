@@ -56,15 +56,25 @@ namespace Apache.Ignite.Core.Tests.Binary.Serializable
             Assert.AreEqual("Bar", res.Inner.Name);
             Assert.AreEqual("Baz", res.Inner.Inner.Name);
 
-            // Callbacks should be called AFTER entire tree is deserialized.
+            // OnDeserialization callbacks should be called AFTER entire tree is deserialized.
+            // Other callbacks order is not strictly defined.
             Assert.AreEqual(new[]
             {
                 "Foo.OnSerializing",
                 "Bar.OnSerializing",
                 "Baz.OnSerializing",
+                "Baz.OnSerialized",
+                "Bar.OnSerialized",
+                "Foo.OnSerialized",
+                ".OnDeserializing",
+                ".OnDeserializing",
+                ".OnDeserializing",
                 "Baz.ctor",
+                "Baz.OnDeserialized",
                 "Bar.ctor",
+                "Bar.OnDeserialized",
                 "Foo.ctor",
+                "Foo.OnDeserialized",
                 "Foo.OnDeserialization",
                 "Bar.OnDeserialization",
                 "Baz.OnDeserialization"

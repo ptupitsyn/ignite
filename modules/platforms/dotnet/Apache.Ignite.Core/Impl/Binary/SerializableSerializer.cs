@@ -169,13 +169,14 @@ namespace Apache.Ignite.Core.Impl.Binary
                 reader.AddHandle(pos, res);
 
                 ReadObject(res, reader, desc, objId, ctx);
+
+                _serializableTypeDesc.OnDeserialized(res, ctx);
             }
             finally
             {
                 DeserializationCallbackProcessor.Pop();
             }
 
-            _serializableTypeDesc.OnDeserialized(res, ctx);
 
             return (T) res;
         }
