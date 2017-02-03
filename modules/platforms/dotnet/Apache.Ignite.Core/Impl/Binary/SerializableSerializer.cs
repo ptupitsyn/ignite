@@ -85,13 +85,14 @@ namespace Apache.Ignite.Core.Impl.Binary
         /// </summary>
         private static void WriteFieldNames(BinaryWriter writer, SerializationInfo serInfo)
         {
-            if (serInfo.MemberCount <= 0 || writer.Marshaller.Ignite != null)
+            if (writer.Marshaller.Ignite != null)
             {
                 // Online mode: field names are in binary metadata.
                 return;
             }
 
             // Offline mode: write all field names.
+            // Even if MemberCount is 0, write empty array to denote offline mode.
             var fieldNames = new string[serInfo.MemberCount];
             int i = 0;
 

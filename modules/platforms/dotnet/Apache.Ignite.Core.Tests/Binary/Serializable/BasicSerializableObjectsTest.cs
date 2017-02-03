@@ -44,7 +44,8 @@ namespace Apache.Ignite.Core.Tests.Binary.Serializable
         public void TestMissingCtor()
         {
             var ex = Assert.Throws<SerializationException>(() => TestUtils.SerializeDeserialize(new MissingCtor()));
-            Assert.AreEqual("", ex.Message);
+            Assert.AreEqual(string.Format("The constructor to deserialize an object of type '{0}' was not found.", 
+                typeof(MissingCtor)), ex.Message);
         }
 
         /// <summary>
