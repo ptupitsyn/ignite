@@ -17,6 +17,7 @@
 
 namespace Apache.Ignite.Core.Tests.Binary.Serializable
 {
+    using System;
     using System.Runtime.Serialization;
     using Apache.Ignite.Core.Binary;
     using NUnit.Framework;
@@ -63,6 +64,7 @@ namespace Apache.Ignite.Core.Tests.Binary.Serializable
         /// <summary>
         /// Object with no fields.
         /// </summary>
+        [Serializable]
         private class EmptyObject : ISerializable
         {
             /// <summary>
