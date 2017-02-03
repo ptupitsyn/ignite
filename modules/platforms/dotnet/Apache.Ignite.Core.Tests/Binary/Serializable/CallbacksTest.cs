@@ -79,6 +79,15 @@ namespace Apache.Ignite.Core.Tests.Binary.Serializable
             // TODO: Class without ISerializable
         }
 
+        /// <summary>
+        /// Tests that incorrect method signature causes a descriptive exception.
+        /// </summary>
+        [Test]
+        public void TestIncorrectMethodSignature()
+        {
+            // TODO
+        }
+
         [Serializable]
         private class SerCallbacks : IDeserializationCallback, ISerializable
         {
