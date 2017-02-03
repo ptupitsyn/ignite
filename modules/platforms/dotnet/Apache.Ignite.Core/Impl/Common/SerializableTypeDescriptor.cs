@@ -19,6 +19,7 @@ namespace Apache.Ignite.Core.Impl.Common
 {
     using System;
     using System.Diagnostics;
+    using System.Linq;
     using System.Reflection;
     using System.Runtime.Serialization;
 
@@ -159,7 +160,10 @@ namespace Apache.Ignite.Core.Impl.Common
             Debug.Assert(method != null);
             Debug.Assert(method.DeclaringType != null);
 
-            if (method.ReturnType != typeof(void))
+            var parameters = method.GetParameters();
+
+            if (method.ReturnType != typeof(void) || parameters.Length != 1 ||
+                parameters[0].ParameterType != typeof(StreamingContext))
             {
                 throw new TypeLoadException(
                     string.Format("Type '{0}' in assembly '{1}' has method '{2}' with an incorrect " +
