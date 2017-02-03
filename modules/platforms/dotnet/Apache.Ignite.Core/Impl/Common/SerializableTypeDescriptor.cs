@@ -86,7 +86,7 @@ namespace Apache.Ignite.Core.Impl.Common
                         ValidateCallbackMethod(method);
 
                         _onSerializing += DelegateConverter.CompileFunc<Action<object, StreamingContext>>(
-                            type, method, new[] {typeof(object), typeof(StreamingContext)});
+                            type, method, new[] {typeof(StreamingContext)}, new[] {false, false});
                     }
                 }
 
