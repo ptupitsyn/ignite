@@ -51,6 +51,8 @@ namespace Apache.Ignite.Core.Impl.Binary
         /** <inheritdoc /> */
         public void WriteBinary<T>(T obj, BinaryWriter writer)
         {
+            // TODO: OnSerializing
+
             var serializable = (ISerializable) obj;
             var objType = obj.GetType();
 
@@ -78,6 +80,8 @@ namespace Apache.Ignite.Core.Impl.Binary
             }
 
             WriteCustomTypeInfo(writer, serInfo, serializable);
+
+            // TODO: OnSerialized
         }
 
         /// <summary>
