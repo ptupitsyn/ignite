@@ -156,11 +156,16 @@ namespace Apache.Ignite.Core.Impl.Binary
 
             int objId = SerializableCallback.Push(res);
 
-            reader.AddHandle(pos, res);
+            try
+            {
+                reader.AddHandle(pos, res);
 
-            ReadObject(res, reader, desc, objId);
-
-            SerializableCallback.Pop();
+                ReadObject(res, reader, desc, objId);
+            }
+            finally
+            {
+                SerializableCallback.Pop();
+            }
 
             return (T) res;
         }

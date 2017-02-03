@@ -113,7 +113,6 @@ namespace Apache.Ignite.Core.Tests.Binary.Serializable
                 info.AddValue("inner", Inner);
             }
 
-
             public void OnDeserialization(object sender)
             {
                 Messages.Add(string.Format("{0}.OnDeserialization", Name));
