@@ -44,6 +44,15 @@ namespace Apache.Ignite.Core.Impl.Common
         /** */
         private readonly Action<object, StreamingContext> _onSerializing;
 
+        /** */
+        private readonly Action<object, StreamingContext> _onSerialized;
+
+        /** */
+        private readonly Action<object, StreamingContext> _onDeserializing;
+
+        /** */
+        private readonly Action<object, StreamingContext> _onDeserialized;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="SerializableTypeDescriptor"/> class.
         /// </summary>
@@ -83,10 +92,22 @@ namespace Apache.Ignite.Core.Impl.Common
                 {
                     if (method.IsDefined(typeof(OnSerializingAttribute), false))
                     {
-                        ValidateCallbackMethod(method);
+                        _onSerializing += CompileCallbackMethod(method);
+                    }
 
-                        _onSerializing += DelegateConverter.CompileFunc<Action<object, StreamingContext>>(
-                            type, method, new[] {typeof(StreamingContext)}, new[] {false, false});
+                    if (method.IsDefined(typeof(OnSerializedAttribute), false))
+                    {
+                        _onSerialized += CompileCallbackMethod(method);
+                    }
+
+                    if (method.IsDefined(typeof(OnDeserializingAttribute), false))
+                    {
+                        _onDeserializing += CompileCallbackMethod(method);
+                    }
+
+                    if (method.IsDefined(typeof(OnDeserializedAttribute), false))
+                    {
+                        _onDeserialized += CompileCallbackMethod(method);
                     }
                 }
 
@@ -131,6 +152,30 @@ namespace Apache.Ignite.Core.Impl.Common
         }
 
         /// <summary>
+        /// Gets the OnSerialized callback action.
+        /// </summary>
+        public Action<object, StreamingContext> OnSerialized
+        {
+            get { return _onSerialized; }
+        }
+
+        /// <summary>
+        /// Gets the OnDeserializing callback action.
+        /// </summary>
+        public Action<object, StreamingContext> OnDeserializing
+        {
+            get { return _onDeserializing; }
+        }
+
+        /// <summary>
+        /// Gets the OnDeserialized callback action.
+        /// </summary>
+        public Action<object, StreamingContext> OnDeserialized
+        {
+            get { return _onDeserialized; }
+        }
+
+        /// <summary>
         /// Gets the <see cref="DelegateTypeDescriptor" /> by type.
         /// </summary>
         public static SerializableTypeDescriptor Get(Type type)
@@ -153,9 +198,9 @@ namespace Apache.Ignite.Core.Impl.Common
         }
                 
         /// <summary>
-        /// Checks that callback method has signature "void (StreamingContext)".
+        /// Checks that callback method has signature "void (StreamingContext)" and compiles it.
         /// </summary>
-        private static void ValidateCallbackMethod(MethodInfo method)
+        private static Action<object, StreamingContext> CompileCallbackMethod(MethodInfo method)
         {
             Debug.Assert(method != null);
             Debug.Assert(method.DeclaringType != null);
@@ -170,6 +215,9 @@ namespace Apache.Ignite.Core.Impl.Common
                                   "signature for the serialization attribute that it is decorated with.",
                         method.DeclaringType, method.DeclaringType.Assembly, method.Name));
             }
+
+            return DelegateConverter.CompileFunc<Action<object, StreamingContext>>(
+                method.DeclaringType, method, new[] {typeof(StreamingContext)}, new[] {false, false});
         }
     }
 }
