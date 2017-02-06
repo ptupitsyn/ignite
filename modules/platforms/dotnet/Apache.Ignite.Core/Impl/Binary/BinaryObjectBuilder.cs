@@ -976,9 +976,15 @@ namespace Apache.Ignite.Core.Impl.Binary
                 case BinaryUtils.TypeArrayEnum:
                 case BinaryUtils.TypeArray:
                     int type = inStream.ReadInt();
-                    arrLen = inStream.ReadInt();
+                    outStream.WriteInt(type);
 
-                    outStream.WriteInt(type);  // TODO: Can be unregistered.
+                    if (type == BinaryUtils.TypeUnregistered)
+                    {
+                        outStream.WriteByte(inStream.ReadByte());  // String header.
+                        BinaryUtils.WriteString(BinaryUtils.ReadString(inStream), outStream);  // String data.
+                    }
+
+                    arrLen = inStream.ReadInt();
                     outStream.WriteInt(arrLen);
 
                     for (int i = 0; i < arrLen; i++)
