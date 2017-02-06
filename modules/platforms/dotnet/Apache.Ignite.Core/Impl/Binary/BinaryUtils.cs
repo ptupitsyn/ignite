@@ -1997,41 +1997,6 @@ namespace Apache.Ignite.Core.Impl.Binary
         }
 
         /// <summary>
-        /// Gets all fields, including base classes.
-        /// </summary>
-        public static IEnumerable<FieldInfo> GetAllFields(Type type)
-        {
-            const BindingFlags flags = BindingFlags.Instance | BindingFlags.Public |
-                                       BindingFlags.NonPublic | BindingFlags.DeclaredOnly;
-
-            var curType = type;
-
-            while (curType != null)
-            {
-                foreach (var field in curType.GetFields(flags))
-                {
-                    yield return field;
-                }
-
-                curType = curType.BaseType;
-            }
-        }
-
-        /// <summary>
-        /// Copies the fields.
-        /// </summary>
-        public static void CopyFields(object x, object y)
-        {
-            // TODO: Compiled delegate
-            foreach (var fieldInfo in GetAllFields(x.GetType()))
-            {
-                var val = fieldInfo.GetValue(x);
-
-                fieldInfo.SetValue(y, val);
-            }
-        }
-
-        /// <summary>
         /// Creates and instance from the type name in reader.
         /// </summary>
         private static T CreateInstance<T>(BinaryReader reader)

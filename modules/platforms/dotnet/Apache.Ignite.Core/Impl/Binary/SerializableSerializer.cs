@@ -196,7 +196,7 @@ namespace Apache.Ignite.Core.Impl.Binary
                 // Custom type is present.
                 var res = ReadAsCustomType(raw, serInfo, reader.Marshaller, ctx);
 
-                BinaryUtils.CopyFields(res, obj);
+                ReflectionUtils.CopyFields(res, obj);
                 DeserializationCallbackProcessor.SetReference(objId, res);
             }
             else

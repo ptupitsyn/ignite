@@ -132,7 +132,7 @@ namespace Apache.Ignite.Core.Impl.Binary
         {
             Debug.Assert(_wActions == null && _rActions == null);
 
-            var fields = BinaryUtils.GetAllFields(type).Where(x => !x.IsNotSerialized).ToList();
+            var fields = ReflectionUtils.GetAllFields(type).Where(x => !x.IsNotSerialized).ToList();
 
             IDictionary<int, string> idMap = new Dictionary<int, string>();
 

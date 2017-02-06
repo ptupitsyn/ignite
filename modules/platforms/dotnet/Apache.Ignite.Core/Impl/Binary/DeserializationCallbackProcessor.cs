@@ -80,7 +80,7 @@ namespace Apache.Ignite.Core.Impl.Binary
                     {
                         if (InvokeOnDeserialization(obj.Value))
                         {
-                            BinaryUtils.CopyFields(obj.Value, obj.Key);
+                            ReflectionUtils.CopyFields(obj.Value, obj.Key);
                         }
                     }
                     else
