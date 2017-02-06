@@ -17,13 +17,81 @@
 
 namespace Apache.Ignite.Core.Tests.Binary.Serializable
 {
+    using System;
     using System.Runtime.Serialization;
+    using NUnit.Framework;
 
     /// <summary>
     /// Tests that <see cref="IObjectReference"/> objects are deserialized properly.
+    /// This only applies to <see cref="ISerializable"/> implementors, which can replace underlying object
+    /// with <see cref="SerializationInfo.SetType"/>, <see cref="SerializationInfo.AssemblyName"/>, and
+    /// <see cref="SerializationInfo.FullTypeName"/>.
     /// </summary>
     public class ObjectReferenceTests
     {
-        // TODO:
+        /// <summary>
+        /// Tests serialization object replacement with <see cref="SerializationInfo.SetType"/> method.
+        /// </summary>
+        [Test]
+        public void TestSetType()
+        {
+
+        }
+
+        /// <summary>
+        /// Tests serialization object replacement with <see cref="SerializationInfo.FullTypeName"/> property.
+        /// </summary>
+        [Test]
+        public void TestTypeName()
+        {
+            
+        }
+
+        [Serializable]
+        private class SetTypeReplacer : ISerializable
+        {
+            private readonly int _value;
+
+            public SetTypeReplacer(int value)
+            {
+                _value = value;
+            }
+
+            public int Value
+            {
+                get { return _value; }
+            }
+
+            public void GetObjectData(SerializationInfo info, StreamingContext context)
+            {
+                info.SetType(typeof(ObjectInfoHolder));
+                info.AddValue("type", GetType());
+                info.AddValue("val", Value);
+            }
+        }
+
+        [Serializable]
+        private class ObjectInfoHolder : IObjectReference, ISerializable
+        {
+            public Type ObjectType { get; set; }
+
+            public int Value { get; set; }
+
+            public object GetRealObject(StreamingContext context)
+            {
+                return Activator.CreateInstance(ObjectType, Value);
+            }
+
+            public ObjectInfoHolder(SerializationInfo info, StreamingContext context)
+            {
+                ObjectType = (Type) info.GetValue("type", typeof(Type));
+                Value = info.GetInt32("val");
+            }
+
+            public void GetObjectData(SerializationInfo info, StreamingContext context)
+            {
+                // No-op.
+            }
+        }
     }
 }
