@@ -24,6 +24,7 @@ namespace Apache.Ignite.Core.Impl.Binary
     using System.Reflection;
     using System.Runtime.Serialization;
     using Apache.Ignite.Core.Binary;
+    using Apache.Ignite.Core.Impl.Common;
 
     /// <summary>
     /// Internal reflective serializer.
@@ -39,6 +40,9 @@ namespace Apache.Ignite.Core.Impl.Binary
         /** Read actions to be performed. */
         private readonly BinaryReflectiveReadAction[] _rActions;
 
+        /** Callback type descriptor. */
+        private SerializableTypeDescriptor _serializableDescriptor;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="BinaryReflectiveSerializer"/> class.
         /// </summary>
@@ -50,36 +54,64 @@ namespace Apache.Ignite.Core.Impl.Binary
         /// <summary>
         /// Initializes a new instance of the <see cref="BinaryReflectiveSerializer"/> class.
         /// </summary>
-        private BinaryReflectiveSerializerInternal(BinaryReflectiveWriteAction[] wActions, BinaryReflectiveReadAction[] rActions, bool raw)
+        private BinaryReflectiveSerializerInternal(BinaryReflectiveWriteAction[] wActions, 
+            BinaryReflectiveReadAction[] rActions, bool raw, SerializableTypeDescriptor serializableDescriptor)
         {
             Debug.Assert(wActions != null);
             Debug.Assert(rActions != null);
+            Debug.Assert(serializableDescriptor != null);
 
             _wActions = wActions;
             _rActions = rActions;
             _rawMode = raw;
+            _serializableDescriptor = serializableDescriptor;
         }
 
         /** <inheritdoc /> */
         void IBinarySerializerInternal.WriteBinary<T>(T obj, BinaryWriter writer)
         {
             Debug.Assert(_wActions != null);
+            Debug.Assert(writer != null);
+
+            var ctx = GetStreamingContext(writer);
+
+            _serializableDescriptor.OnDeserializing(obj, ctx);
 
             foreach (var action in _wActions)
                 action(obj, writer);
+
+            _serializableDescriptor.OnDeserialized(obj, ctx);
         }
 
         /** <inheritdoc /> */
         T IBinarySerializerInternal.ReadBinary<T>(BinaryReader reader, IBinaryTypeDescriptor desc, int pos)
         {
             Debug.Assert(_rActions != null);
+            Debug.Assert(reader != null);
+            Debug.Assert(desc != null);
 
             var obj = FormatterServices.GetUninitializedObject(desc.Type);
 
-            reader.AddHandle(pos, obj);
+            var ctx = GetStreamingContext(reader);
 
-            foreach (var action in _rActions)
-                action(obj, reader);
+            _serializableDescriptor.OnSerializing(obj, ctx);
+
+            DeserializationCallbackProcessor.Push(obj);
+
+            try
+            {
+                reader.AddHandle(pos, obj);
+
+                foreach (var action in _rActions)
+                    action(obj, reader);
+
+                _serializableDescriptor.OnSerialized(obj, ctx);
+
+            }
+            finally
+            {
+                DeserializationCallbackProcessor.Pop();
+            }
 
             return (T) obj;
         }
@@ -136,7 +168,9 @@ namespace Apache.Ignite.Core.Impl.Binary
                 rActions[i] = readAction;
             }
 
-            return new BinaryReflectiveSerializerInternal(wActions, rActions, _rawMode);
+            var serDesc = SerializableTypeDescriptor.Get(type);
+
+            return new BinaryReflectiveSerializerInternal(wActions, rActions, _rawMode, serDesc);
         }
 
         /// <summary>
@@ -148,6 +182,22 @@ namespace Apache.Ignite.Core.Impl.Binary
             string name2 = BinaryUtils.CleanFieldName(info2.Name);
 
             return string.Compare(name1, name2, StringComparison.OrdinalIgnoreCase);
+        }
+                
+        /// <summary>
+        /// Gets the streaming context.
+        /// </summary>
+        private static StreamingContext GetStreamingContext(IBinaryReader reader)
+        {
+            return new StreamingContext(StreamingContextStates.All, reader);
+        }
+
+        /// <summary>
+        /// Gets the streaming context.
+        /// </summary>
+        private static StreamingContext GetStreamingContext(IBinaryWriter writer)
+        {
+            return new StreamingContext(StreamingContextStates.All, writer);
         }
     }
 }
