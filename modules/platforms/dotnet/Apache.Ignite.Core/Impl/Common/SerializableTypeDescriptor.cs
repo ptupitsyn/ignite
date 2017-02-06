@@ -79,7 +79,8 @@ namespace Apache.Ignite.Core.Impl.Common
             }
 
             // Scan methods for callback attributes.
-            _onSerializing = (o, c) => { };
+            // Initialize to empty delegates to avoid null checks.
+            _onSerializing = _onSerialized = _onDeserializing = _onDeserialized = (o, c) => { };
 
             var baseType = type;
 

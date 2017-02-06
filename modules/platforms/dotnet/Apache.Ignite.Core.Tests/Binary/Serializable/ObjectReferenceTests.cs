@@ -35,7 +35,11 @@ namespace Apache.Ignite.Core.Tests.Binary.Serializable
         [Test]
         public void TestSetType()
         {
+            var obj = new SetTypeReplacer(25);
 
+            var res = TestUtils.SerializeDeserialize(obj);
+
+            Assert.AreEqual(obj.Value, res.Value);
         }
 
         /// <summary>
