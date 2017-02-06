@@ -77,11 +77,17 @@ namespace Apache.Ignite.Core.Tests.Binary.Serializable
             var expected = new[]
             {
                 "Foo.OnSerializing",
+                "Bar.OnSerializing",
+                "Bar.OnSerialized",
                 "Foo.OnSerialized",
                 ".OnDeserializing",
+                ".OnDeserializing",
+                "Bar.ctor",
+                "Bar.OnDeserialized",
                 "Foo.ctor",
                 "Foo.OnDeserialized",
                 "Foo.OnDeserialization",
+                "Bar.OnDeserialization",
             };
 
             Assert.AreEqual(expected, Messages);
@@ -93,7 +99,40 @@ namespace Apache.Ignite.Core.Tests.Binary.Serializable
         [Test]
         public void TestNonSerializableStruct()
         {
-            // TODO
+            var obj = new SerCallbacksStructNoInterface
+            {
+                Name = "Foo",
+                Inner = new SerCallbacksStructNoInterface
+                {
+                    Name = "Bar"
+                }
+            };
+
+            Messages.Clear();
+            var res = TestUtils.SerializeDeserialize(obj);
+
+            Assert.AreEqual("Foo", res.Name);
+            Assert.AreEqual("Bar", ((SerCallbacksStructNoInterface) res.Inner).Name);
+
+            // OnDeserialization callbacks should be called AFTER entire tree is deserialized.
+            // Other callbacks order is not strictly defined.
+            var expected = new[]
+            {
+                "Foo.OnSerializing",
+                "Bar.OnSerializing",
+                "Bar.OnSerialized",
+                "Foo.OnSerialized",
+                ".OnDeserializing",
+                ".OnDeserializing",
+                "Bar.ctor",
+                "Bar.OnDeserialized",
+                "Foo.ctor",
+                "Foo.OnDeserialized",
+                "Foo.OnDeserialization",
+                "Bar.OnDeserialization",
+            };
+
+            Assert.AreEqual(expected, Messages);
         }
 
         /// <summary>
@@ -252,12 +291,14 @@ namespace Apache.Ignite.Core.Tests.Binary.Serializable
             public SerCallbacksStruct(SerializationInfo info, StreamingContext context) : this()
             {
                 Name = info.GetString("name");
+                Inner = info.GetValue("inner", typeof(object));
                 Messages.Add(string.Format("{0}.ctor", Name));
             }
 
             public void GetObjectData(SerializationInfo info, StreamingContext context)
             {
                 info.AddValue("name", Name);
+                info.AddValue("inner", Inner);
             }
 
             public void OnDeserialization(object sender)
@@ -293,6 +334,8 @@ namespace Apache.Ignite.Core.Tests.Binary.Serializable
         private struct SerCallbacksStructNoInterface : IDeserializationCallback
         {
             public string Name { get; set; }
+
+            public object Inner { get; set; }
 
             public void OnDeserialization(object sender)
             {
