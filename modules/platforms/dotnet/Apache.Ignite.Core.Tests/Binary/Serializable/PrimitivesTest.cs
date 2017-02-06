@@ -29,14 +29,6 @@ namespace Apache.Ignite.Core.Tests.Binary.Serializable
     /// </summary>
     public class PrimitivesTest
     {
-        // TODO: 
-        // Attribute Callbacks
-        // IDeserializationCallback
-        // with ISerializable
-        // without ISerializable
-        // check built-in types: collections, delegates, types, memberInfos, etc
-        // structs!!
-
         /// <summary>
         /// Tests the DateTime which is ISerializable struct.
         /// </summary>
