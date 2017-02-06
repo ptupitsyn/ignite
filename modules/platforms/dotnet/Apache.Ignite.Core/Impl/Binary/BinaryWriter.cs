@@ -906,9 +906,7 @@ namespace Apache.Ignite.Core.Impl.Binary
             {
                 _stream.WriteByte(BinaryUtils.TypeArrayEnum);
 
-                var elTypeId = elementTypeId ?? BinaryUtils.GetEnumTypeId(val.GetType().GetElementType(), Marshaller);
-
-                BinaryUtils.WriteArray(val, this, elTypeId);
+                BinaryUtils.WriteArray(val, this, elementTypeId);
             }
         }
 
@@ -976,6 +974,7 @@ namespace Apache.Ignite.Core.Impl.Binary
                     return;
 
                 _stream.WriteByte(BinaryUtils.TypeArray);
+
                 BinaryUtils.WriteArray(val, this);
             }
         }

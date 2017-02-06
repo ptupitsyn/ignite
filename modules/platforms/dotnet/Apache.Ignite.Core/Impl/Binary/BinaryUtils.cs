@@ -1251,14 +1251,33 @@ namespace Apache.Ignite.Core.Impl.Binary
         /// </summary>
         /// <param name="val">Array.</param>
         /// <param name="ctx">Write context.</param>
-        /// <param name="elementType">Type of the array element.</param>
-        public static void WriteArray(Array val, BinaryWriter ctx, int elementType = ObjTypeId)
+        /// <param name="elemTypeId">The element type id.</param>
+        public static void WriteArray(Array val, BinaryWriter ctx, int? elemTypeId = null)
         {
             Debug.Assert(val != null && ctx != null);
 
             IBinaryStream stream = ctx.Stream;
 
-            stream.WriteInt(elementType);
+            if (elemTypeId != null && elemTypeId != TypeUnregistered)
+            {
+                stream.WriteInt(elemTypeId.Value);
+            }
+            else
+            {
+                var elemType = val.GetType().GetElementType();
+
+                var typeId = ObjTypeId;
+
+                if (elemType != typeof(object))
+                {
+                    typeId = ctx.Marshaller.GetDescriptor(elemType).TypeId;
+                }
+
+                stream.WriteInt(typeId);
+
+                if (typeId == TypeUnregistered)
+                    ctx.WriteString(elemType.FullName);
+            }
 
             stream.WriteInt(val.Length);
 
@@ -1299,7 +1318,12 @@ namespace Apache.Ignite.Core.Impl.Binary
             var pos = stream.Position;
 
             if (typed)
-                stream.ReadInt();
+            {
+                int typeId = stream.ReadInt();
+
+                if (typeId == TypeUnregistered)
+                    ctx.ReadString();
+            }
 
             int len = stream.ReadInt();
 
