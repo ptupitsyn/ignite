@@ -20,6 +20,8 @@ namespace Apache.Ignite.Core.Tests.Binary.Serializable
     using System;
     using System.Collections.Generic;
     using System.Runtime.Serialization;
+    using Apache.Ignite.Core.Binary;
+    using Apache.Ignite.Core.Impl.Binary;
     using NUnit.Framework;
 
     /// <summary>
@@ -36,13 +38,30 @@ namespace Apache.Ignite.Core.Tests.Binary.Serializable
         [Test]
         public void TestSerializable()
         {
-            var obj = new SerCallbacks
+            CheckCallbacks<SerCallbacks>();
+        }
+
+        /// <summary>
+        /// Tests that callbacks are invoked in correct order on class without ISerializable interface.
+        /// </summary>
+        [Test]
+        public void TestNonSerializable()
+        {
+            CheckCallbacks<SerCallbacksNoInterface>();
+        }
+
+        /// <summary>
+        /// Checks the callbacks.
+        /// </summary>
+        private static void CheckCallbacks<T>() where T : SerCallbacksNoInterface, new()
+        {
+            var obj = new T
             {
                 Name = "Foo",
-                Inner = new SerCallbacks
+                Inner = new T
                 {
                     Name = "Bar",
-                    Inner = new SerCallbacks
+                    Inner = new T
                     {
                         Name = "Baz"
                     }
@@ -79,17 +98,6 @@ namespace Apache.Ignite.Core.Tests.Binary.Serializable
                 "Bar.OnDeserialization",
                 "Baz.OnDeserialization"
             }, Messages);
-
-            // TODO: Check attributes
-        }
-
-        /// <summary>
-        /// Tests that callbacks are invoked in correct order on class without ISerializable interface.
-        /// </summary>
-        [Test]
-        public void TestNonSerializable()
-        {
-            // TODO: Class without ISerializable
         }
 
         /// <summary>
@@ -101,13 +109,13 @@ namespace Apache.Ignite.Core.Tests.Binary.Serializable
             // TODO
         }
 
+        /// <summary>
+        /// Class with serialization callbacks and <see cref="ISerializable" /> implemented.
+        /// This goes through <see cref="SerializableSerializer"/>.
+        /// </summary>
         [Serializable]
-        private class SerCallbacks : IDeserializationCallback, ISerializable
+        private class SerCallbacks : SerCallbacksNoInterface, ISerializable
         {
-            public string Name { get; set; }
-
-            public SerCallbacks Inner { get; set; }
-
             public SerCallbacks()
             {
             }
@@ -125,6 +133,18 @@ namespace Apache.Ignite.Core.Tests.Binary.Serializable
                 info.AddValue("name", Name);
                 info.AddValue("inner", Inner);
             }
+        }
+
+        /// <summary>
+        /// Class with serialization callbacks and without <see cref="ISerializable" /> implemented.
+        /// This goes through <see cref="BinaryReflectiveSerializer"/>.
+        /// </summary>
+        [Serializable]
+        private class SerCallbacksNoInterface : IDeserializationCallback
+        {
+            public string Name { get; set; }
+
+            public SerCallbacksNoInterface Inner { get; set; }
 
             public void OnDeserialization(object sender)
             {
