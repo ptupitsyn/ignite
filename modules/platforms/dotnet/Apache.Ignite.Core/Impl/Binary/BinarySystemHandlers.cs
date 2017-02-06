@@ -22,6 +22,7 @@ namespace Apache.Ignite.Core.Impl.Binary
     using System.Collections.Generic;
     using System.Diagnostics;
     using System.Diagnostics.CodeAnalysis;
+    using Apache.Ignite.Core.Binary;
     using Apache.Ignite.Core.Impl.Binary.IO;
     using Apache.Ignite.Core.Impl.Common;
 
@@ -599,15 +600,22 @@ namespace Apache.Ignite.Core.Impl.Binary
 
             if (elemType == null)
             {
-                // Infer element type from typeId.
-                var typeId = ctx.ReadInt();
-
-                if (typeId != BinaryUtils.ObjTypeId)
+                if (ctx.Mode == BinaryMode.ForceBinary)
                 {
-                    elemType = ctx.Marshaller.GetDescriptor(true, typeId, true).Type;
+                    elemType = typeof(IBinaryObject);
                 }
+                else
+                {
+                    // Infer element type from typeId.
+                    var typeId = ctx.ReadInt();
 
-                return BinaryUtils.ReadTypedArray(ctx, false, elemType ?? typeof(object));
+                    if (typeId != BinaryUtils.ObjTypeId)
+                    {
+                        elemType = ctx.Marshaller.GetDescriptor(true, typeId, true).Type;
+                    }
+
+                    return BinaryUtils.ReadTypedArray(ctx, false, elemType ?? typeof(object));
+                }
             }
 
             // Element type is known, no need to check typeId.

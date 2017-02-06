@@ -80,6 +80,14 @@ namespace Apache.Ignite.Core.Impl.Binary
             get { return _marsh; }
         }
 
+        /// <summary>
+        /// Gets the mode.
+        /// </summary>
+        public BinaryMode Mode
+        {
+            get { return _mode; }
+        }
+
         /** <inheritdoc /> */
         public IBinaryRawReader GetRawReader()
         {
