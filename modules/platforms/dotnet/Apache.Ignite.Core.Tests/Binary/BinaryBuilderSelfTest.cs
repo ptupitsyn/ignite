@@ -672,6 +672,11 @@ namespace Apache.Ignite.Core.Tests.Binary
 
             CheckPrimitiveFields1(binObj);
 
+            // Rebuild unchanged.
+            binObj = binObj.ToBuilder().Build();
+
+            CheckPrimitiveFields1(binObj);
+
             // Specific setter methods.
             var binObj2 = _grid.GetBinary().GetBuilder(typeof(Primitives))
                 .SetByteField("fByte", 1)
@@ -820,6 +825,11 @@ namespace Apache.Ignite.Core.Tests.Binary
                 .SetField("fDecimal", new decimal?[] { 7.7m })
                 .SetHashCode(100)
                 .Build();
+
+            CheckPrimitiveArrayFields1(binObj);
+
+            // Rebuild unchanged.
+            binObj = binObj.ToBuilder().Build();
 
             CheckPrimitiveArrayFields1(binObj);
 
