@@ -48,7 +48,11 @@ namespace Apache.Ignite.Core.Tests.Binary.Serializable
         [Test]
         public void TestTypeName()
         {
-            
+            var obj = new TypeNameReplacer(36);
+
+            var res = TestUtils.SerializeDeserialize(obj);
+
+            Assert.AreEqual(obj.Value, res.Value);
         }
 
         [Serializable]
@@ -69,6 +73,32 @@ namespace Apache.Ignite.Core.Tests.Binary.Serializable
             public void GetObjectData(SerializationInfo info, StreamingContext context)
             {
                 info.SetType(typeof(ObjectInfoHolder));
+
+                info.AddValue("type", GetType());
+                info.AddValue("val", Value);
+            }
+        }
+
+        [Serializable]
+        private class TypeNameReplacer : ISerializable
+        {
+            private readonly int _value;
+
+            public TypeNameReplacer(int value)
+            {
+                _value = value;
+            }
+
+            public int Value
+            {
+                get { return _value; }
+            }
+
+            public void GetObjectData(SerializationInfo info, StreamingContext context)
+            {
+                info.FullTypeName = typeof(ObjectInfoHolder).FullName;
+                info.AssemblyName = typeof(ObjectInfoHolder).Assembly.FullName;
+
                 info.AddValue("type", GetType());
                 info.AddValue("val", Value);
             }

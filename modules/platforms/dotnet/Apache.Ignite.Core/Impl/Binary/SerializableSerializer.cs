@@ -121,7 +121,7 @@ namespace Apache.Ignite.Core.Impl.Binary
 
             if (serInfo.IsFullTypeNameSetExplicit)
             {
-                customType = Type.GetType(serInfo.FullTypeName, true);
+                customType = new TypeResolver().ResolveType(serInfo.FullTypeName, serInfo.AssemblyName);
             }
             else if (serInfo.ObjectType != serializable.GetType())
             {
