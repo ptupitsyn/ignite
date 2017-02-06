@@ -75,12 +75,12 @@ namespace Apache.Ignite.Core.Impl.Binary
 
             var ctx = GetStreamingContext(writer);
 
-            _serializableDescriptor.OnDeserializing(obj, ctx);
+            _serializableDescriptor.OnSerializing(obj, ctx);
 
             foreach (var action in _wActions)
                 action(obj, writer);
 
-            _serializableDescriptor.OnDeserialized(obj, ctx);
+            _serializableDescriptor.OnSerialized(obj, ctx);
         }
 
         /** <inheritdoc /> */
@@ -94,7 +94,7 @@ namespace Apache.Ignite.Core.Impl.Binary
 
             var ctx = GetStreamingContext(reader);
 
-            _serializableDescriptor.OnSerializing(obj, ctx);
+            _serializableDescriptor.OnDeserializing(obj, ctx);
 
             DeserializationCallbackProcessor.Push(obj);
 
@@ -105,7 +105,7 @@ namespace Apache.Ignite.Core.Impl.Binary
                 foreach (var action in _rActions)
                     action(obj, reader);
 
-                _serializableDescriptor.OnSerialized(obj, ctx);
+                _serializableDescriptor.OnDeserialized(obj, ctx);
 
             }
             finally

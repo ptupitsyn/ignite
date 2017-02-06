@@ -19,6 +19,7 @@ namespace Apache.Ignite.Core.Tests.Binary.Serializable
 {
     using System;
     using System.Collections.Generic;
+    using System.Linq;
     using System.Runtime.Serialization;
     using Apache.Ignite.Core.Binary;
     using Apache.Ignite.Core.Impl.Binary;
@@ -38,7 +39,7 @@ namespace Apache.Ignite.Core.Tests.Binary.Serializable
         [Test]
         public void TestSerializable()
         {
-            CheckCallbacks<SerCallbacks>();
+            CheckCallbacks<SerCallbacks>(true);
         }
 
         /// <summary>
@@ -47,13 +48,13 @@ namespace Apache.Ignite.Core.Tests.Binary.Serializable
         [Test]
         public void TestNonSerializable()
         {
-            CheckCallbacks<SerCallbacksNoInterface>();
+            CheckCallbacks<SerCallbacksNoInterface>(false);
         }
 
         /// <summary>
         /// Checks the callbacks.
         /// </summary>
-        private static void CheckCallbacks<T>() where T : SerCallbacksNoInterface, new()
+        private static void CheckCallbacks<T>(bool ctorCall) where T : SerCallbacksNoInterface, new()
         {
             var obj = new T
             {
@@ -77,7 +78,7 @@ namespace Apache.Ignite.Core.Tests.Binary.Serializable
 
             // OnDeserialization callbacks should be called AFTER entire tree is deserialized.
             // Other callbacks order is not strictly defined.
-            Assert.AreEqual(new[]
+            var expected = new[]
             {
                 "Foo.OnSerializing",
                 "Bar.OnSerializing",
@@ -97,7 +98,12 @@ namespace Apache.Ignite.Core.Tests.Binary.Serializable
                 "Foo.OnDeserialization",
                 "Bar.OnDeserialization",
                 "Baz.OnDeserialization"
-            }, Messages);
+            };
+
+            if (!ctorCall)
+                expected = expected.Where(x => !x.Contains("ctor")).ToArray();
+
+            Assert.AreEqual(expected, Messages);
         }
 
         /// <summary>
