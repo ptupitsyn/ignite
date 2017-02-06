@@ -989,6 +989,11 @@ namespace Apache.Ignite.Core.Tests.Binary
 
             CheckStringDateGuidEnum1(binObj, nDate, nGuid);
 
+            // Rebuild with no changes.
+            binObj = binObj.ToBuilder().Build();
+
+            CheckStringDateGuidEnum1(binObj, nDate, nGuid);
+
             // Specific setters.
             var binObj2 = _grid.GetBinary().GetBuilder(typeof(StringDateGuidEnum))
                 .SetStringField("fStr", "str")
@@ -1757,7 +1762,7 @@ namespace Apache.Ignite.Core.Tests.Binary
                 cache1[1] = new Primitives {FByte = 3};
                 var obj = cache2[1];
 
-                // Rebuild with no changes
+                // Rebuild with no changes.
                 cache2[2] = obj.ToBuilder().Build();
                 Assert.AreEqual(3, cache1[2].FByte);
 
