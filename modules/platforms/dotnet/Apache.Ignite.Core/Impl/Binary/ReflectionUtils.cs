@@ -61,13 +61,29 @@ namespace Apache.Ignite.Core.Impl.Binary
             Debug.Assert(y != null);
             Debug.Assert(x.GetType() == y.GetType());
 
-            // TODO: Compiled delegate
-            foreach (var fieldInfo in GetAllFields(x.GetType()))
-            {
-                var val = fieldInfo.GetValue(x);
+            var copyFieldsAction = CopyFieldsActions.GetOrAdd(x.GetType(), GetCopyFieldsAction);
 
-                fieldInfo.SetValue(y, val);
+            copyFieldsAction(x, y);
+        }
+
+        /// <summary>
+        /// Gets the copy fields action.
+        /// </summary>
+        private static Action<object, object> GetCopyFieldsAction(Type type)
+        {
+            Action<object, object> res = null;
+
+            foreach (var field in GetAllFields(type))
+            {
+                var read = DelegateConverter.CompileFieldGetter(field);
+                var write = DelegateConverter.CompileFieldSetter(field);
+
+                Action<object, object> copyField = (x, y) => write(y, read(x));
+
+                res += copyField;
             }
+
+            return res ?? ((_, __) => { });
         }
     }
 }
