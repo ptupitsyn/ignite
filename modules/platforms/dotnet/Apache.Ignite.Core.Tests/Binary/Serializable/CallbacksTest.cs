@@ -52,6 +52,51 @@ namespace Apache.Ignite.Core.Tests.Binary.Serializable
         }
 
         /// <summary>
+        /// Tests that callbacks are invoked in correct order on class with ISerializable interface.
+        /// </summary>
+        [Test]
+        public void TestSerializableStruct()
+        {
+            var obj = new SerCallbacksStruct
+            {
+                Name = "Foo",
+                Inner = new SerCallbacksStruct
+                {
+                    Name = "Bar"
+                }
+            };
+
+            Messages.Clear();
+            var res = TestUtils.SerializeDeserialize(obj);
+
+            Assert.AreEqual("Foo", res.Name);
+            Assert.AreEqual("Bar", ((SerCallbacksStruct) res.Inner).Name);
+
+            // OnDeserialization callbacks should be called AFTER entire tree is deserialized.
+            // Other callbacks order is not strictly defined.
+            var expected = new[]
+            {
+                "Foo.OnSerializing",
+                "Foo.OnSerialized",
+                ".OnDeserializing",
+                "Foo.ctor",
+                "Foo.OnDeserialized",
+                "Foo.OnDeserialization",
+            };
+
+            Assert.AreEqual(expected, Messages);
+        }
+
+        /// <summary>
+        /// Tests that callbacks are invoked in correct order on class without ISerializable interface.
+        /// </summary>
+        [Test]
+        public void TestNonSerializableStruct()
+        {
+            // TODO
+        }
+
+        /// <summary>
         /// Checks the callbacks.
         /// </summary>
         private static void CheckCallbacks<T>(bool ctorCall) where T : SerCallbacksNoInterface, new()
@@ -195,6 +240,87 @@ namespace Apache.Ignite.Core.Tests.Binary.Serializable
             public void OnDeserializing()
             {
                 // No-op.
+            }
+        }
+
+        private struct SerCallbacksStruct : IDeserializationCallback, ISerializable
+        {
+            public string Name { get; set; }
+
+            public object Inner { get; set; }
+
+            public SerCallbacksStruct(SerializationInfo info, StreamingContext context) : this()
+            {
+                Name = info.GetString("name");
+                Messages.Add(string.Format("{0}.ctor", Name));
+            }
+
+            public void GetObjectData(SerializationInfo info, StreamingContext context)
+            {
+                info.AddValue("name", Name);
+            }
+
+            public void OnDeserialization(object sender)
+            {
+                Messages.Add(string.Format("{0}.OnDeserialization", Name));
+            }
+
+            [OnSerializing]
+            public void OnSerializing(StreamingContext context)
+            {
+                Messages.Add(string.Format("{0}.OnSerializing", Name));
+            }
+
+            [OnSerialized]
+            public void OnSerialized(StreamingContext context)
+            {
+                Messages.Add(string.Format("{0}.OnSerialized", Name));
+            }
+
+            [OnDeserializing]
+            public void OnDeserializing(StreamingContext context)
+            {
+                Messages.Add(string.Format("{0}.OnDeserializing", Name));
+            }
+
+            [OnDeserialized]
+            public void OnDeserialized(StreamingContext context)
+            {
+                Messages.Add(string.Format("{0}.OnDeserialized", Name));
+            }
+        }
+
+        private struct SerCallbacksStructNoInterface : IDeserializationCallback
+        {
+            public string Name { get; set; }
+
+            public void OnDeserialization(object sender)
+            {
+                Messages.Add(string.Format("{0}.OnDeserialization", Name));
+            }
+
+            [OnSerializing]
+            public void OnSerializing(StreamingContext context)
+            {
+                Messages.Add(string.Format("{0}.OnSerializing", Name));
+            }
+
+            [OnSerialized]
+            public void OnSerialized(StreamingContext context)
+            {
+                Messages.Add(string.Format("{0}.OnSerialized", Name));
+            }
+
+            [OnDeserializing]
+            public void OnDeserializing(StreamingContext context)
+            {
+                Messages.Add(string.Format("{0}.OnDeserializing", Name));
+            }
+
+            [OnDeserialized]
+            public void OnDeserialized(StreamingContext context)
+            {
+                Messages.Add(string.Format("{0}.OnDeserialized", Name));
             }
         }
     }

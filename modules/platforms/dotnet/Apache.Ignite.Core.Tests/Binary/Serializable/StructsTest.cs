@@ -17,11 +17,26 @@
 
 namespace Apache.Ignite.Core.Tests.Binary.Serializable
 {
+    using System.Runtime.Serialization;
+
     /// <summary>
     /// Tests that ISerializable structs are handled properly by Ignite marshaller.
     /// </summary>
     public class StructsTest
     {
         // TODO
+
+        private struct SerStruct : ISerializable, IDeserializationCallback
+        {
+            public void GetObjectData(SerializationInfo info, StreamingContext context)
+            {
+                throw new System.NotImplementedException();
+            }
+
+            public void OnDeserialization(object sender)
+            {
+                throw new System.NotImplementedException();
+            }
+        }
     }
 }
