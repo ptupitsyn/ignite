@@ -280,6 +280,7 @@ namespace Apache.Ignite.Core.Tests.Binary.Serializable
             }
         }
 
+        [Serializable]
         private struct SerCallbacksStruct : IDeserializationCallback, ISerializable
         {
             public string Name { get; set; }

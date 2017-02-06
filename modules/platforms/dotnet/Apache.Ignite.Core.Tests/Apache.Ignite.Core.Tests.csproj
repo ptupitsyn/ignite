@@ -79,7 +79,6 @@
     <Compile Include="Binary\Serializable\BasicSerializableObjectsTest.cs" />
     <Compile Include="Binary\Serializable\ObjectReferenceTests.cs" />
     <Compile Include="Binary\Serializable\PrimitivesTest.cs" />
-    <Compile Include="Binary\Serializable\StructsTest.cs" />
     <Compile Include="Binary\TypeResolverTest.cs" />
     <Compile Include="Cache\Affinity\AffinityKeyTest.cs" />
     <Compile Include="Cache\Affinity\AffinityTopologyVersionTest.cs" />
