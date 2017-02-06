@@ -975,14 +975,14 @@ namespace Apache.Ignite.Core.Impl.Binary
                     break;
                 case BinaryUtils.TypeArrayEnum:
                 case BinaryUtils.TypeArray:
-                    arrLen = inStream.ReadInt();
                     int type = inStream.ReadInt();
+                    arrLen = inStream.ReadInt();
 
+                    outStream.WriteInt(type);  // TODO: Can be unregistered.
                     outStream.WriteInt(arrLen);
-                    outStream.WriteInt(type);
 
                     for (int i = 0; i < arrLen; i++)
-                        Mutate0(ctx, inStream, outStream, false, 0, null);
+                        Mutate0(ctx, inStream, outStream, false, 0, EmptyVals);
 
                     break;
 
