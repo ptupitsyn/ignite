@@ -495,5 +495,30 @@ namespace Apache.Ignite.Core.Impl.Common
 
             return method;
         }
+
+        /// <summary>
+        /// Gets the constructor with exactly matching signature.
+        /// <para />
+        /// Type.GetConstructor matches compatible ones (i.e. taking object instead of concrete type).
+        /// </summary>
+        /// <param name="type">The type.</param>
+        /// <param name="types">The argument types.</param>
+        /// <returns>Constructor info.</returns>
+        public static ConstructorInfo GetConstructorExact(Type type, Type[] types)
+        {
+            Debug.Assert(type != null);
+            Debug.Assert(types != null);
+
+            foreach (var constructorInfo in type.GetConstructors(
+                BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance))
+            {
+                var ctorTypes = constructorInfo.GetParameters().Select(x => x.ParameterType);
+
+                if (ctorTypes.SequenceEqual(types))
+                    return constructorInfo;
+            }
+
+            return null;
+        }
     }
 }

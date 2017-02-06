@@ -66,8 +66,7 @@ namespace Apache.Ignite.Core.Impl.Common
             // Check if there is a serialization ctor.
             var argTypes = new[] {typeof(SerializationInfo), typeof(StreamingContext)};
 
-            var serializationCtorInfo = type.GetConstructor(
-                BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance, null, argTypes, null);
+            var serializationCtorInfo = DelegateConverter.GetConstructorExact(type, argTypes);
 
             if (serializationCtorInfo != null)
             {
