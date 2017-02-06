@@ -112,7 +112,14 @@ namespace Apache.Ignite.Core.Tests.Binary.Serializable
         [Test]
         public void TestIncorrectMethodSignature()
         {
-            // TODO
+            var ex = Assert.Throws<TypeLoadException>(
+                    () => TestUtils.SerializeDeserialize(new InvalidCallbackSignature()));
+
+            var t = typeof(InvalidCallbackSignature);
+
+            Assert.AreEqual(string.Format("Type '{0}' in assembly '{1}' has method 'OnDeserializing' " +
+                                          "with an incorrect signature for the serialization attribute that it " +
+                                          "is decorated with.", t, t.Assembly), ex.Message);
         }
 
         /// <summary>
@@ -179,6 +186,15 @@ namespace Apache.Ignite.Core.Tests.Binary.Serializable
             public void OnDeserialized(StreamingContext context)
             {
                 Messages.Add(string.Format("{0}.OnDeserialized", Name));
+            }
+        }
+
+        private class InvalidCallbackSignature
+        {
+            [OnDeserializing]
+            public void OnDeserializing()
+            {
+                // No-op.
             }
         }
     }
