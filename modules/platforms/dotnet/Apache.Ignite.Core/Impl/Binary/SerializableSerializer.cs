@@ -199,6 +199,7 @@ namespace Apache.Ignite.Core.Impl.Binary
 
             try
             {
+                // TODO: Add handle later, we can deserialize custom type properly without field copying
                 reader.AddHandle(pos, res);
 
                 ReadObject(res, reader, desc, objId, ctx);
