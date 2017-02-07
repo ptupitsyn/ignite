@@ -68,6 +68,19 @@ namespace Apache.Ignite.Core.Tests.Binary.Serializable
         }
 
         /// <summary>
+        /// Tests <see cref="Type"/> serialization.
+        /// </summary>
+        [Test]
+        public void TestTypes()
+        {
+            var type = GetType();
+
+            var res = TestUtils.SerializeDeserialize(type);
+
+            Assert.AreEqual(type, res);
+        }
+
+        /// <summary>
         /// Missing serialization ctor.
         /// </summary>
         private class MissingCtor : ISerializable
