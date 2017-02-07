@@ -25,7 +25,7 @@ namespace Apache.Ignite.Core.Impl.Binary
     /// Tracks object graph and invokes <see cref="IDeserializationCallback" />.
     /// <para />
     /// <see cref="IDeserializationCallback.OnDeserialization" /> must be called after entire object graph has been
-    /// deserialized. We preserve all object in a thread-local list and invoke callbacks once all objects
+    /// deserialized. We preserve all objects in a thread-local list and invoke callbacks once all objects
     /// are fully deserialized.
     /// </summary>
     internal static class DeserializationCallbackProcessor
