@@ -190,17 +190,16 @@ namespace Apache.Ignite.Core.Impl.Binary
         private void ReadObject(object obj, BinaryReader reader, IBinaryTypeDescriptor desc, int objId, 
             StreamingContext ctx)
         {
-            var serInfo = new SerializationInfo(desc.Type, new FormatterConverter());
-
             // Read additional information from raw part.
             reader.SeekToRaw();
 
             var fieldNames = ReadFieldNames(reader, desc);
-
             var customType = reader.ReadBoolean() ? ReadCustomTypeInfo(reader) : null;
 
             // Read field values.
             reader.SeekToFields();
+
+            var serInfo = new SerializationInfo(desc.Type, new FormatterConverter());
 
             foreach (var fieldName in fieldNames)
             {
