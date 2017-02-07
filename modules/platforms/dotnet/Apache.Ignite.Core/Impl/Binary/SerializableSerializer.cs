@@ -62,8 +62,6 @@ namespace Apache.Ignite.Core.Impl.Binary
 
             serializable.GetObjectData(serInfo, ctx);
 
-            WriteFieldNames(writer, serInfo);
-
             // Write fields.
             foreach (var entry in serInfo)
             {
@@ -76,11 +74,16 @@ namespace Apache.Ignite.Core.Impl.Binary
                     || type == typeof(uint[]) || type == typeof(ulong[]))
                 {
                     // Denote .NET-specific type.
+                    // TODO: Write as raw.
                     writer.WriteBoolean(FieldTypeField + entry.Name, true);
                 }
             }
 
-            // TODO: We should write all additional information as raw!
+            // Write additional information in raw mode.
+            writer.GetRawWriter();
+
+            WriteFieldNames(writer, serInfo);
+
             WriteCustomTypeInfo(writer, serInfo, serializable);
 
             _serializableTypeDesc.OnSerialized(obj, ctx);
@@ -94,20 +97,18 @@ namespace Apache.Ignite.Core.Impl.Binary
             if (writer.Marshaller.Ignite != null)
             {
                 // Online mode: field names are in binary metadata.
+                writer.WriteInt(-1);
                 return;
             }
 
             // Offline mode: write all field names.
             // Even if MemberCount is 0, write empty array to denote offline mode.
-            var fieldNames = new string[serInfo.MemberCount];
-            int i = 0;
+            writer.WriteInt(serInfo.MemberCount);
 
             foreach (var entry in serInfo)
             {
-                fieldNames[i++] = entry.Name;
+                writer.WriteString(entry.Name);
             }
-
-            writer.WriteStringArray(FieldNamesField, fieldNames);
         }
 
         /// <summary>
@@ -189,14 +190,30 @@ namespace Apache.Ignite.Core.Impl.Binary
         private void ReadObject(object obj, BinaryReader reader, IBinaryTypeDescriptor desc, int objId, 
             StreamingContext ctx)
         {
-            var serInfo = GetSerializationInfo(reader, desc);
+            var serInfo = new SerializationInfo(desc.Type, new FormatterConverter());
 
-            var raw = reader.GetRawReader();
+            // Read additional information from raw part.
+            reader.SeekToRaw();
 
-            if (raw.ReadBoolean())
+            var fieldNames = ReadFieldNames(reader, desc);
+
+            var customType = reader.ReadBoolean() ? ReadCustomTypeInfo(reader) : null;
+
+            // Read field values.
+            reader.SeekToFields();
+
+            foreach (var fieldName in fieldNames)
+            {
+                var fieldVal = ReadField(reader, fieldName);
+
+                serInfo.AddValue(fieldName, fieldVal);
+            }
+
+            // Construct object.
+            if (customType != null)
             {
                 // Custom type is present.
-                var res = ReadAsCustomType(raw, serInfo, reader.Marshaller, ctx);
+                var res = ReadAsCustomType(customType, serInfo, ctx);
 
                 ReflectionUtils.CopyFields(res, obj);
                 DeserializationCallbackProcessor.SetReference(objId, res);
@@ -210,16 +227,31 @@ namespace Apache.Ignite.Core.Impl.Binary
         /// <summary>
         /// Reads the object as a custom type.
         /// </summary>
-        private static object ReadAsCustomType(IBinaryRawReader raw, SerializationInfo serInfo, Marshaller marsh, 
-            StreamingContext ctx)
+        private static object ReadAsCustomType(Type customType, SerializationInfo serInfo, StreamingContext ctx)
+        {
+            var ctorFunc = SerializableTypeDescriptor.Get(customType).SerializationCtor;
+
+            var customObj = ctorFunc(serInfo, ctx);
+
+            var wrapper = customObj as IObjectReference;
+
+            return wrapper == null
+                ? customObj
+                : wrapper.GetRealObject(ctx);
+        }
+
+        /// <summary>
+        /// Reads the custom type information.
+        /// </summary>
+        private static Type ReadCustomTypeInfo(BinaryReader reader)
         {
             Type customType;
 
-            if (raw.ReadBoolean())
+            if (reader.ReadBoolean())
             {
                 // Registered type written as type id.
-                var typeId = raw.ReadInt();
-                customType = marsh.GetDescriptor(true, typeId, true).Type;
+                var typeId = reader.ReadInt();
+                customType = reader.Marshaller.GetDescriptor(true, typeId, true).Type;
 
                 if (customType == null)
                 {
@@ -230,7 +262,7 @@ namespace Apache.Ignite.Core.Impl.Binary
             else
             {
                 // Unregistered type written as type name.
-                var typeName = raw.ReadString();
+                var typeName = reader.ReadString();
                 customType = new TypeResolver().ResolveType(typeName);
 
                 if (customType == null)
@@ -240,15 +272,7 @@ namespace Apache.Ignite.Core.Impl.Binary
                 }
             }
 
-            var ctorFunc = SerializableTypeDescriptor.Get(customType).SerializationCtor;
-
-            var customObj = ctorFunc(serInfo, ctx);
-
-            var wrapper = customObj as IObjectReference;
-
-            return wrapper == null
-                ? customObj
-                : wrapper.GetRealObject(ctx);
+            return customType;
         }
 
         /// <summary>
@@ -265,24 +289,6 @@ namespace Apache.Ignite.Core.Impl.Binary
         private static StreamingContext GetStreamingContext(IBinaryWriter writer)
         {
             return new StreamingContext(StreamingContextStates.All, writer);
-        }
-
-        /// <summary>
-        /// Gets the serialization information.
-        /// </summary>
-        private static SerializationInfo GetSerializationInfo(BinaryReader reader, IBinaryTypeDescriptor desc)
-        {
-            var serInfo = new SerializationInfo(desc.Type, new FormatterConverter());
-            var fieldNames = GetFieldNames(reader, desc);
-
-            foreach (var fieldName in fieldNames)
-            {
-                var fieldVal = ReadField(reader, fieldName);
-
-                serInfo.AddValue(fieldName, fieldVal);
-            }
-
-            return serInfo;
         }
 
         /// <summary>
@@ -374,7 +380,7 @@ namespace Apache.Ignite.Core.Impl.Binary
         /// <summary>
         /// Gets the field names.
         /// </summary>
-        private static IEnumerable<string> GetFieldNames(BinaryReader reader, IBinaryTypeDescriptor desc)
+        private static IEnumerable<string> ReadFieldNames(BinaryReader reader, IBinaryTypeDescriptor desc)
         {
             var fieldNames = reader.ReadStringArray(FieldNamesField);
 
