@@ -31,12 +31,6 @@ namespace Apache.Ignite.Core.Impl.Binary
     internal class SerializableSerializer : IBinarySerializerInternal
     {
         /** */
-        private const string FieldNamesField = "Ignite.NET_SerializableSerializer_FieldNames";
-
-        /** */
-        private const string FieldTypeField = "Ignite.NET_SerializableSerializer_FieldType_";
-
-        /** */
         private readonly SerializableTypeDescriptor _serializableTypeDesc;
 
         /// <summary>
@@ -62,6 +56,8 @@ namespace Apache.Ignite.Core.Impl.Binary
 
             serializable.GetObjectData(serInfo, ctx);
 
+            var dotNetFields = new List<string>();
+
             // Write fields.
             foreach (var entry in serInfo)
             {
@@ -74,8 +70,7 @@ namespace Apache.Ignite.Core.Impl.Binary
                     || type == typeof(uint[]) || type == typeof(ulong[]))
                 {
                     // Denote .NET-specific type.
-                    // TODO: Write as raw.
-                    writer.WriteBoolean(FieldTypeField + entry.Name, true);
+                    dotNetFields.Add(entry.Name);
                 }
             }
 
@@ -85,6 +80,13 @@ namespace Apache.Ignite.Core.Impl.Binary
             WriteFieldNames(writer, serInfo);
 
             WriteCustomTypeInfo(writer, serInfo, serializable);
+
+            writer.WriteInt(dotNetFields.Count);
+
+            foreach (var dotNetField in dotNetFields)
+            {
+                writer.WriteString(dotNetField);
+            }
 
             _serializableTypeDesc.OnSerialized(obj, ctx);
         }
@@ -381,11 +383,24 @@ namespace Apache.Ignite.Core.Impl.Binary
         /// </summary>
         private static IEnumerable<string> ReadFieldNames(BinaryReader reader, IBinaryTypeDescriptor desc)
         {
-            var fieldNames = reader.ReadStringArray(FieldNamesField);
+            var fieldCount = reader.ReadInt();
 
-            if (fieldNames != null)
+            if (fieldCount == 0)
+                return Enumerable.Empty<string>();
+
+            if (fieldCount > 0)
+            {
+                var fieldNames = new string[fieldCount];
+
+                for (var i = 0; i < fieldCount; i++)
+                {
+                    fieldNames[i] = reader.ReadString();
+                }
+
                 return fieldNames;
+            }
 
+            // Negative field count: online mode.
             var binaryType = reader.Marshaller.GetBinaryType(desc.TypeId);
 
             if (binaryType == BinaryType.Empty)
