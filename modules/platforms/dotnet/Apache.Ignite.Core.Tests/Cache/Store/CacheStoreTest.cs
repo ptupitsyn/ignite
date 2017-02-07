@@ -513,25 +513,6 @@ namespace Apache.Ignite.Core.Tests.Cache.Store
         }
 
         /// <summary>
-        /// Tests the non serializable store factory.
-        /// </summary>
-        [Test]
-        public void TestNonSerializableStoreFactory()
-        {
-            var ignite = Ignition.GetIgnite(GridName);
-
-            var ex = Assert.Throws<IgniteException>(
-                () => ignite.CreateCache<int, string>(new CacheConfiguration("TestNonSerializableStoreFactory")
-                {
-                    CacheStoreFactory = new NonSerializableStoreFactory()
-                }));
-
-            Assert.AreEqual("CacheConfiguration.CacheStoreFactory should be serializable: " +
-                            "Apache.Ignite.Core.Tests.Cache.Store.CacheStoreTest+NonSerializableStoreFactory",
-                            ex.Message);
-        }
-
-        /// <summary>
         /// Get's grid name for this test.
         /// </summary>
         /// <value>Grid name.</value>
@@ -601,14 +582,6 @@ namespace Apache.Ignite.Core.Tests.Cache.Store
             Assert.IsNotNull(customErr);
 
             Assert.AreEqual(customErr.Message, customErr.Details);
-        }
-
-        private class NonSerializableStoreFactory : IFactory<ICacheStore>
-        {
-            public ICacheStore CreateInstance()
-            {
-                return null;
-            }
         }
     }
 
