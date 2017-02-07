@@ -80,6 +80,7 @@ namespace Apache.Ignite.Core.Impl.Binary
                 }
             }
 
+            // TODO: We should write all additional information as raw!
             WriteCustomTypeInfo(writer, serInfo, serializable);
 
             _serializableTypeDesc.OnSerialized(obj, ctx);
