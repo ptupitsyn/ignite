@@ -28,6 +28,7 @@ namespace Apache.Ignite.Core.Impl.Binary
     /// </summary>
     internal static class ReflectionUtils
     {
+        /** Cached copy delegates. */
         private static readonly CopyOnWriteConcurrentDictionary<Type, Action<object, object>> CopyFieldsActions
             = new CopyOnWriteConcurrentDictionary<Type, Action<object, object>>();
                 

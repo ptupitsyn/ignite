@@ -25,7 +25,7 @@ namespace Apache.Ignite.Core.Impl.Binary
     using Apache.Ignite.Core.Impl.Common;
 
     /// <summary>
-    /// Serializes classes that implement <see cref="ISerializable"/>
+    /// Serializes classes that implement <see cref="ISerializable"/>.
     /// </summary>
     internal class SerializableSerializer : IBinarySerializerInternal
     {
