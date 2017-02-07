@@ -5,7 +5,7 @@ IgniteIgnitionStart @2
 IgniteIgnitionInstance @3 
 IgniteIgnitionEnvironmentPointer @4 
 IgniteIgnitionStop @5 
-IgniteIgnitionStopAll @7
+IgniteIgnitionStopAll @6
 IgniteProcessorReleaseStart @8 
 IgniteProcessorProjection @9 
 IgniteProcessorCache @10 
