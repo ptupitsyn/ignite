@@ -166,13 +166,7 @@ namespace Apache.Ignite.Core.Tests.Compute
         {
             Mode = ErrorMode.RmtJobErrNotMarshalable;
 
-            int res = Execute();
-
-            Assert.AreEqual(1, res);
-
-            Assert.AreEqual(4, JobErrs.Count);
-
-            Assert.IsNotNull(JobErrs.ElementAt(0) as IgniteException);
+            Assert.Throws<SerializationException>(() => Execute());
         }
 
         /// <summary>
