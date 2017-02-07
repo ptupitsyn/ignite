@@ -81,14 +81,42 @@ namespace Apache.Ignite.Core.Impl.Binary
 
             WriteCustomTypeInfo(writer, serInfo, serializable);
 
+            WriteDotNetFields(writer, dotNetFields);
+
+            _serializableTypeDesc.OnSerialized(obj, ctx);
+        }
+
+        /// <summary>
+        /// Writes .NET-specific fields.
+        /// </summary>
+        private static void WriteDotNetFields(IBinaryRawWriter writer, ICollection<string> dotNetFields)
+        {
             writer.WriteInt(dotNetFields.Count);
 
             foreach (var dotNetField in dotNetFields)
             {
-                writer.WriteString(dotNetField);
+                writer.WriteInt(BinaryUtils.GetStringHashCode(dotNetField));
+            }
+        }
+
+        /// <summary>
+        /// Writes .NET-specific fields.
+        /// </summary>
+        private static ICollection<int> ReadDotNetFields(IBinaryRawReader reader)
+        {
+            int count = reader.ReadInt();
+
+            if (count <= 0)
+                return null;
+
+            var res = new HashSet<int>();
+
+            for (int i = 0; i < count; i++)
+            {
+                res.Add(reader.ReadInt());
             }
 
-            _serializableTypeDesc.OnSerialized(obj, ctx);
+            return res;
         }
 
         /// <summary>
@@ -196,19 +224,13 @@ namespace Apache.Ignite.Core.Impl.Binary
             reader.SeekToRaw();
 
             var fieldNames = ReadFieldNames(reader, desc);
-            var customType = reader.ReadBoolean() ? ReadCustomTypeInfo(reader) : null;
+            var customType = ReadCustomTypeInfo(reader);
+            var dotNetFields = ReadDotNetFields(reader);
 
             // Read field values.
             reader.SeekToFields();
 
-            var serInfo = new SerializationInfo(desc.Type, new FormatterConverter());
-
-            foreach (var fieldName in fieldNames)
-            {
-                var fieldVal = ReadField(reader, fieldName);
-
-                serInfo.AddValue(fieldName, fieldVal);
-            }
+            var serInfo = ReadSerializationInfo(reader, fieldNames, desc, dotNetFields);
 
             // Construct object.
             if (customType != null)
@@ -223,6 +245,36 @@ namespace Apache.Ignite.Core.Impl.Binary
             {
                 _serializableTypeDesc.SerializationCtorUninitialized(obj, serInfo, ctx);
             }
+        }
+
+        /// <summary>
+        /// Reads the serialization information.
+        /// </summary>
+        private static SerializationInfo ReadSerializationInfo(BinaryReader reader, 
+            IEnumerable<string> fieldNames, IBinaryTypeDescriptor desc, ICollection<int> dotNetFields)
+        {
+            var serInfo = new SerializationInfo(desc.Type, new FormatterConverter());
+
+            if (dotNetFields == null)
+            {
+                foreach (var fieldName in fieldNames)
+                {
+                    var fieldVal = reader.ReadObject<object>(fieldName);
+
+                    serInfo.AddValue(fieldName, fieldVal);
+                }
+            }
+            else
+            {
+                foreach (var fieldName in fieldNames)
+                {
+                    var fieldVal = ReadField(reader, fieldName, dotNetFields);
+
+                    serInfo.AddValue(fieldName, fieldVal);
+                }
+            }
+
+            return serInfo;
         }
 
         /// <summary>
@@ -246,6 +298,9 @@ namespace Apache.Ignite.Core.Impl.Binary
         /// </summary>
         private static Type ReadCustomTypeInfo(BinaryReader reader)
         {
+            if (!reader.ReadBoolean())
+                return null;
+
             Type customType;
 
             if (reader.ReadBoolean())
@@ -299,7 +354,7 @@ namespace Apache.Ignite.Core.Impl.Binary
         /// For such fields we write a special boolean field indicating the type.
         /// If special field is present, then the value has to be converted to .NET-specific type.
         /// </summary>
-        private static object ReadField(IBinaryReader reader, string fieldName)
+        private static object ReadField(IBinaryReader reader, string fieldName, ICollection<int> dotNetFields)
         {
             var fieldVal = reader.ReadObject<object>(fieldName);
 
@@ -312,43 +367,50 @@ namespace Apache.Ignite.Core.Impl.Binary
             {
                 if (fieldType == typeof(byte))
                 {
-                    return IsSpecialType(reader, fieldName) ? (sbyte) (byte) fieldVal : fieldVal;
+                    return dotNetFields.Contains(BinaryUtils.GetStringHashCode(fieldName)) 
+                        ? (sbyte) (byte) fieldVal : fieldVal;
                 }
 
                 if (fieldType == typeof(short))
                 {
-                    return IsSpecialType(reader, fieldName) ? (ushort) (short) fieldVal : fieldVal;
+                    return dotNetFields.Contains(BinaryUtils.GetStringHashCode(fieldName)) 
+                        ? (ushort) (short) fieldVal : fieldVal;
                 }
 
                 if (fieldType == typeof(int))
                 {
-                    return IsSpecialType(reader, fieldName) ? (uint) (int) fieldVal : fieldVal;
+                    return dotNetFields.Contains(BinaryUtils.GetStringHashCode(fieldName)) 
+                        ? (uint) (int) fieldVal : fieldVal;
                 }
 
                 if (fieldType == typeof(long))
                 {
-                    return IsSpecialType(reader, fieldName) ? (ulong) (long) fieldVal : fieldVal;
+                    return dotNetFields.Contains(BinaryUtils.GetStringHashCode(fieldName)) 
+                        ? (ulong) (long) fieldVal : fieldVal;
                 }
 
                 if (fieldType == typeof(byte[]))
                 {
-                    return IsSpecialType(reader, fieldName) ? ConvertArray<byte, sbyte>((byte[]) fieldVal) : fieldVal;
+                    return dotNetFields.Contains(BinaryUtils.GetStringHashCode(fieldName)) 
+                        ? ConvertArray<byte, sbyte>((byte[]) fieldVal) : fieldVal;
                 }
 
                 if (fieldType == typeof(short[]))
                 {
-                    return IsSpecialType(reader, fieldName) 
+                    return dotNetFields.Contains(BinaryUtils.GetStringHashCode(fieldName))
                         ? ConvertArray<short, ushort>((short[]) fieldVal) : fieldVal;
                 }
 
                 if (fieldType == typeof(int[]))
                 {
-                    return IsSpecialType(reader, fieldName) ? ConvertArray<int, uint>((int[]) fieldVal) : fieldVal;
+                    return dotNetFields.Contains(BinaryUtils.GetStringHashCode(fieldName)) 
+                        ? ConvertArray<int, uint>((int[]) fieldVal) : fieldVal;
                 }
 
                 if (fieldType == typeof(long[]))
                 {
-                    return IsSpecialType(reader, fieldName) ? ConvertArray<long, ulong>((long[]) fieldVal) : fieldVal;
+                    return dotNetFields.Contains(BinaryUtils.GetStringHashCode(fieldName)) 
+                        ? ConvertArray<long, ulong>((long[]) fieldVal) : fieldVal;
                 }
             }
 
@@ -368,14 +430,6 @@ namespace Apache.Ignite.Core.Impl.Binary
             }
 
             return res;
-        }
-
-        /// <summary>
-        /// Determines whether specified field is of a special .NET type, such as byte, uint, ushort, ulong.
-        /// </summary>
-        private static bool IsSpecialType(IBinaryReader reader, string fieldName)
-        {
-            return reader.ReadObject<bool?>(FieldTypeField + fieldName) == true;
         }
 
         /// <summary>
