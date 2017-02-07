@@ -19,6 +19,7 @@ namespace Apache.Ignite.Core.Impl.Binary
 {
     using System;
     using System.Collections.Generic;
+    using System.Linq;
     using System.Runtime.Serialization;
     using Apache.Ignite.Core.Binary;
     using Apache.Ignite.Core.Impl.Binary.Metadata;
@@ -383,8 +384,8 @@ namespace Apache.Ignite.Core.Impl.Binary
 
             if (binaryType == BinaryType.Empty)
             {
-                throw new BinaryObjectException(string.Format(
-                    "Failed to find BinaryType for type [typeId={0}, typeName={1}]", desc.TypeId, desc.Type));
+                // Object without fields.
+                return Enumerable.Empty<string>();
             }
 
             return binaryType.Fields;

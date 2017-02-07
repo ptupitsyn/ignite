@@ -39,6 +39,24 @@ namespace Apache.Ignite.Core.Tests.Binary.Serializable
         }
 
         /// <summary>
+        /// Tests the object with no fields.
+        /// </summary>
+        [Test]
+        public void TestEmptyObjectOnline()
+        {
+            using (var ignite = Ignition.Start(TestUtils.GetTestConfiguration()))
+            {
+                var cache = ignite.CreateCache<int, EmptyObject>("c");
+
+                cache[1] = new EmptyObject();
+
+                var res = cache[1];
+
+                Assert.IsNotNull(res);
+            }
+        }
+
+        /// <summary>
         /// Tests ISerializable without serialization ctor.
         /// </summary>
         [Test]
