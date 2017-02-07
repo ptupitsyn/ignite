@@ -118,6 +118,8 @@ namespace Apache.Ignite.Core.Impl.Services
             var writer = marsh.StartMarshal(stream);
 
             BinaryUtils.WriteInvocationResult(writer, invocationError == null, invocationError ?? methodResult);
+
+            marsh.FinishMarshal(writer);
         }
 
         /// <summary>

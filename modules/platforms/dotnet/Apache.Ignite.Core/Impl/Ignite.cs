@@ -640,6 +640,8 @@ namespace Apache.Ignite.Core.Impl
 
                 writer.Write(initialValue);
 
+                Marshaller.FinishMarshal(writer);
+
                 var memPtr = stream.SynchronizeOutput();
 
                 return UU.ProcessorAtomicReference(_proc, name, memPtr, true);
