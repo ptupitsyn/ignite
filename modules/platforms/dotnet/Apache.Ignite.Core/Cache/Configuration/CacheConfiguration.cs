@@ -342,7 +342,6 @@ namespace Apache.Ignite.Core.Cache.Configuration
             writer.WriteBoolean(ReadThrough);
             writer.WriteBoolean(WriteThrough);
             writer.WriteBoolean(EnableStatistics);
-
             writer.WriteObject(CacheStoreFactory);
 
             if (QueryEntities != null)
