@@ -375,7 +375,11 @@ namespace Apache.Ignite.Core.Impl.Unmanaged
                 {
                     stream.Reset();
 
-                    _ignite.Marshaller.StartMarshal(stream).WriteObject(e);
+                    var writer = _ignite.Marshaller.StartMarshal(stream);
+
+                    writer.WriteObject(e);
+
+                    _ignite.Marshaller.FinishMarshal(writer);
 
                     return -1;
                 }
