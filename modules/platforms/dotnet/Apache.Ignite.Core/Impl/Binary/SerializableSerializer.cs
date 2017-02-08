@@ -19,6 +19,7 @@ namespace Apache.Ignite.Core.Impl.Binary
 {
     using System;
     using System.Collections.Generic;
+    using System.IO;
     using System.Linq;
     using System.Runtime.Serialization;
     using Apache.Ignite.Core.Binary;
@@ -189,63 +190,62 @@ namespace Apache.Ignite.Core.Impl.Binary
         /** <inheritdoc /> */
         public T ReadBinary<T>(BinaryReader reader, IBinaryTypeDescriptor desc, int pos)
         {
-            var res = FormatterServices.GetUninitializedObject(desc.Type);
-
+            object res;
             var ctx = GetStreamingContext(reader);
+            var callbackPushed = false;
 
-            _serializableTypeDesc.OnDeserializing(res, ctx);
-
-            int objId = DeserializationCallbackProcessor.Push(res);
-
-            try
-            {
-                // TODO: Add handle later, we can deserialize custom type properly without field copying
-                reader.AddHandle(pos, res);
-
-                ReadObject(res, reader, desc, objId, ctx);
-
-                _serializableTypeDesc.OnDeserialized(res, ctx);
-            }
-            finally
-            {
-                DeserializationCallbackProcessor.Pop();
-            }
-
-
-            return (T) res;
-        }
-
-        /// <summary>
-        /// Reads the object.
-        /// </summary>
-        private void ReadObject(object obj, BinaryReader reader, IBinaryTypeDescriptor desc, int objId, 
-            StreamingContext ctx)
-        {
             // Read additional information from raw part.
+            var oldPos = reader.Stream.Position;
             reader.SeekToRaw();
 
             var fieldNames = ReadFieldNames(reader, desc);
             var customType = ReadCustomTypeInfo(reader);
             var dotNetFields = ReadDotNetFields(reader);
 
-            // Read field values.
-            reader.SeekToFields();
+            // Restore stream position.
+            reader.Stream.Seek(oldPos, SeekOrigin.Begin);
 
-            var serInfo = ReadSerializationInfo(reader, fieldNames, desc, dotNetFields);
-
-            // Construct object.
-            if (customType != null)
+            try
             {
-                // Custom type is present.
-                var res = ReadAsCustomType(customType, serInfo, ctx);
+                if (customType != null)
+                {
+                    // Custom type is present, which returns original type via IObjectReference.
+                    var serInfo = ReadSerializationInfo(reader, fieldNames, desc, dotNetFields);
 
-                ReflectionUtils.CopyFields(res, obj);
-                DeserializationCallbackProcessor.SetReference(objId, res);
+                    res = ReadAsCustomType(customType, serInfo, ctx);
+
+                    // Handle is added after entire object is deserialized,
+                    // because handles should not point to a custom type wrapper.
+                    reader.AddHandle(pos, res);
+
+                    DeserializationCallbackProcessor.Push(res);
+                    callbackPushed = true;
+                }
+                else
+                {
+                    res = FormatterServices.GetUninitializedObject(desc.Type);
+
+                    _serializableTypeDesc.OnDeserializing(res, ctx);
+
+                    DeserializationCallbackProcessor.Push(res);
+                    callbackPushed = true;
+
+                    reader.AddHandle(pos, res);
+
+                    // Read actual data and call constructor.
+                    var serInfo = ReadSerializationInfo(reader, fieldNames, desc, dotNetFields);
+                    _serializableTypeDesc.SerializationCtorUninitialized(res, serInfo, ctx);
+                }
+
+                _serializableTypeDesc.OnDeserialized(res, ctx);
             }
-            else
+            finally
             {
-                _serializableTypeDesc.SerializationCtorUninitialized(obj, serInfo, ctx);
+                if (callbackPushed)
+                    DeserializationCallbackProcessor.Pop();
             }
+
+            return (T) res;
         }
 
         /// <summary>

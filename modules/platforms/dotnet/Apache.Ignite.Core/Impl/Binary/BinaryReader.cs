@@ -871,14 +871,6 @@ namespace Apache.Ignite.Core.Impl.Binary
         }
 
         /// <summary>
-        /// Seeks to non-raw data.
-        /// </summary>
-        internal void SeekToFields()
-        {
-            Stream.Seek(_frame.Pos, SeekOrigin.Begin);
-        }
-
-        /// <summary>
         /// Mark current output as raw. 
         /// </summary>
         private void MarkRaw()
