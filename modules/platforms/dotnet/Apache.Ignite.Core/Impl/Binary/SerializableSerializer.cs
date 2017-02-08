@@ -143,6 +143,13 @@ namespace Apache.Ignite.Core.Impl.Binary
         /// </summary>
         private static void WriteDotNetFields(IBinaryRawWriter writer, ICollection<string> dotNetFields)
         {
+            if (dotNetFields == null)
+            {
+                writer.WriteInt(0);
+
+                return;
+            }
+
             writer.WriteInt(dotNetFields.Count);
 
             foreach (var dotNetField in dotNetFields)
@@ -315,7 +322,7 @@ namespace Apache.Ignite.Core.Impl.Binary
         /// </summary>
         private static List<string> WriteSerializationInfo(IBinaryWriter writer, SerializationInfo serInfo)
         {
-            var dotNetFields = new List<string>();
+            List<string> dotNetFields = null;
 
             // Write fields.
             foreach (var entry in serInfo)
@@ -329,6 +336,8 @@ namespace Apache.Ignite.Core.Impl.Binary
                     || type == typeof(uint[]) || type == typeof(ulong[]))
                 {
                     // Denote .NET-specific type.
+                    dotNetFields = dotNetFields ?? new List<string>();
+
                     dotNetFields.Add(entry.Name);
                 }
             }
