@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-namespace Apache.Ignite.Core.Tests
+namespace Apache.Ignite.Core.Tests.Binary.Serializable
 {
     using System;
     using System.Collections.Generic;
@@ -26,13 +26,12 @@ namespace Apache.Ignite.Core.Tests
     using System.Xml;
     using Apache.Ignite.Core.Cluster;
     using Apache.Ignite.Core.Compute;
-    using Apache.Ignite.Core.Impl;
     using NUnit.Framework;
 
     /// <summary>
-    /// Tests for native serialization.
+    /// Tests additional [Serializable] scenarios.
     /// </summary>
-    public class SerializationTest
+    public class AdvancedSerializationTest
     {
         /** Grid name. */
         private const string GridName = "SerializationTest";

@@ -196,7 +196,7 @@
     <Compile Include="ProcessExtensions.cs" />
     <Compile Include="ProjectFilesTest.cs" />
     <Compile Include="ReconnectTest.cs" />
-    <Compile Include="SerializationTest.cs" />
+    <Compile Include="Binary\Serializable\AdvancedSerializationTest.cs" />
     <Compile Include="IgniteStartStopTest.cs" />
     <Compile Include="Services\ServicesTestFullFooter.cs" />
     <Compile Include="TestUtils.cs" />
