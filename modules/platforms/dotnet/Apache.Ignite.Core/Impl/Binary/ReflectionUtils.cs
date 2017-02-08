@@ -19,19 +19,13 @@ namespace Apache.Ignite.Core.Impl.Binary
 {
     using System;
     using System.Collections.Generic;
-    using System.Diagnostics;
     using System.Reflection;
-    using Apache.Ignite.Core.Impl.Common;
 
     /// <summary>
     /// Reflection utils.
     /// </summary>
     internal static class ReflectionUtils
     {
-        /** Cached copy delegates. */
-        private static readonly CopyOnWriteConcurrentDictionary<Type, Action<object, object>> CopyFieldsActions
-            = new CopyOnWriteConcurrentDictionary<Type, Action<object, object>>();
-                
         /// <summary>
         /// Gets all fields, including base classes.
         /// </summary>
@@ -51,40 +45,6 @@ namespace Apache.Ignite.Core.Impl.Binary
 
                 curType = curType.BaseType;
             }
-        }
-
-        /// <summary>
-        /// Copies the fields.
-        /// </summary>
-        public static void CopyFields(object x, object y)
-        {
-            Debug.Assert(x != null);
-            Debug.Assert(y != null);
-            Debug.Assert(x.GetType() == y.GetType());
-
-            var copyFieldsAction = CopyFieldsActions.GetOrAdd(x.GetType(), GetCopyFieldsAction);
-
-            copyFieldsAction(x, y);
-        }
-
-        /// <summary>
-        /// Gets the copy fields action.
-        /// </summary>
-        private static Action<object, object> GetCopyFieldsAction(Type type)
-        {
-            Action<object, object> res = null;
-
-            foreach (var field in GetAllFields(type))
-            {
-                var read = DelegateConverter.CompileFieldGetter(field);
-                var write = DelegateConverter.CompileFieldSetter(field);
-
-                Action<object, object> copyField = (x, y) => write(y, read(x));
-
-                res += copyField;
-            }
-
-            return res ?? ((_, __) => { });
         }
     }
 }
