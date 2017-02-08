@@ -110,8 +110,13 @@ namespace Apache.Ignite.Core.Tests.Services
             Assert.IsNull(_svc.ObjProp);
 
             prx.ObjProp = new TestClass {Prop = "prop2"};
-            Assert.AreEqual("prop2", ((TestClass)prx.ObjProp).Prop);
-            Assert.AreEqual("prop2", ((TestClass)_svc.ObjProp).Prop);
+
+            var propVal = KeepBinary
+                ? ((IBinaryObject) prx.ObjProp).Deserialize<TestClass>().Prop
+                : ((TestClass) prx.ObjProp).Prop;
+
+            Assert.AreEqual("prop2", propVal);
+            Assert.AreEqual("prop2", ((TestClass) _svc.ObjProp).Prop);
         }
 
         /// <summary>
@@ -191,6 +196,7 @@ namespace Apache.Ignite.Core.Tests.Services
             var prx = GetProxy();
 
             var err = Assert.Throws<ServiceInvocationException>(prx.ExceptionMethod);
+            Assert.IsNotNull(err.InnerException);
             Assert.AreEqual("Expected exception", err.InnerException.Message);
 
             Assert.Throws<ServiceInvocationException>(() => prx.CustomExceptionMethod());
@@ -242,7 +248,7 @@ namespace Apache.Ignite.Core.Tests.Services
         /// <summary>
         /// Creates the proxy.
         /// </summary>
-        protected T GetProxy<T>()
+        private T GetProxy<T>()
         {
             _svc = new TestIgniteService(Binary);
 
