@@ -51,8 +51,11 @@ namespace Apache.Ignite.Core.Tests
             Assert.Greater(jars.Length, 3);
 
             foreach (var jar in jars)
-                // ReSharper disable once AssignNullToNotNullAttribute
-                File.Copy(jar, Path.Combine(folder, Path.GetFileName(jar)), true);
+            {
+                var fileName = Path.GetFileName(jar);
+                Assert.IsNotNull(fileName);
+                File.Copy(jar, Path.Combine(folder, fileName), true);
+            }
 
             // Build classpath
             var classpath = string.Join(";", Directory.GetFiles(folder).Select(Path.GetFileName));
