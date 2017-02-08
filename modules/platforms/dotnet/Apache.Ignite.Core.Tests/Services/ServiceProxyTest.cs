@@ -196,8 +196,17 @@ namespace Apache.Ignite.Core.Tests.Services
             var prx = GetProxy();
 
             var err = Assert.Throws<ServiceInvocationException>(prx.ExceptionMethod);
-            Assert.IsNotNull(err.InnerException);
-            Assert.AreEqual("Expected exception", err.InnerException.Message);
+
+            if (KeepBinary)
+            {
+                Assert.IsNotNull(err.BinaryCause);
+                Assert.AreEqual("Expected exception", err.BinaryCause.Deserialize<Exception>().Message);
+            }
+            else
+            {
+                Assert.IsNotNull(err.InnerException);
+                Assert.AreEqual("Expected exception", err.InnerException.Message);
+            }
 
             Assert.Throws<ServiceInvocationException>(() => prx.CustomExceptionMethod());
         }
