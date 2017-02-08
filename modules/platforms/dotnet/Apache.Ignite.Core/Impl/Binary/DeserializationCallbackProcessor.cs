@@ -41,28 +41,18 @@ namespace Apache.Ignite.Core.Impl.Binary
         /// </summary>
         /// <param name="obj">The object.</param>
         /// <returns>Id of the object.</returns>
-        public static int Push(object obj)
+        public static void Push(object obj)
         {
             var graph = Graph.Value;
-
-            graph.Objects.Add(new KeyValuePair<object, object>(obj, null));
 
             graph.Depth++;
 
-            return graph.Objects.Count - 1;
-        }
+            var cb = obj as IDeserializationCallback;
 
-        /// <summary>
-        /// Sets the reference.
-        /// </summary>
-        /// <param name="objId">The object identifier.</param>
-        /// <param name="referenceObj">The reference object.</param>
-        public static void SetReference(int objId, object referenceObj)
-        {
-            var graph = Graph.Value;
-
-            var obj = graph.Objects[objId].Key;
-            graph.Objects[objId] = new KeyValuePair<object, object>(obj, referenceObj);
+            if (cb != null)
+            {
+                graph.Objects.Add(cb);
+            }
         }
 
         /// <summary>
@@ -80,38 +70,11 @@ namespace Apache.Ignite.Core.Impl.Binary
                 // Entire graph has been deserialized: invoke callbacks in direct order (like BinaryFormatter does).
                 foreach (var obj in graph.Objects)
                 {
-                    if (obj.Value != null)
-                    {
-                        if (InvokeOnDeserialization(obj.Value))
-                        {
-                            ReflectionUtils.CopyFields(obj.Value, obj.Key);
-                        }
-                    }
-                    else
-                    {
-                        InvokeOnDeserialization(obj.Key);
-                    }
+                    obj.OnDeserialization(null);
                 }
 
                 graph.Objects.Clear();
             }
-        }
-
-        /// <summary>
-        /// Invokes the OnDeserialization callback.
-        /// </summary>
-        /// <param name="obj">The object.</param>
-        private static bool InvokeOnDeserialization(object obj)
-        {
-            var cb = obj as IDeserializationCallback;
-
-            if (cb != null)
-            {
-                cb.OnDeserialization(null);
-                return true;
-            }
-
-            return false;
         }
 
         /// <summary>
@@ -120,7 +83,7 @@ namespace Apache.Ignite.Core.Impl.Binary
         private class ObjectGraph
         {
             /** */
-            private readonly List<KeyValuePair<object, object>> _objects = new List<KeyValuePair<object, object>>();
+            private readonly List<IDeserializationCallback> _objects = new List<IDeserializationCallback>();
 
             /// <summary>
             /// Gets or sets the depth.
@@ -130,7 +93,7 @@ namespace Apache.Ignite.Core.Impl.Binary
             /// <summary>
             /// Gets the objects.
             /// </summary>
-            public List<KeyValuePair<object, object>> Objects
+            public List<IDeserializationCallback> Objects
             {
                 get { return _objects; }
             }
