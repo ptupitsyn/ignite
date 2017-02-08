@@ -43,6 +43,12 @@ namespace Apache.Ignite.Core.Impl.Binary
 
             _serializableTypeDesc = SerializableTypeDescriptor.Get(type);
         }
+        
+        /** <inheritdoc /> */
+        public bool SupportsHandles
+        {
+            get { return true; }
+        }
 
         /** <inheritdoc /> */
         public void WriteBinary<T>(T obj, BinaryWriter writer)
@@ -53,27 +59,11 @@ namespace Apache.Ignite.Core.Impl.Binary
             var serializable = (ISerializable) obj;
             var objType = obj.GetType();
 
+            // Get field values and write them.
             var serInfo = new SerializationInfo(objType, new FormatterConverter());
-
             serializable.GetObjectData(serInfo, ctx);
 
-            var dotNetFields = new List<string>();
-
-            // Write fields.
-            foreach (var entry in serInfo)
-            {
-                writer.WriteObject(entry.Name, entry.Value);
-
-                var type = entry.ObjectType;
-
-                if (type == typeof(sbyte) || type == typeof(ushort) || type == typeof(uint) || type == typeof(ulong)
-                    || type == typeof(sbyte[]) || type == typeof(ushort[])
-                    || type == typeof(uint[]) || type == typeof(ulong[]))
-                {
-                    // Denote .NET-specific type.
-                    dotNetFields.Add(entry.Name);
-                }
-            }
+            var dotNetFields = WriteSerializationInfo(writer, serInfo);
 
             // Write additional information in raw mode.
             writer.GetRawWriter();
@@ -85,106 +75,6 @@ namespace Apache.Ignite.Core.Impl.Binary
             WriteDotNetFields(writer, dotNetFields);
 
             _serializableTypeDesc.OnSerialized(obj, ctx);
-        }
-
-        /// <summary>
-        /// Writes .NET-specific fields.
-        /// </summary>
-        private static void WriteDotNetFields(IBinaryRawWriter writer, ICollection<string> dotNetFields)
-        {
-            writer.WriteInt(dotNetFields.Count);
-
-            foreach (var dotNetField in dotNetFields)
-            {
-                writer.WriteInt(BinaryUtils.GetStringHashCode(dotNetField));
-            }
-        }
-
-        /// <summary>
-        /// Writes .NET-specific fields.
-        /// </summary>
-        private static ICollection<int> ReadDotNetFields(IBinaryRawReader reader)
-        {
-            int count = reader.ReadInt();
-
-            if (count <= 0)
-                return null;
-
-            var res = new HashSet<int>();
-
-            for (int i = 0; i < count; i++)
-            {
-                res.Add(reader.ReadInt());
-            }
-
-            return res;
-        }
-
-        /// <summary>
-        /// Writes the field names.
-        /// </summary>
-        private static void WriteFieldNames(BinaryWriter writer, SerializationInfo serInfo)
-        {
-            if (writer.Marshaller.Ignite != null)
-            {
-                // Online mode: field names are in binary metadata.
-                writer.WriteInt(-1);
-                return;
-            }
-
-            // Offline mode: write all field names.
-            // Even if MemberCount is 0, write empty array to denote offline mode.
-            writer.WriteInt(serInfo.MemberCount);
-
-            foreach (var entry in serInfo)
-            {
-                writer.WriteString(entry.Name);
-            }
-        }
-
-        /// <summary>
-        /// Writes the custom type information.
-        /// </summary>
-        private static void WriteCustomTypeInfo(BinaryWriter writer, SerializationInfo serInfo, 
-            ISerializable serializable)
-        {
-            // ISerializable implementor may call SerializationInfo.SetType() or FullTypeName setter.
-            // In that case there is no serialization ctor on objType. 
-            // Instead, we should instantiate specified custom type and then call IObjectReference.GetRealObject().
-            Type customType = null;
-
-            if (serInfo.IsFullTypeNameSetExplicit)
-            {
-                customType = new TypeResolver().ResolveType(serInfo.FullTypeName, serInfo.AssemblyName);
-            }
-            else if (serInfo.ObjectType != serializable.GetType())
-            {
-                customType = serInfo.ObjectType;
-            }
-
-            var raw = writer.GetRawWriter();
-
-            if (customType != null)
-            {
-                raw.WriteBoolean(true);
-
-                var desc = writer.Marshaller.GetDescriptor(customType);
-
-                if (desc.IsRegistered)
-                {
-                    raw.WriteBoolean(true);
-                    raw.WriteInt(desc.TypeId);
-                }
-                else
-                {
-                    raw.WriteBoolean(false);
-                    raw.WriteString(customType.FullName);
-                }
-            }
-            else
-            {
-                raw.WriteBoolean(false);
-            }
         }
 
         /** <inheritdoc /> */
@@ -249,6 +139,203 @@ namespace Apache.Ignite.Core.Impl.Binary
         }
 
         /// <summary>
+        /// Writes .NET-specific fields.
+        /// </summary>
+        private static void WriteDotNetFields(IBinaryRawWriter writer, ICollection<string> dotNetFields)
+        {
+            writer.WriteInt(dotNetFields.Count);
+
+            foreach (var dotNetField in dotNetFields)
+            {
+                writer.WriteInt(BinaryUtils.GetStringHashCode(dotNetField));
+            }
+        }
+
+        /// <summary>
+        /// Writes .NET-specific fields.
+        /// </summary>
+        private static ICollection<int> ReadDotNetFields(IBinaryRawReader reader)
+        {
+            int count = reader.ReadInt();
+
+            if (count <= 0)
+                return null;
+
+            var res = new HashSet<int>();
+
+            for (int i = 0; i < count; i++)
+            {
+                res.Add(reader.ReadInt());
+            }
+
+            return res;
+        }
+
+        /// <summary>
+        /// Writes the field names.
+        /// </summary>
+        private static void WriteFieldNames(BinaryWriter writer, SerializationInfo serInfo)
+        {
+            if (writer.Marshaller.Ignite != null)
+            {
+                // Online mode: field names are in binary metadata.
+                writer.WriteInt(-1);
+                return;
+            }
+
+            // Offline mode: write all field names.
+            // Even if MemberCount is 0, write empty array to denote offline mode.
+            writer.WriteInt(serInfo.MemberCount);
+
+            foreach (var entry in serInfo)
+            {
+                writer.WriteString(entry.Name);
+            }
+        }
+
+        /// <summary>
+        /// Gets the field names.
+        /// </summary>
+        private static IEnumerable<string> ReadFieldNames(BinaryReader reader, IBinaryTypeDescriptor desc)
+        {
+            var fieldCount = reader.ReadInt();
+
+            if (fieldCount == 0)
+                return Enumerable.Empty<string>();
+
+            if (fieldCount > 0)
+            {
+                var fieldNames = new string[fieldCount];
+
+                for (var i = 0; i < fieldCount; i++)
+                {
+                    fieldNames[i] = reader.ReadString();
+                }
+
+                return fieldNames;
+            }
+
+            // Negative field count: online mode.
+            var binaryType = reader.Marshaller.GetBinaryType(desc.TypeId);
+
+            if (binaryType == BinaryType.Empty)
+            {
+                // Object without fields.
+                return Enumerable.Empty<string>();
+            }
+
+            return binaryType.Fields;
+        }
+
+        /// <summary>
+        /// Writes the custom type information.
+        /// </summary>
+        private static void WriteCustomTypeInfo(BinaryWriter writer, SerializationInfo serInfo, 
+            ISerializable serializable)
+        {
+            // ISerializable implementor may call SerializationInfo.SetType() or FullTypeName setter.
+            // In that case there is no serialization ctor on objType. 
+            // Instead, we should instantiate specified custom type and then call IObjectReference.GetRealObject().
+            Type customType = null;
+
+            if (serInfo.IsFullTypeNameSetExplicit)
+            {
+                customType = new TypeResolver().ResolveType(serInfo.FullTypeName, serInfo.AssemblyName);
+            }
+            else if (serInfo.ObjectType != serializable.GetType())
+            {
+                customType = serInfo.ObjectType;
+            }
+
+            var raw = writer.GetRawWriter();
+
+            if (customType != null)
+            {
+                raw.WriteBoolean(true);
+
+                var desc = writer.Marshaller.GetDescriptor(customType);
+
+                if (desc.IsRegistered)
+                {
+                    raw.WriteBoolean(true);
+                    raw.WriteInt(desc.TypeId);
+                }
+                else
+                {
+                    raw.WriteBoolean(false);
+                    raw.WriteString(customType.FullName);
+                }
+            }
+            else
+            {
+                raw.WriteBoolean(false);
+            }
+        }
+
+        /// <summary>
+        /// Reads the custom type information.
+        /// </summary>
+        private static Type ReadCustomTypeInfo(BinaryReader reader)
+        {
+            if (!reader.ReadBoolean())
+                return null;
+
+            Type customType;
+
+            if (reader.ReadBoolean())
+            {
+                // Registered type written as type id.
+                var typeId = reader.ReadInt();
+                customType = reader.Marshaller.GetDescriptor(true, typeId, true).Type;
+
+                if (customType == null)
+                {
+                    throw new BinaryObjectException(string.Format(
+                        "Failed to resolve custom type provided by SerializationInfo: [typeId={0}]", typeId));
+                }
+            }
+            else
+            {
+                // Unregistered type written as type name.
+                var typeName = reader.ReadString();
+                customType = new TypeResolver().ResolveType(typeName);
+
+                if (customType == null)
+                {
+                    throw new BinaryObjectException(string.Format(
+                        "Failed to resolve custom type provided by SerializationInfo: [typeName={0}]", typeName));
+                }
+            }
+
+            return customType;
+        }
+
+        /// <summary>
+        /// Writes the serialization information.
+        /// </summary>
+        private static List<string> WriteSerializationInfo(IBinaryWriter writer, SerializationInfo serInfo)
+        {
+            var dotNetFields = new List<string>();
+
+            // Write fields.
+            foreach (var entry in serInfo)
+            {
+                writer.WriteObject(entry.Name, entry.Value);
+
+                var type = entry.ObjectType;
+
+                if (type == typeof(sbyte) || type == typeof(ushort) || type == typeof(uint) || type == typeof(ulong)
+                    || type == typeof(sbyte[]) || type == typeof(ushort[])
+                    || type == typeof(uint[]) || type == typeof(ulong[]))
+                {
+                    // Denote .NET-specific type.
+                    dotNetFields.Add(entry.Name);
+                }
+            }
+            return dotNetFields;
+        }
+
+        /// <summary>
         /// Reads the serialization information.
         /// </summary>
         private static SerializationInfo ReadSerializationInfo(BinaryReader reader, 
@@ -292,44 +379,6 @@ namespace Apache.Ignite.Core.Impl.Binary
             return wrapper == null
                 ? customObj
                 : wrapper.GetRealObject(ctx);
-        }
-
-        /// <summary>
-        /// Reads the custom type information.
-        /// </summary>
-        private static Type ReadCustomTypeInfo(BinaryReader reader)
-        {
-            if (!reader.ReadBoolean())
-                return null;
-
-            Type customType;
-
-            if (reader.ReadBoolean())
-            {
-                // Registered type written as type id.
-                var typeId = reader.ReadInt();
-                customType = reader.Marshaller.GetDescriptor(true, typeId, true).Type;
-
-                if (customType == null)
-                {
-                    throw new BinaryObjectException(string.Format(
-                        "Failed to resolve custom type provided by SerializationInfo: [typeId={0}]", typeId));
-                }
-            }
-            else
-            {
-                // Unregistered type written as type name.
-                var typeName = reader.ReadString();
-                customType = new TypeResolver().ResolveType(typeName);
-
-                if (customType == null)
-                {
-                    throw new BinaryObjectException(string.Format(
-                        "Failed to resolve custom type provided by SerializationInfo: [typeName={0}]", typeName));
-                }
-            }
-
-            return customType;
         }
 
         /// <summary>
@@ -431,46 +480,6 @@ namespace Apache.Ignite.Core.Impl.Binary
             }
 
             return res;
-        }
-
-        /// <summary>
-        /// Gets the field names.
-        /// </summary>
-        private static IEnumerable<string> ReadFieldNames(BinaryReader reader, IBinaryTypeDescriptor desc)
-        {
-            var fieldCount = reader.ReadInt();
-
-            if (fieldCount == 0)
-                return Enumerable.Empty<string>();
-
-            if (fieldCount > 0)
-            {
-                var fieldNames = new string[fieldCount];
-
-                for (var i = 0; i < fieldCount; i++)
-                {
-                    fieldNames[i] = reader.ReadString();
-                }
-
-                return fieldNames;
-            }
-
-            // Negative field count: online mode.
-            var binaryType = reader.Marshaller.GetBinaryType(desc.TypeId);
-
-            if (binaryType == BinaryType.Empty)
-            {
-                // Object without fields.
-                return Enumerable.Empty<string>();
-            }
-
-            return binaryType.Fields;
-        }
-
-        /** <inheritdoc /> */
-        public bool SupportsHandles
-        {
-            get { return true; }
         }
     }
 }
