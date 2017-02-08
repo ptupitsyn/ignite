@@ -591,9 +591,9 @@ namespace Apache.Ignite.Core.Impl.Binary
             return BinaryUtils.ReadTypedArray(ctx, true, elemType);
         }
 
-        /**
-         * <summary>Read array.</summary>
-         */
+        /// <summary>
+        /// Reads the array.
+        /// </summary>
         private static object ReadArray(BinaryReader ctx, Type type)
         {
             var elemType = type.GetElementType();
@@ -602,7 +602,8 @@ namespace Apache.Ignite.Core.Impl.Binary
             {
                 if (ctx.Mode == BinaryMode.ForceBinary)
                 {
-                    elemType = typeof(IBinaryObject);
+                    // Forced binary mode: use object because primitives are not represented as IBinaryObject.
+                    elemType = typeof(object);
                 }
                 else
                 {
