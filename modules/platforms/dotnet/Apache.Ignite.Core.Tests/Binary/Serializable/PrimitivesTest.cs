@@ -15,6 +15,8 @@
  * limitations under the License.
  */
 
+// ReSharper disable StringLiteralTypo
+// ReSharper disable IdentifierTypo
 namespace Apache.Ignite.Core.Tests.Binary.Serializable
 {
     using System;

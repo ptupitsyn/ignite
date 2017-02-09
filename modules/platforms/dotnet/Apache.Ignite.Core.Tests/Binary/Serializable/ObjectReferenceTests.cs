@@ -23,7 +23,7 @@ namespace Apache.Ignite.Core.Tests.Binary.Serializable
 
     /// <summary>
     /// Tests that <see cref="IObjectReference"/> objects are deserialized properly.
-    /// This only applies to <see cref="ISerializable"/> implementors, which can replace underlying object
+    /// This only applies to <see cref="ISerializable"/> implementers, which can replace underlying object
     /// with <see cref="SerializationInfo.SetType"/>, <see cref="SerializationInfo.AssemblyName"/>, and
     /// <see cref="SerializationInfo.FullTypeName"/>.
     /// </summary>

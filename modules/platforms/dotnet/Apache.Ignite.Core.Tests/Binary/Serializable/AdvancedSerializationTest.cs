@@ -105,7 +105,7 @@ namespace Apache.Ignite.Core.Tests.Binary.Serializable
 
             var cache = Ignition.GetIgnite(null).GetOrCreateCache<int, object>("cache");
 
-            // Put multiple objects from muliple same-named assemblies to cache
+            // Put multiple objects from multiple same-named assemblies to cache
             for (var i = 0; i < count; i++)
             {
                 dynamic val = Activator.CreateInstance(GenerateDynamicType());
