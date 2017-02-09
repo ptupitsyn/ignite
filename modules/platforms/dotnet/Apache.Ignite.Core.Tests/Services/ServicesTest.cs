@@ -261,7 +261,6 @@ namespace Apache.Ignite.Core.Tests.Services
 
             // Check proxy properties
             Assert.IsNotNull(prx);
-            // TODO: Why our serializer returns a different instance of Type? This is not acceptable.
             Assert.AreEqual(prx.GetType(), svc.GetType());
             Assert.AreEqual(prx.ToString(), svc.ToString());
             Assert.AreEqual(17, prx.TestProperty);
