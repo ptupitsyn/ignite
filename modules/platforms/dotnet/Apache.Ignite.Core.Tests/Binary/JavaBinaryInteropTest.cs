@@ -35,21 +35,26 @@ namespace Apache.Ignite.Core.Tests.Binary
             {
                 var cache = ignite.CreateCache<int, object>("TestValueRoundtrip");
 
+                // TODO
+                // Basic types.
+
+                // Basic type arrays.
                 var guids = new[] {Guid.Empty, Guid.NewGuid()};
                 cache[1] = guids;
                 Assert.AreEqual(guids, cache[1]);
 
-                // TODO: All array types, nullable and not, with custom objects, unregistered types, etc.
+                // Custom types.
+                cache[1] = new Foo {X = 10};
+                Assert.AreEqual(10, ((Foo)cache[1]).X);
             }
         }
 
         /// <summary>
-        /// Tests that arrays of any types are understood on Java side.
+        /// Test custom class.
         /// </summary>
-        [Test]
-        public void TestArrays()
+        private class Foo
         {
-            // TODO: ?
+            public int X { get; set; }
         }
     }
 }
