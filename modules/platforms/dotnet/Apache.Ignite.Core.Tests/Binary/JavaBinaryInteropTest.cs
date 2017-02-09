@@ -23,7 +23,7 @@ namespace Apache.Ignite.Core.Tests.Binary
     /// <summary>
     /// Tests binary type interoperability between .NET and Java code.
     /// </summary>
-    public class JavaBinaryIteropTest
+    public class JavaBinaryInteropTest
     {
         /// <summary>
         /// Tests that all kinds of values from .NET can be handled properly on Java side.
