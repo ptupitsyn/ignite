@@ -170,7 +170,7 @@ namespace Apache.Ignite.Core.Impl.Binary
             return DoOutOp((int) Op.RegisterType, w =>
             {
                 w.WriteInt(id);
-                w.WriteString(type.FullName);
+                w.WriteString(type.AssemblyQualifiedName);
             }) == True;
         }
 
