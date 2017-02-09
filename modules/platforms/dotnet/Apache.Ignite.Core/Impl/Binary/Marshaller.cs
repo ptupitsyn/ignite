@@ -407,7 +407,7 @@ namespace Apache.Ignite.Core.Impl.Binary
         /// <para />
         /// When working in binary mode, we don't need Type. And there is no Type at all in some cases.
         /// So we should not attempt to call BinaryProcessor right away.
-        /// Only when we really deserilize the value, requiresType is set to true
+        /// Only when we really deserialize the value, requiresType is set to true
         /// and we attempt to resolve the type by all means.
         /// </param>
         /// <returns>
