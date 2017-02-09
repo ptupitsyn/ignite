@@ -18,6 +18,7 @@
 namespace Apache.Ignite.Core.Tests.Binary
 {
     using System;
+    using System.Linq;
     using NUnit.Framework;
 
     /// <summary>
@@ -45,7 +46,10 @@ namespace Apache.Ignite.Core.Tests.Binary
 
                 // Custom types.
                 cache[1] = new Foo {X = 10};
-                Assert.AreEqual(10, ((Foo)cache[1]).X);
+                Assert.AreEqual(10, ((Foo) cache[1]).X);
+
+                cache[1] = new[] {new Foo {X = -1}, new Foo {X = 1}};
+                Assert.AreEqual(new[] {-1, 1}, ((Foo[]) cache[1]).Select(x => x.X));
             }
         }
 
