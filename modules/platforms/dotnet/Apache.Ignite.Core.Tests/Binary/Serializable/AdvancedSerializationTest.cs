@@ -58,7 +58,7 @@ namespace Apache.Ignite.Core.Tests.Binary.Serializable
         public void TestSerializableXmlDoc()
         {
             var grid = Ignition.GetIgnite(null);
-            var cache = grid.GetCache<int, SerializableXmlDoc>("replicated");
+            var cache = grid.GetOrCreateCache<int, SerializableXmlDoc>("cache");
 
             var doc = new SerializableXmlDoc();
 
@@ -103,7 +103,7 @@ namespace Apache.Ignite.Core.Tests.Binary.Serializable
         {
             const int count = 50;
 
-            var cache = Ignition.GetIgnite(null).GetCache<int, object>("local");
+            var cache = Ignition.GetIgnite(null).GetOrCreateCache<int, object>("cache");
 
             // Put multiple objects from muliple same-named assemblies to cache
             for (var i = 0; i < count; i++)
