@@ -36,53 +36,60 @@ namespace Apache.Ignite.Core.Tests.Binary
         {
             using (var ignite = Ignition.Start(TestUtils.GetTestConfiguration()))
             {
-                var cache = ignite.CreateCache<int, object>((string) null);
+                ignite.CreateCache<int, object>((string) null);
 
                 // Basic types.
+                // Types which map directly to Java are returned properly when retrieved as object.
+                // Non-directly mapped types are returned as their counterpart.
                 CheckValueCaching((byte) 255);
-                CheckValueCachingAsObject((byte) 255);
-
-                CheckValueCaching((sbyte) -10);
-
+                CheckValueCaching((sbyte) -10, false);
                 CheckValueCaching((short) -32000);
-                CheckValueCachingAsObject((short) -32000);
-
-                CheckValueCaching((ushort) 65350);
+                CheckValueCaching((ushort) 65350, false);
                 CheckValueCaching(int.MinValue);
-                CheckValueCaching(uint.MaxValue);
+                CheckValueCaching(uint.MaxValue, false);
                 CheckValueCaching(long.MinValue);
-                CheckValueCaching(ulong.MaxValue);
+                CheckValueCaching(ulong.MaxValue, false);
 
                 // Basic type arrays.
-                CheckValueCaching(new [] {Guid.Empty, Guid.NewGuid()});
+                CheckValueCaching(new [] {Guid.Empty, Guid.NewGuid()}, false);
                 CheckValueCaching(new Guid?[] {Guid.Empty, Guid.NewGuid()});
-                CheckValueCachingAsObject(new Guid?[] {Guid.Empty, Guid.NewGuid()});
 
                 // Custom types.
                 CheckValueCaching(new Foo {X = 10});
-                CheckValueCachingAsObject(new Foo {X = 10});
+                CheckValueCaching(new Bar {X = 20});
 
-                CheckValueCaching(new List<Foo> {new Foo {X = -2}, new Foo {X = 2}});
-                CheckValueCachingAsObject(new List<Foo> {new Foo {X = -2}, new Foo {X = 2}});
+                CheckValueCaching(new List<Foo>(GetFoo()));
+                CheckValueCaching(new List<Bar>(GetBar()));
 
-                CheckValueCaching(new[] {new Foo {X = -1}, new Foo {X = 1}});
-                //CheckValueCachingAsObject(new[] {new Foo {X = -1}, new Foo {X = 1}});
+                // Collections.
+                CheckValueCaching(new HashSet<Foo>(GetFoo()));
+                CheckValueCaching(new HashSet<Bar>(GetBar()));
+
+                // Arrays.
+                // Array type is lost, because in binary mode on Java side we receive the value as Object[].
+                CheckValueCaching(new[] {new Foo {X = -1}, new Foo {X = 1}}, false);
+                CheckValueCaching(new[] {new Bar {X = -10}, new Bar {X = 10}}, false);
             }
         }
 
         /// <summary>
-        /// Checks caching of a value.
+        /// Checks caching of a value with generic cache.
         /// </summary>
-        private static void CheckValueCaching<T>(T val)
+        private static void CheckValueCaching<T>(T val, bool asObject = true)
         {
             var cache = Ignition.GetIgnite(null).GetCache<int, T>(null);
 
             cache[1] = val;
             Assert.AreEqual(val, cache[1]);
+
+            if (asObject)
+            {
+                CheckValueCachingAsObject(val);
+            }
         }
 
         /// <summary>
-        /// Checks caching of a value.
+        /// Checks caching of a value with object cache.
         /// </summary>
         private static void CheckValueCachingAsObject<T>(T val)
         {
@@ -90,6 +97,22 @@ namespace Apache.Ignite.Core.Tests.Binary
 
             cache[1] = val;
             Assert.AreEqual(val, (T) cache[1]);
+        }
+
+        /// <summary>
+        /// Gets Foo collection.
+        /// </summary>
+        private IEnumerable<Foo> GetFoo()
+        {
+            return Enumerable.Range(-50, 100).Select(x => new Foo {X = x});
+        }
+
+        /// <summary>
+        /// Gets Bar collection.
+        /// </summary>
+        private IEnumerable<Bar> GetBar()
+        {
+            return Enumerable.Range(-50, 100).Select(x => new Bar {X = x});
         }
 
         /// <summary>
