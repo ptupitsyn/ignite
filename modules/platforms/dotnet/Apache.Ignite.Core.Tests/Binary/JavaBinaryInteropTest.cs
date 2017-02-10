@@ -52,29 +52,34 @@ namespace Apache.Ignite.Core.Tests.Binary
 
                 CheckValueCaching((float)1.1);
                 CheckValueCaching(2.2);
-                CheckValueCaching((decimal)3.3);
 
-                CheckValueCaching(Guid.NewGuid());
-                CheckValueCaching(DateTime.Now);
+                CheckValueCaching((decimal) 3.3, asArray: false);
+                CheckValueCaching(Guid.NewGuid(), asArray: false);
+                CheckValueCaching(DateTime.Now, asArray: false);
 
                 CheckValueCaching("foobar");
 
-                // Basic type arrays.
+                // Special arrays.
                 CheckValueCaching(new [] {Guid.Empty, Guid.NewGuid()}, false);
                 CheckValueCaching(new Guid?[] {Guid.Empty, Guid.NewGuid()});
+
+                CheckValueCaching(new [] {1.2m, -3.4m}, false);
+                CheckValueCaching(new decimal?[] {1.2m, -3.4m});
+
+                CheckValueCaching(new[] {DateTime.Now}, false);
 
                 // Custom types.
                 CheckValueCaching(new Foo {X = 10});
                 CheckValueCaching(new Bar {X = 20});
 
+                // Collections.
                 CheckValueCaching(new List<Foo>(GetFoo()));
                 CheckValueCaching(new List<Bar>(GetBar()));
 
-                // Collections.
                 CheckValueCaching(new HashSet<Foo>(GetFoo()));
                 CheckValueCaching(new HashSet<Bar>(GetBar()));
 
-                // Arrays.
+                // Custom type arrays.
                 // Array type is lost, because in binary mode on Java side we receive the value as Object[].
                 CheckValueCaching(new[] {new Foo {X = -1}, new Foo {X = 1}}, false);
                 CheckValueCaching(new[] {new Bar {X = -10}, new Bar {X = 10}}, false);
@@ -84,7 +89,7 @@ namespace Apache.Ignite.Core.Tests.Binary
         /// <summary>
         /// Checks caching of a value with generic cache.
         /// </summary>
-        private static void CheckValueCaching<T>(T val, bool asObject = true)
+        private static void CheckValueCaching<T>(T val, bool asObject = true, bool asArray = true)
         {
             var cache = Ignition.GetIgnite(null).GetCache<int, T>(null);
 
@@ -94,6 +99,12 @@ namespace Apache.Ignite.Core.Tests.Binary
             if (asObject)
             {
                 CheckValueCachingAsObject(val);
+            }
+
+            // Array of T
+            if (asArray && !val.GetType().IsArray)
+            {
+                CheckValueCaching(new[] {val}, asObject, false);
             }
         }
 
