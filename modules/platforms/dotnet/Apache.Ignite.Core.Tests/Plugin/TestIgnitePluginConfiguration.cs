@@ -17,6 +17,8 @@
 
  namespace Apache.Ignite.Core.Tests.Plugin
 {
+    using System;
+    using Apache.Ignite.Core.Binary;
     using Apache.Ignite.Core.Plugin;
 
     /// <summary>
@@ -29,5 +31,17 @@
         /// Custom plugin property.
         /// </summary>
         public string PluginProperty { get; set; }
+
+        /** <inheritdoc /> */
+        public string PluginConfigurationClassName
+        {
+            get { return null; }
+        }
+
+        /** <inheritdoc /> */
+        public void WriteBinary(IBinaryRawWriter writer)
+        {
+            writer.WriteString(PluginProperty);
+        }
     }
 }
