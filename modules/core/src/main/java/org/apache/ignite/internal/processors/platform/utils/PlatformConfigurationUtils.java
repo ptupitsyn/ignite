@@ -17,6 +17,7 @@
 
 package org.apache.ignite.internal.processors.platform.utils;
 
+import org.apache.ignite.IgniteException;
 import org.apache.ignite.binary.BinaryArrayIdentityResolver;
 import org.apache.ignite.binary.BinaryFieldIdentityResolver;
 import org.apache.ignite.binary.BinaryIdentityResolver;
@@ -38,18 +39,14 @@ import org.apache.ignite.cache.affinity.rendezvous.RendezvousAffinityFunction;
 import org.apache.ignite.cache.eviction.EvictionPolicy;
 import org.apache.ignite.cache.eviction.fifo.FifoEvictionPolicy;
 import org.apache.ignite.cache.eviction.lru.LruEvictionPolicy;
-import org.apache.ignite.configuration.AtomicConfiguration;
-import org.apache.ignite.configuration.BinaryConfiguration;
-import org.apache.ignite.configuration.CacheConfiguration;
-import org.apache.ignite.configuration.IgniteConfiguration;
-import org.apache.ignite.configuration.NearCacheConfiguration;
-import org.apache.ignite.configuration.TransactionConfiguration;
+import org.apache.ignite.configuration.*;
 import org.apache.ignite.internal.binary.*;
 import org.apache.ignite.internal.processors.platform.cache.affinity.PlatformAffinityFunction;
 import org.apache.ignite.internal.processors.platform.cache.expiry.PlatformExpiryPolicyFactory;
 import org.apache.ignite.internal.processors.platform.plugin.cache.PlatformCachePluginConfiguration;
 import org.apache.ignite.platform.dotnet.*;
 import org.apache.ignite.plugin.CachePluginConfiguration;
+import org.apache.ignite.plugin.PluginConfiguration;
 import org.apache.ignite.spi.communication.CommunicationSpi;
 import org.apache.ignite.spi.communication.tcp.TcpCommunicationSpi;
 import org.apache.ignite.spi.communication.tcp.TcpCommunicationSpiMBean;
@@ -67,15 +64,9 @@ import org.apache.ignite.transactions.TransactionIsolation;
 import javax.cache.configuration.Factory;
 import javax.cache.expiry.ExpiryPolicy;
 import java.lang.management.ManagementFactory;
+import java.lang.reflect.InvocationTargetException;
 import java.net.InetSocketAddress;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.HashSet;
+import java.util.*;
 
 /**
  * Configuration utils.
@@ -647,6 +638,8 @@ public class PlatformConfigurationUtils {
             default:
                 assert swapType == SWAP_TYP_NONE;
         }
+
+        readPluginConfiguration(cfg, in);
     }
 
     /**
@@ -1260,6 +1253,44 @@ public class PlatformConfigurationUtils {
         else {
             w.writeByte((byte)0);
         }
+    }
+
+    /**
+     * Reads the plugin configuration.
+     *
+     * @param cfg Ignite configuration to update.
+     * @param in Reader.
+     */
+    private static void readPluginConfiguration(IgniteConfiguration cfg, BinaryRawReader in) {
+        int cnt = in.readInt();
+
+        if (cnt == 0)
+            return;
+
+        //cfg.getPluginConfigurations()
+        ArrayList<PluginConfiguration> res = new ArrayList<>();
+
+        if (cfg.getPluginConfigurations() != null) {
+            Collections.addAll(res, cfg.getPluginConfigurations());
+        }
+
+        for (int i = 0; i < cnt; i++) {
+            String pluginConfigClassName = in.readString();
+            assert pluginConfigClassName != null;
+
+            try {
+                Class cls = Class.forName(pluginConfigClassName);
+
+                Object pluginCfg = cls.getConstructor(BinaryRawReader.class).newInstance(in);
+
+                res.add((PluginConfiguration) pluginCfg);
+            } catch (ClassNotFoundException | NoSuchMethodException | IllegalAccessException
+                    | InstantiationException | InvocationTargetException e) {
+                throw new IgniteException(e);
+            }
+        }
+
+        cfg.setPluginConfigurations(res.toArray(new PluginConfiguration[res.size()]));
     }
 
     /**
