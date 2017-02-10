@@ -18,6 +18,7 @@
 namespace Apache.Ignite.Core.Tests.Binary
 {
     using System;
+    using System.Collections;
     using System.Collections.Generic;
     using System.Linq;
     using NUnit.Framework;
@@ -69,8 +70,8 @@ namespace Apache.Ignite.Core.Tests.Binary
                 CheckValueCaching(new[] {DateTime.Now}, false);
 
                 // Custom types.
-                CheckValueCaching(new Foo {X = 10});
-                CheckValueCaching(new Bar {X = 20});
+                CheckValueCaching(new Foo {X = 10}, asArray: false);
+                CheckValueCaching(new Bar {X = 20}, asArray: false);
 
                 // Collections.
                 CheckValueCaching(new List<Foo>(GetFoo()));
@@ -102,7 +103,7 @@ namespace Apache.Ignite.Core.Tests.Binary
             }
 
             // Array of T
-            if (asArray && !val.GetType().IsArray)
+            if (asArray && !(val is IEnumerable))
             {
                 CheckValueCaching(new[] {val}, asObject, false);
             }
