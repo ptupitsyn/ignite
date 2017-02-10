@@ -54,8 +54,9 @@ namespace Apache.Ignite.Core.Tests.Binary
                 CheckValueCaching(ulong.MaxValue);
 
                 // Basic type arrays.
-                CheckValueCaching(new[] {Guid.Empty, Guid.NewGuid()});
-                CheckValueCachingAsObject(new[] {Guid.Empty, Guid.NewGuid()});
+                CheckValueCaching(new [] {Guid.Empty, Guid.NewGuid()});
+                CheckValueCaching(new Guid?[] {Guid.Empty, Guid.NewGuid()});
+                CheckValueCachingAsObject(new Guid?[] {Guid.Empty, Guid.NewGuid()});
 
                 // Custom types.
                 CheckValueCaching(new Foo {X = 10});
