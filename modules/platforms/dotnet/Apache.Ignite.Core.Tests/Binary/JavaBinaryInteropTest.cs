@@ -51,7 +51,7 @@ namespace Apache.Ignite.Core.Tests.Binary
                 CheckValueCaching(long.MinValue);
                 CheckValueCaching(ulong.MaxValue, false);
 
-                CheckValueCaching((float)1.1);
+                CheckValueCaching((float) 1.1);
                 CheckValueCaching(2.2);
 
                 CheckValueCaching((decimal) 3.3, asArray: false);
@@ -61,10 +61,10 @@ namespace Apache.Ignite.Core.Tests.Binary
                 CheckValueCaching("foobar");
 
                 // Special arrays.
-                CheckValueCaching(new [] {Guid.Empty, Guid.NewGuid()}, false);
+                CheckValueCaching(new[] {Guid.Empty, Guid.NewGuid()}, false);
                 CheckValueCaching(new Guid?[] {Guid.Empty, Guid.NewGuid()});
 
-                CheckValueCaching(new [] {1.2m, -3.4m}, false);
+                CheckValueCaching(new[] {1.2m, -3.4m}, false);
                 CheckValueCaching(new decimal?[] {1.2m, -3.4m});
 
                 CheckValueCaching(new[] {DateTime.Now}, false);
@@ -79,6 +79,9 @@ namespace Apache.Ignite.Core.Tests.Binary
 
                 CheckValueCaching(new HashSet<Foo>(GetFoo()));
                 CheckValueCaching(new HashSet<Bar>(GetBar()));
+
+                CheckValueCaching(GetFoo().ToDictionary(x => x.X, x => x));
+                CheckValueCaching(GetBar().ToDictionary(x => x.X, x => x));
 
                 // Custom type arrays.
                 // Array type is lost, because in binary mode on Java side we receive the value as Object[].
@@ -123,7 +126,7 @@ namespace Apache.Ignite.Core.Tests.Binary
         /// <summary>
         /// Gets Foo collection.
         /// </summary>
-        private IEnumerable<Foo> GetFoo()
+        private static IEnumerable<Foo> GetFoo()
         {
             return Enumerable.Range(-50, 100).Select(x => new Foo {X = x});
         }
@@ -131,7 +134,7 @@ namespace Apache.Ignite.Core.Tests.Binary
         /// <summary>
         /// Gets Bar collection.
         /// </summary>
-        private IEnumerable<Bar> GetBar()
+        private static IEnumerable<Bar> GetBar()
         {
             return Enumerable.Range(-50, 100).Select(x => new Bar {X = x});
         }
