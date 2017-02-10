@@ -20,7 +20,6 @@ namespace Apache.Ignite.Core.Tests.Binary
     using System;
     using System.Collections.Generic;
     using System.Linq;
-    using Apache.Ignite.Core.Cache;
     using NUnit.Framework;
 
     /// <summary>
@@ -41,6 +40,7 @@ namespace Apache.Ignite.Core.Tests.Binary
                 // Basic types.
                 // Types which map directly to Java are returned properly when retrieved as object.
                 // Non-directly mapped types are returned as their counterpart.
+                CheckValueCaching((char) 128);
                 CheckValueCaching((byte) 255);
                 CheckValueCaching((sbyte) -10, false);
                 CheckValueCaching((short) -32000);
@@ -49,6 +49,15 @@ namespace Apache.Ignite.Core.Tests.Binary
                 CheckValueCaching(uint.MaxValue, false);
                 CheckValueCaching(long.MinValue);
                 CheckValueCaching(ulong.MaxValue, false);
+
+                CheckValueCaching((float)1.1);
+                CheckValueCaching(2.2);
+                CheckValueCaching((decimal)3.3);
+
+                CheckValueCaching(Guid.NewGuid());
+                CheckValueCaching(DateTime.Now);
+
+                CheckValueCaching("foobar");
 
                 // Basic type arrays.
                 CheckValueCaching(new [] {Guid.Empty, Guid.NewGuid()}, false);
@@ -126,7 +135,7 @@ namespace Apache.Ignite.Core.Tests.Binary
             {
                 if (ReferenceEquals(null, obj)) return false;
                 if (ReferenceEquals(this, obj)) return true;
-                if (obj.GetType() != this.GetType()) return false;
+                if (obj.GetType() != GetType()) return false;
                 return X == ((Foo) obj).X;
             }
 
