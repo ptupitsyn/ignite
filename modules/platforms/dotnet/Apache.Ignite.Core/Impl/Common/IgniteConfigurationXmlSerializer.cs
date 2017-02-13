@@ -344,9 +344,6 @@ namespace Apache.Ignite.Core.Impl.Common
             var type = target.GetType();
             var property = GetPropertyOrThrow(propName, propVal, type);
 
-            if (!property.CanWrite)
-                return;
-
             var converter = GetConverter(property, property.PropertyType);
 
             var convertedVal = converter.ConvertFromInvariantString(propVal);
