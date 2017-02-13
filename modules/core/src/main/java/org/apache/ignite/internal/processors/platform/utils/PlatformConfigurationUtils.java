@@ -1267,7 +1267,6 @@ public class PlatformConfigurationUtils {
         if (cnt == 0)
             return;
 
-        //cfg.getPluginConfigurations()
         ArrayList<PluginConfiguration> res = new ArrayList<>();
 
         if (cfg.getPluginConfigurations() != null) {
