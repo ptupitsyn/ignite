@@ -39,14 +39,25 @@ import org.apache.ignite.cache.affinity.rendezvous.RendezvousAffinityFunction;
 import org.apache.ignite.cache.eviction.EvictionPolicy;
 import org.apache.ignite.cache.eviction.fifo.FifoEvictionPolicy;
 import org.apache.ignite.cache.eviction.lru.LruEvictionPolicy;
-import org.apache.ignite.configuration.*;
-import org.apache.ignite.internal.binary.*;
+import org.apache.ignite.configuration.AtomicConfiguration;
+import org.apache.ignite.configuration.BinaryConfiguration;
+import org.apache.ignite.configuration.CacheConfiguration;
+import org.apache.ignite.configuration.IgniteConfiguration;
+import org.apache.ignite.configuration.NearCacheConfiguration;
+import org.apache.ignite.configuration.TransactionConfiguration;
+import org.apache.ignite.internal.binary.BinaryRawReaderEx;
+import org.apache.ignite.internal.binary.BinaryRawWriterEx;
 import org.apache.ignite.internal.processors.platform.cache.affinity.PlatformAffinityFunction;
 import org.apache.ignite.internal.processors.platform.cache.expiry.PlatformExpiryPolicyFactory;
 import org.apache.ignite.internal.processors.platform.plugin.cache.PlatformCachePluginConfiguration;
-import org.apache.ignite.platform.dotnet.*;
+import org.apache.ignite.platform.dotnet.PlatformDotNetAffinityFunction;
+import org.apache.ignite.platform.dotnet.PlatformDotNetBinaryConfiguration;
+import org.apache.ignite.platform.dotnet.PlatformDotNetBinaryTypeConfiguration;
+import org.apache.ignite.platform.dotnet.PlatformDotNetCacheStoreFactoryNative;
+import org.apache.ignite.platform.dotnet.PlatformDotNetConfiguration;
 import org.apache.ignite.plugin.CachePluginConfiguration;
-import org.apache.ignite.plugin.PluginConfiguration;
+import org.apache.ignite.plugin.platform.PlatformPluginConfiguration;
+import org.apache.ignite.plugin.platform.PlatformPluginConfigurationFactory;
 import org.apache.ignite.spi.communication.CommunicationSpi;
 import org.apache.ignite.spi.communication.tcp.TcpCommunicationSpi;
 import org.apache.ignite.spi.communication.tcp.TcpCommunicationSpiMBean;
@@ -64,9 +75,18 @@ import org.apache.ignite.transactions.TransactionIsolation;
 import javax.cache.configuration.Factory;
 import javax.cache.expiry.ExpiryPolicy;
 import java.lang.management.ManagementFactory;
-import java.lang.reflect.InvocationTargetException;
 import java.net.InetSocketAddress;
-import java.util.*;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.ServiceLoader;
+import java.util.Set;
 
 /**
  * Configuration utils.
@@ -1267,30 +1287,43 @@ public class PlatformConfigurationUtils {
         if (cnt == 0)
             return;
 
-        ArrayList<PluginConfiguration> res = new ArrayList<>();
-
-        if (cfg.getPluginConfigurations() != null) {
-            Collections.addAll(res, cfg.getPluginConfigurations());
-        }
-
         for (int i = 0; i < cnt; i++) {
-            String pluginConfigClassName = in.readString();
-            assert pluginConfigClassName != null;
+            int plugCfgFactoryId = in.readInt();
 
-            try {
-                Class cls = Class.forName(pluginConfigClassName);
+            PlatformPluginConfiguration plugCfg = pluginConfiguration(plugCfgFactoryId);
 
-                Object pluginCfg = cls.getConstructor(BinaryRawReader.class).newInstance(in);
+            plugCfg.applyConfiguration(cfg, in);
+        }
+    }
 
-                res.add((PluginConfiguration) pluginCfg);
-            } catch (ClassNotFoundException | NoSuchMethodException | IllegalAccessException
-                    | InstantiationException | InvocationTargetException e) {
-                throw new IgniteException(e);
-            }
+    /**
+     * Create PlatformPluginConfiguration for the given factory ID.
+     *
+     * @param factoryId Factory ID.
+     * @return PlatformPluginConfiguration.
+     */
+    private static PlatformPluginConfiguration pluginConfiguration(final int factoryId) {
+        PlatformPluginConfigurationFactory factory = AccessController.doPrivileged(
+                new PrivilegedAction<PlatformPluginConfigurationFactory>() {
+                    @Override public PlatformPluginConfigurationFactory run() {
+                        for (PlatformPluginConfigurationFactory factory :
+                                ServiceLoader.load(PlatformPluginConfigurationFactory.class)) {
+                            if (factory.id() == factoryId)
+                                return factory;
+                        }
+
+                        return null;
+                    }
+                });
+
+        if (factory == null) {
+            throw new IgniteException("PlatformPluginConfigurationFactory is not found " +
+                    "(did you put into the classpath?): " + factoryId);
         }
 
-        cfg.setPluginConfigurations(res.toArray(new PluginConfiguration[res.size()]));
+        return factory.create();
     }
+
 
     /**
      * Private constructor.
