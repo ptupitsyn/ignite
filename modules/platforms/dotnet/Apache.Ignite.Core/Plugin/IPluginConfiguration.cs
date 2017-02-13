@@ -45,14 +45,14 @@ namespace Apache.Ignite.Core.Plugin
     public interface IPluginConfiguration
     {
         /// <summary>
-        /// Gets the name of the PluginConfiguration class on Java side (if any).
-        /// Specified class should have a constructor that takes BinaryRawReader argument.
+        /// Gets the id to locate PlatformPluginConfigurationFactory on Java side
+        /// and read the data written by <see cref="WriteBinary"/> method.
         /// </summary>
-        string PluginConfigurationClassName { get; }
+        int? PluginConfigurationFactoryId { get; }
 
         /// <summary>
         /// Writes this instance to a raw writer.
-        /// This method will be called when <see cref="PluginConfigurationClassName"/> is not null to propagate
+        /// This method will be called when <see cref="PluginConfigurationFactoryId"/> is not null to propagate
         /// configuration to the Java side.
         /// </summary>
         /// <param name="writer">The writer.</param>

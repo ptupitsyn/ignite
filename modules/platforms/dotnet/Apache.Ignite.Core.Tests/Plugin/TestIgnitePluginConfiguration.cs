@@ -33,9 +33,9 @@
         public string PluginProperty { get; set; }
 
         /** <inheritdoc /> */
-        public string PluginConfigurationClassName
+        public int? PluginConfigurationFactoryId
         {
-            get { return null; }
+            get { return 0; }
         }
 
         /** <inheritdoc /> */
