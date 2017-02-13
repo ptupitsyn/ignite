@@ -111,6 +111,8 @@ namespace Apache.Ignite.Core.Tests
 
             Assert.IsNotNull(javaEx);
             Assert.IsTrue(javaEx.Message.Contains("at " + ExceptionTask));
+            Assert.AreEqual(name, javaEx.JavaMessage);
+            Assert.IsTrue(javaEx.JavaClassName.EndsWith("." + name));
         }
 
         /// <summary>
