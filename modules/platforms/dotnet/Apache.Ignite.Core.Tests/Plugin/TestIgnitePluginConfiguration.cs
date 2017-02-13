@@ -35,6 +35,13 @@
         public int? PluginConfigurationFactoryId
         {
             get { return 0; }
+            // ReSharper disable once ValueParameterNotUsed
+            // ReSharper disable once UnusedMember.Global
+            set
+            {
+                // No-op.
+                // Needed to test configuration serialization.
+            }
         }
 
         /** <inheritdoc /> */
