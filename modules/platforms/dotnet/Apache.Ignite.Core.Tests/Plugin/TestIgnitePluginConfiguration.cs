@@ -17,7 +17,6 @@
 
  namespace Apache.Ignite.Core.Tests.Plugin
 {
-    using System;
     using Apache.Ignite.Core.Binary;
     using Apache.Ignite.Core.Plugin;
 
