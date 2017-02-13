@@ -1324,7 +1324,6 @@ public class PlatformConfigurationUtils {
         return factory.create();
     }
 
-
     /**
      * Private constructor.
      */
