@@ -26,6 +26,12 @@ namespace Apache.Ignite.Core.Common
     [Serializable]
     public class JavaException : IgniteException
     {
+        /** JavaClassName field. */
+        private const string JavaClassNameField = "JavaClassName";
+
+        /** JavaMessage field. */
+        private const string JavaMessageField = "JavaMessage";
+
         /** Java exception class name. */
         private readonly string _javaClassName;
         
@@ -81,7 +87,24 @@ namespace Apache.Ignite.Core.Common
         /// <param name="ctx">Streaming context.</param>
         protected JavaException(SerializationInfo info, StreamingContext ctx) : base(info, ctx)
         {
-            // No-op.
+            _javaClassName = info.GetString(JavaClassNameField);
+            _javaMessage = info.GetString(JavaMessageField);
+        }
+
+        /// <summary>
+        /// When overridden in a derived class, sets the <see cref="SerializationInfo" /> 
+        /// with information about the exception.
+        /// </summary>
+        /// <param name="info">The <see cref="SerializationInfo" /> that holds the serialized object data
+        /// about the exception being thrown.</param>
+        /// <param name="context">The <see cref="StreamingContext" /> that contains contextual information
+        /// about the source or destination.</param>
+        public override void GetObjectData(SerializationInfo info, StreamingContext context)
+        {
+            base.GetObjectData(info, context);
+
+            info.AddValue(JavaClassNameField, _javaClassName);
+            info.AddValue(JavaMessageField, _javaMessage);
         }
 
         /// <summary>
