@@ -128,5 +128,17 @@ namespace Apache.Ignite.Core.Tests.Plugin
 
             Assert.AreEqual(0, cache.GetSize());
         }
+
+        /// <summary>
+        /// Converts Ignite exception to a plugin-specific exception if necessary.
+        /// </summary>
+        /// <param name="exception">The exception to convert.</param>
+        /// <returns>
+        /// Converted exception, when applicable; unchanged parameter value otherwise.
+        /// </returns>
+        public Exception ConvertException(Exception exception)
+        {
+            return new InvalidOperationException("Converted in" + GetType(), exception);
+        }
     }
 }

@@ -182,6 +182,7 @@ namespace Apache.Ignite.Core.Tests.Plugin
             public void Stop(bool cancel) { /* No-op. */ }
             public void OnIgniteStart() { /* No-op. */ }
             public void OnIgniteStop(bool cancel) { /* No-op. */ }
+            public Exception ConvertException(Exception exception) { return exception; }
         }
 
         [PluginProviderType(typeof(ExceptionPluginProvider))]
@@ -195,6 +196,7 @@ namespace Apache.Ignite.Core.Tests.Plugin
             public string Name { get { return "errPlugin"; } }
             public string Copyright { get { return null; } }
             public T GetPlugin<T>() where T : class { return default(T); }
+            public Exception ConvertException(Exception exception) { return exception; }
 
             public void Stop(bool cancel)
             {
@@ -229,6 +231,8 @@ namespace Apache.Ignite.Core.Tests.Plugin
             public string Name { get { return "normalPlugin"; } }
             public string Copyright { get { return null; } }
             public T GetPlugin<T>() where T : class { return default(T); }
+            public Exception ConvertException(Exception exception) { return exception; }
+
 
             public void Stop(bool cancel)
             {

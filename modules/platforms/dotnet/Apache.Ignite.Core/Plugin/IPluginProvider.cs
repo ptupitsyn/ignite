@@ -17,6 +17,9 @@
 
 namespace Apache.Ignite.Core.Plugin
 {
+    using System;
+    using Apache.Ignite.Core.Common;
+
     /// <summary>
     /// Pluggable Ignite component. Should have parameterless constructor.
     /// <para />
@@ -65,5 +68,12 @@ namespace Apache.Ignite.Core.Plugin
         /// </summary>
         /// <param name="cancel">if set to <c>true</c>, all ongoing operations should be canceled.</param>
         void OnIgniteStop(bool cancel);
+
+        /// <summary>
+        /// Converts Ignite exception to a plugin-specific exception if necessary.
+        /// </summary>
+        /// <param name="exception">The exception to convert.</param>
+        /// <returns>Converted exception, when applicable; unchanged parameter value otherwise.</returns>
+        Exception ConvertException(Exception exception);
     }
 }
