@@ -73,10 +73,6 @@ namespace Apache.Ignite.Core.Tests.Plugin
                 Assert.IsNotNull(extension);
 
                 CheckPluginTarget(extension);
-
-                // Test exception conversion in PluginProvider.
-                var ex = Assert.Throws<InvalidOperationException>(() => ignite.GetCache<int, int>("foobar"));
-                Assert.AreEqual("", ex.Message);
             }
 
             Assert.AreEqual(true, plugin.Provider.Stopped);
@@ -117,6 +113,14 @@ namespace Apache.Ignite.Core.Tests.Plugin
             // Returns a copy with same name.
             var resCopy = res.Item2.OutObject(1);
             Assert.AreEqual("name1_abc", resCopy.OutStream(1, r => r.ReadString()));
+
+            // Throws custom mapped exception.
+            var ex = Assert.Throws<TestIgnitePluginException>(() => target.InLongOutLong(-1, 0));
+            Assert.AreEqual("Baz", ex.Message);
+
+            var javaEx = ex.InnerException as JavaException;
+            Assert.IsNotNull(javaEx);
+            Assert.AreEqual("", javaEx.Message);
         }
 
         /// <summary>
