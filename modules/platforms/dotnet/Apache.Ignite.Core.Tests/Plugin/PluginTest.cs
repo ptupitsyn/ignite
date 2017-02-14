@@ -73,6 +73,10 @@ namespace Apache.Ignite.Core.Tests.Plugin
                 Assert.IsNotNull(extension);
 
                 CheckPluginTarget(extension);
+
+                // Test exception conversion in PluginProvider.
+                var ex = Assert.Throws<InvalidOperationException>(() => ignite.GetCache<int, int>("foobar"));
+                Assert.AreEqual("", ex.Message);
             }
 
             Assert.AreEqual(true, plugin.Provider.Stopped);
