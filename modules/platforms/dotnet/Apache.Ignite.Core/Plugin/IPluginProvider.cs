@@ -17,7 +17,6 @@
 
 namespace Apache.Ignite.Core.Plugin
 {
-    using System;
     using System.Collections.Generic;
     using Apache.Ignite.Core.Common;
 
