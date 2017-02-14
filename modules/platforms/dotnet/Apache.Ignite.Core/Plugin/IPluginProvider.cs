@@ -18,6 +18,7 @@
 namespace Apache.Ignite.Core.Plugin
 {
     using System;
+    using System.Collections.Generic;
     using Apache.Ignite.Core.Common;
 
     /// <summary>
@@ -70,10 +71,12 @@ namespace Apache.Ignite.Core.Plugin
         void OnIgniteStop(bool cancel);
 
         /// <summary>
-        /// Converts Ignite exception to a plugin-specific exception if necessary.
+        /// Gets exception mappings.
+        /// <para />
+        /// Exception mapping is a pair of Java exception class name and a factory delegate that creates
+        /// plugin-specific .NET exception.
         /// </summary>
-        /// <param name="exception">The exception to convert.</param>
-        /// <returns>Converted exception, when applicable; unchanged parameter value otherwise.</returns>
-        Exception ConvertException(Exception exception);
+        /// <returns>Exception mappings, or null when not applicable.</returns>
+        IEnumerable<KeyValuePair<string, ExceptionFactory>> GetExceptionMappings();
     }
 }

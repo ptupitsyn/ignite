@@ -18,6 +18,8 @@
 namespace Apache.Ignite.Core.Tests.Plugin
 {
     using System;
+    using System.Collections.Generic;
+    using Apache.Ignite.Core.Common;
     using Apache.Ignite.Core.Plugin;
     using NUnit.Framework;
 
@@ -130,15 +132,18 @@ namespace Apache.Ignite.Core.Tests.Plugin
         }
 
         /// <summary>
-        /// Converts Ignite exception to a plugin-specific exception if necessary.
+        /// Gets exception mappings.
+        /// <para />
+        /// Exception mapping is a pair of Java exception class name and a factory delegate that creates
+        /// plugin-specific .NET exception.
         /// </summary>
-        /// <param name="exception">The exception to convert.</param>
         /// <returns>
-        /// Converted exception, when applicable; unchanged parameter value otherwise.
+        /// Exception mappings, or null when not applicable.
         /// </returns>
-        public Exception ConvertException(Exception exception)
+        public IEnumerable<KeyValuePair<string, ExceptionFactory>> GetExceptionMappings()
         {
-            return new InvalidOperationException("Converted in" + GetType(), exception);
+            yield return new KeyValuePair<string, ExceptionFactory>("TODO", 
+                (ignite, message, inner) => new InvalidOperationException(message, inner));
         }
     }
 }

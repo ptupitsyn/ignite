@@ -48,10 +48,7 @@ namespace Apache.Ignite.Core.Impl
         private const string ClsCachePartialUpdateErr = "org.apache.ignite.internal.processors.platform.cache.PlatformCachePartialUpdateException";
 
         /** Map with predefined exceptions. */
-        private static readonly IDictionary<string, ExceptionFactoryDelegate> Exs = new Dictionary<string, ExceptionFactoryDelegate>();
-
-        /** Exception factory delegate. */
-        private delegate Exception ExceptionFactoryDelegate(IIgnite ignite, string msg, Exception innerEx);
+        private static readonly IDictionary<string, ExceptionFactory> Exs = new Dictionary<string, ExceptionFactory>();
 
         /** Inner class regex. */
         private static readonly Regex InnerClassRegex = new Regex(@"class ([^\s]+): (.*)", RegexOptions.Compiled);
@@ -127,13 +124,13 @@ namespace Apache.Ignite.Core.Impl
             if (innerException == null)
                 innerException = new JavaException(clsName, msg, stackTrace);
 
-            ExceptionFactoryDelegate ctor;
+            ExceptionFactory ctor;
 
             if (Exs.TryGetValue(clsName, out ctor))
             {
                 var match = InnerClassRegex.Match(msg ?? string.Empty);
 
-                ExceptionFactoryDelegate innerCtor;
+                ExceptionFactory innerCtor;
 
                 if (match.Success && Exs.TryGetValue(match.Groups[1].Value, out innerCtor))
                     return ctor(ignite, msg, innerCtor(ignite, match.Groups[2].Value, innerException));
