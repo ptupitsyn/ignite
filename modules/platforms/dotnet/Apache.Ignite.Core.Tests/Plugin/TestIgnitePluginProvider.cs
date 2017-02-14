@@ -142,8 +142,9 @@ namespace Apache.Ignite.Core.Tests.Plugin
         /// </returns>
         public IEnumerable<KeyValuePair<string, ExceptionFactory>> GetExceptionMappings()
         {
-            yield return new KeyValuePair<string, ExceptionFactory>("TODO", 
-                (ignite, message, inner) => new InvalidOperationException(message, inner));
+            yield return new KeyValuePair<string, ExceptionFactory>(
+                "org.apache.ignite.platform.plugin.PlatformTestPluginException", 
+                (ignite, message, inner) => new TestIgnitePluginException(message, inner));
         }
     }
 }
