@@ -117,7 +117,7 @@ namespace Apache.Ignite.Core.Impl
         /// <param name="reader">Error data reader.</param>
         /// <param name="innerException">Inner exception.</param>
         /// <returns>Exception.</returns>
-        public static Exception GetException(IIgnite ignite, string clsName, string msg, string stackTrace,
+        public static Exception GetException(Ignite ignite, string clsName, string msg, string stackTrace,
             BinaryReader reader = null, Exception innerException = null)
         {
             // Set JavaException as inner only if there is no InnerException.
@@ -149,6 +149,15 @@ namespace Apache.Ignite.Core.Impl
             if (ClsCachePartialUpdateErr.Equals(clsName, StringComparison.OrdinalIgnoreCase))
                 return ProcessCachePartialUpdateException(ignite, msg, stackTrace, reader);
 
+            // Predefined mapping not found - check plugins.
+            ctor = ignite.PluginProcessor.GetExceptionFactory(clsName);
+
+            if (ctor != null)
+            {
+                return ctor(ignite, msg, innerException);
+            }
+
+            // Return default exception.
             return new IgniteException(string.Format("Java exception occurred [class={0}, message={1}]", clsName, msg),
                 innerException);
         }
@@ -162,7 +171,7 @@ namespace Apache.Ignite.Core.Impl
         /// <param name="reader">Reader.</param>
         /// <returns>CachePartialUpdateException.</returns>
         [SuppressMessage("Microsoft.Design", "CA1031:DoNotCatchGeneralExceptionTypes")]
-        private static Exception ProcessCachePartialUpdateException(IIgnite ignite, string msg, string stackTrace,
+        private static Exception ProcessCachePartialUpdateException(Ignite ignite, string msg, string stackTrace,
             BinaryReader reader)
         {
             if (reader == null)

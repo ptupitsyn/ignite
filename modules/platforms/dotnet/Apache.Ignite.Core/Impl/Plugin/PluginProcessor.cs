@@ -120,11 +120,13 @@ namespace Apache.Ignite.Core.Impl.Plugin
         }
 
         /// <summary>
-        /// Gets the exception mappings.
+        /// Gets the exception factory.
         /// </summary>
-        public IDictionary<string, ExceptionFactory> ExceptionMappings
+        public ExceptionFactory GetExceptionFactory(string className)
         {
-            get { return _exceptionMappings; }
+            ExceptionFactory res;
+
+            return _exceptionMappings.TryGetValue(className, out res) ? res : null;
         }
 
         /// <summary>
