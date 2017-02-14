@@ -120,7 +120,7 @@ namespace Apache.Ignite.Core.Tests.Plugin
 
             var javaEx = ex.InnerException as JavaException;
             Assert.IsNotNull(javaEx);
-            Assert.AreEqual("Baz", javaEx.Message);
+            Assert.AreEqual("Baz", javaEx.JavaMessage);
             Assert.AreEqual("org.apache.ignite.platform.plugin.PlatformTestPluginException", javaEx.JavaClassName);
             Assert.IsTrue(javaEx.Message.Contains(
                 "at org.apache.ignite.platform.plugin.PlatformTestPluginTarget.processInLongOutLong"));
