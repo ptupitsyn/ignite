@@ -42,6 +42,10 @@ namespace Apache.Ignite.Core.Impl.Plugin
         private readonly CopyOnWriteConcurrentDictionary<string, ExceptionFactory> _exceptionMappings
             = new CopyOnWriteConcurrentDictionary<string, ExceptionFactory>();
 
+        /** Plugin callbacks. */
+        private readonly CopyOnWriteConcurrentDictionary<long, PluginCallback> _callbacks
+            = new CopyOnWriteConcurrentDictionary<long, PluginCallback>();
+
         /** */
         private readonly Ignite _ignite;
 
@@ -150,7 +154,13 @@ namespace Apache.Ignite.Core.Impl.Plugin
         /// <param name="callback">Callback delegate</param>
         public void RegisterCallback(long callbackId, PluginCallback callback)
         {
-            // TODO: 
+            var res = _callbacks.GetOrAdd(callbackId, _ => callback);
+
+            if (res != callback)
+            {
+                throw new IgniteException(string.Format(
+                    "Plugin callback with id {0} is already registered", callbackId));
+            }
         }
 
         /// <summary>
@@ -158,8 +168,16 @@ namespace Apache.Ignite.Core.Impl.Plugin
         /// </summary>
         public long InvokeCallback(long callbackId, long inPtr, long outPtr)
         {
-            // TODO
-            return 0;
+            PluginCallback callback;
+
+            if (!_callbacks.TryGetValue(callbackId, out callback))
+            {
+                throw new IgniteException(string.Format(
+                    "Plugin callback with id {0} is not registered", callbackId));
+            }
+
+            // TODO: reader/writer
+            return callback(null, null);
         }
 
         /// <summary>
