@@ -146,9 +146,11 @@ namespace Apache.Ignite.Core.Impl.Plugin
         /// <summary>
         /// Registers the callback.
         /// </summary>
-        public void RegisterCallback()
+        /// <param name="callbackId">Calback id.</param>
+        /// <param name="callback">Callback delegate</param>
+        public void RegisterCallback(long callbackId, PluginCallback callback)
         {
-            // TODO: some delegate and an id.
+            // TODO: 
         }
 
         /// <summary>
