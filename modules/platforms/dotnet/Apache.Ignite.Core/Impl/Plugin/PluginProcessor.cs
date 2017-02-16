@@ -26,6 +26,7 @@ namespace Apache.Ignite.Core.Impl.Plugin
     using Apache.Ignite.Core.Impl.Binary;
     using Apache.Ignite.Core.Impl.Binary.IO;
     using Apache.Ignite.Core.Impl.Common;
+    using Apache.Ignite.Core.Impl.Memory;
     using Apache.Ignite.Core.Log;
     using Apache.Ignite.Core.Plugin;
 
@@ -157,6 +158,8 @@ namespace Apache.Ignite.Core.Impl.Plugin
         /// <param name="callback">Callback delegate</param>
         public void RegisterCallback(long callbackId, PluginCallback callback)
         {
+            Debug.Assert(callback != null);
+
             var res = _callbacks.GetOrAdd(callbackId, _ => callback);
 
             if (res != callback)
@@ -189,6 +192,7 @@ namespace Apache.Ignite.Core.Impl.Plugin
 
                 if (writer != null)
                 {
+                    outStream.SynchronizeOutput();
                     writer.Marshaller.FinishMarshal(writer);
                 }
 
@@ -199,7 +203,7 @@ namespace Apache.Ignite.Core.Impl.Plugin
         /// <summary>
         /// Gets the stream.
         /// </summary>
-        private static IBinaryStream GetStream(long ptr)
+        private static PlatformMemoryStream GetStream(long ptr)
         {
             return ptr == 0 ? null : IgniteManager.Memory.Get(ptr).GetStream();
         }

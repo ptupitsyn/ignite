@@ -24,12 +24,14 @@ import org.apache.ignite.internal.binary.BinaryRawWriterEx;
 import org.apache.ignite.internal.processors.platform.PlatformAbstractTarget;
 import org.apache.ignite.internal.processors.platform.PlatformContext;
 import org.apache.ignite.internal.processors.platform.PlatformTarget;
+import org.apache.ignite.internal.processors.platform.memory.PlatformMemory;
 import org.apache.ignite.plugin.PluginConfiguration;
 import org.jetbrains.annotations.Nullable;
 
 /**
  * Test target.
  */
+@SuppressWarnings("ConstantConditions")
 class PlatformTestPluginTarget extends PlatformAbstractTarget {
     /** */
     private final String name;
@@ -87,9 +89,30 @@ class PlatformTestPluginTarget extends PlatformAbstractTarget {
             throws IgniteCheckedException {
         PlatformTestPluginTarget t = (PlatformTestPluginTarget)arg;
 
-        writer.writeString(t.name);
+        writer.writeString(invokeCallback(t.name));
 
         return new PlatformTestPluginTarget(platformCtx, t.name + reader.readString());
+    }
+
+    /**
+     * Invokes the platform callback.
+     *
+     * @param val Value to send.
+     * @return Result.
+     */
+    private String invokeCallback(String val) {
+        PlatformMemory outMem = platformCtx.memory().allocate();
+        PlatformMemory inMem = platformCtx.memory().allocate();
+
+        BinaryRawWriterEx writer = platformCtx.writer(outMem);
+
+        writer.writeString(val);
+
+        platformCtx.gateway().pluginCallback(1, outMem, inMem);
+
+        BinaryRawReaderEx reader = platformCtx.reader(inMem);
+
+        return reader.readString();
     }
 
     /** {@inheritDoc} */
