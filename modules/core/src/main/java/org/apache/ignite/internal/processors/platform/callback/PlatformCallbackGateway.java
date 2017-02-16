@@ -1227,18 +1227,18 @@ public class PlatformCallbackGateway {
      * Invoke plugin callback by id.
      *
      * @param callbackId Id of a callback registered in Platform.
-     * @param inMem In memory.
-     * @param outMem Out memory.
+     * @param outMem Out memory (Java writes, platform reads).
+     * @param inMem In memory (platform writes, Java reads).
      */
-    public void pluginCallback(long callbackId, PlatformMemory inMem, PlatformMemory outMem) {
+    public void pluginCallback(long callbackId, PlatformMemory outMem, PlatformMemory inMem) {
         enter();
 
         try {
-            long inPtr = inMem == null ? 0 : inMem.pointer();
             long outPtr = outMem == null ? 0 : outMem.pointer();
+            long inPtr = inMem == null ? 0 : inMem.pointer();
 
             PlatformCallbackUtils.inLongLongLongObjectOutLong(envPtr,
-                    PlatformCallbackOp.PluginCallbackInLongLongOutLong, callbackId, inPtr, outPtr, null);
+                    PlatformCallbackOp.PluginCallbackInLongLongOutLong, callbackId, outPtr, inPtr, null);
         }
         finally {
             leave();
