@@ -22,8 +22,8 @@ namespace Apache.Ignite.Core.Plugin
     /// <summary>
     /// Plugin callback delegate.
     /// </summary>
-    /// <param name="input">Input reader.</param>
-    /// <param name="output">Output writer.</param>
+    /// <param name="input">Input reader. May be null.</param>
+    /// <param name="output">Output writer. May be null.</param>
     /// <returns>Result code.</returns>
     public delegate long PluginCallback(IBinaryRawReader input, IBinaryRawWriter output);
 }
