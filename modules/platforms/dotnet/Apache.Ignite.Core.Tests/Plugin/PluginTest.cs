@@ -110,7 +110,7 @@ namespace Apache.Ignite.Core.Tests.Plugin
                 (reader, t) => Tuple.Create(reader.ReadString(), t));
 
             Assert.AreEqual("NAME1", res.Item1);  // Old name converted by callback.
-            Assert.AreEqual("NAME1_abc", res.Item2.OutStream(1, r => r.ReadString()));
+            Assert.AreEqual("name1_abc", res.Item2.OutStream(1, r => r.ReadString()));
             Assert.AreEqual("name1", provider.CallbackResult);  // Old name.
 
             // Returns a copy with same name.

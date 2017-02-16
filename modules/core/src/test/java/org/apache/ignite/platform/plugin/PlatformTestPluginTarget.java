@@ -25,6 +25,7 @@ import org.apache.ignite.internal.processors.platform.PlatformAbstractTarget;
 import org.apache.ignite.internal.processors.platform.PlatformContext;
 import org.apache.ignite.internal.processors.platform.PlatformTarget;
 import org.apache.ignite.internal.processors.platform.memory.PlatformMemory;
+import org.apache.ignite.internal.processors.platform.memory.PlatformOutputStream;
 import org.apache.ignite.plugin.PluginConfiguration;
 import org.jetbrains.annotations.Nullable;
 
@@ -104,9 +105,12 @@ class PlatformTestPluginTarget extends PlatformAbstractTarget {
         PlatformMemory outMem = platformCtx.memory().allocate();
         PlatformMemory inMem = platformCtx.memory().allocate();
 
-        BinaryRawWriterEx writer = platformCtx.writer(outMem);
+        PlatformOutputStream outStream = outMem.output();
+        BinaryRawWriterEx writer = platformCtx.writer(outStream);
 
         writer.writeString(val);
+
+        outStream.synchronize();
 
         platformCtx.gateway().pluginCallback(1, outMem, inMem);
 
