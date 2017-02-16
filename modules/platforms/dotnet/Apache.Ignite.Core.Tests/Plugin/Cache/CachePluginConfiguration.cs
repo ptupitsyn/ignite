@@ -42,7 +42,7 @@ namespace Apache.Ignite.Core.Tests.Plugin.Cache
         /// and read the data written by
         /// <see cref="WriteBinary(IBinaryRawWriter)" /> method.
         /// </summary>
-        public int? CachePluginConfigurationClosureFactoryId
+        public int CachePluginConfigurationClosureFactoryId
         {
             get { return 0; }
         }

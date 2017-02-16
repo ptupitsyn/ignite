@@ -50,7 +50,7 @@ namespace Apache.Ignite.Core.Plugin.Cache
         /// Gets the id to locate PlatformCachePluginConfigurationClosureFactory on Java side
         /// and read the data written by <see cref="WriteBinary"/> method.
         /// </summary>
-        int? CachePluginConfigurationClosureFactoryId { get; }
+        int CachePluginConfigurationClosureFactoryId { get; }
 
         /// <summary>
         /// Writes this instance to a raw writer.

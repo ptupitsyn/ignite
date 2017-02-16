@@ -367,11 +367,7 @@ namespace Apache.Ignite.Core.Cache.Configuration
 
             if (PluginConfigurations != null)
             {
-                var pos = writer.Stream.Position;
-
-                writer.WriteInt(0);  // Reserve count.
-
-                int cnt = 0;
+                writer.WriteInt(PluginConfigurations.Count);
 
                 foreach (var cachePlugin in PluginConfigurations)
                 {
@@ -379,17 +375,10 @@ namespace Apache.Ignite.Core.Cache.Configuration
                         throw new InvalidOperationException("Invalid cache configuration: " +
                                                             "ICachePluginConfiguration can't be null.");
 
-                    if (cachePlugin.CachePluginConfigurationClosureFactoryId != null)
-                    {
-                        writer.WriteInt(cachePlugin.CachePluginConfigurationClosureFactoryId.Value);
+                    writer.WriteInt(cachePlugin.CachePluginConfigurationClosureFactoryId);
 
-                        cachePlugin.WriteBinary(writer);
-
-                        cnt++;
-                    }
+                    cachePlugin.WriteBinary(writer);
                 }
-
-                writer.Stream.WriteInt(pos, cnt);
             }
             else
             {
