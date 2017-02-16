@@ -295,7 +295,7 @@ namespace Apache.Ignite.Core.Cache.Configuration
         /// Writes this instance to the specified writer.
         /// </summary>
         /// <param name="writer">The writer.</param>
-        internal void Write(IBinaryRawWriter writer)
+        internal void Write(BinaryWriter writer)
         {
             writer.WriteInt((int) AtomicityMode);
             writer.WriteInt((int) AtomicWriteOrderMode);
@@ -367,7 +367,11 @@ namespace Apache.Ignite.Core.Cache.Configuration
 
             if (PluginConfigurations != null)
             {
-                writer.WriteInt(PluginConfigurations.Count);
+                var pos = writer.Stream.Position;
+
+                writer.WriteInt(0);  // Reserve count.
+
+                int cnt = 0;
 
                 foreach (var cachePlugin in PluginConfigurations)
                 {
@@ -375,12 +379,17 @@ namespace Apache.Ignite.Core.Cache.Configuration
                         throw new InvalidOperationException("Invalid cache configuration: " +
                                                             "ICachePluginConfiguration can't be null.");
 
-                    if (!cachePlugin.GetType().IsSerializable)
-                        throw new InvalidOperationException("Invalid cache configuration: " +
-                                                            "ICachePluginConfiguration should be Serializable.");
+                    if (cachePlugin.CachePluginConfigurationClosureFactoryId != null)
+                    {
+                        writer.WriteInt(cachePlugin.CachePluginConfigurationClosureFactoryId.Value);
 
-                    writer.WriteObject(cachePlugin);
+                        cachePlugin.WriteBinary(writer);
+
+                        cnt++;
+                    }
                 }
+
+                writer.Stream.WriteInt(pos, cnt);
             }
             else
             {
