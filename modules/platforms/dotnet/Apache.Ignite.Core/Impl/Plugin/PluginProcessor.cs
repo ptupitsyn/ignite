@@ -21,7 +21,10 @@ namespace Apache.Ignite.Core.Impl.Plugin
     using System.Collections.Generic;
     using System.Diagnostics;
     using System.Linq;
+    using Apache.Ignite.Core.Binary;
     using Apache.Ignite.Core.Common;
+    using Apache.Ignite.Core.Impl.Binary;
+    using Apache.Ignite.Core.Impl.Binary.IO;
     using Apache.Ignite.Core.Impl.Common;
     using Apache.Ignite.Core.Log;
     using Apache.Ignite.Core.Plugin;
@@ -176,8 +179,52 @@ namespace Apache.Ignite.Core.Impl.Plugin
                     "Plugin callback with id {0} is not registered", callbackId));
             }
 
-            // TODO: reader/writer
-            return callback(null, null);
+            using (var inStream = GetStream(inPtr))
+            using (var outStream = GetStream(outPtr))
+            {
+                var reader = GetReader(inStream);
+                var writer = GetWriter(outStream);
+
+                var res = callback(reader, writer);
+
+                if (writer != null)
+                {
+                    writer.Marshaller.FinishMarshal(writer);
+                }
+
+                return res;
+            }
+        }
+
+        /// <summary>
+        /// Gets the stream.
+        /// </summary>
+        private static IBinaryStream GetStream(long ptr)
+        {
+            return ptr == 0 ? null : IgniteManager.Memory.Get(ptr).GetStream();
+        }
+
+        /// <summary>
+        /// Gets the reader.
+        /// </summary>
+        private IBinaryRawReader GetReader(IBinaryStream stream)
+        {
+            return stream == null ? null : Ignite.Marshaller.StartUnmarshal(stream).GetRawReader();
+        }
+
+        /// <summary>
+        /// Gets the writer.
+        /// </summary>
+        private BinaryWriter GetWriter(IBinaryStream stream)
+        {
+            if (stream == null)
+                return null;
+
+            var res = Ignite.Marshaller.StartMarshal(stream);
+
+            res.GetRawWriter();
+
+            return res;
         }
 
         /// <summary>
