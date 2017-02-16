@@ -18,6 +18,7 @@
 namespace Apache.Ignite.Core.Tests.Plugin.Cache
 {
     using System;
+    using Apache.Ignite.Core.Binary;
     using Apache.Ignite.Core.Plugin.Cache;
 
     /// <summary>
@@ -36,5 +37,26 @@ namespace Apache.Ignite.Core.Tests.Plugin.Cache
         /// Gets or sets a value indicating whether the plugin should throw an error.
         /// </summary>
         public bool ThrowError { get; set; }
+
+        /// <summary>
+        /// Gets the id to locate PlatformCachePluginConfigurationClosureFactory on Java side
+        /// and read the data written by
+        /// <see cref="WriteBinary(Apache.Ignite.Core.Binary.IBinaryRawWriter)" /> method.
+        /// </summary>
+        public int? CachePluginConfigurationClosureFactoryId
+        {
+            get { return 0; }
+        }
+
+        /// <summary>
+        /// Writes this instance to a raw writer.
+        /// This method will be called when <see cref="CachePluginConfigurationClosureFactoryId" />
+        /// is not null to propagate configuration to the Java side.
+        /// </summary>
+        /// <param name="writer">The writer.</param>
+        public void WriteBinary(IBinaryRawWriter writer)
+        {
+            writer.WriteString(TestProperty);
+        }
     }
 }
