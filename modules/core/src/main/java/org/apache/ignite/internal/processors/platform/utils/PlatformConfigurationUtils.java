@@ -228,7 +228,7 @@ public class PlatformConfigurationUtils {
                 }
             }
 
-            ccfg.setPluginConfigurations(plugins.toArray());
+            ccfg.setPluginConfigurations(plugins.toArray(new CachePluginConfiguration[plugins.size()]));
         }
 
         return ccfg;
