@@ -113,6 +113,9 @@ namespace Apache.Ignite.Core.Tests.Compute
         /** Type: affinity key. */
         public const int EchoTypeAffinityKey = 19;
 
+        /** Type: Ignite UUID. */
+        public const int EchoTypeIgniteUuid = 20;
+
         /** First node. */
         private IIgnite _grid1;
 
@@ -852,6 +855,18 @@ namespace Apache.Ignite.Core.Tests.Compute
             Assert.AreEqual(1, _grid1.GetCompute().ExecuteJavaTask<long>(EchoTask, EchoTypeLong));
             Assert.AreEqual((float)1, _grid1.GetCompute().ExecuteJavaTask<float>(EchoTask, EchoTypeFloat));
             Assert.AreEqual((double)1, _grid1.GetCompute().ExecuteJavaTask<double>(EchoTask, EchoTypeDouble));
+        }
+
+        /// <summary>
+        /// Tests that IgniteUuid can be deserialized from Java side.
+        /// </summary>
+        [Test]
+        public void TestEchoTaskIgniteUuid()
+        {
+            var val = new IgniteGuid(Guid.Empty, 3);
+            var res = _grid1.GetCompute().ExecuteJavaTask<IgniteGuid>(EchoTask, EchoTypeIgniteUuid);
+
+            Assert.AreEqual(val, res);
         }
 
         /// <summary>

@@ -30,12 +30,14 @@ import org.apache.ignite.compute.ComputeJobAdapter;
 import org.apache.ignite.compute.ComputeJobResult;
 import org.apache.ignite.compute.ComputeTaskAdapter;
 import org.apache.ignite.internal.util.typedef.F;
+import org.apache.ignite.lang.IgniteUuid;
 import org.apache.ignite.resources.IgniteInstanceResource;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 /**
  * Test task producing result without any arguments.
@@ -100,6 +102,9 @@ public class PlatformComputeEchoTask extends ComputeTaskAdapter<Integer, Object>
 
     /** Type: enum array. */
     private static final int TYPE_AFFINITY_KEY = 19;
+
+    /** Type: enum array. */
+    private static final int TYPE_IGNITE_UUID = 20;
 
     /** {@inheritDoc} */
     @Nullable @Override public Map<? extends ComputeJob, ClusterNode> map(List<ClusterNode> subgrid,
@@ -206,6 +211,9 @@ public class PlatformComputeEchoTask extends ComputeTaskAdapter<Integer, Object>
 
                 case TYPE_AFFINITY_KEY:
                     return new AffinityKey<>("interopAffinityKey");
+
+                case TYPE_IGNITE_UUID:
+                    return new IgniteUuid(new UUID(1,2), 3);
 
                 default:
                     throw new IgniteException("Unknown type: " + type);
