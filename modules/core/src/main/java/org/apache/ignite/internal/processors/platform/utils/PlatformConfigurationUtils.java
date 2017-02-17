@@ -1340,18 +1340,11 @@ public class PlatformConfigurationUtils {
      * @param in Reader.
      */
     private static void readCachePluginConfiguration(CacheConfiguration cfg, BinaryRawReader in) {
-        int cnt = in.readInt();
+        int plugCfgFactoryId = in.readInt();
 
-        if (cnt == 0)
-            return;
+        PlatformCachePluginConfigurationClosure plugCfg = cachePluginConfiguration(plugCfgFactoryId);
 
-        for (int i = 0; i < cnt; i++) {
-            int plugCfgFactoryId = in.readInt();
-
-            PlatformCachePluginConfigurationClosure plugCfg = cachePluginConfiguration(plugCfgFactoryId);
-
-            plugCfg.apply(cfg, in);
-        }
+        plugCfg.apply(cfg, in);
     }
 
     /**

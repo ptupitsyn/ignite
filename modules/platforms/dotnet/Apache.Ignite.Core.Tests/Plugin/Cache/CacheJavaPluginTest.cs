@@ -73,6 +73,10 @@ namespace Apache.Ignite.Core.Tests.Plugin.Cache
 
             Assert.IsNull(cache.GetConfiguration().PluginConfigurations);  // Java cache plugins are not returned.
 
+            cache[1] = 1;
+
+            Assert.AreEqual(1, cache[1]);
+
             // TODO: throw an error from unwrapCacheEntry on some condition to verify that plugin works.
         }
     }
