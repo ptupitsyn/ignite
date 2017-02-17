@@ -31,7 +31,7 @@ public class PlatformTestCachePluginConfiguration implements CachePluginConfigur
     /**
      * Initializes a new instance of PlatformTestPluginConfiguration.
      */
-    public PlatformTestCachePluginConfiguration() {
+    PlatformTestCachePluginConfiguration() {
         // No-op.
     }
 
@@ -49,7 +49,7 @@ public class PlatformTestCachePluginConfiguration implements CachePluginConfigur
      *
      * @param pluginProperty Value.
      */
-    public void setPluginProperty(String pluginProperty) {
+    void setPluginProperty(String pluginProperty) {
         this.pluginProperty = pluginProperty;
     }
 

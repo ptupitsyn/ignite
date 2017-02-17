@@ -29,7 +29,6 @@ import org.apache.ignite.plugin.CachePluginConfiguration;
 import org.apache.ignite.resources.IgniteInstanceResource;
 import org.jetbrains.annotations.Nullable;
 
-import java.lang.management.ManagementFactory;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
