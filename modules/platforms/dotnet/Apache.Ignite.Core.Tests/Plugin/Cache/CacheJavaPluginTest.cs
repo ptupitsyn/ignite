@@ -17,6 +17,7 @@
 
 namespace Apache.Ignite.Core.Tests.Plugin.Cache
 {
+    using Apache.Ignite.Core.Cache;
     using Apache.Ignite.Core.Cache.Configuration;
     using NUnit.Framework;
 
@@ -78,14 +79,34 @@ namespace Apache.Ignite.Core.Tests.Plugin.Cache
         {
             var cache = _grid.GetCache<int, int>(CacheName);
 
-            Assert.IsNull(cache.GetConfiguration().PluginConfigurations);  // Java cache plugins are not returned.
+            VerifyCachePlugin(cache);
+        }
+
+        /// <summary>
+        /// Tests that cache plugin works with static cache.
+        /// </summary>
+        [Test]
+        public void TestDynamicCache()
+        {
+            var cache = _grid.CreateCache<int, int>(new CacheConfiguration(DynCacheName)
+            {
+                PluginConfigurations = new[] {new CacheJavaPluginConfiguration()}
+            });
+
+            VerifyCachePlugin(cache);
+        }
+
+        /// <summary>
+        /// Verifies the cache plugin.
+        /// </summary>
+        private void VerifyCachePlugin(ICache<int, int> cache)
+        {
+            Assert.IsNull(cache.GetConfiguration().PluginConfigurations); // Java cache plugins are not returned.
 
             cache[1] = 1;
-
             Assert.AreEqual(1, cache[1]);
 
             var plugins = _grid.GetCompute().ExecuteJavaTask<string[]>(GetPluginsTask, cache.Name);
-
             Assert.AreEqual(new[] {PluginConfigurationClass}, plugins);
         }
     }
