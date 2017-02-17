@@ -295,7 +295,7 @@ namespace Apache.Ignite.Core.Cache.Configuration
         /// Writes this instance to the specified writer.
         /// </summary>
         /// <param name="writer">The writer.</param>
-        internal void Write(BinaryWriter writer)
+        internal void Write(IBinaryRawWriter writer)
         {
             writer.WriteInt((int) AtomicityMode);
             writer.WriteInt((int) AtomicWriteOrderMode);
@@ -382,6 +382,12 @@ namespace Apache.Ignite.Core.Cache.Configuration
                     }
                     else
                     {
+                        if (!cachePlugin.GetType().IsSerializable)
+                        {
+                            throw new InvalidOperationException("Invalid cache configuration: " +
+                                                                "ICachePluginConfiguration should be Serializable.");
+                        }
+
                         writer.WriteBoolean(false);
                         cachePlugin.WriteBinary(writer);
                     }
