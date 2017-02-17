@@ -82,6 +82,7 @@ import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -226,6 +227,10 @@ public class PlatformConfigurationUtils {
                     // Platform cache plugin.
                     plugins.add(new PlatformCachePluginConfiguration(in.readObjectDetached()));
                 }
+            }
+
+            if (ccfg.getPluginConfigurations() != null) {
+                Collections.addAll(plugins, ccfg.getPluginConfigurations());
             }
 
             ccfg.setPluginConfigurations(plugins.toArray(new CachePluginConfiguration[plugins.size()]));
