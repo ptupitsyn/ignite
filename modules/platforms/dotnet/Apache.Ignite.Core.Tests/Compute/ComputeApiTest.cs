@@ -863,7 +863,7 @@ namespace Apache.Ignite.Core.Tests.Compute
         [Test]
         public void TestEchoTaskIgniteUuid()
         {
-            var val = new IgniteGuid(Guid.Empty, 3);
+            var val = new IgniteGuid(Guid.Parse("00000000-0000-0001-0000-000000000002"), 3);
             var res = _grid1.GetCompute().ExecuteJavaTask<IgniteGuid>(EchoTask, EchoTypeIgniteUuid);
 
             Assert.AreEqual(val, res);

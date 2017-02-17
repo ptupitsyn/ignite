@@ -49,10 +49,10 @@ namespace Apache.Ignite.Core.Common
         /// Initializes a new instance of the <see cref="IgniteGuid"/> struct.
         /// </summary>
         /// <param name="reader">The reader.</param>
-        internal IgniteGuid(IBinaryRawReader reader)
+        internal IgniteGuid(BinaryReader reader)
         {
-            _globalId = reader.ReadGuid().GetValueOrDefault();
             _localId = reader.ReadLong();
+            _globalId = BinaryUtils.ReadGuid(reader.Stream).GetValueOrDefault();
         }
 
         /// <summary>
@@ -148,8 +148,8 @@ namespace Apache.Ignite.Core.Common
         {
             var raw = writer.GetRawWriter();
 
-            raw.WriteGuid(_globalId);
             raw.WriteLong(_localId);
+            BinaryUtils.WriteGuid(_globalId, ((BinaryWriter)writer).Stream);  // TODO: !
         }
     }
 }
