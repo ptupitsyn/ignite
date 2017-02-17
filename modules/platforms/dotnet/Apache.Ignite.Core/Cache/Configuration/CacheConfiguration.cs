@@ -375,9 +375,16 @@ namespace Apache.Ignite.Core.Cache.Configuration
                         throw new InvalidOperationException("Invalid cache configuration: " +
                                                             "ICachePluginConfiguration can't be null.");
 
-                    writer.WriteInt(cachePlugin.CachePluginConfigurationClosureFactoryId);
-
-                    cachePlugin.WriteBinary(writer);
+                    if (cachePlugin.CachePluginConfigurationClosureFactoryId != null)
+                    {
+                        writer.WriteBoolean(true);
+                        writer.WriteInt(cachePlugin.CachePluginConfigurationClosureFactoryId.Value);
+                    }
+                    else
+                    {
+                        writer.WriteBoolean(false);
+                        cachePlugin.WriteBinary(writer);
+                    }
                 }
             }
             else

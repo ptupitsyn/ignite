@@ -203,7 +203,7 @@ namespace Apache.Ignite.Core.Tests.Plugin.Cache
         [CachePluginProviderType(typeof(CachePlugin))]
         private class NonSerializableCachePluginConfig : ICachePluginConfiguration
         {
-            public int CachePluginConfigurationClosureFactoryId { get { return -1; } }
+            public int? CachePluginConfigurationClosureFactoryId { get { return null; } }
             public void WriteBinary(IBinaryRawWriter writer) { /* No-op. */ }
         }
 
@@ -211,7 +211,7 @@ namespace Apache.Ignite.Core.Tests.Plugin.Cache
         [CachePluginProviderType(typeof(string))]
         private class ThrowCachePluginConfig : ICachePluginConfiguration
         {
-            public int CachePluginConfigurationClosureFactoryId { get { return -1; } }
+            public int? CachePluginConfigurationClosureFactoryId { get { return null; } }
             public void WriteBinary(IBinaryRawWriter writer) { /* No-op. */ }
         }
     }

@@ -49,8 +49,11 @@ namespace Apache.Ignite.Core.Plugin.Cache
         /// <summary>
         /// Gets the id to locate PlatformCachePluginConfigurationClosureFactory on Java side
         /// and read the data written by <see cref="WriteBinary"/> method.
+        /// <para />
+        /// When this property is not null, all cache plugin functionality is delegated to Java part.
+        /// <see cref="ICachePluginProvider{TConfig}"/> won't be invoked.
         /// </summary>
-        int CachePluginConfigurationClosureFactoryId { get; }
+        int? CachePluginConfigurationClosureFactoryId { get; }
 
         /// <summary>
         /// Writes this instance to a raw writer.
