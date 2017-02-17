@@ -62,5 +62,18 @@ namespace Apache.Ignite.Core.Tests.Plugin.Cache
         {
             Ignition.StopAll(true);
         }
+
+        /// <summary>
+        /// Tests that cache plugin works with static cache.
+        /// </summary>
+        [Test]
+        public void TestStaticCache()
+        {
+            var cache = _grid.GetCache<int, int>(CacheName);
+
+            Assert.IsNull(cache.GetConfiguration().PluginConfigurations);  // Java cache plugins are not returned.
+
+            // TODO: throw an error from unwrapCacheEntry on some condition to verify that plugin works.
+        }
     }
 }
