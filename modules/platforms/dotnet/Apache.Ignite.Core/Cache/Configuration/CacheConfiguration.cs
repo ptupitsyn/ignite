@@ -379,6 +379,7 @@ namespace Apache.Ignite.Core.Cache.Configuration
                     {
                         writer.WriteBoolean(true);
                         writer.WriteInt(cachePlugin.CachePluginConfigurationClosureFactoryId.Value);
+                        cachePlugin.WriteBinary(writer);
                     }
                     else
                     {
