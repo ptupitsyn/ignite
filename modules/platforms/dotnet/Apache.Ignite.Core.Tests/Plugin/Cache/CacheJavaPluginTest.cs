@@ -17,10 +17,50 @@
 
 namespace Apache.Ignite.Core.Tests.Plugin.Cache
 {
+    using Apache.Ignite.Core.Cache.Configuration;
+    using NUnit.Framework;
+
     /// <summary>
     /// Tests the plugin with Java part.
     /// </summary>
     public class CacheJavaPluginTest
     {
+                /** */
+        private const string CacheName = "staticCache";
+
+        /** */
+        private const string DynCacheName = "dynamicCache";
+
+        /** */
+        private IIgnite _grid;
+
+        /// <summary>
+        /// Fixture set up.
+        /// </summary>
+        [TestFixtureSetUp]
+        public void FixtureSetUp()
+        {
+            var cfg = new IgniteConfiguration(TestUtils.GetTestConfiguration())
+            {
+                CacheConfiguration = new[]
+                {
+                    new CacheConfiguration(CacheName)
+                    {
+                        PluginConfigurations = new[] {new CacheJavaPluginConfiguration()}
+                    }
+                }
+            };
+
+            _grid = Ignition.Start(cfg);
+        }
+
+        /// <summary>
+        /// Fixture tear down.
+        /// </summary>
+        [TestFixtureTearDown]
+        public void FixtureTearDown()
+        {
+            Ignition.StopAll(true);
+        }
     }
 }
