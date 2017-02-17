@@ -25,11 +25,18 @@ namespace Apache.Ignite.Core.Tests.Plugin.Cache
     /// </summary>
     public class CacheJavaPluginTest
     {
-                /** */
+        /** */
         private const string CacheName = "staticCache";
 
         /** */
         private const string DynCacheName = "dynamicCache";
+
+        /** */
+        private const string GetPluginsTask = "org.apache.ignite.platform.plugin.cache.PlatformGetCachePluginsTask";
+
+        /** */
+        private const string PluginConfigurationClass = 
+            "org.apache.ignite.platform.plugin.cache.PlatformTestCachePluginConfiguration";
 
         /** */
         private IIgnite _grid;
@@ -77,7 +84,9 @@ namespace Apache.Ignite.Core.Tests.Plugin.Cache
 
             Assert.AreEqual(1, cache[1]);
 
-            // TODO: throw an error from unwrapCacheEntry on some condition to verify that plugin works.
+            var plugins = _grid.GetCompute().ExecuteJavaTask<string[]>(GetPluginsTask, cache.Name);
+
+            Assert.AreEqual(new[] {PluginConfigurationClass}, plugins);
         }
     }
 }
