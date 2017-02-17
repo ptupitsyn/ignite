@@ -17,6 +17,7 @@
 
 namespace Apache.Ignite.Core.Tests.Plugin.Cache
 {
+    using System;
     using Apache.Ignite.Core.Binary;
     using Apache.Ignite.Core.Plugin.Cache;
     using NUnit.Framework;
@@ -24,6 +25,7 @@ namespace Apache.Ignite.Core.Tests.Plugin.Cache
     /// <summary>
     /// Cache plugin config.
     /// </summary>
+    [Serializable]
     [CachePluginProviderType(typeof(CachePlugin))]
     public class CachePluginConfiguration : ICachePluginConfiguration
     {
