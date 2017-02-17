@@ -22,9 +22,10 @@ import org.apache.ignite.configuration.CacheConfiguration;
 import org.apache.ignite.plugin.platform.PlatformCachePluginConfigurationClosure;
 
 /**
- * Created by ptupitsyn on 2/17/2017.
+ * Test config closure.
  */
 public class PlatformTestCachePluginConfigurationClosure implements PlatformCachePluginConfigurationClosure {
+    /** {@inheritDoc} */
     @Override public void apply(CacheConfiguration cacheConfiguration, BinaryRawReader reader) {
 
     }

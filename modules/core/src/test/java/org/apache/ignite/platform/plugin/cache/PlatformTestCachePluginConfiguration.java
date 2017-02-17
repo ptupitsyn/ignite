@@ -17,12 +17,14 @@
 
 package org.apache.ignite.platform.plugin.cache;
 
-import org.apache.ignite.binary.BinaryRawReader;
+import org.apache.ignite.plugin.CachePluginConfiguration;
+import org.apache.ignite.plugin.CachePluginContext;
+import org.apache.ignite.plugin.CachePluginProvider;
 
 /**
  * Test plugin configuration.
  */
-public class PlatformTestCachePluginConfiguration {
+public class PlatformTestCachePluginConfiguration implements CachePluginConfiguration {
     /** */
     private String pluginProperty;
 
@@ -31,15 +33,6 @@ public class PlatformTestCachePluginConfiguration {
      */
     public PlatformTestCachePluginConfiguration() {
         // No-op.
-    }
-
-    /**
-     * Initializes a new instance of PlatformTestPluginConfiguration.
-     *
-     * @param reader Reader.
-     */
-    public PlatformTestCachePluginConfiguration(BinaryRawReader reader) {
-        pluginProperty = reader.readString();
     }
 
     /**
@@ -58,5 +51,10 @@ public class PlatformTestCachePluginConfiguration {
      */
     public void setPluginProperty(String pluginProperty) {
         this.pluginProperty = pluginProperty;
+    }
+
+    /** {@inheritDoc} */
+    @Override public CachePluginProvider createProvider(CachePluginContext ctx) {
+        return new PlatformTestCachePluginProvider();
     }
 }
