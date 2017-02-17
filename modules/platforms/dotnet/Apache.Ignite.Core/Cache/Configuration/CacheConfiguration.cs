@@ -389,7 +389,7 @@ namespace Apache.Ignite.Core.Cache.Configuration
                         }
 
                         writer.WriteBoolean(false);
-                        cachePlugin.WriteBinary(writer);
+                        writer.WriteObject(cachePlugin);
                     }
                 }
             }
