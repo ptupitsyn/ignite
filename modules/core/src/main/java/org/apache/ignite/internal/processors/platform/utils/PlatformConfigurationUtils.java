@@ -216,11 +216,10 @@ public class PlatformConfigurationUtils {
         if (pluginCnt > 0) {
             CachePluginConfiguration[] plugins = new CachePluginConfiguration[pluginCnt];
 
-            for (int i = 0; i < pluginCnt; i++) {
-                int factoryId = in.readInt();
-            }
+            for (int i = 0; i < pluginCnt; i++)
+                plugins[i] = new PlatformCachePluginConfiguration(in.readObjectDetached());
 
-            //ccfg.setPluginConfigurations(plugins);
+            ccfg.setPluginConfigurations(plugins);
         }
 
         return ccfg;

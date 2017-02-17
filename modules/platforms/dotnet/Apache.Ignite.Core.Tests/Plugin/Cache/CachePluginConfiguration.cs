@@ -19,6 +19,7 @@ namespace Apache.Ignite.Core.Tests.Plugin.Cache
 {
     using Apache.Ignite.Core.Binary;
     using Apache.Ignite.Core.Plugin.Cache;
+    using NUnit.Framework;
 
     /// <summary>
     /// Cache plugin config.
@@ -44,7 +45,7 @@ namespace Apache.Ignite.Core.Tests.Plugin.Cache
         /// </summary>
         public int? CachePluginConfigurationClosureFactoryId
         {
-            get { return 0; }
+            get { return null; }
         }
 
         /// <summary>
@@ -55,7 +56,7 @@ namespace Apache.Ignite.Core.Tests.Plugin.Cache
         /// <param name="writer">The writer.</param>
         public void WriteBinary(IBinaryRawWriter writer)
         {
-            writer.WriteString(TestProperty);
+            Assert.Fail("Should not be called");
         }
     }
 }
