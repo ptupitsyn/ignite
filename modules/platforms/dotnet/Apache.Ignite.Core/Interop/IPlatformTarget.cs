@@ -18,7 +18,9 @@
 namespace Apache.Ignite.Core.Interop
 {
     using System;
+    using System.Threading.Tasks;
     using Apache.Ignite.Core.Binary;
+    using Apache.Ignite.Core.Impl.Binary;
 
     /// <summary>
     /// Interface to interoperate with
@@ -87,5 +89,16 @@ namespace Apache.Ignite.Core.Interop
         /// <param name="type">Operation type code.</param>
         /// <returns>Result.</returns>
         IPlatformTarget OutObject(int type);
+
+        /// <summary>
+        /// Performs asynchronous operation.
+        /// </summary>
+        /// <typeparam name="T">Result type</typeparam>
+        /// <param name="type">Operation type code.</param>
+        /// <param name="writeAction">Write action.</param>
+        /// <param name="readAction">Read function.</param>
+        /// <returns>Task.</returns>
+        Task<T> DoOutOpAsync<T>(int type, Action<IBinaryRawWriter> writeAction = null,
+            Func<IBinaryRawReader, T> readAction = null);
     }
 }
