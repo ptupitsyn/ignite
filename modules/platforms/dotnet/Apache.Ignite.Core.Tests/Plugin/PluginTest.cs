@@ -124,6 +124,14 @@ namespace Apache.Ignite.Core.Tests.Plugin
             Assert.IsTrue(task.IsCompleted);
             Assert.AreEqual("FOO", asyncRes);
 
+            // Async operation with exception in entry point.
+            Assert.Throws<TestIgnitePluginException>(() => target.DoOutOpAsync<object>(2, null, null));
+
+            // Async operation with exception in future.
+            var errTask = target.DoOutOpAsync<object>(3, null, null);
+            Assert.IsFalse(task.IsCompleted);
+            Assert.Throws<TestIgnitePluginException>(() => errTask.Wait());
+
             // Throws custom mapped exception.
             var ex = Assert.Throws<TestIgnitePluginException>(() => target.InLongOutLong(-1, 0));
             Assert.AreEqual("Baz", ex.Message);

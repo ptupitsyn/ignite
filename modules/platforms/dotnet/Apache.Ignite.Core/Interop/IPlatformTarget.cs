@@ -95,10 +95,10 @@ namespace Apache.Ignite.Core.Interop
         /// </summary>
         /// <typeparam name="T">Result type</typeparam>
         /// <param name="type">Operation type code.</param>
-        /// <param name="writeAction">Write action.</param>
-        /// <param name="readAction">Read function.</param>
+        /// <param name="writeAction">Write action (can be null).</param>
+        /// <param name="readAction">Read function (can be null).</param>
         /// <returns>Task.</returns>
-        Task<T> DoOutOpAsync<T>(int type, Action<IBinaryRawWriter> writeAction = null,
-            Func<IBinaryRawReader, T> readAction = null);
+        Task<T> DoOutOpAsync<T>(int type, Action<IBinaryRawWriter> writeAction,
+            Func<IBinaryRawReader, T> readAction);
     }
 }
