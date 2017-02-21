@@ -112,6 +112,7 @@ public class PlatformTargetProxyImpl implements PlatformTargetProxy {
             long futId = reader.readLong();
             int futTyp = reader.readInt();
 
+            // TODO: We need a writer!
             IgniteFuture fut = target.processInStreamAsync(type, reader);
 
             PlatformFutureUtils.listen(platformCtx, fut, futId, futTyp, null, target);

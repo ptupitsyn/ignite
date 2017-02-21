@@ -126,7 +126,7 @@ public abstract class PlatformAbstractTarget implements PlatformTarget, Platform
     }
 
     /** {@inheritDoc} */
-    @Override public IgniteFuture processInStreamAsync(int type, BinaryRawReaderEx reader)
+    @Override public PlatformAsyncResult processInStreamAsync(int type, BinaryRawReaderEx reader)
             throws IgniteCheckedException {
         throwUnsupported(type);
 

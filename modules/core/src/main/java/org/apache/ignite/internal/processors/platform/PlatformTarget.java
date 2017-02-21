@@ -113,10 +113,10 @@ public interface PlatformTarget {
      *
      * @param type Type.
      * @param reader Binary reader.
-     * @return Future.
+     * @return Async result (should not be null).
      * @throws IgniteCheckedException In case of exception.
      */
-    IgniteFuture processInStreamAsync(int type, BinaryRawReaderEx reader) throws IgniteCheckedException;
+    PlatformAsyncResult processInStreamAsync(int type, BinaryRawReaderEx reader) throws IgniteCheckedException;
 
     /**
      * Convert caught exception.
