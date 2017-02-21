@@ -117,6 +117,13 @@ namespace Apache.Ignite.Core.Tests.Plugin
             var resCopy = res.Item2.OutObject(1);
             Assert.AreEqual("name1_abc", resCopy.OutStream(1, r => r.ReadString()));
 
+            // Async operation.
+            var task = target.DoOutOpAsync(1, w => w.WriteString("foo"), r => r.ReadString());
+            Assert.IsFalse(task.IsCompleted);
+            var asyncRes = task.Result;
+            Assert.IsTrue(task.IsCompleted);
+            Assert.AreEqual("FOO", asyncRes);
+
             // Throws custom mapped exception.
             var ex = Assert.Throws<TestIgnitePluginException>(() => target.InLongOutLong(-1, 0));
             Assert.AreEqual("Baz", ex.Message);
