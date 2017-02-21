@@ -112,10 +112,19 @@ public class PlatformTargetProxyImpl implements PlatformTargetProxy {
             long futId = reader.readLong();
             int futTyp = reader.readInt();
 
-            // TODO: We need a writer!
-            IgniteFuture fut = target.processInStreamAsync(type, reader);
+            PlatformAsyncResult res = target.processInStreamAsync(type, reader);
 
-            PlatformFutureUtils.listen(platformCtx, fut, futId, futTyp, null, target);
+            PlatformFutureUtils.listen(platformCtx, res.future(), futId, futTyp, new PlatformFutureUtils.Writer() {
+                /** {@inheritDoc} */
+                @Override public void write(BinaryRawWriterEx writer, Object obj, Throwable err) {
+                    res.write(writer, obj);
+                }
+
+                /** {@inheritDoc} */
+                @Override public boolean canWrite(Object obj, Throwable err) {
+                    return err == null;
+                }
+            }, target);
         }
         catch (Exception e) {
             throw target.convertException(e);
