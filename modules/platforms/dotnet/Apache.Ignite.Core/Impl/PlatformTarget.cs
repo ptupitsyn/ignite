@@ -962,6 +962,17 @@ namespace Apache.Ignite.Core.Impl
             return GetPlatformTarget(DoOutOpObject(type));
         }
 
+        /** <inheritdoc /> */
+        public Task<T> DoOutOpAsync<T>(int type, Action<IBinaryRawWriter> writeAction = null, 
+            Func<IBinaryRawReader, T> readAction = null)
+        {
+            var convertFunc = readAction != null 
+                ? r => readAction(r) 
+                : (Func<BinaryReader, T>) null;
+
+            return DoOutOpAsync(type, writeAction, convertFunc: convertFunc);
+        }
+
         /// <summary>
         /// Gets the platform target.
         /// </summary>
