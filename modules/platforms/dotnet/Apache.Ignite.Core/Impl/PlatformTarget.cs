@@ -970,7 +970,25 @@ namespace Apache.Ignite.Core.Impl
                 ? r => readAction(r) 
                 : (Func<BinaryReader, T>) null;
 
-            return DoOutOpAsync(type, writeAction, convertFunc: convertFunc);
+            return GetFuture((futId, futType) =>
+            {
+                using (var stream = IgniteManager.Memory.Allocate().GetStream())
+                {
+                    stream.WriteLong(futId);
+                    stream.WriteInt(futType);
+
+                    if (writeAction != null)
+                    {
+                        var writer = _marsh.StartMarshal(stream);
+
+                        writeAction(writer);
+
+                        FinishMarshal(writer);
+                    }
+
+                    UU.TargetInStreamAsync(_target, type, stream.SynchronizeOutput());
+                }
+            }, false, convertFunc).Task;
         }
 
         /// <summary>

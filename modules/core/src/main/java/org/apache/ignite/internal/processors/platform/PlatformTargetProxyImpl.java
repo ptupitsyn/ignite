@@ -109,10 +109,10 @@ public class PlatformTargetProxyImpl implements PlatformTargetProxy {
         try (PlatformMemory mem = platformCtx.memory().get(memPtr)) {
             BinaryRawReaderEx reader = platformCtx.reader(mem);
 
-            IgniteFuture fut = target.processInStreamAsync(type, reader);
-
             long futId = reader.readLong();
             int futTyp = reader.readInt();
+
+            IgniteFuture fut = target.processInStreamAsync(type, reader);
 
             PlatformFutureUtils.listen(platformCtx, fut, futId, futTyp, null, target);
         }
