@@ -21,7 +21,7 @@ import org.apache.ignite.IgniteCheckedException;
 import org.apache.ignite.configuration.IgniteConfiguration;
 import org.apache.ignite.internal.binary.BinaryRawReaderEx;
 import org.apache.ignite.internal.binary.BinaryRawWriterEx;
-import org.apache.ignite.internal.processors.platform.PlatformAbstractTarget;
+import org.apache.ignite.internal.processors.platform.PlatformAsyncResult;
 import org.apache.ignite.internal.processors.platform.PlatformContext;
 import org.apache.ignite.internal.processors.platform.PlatformTarget;
 import org.apache.ignite.internal.processors.platform.memory.PlatformMemory;
@@ -33,9 +33,12 @@ import org.jetbrains.annotations.Nullable;
  * Test target.
  */
 @SuppressWarnings("ConstantConditions")
-class PlatformTestPluginTarget extends PlatformAbstractTarget {
+class PlatformTestPluginTarget implements PlatformTarget {
     /** */
     private final String name;
+
+    /** */
+    private final PlatformContext platformCtx;
 
     /**
      * Constructor.
@@ -43,7 +46,7 @@ class PlatformTestPluginTarget extends PlatformAbstractTarget {
      * @param platformCtx Context.
      */
     PlatformTestPluginTarget(PlatformContext platformCtx, String name) {
-        super(platformCtx);
+        this.platformCtx = platformCtx;
 
         if (name == null) {
             // Initialize from configuration.
@@ -65,9 +68,14 @@ class PlatformTestPluginTarget extends PlatformAbstractTarget {
         return val + 1;
     }
 
-    /** {@inheritDoc} */
     @Override public long processInStreamOutLong(int type, BinaryRawReaderEx reader) throws IgniteCheckedException {
         return reader.readString().length();
+    }
+
+    /** {@inheritDoc} */
+    @Override public long processInStreamOutLong(int type, BinaryRawReaderEx reader, PlatformMemory mem)
+            throws IgniteCheckedException {
+        return processInStreamOutLong(type, reader);
     }
 
     /** {@inheritDoc} */
@@ -127,6 +135,16 @@ class PlatformTestPluginTarget extends PlatformAbstractTarget {
     /** {@inheritDoc} */
     @Override public PlatformTarget processOutObject(int type) throws IgniteCheckedException {
         return new PlatformTestPluginTarget(platformCtx, name);
+    }
+
+    /** {@inheritDoc} */
+    @Override public PlatformAsyncResult processInStreamAsync(int type, BinaryRawReaderEx reader) throws IgniteCheckedException {
+        return null;
+    }
+
+    /** {@inheritDoc} */
+    @Override public Exception convertException(Exception e) {
+        return e;
     }
 
     /**
