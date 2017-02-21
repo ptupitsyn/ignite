@@ -20,6 +20,7 @@ namespace Apache.Ignite.Core.Tests.Plugin
     using System;
     using System.Collections.Generic;
     using System.IO;
+    using System.Linq;
     using Apache.Ignite.Core.Binary;
     using Apache.Ignite.Core.Common;
     using Apache.Ignite.Core.Interop;
@@ -129,8 +130,9 @@ namespace Apache.Ignite.Core.Tests.Plugin
 
             // Async operation with exception in future.
             var errTask = target.DoOutOpAsync<object>(3, null, null);
-            Assert.IsFalse(task.IsCompleted);
-            Assert.Throws<TestIgnitePluginException>(() => errTask.Wait());
+            Assert.IsFalse(errTask.IsCompleted);
+            var aex = Assert.Throws<AggregateException>(() => errTask.Wait());
+            Assert.IsInstanceOf<TestIgnitePluginException>(aex.InnerExceptions.Single());
 
             // Throws custom mapped exception.
             var ex = Assert.Throws<TestIgnitePluginException>(() => target.InLongOutLong(-1, 0));
