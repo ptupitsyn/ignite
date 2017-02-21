@@ -469,8 +469,6 @@ namespace Apache.Ignite.Core.Impl.Unmanaged
             JNI.TargetInStreamAsync(target.Context, target.Target, opType, memPtr);
         }
 
-
-
         #endregion
 
         #region NATIVE METHODS: MISCELANNEOUS
