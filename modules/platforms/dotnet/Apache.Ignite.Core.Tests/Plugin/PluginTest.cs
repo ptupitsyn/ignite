@@ -132,7 +132,7 @@ namespace Apache.Ignite.Core.Tests.Plugin
             var errTask = target.DoOutOpAsync<object>(3, null, null);
             Assert.IsFalse(errTask.IsCompleted);
             var aex = Assert.Throws<AggregateException>(() => errTask.Wait());
-            Assert.IsInstanceOf<TestIgnitePluginException>(aex.InnerExceptions.Single());
+            Assert.IsInstanceOf<IgniteException>(aex.InnerExceptions.Single());
 
             // Throws custom mapped exception.
             var ex = Assert.Throws<TestIgnitePluginException>(() => target.InLongOutLong(-1, 0));
