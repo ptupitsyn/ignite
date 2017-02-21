@@ -119,7 +119,13 @@ public class PlatformTargetProxyImpl implements PlatformTargetProxy {
                 throw new IgniteException("PlatformTarget.processInStreamAsync should not return null.");
             }
 
-            PlatformFutureUtils.listen(platformCtx, res.future(), futId, futTyp, new PlatformFutureUtils.Writer() {
+            IgniteFuture fut = res.future();
+
+            if (fut == null) {
+                throw new IgniteException("PlatformAsyncResult.future() should not return null.");
+            }
+
+            PlatformFutureUtils.listen(platformCtx, fut, futId, futTyp, new PlatformFutureUtils.Writer() {
                 /** {@inheritDoc} */
                 @Override public void write(BinaryRawWriterEx writer, Object obj, Throwable err) {
                     res.write(writer, obj);

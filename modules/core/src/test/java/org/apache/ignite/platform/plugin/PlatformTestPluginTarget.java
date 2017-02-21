@@ -26,6 +26,9 @@ import org.apache.ignite.internal.processors.platform.PlatformContext;
 import org.apache.ignite.internal.processors.platform.PlatformTarget;
 import org.apache.ignite.internal.processors.platform.memory.PlatformMemory;
 import org.apache.ignite.internal.processors.platform.memory.PlatformOutputStream;
+import org.apache.ignite.internal.util.future.GridFutureAdapter;
+import org.apache.ignite.internal.util.future.IgniteFutureImpl;
+import org.apache.ignite.lang.IgniteFuture;
 import org.apache.ignite.plugin.PluginConfiguration;
 import org.jetbrains.annotations.Nullable;
 
@@ -139,6 +142,66 @@ class PlatformTestPluginTarget implements PlatformTarget {
 
     /** {@inheritDoc} */
     @Override public PlatformAsyncResult processInStreamAsync(int type, BinaryRawReaderEx reader) throws IgniteCheckedException {
+        switch (type) {
+            case 1: {
+                // Async upper case.
+                String val = reader.readString();
+                GridFutureAdapter<String> fa = new GridFutureAdapter<>();
+
+                new Thread(new Runnable() {
+                    @Override public void run() {
+                        try {
+                            Thread.sleep(500L);
+                            fa.onDone(val.toUpperCase());
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }).start();
+
+                return new PlatformAsyncResult() {
+                    @Override public IgniteFuture future() {
+                        //noinspection unchecked
+                        return new IgniteFutureImpl(fa);
+                    }
+
+                    @Override public void write(BinaryRawWriterEx writer, Object result) {
+                        writer.writeString((String) result);
+                    }
+                };
+            }
+            case 2: {
+                // Exception.
+                throw new PlatformTestPluginException("123");
+            }
+            case 3: {
+                // Async exception.
+                GridFutureAdapter<String> fa = new GridFutureAdapter<>();
+
+                new Thread(new Runnable() {
+                    @Override public void run() {
+                        try {
+                            Thread.sleep(500L);
+                            fa.onDone(new PlatformTestPluginException("x"));
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }).start();
+
+                return new PlatformAsyncResult() {
+                    @Override public IgniteFuture future() {
+                        //noinspection unchecked
+                        return new IgniteFutureImpl(fa);
+                    }
+
+                    @Override public void write(BinaryRawWriterEx writer, Object result) {
+                        // No-op.
+                    }
+                };
+            }
+        }
+
         return null;
     }
 
