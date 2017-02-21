@@ -24,6 +24,7 @@ import org.apache.ignite.internal.binary.BinaryRawWriterEx;
 import org.apache.ignite.internal.processors.platform.memory.PlatformMemory;
 import org.apache.ignite.internal.processors.platform.memory.PlatformOutputStream;
 import org.apache.ignite.internal.processors.platform.utils.PlatformFutureUtils;
+import org.apache.ignite.lang.IgniteFuture;
 
 /**
  * Platform target that is invoked via JNI and propagates calls to underlying {@link PlatformTarget}.
@@ -97,6 +98,23 @@ public class PlatformTargetProxyImpl implements PlatformTargetProxy {
     @Override public Object outObject(int type) throws Exception {
         try {
             return wrapProxy(target.processOutObject(type));
+        }
+        catch (Exception e) {
+            throw target.convertException(e);
+        }
+    }
+
+    /** {@inheritDoc} */
+    @Override public void inStreamAsync(int type, long memPtr) throws Exception {
+        try (PlatformMemory mem = platformCtx.memory().get(memPtr)) {
+            BinaryRawReaderEx reader = platformCtx.reader(mem);
+
+            IgniteFuture fut = target.processInStreamAsync(type, reader);
+
+            long futId = reader.readLong();
+            int futTyp = reader.readInt();
+
+            PlatformFutureUtils.listen(platformCtx, fut, futId, futTyp, null, target);
         }
         catch (Exception e) {
             throw target.convertException(e);

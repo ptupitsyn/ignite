@@ -21,6 +21,7 @@ import org.apache.ignite.IgniteCheckedException;
 import org.apache.ignite.internal.binary.BinaryRawReaderEx;
 import org.apache.ignite.internal.binary.BinaryRawWriterEx;
 import org.apache.ignite.internal.processors.platform.memory.PlatformMemory;
+import org.apache.ignite.lang.IgniteFuture;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -106,6 +107,16 @@ public interface PlatformTarget {
      * @throws IgniteCheckedException In case of exception.
      */
     PlatformTarget processOutObject(int type) throws IgniteCheckedException;
+
+    /**
+     * Process asynchronous operation.
+     *
+     * @param type Type.
+     * @param reader Binary reader.
+     * @return Future.
+     * @throws IgniteCheckedException In case of exception.
+     */
+    IgniteFuture processInStreamAsync(int type, BinaryRawReaderEx reader) throws IgniteCheckedException;
 
     /**
      * Convert caught exception.

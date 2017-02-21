@@ -125,6 +125,14 @@ public abstract class PlatformAbstractTarget implements PlatformTarget, Platform
         return throwUnsupported(type);
     }
 
+    /** {@inheritDoc} */
+    @Override public IgniteFuture processInStreamAsync(int type, BinaryRawReaderEx reader)
+            throws IgniteCheckedException {
+        throwUnsupported(type);
+
+        return null;
+    }
+
     /**
      * Throw an exception rendering unsupported operation type.
      *
