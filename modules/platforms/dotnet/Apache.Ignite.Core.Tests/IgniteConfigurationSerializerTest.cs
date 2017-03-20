@@ -370,7 +370,7 @@ namespace Apache.Ignite.Core.Tests
             };
 
             Assert.AreEqual(FixLineEndings(@"<?xml version=""1.0"" encoding=""utf-16""?>
-<igniteConfiguration clientMode=""true"" gridName=""myGrid"" xmlns=""http://ignite.apache.org/schema/dotnet/IgniteConfigurationSection"">
+<igniteConfiguration clientMode=""true"" igniteInstanceName=""myGrid"" xmlns=""http://ignite.apache.org/schema/dotnet/IgniteConfigurationSection"">
   <cacheConfiguration>
     <cacheConfiguration cacheMode=""Replicated"" name=""myCache"">
       <queryEntities>
@@ -400,7 +400,7 @@ namespace Apache.Ignite.Core.Tests
             }
 
             Assert.AreEqual(FixLineEndings(@"<?xml version=""1.0"" encoding=""utf-16""?>
-<igCfg clientMode=""true"" gridName=""myGrid"" xmlns=""http://ignite.apache.org/schema/dotnet/IgniteConfigurationSection"">
+<igCfg clientMode=""true"" igniteInstanceName=""myGrid"" xmlns=""http://ignite.apache.org/schema/dotnet/IgniteConfigurationSection"">
  <cacheConfiguration>
   <cacheConfiguration cacheMode=""Replicated"" name=""myCache"">
    <queryEntities>
@@ -431,7 +431,7 @@ namespace Apache.Ignite.Core.Tests
             AssertReflectionEqual(new IgniteConfiguration(), cfg);
 
             // Simple test.
-            cfg = IgniteConfiguration.FromXml(@"<igCfg gridName=""myGrid"" clientMode=""true"" />");
+            cfg = IgniteConfiguration.FromXml(@"<igCfg igniteInstanceName=""myGrid"" clientMode=""true"" />");
             AssertReflectionEqual(new IgniteConfiguration {IgniteInstanceName = "myGrid", ClientMode = true}, cfg);
 
             // Invalid xml.
@@ -443,7 +443,7 @@ namespace Apache.Ignite.Core.Tests
 
             // Xml reader.
             using (var xmlReader = XmlReader.Create(
-                new StringReader(@"<igCfg gridName=""myGrid"" clientMode=""true"" />")))
+                new StringReader(@"<igCfg igniteInstanceName=""myGrid"" clientMode=""true"" />")))
             {
                 cfg = IgniteConfiguration.FromXml(xmlReader);
             }
