@@ -500,7 +500,7 @@
         /// </summary>
         private void CopyLocalProperties(IgniteConfiguration cfg)
         {
-            GridName = cfg.GridName;
+            IgniteInstanceName = cfg.IgniteInstanceName;
 
             if (BinaryConfiguration != null && cfg.BinaryConfiguration != null)
             {
@@ -523,9 +523,15 @@
         }
 
         /// <summary>
-        /// Grid name which is used if not provided in configuration file.
+        /// Gets or sets optional local instance name.
+        /// <para />
+        /// This name only works locally and has no effect on topology.
+        /// <para />
+        /// This property is used to when there are multiple Ignite nodes in one process to distinguish them.
         /// </summary>
-        public string GridName { get; set; }
+        public string IgniteInstanceName { get; set; }
+
+        // TODO: Keep GridName as deprecated?
 
         /// <summary>
         /// Gets or sets the binary configuration.

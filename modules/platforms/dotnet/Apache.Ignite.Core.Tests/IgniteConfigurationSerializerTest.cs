@@ -348,7 +348,7 @@ namespace Apache.Ignite.Core.Tests
             // Some properties
             var cfg = new IgniteConfiguration
             {
-                GridName = "myGrid",
+                IgniteInstanceName = "myGrid",
                 ClientMode = true,
                 CacheConfiguration = new[]
                 {
@@ -432,7 +432,7 @@ namespace Apache.Ignite.Core.Tests
 
             // Simple test.
             cfg = IgniteConfiguration.FromXml(@"<igCfg gridName=""myGrid"" clientMode=""true"" />");
-            AssertReflectionEqual(new IgniteConfiguration {GridName = "myGrid", ClientMode = true}, cfg);
+            AssertReflectionEqual(new IgniteConfiguration {IgniteInstanceName = "myGrid", ClientMode = true}, cfg);
 
             // Invalid xml.
             var ex = Assert.Throws<ConfigurationErrorsException>(() =>
@@ -447,7 +447,7 @@ namespace Apache.Ignite.Core.Tests
             {
                 cfg = IgniteConfiguration.FromXml(xmlReader);
             }
-            AssertReflectionEqual(new IgniteConfiguration { GridName = "myGrid", ClientMode = true }, cfg);
+            AssertReflectionEqual(new IgniteConfiguration { IgniteInstanceName = "myGrid", ClientMode = true }, cfg);
         }
 
         /// <summary>
@@ -566,7 +566,7 @@ namespace Apache.Ignite.Core.Tests
         {
             return new IgniteConfiguration
             {
-                GridName = "gridName",
+                IgniteInstanceName = "gridName",
                 JvmOptions = new[] {"1", "2"},
                 Localhost = "localhost11",
                 JvmClasspath = "classpath",
