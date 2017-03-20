@@ -531,7 +531,19 @@
         /// </summary>
         public string IgniteInstanceName { get; set; }
 
-        // TODO: Keep GridName as deprecated?
+        /// <summary>
+        /// Gets or sets optional local instance name.
+        /// <para />
+        /// This name only works locally and has no effect on topology.
+        /// <para />
+        /// This property is used to when there are multiple Ignite nodes in one process to distinguish them.
+        /// </summary>
+        [Obsolete("Use IgniteInstanceName instead.")]
+        public string GridName
+        {
+            get { return IgniteInstanceName; }
+            set { IgniteInstanceName = value; }
+        }
 
         /// <summary>
         /// Gets or sets the binary configuration.
