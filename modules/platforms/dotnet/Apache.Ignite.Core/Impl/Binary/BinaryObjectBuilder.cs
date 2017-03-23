@@ -96,7 +96,7 @@ namespace Apache.Ignite.Core.Impl.Binary
             if (obj != null)
             {
                 _obj = obj;
-                _hashCode = BinaryUtils.GetEqualityComparer(desc).GetHashCode(obj);
+                _hashCode = obj.GetHashCode();
             }
             else
             {
@@ -107,6 +107,9 @@ namespace Apache.Ignite.Core.Impl.Binary
         /** <inheritDoc /> */
         public IBinaryObjectBuilder SetHashCode(int hashCode)
         {
+            // TODO: See how Java does this. Keep a flag whether explicitly set.
+            // Do we even need this method?
+
             _hashCode = hashCode;
 
             return this;

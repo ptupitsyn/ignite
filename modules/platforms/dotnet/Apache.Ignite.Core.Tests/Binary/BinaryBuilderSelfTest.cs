@@ -626,7 +626,6 @@ namespace Apache.Ignite.Core.Tests.Binary
                 .SetField<float>("fFloat", 5)
                 .SetField<double>("fDouble", 6)
                 .SetField("fDecimal", 7.7m)
-                .SetHashCode(100)
                 .Build();
 
             CheckPrimitiveFields1(binObj);
@@ -642,7 +641,6 @@ namespace Apache.Ignite.Core.Tests.Binary
                 .SetFloatField("fFloat", 5)
                 .SetDoubleField("fDouble", 6)
                 .SetDecimalField("fDecimal", 7.7m)
-                .SetHashCode(100)
                 .Build();
 
             CheckPrimitiveFields1(binObj2);
@@ -777,7 +775,6 @@ namespace Apache.Ignite.Core.Tests.Binary
                 .SetField("fFloat", new float[] { 5 })
                 .SetField("fDouble", new double[] { 6 })
                 .SetField("fDecimal", new decimal?[] { 7.7m })
-                .SetHashCode(100)
                 .Build();
 
             CheckPrimitiveArrayFields1(binObj);
@@ -793,7 +790,6 @@ namespace Apache.Ignite.Core.Tests.Binary
                 .SetFloatArrayField("fFloat", new float[] {5})
                 .SetDoubleArrayField("fDouble", new double[] {6})
                 .SetDecimalArrayField("fDecimal", new decimal?[] {7.7m})
-                .SetHashCode(100)
                 .Build();
 
             CheckPrimitiveArrayFields1(binObj2);
@@ -933,7 +929,6 @@ namespace Apache.Ignite.Core.Tests.Binary
                 .SetTimestampArrayField("fTimestampArr", new[] { nDate })
                 .SetGuidArrayField("fGuidArr", new[] { nGuid })
                 .SetEnumArrayField("fEnumArr", new[] { TestEnum.One })
-                .SetHashCode(100)
                 .Build();
 
             CheckStringDateGuidEnum1(binObj, nDate, nGuid);
@@ -950,7 +945,6 @@ namespace Apache.Ignite.Core.Tests.Binary
                 .SetTimestampArrayField("fTimestampArr", new[] { nDate })
                 .SetGuidArrayField("fGuidArr", new[] { nGuid })
                 .SetEnumArrayField("fEnumArr", new[] { TestEnum.One })
-                .SetHashCode(100)
                 .Build();
 
             CheckStringDateGuidEnum1(binObj2, nDate, nGuid);
