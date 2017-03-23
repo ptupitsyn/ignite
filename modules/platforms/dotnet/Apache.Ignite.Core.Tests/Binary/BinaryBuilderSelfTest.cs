@@ -580,17 +580,6 @@ namespace Apache.Ignite.Core.Tests.Binary
         }
 
         /// <summary>
-        /// Test hash code alteration.
-        /// </summary>
-        [Test]
-        public void TestHashCodeChange()
-        {
-            IBinaryObject binObj = _grid.GetBinary().GetBuilder(typeof(Empty)).SetHashCode(100).Build();
-
-            Assert.AreEqual(100, binObj.GetHashCode());
-        }
-
-        /// <summary>
         /// Tests equality and formatting members.
         /// </summary>
         [Test]
@@ -689,8 +678,6 @@ namespace Apache.Ignite.Core.Tests.Binary
         /// </summary>
         private static void CheckPrimitiveFields1(IBinaryObject binObj)
         {
-            Assert.AreEqual(100, binObj.GetHashCode());
-
             IBinaryType meta = binObj.GetBinaryType();
 
             Assert.AreEqual(typeof(Primitives).Name, meta.TypeName);
@@ -838,8 +825,6 @@ namespace Apache.Ignite.Core.Tests.Binary
         /// </summary>
         private static void CheckPrimitiveArrayFields1(IBinaryObject binObj)
         {
-            Assert.AreEqual(100, binObj.GetHashCode());
-
             IBinaryType meta = binObj.GetBinaryType();
 
             Assert.AreEqual(typeof(PrimitiveArrays).Name, meta.TypeName);
@@ -998,8 +983,6 @@ namespace Apache.Ignite.Core.Tests.Binary
         /// </summary>
         private void CheckStringDateGuidEnum1(IBinaryObject binObj, DateTime? nDate, Guid? nGuid)
         {
-            Assert.AreEqual(100, binObj.GetHashCode());
-
             IBinaryType meta = binObj.GetBinaryType();
 
             Assert.AreEqual(typeof(StringDateGuidEnum).Name, meta.TypeName);
@@ -1141,7 +1124,7 @@ namespace Apache.Ignite.Core.Tests.Binary
             // 1. Test simple array.
             object[] inArr = { new CompositeInner(1) };
 
-            IBinaryObject binObj = _grid.GetBinary().GetBuilder(typeof(CompositeArray)).SetHashCode(100)
+            IBinaryObject binObj = _grid.GetBinary().GetBuilder(typeof(CompositeArray))
                 .SetField("inArr", inArr).Build();
 
             IBinaryType meta = binObj.GetBinaryType();
@@ -1149,8 +1132,6 @@ namespace Apache.Ignite.Core.Tests.Binary
             Assert.AreEqual(typeof(CompositeArray).Name, meta.TypeName);
             Assert.AreEqual(1, meta.Fields.Count);
             Assert.AreEqual(BinaryTypeNames.TypeNameArrayObject, meta.GetFieldTypeName("inArr"));
-
-            Assert.AreEqual(100, binObj.GetHashCode());
 
             var binInArr = binObj.GetField<IBinaryObject[]>("inArr").ToArray();
 
@@ -1164,10 +1145,8 @@ namespace Apache.Ignite.Core.Tests.Binary
             Assert.AreEqual(1, ((CompositeInner) arr.InArr[0]).Val);
 
             // 2. Test addition to array.
-            binObj = _grid.GetBinary().GetBuilder(binObj).SetHashCode(200)
+            binObj = _grid.GetBinary().GetBuilder(binObj)
                 .SetField("inArr", new[] { binInArr[0], null }).Build();
-
-            Assert.AreEqual(200, binObj.GetHashCode());
 
             binInArr = binObj.GetField<IBinaryObject[]>("inArr").ToArray();
 
@@ -1184,10 +1163,8 @@ namespace Apache.Ignite.Core.Tests.Binary
 
             binInArr[1] = _grid.GetBinary().GetBuilder(typeof(CompositeInner)).SetField("val", 2).Build();
 
-            binObj = _grid.GetBinary().GetBuilder(binObj).SetHashCode(300)
+            binObj = _grid.GetBinary().GetBuilder(binObj)
                 .SetField("inArr", binInArr.OfType<object>().ToArray()).Build();
-
-            Assert.AreEqual(300, binObj.GetHashCode());
 
             binInArr = binObj.GetField<IBinaryObject[]>("inArr").ToArray();
 
@@ -1207,10 +1184,8 @@ namespace Apache.Ignite.Core.Tests.Binary
 
             inArr = new object[] { inner, inner };
 
-            binObj = _grid.GetBinary().GetBuilder(typeof(CompositeArray)).SetHashCode(100)
+            binObj = _grid.GetBinary().GetBuilder(typeof(CompositeArray))
                 .SetField("inArr", inArr).Build();
-
-            Assert.AreEqual(100, binObj.GetHashCode());
 
             binInArr = binObj.GetField<IBinaryObject[]>("inArr").ToArray();
 
@@ -1227,10 +1202,8 @@ namespace Apache.Ignite.Core.Tests.Binary
 
             binInArr[0] = _grid.GetBinary().GetBuilder(typeof(CompositeInner)).SetField("val", 2).Build();
 
-            binObj = _grid.GetBinary().GetBuilder(binObj).SetHashCode(200)
+            binObj = _grid.GetBinary().GetBuilder(binObj)
                 .SetField("inArr", binInArr.ToArray<object>()).Build();
-
-            Assert.AreEqual(200, binObj.GetHashCode());
 
             binInArr = binObj.GetField<IBinaryObject[]>("inArr").ToArray();
 
@@ -1248,7 +1221,7 @@ namespace Apache.Ignite.Core.Tests.Binary
             // 4. Test nested object handle inversion.
             CompositeOuter[] outArr = { new CompositeOuter(inner), new CompositeOuter(inner) };
 
-            binObj = _grid.GetBinary().GetBuilder(typeof(CompositeArray)).SetHashCode(100)
+            binObj = _grid.GetBinary().GetBuilder(typeof(CompositeArray))
                 .SetField("outArr", outArr.ToArray<object>()).Build();
 
             meta = binObj.GetBinaryType();
@@ -1257,8 +1230,6 @@ namespace Apache.Ignite.Core.Tests.Binary
             Assert.AreEqual(2, meta.Fields.Count);
             Assert.AreEqual(BinaryTypeNames.TypeNameArrayObject, meta.GetFieldTypeName("inArr"));
             Assert.AreEqual(BinaryTypeNames.TypeNameArrayObject, meta.GetFieldTypeName("outArr"));
-
-            Assert.AreEqual(100, binObj.GetHashCode());
 
             var binOutArr = binObj.GetField<IBinaryObject[]>("outArr").ToArray();
 
@@ -1276,10 +1247,8 @@ namespace Apache.Ignite.Core.Tests.Binary
             binOutArr[0] = _grid.GetBinary().GetBuilder(typeof(CompositeOuter))
                 .SetField("inner", new CompositeInner(2)).Build();
 
-            binObj = _grid.GetBinary().GetBuilder(binObj).SetHashCode(200)
+            binObj = _grid.GetBinary().GetBuilder(binObj)
                 .SetField("outArr", binOutArr.ToArray<object>()).Build();
-
-            Assert.AreEqual(200, binObj.GetHashCode());
 
             binInArr = binObj.GetField<IBinaryObject[]>("outArr").ToArray();
 
@@ -1307,7 +1276,7 @@ namespace Apache.Ignite.Core.Tests.Binary
             col.Add(new CompositeInner(1));
             dict[3] = new CompositeInner(3);
 
-            IBinaryObject binObj = _grid.GetBinary().GetBuilder(typeof(CompositeContainer)).SetHashCode(100)
+            IBinaryObject binObj = _grid.GetBinary().GetBuilder(typeof(CompositeContainer))
                 .SetCollectionField("col", col)
                 .SetDictionaryField("dict", dict).Build();
 
