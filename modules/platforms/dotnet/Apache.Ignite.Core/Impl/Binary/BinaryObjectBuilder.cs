@@ -730,6 +730,7 @@ namespace Apache.Ignite.Core.Impl.Binary
 
                             var outHash = inHeader.HashCode;
 
+                            // TODO: ???
                             if (changeHash)
                             {
                                 if (hash != null)
