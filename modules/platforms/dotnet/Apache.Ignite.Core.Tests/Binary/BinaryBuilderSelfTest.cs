@@ -603,8 +603,8 @@ namespace Apache.Ignite.Core.Tests.Binary
 
             Assert.AreEqual(obj1, obj2);
 
-            Assert.AreEqual(0, obj1.GetHashCode());
-            Assert.AreEqual(0, obj2.GetHashCode());
+            Assert.AreEqual(1823354401, obj1.GetHashCode());
+            Assert.AreEqual(1823354401, obj2.GetHashCode());
 
             Assert.IsTrue(Regex.IsMatch(obj1.ToString(), @"myType \[idHash=[0-9]+, str=foo, int=1\]"));
         }
