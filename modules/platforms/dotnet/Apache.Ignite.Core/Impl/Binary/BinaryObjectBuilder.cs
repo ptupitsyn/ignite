@@ -96,7 +96,7 @@ namespace Apache.Ignite.Core.Impl.Binary
             if (obj != null)
             {
                 _obj = obj;
-                _hashCode = obj.GetHashCode();
+                _hashCode = BinaryUtils.GetEqualityComparer(desc).GetHashCode(obj);
             }
             else
             {
