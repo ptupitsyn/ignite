@@ -18,22 +18,17 @@
 namespace Apache.Ignite.Core.Impl.Cache.Store
 {
     using System;
-    using System.Collections.Generic;
     using System.Diagnostics;
     using System.Globalization;
-    using System.IO;
     using System.Linq;
-    using Apache.Ignite.Core.Binary;
     using Apache.Ignite.Core.Cache.Store;
     using Apache.Ignite.Core.Common;
     using Apache.Ignite.Core.Impl.Binary;
-    using Apache.Ignite.Core.Impl.Binary.IO;
     using Apache.Ignite.Core.Impl.Handle;
     using Apache.Ignite.Core.Impl.Memory;
-    using Apache.Ignite.Core.Impl.Resource;
 
     /// <summary>
-    /// Interop cache store.
+    /// Interop cache store, delegates to generic <see cref="CacheStoreInternal{TK,TV}"/> wrapper.
     /// </summary>
     internal class CacheStore
     {
@@ -65,7 +60,7 @@ namespace Apache.Ignite.Core.Impl.Cache.Store
         /// <returns>
         /// Interop cache store.
         /// </returns>
-        internal static CacheStore CreateInstance(long memPtr, HandleRegistry registry)
+        public static CacheStore CreateInstance(long memPtr, HandleRegistry registry)
         {
             using (var stream = IgniteManager.Memory.Get(memPtr).GetStream())
             {
@@ -93,26 +88,9 @@ namespace Apache.Ignite.Core.Impl.Cache.Store
                     store = IgniteUtils.CreateInstance<ICacheStore>(className, propertyMap);
                 }
 
-                var ifaces = store.GetType().GetInterfaces()
-                    .Where(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(ICacheStore<,>))
-                    .ToArray();
+                var iface = GetCacheStoreInterface(store);
 
-                if (ifaces.Length == 0)
-                {
-                    throw new IgniteException(string.Format(
-                        CultureInfo.InvariantCulture, "Cache store should implement generic {0} interface: {1}", 
-                        typeof(ICacheStore<,>), store.GetType()));
-                }
-
-                if (ifaces.Length > 1)
-                {
-                    throw new IgniteException(string.Format(
-                        CultureInfo.InvariantCulture, "Cache store should not implement generic {0} " +
-                                                      "interface more than once: {1}", 
-                        typeof(ICacheStore<,>), store.GetType()));
-                }
-
-                var storeType = typeof(CacheStoreInternal<,>).MakeGenericType(ifaces[0].GetGenericArguments());
+                var storeType = typeof(CacheStoreInternal<,>).MakeGenericType(iface.GetGenericArguments());
 
                 var storeInt = (ICacheStoreInternal)Activator.CreateInstance(storeType, store, convertBinary);
 
@@ -134,7 +112,7 @@ namespace Apache.Ignite.Core.Impl.Cache.Store
         /// <param name="grid">Grid.</param>
         public void Init(Ignite grid)
         {
-            ResourceProcessor.Inject(_store, grid);
+            _store.Init(grid);
         }
 
         /// <summary>
@@ -148,227 +126,32 @@ namespace Apache.Ignite.Core.Impl.Cache.Store
         {
             return _store.Invoke(stream, grid);
         }
-    }
-
-    internal interface ICacheStoreInternal
-    {
-        int Invoke(IBinaryStream stream, Ignite grid);
-    }
-
-    internal class CacheStoreInternal<TK, TV> : ICacheStoreInternal
-    {
-        /** */
-        private const byte OpLoadCache = 0;
-
-        /** */
-        private const byte OpLoad = 1;
-
-        /** */
-        private const byte OpLoadAll = 2;
-
-        /** */
-        private const byte OpPut = 3;
-
-        /** */
-        private const byte OpPutAll = 4;
-
-        /** */
-        private const byte OpRmv = 5;
-
-        /** */
-        private const byte OpRmvAll = 6;
-
-        /** */
-        private const byte OpSesEnd = 7;
-        
-        /** */
-        private readonly bool _convertBinary;
-
-        /** User store. */
-        private readonly ICacheStore<TK, TV> _store;
                 
-        /** Session. */
-        private readonly CacheStoreSessionProxy _sesProxy;
-
-
-        public CacheStoreInternal(ICacheStore<TK, TV> store, bool convertBinary)
-        {
-            Debug.Assert(store != null);
-
-            _store = store;
-
-            _convertBinary = convertBinary;
-            
-            _sesProxy = new CacheStoreSessionProxy();
-
-            ResourceProcessor.InjectStoreSession(store, _sesProxy);
-        }
-
         /// <summary>
-        /// Invokes a store operation.
+        /// Gets the generic <see cref="ICacheStore{TK,TV}"/> interface type.
         /// </summary>
-        /// <param name="stream">Input stream.</param>
-        /// <param name="grid">Grid.</param>
-        /// <returns>Invocation result.</returns>
-        /// <exception cref="IgniteException">Invalid operation type:  + opType</exception>
-        public int Invoke(IBinaryStream stream, Ignite grid)
+        private static Type GetCacheStoreInterface(ICacheStore store)
         {
-            IBinaryReader reader = grid.Marshaller.StartUnmarshal(stream,
-                _convertBinary ? BinaryMode.Deserialize : BinaryMode.ForceBinary);
+            var ifaces = store.GetType().GetInterfaces()
+                .Where(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(ICacheStore<,>))
+                .ToArray();
 
-            IBinaryRawReader rawReader = reader.GetRawReader();
-
-            int opType = rawReader.ReadByte();
-
-            // Setup cache session for this invocation.
-            long sesId = rawReader.ReadLong();
-
-            CacheStoreSession ses = grid.HandleRegistry.Get<CacheStoreSession>(sesId, true);
-
-            ses.CacheName = rawReader.ReadString();
-
-            _sesProxy.SetSession(ses);
-
-            try
+            if (ifaces.Length == 0)
             {
-                // Perform operation.
-                switch (opType)
-                {
-                    case OpLoadCache:
-                    {
-                        var args = rawReader.ReadArray<object>();
-
-                        stream.Seek(0, SeekOrigin.Begin);
-
-                        int cnt = 0;
-                        stream.WriteInt(cnt); // Reserve space for count.
-
-                        var writer = grid.Marshaller.StartMarshal(stream);
-
-                        _store.LoadCache((k, v) =>
-                        {
-                            lock (writer) // User-defined store can be multithreaded.
-                            {
-                                writer.WithDetach(w =>
-                                {
-                                    w.WriteObject(k);
-                                    w.WriteObject(v);
-                                });
-
-                                cnt++;
-                            }
-                        }, args);
-
-                        stream.WriteInt(0, cnt);
-
-                        grid.Marshaller.FinishMarshal(writer);
-
-                        break;
-                    }
-
-                    case OpLoad:
-                    {
-                        var val = _store.Load(rawReader.ReadObject<TK>());
-
-                        stream.Seek(0, SeekOrigin.Begin);
-
-                        var writer = grid.Marshaller.StartMarshal(stream);
-
-                        writer.WriteObject(val);
-
-                        grid.Marshaller.FinishMarshal(writer);
-
-                        break;
-                    }
-
-                    case OpLoadAll:
-                    {
-                        var keys = ReadKeys(rawReader);
-
-                        var result = _store.LoadAll(keys);
-
-                        stream.Seek(0, SeekOrigin.Begin);
-
-                        stream.WriteInt(result.Count);
-
-                        var writer = grid.Marshaller.StartMarshal(stream);
-
-                        foreach (var entry in result)
-                        {
-                            var entry0 = entry; // Copy modified closure.
-
-                            writer.WithDetach(w =>
-                            {
-                                w.WriteObject(entry0.Key);
-                                w.WriteObject(entry0.Value);
-                            });
-                        }
-
-                        grid.Marshaller.FinishMarshal(writer);
-
-                        break;
-                    }
-
-                    case OpPut:
-                        _store.Write(rawReader.ReadObject<TK>(), rawReader.ReadObject<TV>());
-
-                        break;
-
-                    case OpPutAll:
-                        var size = rawReader.ReadInt();
-
-                        var dict = new Dictionary<TK, TV>(size);
-
-                        for (int i = 0; i < size; i++)
-                            dict[rawReader.ReadObject<TK>()] = rawReader.ReadObject<TV>();
-
-                        _store.WriteAll(dict);
-
-                        break;
-
-                    case OpRmv:
-                        _store.Delete(rawReader.ReadObject<TK>());
-
-                        break;
-
-                    case OpRmvAll:
-                        _store.DeleteAll(ReadKeys(rawReader));
-
-                        break;
-
-                    case OpSesEnd:
-                        grid.HandleRegistry.Release(sesId);
-
-                        _store.SessionEnd(rawReader.ReadBoolean());
-
-                        break;
-
-                    default:
-                        throw new IgniteException("Invalid operation type: " + opType);
-                }
-
-                return 0;
-            }
-            finally
-            {
-                _sesProxy.ClearSession();
-            }
-        }
-
-        /// <summary>
-        /// Reads the keys.
-        /// </summary>
-        private static ICollection<TK> ReadKeys(IBinaryRawReader reader)
-        {
-            var cnt = reader.ReadInt();
-            var res = new List<TK>(cnt);
-
-            for (var i = 0; i < cnt; i++)
-            {
-                res.Add(reader.ReadObject<TK>());
+                throw new IgniteException(string.Format(
+                    CultureInfo.InvariantCulture, "Cache store should implement generic {0} interface: {1}",
+                    typeof(ICacheStore<,>), store.GetType()));
             }
 
-            return res;
+            if (ifaces.Length > 1)
+            {
+                throw new IgniteException(string.Format(
+                    CultureInfo.InvariantCulture, "Cache store should not implement generic {0} " +
+                                                  "interface more than once: {1}",
+                    typeof(ICacheStore<,>), store.GetType()));
+            }
+
+            return ifaces[0];
         }
     }
 }
