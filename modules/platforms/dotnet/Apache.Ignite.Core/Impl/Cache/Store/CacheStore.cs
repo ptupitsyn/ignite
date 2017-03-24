@@ -19,7 +19,9 @@ namespace Apache.Ignite.Core.Impl.Cache.Store
 {
     using System.Collections;
     using System.Diagnostics;
+    using System.Globalization;
     using System.IO;
+    using System.Linq;
     using Apache.Ignite.Core.Binary;
     using Apache.Ignite.Core.Cache.Store;
     using Apache.Ignite.Core.Common;
@@ -109,7 +111,14 @@ namespace Apache.Ignite.Core.Impl.Cache.Store
                 ICacheStore store;
 
                 if (factory != null)
+                {
                     store = factory.CreateInstance();
+
+                    if (store == null)
+                    {
+                        throw new IgniteException("Cache store factory should not return null: " + factory.GetType());
+                    }
+                }
                 else
                 {
                     var className = reader.ReadString();
@@ -118,6 +127,24 @@ namespace Apache.Ignite.Core.Impl.Cache.Store
                     store = IgniteUtils.CreateInstance<ICacheStore>(className, propertyMap);
                 }
 
+                var ifaces = store.GetType().GetInterfaces()
+                    .Where(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(ICacheStore<,>))
+                    .ToArray();
+
+                if (ifaces.Length == 0)
+                {
+                    throw new IgniteException(string.Format(
+                        CultureInfo.InvariantCulture, "Cache store should implement generic {0} interface: {1}", 
+                        typeof(ICacheStore<,>), store.GetType()));
+                }
+
+                if (ifaces.Length > 1)
+                {
+                    throw new IgniteException(string.Format(
+                        CultureInfo.InvariantCulture, "Cache store should not implement generic {0} " +
+                                                      "interface more than once: {1}", 
+                        typeof(ICacheStore<,>), store.GetType()));
+                }
 
                 return new CacheStore(store, convertBinary, registry);
             }
