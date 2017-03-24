@@ -18,10 +18,8 @@
 namespace Apache.Ignite.Core.Cache.Store
 {
     using System;
-    using System.Collections;
     using System.Collections.Generic;
     using System.Diagnostics.CodeAnalysis;
-    using System.Linq;
     using System.Threading.Tasks;
 
     /// <summary>
@@ -38,16 +36,11 @@ namespace Apache.Ignite.Core.Cache.Store
     public abstract class CacheParallelLoadStoreAdapter<TK, TV, TData> : ICacheStore<TK, TV>
     {
         /// <summary>
-        /// Default number of working threads (equal to the number of available processors).
-        /// </summary>
-        public static readonly int DefaultThreadsCount = Environment.ProcessorCount; // TODO
-
-        /// <summary>
         /// Constructor.
         /// </summary>
         protected CacheParallelLoadStoreAdapter()
         {
-            MaxDegreeOfParallelism = DefaultThreadsCount;
+            MaxDegreeOfParallelism = Environment.ProcessorCount;
         }
 
         /// <summary>
@@ -98,7 +91,7 @@ namespace Apache.Ignite.Core.Cache.Store
         /// Gets or sets the maximum degree of parallelism to use in LoadCache. 
         /// Must be either positive or -1 for unlimited amount of threads.
         /// <para />
-        /// Defaults to <see cref="DefaultThreadsCount"/>.
+        /// Defaults to <see cref="Environment.ProcessorCount"/>.
         /// </summary>
         public int MaxDegreeOfParallelism { get; set; }
 
