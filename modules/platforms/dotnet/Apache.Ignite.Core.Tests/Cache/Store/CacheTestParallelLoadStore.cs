@@ -91,6 +91,7 @@ namespace Apache.Ignite.Core.Tests.Cache.Store
             /// <summary>
             /// Gets or sets the name.
             /// </summary>
+            // ReSharper disable once UnusedAutoPropertyAccessor.Global
             public string Name { get; set; }
         }
     }
