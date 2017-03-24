@@ -18,6 +18,7 @@
 namespace Apache.Ignite.Core.Impl.Cache.Store
 {
     using System.Collections;
+    using System.Collections.Generic;
     using System.Diagnostics;
     using System.Globalization;
     using System.IO;
@@ -36,41 +37,15 @@ namespace Apache.Ignite.Core.Impl.Cache.Store
     internal class CacheStore
     {
         /** */
-        private const byte OpLoadCache = 0;
-
-        /** */
-        private const byte OpLoad = 1;
-
-        /** */
-        private const byte OpLoadAll = 2;
-
-        /** */
-        private const byte OpPut = 3;
-
-        /** */
-        private const byte OpPutAll = 4;
-
-        /** */
-        private const byte OpRmv = 5;
-
-        /** */
-        private const byte OpRmvAll = 6;
-
-        /** */
-        private const byte OpSesEnd = 7;
-        
-        /** */
         private readonly bool _convertBinary;
 
         /** Store. */
         private readonly ICacheStore _store;
 
-        /** Session. */
-        private readonly CacheStoreSessionProxy _sesProxy;
 
         /** */
         private readonly long _handle;
-
+        
         /// <summary>
         /// Initializes a new instance of the <see cref="CacheStore" /> class.
         /// </summary>
@@ -83,10 +58,6 @@ namespace Apache.Ignite.Core.Impl.Cache.Store
 
             _store = store;
             _convertBinary = convertBinary;
-
-            _sesProxy = new CacheStoreSessionProxy();
-
-            ResourceProcessor.InjectStoreSession(store, _sesProxy);
 
             _handle = registry.AllocateCritical(this);
         }
@@ -166,6 +137,61 @@ namespace Apache.Ignite.Core.Impl.Cache.Store
         {
             ResourceProcessor.Inject(_store, grid);
         }
+    }
+
+    internal interface ICacheStoreInternal
+    {
+        int Invoke(IBinaryStream stream, Ignite grid);
+    }
+
+    internal class CacheStoreInternal<TK, TV> : ICacheStoreInternal
+    {
+        /** */
+        private const byte OpLoadCache = 0;
+
+        /** */
+        private const byte OpLoad = 1;
+
+        /** */
+        private const byte OpLoadAll = 2;
+
+        /** */
+        private const byte OpPut = 3;
+
+        /** */
+        private const byte OpPutAll = 4;
+
+        /** */
+        private const byte OpRmv = 5;
+
+        /** */
+        private const byte OpRmvAll = 6;
+
+        /** */
+        private const byte OpSesEnd = 7;
+        
+        /** */
+        private readonly bool _convertBinary;
+
+        /** User store. */
+        private readonly ICacheStore<TK, TV> _store;
+                
+        /** Session. */
+        private readonly CacheStoreSessionProxy _sesProxy;
+
+
+        public CacheStoreInternal(ICacheStore<TK, TV> store, bool convertBinary)
+        {
+            Debug.Assert(store != null);
+
+            _store = store;
+
+            _convertBinary = convertBinary;
+            
+            _sesProxy = new CacheStoreSessionProxy();
+
+            ResourceProcessor.InjectStoreSession(store, _sesProxy);
+        }
 
         /// <summary>
         /// Invokes a store operation.
@@ -178,14 +204,14 @@ namespace Apache.Ignite.Core.Impl.Cache.Store
         {
             IBinaryReader reader = grid.Marshaller.StartUnmarshal(stream,
                 _convertBinary ? BinaryMode.Deserialize : BinaryMode.ForceBinary);
-            
+
             IBinaryRawReader rawReader = reader.GetRawReader();
 
             int opType = rawReader.ReadByte();
 
             // Setup cache session for this invocation.
             long sesId = rawReader.ReadLong();
-            
+
             CacheStoreSession ses = grid.HandleRegistry.Get<CacheStoreSession>(sesId, true);
 
             ses.CacheName = rawReader.ReadString();
@@ -231,7 +257,7 @@ namespace Apache.Ignite.Core.Impl.Cache.Store
 
                     case OpLoad:
                     {
-                        var val = _store.Load(rawReader.ReadObject<object>());
+                        var val = _store.Load(rawReader.ReadObject<TK>());
 
                         stream.Seek(0, SeekOrigin.Begin);
 
@@ -258,7 +284,7 @@ namespace Apache.Ignite.Core.Impl.Cache.Store
 
                         foreach (DictionaryEntry entry in result)
                         {
-                            var entry0 = entry;  // Copy modified closure.
+                            var entry0 = entry; // Copy modified closure.
 
                             writer.WithDetach(w =>
                             {
@@ -273,24 +299,24 @@ namespace Apache.Ignite.Core.Impl.Cache.Store
                     }
 
                     case OpPut:
-                        _store.Write(rawReader.ReadObject<object>(), rawReader.ReadObject<object>());
+                        _store.Write(rawReader.ReadObject<TK>(), rawReader.ReadObject<TV>());
 
                         break;
 
                     case OpPutAll:
                         var size = rawReader.ReadInt();
 
-                        var dict = new Hashtable(size);
+                        var dict = new Dictionary<TK, TV>(size);
 
                         for (int i = 0; i < size; i++)
-                            dict[rawReader.ReadObject<object>()] = rawReader.ReadObject<object>();
+                            dict[rawReader.ReadObject<TK>()] = rawReader.ReadObject<TV>();
 
                         _store.WriteAll(dict);
 
                         break;
 
                     case OpRmv:
-                        _store.Delete(rawReader.ReadObject<object>());
+                        _store.Delete(rawReader.ReadObject<TK>());
 
                         break;
 
