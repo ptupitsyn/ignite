@@ -29,6 +29,7 @@ namespace Apache.Ignite.Core.Impl.Cache.Store
     using Apache.Ignite.Core.Impl.Binary;
     using Apache.Ignite.Core.Impl.Binary.IO;
     using Apache.Ignite.Core.Impl.Handle;
+    using Apache.Ignite.Core.Impl.Memory;
     using Apache.Ignite.Core.Impl.Resource;
 
     /// <summary>
@@ -134,6 +135,18 @@ namespace Apache.Ignite.Core.Impl.Cache.Store
         public void Init(Ignite grid)
         {
             ResourceProcessor.Inject(_store, grid);
+        }
+
+        /// <summary>
+        /// Invokes a store operation.
+        /// </summary>
+        /// <param name="stream">Input stream.</param>
+        /// <param name="grid">Grid.</param>
+        /// <returns>Invocation result.</returns>
+        /// <exception cref="IgniteException">Invalid operation type:  + opType</exception>
+        public long Invoke(PlatformMemoryStream stream, Ignite grid)
+        {
+            return _store.Invoke(stream, grid);
         }
     }
 
