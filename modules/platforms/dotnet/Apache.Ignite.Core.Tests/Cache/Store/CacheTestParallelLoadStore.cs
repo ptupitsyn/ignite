@@ -28,7 +28,7 @@ namespace Apache.Ignite.Core.Tests.Cache.Store
     /// <summary>
     /// Test cache store with parallel load.
     /// </summary>
-    public class CacheTestParallelLoadStore : CacheParallelLoadStoreAdapter
+    public class CacheTestParallelLoadStore : CacheParallelLoadStoreAdapter<object, object>
     {
         /** Length of input data sequence */
         public const int InputDataLength = 10000;

@@ -75,6 +75,8 @@ namespace Apache.Ignite.Core.Cache.Store
     /// </code>
     /// </example>
     /// </summary>
+    /// <typeparam name="TK">Key type.</typeparam>
+    /// <typeparam name="TV">Value type.</typeparam>
     public interface ICacheStore<TK, TV> : ICacheStore
     {
         /// <summary>
