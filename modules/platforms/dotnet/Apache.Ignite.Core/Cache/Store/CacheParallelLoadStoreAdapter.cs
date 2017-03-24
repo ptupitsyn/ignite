@@ -34,7 +34,8 @@ namespace Apache.Ignite.Core.Cache.Store
     /// </remarks>
     /// <typeparam name="TK">Key type.</typeparam>
     /// <typeparam name="TV">Value type.</typeparam>
-    public abstract class CacheParallelLoadStoreAdapter<TK, TV> : ICacheStore<TK, TV>
+    /// <typeparam name="TData">Custom data entry type.</typeparam>
+    public abstract class CacheParallelLoadStoreAdapter<TK, TV, TData> : ICacheStore<TK, TV>
     {
         /// <summary>
         /// Default number of working threads (equal to the number of available processors).
@@ -72,7 +73,7 @@ namespace Apache.Ignite.Core.Cache.Store
 
             var options = new ParallelOptions {MaxDegreeOfParallelism = MaxDegreeOfParallelism};
 
-            Parallel.ForEach(GetInputData().OfType<object>(), options, item =>
+            Parallel.ForEach(GetInputData(), options, item =>
             {
                 var cacheEntry = Parse(item, args);
 
@@ -85,13 +86,13 @@ namespace Apache.Ignite.Core.Cache.Store
         /// Gets the input data sequence to be used in LoadCache.
         /// </summary>
         [SuppressMessage("Microsoft.Design", "CA1024:UsePropertiesWhereAppropriate", Justification = "Semantics.")]
-        protected abstract IEnumerable GetInputData();
+        protected abstract IEnumerable<TData> GetInputData();
 
         /// <summary>
         /// This method should transform raw data records from GetInputData
         /// into valid key-value pairs to be stored into cache.        
         /// </summary>
-        protected abstract KeyValuePair<TK, TV>? Parse(object inputRecord, params object[] args);
+        protected abstract KeyValuePair<TK, TV>? Parse(TData inputRecord, params object[] args);
 
         /// <summary>
         /// Gets or sets the maximum degree of parallelism to use in LoadCache. 
