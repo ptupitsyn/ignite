@@ -208,15 +208,7 @@ namespace Apache.Ignite.Core.Impl.Cache.Store
                         break;
 
                     case OpPutAll:
-                        var size = rawReader.ReadInt();
-
-                        var dict = new Dictionary<TK, TV>(size);
-
-                        for (int i = 0; i < size; i++)
-                            dict[rawReader.ReadObject<TK>()] = rawReader.ReadObject<TV>();
-
-                        // TODO: Optimize
-                        _store.WriteAll(dict);
+                        _store.WriteAll(ReadPairs(rawReader));
 
                         break;
 
@@ -246,6 +238,19 @@ namespace Apache.Ignite.Core.Impl.Cache.Store
             finally
             {
                 _sesProxy.ClearSession();
+            }
+        }
+
+        /// <summary>
+        /// Reads key-value pairs.
+        /// </summary>
+        private static IEnumerable<KeyValuePair<TK, TV>> ReadPairs(IBinaryRawReader rawReader)
+        {
+            var size = rawReader.ReadInt();
+
+            for (var i = 0; i < size; i++)
+            {
+                yield return new KeyValuePair<TK, TV>(rawReader.ReadObject<TK>(), rawReader.ReadObject<TV>());
             }
         }
 
