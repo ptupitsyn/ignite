@@ -17,7 +17,7 @@
 
 namespace Apache.Ignite.Core.Impl.Cache.Store
 {
-    using System.Collections;
+    using System;
     using System.Collections.Generic;
     using System.Diagnostics;
     using System.Globalization;
@@ -36,12 +36,8 @@ namespace Apache.Ignite.Core.Impl.Cache.Store
     /// </summary>
     internal class CacheStore
     {
-        /** */
-        private readonly bool _convertBinary;
-
         /** Store. */
-        private readonly ICacheStore _store;
-
+        private readonly ICacheStoreInternal _store;
 
         /** */
         private readonly long _handle;
@@ -50,14 +46,12 @@ namespace Apache.Ignite.Core.Impl.Cache.Store
         /// Initializes a new instance of the <see cref="CacheStore" /> class.
         /// </summary>
         /// <param name="store">Store.</param>
-        /// <param name="convertBinary">Whether to convert binary objects.</param>
         /// <param name="registry">The handle registry.</param>
-        private CacheStore(ICacheStore store, bool convertBinary, HandleRegistry registry)
+        private CacheStore(ICacheStoreInternal store, HandleRegistry registry)
         {
             Debug.Assert(store != null);
 
             _store = store;
-            _convertBinary = convertBinary;
 
             _handle = registry.AllocateCritical(this);
         }
@@ -117,7 +111,11 @@ namespace Apache.Ignite.Core.Impl.Cache.Store
                         typeof(ICacheStore<,>), store.GetType()));
                 }
 
-                return new CacheStore(store, convertBinary, registry);
+                var storeType = typeof(CacheStoreInternal<,>).MakeGenericType(ifaces[0].GetGenericArguments());
+
+                var storeInt = (ICacheStoreInternal)Activator.CreateInstance(storeType, store, convertBinary);
+
+                return new CacheStore(storeInt, registry);
             }
         }
 
@@ -282,7 +280,7 @@ namespace Apache.Ignite.Core.Impl.Cache.Store
 
                         var writer = grid.Marshaller.StartMarshal(stream);
 
-                        foreach (DictionaryEntry entry in result)
+                        foreach (var entry in result)
                         {
                             var entry0 = entry; // Copy modified closure.
 
