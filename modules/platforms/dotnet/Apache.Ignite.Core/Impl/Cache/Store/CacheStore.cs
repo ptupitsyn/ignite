@@ -270,7 +270,7 @@ namespace Apache.Ignite.Core.Impl.Cache.Store
 
                     case OpLoadAll:
                     {
-                        var keys = rawReader.ReadCollection();
+                        var keys = ReadKeys(rawReader);
 
                         var result = _store.LoadAll(keys);
 
@@ -319,7 +319,7 @@ namespace Apache.Ignite.Core.Impl.Cache.Store
                         break;
 
                     case OpRmvAll:
-                        _store.DeleteAll(rawReader.ReadCollection());
+                        _store.DeleteAll(ReadKeys(rawReader));
 
                         break;
 
@@ -340,6 +340,22 @@ namespace Apache.Ignite.Core.Impl.Cache.Store
             {
                 _sesProxy.ClearSession();
             }
+        }
+
+        /// <summary>
+        /// Reads the keys.
+        /// </summary>
+        private static ICollection<TK> ReadKeys(IBinaryRawReader reader)
+        {
+            var cnt = reader.ReadInt();
+            var res = new List<TK>(cnt);
+
+            for (var i = 0; i < cnt; i++)
+            {
+                res.Add(reader.ReadObject<TK>());
+            }
+
+            return res;
         }
     }
 }
