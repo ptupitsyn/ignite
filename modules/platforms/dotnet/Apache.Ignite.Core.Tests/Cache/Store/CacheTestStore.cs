@@ -116,7 +116,7 @@ namespace Apache.Ignite.Core.Tests.Cache.Store
             return Map[key];
         }
 
-        public IDictionary<object, object> LoadAll(IEnumerable<object> keys)
+        public IEnumerable<KeyValuePair<object, object>> LoadAll(IEnumerable<object> keys)
         {
             ThrowIfNeeded();
 
@@ -134,7 +134,7 @@ namespace Apache.Ignite.Core.Tests.Cache.Store
             Map[key] = val;
         }
 
-        public void WriteAll(IDictionary<object, object> map)
+        public void WriteAll(IEnumerable<KeyValuePair<object, object>> map)
         {
             ThrowIfNeeded();
 

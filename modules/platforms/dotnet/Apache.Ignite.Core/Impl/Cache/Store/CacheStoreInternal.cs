@@ -169,14 +169,16 @@ namespace Apache.Ignite.Core.Impl.Cache.Store
 
                     case OpLoadAll:
                     {
-                        var keys = ReadKeys(rawReader);
+                        // We can't do both read and write lazily because stream is reused.
+                        // Read keys non-lazily, write result lazily.
+                        var keys = ReadAllKeys(rawReader);
 
-                        // TODO: Optimize
                         var result = _store.LoadAll(keys);
 
                         stream.Seek(0, SeekOrigin.Begin);
 
-                        stream.WriteInt(result.Count);
+                        int cnt = 0;
+                        stream.WriteInt(cnt); // Reserve space for count.
 
                         var writer = grid.Marshaller.StartMarshal(stream);
 
@@ -189,7 +191,11 @@ namespace Apache.Ignite.Core.Impl.Cache.Store
                                 w.WriteObject(entry0.Key);
                                 w.WriteObject(entry0.Value);
                             });
+
+                            cnt++;
                         }
+
+                        stream.WriteInt(0, cnt);
 
                         grid.Marshaller.FinishMarshal(writer);
 
@@ -254,6 +260,21 @@ namespace Apache.Ignite.Core.Impl.Cache.Store
             {
                 yield return reader.ReadObject<TK>();
             }
+        }
+        /// <summary>
+        /// Reads the keys.
+        /// </summary>
+        private static ICollection<TK> ReadAllKeys(IBinaryRawReader reader)
+        {
+            var cnt = reader.ReadInt();
+            var res = new List<TK>(cnt);
+
+            for (var i = 0; i < cnt; i++)
+            {
+                res.Add(reader.ReadObject<TK>());
+            }
+
+            return res;
         }
     }
 }

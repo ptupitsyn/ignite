@@ -116,7 +116,7 @@ namespace Apache.Ignite.Core.Cache.Store
         /// <param name="keys">Keys identifying the values to be loaded.</param>
         /// <returns>A map of key, values to be stored in the cache.</returns>
         /// <exception cref="CacheStoreException" />
-        IDictionary<TK, TV> LoadAll(IEnumerable<TK> keys);
+        IEnumerable<KeyValuePair<TK, TV>> LoadAll(IEnumerable<TK> keys);
 
         /// <summary>
         /// Write the specified value under the specified key to the external resource.
@@ -142,7 +142,7 @@ namespace Apache.Ignite.Core.Cache.Store
         /// to write for write-through. Upon return the collection must only contain entries 
         /// that were not successfully written. (see partial success above).</param>
         /// <exception cref="CacheStoreException" />
-        void WriteAll(IDictionary<TK, TV> entries);
+        void WriteAll(IEnumerable<KeyValuePair<TK, TV>> entries);
 
         /// <summary>
         /// Delete the cache entry from the external resource.

@@ -128,7 +128,7 @@ namespace Apache.Ignite.Core.Cache.Store
         /// A map of key, values to be stored in the cache.
         /// </returns>
         [ExcludeFromCodeCoverage]
-        public virtual IDictionary<TK, TV> LoadAll(IEnumerable<TK> keys)
+        public virtual IEnumerable<KeyValuePair<TK, TV>> LoadAll(IEnumerable<TK> keys)
         {
             return null;
         }
@@ -160,7 +160,7 @@ namespace Apache.Ignite.Core.Cache.Store
         /// to write for write-through. Upon return the collection must only contain entries
         /// that were not successfully written. (see partial success above).</param>
         [ExcludeFromCodeCoverage]
-        public virtual void WriteAll(IDictionary<TK, TV> entries)
+        public virtual void WriteAll(IEnumerable<KeyValuePair<TK, TV>> entries)
         {
             // No-op.
         }

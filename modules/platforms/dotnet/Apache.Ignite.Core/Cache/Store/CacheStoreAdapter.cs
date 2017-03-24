@@ -56,7 +56,7 @@ namespace Apache.Ignite.Core.Cache.Store
         {
             // No-op.
         }
-        
+
         /// <summary>
         /// Loads multiple objects. Application developers should implement this method to customize
         /// the loading of cache entries. This method is called when the requested object is not in the cache.
@@ -66,17 +66,17 @@ namespace Apache.Ignite.Core.Cache.Store
         /// <returns>
         /// A map of key, values to be stored in the cache.
         /// </returns>
-        public virtual IDictionary<TK, TV> LoadAll(IEnumerable<TK> keys)
+        public virtual IEnumerable<KeyValuePair<TK, TV>> LoadAll(IEnumerable<TK> keys)
         {
             return keys.ToDictionary(key => key, Load);
         }
-        
+
         /// <summary>
         /// Writes all.
         /// </summary>
         /// <param name="entries">The map.</param>
         [SuppressMessage("Microsoft.Design", "CA1062:Validate arguments of public methods")]
-        public virtual void WriteAll(IDictionary<TK, TV> entries)
+        public virtual void WriteAll(IEnumerable<KeyValuePair<TK, TV>> entries)
         {
             foreach (var entry in entries)
                 Write(entry.Key, entry.Value);
