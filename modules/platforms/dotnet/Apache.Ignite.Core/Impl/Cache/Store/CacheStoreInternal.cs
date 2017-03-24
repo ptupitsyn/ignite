@@ -220,7 +220,6 @@ namespace Apache.Ignite.Core.Impl.Cache.Store
                         break;
 
                     case OpRmvAll:
-                        // TODO: Optimize
                         _store.DeleteAll(ReadKeys(rawReader));
 
                         break;
@@ -247,17 +246,14 @@ namespace Apache.Ignite.Core.Impl.Cache.Store
         /// <summary>
         /// Reads the keys.
         /// </summary>
-        private static ICollection<TK> ReadKeys(IBinaryRawReader reader)
+        private static IEnumerable<TK> ReadKeys(IBinaryRawReader reader)
         {
             var cnt = reader.ReadInt();
-            var res = new List<TK>(cnt);
 
             for (var i = 0; i < cnt; i++)
             {
-                res.Add(reader.ReadObject<TK>());
+                yield return reader.ReadObject<TK>();
             }
-
-            return res;
         }
     }
 }

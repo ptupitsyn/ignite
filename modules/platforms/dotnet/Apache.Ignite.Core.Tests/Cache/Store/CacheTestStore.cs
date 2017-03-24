@@ -116,7 +116,7 @@ namespace Apache.Ignite.Core.Tests.Cache.Store
             return Map[key];
         }
 
-        public IDictionary<object, object> LoadAll(ICollection<object> keys)
+        public IDictionary<object, object> LoadAll(IEnumerable<object> keys)
         {
             ThrowIfNeeded();
 
@@ -153,7 +153,7 @@ namespace Apache.Ignite.Core.Tests.Cache.Store
             Map.Remove(key);
         }
 
-        public void DeleteAll(ICollection<object> keys)
+        public void DeleteAll(IEnumerable<object> keys)
         {
             ThrowIfNeeded();
 

@@ -71,7 +71,7 @@ namespace Apache.Ignite.ExamplesDll.Datagrid
         /// <returns>
         /// A map of key, values to be stored in the cache.
         /// </returns>
-        public override IDictionary<int, Employee> LoadAll(ICollection<int> keys)
+        public override IDictionary<int, Employee> LoadAll(IEnumerable<int> keys)
         {
             var result = new Dictionary<int, Employee>();
 

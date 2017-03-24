@@ -116,7 +116,7 @@ namespace Apache.Ignite.Core.Cache.Store
         /// <param name="keys">Keys identifying the values to be loaded.</param>
         /// <returns>A map of key, values to be stored in the cache.</returns>
         /// <exception cref="CacheStoreException" />
-        IDictionary<TK, TV> LoadAll(ICollection<TK> keys);
+        IDictionary<TK, TV> LoadAll(IEnumerable<TK> keys);
 
         /// <summary>
         /// Write the specified value under the specified key to the external resource.
@@ -173,7 +173,7 @@ namespace Apache.Ignite.Core.Cache.Store
         /// it contains the keys to delete for write-through. Upon return the collection must only contain 
         /// the keys that were not successfully deleted.</param>
         /// <exception cref="CacheStoreException" />
-        void DeleteAll(ICollection<TK> keys);
+        void DeleteAll(IEnumerable<TK> keys);
 
         /// <summary>
         /// Tells store to commit or rollback a transaction depending on the value of the

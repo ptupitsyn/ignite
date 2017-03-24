@@ -66,7 +66,7 @@ namespace Apache.Ignite.Core.Cache.Store
         /// <returns>
         /// A map of key, values to be stored in the cache.
         /// </returns>
-        public virtual IDictionary<TK, TV> LoadAll(ICollection<TK> keys)
+        public virtual IDictionary<TK, TV> LoadAll(IEnumerable<TK> keys)
         {
             return keys.ToDictionary(key => key, Load);
         }
@@ -100,7 +100,7 @@ namespace Apache.Ignite.Core.Cache.Store
         /// it contains the keys to delete for write-through. Upon return the collection must only contain
         /// the keys that were not successfully deleted.</param>
         [SuppressMessage("Microsoft.Design", "CA1062:Validate arguments of public methods")]
-        public virtual void DeleteAll(ICollection<TK> keys)
+        public virtual void DeleteAll(IEnumerable<TK> keys)
         {
             foreach (var key in keys)
                 Delete(key);
