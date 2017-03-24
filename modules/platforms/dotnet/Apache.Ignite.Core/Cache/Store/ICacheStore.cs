@@ -19,11 +19,17 @@ namespace Apache.Ignite.Core.Cache.Store
 {
     using System;
     using System.Collections.Generic;
+    using Apache.Ignite.Core.Binary;
+    using Apache.Ignite.Core.Cache.Configuration;
     using Apache.Ignite.Core.Transactions;
 
     /// <summary>
     /// API for cache persistent storage for read-through and write-through behavior.
-    ///
+    /// <para />
+    /// Generic argument types depend on <see cref="CacheConfiguration.KeepBinaryInStore"/> property.
+    /// When <c>true</c> (default), cache store operates on <see cref="IBinaryObject"/> instances.
+    /// Otherwise, generic arguments should be the same as in corresponding <see cref="ICache{TK, TV}"/>.
+    /// <para />
     /// Persistent store is configured in Ignite's Spring XML configuration file via
     /// <c>CacheConfiguration.setStore()</c> property. If you have an implementation
     /// of cache store in .NET, you should use special Java wrapper which accepts assembly name and

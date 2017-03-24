@@ -20,6 +20,9 @@ namespace Apache.Ignite.Core.Impl.Cache.Store
     using Apache.Ignite.Core.Common;
     using Apache.Ignite.Core.Impl.Binary.IO;
 
+    /// <summary>
+    /// Provides a non-generic way to work with <see cref="CacheStoreInternal{TK, TV}"/>.
+    /// </summary>
     internal interface ICacheStoreInternal
     {
         /// <summary>
