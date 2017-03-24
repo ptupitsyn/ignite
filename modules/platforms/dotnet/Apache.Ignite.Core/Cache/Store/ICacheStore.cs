@@ -75,7 +75,7 @@ namespace Apache.Ignite.Core.Cache.Store
     /// </code>
     /// </example>
     /// </summary>
-    public interface ICacheStore<TK, TV>
+    public interface ICacheStore<TK, TV> : ICacheStore
     {
         /// <summary>
         /// Loads all values from underlying persistent storage. Note that keys are
@@ -180,5 +180,14 @@ namespace Apache.Ignite.Core.Cache.Store
         /// <param name="commit"><c>True</c> if transaction should commit, <c>false</c> for rollback.</param>
         /// <exception cref="CacheStoreException" />
         void SessionEnd(bool commit);
+    }
+
+    /// <summary>
+    /// Non-generic base type for <see cref="ICacheStore{TK,TV}"/>, used only for configuration property.
+    /// Users should implement generic <see cref="ICacheStore{TK,TV}"/>.
+    /// </summary>
+    public interface ICacheStore
+    {
+        // No-op.
     }
 }
