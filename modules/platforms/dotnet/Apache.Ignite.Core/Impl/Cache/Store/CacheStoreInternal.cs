@@ -171,6 +171,7 @@ namespace Apache.Ignite.Core.Impl.Cache.Store
                     {
                         var keys = ReadKeys(rawReader);
 
+                        // TODO: Optimize
                         var result = _store.LoadAll(keys);
 
                         stream.Seek(0, SeekOrigin.Begin);
@@ -208,6 +209,7 @@ namespace Apache.Ignite.Core.Impl.Cache.Store
                         for (int i = 0; i < size; i++)
                             dict[rawReader.ReadObject<TK>()] = rawReader.ReadObject<TV>();
 
+                        // TODO: Optimize
                         _store.WriteAll(dict);
 
                         break;
@@ -218,6 +220,7 @@ namespace Apache.Ignite.Core.Impl.Cache.Store
                         break;
 
                     case OpRmvAll:
+                        // TODO: Optimize
                         _store.DeleteAll(ReadKeys(rawReader));
 
                         break;
