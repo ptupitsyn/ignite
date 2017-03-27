@@ -380,7 +380,6 @@
     <Compile Include="Impl\Memory\PlatformMemoryStream.cs" />
     <Compile Include="Impl\Memory\PlatformMemoryUtils.cs" />
     <Compile Include="Impl\Memory\PlatformPooledMemory.cs" />
-    <Compile Include="Impl\Memory\PlatformRawMemory.cs" />
     <Compile Include="Impl\Memory\PlatformUnpooledMemory.cs" />
     <Compile Include="Impl\Messaging\MessageListenerHolder.cs" />
     <Compile Include="Impl\Messaging\Messaging.cs" />
