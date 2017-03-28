@@ -1683,6 +1683,26 @@ namespace Apache.Ignite.Core.Tests.Binary
                 Assert.AreEqual(3, cache2[6].GetField<int>("foo2"));
             }
         }
+
+        /// <summary>
+        /// Tests that fields are sorted by name in serialized form.
+        /// </summary>
+        [Test]
+        public void TestFieldSorting()
+        {
+            var builder = _grid.GetBinary().GetBuilder("sortTest");
+
+            builder.SetByteField("c", 3);
+            builder.SetByteField("b", 1);
+            builder.SetByteField("a", 2);
+
+            var res = (BinaryObject) builder.Build();
+
+            // Skip header, take 3 fields (type code + value).
+            var payload = res.Data.Skip(24).Take(6).ToArray();
+
+            Assert.AreEqual(new[] {1, 2, 1, 1, 1, 3}, payload);
+        }
     }
 
     /// <summary>
