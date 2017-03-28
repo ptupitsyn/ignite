@@ -593,9 +593,9 @@ namespace Apache.Ignite.Core.Tests.Binary
             Assert.AreEqual(obj1, obj2);
 
             Assert.AreEqual(-88648479, obj1.GetHashCode());
-            Assert.AreEqual(-88648479, obj2.GetHashCode());
+            Assert.AreEqual(obj1.GetHashCode(), obj2.GetHashCode());
 
-            Assert.IsTrue(Regex.IsMatch(obj1.ToString(), @"myType \[idHash=[0-9]+, str=foo, int=1\]"));
+            Assert.AreEqual("myType [, int=1, str=foo]", Regex.Replace(obj1.ToString(), "idHash=\\d+", ""));
         }
 
         /// <summary>
@@ -1697,6 +1697,8 @@ namespace Apache.Ignite.Core.Tests.Binary
             builder.SetByteField("a", 2);
 
             var res = (BinaryObject) builder.Build();
+
+            Assert.AreEqual("sortTest [, a=2, b=1, c=3]", Regex.Replace(res.ToString(), "idHash=\\d+", ""));
 
             // Skip header, take 3 fields (type code + value).
             var payload = res.Data.Skip(24).Take(6).ToArray();
