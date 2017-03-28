@@ -35,6 +35,7 @@ namespace Apache.Ignite.Core.Impl.Binary
         /** <inheritdoc /> */
         public void WriteBinary<T>(T obj, BinaryWriter writer)
         {
+            // TODO: Pass a wrapper over writer which sorts fields.
             ((IBinarizable) obj).WriteBinary(writer);
         }
 
