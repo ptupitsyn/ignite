@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
@@ -19,6 +19,7 @@ namespace Apache.Ignite.Core.Impl.Binary
 {
     using System;
     using System.Collections;
+    using System.Collections.Generic;
     using System.Diagnostics;
     using Apache.Ignite.Core.Binary;
 
@@ -29,6 +30,9 @@ namespace Apache.Ignite.Core.Impl.Binary
     {
         /** */
         private readonly IBinaryWriter _writer;
+
+        /** */
+        private SortedDictionary<string, Action<IBinaryWriter, string>> _writeActions;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="SortedBinaryWriter"/> class.
@@ -225,6 +229,37 @@ namespace Apache.Ignite.Core.Impl.Binary
         public IBinaryRawWriter GetRawWriter()
         {
             return _writer.GetRawWriter();
+        }
+
+        /// <summary>
+        /// Flushes the pending writes to underlying writer..
+        /// </summary>
+        public void Flush()
+        {
+            if (_writeActions == null)
+                return;
+
+            foreach (var action in _writeActions)
+            {
+                action.Value(_writer, action.Key);
+            }
+
+            _writeActions = null;
+        }
+
+        /// <summary>
+        /// Adds the action.
+        /// </summary>
+        /// <param name="fieldName">Name of the field.</param>
+        /// <param name="action">The action.</param>
+        private void AddAction(string fieldName, Action<IBinaryWriter, string> action)
+        {
+            if (_writeActions == null)
+            {
+                _writeActions = new SortedDictionary<string, Action<IBinaryWriter, string>>();
+            }
+
+            _writeActions.Add(fieldName, action);
         }
     }
 }
