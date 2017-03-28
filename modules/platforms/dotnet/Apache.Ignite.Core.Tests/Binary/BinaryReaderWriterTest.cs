@@ -39,7 +39,15 @@ namespace Apache.Ignite.Core.Tests.Binary
         {
             var marsh = new Marshaller(new BinaryConfiguration(typeof(ReadWriteAll)));
 
-            marsh.Unmarshal<ReadWriteAll>(marsh.Marshal(new ReadWriteAll()));
+            var bytes = marsh.Marshal(new ReadWriteAll());
+
+            // Verify reading (asserts are in ReadBinary).
+            marsh.Unmarshal<ReadWriteAll>(bytes);
+
+            // Verify field ordering.
+            var obj = marsh.Unmarshal<BinaryObject>(bytes, BinaryMode.ForceBinary);
+
+            //obj.TryGetFieldPosition()
         }
 
         /// <summary>
