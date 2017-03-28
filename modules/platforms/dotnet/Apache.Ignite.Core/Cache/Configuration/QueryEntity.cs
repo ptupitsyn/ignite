@@ -182,6 +182,7 @@ namespace Apache.Ignite.Core.Cache.Configuration
         {
             KeyTypeName = reader.ReadString();
             ValueTypeName = reader.ReadString();
+            TableName = reader.ReadString();
 
             var count = reader.ReadInt();
             Fields = count == 0
@@ -205,6 +206,7 @@ namespace Apache.Ignite.Core.Cache.Configuration
         {
             writer.WriteString(KeyTypeName);
             writer.WriteString(ValueTypeName);
+            writer.WriteString(TableName);
 
             if (Fields != null)
             {
