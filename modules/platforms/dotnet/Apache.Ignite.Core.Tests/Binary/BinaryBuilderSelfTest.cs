@@ -1690,20 +1690,24 @@ namespace Apache.Ignite.Core.Tests.Binary
         [Test]
         public void TestFieldSorting()
         {
-            var builder = _grid.GetBinary().GetBuilder("sortTest");
+            var obj1 = (BinaryObject)_grid.GetBinary().GetBuilder("sortTest")
+                .SetByteField("c", 3).SetByteField("b", 1).SetByteField("a", 2).Build();
 
-            builder.SetByteField("c", 3);
-            builder.SetByteField("b", 1);
-            builder.SetByteField("a", 2);
+            var obj2 = (BinaryObject)_grid.GetBinary().GetBuilder("sortTest")
+                .SetByteField("b", 1).SetByteField("a", 2).SetByteField("c", 3).Build();
 
-            var res = (BinaryObject) builder.Build();
+            Assert.AreEqual(obj1, obj2);
+            Assert.AreEqual(obj1.GetHashCode(), obj2.GetHashCode());
 
-            Assert.AreEqual("sortTest [, a=2, b=1, c=3]", Regex.Replace(res.ToString(), "idHash=\\d+", ""));
+            Assert.AreEqual("sortTest [, a=2, b=1, c=3]", Regex.Replace(obj1.ToString(), "idHash=\\d+", ""));
 
             // Skip header, take 3 fields (type code + value).
-            var payload = res.Data.Skip(24).Take(6).ToArray();
+            var bytes1 = obj1.Data.Skip(24).Take(6).ToArray();
+            var bytes2 = obj2.Data.Skip(24).Take(6).ToArray();
+            
+            Assert.AreEqual(bytes1, bytes2);
 
-            Assert.AreEqual(new[] {1, 2, 1, 1, 1, 3}, payload);
+            Assert.AreEqual(new[] {1, 2, 1, 1, 1, 3}, bytes1);
         }
     }
 
