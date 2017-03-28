@@ -148,6 +148,12 @@ namespace Apache.Ignite.Core.Cache.Configuration
         }
 
         /// <summary>
+        /// Gets or sets the name of the SQL table.
+        /// When not set, value type name is used.
+        /// </summary>
+        public string TableName { get; set; }
+
+        /// <summary>
         /// Gets or sets query fields, a map from field name to Java type name. 
         /// The order of fields defines the order of columns returned by the 'select *' queries.
         /// </summary>
