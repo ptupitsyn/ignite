@@ -45,6 +45,14 @@ namespace Apache.Ignite.Core.Impl.Binary
             _writer = writer;
         }
 
+        /// <summary>
+        /// Gets the inner writer.
+        /// </summary>
+        public IBinaryWriter Writer
+        {
+            get { return _writer; }
+        }
+
         /** <inheritDoc /> */
         public void WriteByte(string fieldName, byte val)
         {
