@@ -228,7 +228,7 @@ namespace Apache.Ignite.Core.Tests
         }
     }
 
-    public abstract class AbstractBean
+    public abstract class AbstractHandler
     {
         [InstanceResource]
         public IIgnite Grid1;
@@ -236,7 +236,7 @@ namespace Apache.Ignite.Core.Tests
         public int Property1 { get; set; }
     }
 
-    public class LifecycleHandler : AbstractBean, ILifecycleEventHandler
+    public class LifecycleHandler : AbstractHandler, ILifecycleEventHandler
     {
         [InstanceResource]
         public IIgnite Grid2;

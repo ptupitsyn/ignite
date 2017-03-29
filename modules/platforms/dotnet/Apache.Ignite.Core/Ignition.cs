@@ -40,7 +40,6 @@ namespace Apache.Ignite.Core
     using Apache.Ignite.Core.Impl.Unmanaged;
     using Apache.Ignite.Core.Lifecycle;
     using Apache.Ignite.Core.Log;
-    using Apache.Ignite.Core.Resource;
     using BinaryReader = Apache.Ignite.Core.Impl.Binary.BinaryReader;
     using UU = Apache.Ignite.Core.Impl.Unmanaged.UnmanagedUtils;
 
@@ -321,7 +320,7 @@ namespace Apache.Ignite.Core
 
                 PrepareConfiguration(reader, outStream, log);
 
-                PrepareLifecycleBeans(reader, outStream, handleRegistry);
+                PrepareLifecycleHandlers(reader, outStream, handleRegistry);
 
                 PrepareAffinityFunctions(reader, outStream);
 
@@ -372,7 +371,7 @@ namespace Apache.Ignite.Core
         /// <param name="reader">Reader.</param>
         /// <param name="outStream">Output stream.</param>
         /// <param name="handleRegistry">Handle registry.</param>
-        private static void PrepareLifecycleBeans(IBinaryRawReader reader, IBinaryStream outStream,
+        private static void PrepareLifecycleHandlers(IBinaryRawReader reader, IBinaryStream outStream,
             HandleRegistry handleRegistry)
         {
             var beans = new List<ILifecycleEventHandler>
