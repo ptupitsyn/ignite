@@ -766,7 +766,7 @@ namespace Apache.Ignite.Core
         }
 
         /// <summary>
-        /// Internal bean for event notification.
+        /// Internal handler for event notification.
         /// </summary>
         private class InternalLifecycleEventHandler : ILifecycleEventHandler
         {
