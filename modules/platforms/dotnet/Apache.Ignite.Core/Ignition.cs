@@ -386,7 +386,7 @@ namespace Apache.Ignite.Core
                 beans.Add(CreateObject<ILifecycleEventHandler>(reader));
 
             // 2. Append beans defined in local configuration.
-            var nativeBeans = _startup.Configuration.LifecycleBeans;
+            var nativeBeans = _startup.Configuration.LifecycleEventHandlers;
 
             if (nativeBeans != null)
             {

@@ -84,7 +84,7 @@ namespace Apache.Ignite.Core.Tests
         {
             // 1. Test start events.
             IIgnite grid = Start(CfgNoBeans);
-            Assert.AreEqual(2, grid.GetConfiguration().LifecycleBeans.Count);
+            Assert.AreEqual(2, grid.GetConfiguration().LifecycleEventHandlers.Count);
 
             Assert.AreEqual(2, BeforeStartEvts.Count);
             CheckEvent(BeforeStartEvts[0], null, null, 0, null);
@@ -124,7 +124,7 @@ namespace Apache.Ignite.Core.Tests
         {
             // 1. Test .Net start events.
             IIgnite grid = Start(CfgBeans);
-            Assert.AreEqual(2, grid.GetConfiguration().LifecycleBeans.Count);
+            Assert.AreEqual(2, grid.GetConfiguration().LifecycleEventHandlers.Count);
 
             Assert.AreEqual(4, BeforeStartEvts.Count);
             CheckEvent(BeforeStartEvts[0], null, null, 0, null);
@@ -199,7 +199,7 @@ namespace Apache.Ignite.Core.Tests
                 JvmClasspath = TestUtils.CreateTestClasspath(),
                 JvmOptions = TestUtils.TestJavaOptions(),
                 SpringConfigUrl = cfgPath,
-                LifecycleBeans = new List<ILifecycleEventHandler> {new LifecycleHandler(), new LifecycleHandler()}
+                LifecycleEventHandlers = new List<ILifecycleEventHandler> {new LifecycleHandler(), new LifecycleHandler()}
             };
 
             return Ignition.Start(cfg);

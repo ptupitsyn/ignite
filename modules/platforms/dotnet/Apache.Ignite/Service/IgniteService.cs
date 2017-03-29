@@ -66,11 +66,11 @@ namespace Apache.Ignite.Service
             _cfg = cfg;
 
             // Subscribe to lifecycle events
-            var beans = _cfg.LifecycleBeans ?? new List<ILifecycleEventHandler>();
+            var beans = _cfg.LifecycleEventHandlers ?? new List<ILifecycleEventHandler>();
 
             beans.Add(this);
 
-            _cfg.LifecycleBeans = beans;
+            _cfg.LifecycleEventHandlers = beans;
         }
 
         /** <inheritDoc /> */

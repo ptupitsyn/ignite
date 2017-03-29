@@ -515,7 +515,7 @@
             JvmOptions = cfg.JvmOptions;
             Assemblies = cfg.Assemblies;
             SuppressWarnings = cfg.SuppressWarnings;
-            LifecycleBeans = cfg.LifecycleBeans;
+            LifecycleEventHandlers = cfg.LifecycleEventHandlers;
             Logger = cfg.Logger;
             JvmInitialMemoryMb = cfg.JvmInitialMemoryMb;
             JvmMaxMemoryMb = cfg.JvmMaxMemoryMb;
@@ -616,7 +616,7 @@
         /// Lifecycle beans.
         /// </summary>
         [SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public ICollection<ILifecycleEventHandler> LifecycleBeans { get; set; }
+        public ICollection<ILifecycleEventHandler> LifecycleEventHandlers { get; set; }
 
         /// <summary>
         /// Initial amount of memory in megabytes given to JVM. Maps to -Xms Java option.

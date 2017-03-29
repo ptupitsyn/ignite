@@ -59,7 +59,7 @@ namespace Apache.Ignite.Examples.Misc
                         Endpoints = new[] {"127.0.0.1:47500"}
                     }
                 },
-                LifecycleBeans = new List<ILifecycleEventHandler> {lifecycleExampleHandler}
+                LifecycleEventHandlers = new List<ILifecycleEventHandler> {lifecycleExampleHandler}
             };
 
             // Provide lifecycle bean to configuration.

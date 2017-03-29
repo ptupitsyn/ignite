@@ -153,7 +153,7 @@ namespace Apache.Ignite.Core.Tests
             Assert.AreEqual(7,
                 ((TcpDiscoveryMulticastIpFinder) ((TcpDiscoverySpi) cfg.DiscoverySpi).IpFinder).AddressRequestAttempts);
             Assert.AreEqual(new[] { "-Xms1g", "-Xmx4g" }, cfg.JvmOptions);
-            Assert.AreEqual(15, ((LifecycleEventHandler) cfg.LifecycleBeans.Single()).Foo);
+            Assert.AreEqual(15, ((LifecycleEventHandler) cfg.LifecycleEventHandlers.Single()).Foo);
             Assert.AreEqual("testBar", ((NameMapper) cfg.BinaryConfiguration.DefaultNameMapper).Bar);
             Assert.AreEqual(
                 "Apache.Ignite.Core.Tests.IgniteConfigurationSerializerTest+FooClass, Apache.Ignite.Core.Tests",
@@ -737,7 +737,7 @@ namespace Apache.Ignite.Core.Tests
                 JvmDllPath = @"c:\jvm",
                 JvmInitialMemoryMb = 1024,
                 JvmMaxMemoryMb = 2048,
-                LifecycleBeans = new[] {new LifecycleEventHandler(), new LifecycleEventHandler()},
+                LifecycleEventHandlers = new[] {new LifecycleEventHandler(), new LifecycleEventHandler()},
                 MetricsExpireTime = TimeSpan.FromSeconds(15),
                 MetricsHistorySize = 45,
                 MetricsLogFrequency = TimeSpan.FromDays(2),
