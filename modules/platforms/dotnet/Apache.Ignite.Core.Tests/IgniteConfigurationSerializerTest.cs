@@ -91,7 +91,7 @@ namespace Apache.Ignite.Core.Tests
                             <jvmOptions><string>-Xms1g</string><string>-Xmx4g</string></jvmOptions>
                             <lifecycleEventHandlers>
                                 <iLifecycleEventHandler type='Apache.Ignite.Core.Tests.IgniteConfigurationSerializerTest+LifecycleEventHandler' foo='15' />
-                            </lifecycleBeans>
+                            </lifecycleEventHandlers>
                             <cacheConfiguration>
                                 <cacheConfiguration cacheMode='Replicated' readThrough='true' writeThrough='true' enableStatistics='true'>
                                     <queryEntities>    
