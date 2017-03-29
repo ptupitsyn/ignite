@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
+// ReSharper disable UnusedAutoPropertyAccessor.Global
 namespace Apache.Ignite.Core.Tests
 {
     using System;
@@ -193,13 +194,13 @@ namespace Apache.Ignite.Core.Tests
         {
             TestUtils.JvmDebug = true;
 
-            IgniteConfiguration cfg = new IgniteConfiguration();
-
-            cfg.JvmClasspath = TestUtils.CreateTestClasspath();
-            cfg.JvmOptions = TestUtils.TestJavaOptions();
-            cfg.SpringConfigUrl = cfgPath;
-
-            cfg.LifecycleBeans = new List<ILifecycleEventHandler> { new LifecycleHandler(), new LifecycleHandler() };
+            var cfg = new IgniteConfiguration
+            {
+                JvmClasspath = TestUtils.CreateTestClasspath(),
+                JvmOptions = TestUtils.TestJavaOptions(),
+                SpringConfigUrl = cfgPath,
+                LifecycleBeans = new List<ILifecycleEventHandler> {new LifecycleHandler(), new LifecycleHandler()}
+            };
 
             return Ignition.Start(cfg);
         }
@@ -214,11 +215,11 @@ namespace Apache.Ignite.Core.Tests
         /// <param name="expProp2">Expected property 2.</param>
         private static void CheckEvent(Event evt, IIgnite expGrid1, IIgnite expGrid2, int expProp1, string expProp2)
         {
-            if (evt.Grid1 != null && evt.Grid1 is IgniteProxy)
-                evt.Grid1 = (evt.Grid1 as IgniteProxy).Target;
+            if (evt.Grid1 is IgniteProxy)
+                evt.Grid1 = ((IgniteProxy) evt.Grid1).Target;
 
-            if (evt.Grid2 != null && evt.Grid2 is IgniteProxy)
-                evt.Grid2 = (evt.Grid2 as IgniteProxy).Target;
+            if (evt.Grid2 is IgniteProxy)
+                evt.Grid2 = ((IgniteProxy) evt.Grid2).Target;
 
             Assert.AreEqual(expGrid1, evt.Grid1);
             Assert.AreEqual(expGrid2, evt.Grid2);
@@ -232,11 +233,7 @@ namespace Apache.Ignite.Core.Tests
         [InstanceResource]
         public IIgnite Grid1;
 
-        public int Property1
-        {
-            get;
-            set;
-        }
+        public int Property1 { get; set; }
     }
 
     public class LifecycleHandler : AbstractBean, ILifecycleEventHandler
@@ -244,11 +241,7 @@ namespace Apache.Ignite.Core.Tests
         [InstanceResource]
         public IIgnite Grid2;
 
-        public string Property2
-        {
-            get;
-            set;
-        }
+        public string Property2 { get; set; }
 
         /** <inheritDoc /> */
         public void OnLifecycleEvent(LifecycleEventType evtType, IIgnite ignite)
@@ -256,12 +249,13 @@ namespace Apache.Ignite.Core.Tests
             if (LifecycleTest.ThrowErr)
                 throw new Exception("Lifecycle exception.");
 
-            Event evt = new Event();
-
-            evt.Grid1 = Grid1;
-            evt.Grid2 = Grid2;
-            evt.Prop1 = Property1;
-            evt.Prop2 = Property2;
+            Event evt = new Event
+            {
+                Grid1 = Grid1,
+                Grid2 = Grid2,
+                Prop1 = Property1,
+                Prop2 = Property2
+            };
 
             switch (evtType)
             {
