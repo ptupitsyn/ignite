@@ -24,7 +24,6 @@ namespace Apache.Ignite.Core.Tests
     using Apache.Ignite.Core.Common;
     using Apache.Ignite.Core.Impl;
     using Apache.Ignite.Core.Lifecycle;
-    using Apache.Ignite.Core.Resource;
     using NUnit.Framework;
 
     /// <summary>
@@ -230,17 +229,11 @@ namespace Apache.Ignite.Core.Tests
 
     public abstract class AbstractHandler
     {
-        [InstanceResource]
-        public IIgnite Grid1;
-
         public int Property1 { get; set; }
     }
 
     public class LifecycleHandler : AbstractHandler, ILifecycleEventHandler
     {
-        [InstanceResource]
-        public IIgnite Grid2;
-
         public string Property2 { get; set; }
 
         /** <inheritDoc /> */
@@ -251,8 +244,8 @@ namespace Apache.Ignite.Core.Tests
 
             Event evt = new Event
             {
-                Grid1 = Grid1,
-                Grid2 = Grid2,
+                Grid1 = ignite,
+                Grid2 = ignite,
                 Prop1 = Property1,
                 Prop2 = Property2
             };
