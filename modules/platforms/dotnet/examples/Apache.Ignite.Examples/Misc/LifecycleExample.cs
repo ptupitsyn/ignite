@@ -23,7 +23,6 @@ namespace Apache.Ignite.Examples.Misc
     using Apache.Ignite.Core.Discovery.Tcp;
     using Apache.Ignite.Core.Discovery.Tcp.Static;
     using Apache.Ignite.Core.Lifecycle;
-    using Apache.Ignite.Core.Resource;
 
     /// <summary>
     /// This example shows how to provide your own <see cref="Apache.Ignite.Core.Lifecycle.ILifecycleEventHandler"/> implementation
@@ -84,33 +83,27 @@ namespace Apache.Ignite.Examples.Misc
         /// </summary>
         private class LifecycleExampleEventHandler : ILifecycleEventHandler
         {
-            /** Auto-injected Ignite instance. */
-            [InstanceResource]
-#pragma warning disable 649
-            private IIgnite _ignite;
-#pragma warning restore 649
-
-            /** <inheritDoc /> */
-            public void OnLifecycleEvent(LifecycleEventType evt)
+            /// <summary>
+            /// Called when lifecycle event occurs.
+            /// </summary>
+            /// <param name="eventType">Event type.</param>
+            /// <param name="ignite">Ignite instance.</param>
+            public void OnLifecycleEvent(LifecycleEventType eventType, IIgnite ignite)
             {
                 Console.WriteLine();
-                Console.WriteLine(">>> Ignite lifecycle event occurred: " + evt);
-                Console.WriteLine(">>> Ignite name: " + (_ignite != null ? _ignite.Name : "not available"));
+                Console.WriteLine(">>> Ignite lifecycle event occurred: " + eventType);
+                Console.WriteLine(">>> Ignite name: " + (ignite != null ? ignite.Name : "not available"));
 
-                if (evt == LifecycleEventType.AfterNodeStart)
+                if (eventType == LifecycleEventType.AfterNodeStart)
                     Started = true;
-                else if (evt == LifecycleEventType.AfterNodeStop)
+                else if (eventType == LifecycleEventType.AfterNodeStop)
                     Started = false;
             }
 
             /// <summary>
             /// Started flag.
             /// </summary>
-            public bool Started
-            {
-                get;
-                private set;
-            }
+            public bool Started { get; private set; }
         }
     }
 }
