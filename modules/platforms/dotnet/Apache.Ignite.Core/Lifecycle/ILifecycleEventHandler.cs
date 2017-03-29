@@ -17,6 +17,7 @@
 
 namespace Apache.Ignite.Core.Lifecycle
 {
+    using System.Diagnostics.CodeAnalysis;
     using Apache.Ignite.Core.Resource;
 
     /// <summary>
@@ -54,6 +55,7 @@ namespace Apache.Ignite.Core.Lifecycle
     ///     </item>
     /// </list>
     /// </summary>
+    [SuppressMessage("Microsoft.Naming", "CA1711:IdentifiersShouldNotHaveIncorrectSuffix")]
     public interface ILifecycleEventHandler
     {
         /// <summary>
