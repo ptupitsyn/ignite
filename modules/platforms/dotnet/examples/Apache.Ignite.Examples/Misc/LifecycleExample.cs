@@ -25,8 +25,8 @@ namespace Apache.Ignite.Examples.Misc
     using Apache.Ignite.Core.Lifecycle;
 
     /// <summary>
-    /// This example shows how to provide your own <see cref="Apache.Ignite.Core.Lifecycle.ILifecycleEventHandler"/> implementation
-    /// to be able to hook into Apache lifecycle. Example bean will output occurred lifecycle 
+    /// This example shows how to provide your own <see cref="ILifecycleEventHandler"/> implementation
+    /// to be able to hook into Apache lifecycle. Example handler will output occurred lifecycle 
     /// events to the console.
     /// <para />
     /// 1) Build the project Apache.Ignite.ExamplesDll (select it -> right-click -> Build).
@@ -61,15 +61,15 @@ namespace Apache.Ignite.Examples.Misc
                 LifecycleEventHandlers = new List<ILifecycleEventHandler> {lifecycleExampleHandler}
             };
 
-            // Provide lifecycle bean to configuration.
+            // Provide lifecycle handler to configuration.
             using (Ignition.Start(cfg))
             {
-                // Make sure that lifecycle bean was notified about Ignite startup.
+                // Make sure that lifecycle handler was notified about Ignite startup.
                 Console.WriteLine();
                 Console.WriteLine(">>> Started (should be true): " + lifecycleExampleHandler.Started);
             }
 
-            // Make sure that lifecycle bean was notified about Ignite stop.
+            // Make sure that lifecycle handler was notified about Ignite stop.
             Console.WriteLine();
             Console.WriteLine(">>> Started (should be false): " + lifecycleExampleHandler.Started);
 
@@ -79,7 +79,7 @@ namespace Apache.Ignite.Examples.Misc
         }
 
         /// <summary>
-        /// Sample lifecycle bean implementation.
+        /// Sample lifecycle handler implementation.
         /// </summary>
         private class LifecycleExampleEventHandler : ILifecycleEventHandler
         {

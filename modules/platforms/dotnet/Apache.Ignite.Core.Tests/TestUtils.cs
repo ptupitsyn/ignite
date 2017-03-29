@@ -280,7 +280,7 @@ namespace Apache.Ignite.Core.Tests
         {
             var handleRegistry = ((Ignite)grid).HandleRegistry;
 
-            expectedCount++;  // Skip default lifecycle bean
+            expectedCount++;  // Skip default lifecycle handler.
 
             if (WaitForCondition(() => handleRegistry.Count == expectedCount, timeout))
                 return;
