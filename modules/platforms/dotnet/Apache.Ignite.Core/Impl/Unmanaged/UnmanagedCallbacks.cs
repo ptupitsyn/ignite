@@ -808,9 +808,9 @@ namespace Apache.Ignite.Core.Impl.Unmanaged
 
         private long LifecycleOnEvent(long ptr, long evt, long unused, void* arg)
         {
-            var bean = _handleRegistry.Get<ILifecycleEventHandler>(ptr);
+            var handler = _handleRegistry.Get<ILifecycleEventHandler>(ptr);
 
-            bean.OnLifecycleEvent((LifecycleEventType) evt, _ignite);
+            handler.OnLifecycleEvent((LifecycleEventType) evt, _ignite);
 
             return 0;
         }

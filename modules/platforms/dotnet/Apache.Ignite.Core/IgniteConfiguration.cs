@@ -613,7 +613,7 @@
         public bool SuppressWarnings { get; set; }
 
         /// <summary>
-        /// Lifecycle beans.
+        /// Lifecycle event handlers.
         /// </summary>
         [SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public ICollection<ILifecycleEventHandler> LifecycleEventHandlers { get; set; }

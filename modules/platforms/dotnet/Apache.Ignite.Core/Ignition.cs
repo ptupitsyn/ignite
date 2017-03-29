@@ -374,33 +374,33 @@ namespace Apache.Ignite.Core
         private static void PrepareLifecycleHandlers(IBinaryRawReader reader, IBinaryStream outStream,
             HandleRegistry handleRegistry)
         {
-            var beans = new List<ILifecycleEventHandler>
+            var handlers = new List<ILifecycleEventHandler>
             {
-                new InternalLifecycleEventHandler()   // add internal bean for events
+                new InternalLifecycleEventHandler()   // add internal handler for events
             };
 
             // 1. Read beans defined in Java.
             int cnt = reader.ReadInt();
 
             for (int i = 0; i < cnt; i++)
-                beans.Add(CreateObject<ILifecycleEventHandler>(reader));
+                handlers.Add(CreateObject<ILifecycleEventHandler>(reader));
 
-            // 2. Append beans defined in local configuration.
-            var nativeBeans = _startup.Configuration.LifecycleEventHandlers;
+            // 2. Append handlers defined in local configuration.
+            var nativeHandlers = _startup.Configuration.LifecycleEventHandlers;
 
-            if (nativeBeans != null)
+            if (nativeHandlers != null)
             {
-                beans.AddRange(nativeBeans);
+                handlers.AddRange(nativeHandlers);
             }
 
-            // 3. Write bean pointers to Java stream.
-            outStream.WriteInt(beans.Count);
+            // 3. Write handler pointers to Java stream.
+            outStream.WriteInt(handlers.Count);
 
-            foreach (var bean in beans)
-                outStream.WriteLong(handleRegistry.AllocateCritical(bean));
+            foreach (var handler in handlers)
+                outStream.WriteLong(handleRegistry.AllocateCritical(handler));
 
             // 4. Set beans to STARTUP object.
-            _startup.LifecycleEventHandlers = beans;
+            _startup.LifecycleEventHandlers = handlers;
         }
 
         /// <summary>

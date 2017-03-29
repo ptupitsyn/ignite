@@ -18,7 +18,7 @@
 namespace Apache.Ignite.Core.Lifecycle
 {
     /// <summary>
-    /// Ignite lifecycle event types. These events are used to notify lifecycle beans
+    /// Ignite lifecycle event types. These events are used to notify lifecycle handlers
     /// about changes in Ignite lifecycle state.
     /// <para />
     /// For more information and detailed examples refer to <see cref="ILifecycleEventHandler"/>
