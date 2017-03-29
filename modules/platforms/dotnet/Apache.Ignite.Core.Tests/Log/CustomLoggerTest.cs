@@ -108,7 +108,7 @@ namespace Apache.Ignite.Core.Tests.Log
         [Test]
         public void TestStartupDotNetError()
         {
-            // Invalid bean
+            // Invalid event handler.
             Assert.Throws<IgniteException>(() =>
                 Ignition.Start(new IgniteConfiguration(GetConfigWithLogger())
                 {
@@ -424,13 +424,13 @@ namespace Apache.Ignite.Core.Tests.Log
 
 
         /// <summary>
-        /// Failing lifecycle bean.
+        /// Failing lifecycle handler.
         /// </summary>
         private class FailEventHandler : ILifecycleEventHandler
         {
             public void OnLifecycleEvent(LifecycleEventType evt, IIgnite ignite)
             {
-                throw new ArithmeticException("Failure in bean");
+                throw new ArithmeticException("Failure in lifecycle event handler");
             }
         }
 

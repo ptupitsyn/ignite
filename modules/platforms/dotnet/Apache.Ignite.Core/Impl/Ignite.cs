@@ -108,7 +108,7 @@ namespace Apache.Ignite.Core.Impl
         /// <param name="name">Grid name.</param>
         /// <param name="proc">Interop processor.</param>
         /// <param name="marsh">Marshaller.</param>
-        /// <param name="lifecycleEventHandlers">Lifecycle beans.</param>
+        /// <param name="lifecycleEventHandlers">Lifecycle handlers.</param>
         /// <param name="cbs">Callbacks.</param>
         public Ignite(IgniteConfiguration cfg, string name, IUnmanagedTarget proc, Marshaller marsh,
             IList<ILifecycleEventHandler> lifecycleEventHandlers, UnmanagedCallbacks cbs)
@@ -386,8 +386,8 @@ namespace Apache.Ignite.Core.Impl
         /// </summary>
         internal void AfterNodeStop()
         {
-            foreach (var bean in _lifecycleEventHandlers)
-                bean.OnLifecycleEvent(LifecycleEventType.AfterNodeStop, this);
+            foreach (var eventHandler in _lifecycleEventHandlers)
+                eventHandler.OnLifecycleEvent(LifecycleEventType.AfterNodeStop, this);
 
             var handler = Stopped;
             if (handler != null)

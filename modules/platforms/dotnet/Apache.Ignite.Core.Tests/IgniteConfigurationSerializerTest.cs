@@ -89,8 +89,8 @@ namespace Apache.Ignite.Core.Tests
                             </discoverySpi>
                             <communicationSpi type='TcpCommunicationSpi' ackSendThreshold='33' idleConnectionTimeout='0:1:2' />
                             <jvmOptions><string>-Xms1g</string><string>-Xmx4g</string></jvmOptions>
-                            <lifecycleBeans>
-                                <iLifecycleBean type='Apache.Ignite.Core.Tests.IgniteConfigurationSerializerTest+LifecycleEventHandler' foo='15' />
+                            <lifecycleEventHandlers>
+                                <iLifecycleEventHandler type='Apache.Ignite.Core.Tests.IgniteConfigurationSerializerTest+LifecycleEventHandler' foo='15' />
                             </lifecycleBeans>
                             <cacheConfiguration>
                                 <cacheConfiguration cacheMode='Replicated' readThrough='true' writeThrough='true' enableStatistics='true'>
@@ -832,7 +832,7 @@ namespace Apache.Ignite.Core.Tests
         }
 
         /// <summary>
-        /// Test bean.
+        /// Test event handler.
         /// </summary>
         public class LifecycleEventHandler : ILifecycleEventHandler
         {

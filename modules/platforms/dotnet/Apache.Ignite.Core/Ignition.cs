@@ -366,7 +366,7 @@ namespace Apache.Ignite.Core
         }
 
         /// <summary>
-        /// Prepare lifecycle beans.
+        /// Prepare lifecycle handlers.
         /// </summary>
         /// <param name="reader">Reader.</param>
         /// <param name="outStream">Output stream.</param>
@@ -399,7 +399,7 @@ namespace Apache.Ignite.Core
             foreach (var handler in handlers)
                 outStream.WriteLong(handleRegistry.AllocateCritical(handler));
 
-            // 4. Set beans to STARTUP object.
+            // 4. Set handlers to STARTUP object.
             _startup.LifecycleEventHandlers = handlers;
         }
 
@@ -740,7 +740,7 @@ namespace Apache.Ignite.Core
             internal UnmanagedCallbacks Callbacks { get; private set; }
 
             /// <summary>
-            /// Lifecycle beans.
+            /// Lifecycle handlers.
             /// </summary>
             internal IList<ILifecycleEventHandler> LifecycleEventHandlers { get; set; }
 
