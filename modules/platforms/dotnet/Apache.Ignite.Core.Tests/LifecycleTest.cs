@@ -199,7 +199,7 @@ namespace Apache.Ignite.Core.Tests
             cfg.JvmOptions = TestUtils.TestJavaOptions();
             cfg.SpringConfigUrl = cfgPath;
 
-            cfg.LifecycleBeans = new List<ILifecycleBean> { new Bean(), new Bean() };
+            cfg.LifecycleBeans = new List<ILifecycleEventHandler> { new EventHandler(), new EventHandler() };
 
             return Ignition.Start(cfg);
         }
@@ -239,7 +239,7 @@ namespace Apache.Ignite.Core.Tests
         }
     }
 
-    public class Bean : AbstractBean, ILifecycleBean
+    public class EventHandler : AbstractBean, ILifecycleEventHandler
     {
         [InstanceResource]
         public IIgnite Grid2;

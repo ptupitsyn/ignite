@@ -53,7 +53,7 @@ namespace Apache.Ignite.Core.Lifecycle
     ///     </item>
     /// </list>
     /// </summary>
-    public interface ILifecycleBean
+    public interface ILifecycleEventHandler
     {
         /// <summary>
         /// This method is called when lifecycle event occurs.

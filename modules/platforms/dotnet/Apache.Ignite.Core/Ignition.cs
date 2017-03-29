@@ -377,21 +377,21 @@ namespace Apache.Ignite.Core
         {
             IList<LifecycleBeanHolder> beans = new List<LifecycleBeanHolder>
             {
-                new LifecycleBeanHolder(new InternalLifecycleBean())   // add internal bean for events
+                new LifecycleBeanHolder(new InternalLifecycleEventHandler())   // add internal bean for events
             };
 
             // 1. Read beans defined in Java.
             int cnt = reader.ReadInt();
 
             for (int i = 0; i < cnt; i++)
-                beans.Add(new LifecycleBeanHolder(CreateObject<ILifecycleBean>(reader)));
+                beans.Add(new LifecycleBeanHolder(CreateObject<ILifecycleEventHandler>(reader)));
 
             // 2. Append beans defined in local configuration.
-            ICollection<ILifecycleBean> nativeBeans = _startup.Configuration.LifecycleBeans;
+            ICollection<ILifecycleEventHandler> nativeBeans = _startup.Configuration.LifecycleBeans;
 
             if (nativeBeans != null)
             {
-                foreach (ILifecycleBean nativeBean in nativeBeans)
+                foreach (ILifecycleEventHandler nativeBean in nativeBeans)
                     beans.Add(new LifecycleBeanHolder(nativeBean));
             }
 
@@ -770,7 +770,7 @@ namespace Apache.Ignite.Core
         /// <summary>
         /// Internal bean for event notification.
         /// </summary>
-        private class InternalLifecycleBean : ILifecycleBean
+        private class InternalLifecycleEventHandler : ILifecycleEventHandler
         {
             /** */
             #pragma warning disable 649   // unused field

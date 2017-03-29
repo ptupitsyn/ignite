@@ -90,7 +90,7 @@ namespace Apache.Ignite.Core.Tests
                             <communicationSpi type='TcpCommunicationSpi' ackSendThreshold='33' idleConnectionTimeout='0:1:2' />
                             <jvmOptions><string>-Xms1g</string><string>-Xmx4g</string></jvmOptions>
                             <lifecycleBeans>
-                                <iLifecycleBean type='Apache.Ignite.Core.Tests.IgniteConfigurationSerializerTest+LifecycleBean' foo='15' />
+                                <iLifecycleBean type='Apache.Ignite.Core.Tests.IgniteConfigurationSerializerTest+LifecycleEventHandler' foo='15' />
                             </lifecycleBeans>
                             <cacheConfiguration>
                                 <cacheConfiguration cacheMode='Replicated' readThrough='true' writeThrough='true' enableStatistics='true'>
@@ -153,7 +153,7 @@ namespace Apache.Ignite.Core.Tests
             Assert.AreEqual(7,
                 ((TcpDiscoveryMulticastIpFinder) ((TcpDiscoverySpi) cfg.DiscoverySpi).IpFinder).AddressRequestAttempts);
             Assert.AreEqual(new[] { "-Xms1g", "-Xmx4g" }, cfg.JvmOptions);
-            Assert.AreEqual(15, ((LifecycleBean) cfg.LifecycleBeans.Single()).Foo);
+            Assert.AreEqual(15, ((LifecycleEventHandler) cfg.LifecycleBeans.Single()).Foo);
             Assert.AreEqual("testBar", ((NameMapper) cfg.BinaryConfiguration.DefaultNameMapper).Bar);
             Assert.AreEqual(
                 "Apache.Ignite.Core.Tests.IgniteConfigurationSerializerTest+FooClass, Apache.Ignite.Core.Tests",
@@ -737,7 +737,7 @@ namespace Apache.Ignite.Core.Tests
                 JvmDllPath = @"c:\jvm",
                 JvmInitialMemoryMb = 1024,
                 JvmMaxMemoryMb = 2048,
-                LifecycleBeans = new[] {new LifecycleBean(), new LifecycleBean()},
+                LifecycleBeans = new[] {new LifecycleEventHandler(), new LifecycleEventHandler()},
                 MetricsExpireTime = TimeSpan.FromSeconds(15),
                 MetricsHistorySize = 45,
                 MetricsLogFrequency = TimeSpan.FromDays(2),
@@ -834,7 +834,7 @@ namespace Apache.Ignite.Core.Tests
         /// <summary>
         /// Test bean.
         /// </summary>
-        public class LifecycleBean : ILifecycleBean
+        public class LifecycleEventHandler : ILifecycleEventHandler
         {
             /// <summary>
             /// Gets or sets the foo.

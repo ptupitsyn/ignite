@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
+﻿<?xml version="1.0" encoding="UTF-8"?>
 
 <!--
   Licensed to the Apache Software Foundation (ASF) under one or more
@@ -42,15 +42,15 @@
             </bean>
         </property>
 
-        <property name="lifecycleBeans">
+        <property name="lifecycleEventHandlers">
             <list>
-                <bean class="org.apache.ignite.platform.lifecycle.PlatformJavaLifecycleBean" />
-                <bean class="org.apache.ignite.platform.dotnet.PlatformDotNetLifecycleBean">
-                    <property name="typeName" value="Apache.Ignite.Core.Tests.Bean" />
+                <bean class="org.apache.ignite.platform.lifecycle.PlatformJavaLifecycleEventHandler" />
+                <bean class="org.apache.ignite.platform.dotnet.PlatformDotNetLifecycleEventHandler">
+                    <property name="typeName" value="Apache.Ignite.Core.Tests.EventHandler" />
                 </bean>
-                <bean class="org.apache.ignite.platform.lifecycle.PlatformJavaLifecycleBean" />
-                <bean class="org.apache.ignite.platform.dotnet.PlatformDotNetLifecycleBean">
-                    <property name="typeName" value="Apache.Ignite.Core.Tests.Bean" />
+                <bean class="org.apache.ignite.platform.lifecycle.PlatformJavaLifecycleEventHandler" />
+                <bean class="org.apache.ignite.platform.dotnet.PlatformDotNetLifecycleEventHandler">
+                    <property name="typeName" value="Apache.Ignite.Core.Tests.EventHandler" />
                     <property name="properties">
                         <map>
                             <entry key="Property1">
@@ -60,7 +60,7 @@
                         </map>
                     </property>
                 </bean>
-                <bean class="org.apache.ignite.platform.lifecycle.PlatformJavaLifecycleBean" />
+                <bean class="org.apache.ignite.platform.lifecycle.PlatformJavaLifecycleEventHandler" />
             </list>
         </property>
     </bean>

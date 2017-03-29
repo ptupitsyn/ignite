@@ -112,7 +112,7 @@ namespace Apache.Ignite.Core.Tests.Log
             Assert.Throws<IgniteException>(() =>
                 Ignition.Start(new IgniteConfiguration(GetConfigWithLogger())
                 {
-                    LifecycleBeans = new[] {new FailBean()}
+                    LifecycleBeans = new[] {new FailEventHandler()}
                 }));
 
             var err = TestLogger.Entries.First(x => x.Level == LogLevel.Error);
@@ -426,7 +426,7 @@ namespace Apache.Ignite.Core.Tests.Log
         /// <summary>
         /// Failing lifecycle bean.
         /// </summary>
-        private class FailBean : ILifecycleBean
+        private class FailEventHandler : ILifecycleEventHandler
         {
             public void OnLifecycleEvent(LifecycleEventType evt)
             {
