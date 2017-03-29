@@ -137,6 +137,7 @@ namespace Apache.Ignite.Core.Tests.Log
                 TestUtils.WaitForCondition(() => TestLogger.Entries.Any(x => x.Exception != null), 3000);
 
                 var errFromJava = TestLogger.Entries.Single(x => x.Exception != null);
+                // ReSharper disable once PossibleNullReferenceException
                 Assert.AreEqual("Error in func.", ((ArithmeticException) errFromJava.Exception.InnerException).Message);
             }
         }
