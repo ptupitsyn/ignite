@@ -37,7 +37,7 @@ namespace Apache.Ignite.Linq
     /// <summary>
     /// Represents a compiled cache query.
     /// </summary>
-    public static class CompiledQuery2
+    public static class CompiledQuery
     {
         /// <summary>
         /// Creates a new delegate that represents the compiled cache query.
@@ -251,7 +251,7 @@ namespace Apache.Ignite.Linq
         {
             return new ArgumentException(
                 string.Format("{0} can only compile cache queries produced by AsCacheQueryable method. " +
-                              "Provided query is not valid: '{1}'", typeof(CompiledQuery2).FullName, queryable));
+                              "Provided query is not valid: '{1}'", typeof(CompiledQuery).FullName, queryable));
         }
     }
 }
