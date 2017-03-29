@@ -1161,69 +1161,6 @@ namespace Apache.Ignite.Core.Tests.Cache.Query
             Assert.AreEqual(17, compiled2(18, 16, "ers", 13, 17).Single().Key);
         }
 
-#pragma warning disable 618  // obsolete class
-        /// <summary>
-        /// Tests the old, deprecated compiled query.
-        /// </summary>
-        [Test]
-        public void TestCompiledQueryOld()
-        {
-            var cache = GetPersonCache().AsCacheQueryable();
-
-            // const args are not allowed
-            Assert.Throws<InvalidOperationException>(() => CompiledQuery.Compile(() => cache.Where(x => x.Key < 5)));
-
-            // 0 arg
-            var qry0 = CompiledQuery.Compile(() => cache.Select(x => x.Value.Name));
-            Assert.AreEqual(PersonCount, qry0().ToArray().Length);
-
-            // 1 arg
-            var qry1 = CompiledQuery.Compile((int k) => cache.Where(x => x.Key < k));
-            Assert.AreEqual(3, qry1(3).ToArray().Length);
-
-            // 2 arg
-            var qry2 =
-                CompiledQuery.Compile((int i, string s) => cache.Where(x => x.Key < i && x.Value.Name.StartsWith(s)));
-            Assert.AreEqual(5, qry2(5, " Pe").ToArray().Length);
-
-            // Changed param order
-            var qry2R =
-                CompiledQuery.Compile((string s, int i) => cache.Where(x => x.Key < i && x.Value.Name.StartsWith(s)));
-            Assert.AreEqual(5, qry2R(" Pe", 5).ToArray().Length);
-
-            // 3 arg
-            var qry3 = CompiledQuery.Compile((int i, string s, double d) =>
-                cache.Where(x => x.Value.Address.Zip > d && x.Key < i && x.Value.Name.Contains(s)));
-            Assert.AreEqual(5, qry3(5, "son", -10).ToArray().Length);
-
-            // 4 arg
-            var keys = cache.Select(x => x.Key);
-            var qry4 = CompiledQuery.Compile((int a, int b, int c, int d) =>
-                keys.Where(k => k > a && k > b && k > c && k < d));
-            Assert.AreEqual(new[] { 3, 4 }, qry4(0, 1, 2, 5).ToArray());
-
-            // 5 arg
-            var qry5 = CompiledQuery.Compile((int a, int b, int c, int d, int e) =>
-                keys.Where(k => k > a && k > b && k > c && k < d && k < e));
-            Assert.AreEqual(new[] { 3, 4 }, qry5(0, 1, 2, 5, 6).ToArray());
-
-            // 6 arg
-            var qry6 = CompiledQuery.Compile((int a, int b, int c, int d, int e, int f) =>
-                keys.Where(k => k > a && k > b && k > c && k < d && k < e && k < f));
-            Assert.AreEqual(new[] { 3, 4 }, qry6(0, 1, 2, 5, 6, 7).ToArray());
-
-            // 7 arg
-            var qry7 = CompiledQuery.Compile((int a, int b, int c, int d, int e, int f, int g) =>
-                keys.Where(k => k > a && k > b && k > c && k < d && k < e && k < f && k < g));
-            Assert.AreEqual(new[] { 3, 4 }, qry7(0, 1, 2, 5, 6, 7, 8).ToArray());
-
-            // 8 arg
-            var qry8 = CompiledQuery.Compile((int a, int b, int c, int d, int e, int f, int g, int h) =>
-                keys.Where(k => k > a && k > b && k > c && k < d && k < e && k < f && k < g && k < h));
-            Assert.AreEqual(new[] { 3, 4 }, qry8(0, 1, 2, 5, 6, 7, 8, 9).ToArray());
-        }
-#pragma warning restore 618
-
         /// <summary>
         /// Tests the cache of primitive types.
         /// </summary>
