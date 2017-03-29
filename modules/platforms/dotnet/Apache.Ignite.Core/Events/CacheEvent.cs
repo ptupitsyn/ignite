@@ -18,7 +18,6 @@
 namespace Apache.Ignite.Core.Events
 {
     using System;
-    using System.Diagnostics.CodeAnalysis;
     using System.Globalization;
     using Apache.Ignite.Core.Binary;
     using Apache.Ignite.Core.Cluster;
