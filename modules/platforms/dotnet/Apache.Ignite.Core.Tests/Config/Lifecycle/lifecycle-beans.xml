@@ -42,15 +42,15 @@
             </bean>
         </property>
 
-        <property name="lifecycleEventHandlers">
+        <property name="lifecycleBeans">
             <list>
-                <bean class="org.apache.ignite.platform.lifecycle.PlatformJavaLifecycleEventHandler" />
-                <bean class="org.apache.ignite.platform.dotnet.PlatformDotNetLifecycleEventHandler">
-                    <property name="typeName" value="Apache.Ignite.Core.Tests.EventHandler" />
+                <bean class="org.apache.ignite.platform.lifecycle.PlatformJavaLifecycleBean" />
+                <bean class="org.apache.ignite.platform.dotnet.PlatformDotNetLifecycleBean">
+                    <property name="typeName" value="Apache.Ignite.Core.Tests.LifecycleHandler" />
                 </bean>
-                <bean class="org.apache.ignite.platform.lifecycle.PlatformJavaLifecycleEventHandler" />
-                <bean class="org.apache.ignite.platform.dotnet.PlatformDotNetLifecycleEventHandler">
-                    <property name="typeName" value="Apache.Ignite.Core.Tests.EventHandler" />
+                <bean class="org.apache.ignite.platform.lifecycle.PlatformJavaLifecycleBean" />
+                <bean class="org.apache.ignite.platform.dotnet.PlatformDotNetLifecycleBean">
+                    <property name="typeName" value="Apache.Ignite.Core.Tests.LifecycleHandler" />
                     <property name="properties">
                         <map>
                             <entry key="Property1">
@@ -60,7 +60,7 @@
                         </map>
                     </property>
                 </bean>
-                <bean class="org.apache.ignite.platform.lifecycle.PlatformJavaLifecycleEventHandler" />
+                <bean class="org.apache.ignite.platform.lifecycle.PlatformJavaLifecycleBean" />
             </list>
         </property>
     </bean>

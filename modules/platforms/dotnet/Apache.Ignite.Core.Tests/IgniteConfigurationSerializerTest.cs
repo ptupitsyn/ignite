@@ -848,7 +848,8 @@ namespace Apache.Ignite.Core.Tests
             /// This method is called when lifecycle event occurs.
             /// </summary>
             /// <param name="evt">Lifecycle event.</param>
-            public void OnLifecycleEvent(LifecycleEventType evt)
+            /// <param name="ignite">The ignite.</param>
+            public void OnLifecycleEvent(LifecycleEventType evt, IIgnite ignite)
             {
                 // No-op.
             }

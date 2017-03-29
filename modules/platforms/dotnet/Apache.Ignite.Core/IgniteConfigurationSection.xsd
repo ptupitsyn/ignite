@@ -795,7 +795,7 @@
                         </xs:sequence>
                     </xs:complexType>
                 </xs:element>
-                <xs:element name="lifecycleBeans" minOccurs="0">
+                <xs:element name="lifecycleEventHandlers" minOccurs="0">
                     <xs:annotation>
                         <xs:documentation>Lifecycle beans.</xs:documentation>
                     </xs:annotation>

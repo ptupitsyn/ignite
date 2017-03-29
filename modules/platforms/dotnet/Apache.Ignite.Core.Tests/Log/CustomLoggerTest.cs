@@ -428,7 +428,7 @@ namespace Apache.Ignite.Core.Tests.Log
         /// </summary>
         private class FailEventHandler : ILifecycleEventHandler
         {
-            public void OnLifecycleEvent(LifecycleEventType evt)
+            public void OnLifecycleEvent(LifecycleEventType evt, IIgnite ignite)
             {
                 throw new ArithmeticException("Failure in bean");
             }

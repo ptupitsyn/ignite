@@ -169,7 +169,7 @@ namespace Apache.Ignite.Service
         }
 
         /** <inheritdoc /> */
-        public void OnLifecycleEvent(LifecycleEventType evt)
+        public void OnLifecycleEvent(LifecycleEventType evt, IIgnite ignite)
         {
             if (evt == LifecycleEventType.AfterNodeStop)
             {

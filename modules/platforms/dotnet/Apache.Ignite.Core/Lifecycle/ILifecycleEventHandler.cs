@@ -61,7 +61,8 @@ namespace Apache.Ignite.Core.Lifecycle
         /// <summary>
         /// This method is called when lifecycle event occurs.
         /// </summary>
-        /// <param name="evt">Lifecycle event.</param>
-        void OnLifecycleEvent(LifecycleEventType evt);  // TODO: Four methods?
+        /// <param name="eventType">Type of the event.</param>
+        /// <param name="ignite">Ignite instance.</param>
+        void OnLifecycleEvent(LifecycleEventType eventType, IIgnite ignite);  // TODO: Four methods?
     }
 }

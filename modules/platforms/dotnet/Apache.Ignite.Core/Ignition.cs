@@ -375,34 +375,33 @@ namespace Apache.Ignite.Core
         private static void PrepareLifecycleBeans(IBinaryRawReader reader, IBinaryStream outStream,
             HandleRegistry handleRegistry)
         {
-            IList<LifecycleBeanHolder> beans = new List<LifecycleBeanHolder>
+            var beans = new List<ILifecycleEventHandler>
             {
-                new LifecycleBeanHolder(new InternalLifecycleEventHandler())   // add internal bean for events
+                new InternalLifecycleEventHandler()   // add internal bean for events
             };
 
             // 1. Read beans defined in Java.
             int cnt = reader.ReadInt();
 
             for (int i = 0; i < cnt; i++)
-                beans.Add(new LifecycleBeanHolder(CreateObject<ILifecycleEventHandler>(reader)));
+                beans.Add(CreateObject<ILifecycleEventHandler>(reader));
 
             // 2. Append beans defined in local configuration.
-            ICollection<ILifecycleEventHandler> nativeBeans = _startup.Configuration.LifecycleBeans;
+            var nativeBeans = _startup.Configuration.LifecycleBeans;
 
             if (nativeBeans != null)
             {
-                foreach (ILifecycleEventHandler nativeBean in nativeBeans)
-                    beans.Add(new LifecycleBeanHolder(nativeBean));
+                beans.AddRange(nativeBeans);
             }
 
             // 3. Write bean pointers to Java stream.
             outStream.WriteInt(beans.Count);
 
-            foreach (LifecycleBeanHolder bean in beans)
+            foreach (var bean in beans)
                 outStream.WriteLong(handleRegistry.AllocateCritical(bean));
 
             // 4. Set beans to STARTUP object.
-            _startup.LifecycleBeans = beans;
+            _startup.LifecycleEventHandlers = beans;
         }
 
         /// <summary>
@@ -454,7 +453,7 @@ namespace Apache.Ignite.Core
                     throw new IgniteException("Ignite with the same name already started: " + name);
 
                 _startup.Ignite = new Ignite(_startup.Configuration, _startup.Name, interopProc, _startup.Marshaller, 
-                    _startup.LifecycleBeans, _startup.Callbacks);
+                    _startup.LifecycleEventHandlers, _startup.Callbacks);
             }
             catch (Exception e)
             {
@@ -744,7 +743,7 @@ namespace Apache.Ignite.Core
             /// <summary>
             /// Lifecycle beans.
             /// </summary>
-            internal IList<LifecycleBeanHolder> LifecycleBeans { get; set; }
+            internal IList<ILifecycleEventHandler> LifecycleEventHandlers { get; set; }
 
             /// <summary>
             /// Node name.
@@ -772,15 +771,11 @@ namespace Apache.Ignite.Core
         /// </summary>
         private class InternalLifecycleEventHandler : ILifecycleEventHandler
         {
-            /** */
-            #pragma warning disable 649   // unused field
-            [InstanceResource] private readonly IIgnite _ignite;
-
             /** <inheritdoc /> */
-            public void OnLifecycleEvent(LifecycleEventType evt)
+            public void OnLifecycleEvent(LifecycleEventType evt, IIgnite ignite)
             {
-                if (evt == LifecycleEventType.BeforeNodeStop && _ignite != null)
-                    ((IgniteProxy) _ignite).Target.BeforeNodeStop();
+                if (evt == LifecycleEventType.BeforeNodeStop)
+                    ((Ignite) ignite).BeforeNodeStop();
             }
         }
     }

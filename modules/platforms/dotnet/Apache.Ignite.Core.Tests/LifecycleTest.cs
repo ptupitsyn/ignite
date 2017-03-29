@@ -199,7 +199,7 @@ namespace Apache.Ignite.Core.Tests
             cfg.JvmOptions = TestUtils.TestJavaOptions();
             cfg.SpringConfigUrl = cfgPath;
 
-            cfg.LifecycleBeans = new List<ILifecycleEventHandler> { new EventHandler(), new EventHandler() };
+            cfg.LifecycleBeans = new List<ILifecycleEventHandler> { new LifecycleHandler(), new LifecycleHandler() };
 
             return Ignition.Start(cfg);
         }
@@ -239,7 +239,7 @@ namespace Apache.Ignite.Core.Tests
         }
     }
 
-    public class EventHandler : AbstractBean, ILifecycleEventHandler
+    public class LifecycleHandler : AbstractBean, ILifecycleEventHandler
     {
         [InstanceResource]
         public IIgnite Grid2;
@@ -251,7 +251,7 @@ namespace Apache.Ignite.Core.Tests
         }
 
         /** <inheritDoc /> */
-        public void OnLifecycleEvent(LifecycleEventType evtType)
+        public void OnLifecycleEvent(LifecycleEventType evtType, IIgnite ignite)
         {
             if (LifecycleTest.ThrowErr)
                 throw new Exception("Lifecycle exception.");
