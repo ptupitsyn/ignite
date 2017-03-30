@@ -63,6 +63,6 @@ namespace Apache.Ignite.Core.Lifecycle
         /// </summary>
         /// <param name="eventType">Type of the event.</param>
         /// <param name="ignite">Ignite instance.</param>
-        void OnLifecycleEvent(LifecycleEventType eventType, IIgnite ignite);  // TODO: Four methods?
+        void OnLifecycleEvent(LifecycleEventType eventType, IIgnite ignite);
     }
 }
