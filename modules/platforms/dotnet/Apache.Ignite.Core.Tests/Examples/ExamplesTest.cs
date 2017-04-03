@@ -48,6 +48,7 @@ namespace Apache.Ignite.Core.Tests.Examples
 
         /** */
         private bool _remoteNodeStarted;
+
         /// <summary>
         /// Tests the example in a single node mode.
         /// </summary>
@@ -163,6 +164,7 @@ namespace Apache.Ignite.Core.Tests.Examples
 
             Directory.SetCurrentDirectory(PathUtil.IgniteHome);
 
+            // TODO: replace multicast with static finder.
             _changedConfig = TestAppConfig.Change(PathUtil.ExamplesAppConfigPath);
         }
 
