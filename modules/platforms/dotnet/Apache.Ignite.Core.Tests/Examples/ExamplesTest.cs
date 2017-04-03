@@ -165,8 +165,10 @@ namespace Apache.Ignite.Core.Tests.Examples
             Directory.SetCurrentDirectory(PathUtil.IgniteHome);
 
             // Copy file to a temp location and replace multicast IP finder with static.
-            var tempFile = Path.GetTempPath();
-            var configText = File.ReadAllText(PathUtil.ExamplesAppConfigPath);
+            var tempFile = Path.GetTempFileName();
+            
+            var configText = File.ReadAllText(PathUtil.ExamplesAppConfigPath)
+                .Replace("TcpDiscoveryMulticastIpFinder", "TcpDiscoveryStaticIpFinder");
 
             File.WriteAllText(tempFile, configText);
 
