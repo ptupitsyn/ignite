@@ -43,6 +43,9 @@ namespace Apache.Ignite.Core.Tests.Examples
         /** */
         private static readonly string[] NoDllExamples = { "BinaryModeExample", "NearCacheExample" };
 
+        /** Config file path. */
+        private string _configPath;
+
         /** */
         private IDisposable _changedConfig;
 
@@ -122,11 +125,11 @@ namespace Apache.Ignite.Core.Tests.Examples
             Ignition.ClientMode = false;
 
             using (var ignite = Ignition.StartFromApplicationConfiguration(
-                "igniteConfiguration", PathUtil.ExamplesAppConfigPath))
+                "igniteConfiguration", _configPath))
             {
                 var args = new List<string>
                 {
-                    "-configFileName=" + PathUtil.ExamplesAppConfigPath,
+                    "-configFileName=" + _configPath,
                     " -assembly=" + typeof(AverageSalaryJob).Assembly.Location
                 };
 
@@ -165,14 +168,14 @@ namespace Apache.Ignite.Core.Tests.Examples
             Directory.SetCurrentDirectory(PathUtil.IgniteHome);
 
             // Copy file to a temp location and replace multicast IP finder with static.
-            var tempFile = Path.GetTempFileName();
+            _configPath = Path.GetTempFileName();
             
             var configText = File.ReadAllText(PathUtil.ExamplesAppConfigPath)
                 .Replace("TcpDiscoveryMulticastIpFinder", "TcpDiscoveryStaticIpFinder");
 
-            File.WriteAllText(tempFile, configText);
+            File.WriteAllText(_configPath, configText);
 
-            _changedConfig = TestAppConfig.Change(tempFile);
+            _changedConfig = TestAppConfig.Change(_configPath);
         }
 
         /// <summary>
