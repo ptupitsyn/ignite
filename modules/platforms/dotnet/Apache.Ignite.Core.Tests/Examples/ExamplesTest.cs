@@ -189,6 +189,8 @@ namespace Apache.Ignite.Core.Tests.Examples
             Ignition.StopAll(true);
 
             IgniteProcess.KillAll();
+
+            File.Delete(_configPath);
         }
 
         /// <summary>
