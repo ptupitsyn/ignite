@@ -50,6 +50,9 @@ namespace Apache.Ignite.Examples.Misc
             var evt = new ManualResetEvent(false);
             ThreadPool.QueueUserWorkItem(_ => RunServer(evt));
 
+            // Wait a bit for server to begin startup to avoid race on ClientMode flag.
+            Thread.Sleep(100);
+
             Ignition.ClientMode = true;
 
             using (var ignite = Ignition.StartFromApplicationConfiguration())
