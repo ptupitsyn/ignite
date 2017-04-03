@@ -130,7 +130,7 @@ namespace Apache.Ignite.Core.Tests.Examples
                 var args = new List<string>
                 {
                     "-configFileName=" + _configPath,
-                    " -assembly=" + typeof(AverageSalaryJob).Assembly.Location
+                    "-assembly=" + typeof(AverageSalaryJob).Assembly.Location
                 };
 
                 var proc = new IgniteProcess(args.ToArray());
