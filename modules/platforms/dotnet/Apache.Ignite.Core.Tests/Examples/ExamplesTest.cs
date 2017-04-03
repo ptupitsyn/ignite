@@ -164,8 +164,13 @@ namespace Apache.Ignite.Core.Tests.Examples
 
             Directory.SetCurrentDirectory(PathUtil.IgniteHome);
 
-            // TODO: replace multicast with static finder.
-            _changedConfig = TestAppConfig.Change(PathUtil.ExamplesAppConfigPath);
+            // Copy file to a temp location and replace multicast IP finder with static.
+            var tempFile = Path.GetTempPath();
+            var configText = File.ReadAllText(PathUtil.ExamplesAppConfigPath);
+
+            File.WriteAllText(tempFile, configText);
+
+            _changedConfig = TestAppConfig.Change(tempFile);
         }
 
         /// <summary>
