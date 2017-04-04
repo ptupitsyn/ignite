@@ -250,6 +250,40 @@ namespace Apache.Ignite.Core.Tests.Binary
         }
 
         /// <summary>
+        /// Tests the situation where newly joined node attempts registration of a known type.
+        /// </summary>
+        [Test]
+        public void TestTwoGridsStartStop([Values(false, true)] bool clientMode)
+        {
+            using (Ignition.Start(TestUtils.GetTestConfiguration()))
+            {
+                var cfg = new IgniteConfiguration(TestUtils.GetTestConfiguration())
+                {
+                    IgniteInstanceName = "grid2",
+                    ClientMode = clientMode
+                };
+
+                using (var ignite2 = Ignition.Start(cfg))
+                {
+                    var cache = ignite2.CreateCache<int, Foo>("foos");
+
+                    cache[1] = new Foo();
+                }
+
+                using (var ignite2 = Ignition.Start(cfg))
+                {
+                    var cache = ignite2.GetCache<int, Foo>("foos");
+
+                    // ignite2 does not know that Foo class is registered in cluster, and attempts to register.
+                    cache[2] = new Foo();
+
+                    Assert.AreEqual(0, cache[1].Int);
+                    Assert.AreEqual(0, cache[2].Int);
+                }
+            }
+        }
+
+        /// <summary>
         /// Tests interop scenario: Java and .NET exchange an object with the same type id, 
         /// but marshaller cache contains different entries for different platforms for the same id.
         /// </summary>
