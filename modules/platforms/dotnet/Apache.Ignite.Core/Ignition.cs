@@ -232,6 +232,11 @@ namespace Apache.Ignite.Core
 
                 var gridName = cfg.IgniteInstanceName;
 
+                if (cfg.AutoGenerateIgniteInstanceName)
+                {
+                    gridName = (gridName ?? "ignite-instance-") + Guid.NewGuid();
+                }
+
                 // 3. Create startup object which will guide us through the rest of the process.
                 _startup = new Startup(cfg, cbs);
 

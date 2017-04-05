@@ -531,6 +531,7 @@
             JvmInitialMemoryMb = cfg.JvmInitialMemoryMb;
             JvmMaxMemoryMb = cfg.JvmMaxMemoryMb;
             PluginConfigurations = cfg.PluginConfigurations;
+            AutoGenerateIgniteInstanceName = cfg.AutoGenerateIgniteInstanceName;
         }
 
         /// <summary>
