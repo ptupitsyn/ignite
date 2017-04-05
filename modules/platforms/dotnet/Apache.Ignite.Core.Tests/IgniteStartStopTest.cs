@@ -113,6 +113,7 @@ namespace Apache.Ignite.Core.Tests
             var grid2 = Ignition.Start(cfg);
 
             Assert.AreEqual("grid2", grid2.Name);
+            Assert.Throws<IgniteException>(() => Ignition.GetIgnite());
 
             cfg.SpringConfigUrl = cfgs[2];
 
@@ -127,13 +128,13 @@ namespace Apache.Ignite.Core.Tests
             Assert.AreSame(grid2, Ignition.TryGetIgnite("grid2"));
 
             Assert.AreSame(grid3, Ignition.GetIgnite(null));
+            Assert.AreSame(grid3, Ignition.GetIgnite());
             Assert.AreSame(grid3, Ignition.TryGetIgnite(null));
             Assert.AreSame(grid3, Ignition.TryGetIgnite());
 
-            Assert.AreEqual(new[] {grid1, grid2, grid3}, Ignition.GetAll().OrderBy(x => x.Name).ToArray());
+            Assert.AreEqual(new[] {grid3, grid1, grid2}, Ignition.GetAll().OrderBy(x => x.Name).ToArray());
 
             Assert.Throws<IgniteException>(() => Ignition.GetIgnite("invalid_name"));
-            Assert.Throws<IgniteException>(() => Ignition.GetIgnite());
             Assert.IsNull(Ignition.TryGetIgnite("invalid_name"));
 
 
