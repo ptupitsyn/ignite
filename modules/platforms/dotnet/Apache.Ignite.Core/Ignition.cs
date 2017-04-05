@@ -612,6 +612,18 @@ namespace Apache.Ignite.Core
         }
 
         /// <summary>
+        /// Gets all started Ignite instances.
+        /// </summary>
+        /// <returns>All Ignite instances.</returns>
+        public static ICollection<IIgnite> GetAll()
+        {
+            lock (SyncRoot)
+            {
+                return Nodes.Values.ToArray();
+            }
+        }
+
+        /// <summary>
         /// Gets a named Ignite instance, or <c>null</c> if none found. If Ignite name is <c>null</c> or empty string,
         /// then default no-name Ignite will be returned. Note that caller of this method
         /// should not assume that it will return the same instance every time.
