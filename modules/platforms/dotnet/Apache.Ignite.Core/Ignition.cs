@@ -85,6 +85,7 @@ namespace Apache.Ignite.Core
         static Ignition()
         {
             AppDomain.CurrentDomain.AssemblyResolve += CurrentDomain_AssemblyResolve;
+            AppDomain.CurrentDomain.DomainUnload += CurrentDomain_DomainUnload;
         }
 
         /// <summary>
@@ -680,6 +681,19 @@ namespace Apache.Ignite.Core
         private static Assembly CurrentDomain_AssemblyResolve(object sender, ResolveEventArgs args)
         {
             return LoadedAssembliesResolver.Instance.GetAssembly(args.Name);
+        }
+                
+        /// <summary>
+        /// Handles the DomainUnload event of the CurrentDomain control.
+        /// </summary>
+        /// <param name="sender">The source of the event.</param>
+        /// <param name="e">The <see cref="EventArgs"/> instance containing the event data.</param>
+        private static void CurrentDomain_DomainUnload(object sender, EventArgs e)
+        {
+            // If we don't stop Ignite.NET on domain unload,
+            // we end up with broken instances in Java (incalid callbacks, etc).
+            // IIS, in particular, is known to unload and reload domains within the same process.
+            StopAll(true);
         }
 
         /// <summary>
