@@ -578,15 +578,37 @@ namespace Apache.Ignite.Core
         }
 
         /// <summary>
-        /// Gets an instance of default no-name grid. Note that
-        /// caller of this method should not assume that it will return the same
-        /// instance every time.
+        /// Gets the default Ignite instance with null name, or an instance with any name when there is only one.
+        /// <para />
+        /// Note that caller of this method should not assume that it will return the same instance every time.
         /// </summary>
-        /// <returns>An instance of default no-name grid.</returns>
-        /// <exception cref="IgniteException">When there is no Ignite instance with specified name.</exception>
+        /// <returns>Default Ignite instance.</returns>
+        /// <exception cref="IgniteException">When there is no matching Ignite instance.</exception>
         public static IIgnite GetIgnite()
         {
-            return GetIgnite(null);
+            lock (SyncRoot)
+            {
+                if (Nodes.Count == 0)
+                {
+                    throw new IgniteException("Failed to get default Ignite instance: " +
+                                              "there are no instances started.");
+                }
+
+                if (Nodes.Count == 1)
+                {
+                    return Nodes.Single().Value;
+                }
+
+                Ignite result;
+
+                if (Nodes.TryGetValue(new NodeKey(null), out result))
+                {
+                    return result;
+                }
+
+                throw new IgniteException(string.Format("Failed to get default Ignite instance: " +
+                    "there are {0} instances started, and none of them has null name.", Nodes.Count));
+            }
         }
 
         /// <summary>
