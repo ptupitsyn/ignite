@@ -730,7 +730,7 @@ namespace Apache.Ignite.Core
         private static void CurrentDomain_DomainUnload(object sender, EventArgs e)
         {
             // If we don't stop Ignite.NET on domain unload,
-            // we end up with broken instances in Java (incalid callbacks, etc).
+            // we end up with broken instances in Java (invalid callbacks, etc).
             // IIS, in particular, is known to unload and reload domains within the same process.
             StopAll(true);
         }
