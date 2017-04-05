@@ -697,7 +697,7 @@ namespace Apache.Ignite.Core
         }
 
         /// <summary>
-        /// Grid key.
+        /// Grid key. Workaround for non-null key requirement in Dictionary.
         /// </summary>
         private class NodeKey
         {
