@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
@@ -15,18 +15,17 @@
  * limitations under the License.
  */
 
-namespace Apache.Ignite.Core.Binary
+namespace Apache.Ignite.Core.Impl.Binary
 {
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
-    using Apache.Ignite.Core.Impl.Binary;
+    using Apache.Ignite.Core.Binary;
     using Apache.Ignite.Core.Impl.Binary.IO;
 
     /// <summary>
     /// Compares binary object equality using underlying byte array.
     /// </summary>
-    //TODO: Folder
     internal static class BinaryArrayEqualityComparer
     {
         /** */
