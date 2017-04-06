@@ -409,24 +409,6 @@
 
                 if (r.ReadBoolean())
                     BinaryConfiguration.CompactFooter = r.ReadBoolean();
-
-                var typeCount = r.ReadInt();
-
-                if (typeCount > 0)
-                {
-                    var types = new List<BinaryTypeConfiguration>(typeCount);
-
-                    for (var i = 0; i < typeCount; i++)
-                    {
-                        types.Add(new BinaryTypeConfiguration
-                        {
-                            TypeName = r.ReadString(),
-                            IsEnum = r.ReadBoolean(),
-                        });
-                    }
-
-                    BinaryConfiguration.TypeConfigurations = types;
-                }
             }
 
             // User attributes
