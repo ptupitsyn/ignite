@@ -474,10 +474,7 @@ namespace Apache.Ignite.Core.Impl.Binary
             var typeName = BinaryUtils.GetTypeName(type);
             var typeId = BinaryUtils.TypeId(typeName, _cfg.DefaultNameMapper, _cfg.DefaultIdMapper);
 
-            var registered = _ignite != null &&
-                             (
-                             //_ignite.BinaryProcessor.GetType(typeId) != null ||
-                              _ignite.BinaryProcessor.RegisterType(typeId, type));
+            var registered = _ignite != null && _ignite.BinaryProcessor.RegisterType(typeId, type);
 
             return AddUserType(type, typeId, typeName, registered, desc);
         }
