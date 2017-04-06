@@ -1025,20 +1025,6 @@ public class PlatformConfigurationUtils {
             w.writeBoolean(true);  // binary config exists
             w.writeBoolean(true);  // compact footer is set
             w.writeBoolean(bc.isCompactFooter());
-
-            Collection<BinaryTypeConfiguration> types = bc.getTypeConfigurations();
-
-            if (types != null) {
-                w.writeInt(types.size());
-
-                for (BinaryTypeConfiguration type : types) {
-                    w.writeString(type.getTypeName());
-                    w.writeBoolean(type.isEnum());
-                    writeBinaryIdentityResolver(w, type.getIdentityResolver());
-                }
-            }
-            else
-                w.writeInt(0);
         }
         else
             w.writeBoolean(false);
