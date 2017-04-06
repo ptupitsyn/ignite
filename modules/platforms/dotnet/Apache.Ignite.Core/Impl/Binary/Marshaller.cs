@@ -480,14 +480,6 @@ namespace Apache.Ignite.Core.Impl.Binary
         }
 
         /// <summary>
-        /// Gets the user type descriptors.
-        /// </summary>
-        public ICollection<BinaryFullTypeDescriptor> GetUserTypeDescriptors()
-        {
-            return _typeNameToDesc.Values;
-        }
-
-        /// <summary>
         /// Add user type.
         /// </summary>
         /// <param name="type">The type.</param>
