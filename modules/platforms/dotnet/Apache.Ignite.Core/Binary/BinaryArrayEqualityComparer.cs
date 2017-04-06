@@ -20,7 +20,6 @@ namespace Apache.Ignite.Core.Binary
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
     using Apache.Ignite.Core.Impl.Binary;
     using Apache.Ignite.Core.Impl.Binary.IO;
 
@@ -28,15 +27,10 @@ namespace Apache.Ignite.Core.Binary
     /// Compares binary object equality using underlying byte array.
     /// </summary>
     //TODO: Folder
-    internal sealed class BinaryArrayEqualityComparer : IEqualityComparer<IBinaryObject>,
-        IBinaryStreamProcessor<KeyValuePair<int,int>, int>
+    internal static class BinaryArrayEqualityComparer
     {
-        /// <summary>
-        /// Singleton instance.
-        /// </summary>
-        [SuppressMessage("Microsoft.Security", "CA2104:DoNotDeclareReadOnlyMutableReferenceTypes",
-            Justification = "Type is immutable.")]
-        public static readonly BinaryArrayEqualityComparer Instance = new BinaryArrayEqualityComparer();
+        /** */
+        private static readonly HashStreamProcessor HashCodeProcessor = new HashStreamProcessor();
 
         /// <summary>
         /// Determines whether the specified objects are equal.
@@ -46,7 +40,7 @@ namespace Apache.Ignite.Core.Binary
         /// <returns>
         /// true if the specified objects are equal; otherwise, false.
         /// </returns>
-        public bool Equals(IBinaryObject x, IBinaryObject y)
+        public static bool Equals(IBinaryObject x, IBinaryObject y)
         {
             if (x == null)
                 return y == null;
@@ -88,7 +82,7 @@ namespace Apache.Ignite.Core.Binary
         /// <returns>
         /// A hash code for this instance, suitable for use in hashing algorithms and data structures like a hash table. 
         /// </returns>
-        public int GetHashCode(IBinaryObject obj)
+        public static int GetHashCode(IBinaryObject obj)
         {
             if (obj == null)
                 return 0;
@@ -99,13 +93,12 @@ namespace Apache.Ignite.Core.Binary
 
             using (var stream = new BinaryHeapStream(binObj.Data))
             {
-                return stream.Apply(this, arg);
+                return stream.Apply(HashCodeProcessor, arg);
             }
         }
 
         /** <inheritdoc /> */
-        public int GetHashCode(IBinaryStream stream, int startPos, int length, 
-            BinaryObjectSchemaHolder schema, int schemaId, Marshaller marshaller, IBinaryTypeDescriptor desc)
+        public static int GetHashCode(IBinaryStream stream, int startPos, int length)
         {
             Debug.Assert(stream != null);
             Debug.Assert(startPos >= 0);
@@ -113,19 +106,7 @@ namespace Apache.Ignite.Core.Binary
 
             var arg = new KeyValuePair<int, int>(startPos, length);
 
-            return stream.Apply(this, arg);
-        }
-
-        /** <inheritdoc /> */
-        public unsafe int Invoke(byte* data, KeyValuePair<int, int> arg)
-        {
-            var hash = 1;
-            var ptr = data + arg.Key;
-
-            for (var i = 0; i < arg.Value; i++)
-                hash = 31 * hash + *(ptr + i);
-
-            return hash;
+            return stream.Apply(HashCodeProcessor, arg);
         }
 
         /// <summary>
@@ -156,6 +137,24 @@ namespace Apache.Ignite.Core.Binary
         private static int GetDataStart(BinaryObject binObj)
         {
             return binObj.Offset + BinaryObjectHeader.Size;
+        }
+
+        /// <summary>
+        /// Hash code calculating stream processor.
+        /// </summary>
+        private class HashStreamProcessor : IBinaryStreamProcessor<KeyValuePair<int, int>, int>
+        {
+            /** <inheritdoc /> */
+            public unsafe int Invoke(byte* data, KeyValuePair<int, int> arg)
+            {
+                var hash = 1;
+                var ptr = data + arg.Key;
+
+                for (var i = 0; i < arg.Value; i++)
+                    hash = 31 * hash + *(ptr + i);
+
+                return hash;
+            }
         }
     }
 }
