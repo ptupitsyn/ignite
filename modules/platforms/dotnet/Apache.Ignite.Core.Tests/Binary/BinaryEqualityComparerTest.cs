@@ -28,10 +28,10 @@ namespace Apache.Ignite.Core.Tests.Binary
     public class BinaryEqualityComparerTest
     {
         /// <summary>
-        /// Tests common public methods logic.
+        /// Tests simple equality.
         /// </summary>
         [Test]
-        public void TestPublicMethods()
+        public void TestSimpleEquality()
         {
             var obj = GetBinaryObject(1, "x", 0);
 
@@ -46,10 +46,10 @@ namespace Apache.Ignite.Core.Tests.Binary
         }
 
         /// <summary>
-        /// Tests the array comparer.
+        /// Tests hash code on a stream.
         /// </summary>
         [Test]
-        public void TestArrayComparer()
+        public void TestStreamHashCode()
         {
             var ms = new BinaryHeapStream(10);
 
@@ -63,10 +63,10 @@ namespace Apache.Ignite.Core.Tests.Binary
         }
 
         /// <summary>
-        /// Tests public methods of array comparer.
+        /// Tests binary objects comparisons.
         /// </summary>
         [Test]
-        public void TestArrayComparerPublic()
+        public void TestBinaryObjects()
         {
             var obj1 = GetBinaryObject(1, "foo", 11);
             var obj2 = GetBinaryObject(1, "bar", 11);
