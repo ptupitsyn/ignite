@@ -38,13 +38,7 @@ namespace Apache.Ignite.Core.Tests.Cache.Query
         {
             var cfg = new IgniteConfiguration(TestUtils.GetTestConfiguration())
             {
-                BinaryConfiguration = new BinaryConfiguration(typeof(Foo))
-                {
-                    TypeConfigurations =
-                    {
-                        new BinaryTypeConfiguration(typeof(Key))
-                    }
-                }
+                BinaryConfiguration = new BinaryConfiguration(typeof(Foo), typeof(Key), typeof(Key2))
             };
 
             Ignition.Start(cfg);
