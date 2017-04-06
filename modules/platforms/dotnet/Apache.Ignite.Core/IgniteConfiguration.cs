@@ -273,30 +273,6 @@
                 {
                     writer.WriteBoolean(false);
                 }
-
-                // Send only descriptors with non-null EqualityComparer to preserve old behavior where
-                // remote nodes can have no BinaryConfiguration.
-
-                if (BinaryConfiguration.TypeConfigurations != null &&
-                    BinaryConfiguration.TypeConfigurations.Any(x => x.EqualityComparer != null))
-                {
-                    // Create a new marshaller to reuse type name resolver mechanism.
-                    var types = new Marshaller(BinaryConfiguration).GetUserTypeDescriptors()
-                        .Where(x => x.EqualityComparer != null).ToList();
-
-                    writer.WriteInt(types.Count);
-
-                    foreach (var type in types)
-                    {
-                        writer.WriteString(BinaryUtils.SimpleTypeName(type.TypeName));
-                        writer.WriteBoolean(type.IsEnum);
-                        BinaryEqualityComparerSerializer.Write(writer, type.EqualityComparer);
-                    }
-                }
-                else
-                {
-                    writer.WriteInt(0);
-                }
             }
             else
             {
@@ -446,7 +422,6 @@
                         {
                             TypeName = r.ReadString(),
                             IsEnum = r.ReadBoolean(),
-                            EqualityComparer = BinaryEqualityComparerSerializer.Read(r)
                         });
                     }
 

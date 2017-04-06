@@ -600,23 +600,6 @@ public class PlatformConfigurationUtils {
 
             if (in.readBoolean())  // compact footer is set
                 cfg.getBinaryConfiguration().setCompactFooter(in.readBoolean());
-
-            int typeCnt = in.readInt();
-
-            if (typeCnt > 0) {
-                Collection<BinaryTypeConfiguration> types = new ArrayList<>(typeCnt);
-
-                for (int i = 0; i < typeCnt; i++) {
-                    BinaryTypeConfiguration type = new BinaryTypeConfiguration(in.readString());
-
-                    type.setEnum(in.readBoolean());
-                    type.setIdentityResolver(readBinaryIdentityResolver(in));
-
-                    types.add(type);
-                }
-
-                cfg.getBinaryConfiguration().setTypeConfigurations(types);
-            }
         }
 
         int attrCnt = in.readInt();
