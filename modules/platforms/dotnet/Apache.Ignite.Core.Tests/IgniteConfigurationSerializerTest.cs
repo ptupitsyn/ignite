@@ -45,7 +45,6 @@ namespace Apache.Ignite.Core.Tests
     using Apache.Ignite.Core.Discovery.Tcp;
     using Apache.Ignite.Core.Discovery.Tcp.Multicast;
     using Apache.Ignite.Core.Events;
-    using Apache.Ignite.Core.Impl.Binary;
     using Apache.Ignite.Core.Impl.Common;
     using Apache.Ignite.Core.Lifecycle;
     using Apache.Ignite.Core.Log;
@@ -77,7 +76,6 @@ namespace Apache.Ignite.Core.Tests
                                 </types>
                                 <typeConfigurations>
                                     <binaryTypeConfiguration affinityKeyFieldName='affKeyFieldName' isEnum='true' keepDeserialized='True' typeName='typeName'>
-                                        <equalityComparer type='BinaryArrayEqualityComparer' />
                                         <idMapper type='Apache.Ignite.Core.Tests.Binary.IdMapper, Apache.Ignite.Core.Tests' />
                                         <nameMapper type='Apache.Ignite.Core.Tests.IgniteConfigurationSerializerTest+NameMapper, Apache.Ignite.Core.Tests' />
                                         <serializer type='Apache.Ignite.Core.Tests.IgniteConfigurationSerializerTest+TestSerializer, Apache.Ignite.Core.Tests' />
@@ -244,7 +242,6 @@ namespace Apache.Ignite.Core.Tests
             Assert.AreEqual("affKeyFieldName", binType.AffinityKeyFieldName);
             Assert.IsTrue(binType.IsEnum);
             Assert.AreEqual(true, binType.KeepDeserialized);
-            Assert.IsInstanceOf<BinaryArrayEqualityComparer>(binType.EqualityComparer);
             Assert.IsInstanceOf<IdMapper>(binType.IdMapper);
             Assert.IsInstanceOf<NameMapper>(binType.NameMapper);
             Assert.IsInstanceOf<TestSerializer>(binType.Serializer);
@@ -595,8 +592,7 @@ namespace Apache.Ignite.Core.Tests
                             TypeName = "typeName",
                             IdMapper = new IdMapper(),
                             NameMapper = new NameMapper(),
-                            Serializer = new TestSerializer(),
-                            EqualityComparer = new BinaryArrayEqualityComparer()
+                            Serializer = new TestSerializer()
                         },
                         new BinaryTypeConfiguration
                         {
@@ -604,8 +600,7 @@ namespace Apache.Ignite.Core.Tests
                             KeepDeserialized = false,
                             AffinityKeyFieldName = "affKeyFieldName",
                             TypeName = "typeName2",
-                            Serializer = new BinaryReflectiveSerializer(),
-                            EqualityComparer = new BinaryFieldEqualityComparer()
+                            Serializer = new BinaryReflectiveSerializer()
                         }
                     },
                     Types = new[] {typeof (string).FullName},

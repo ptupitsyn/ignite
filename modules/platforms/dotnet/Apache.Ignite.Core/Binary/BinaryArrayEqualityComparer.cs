@@ -27,7 +27,8 @@ namespace Apache.Ignite.Core.Binary
     /// <summary>
     /// Compares binary object equality using underlying byte array.
     /// </summary>
-    public sealed class BinaryArrayEqualityComparer : IEqualityComparer<IBinaryObject>, IBinaryEqualityComparer,
+    //TODO: Folder
+    internal sealed class BinaryArrayEqualityComparer : IEqualityComparer<IBinaryObject>,
         IBinaryStreamProcessor<KeyValuePair<int,int>, int>
     {
         /// <summary>
@@ -103,7 +104,7 @@ namespace Apache.Ignite.Core.Binary
         }
 
         /** <inheritdoc /> */
-        int IBinaryEqualityComparer.GetHashCode(IBinaryStream stream, int startPos, int length, 
+        public int GetHashCode(IBinaryStream stream, int startPos, int length, 
             BinaryObjectSchemaHolder schema, int schemaId, Marshaller marshaller, IBinaryTypeDescriptor desc)
         {
             Debug.Assert(stream != null);
@@ -116,7 +117,7 @@ namespace Apache.Ignite.Core.Binary
         }
 
         /** <inheritdoc /> */
-        unsafe int IBinaryStreamProcessor<KeyValuePair<int, int>, int>.Invoke(byte* data, KeyValuePair<int, int> arg)
+        public unsafe int Invoke(byte* data, KeyValuePair<int, int> arg)
         {
             var hash = 1;
             var ptr = data + arg.Key;

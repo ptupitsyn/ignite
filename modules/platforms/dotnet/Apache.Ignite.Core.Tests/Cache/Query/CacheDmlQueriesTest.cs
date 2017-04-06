@@ -23,7 +23,6 @@ namespace Apache.Ignite.Core.Tests.Cache.Query
     using Apache.Ignite.Core.Cache.Configuration;
     using Apache.Ignite.Core.Cache.Query;
     using Apache.Ignite.Core.Common;
-    using Apache.Ignite.Core.Impl.Binary;
     using NUnit.Framework;
 
     /// <summary>
@@ -43,11 +42,7 @@ namespace Apache.Ignite.Core.Tests.Cache.Query
                 {
                     TypeConfigurations =
                     {
-                        new BinaryTypeConfiguration(typeof(Key)),
-                        new BinaryTypeConfiguration(typeof(Key2))
-                        {
-                            EqualityComparer = new BinaryFieldEqualityComparer("Hi", "Lo")
-                        }
+                        new BinaryTypeConfiguration(typeof(Key))
                     }
                 }
             };

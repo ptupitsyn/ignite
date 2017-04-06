@@ -20,7 +20,6 @@ namespace Apache.Ignite.Core.Tests.Binary
     using System.Collections.Generic;
     using System.Diagnostics.CodeAnalysis;
     using Apache.Ignite.Core.Binary;
-    using Apache.Ignite.Core.Common;
     using Apache.Ignite.Core.Impl.Binary;
     using Apache.Ignite.Core.Impl.Binary.IO;
     using NUnit.Framework;
@@ -40,7 +39,6 @@ namespace Apache.Ignite.Core.Tests.Binary
             var cmps = new IEqualityComparer<IBinaryObject>[]
             {
                 new BinaryArrayEqualityComparer()
-                //new BinaryFieldEqualityComparer()
             };
 
             var obj = GetBinaryObject(1, "x", 0);
@@ -59,39 +57,12 @@ namespace Apache.Ignite.Core.Tests.Binary
         }
 
         /// <summary>
-        /// Tests the custom comparer.
-        /// </summary>
-        [Test]
-        public void TestCustomComparer()
-        {
-            var ex = Assert.Throws<IgniteException>(() => Ignition.Start(
-                new IgniteConfiguration(TestUtils.GetTestConfiguration())
-                {
-                    BinaryConfiguration = new BinaryConfiguration
-                    {
-                        TypeConfigurations = new[]
-                        {
-                            new BinaryTypeConfiguration(typeof(Foo))
-                            {
-                                EqualityComparer = new MyComparer()
-                            }
-                        }
-                    }
-                }));
-
-            Assert.IsNotNull(ex.InnerException);
-            Assert.AreEqual("Unsupported IEqualityComparer<IBinaryObject> implementation: " +
-                            "Apache.Ignite.Core.Tests.Binary.BinaryEqualityComparerTest+MyComparer. " +
-                            "Only predefined implementations are supported.", ex.InnerException.Message);
-        }
-
-        /// <summary>
         /// Tests the array comparer.
         /// </summary>
         [Test]
         public void TestArrayComparer()
         {
-            var cmp = (IBinaryEqualityComparer) new BinaryArrayEqualityComparer();
+            var cmp = new BinaryArrayEqualityComparer();
 
             var ms = new BinaryHeapStream(10);
 
@@ -169,74 +140,11 @@ namespace Apache.Ignite.Core.Tests.Binary
         }
 
         /// <summary>
-        /// Tests the field comparer.
-        /// </summary>
-        [Test]
-        public void TestFieldComparer()
-        {
-            var marsh = new Marshaller(new BinaryConfiguration
-            {
-                TypeConfigurations = new[]
-                {
-                    new BinaryTypeConfiguration(typeof(Foo))
-                    {
-                        EqualityComparer = new BinaryFieldEqualityComparer("Name", "Id")
-                    }
-                }
-            });
-
-            var val = new Foo {Id = 58, Name = "John"};
-            var binObj = marsh.Unmarshal<IBinaryObject>(marsh.Marshal(val), BinaryMode.ForceBinary);
-            var expHash = val.Name.GetHashCode() * 31 + val.Id.GetHashCode();
-            Assert.AreEqual(expHash, binObj.GetHashCode());
-
-            val = new Foo {Id = 95};
-            binObj = marsh.Unmarshal<IBinaryObject>(marsh.Marshal(val), BinaryMode.ForceBinary);
-            expHash = val.Id.GetHashCode();
-            Assert.AreEqual(expHash, binObj.GetHashCode());
-        }
-
-        /// <summary>
-        /// Tests the field comparer validation.
-        /// </summary>
-        [Test]
-        public void TestFieldComparerValidation()
-        {
-            var ex = Assert.Throws<IgniteException>(() => Ignition.Start(
-                new IgniteConfiguration(TestUtils.GetTestConfiguration())
-                {
-                    BinaryConfiguration = new BinaryConfiguration
-                    {
-                        TypeConfigurations = new[]
-                        {
-                            new BinaryTypeConfiguration(typeof(Foo))
-                            {
-                                EqualityComparer = new BinaryFieldEqualityComparer()
-                            }
-                        }
-                    }
-                }));
-
-            Assert.IsNotNull(ex.InnerException);
-            Assert.AreEqual("BinaryFieldEqualityComparer.FieldNames can not be null or empty.", 
-                ex.InnerException.Message);
-        }
-
-        /// <summary>
         /// Gets the binary object.
         /// </summary>
         private static IBinaryObject GetBinaryObject(int id, string name, int raw)
         {
-            var marsh = new Marshaller(new BinaryConfiguration
-            {
-                TypeConfigurations = new[]
-                {
-                    new BinaryTypeConfiguration(typeof(Foo))
-                    {
-                        EqualityComparer = new BinaryArrayEqualityComparer()
-                    }
-                }
-            });
+            var marsh = new Marshaller(new BinaryConfiguration(typeof(Foo)));
 
             var bytes = marsh.Marshal(new Foo {Id = id, Name = name, Raw = raw});
 
@@ -263,19 +171,6 @@ namespace Apache.Ignite.Core.Tests.Binary
                 Name = reader.ReadString("name");
 
                 Raw = reader.GetRawReader().ReadInt();
-            }
-        }
-
-        private class MyComparer : IEqualityComparer<IBinaryObject>
-        {
-            public bool Equals(IBinaryObject x, IBinaryObject y)
-            {
-                return true;
-            }
-
-            public int GetHashCode(IBinaryObject obj)
-            {
-                return 0;
             }
         }
     }
