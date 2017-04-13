@@ -26,7 +26,7 @@ namespace Apache.Ignite.Examples.Misc
     using Apache.Ignite.Core.Resource;
 
     /// <summary>
-    /// This example shows how to provide your own <see cref="ILifecycleBean"/> implementation
+    /// This example shows how to provide your own <see cref="Apache.Ignite.Core.Lifecycle.ILifecycleAware"/> implementation
     /// to be able to hook into Apache lifecycle. Example bean will output occurred lifecycle 
     /// events to the console.
     /// <para />

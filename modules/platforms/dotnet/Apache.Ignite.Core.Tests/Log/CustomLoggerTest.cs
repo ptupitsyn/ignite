@@ -426,7 +426,7 @@ namespace Apache.Ignite.Core.Tests.Log
         /// <summary>
         /// Failing lifecycle bean.
         /// </summary>
-        private class FailBean : ILifecycleBean
+        private class FailBean : ILifecycleAware
         {
             public void OnLifecycleEvent(LifecycleEventType evt)
             {

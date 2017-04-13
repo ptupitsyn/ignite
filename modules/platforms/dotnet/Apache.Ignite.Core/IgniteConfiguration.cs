@@ -665,7 +665,7 @@
         /// Lifecycle beans.
         /// </summary>
         [SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public ICollection<ILifecycleBean> LifecycleBeans { get; set; }
+        public ICollection<ILifecycleAware> LifecycleBeans { get; set; }
 
         /// <summary>
         /// Initial amount of memory in megabytes given to JVM. Maps to -Xms Java option.
