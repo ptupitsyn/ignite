@@ -48,7 +48,7 @@ namespace Apache.Ignite.Examples.Misc
             Console.WriteLine(">>> Lifecycle example started.");
 
             // Create new configuration.
-            var lifecycleExampleBean = new LifecycleExampleBean();
+            var lifecycleAwareExample = new LifecycleAwareExample();
 
             var cfg = new IgniteConfiguration
             {
@@ -59,7 +59,7 @@ namespace Apache.Ignite.Examples.Misc
                         Endpoints = new[] {"127.0.0.1:47500"}
                     }
                 },
-                LifecycleBeans = new List<ILifecycleBean> {lifecycleExampleBean}
+                LifecycleHandlers = new[] {lifecycleAwareExample}
             };
 
             // Provide lifecycle bean to configuration.
@@ -67,12 +67,12 @@ namespace Apache.Ignite.Examples.Misc
             {
                 // Make sure that lifecycle bean was notified about Ignite startup.
                 Console.WriteLine();
-                Console.WriteLine(">>> Started (should be true): " + lifecycleExampleBean.Started);
+                Console.WriteLine(">>> Started (should be true): " + lifecycleAwareExample.Started);
             }
 
             // Make sure that lifecycle bean was notified about Ignite stop.
             Console.WriteLine();
-            Console.WriteLine(">>> Started (should be false): " + lifecycleExampleBean.Started);
+            Console.WriteLine(">>> Started (should be false): " + lifecycleAwareExample.Started);
 
             Console.WriteLine();
             Console.WriteLine(">>> Example finished, press any key to exit ...");
@@ -82,7 +82,7 @@ namespace Apache.Ignite.Examples.Misc
         /// <summary>
         /// Sample lifecycle bean implementation.
         /// </summary>
-        private class LifecycleExampleBean : ILifecycleBean
+        private class LifecycleAwareExample : ILifecycleAware
         {
             /** Auto-injected Ignite instance. */
             [InstanceResource]

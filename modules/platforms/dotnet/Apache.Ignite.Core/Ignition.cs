@@ -389,7 +389,7 @@ namespace Apache.Ignite.Core
                 beans.Add(new LifecycleBeanHolder(CreateObject<ILifecycleAware>(reader)));
 
             // 2. Append beans defined in local configuration.
-            ICollection<ILifecycleAware> nativeBeans = _startup.Configuration.LifecycleBeans;
+            ICollection<ILifecycleAware> nativeBeans = _startup.Configuration.LifecycleHandlers;
 
             if (nativeBeans != null)
             {

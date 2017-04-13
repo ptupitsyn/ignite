@@ -112,7 +112,7 @@ namespace Apache.Ignite.Core.Tests.Log
             Assert.Throws<IgniteException>(() =>
                 Ignition.Start(new IgniteConfiguration(GetConfigWithLogger())
                 {
-                    LifecycleBeans = new[] {new FailBean()}
+                    LifecycleHandlers = new[] {new FailBean()}
                 }));
 
             var err = TestLogger.Entries.First(x => x.Level == LogLevel.Error);
