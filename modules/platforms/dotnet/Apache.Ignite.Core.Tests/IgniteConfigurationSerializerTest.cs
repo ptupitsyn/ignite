@@ -50,7 +50,6 @@ namespace Apache.Ignite.Core.Tests
     using Apache.Ignite.Core.Lifecycle;
     using Apache.Ignite.Core.Log;
     using Apache.Ignite.Core.SwapSpace.File;
-    using Apache.Ignite.Core.Tests.Binary;
     using Apache.Ignite.Core.Tests.Plugin;
     using Apache.Ignite.Core.Tests.Plugin.Cache;
     using Apache.Ignite.Core.Transactions;
@@ -70,8 +69,9 @@ namespace Apache.Ignite.Core.Tests
         {
             var xml = @"<igniteConfig workDirectory='c:' JvmMaxMemoryMb='1024' MetricsLogFrequency='0:0:10' isDaemon='true' isLateAffinityAssignment='false' springConfigUrl='c:\myconfig.xml'>
                             <localhost>127.1.1.1</localhost>
-                            <binaryConfiguration compactFooter='false'>
-                                <defaultNameMapper type='Apache.Ignite.Core.Tests.IgniteConfigurationSerializerTest+NameMapper' bar='testBar' />
+                            <binaryConfiguration compactFooter='false' keepDeserialized='true'>
+                                <nameMapper type='Apache.Ignite.Core.Tests.IgniteConfigurationSerializerTest+NameMapper' bar='testBar' />
+                                <idMapper type='Apache.Ignite.Core.Tests.IgniteConfigurationSerializerTest+IdMapper' />
                                 <types>
                                     <string>Apache.Ignite.Core.Tests.IgniteConfigurationSerializerTest+FooClass, Apache.Ignite.Core.Tests</string>
                                 </types>
@@ -900,6 +900,24 @@ namespace Apache.Ignite.Core.Tests
             public string GetFieldName(string name)
             {
                 return name;
+            }
+        }
+
+        /// <summary>
+        /// Test mapper.
+        /// </summary>
+        public class IdMapper : IBinaryIdMapper
+        {
+            /** <inheritdoc /> */
+            public int GetTypeId(string typeName)
+            {
+                return 0;
+            }
+
+            /** <inheritdoc /> */
+            public int GetFieldId(int typeId, string fieldName)
+            {
+                return 0;
             }
         }
 
