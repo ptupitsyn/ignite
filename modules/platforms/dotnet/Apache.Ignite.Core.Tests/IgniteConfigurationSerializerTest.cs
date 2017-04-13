@@ -155,7 +155,7 @@ namespace Apache.Ignite.Core.Tests
                 ((TcpDiscoveryMulticastIpFinder) ((TcpDiscoverySpi) cfg.DiscoverySpi).IpFinder).AddressRequestAttempts);
             Assert.AreEqual(new[] { "-Xms1g", "-Xmx4g" }, cfg.JvmOptions);
             Assert.AreEqual(15, ((LifecycleBean) cfg.LifecycleBeans.Single()).Foo);
-            Assert.AreEqual("testBar", ((NameMapper) cfg.BinaryConfiguration.DefaultNameMapper).Bar);
+            Assert.AreEqual("testBar", ((NameMapper) cfg.BinaryConfiguration.NameMapper).Bar);
             Assert.AreEqual(
                 "Apache.Ignite.Core.Tests.IgniteConfigurationSerializerTest+FooClass, Apache.Ignite.Core.Tests",
                 cfg.BinaryConfiguration.Types.Single());
@@ -615,10 +615,10 @@ namespace Apache.Ignite.Core.Tests
                         }
                     },
                     Types = new[] {typeof (string).FullName},
-                    DefaultIdMapper = new IdMapper(),
-                    DefaultKeepDeserialized = true,
-                    DefaultNameMapper = new NameMapper(),
-                    DefaultSerializer = new TestSerializer()
+                    IdMapper = new IdMapper(),
+                    KeepDeserialized = true,
+                    NameMapper = new NameMapper(),
+                    Serializer = new TestSerializer()
                 },
                 CacheConfiguration = new[]
                 {
