@@ -20,7 +20,7 @@ namespace Apache.Ignite.Core.Lifecycle
     using Apache.Ignite.Core.Resource;
 
     /// <summary>
-    /// An interface that reacts to Ignite lifecycle events defined in <see cref="LifecycleEventType"/>.
+    /// Handles lifecycle events defined in <see cref="LifecycleEventType"/>.
     /// Use this interface whenever you need to plug some custom logic before or after
     /// Ignite startup and stopping routines.
     /// <para />
@@ -53,7 +53,7 @@ namespace Apache.Ignite.Core.Lifecycle
     ///     </item>
     /// </list>
     /// </summary>
-    public interface ILifecycleAware
+    public interface ILifecycleHandler
     {
         /// <summary>
         /// This method is called when lifecycle event occurs.

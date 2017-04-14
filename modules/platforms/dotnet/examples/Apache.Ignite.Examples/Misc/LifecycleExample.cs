@@ -26,7 +26,7 @@ namespace Apache.Ignite.Examples.Misc
     using Apache.Ignite.Core.Resource;
 
     /// <summary>
-    /// This example shows how to provide your own <see cref="Apache.Ignite.Core.Lifecycle.ILifecycleAware"/> implementation
+    /// This example shows how to provide your own <see cref="ILifecycleHandler"/> implementation
     /// to be able to hook into Apache lifecycle. Example bean will output occurred lifecycle 
     /// events to the console.
     /// <para />
@@ -48,7 +48,7 @@ namespace Apache.Ignite.Examples.Misc
             Console.WriteLine(">>> Lifecycle example started.");
 
             // Create new configuration.
-            var lifecycleAwareExample = new LifecycleAwareExample();
+            var lifecycleAwareExample = new LifecycleHandlerExample();
 
             var cfg = new IgniteConfiguration
             {
@@ -82,7 +82,7 @@ namespace Apache.Ignite.Examples.Misc
         /// <summary>
         /// Sample lifecycle bean implementation.
         /// </summary>
-        private class LifecycleAwareExample : ILifecycleAware
+        private class LifecycleHandlerExample : ILifecycleHandler
         {
             /** Auto-injected Ignite instance. */
             [InstanceResource]

@@ -386,14 +386,14 @@ namespace Apache.Ignite.Core
             int cnt = reader.ReadInt();
 
             for (int i = 0; i < cnt; i++)
-                beans.Add(new LifecycleBeanHolder(CreateObject<ILifecycleAware>(reader)));
+                beans.Add(new LifecycleBeanHolder(CreateObject<ILifecycleHandler>(reader)));
 
             // 2. Append beans defined in local configuration.
-            ICollection<ILifecycleAware> nativeBeans = _startup.Configuration.LifecycleHandlers;
+            ICollection<ILifecycleHandler> nativeBeans = _startup.Configuration.LifecycleHandlers;
 
             if (nativeBeans != null)
             {
-                foreach (ILifecycleAware nativeBean in nativeBeans)
+                foreach (ILifecycleHandler nativeBean in nativeBeans)
                     beans.Add(new LifecycleBeanHolder(nativeBean));
             }
 
@@ -772,7 +772,7 @@ namespace Apache.Ignite.Core
         /// <summary>
         /// Internal bean for event notification.
         /// </summary>
-        private class InternalLifecycleBean : ILifecycleAware
+        private class InternalLifecycleBean : ILifecycleHandler
         {
             /** */
             #pragma warning disable 649   // unused field

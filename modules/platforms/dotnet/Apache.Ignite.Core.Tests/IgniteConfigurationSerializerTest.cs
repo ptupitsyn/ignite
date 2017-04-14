@@ -846,7 +846,7 @@ namespace Apache.Ignite.Core.Tests
         /// <summary>
         /// Test bean.
         /// </summary>
-        public class LifecycleBean : ILifecycleAware
+        public class LifecycleBean : ILifecycleHandler
         {
             /// <summary>
             /// Gets or sets the foo.
