@@ -375,7 +375,7 @@
     <Compile Include="Impl\Handle\HandleRegistry.cs" />
     <Compile Include="Impl\Handle\IHandle.cs" />
     <Compile Include="Impl\IInteropCallback.cs" />
-    <Compile Include="Impl\LifecycleBeanHolder.cs" />
+    <Compile Include="Impl\LifecycleHandlerHolder.cs" />
     <Compile Include="Impl\Memory\InteropExternalMemory.cs" />
     <Compile Include="Impl\Memory\InteropMemoryUtils.cs" />
     <Compile Include="Impl\Memory\IPlatformMemory.cs" />
