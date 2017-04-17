@@ -612,6 +612,19 @@ namespace Apache.Ignite.Core.Tests.Cache.Query
         }
 
         /// <summary>
+        /// Tests the SelectMany from field collection.
+        /// </summary>
+        [Test]
+        public void TestSameTableSelectMany()
+        {
+            var persons = GetPersonCache().AsCacheQueryable();
+
+            var res = persons.SelectMany(x => x.Value.Name).ToArray();
+
+            Assert.AreEqual(0, res.Length);
+        }
+
+        /// <summary>
         /// Tests the group by.
         /// </summary>
         [Test]
