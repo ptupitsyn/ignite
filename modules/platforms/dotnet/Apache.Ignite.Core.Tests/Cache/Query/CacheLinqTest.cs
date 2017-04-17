@@ -615,13 +615,14 @@ namespace Apache.Ignite.Core.Tests.Cache.Query
         /// Tests the SelectMany from field collection.
         /// </summary>
         [Test]
-        public void TestSameTableSelectMany()
+        public void TestSelectManySameTable()
         {
             var persons = GetPersonCache().AsCacheQueryable();
 
-            var res = persons.SelectMany(x => x.Value.Name).ToArray();
+            // ReSharper disable once ReturnValueOfPureMethodIsNotUsed
+            var ex = Assert.Throws<NotSupportedException>(() => persons.SelectMany(x => x.Value.Name).ToArray());
 
-            Assert.AreEqual(0, res.Length);
+            Assert.IsTrue(ex.Message.StartsWith("FROM clause must be IQueryable: from Char"));
         }
 
         /// <summary>
