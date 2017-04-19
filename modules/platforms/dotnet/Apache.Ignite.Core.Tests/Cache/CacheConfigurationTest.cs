@@ -233,6 +233,7 @@ namespace Apache.Ignite.Core.Tests.Cache
             Assert.AreEqual(x.WriteBehindFlushFrequency, y.WriteBehindFlushFrequency);
             Assert.AreEqual(x.WriteBehindFlushSize, y.WriteBehindFlushSize);
             Assert.AreEqual(x.EnableStatistics, y.EnableStatistics);
+            Assert.AreEqual(x.MemoryPolicyName, y.MemoryPolicyName);
 
             if (x.ExpiryPolicyFactory != null)
                 Assert.AreEqual(x.ExpiryPolicyFactory.CreateInstance().GetType(),
@@ -546,6 +547,7 @@ namespace Apache.Ignite.Core.Tests.Cache
                 },
                 ExpiryPolicyFactory = new ExpiryFactory(),
                 EnableStatistics = true,
+                MemoryPolicyName = "myMemPolicy",
                 PluginConfigurations = new[] { new MyPluginConfiguration() }
             };
         }
