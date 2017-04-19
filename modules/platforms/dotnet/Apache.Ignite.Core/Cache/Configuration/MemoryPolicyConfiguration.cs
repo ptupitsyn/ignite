@@ -17,11 +17,36 @@
 
 namespace Apache.Ignite.Core.Cache.Configuration
 {
+    using Apache.Ignite.Core.Binary;
+
     /// <summary>
     /// 
     /// </summary>
     public class MemoryPolicyConfiguration
     {
-        
+        /// <summary>
+        /// Initializes a new instance of the <see cref="MemoryPolicyConfiguration"/> class.
+        /// </summary>
+        public MemoryPolicyConfiguration()
+        {
+            // No-op.
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="MemoryPolicyConfiguration"/> class.
+        /// </summary>
+        /// <param name="reader">The reader.</param>
+        public MemoryPolicyConfiguration(IBinaryRawReader reader)
+        {
+            // TODO
+        }
+
+        /// <summary>
+        /// Writes this instance to a writer.
+        /// </summary>
+        internal void Write(IBinaryRawWriter writer)
+        {
+            // TODO
+        }
     }
 }

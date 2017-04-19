@@ -19,7 +19,11 @@ namespace Apache.Ignite.Core.Cache.Configuration
 {
     using System.Collections.Generic;
     using System.ComponentModel;
+    using System.Diagnostics;
     using System.Diagnostics.CodeAnalysis;
+    using System.Linq;
+    using Apache.Ignite.Core.Binary;
+    using Apache.Ignite.Core.Common;
 
     /// <summary>
     /// A page memory configuration for an Apache Ignite node. The page memory is a manageable off-heap based
@@ -58,6 +62,58 @@ namespace Apache.Ignite.Core.Cache.Configuration
         {
             SystemCacheMemorySize = DefaultSystemCacheMemorySize;
             PageSize = DefaultPageSize;
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="MemoryConfiguration"/> class.
+        /// </summary>
+        /// <param name="reader">The reader.</param>
+        public MemoryConfiguration(IBinaryRawReader reader)
+        {
+            Debug.Assert(reader != null);
+
+            SystemCacheMemorySize = reader.ReadLong();
+            PageSize = reader.ReadInt();
+
+            var count = reader.ReadInt();
+
+            if (count > 0)
+            {
+                MemoryPolicies = Enumerable.Range(0, count)
+                    .Select(x => new MemoryPolicyConfiguration(reader))
+                    .ToArray();
+            }
+        }
+
+        /// <summary>
+        /// Writes this instance to a writer.
+        /// </summary>
+        /// <param name="writer">The writer.</param>
+        internal void Write(IBinaryRawWriter writer)
+        {
+            Debug.Assert(writer != null);
+
+            writer.WriteLong(SystemCacheMemorySize);
+            writer.WriteInt(PageSize);
+
+            if (MemoryPolicies != null)
+            {
+                writer.WriteInt(MemoryPolicies.Count);
+
+                foreach (var policy in MemoryPolicies)
+                {
+                    if (policy == null)
+                    {
+                        throw new IgniteException("MemoryConfiguration.MemoryPolicies must not contain null items.");
+                    }
+
+                    policy.Write(writer);
+                }
+            }
+            else
+            {
+                writer.WriteInt(0);
+            }
         }
 
         /// <summary>
