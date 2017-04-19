@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-namespace Apache.Ignite.Core
+namespace Apache.Ignite.Core.Cache.Configuration
 {
     /// <summary>
     /// A page memory configuration for an Apache Ignite node. The page memory is a manageable off-heap based
@@ -37,13 +37,5 @@ namespace Apache.Ignite.Core
     /// </summary>
     public class MemoryConfiguration
     {
-    }
-
-    /// <summary>
-    /// 
-    /// </summary>
-    public class MemoryPolicyConfiguration
-    {
-        
     }
 }
