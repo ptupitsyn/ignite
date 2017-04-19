@@ -169,6 +169,11 @@ public class PlatformConfigurationUtils {
         ccfg.setWriteThrough(in.readBoolean());
         ccfg.setStatisticsEnabled(in.readBoolean());
 
+        String memoryPolicyName = in.readString();
+
+        if (memoryPolicyName != null)
+            ccfg.setMemoryPolicyName(memoryPolicyName);
+
         Object storeFactory = in.readObjectDetached();
 
         if (storeFactory != null)
@@ -772,6 +777,7 @@ public class PlatformConfigurationUtils {
         writer.writeBoolean(ccfg.isReadThrough());
         writer.writeBoolean(ccfg.isWriteThrough());
         writer.writeBoolean(ccfg.isStatisticsEnabled());
+        writer.writeString(ccfg.getMemoryPolicyName());
 
         if (ccfg.getCacheStoreFactory() instanceof PlatformDotNetCacheStoreFactoryNative)
             writer.writeObject(((PlatformDotNetCacheStoreFactoryNative)ccfg.getCacheStoreFactory()).getNativeFactory());

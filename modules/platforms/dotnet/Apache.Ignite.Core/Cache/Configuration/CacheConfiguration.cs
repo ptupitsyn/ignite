@@ -233,6 +233,7 @@ namespace Apache.Ignite.Core.Cache.Configuration
             ReadThrough = reader.ReadBoolean();
             WriteThrough = reader.ReadBoolean();
             EnableStatistics = reader.ReadBoolean();
+            MemoryPolicyName = reader.ReadString();
             CacheStoreFactory = reader.ReadObject<IFactory<ICacheStore>>();
 
             var count = reader.ReadInt();
@@ -288,6 +289,7 @@ namespace Apache.Ignite.Core.Cache.Configuration
             writer.WriteBoolean(ReadThrough);
             writer.WriteBoolean(WriteThrough);
             writer.WriteBoolean(EnableStatistics);
+            writer.WriteString(MemoryPolicyName);
             writer.WriteObject(CacheStoreFactory);
 
             if (QueryEntities != null)
