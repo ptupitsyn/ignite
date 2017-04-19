@@ -17,6 +17,8 @@
 
 namespace Apache.Ignite.Core.Cache.Configuration
 {
+    using System.ComponentModel;
+
     /// <summary>
     /// A page memory configuration for an Apache Ignite node. The page memory is a manageable off-heap based
     /// memory architecture that divides all continuously allocated memory regions into pages of fixed size.
@@ -37,5 +39,23 @@ namespace Apache.Ignite.Core.Cache.Configuration
     /// </summary>
     public class MemoryConfiguration
     {
+        /// <summary>
+        /// The default system cache memory size.
+        /// </summary>
+        public const long DefaultSystemCacheMemorySize = 100 * 1024 * 1024;
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="MemoryConfiguration"/> class.
+        /// </summary>
+        public MemoryConfiguration()
+        {
+            SystemCacheMemorySize = DefaultSystemCacheMemorySize;
+        }
+
+        /// <summary>
+        /// Gets or sets the size of a memory chunk reserved for system cache needs.
+        /// </summary>
+        [DefaultValue(DefaultSystemCacheMemorySize)]
+        public long SystemCacheMemorySize { get; set; }
     }
 }
