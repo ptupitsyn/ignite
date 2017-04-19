@@ -79,6 +79,7 @@ namespace Apache.Ignite.Core.Tests
             CheckDefaultValueAttributes(new AtomicConfiguration());
             CheckDefaultValueAttributes(new TransactionConfiguration());
             CheckDefaultValueAttributes(new MemoryEventStorageSpi());
+            CheckDefaultValueAttributes(new MemoryConfiguration());
         }
 
         /// <summary>

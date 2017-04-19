@@ -17,7 +17,9 @@
 
 namespace Apache.Ignite.Core.Cache.Configuration
 {
+    using System.Collections.Generic;
     using System.ComponentModel;
+    using System.Diagnostics.CodeAnalysis;
 
     /// <summary>
     /// A page memory configuration for an Apache Ignite node. The page memory is a manageable off-heap based
@@ -45,11 +47,17 @@ namespace Apache.Ignite.Core.Cache.Configuration
         public const long DefaultSystemCacheMemorySize = 100 * 1024 * 1024;
 
         /// <summary>
+        /// The default page size.
+        /// </summary>
+        public const int DefaultPageSize = 2 * 1024;
+
+        /// <summary>
         /// Initializes a new instance of the <see cref="MemoryConfiguration"/> class.
         /// </summary>
         public MemoryConfiguration()
         {
             SystemCacheMemorySize = DefaultSystemCacheMemorySize;
+            PageSize = DefaultPageSize;
         }
 
         /// <summary>
@@ -57,5 +65,17 @@ namespace Apache.Ignite.Core.Cache.Configuration
         /// </summary>
         [DefaultValue(DefaultSystemCacheMemorySize)]
         public long SystemCacheMemorySize { get; set; }
+
+        /// <summary>
+        /// Gets or sets the size of the memory page.
+        /// </summary>
+        [DefaultValue(DefaultPageSize)]
+        public int PageSize { get; set; }
+
+        /// <summary>
+        /// Gets or sets the memory policies.
+        /// </summary>
+        [SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public ICollection<MemoryPolicyConfiguration> MemoryPolicies { get; set; }
     }
 }
