@@ -350,6 +350,16 @@ namespace Apache.Ignite.Core
                 memEventStorage.Write(writer);
             }
 
+            if (MemoryConfiguration != null)
+            {
+                writer.WriteBoolean(true);
+                MemoryConfiguration.Write(writer);
+            }
+            else
+            {
+                writer.WriteBoolean(false);
+            }
+
             // Plugins (should be last)
             if (PluginConfigurations != null)
             {
@@ -481,6 +491,11 @@ namespace Apache.Ignite.Core
                 case 2:
                     EventStorageSpi = MemoryEventStorageSpi.Read(r);
                     break;
+            }
+
+            if (r.ReadBoolean())
+            {
+                MemoryConfiguration = new MemoryConfiguration(r);
             }
         }
 
