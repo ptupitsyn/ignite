@@ -937,5 +937,11 @@ namespace Apache.Ignite.Core
         /// <see cref="NoopEventStorageSpi"/>, <see cref="MemoryEventStorageSpi"/>.
         /// </summary>
         public IEventStorageSpi EventStorageSpi { get; set; }
+
+        /// <summary>
+        /// Gets or sets the page memory configuration.
+        /// <see cref="MemoryConfiguration"/> for more details.
+        /// </summary>
+        public MemoryConfiguration MemoryConfiguration { get; set; }
     }
 }
