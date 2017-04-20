@@ -1125,6 +1125,62 @@
                         </xs:attribute>
                     </xs:complexType>
                 </xs:element>
+                <xs:element name="memoryConfiguration" minOccurs="0">
+                    <xs:annotation>
+                        <xs:documentation>Page memory configuration.</xs:documentation>
+                    </xs:annotation>
+                    <xs:complexType>
+                        <xs:sequence>
+                            <xs:element name="memoryPolicies" minOccurs="0" maxOccurs="1">
+                                <xs:annotation>
+                                    <xs:documentation>Memory policies.</xs:documentation>
+                                </xs:annotation>
+                                <xs:complexType>
+                                    <xs:sequence>
+                                        <xs:element name="memoryPolicyConfiguration" minOccurs="0" maxOccurs="unbounded">
+                                            <xs:complexType>
+                                                <xs:attribute name="emptyPagesPoolSize" type="xs:int">
+                                                    <xs:annotation>
+                                                        <xs:documentation>Minimal number of empty pages to be present in reuse lists for this memory policy.</xs:documentation>
+                                                    </xs:annotation>
+                                                </xs:attribute>
+                                                <xs:attribute name="evictionThreshold" type="xs:double">
+                                                    <xs:annotation>
+                                                        <xs:documentation>Threshold for memory pages eviction initiation. For instance, if the threshold is 0.9 it means that the page memory will start the eviction only after 90% of the memory region (defined by this policy) is occupied.</xs:documentation>
+                                                    </xs:annotation>
+                                                </xs:attribute>
+                                                <xs:attribute name="name" type="xs:string">
+                                                    <xs:annotation>
+                                                        <xs:documentation>Memory policy name.</xs:documentation>
+                                                    </xs:annotation>
+                                                </xs:attribute>
+                                                <xs:attribute name="pageEvictionMode" type="xs:string">
+                                                    <xs:annotation>
+                                                        <xs:documentation>Page eviction mode.</xs:documentation>
+                                                    </xs:annotation>
+                                                </xs:attribute>
+                                                <xs:attribute name="size" type="xs:int">
+                                                    <xs:annotation>
+                                                        <xs:documentation>Maximum memory region size defined by this memory policy.</xs:documentation>
+                                                    </xs:annotation>
+                                                </xs:attribute>
+                                                <xs:attribute name="swapFilePath" type="xs:string">
+                                                    <xs:annotation>
+                                                        <xs:documentation>Path to the memory-mapped file the memory region defined by this memory policy will be mapped to.</xs:documentation>
+                                                    </xs:annotation>
+                                                </xs:attribute>
+                                            </xs:complexType>
+                                        </xs:element>
+                                    </xs:sequence>
+                                </xs:complexType>
+                            </xs:element>
+                        </xs:sequence>
+                        <xs:attribute name="concurrencyLevel" type="xs:int"></xs:attribute>
+                        <xs:attribute name="defaultMemoryPolicyName" type="xs:string"></xs:attribute>
+                        <xs:attribute name="pageSize" type="xs:int"></xs:attribute>
+                        <xs:attribute name="systemCacheMemorySize" type="xs:int"></xs:attribute>
+                    </xs:complexType>
+                </xs:element>
                 <xs:element name="pluginConfigurations" minOccurs="0">
                     <xs:annotation>
                         <xs:documentation>Plugin configurations.</xs:documentation>
