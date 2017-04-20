@@ -697,6 +697,11 @@
                                             <xs:documentation>Value indicating whether statistics gathering is enabled on a cache. These statistics can be retrieved via ICache.GetMetrics().</xs:documentation>
                                         </xs:annotation>
                                     </xs:attribute>
+                                    <xs:attribute name="memoryPolicyName" type="xs:string">
+                                        <xs:annotation>
+                                            <xs:documentation>Name of the MemoryPolicyConfiguration for this cache.</xs:documentation>
+                                        </xs:annotation>
+                                    </xs:attribute>
                                 </xs:complexType>
                             </xs:element>
                         </xs:sequence>
