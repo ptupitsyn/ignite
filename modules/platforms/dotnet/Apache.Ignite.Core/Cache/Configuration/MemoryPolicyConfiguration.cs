@@ -17,6 +17,7 @@
 
 namespace Apache.Ignite.Core.Cache.Configuration
 {
+    using System.ComponentModel;
     using Apache.Ignite.Core.Binary;
 
     /// <summary>
@@ -25,11 +26,22 @@ namespace Apache.Ignite.Core.Cache.Configuration
     public class MemoryPolicyConfiguration
     {
         /// <summary>
+        /// The default eviction threshold.
+        /// </summary>
+        public const double DefaultEvictionThreshold = 0.9;
+
+        /// <summary>
+        /// The default empty pages pool size.
+        /// </summary>
+        public const int DefaultEmptyPagesPoolSize = 100;
+
+        /// <summary>
         /// Initializes a new instance of the <see cref="MemoryPolicyConfiguration"/> class.
         /// </summary>
         public MemoryPolicyConfiguration()
         {
-            // No-op.
+            EvictionThreshold = DefaultEvictionThreshold;
+            EmptyPagesPoolSize = DefaultEmptyPagesPoolSize;
         }
 
         /// <summary>
@@ -81,5 +93,23 @@ namespace Apache.Ignite.Core.Cache.Configuration
         /// defined by this memory policy, goes beyond <see cref="Size"/>.
         /// </summary>
         public DataPageEvictionMode PageEvictionMode { get; set; }
+
+        /// <summary>
+        /// Gets or sets the threshold for memory pages eviction initiation. For instance, if the threshold is 0.9
+        /// it means that the page memory will start the eviction only after 90% of the memory region
+        /// (defined by this policy) is occupied.
+        /// </summary>
+        [DefaultValue(DefaultEvictionThreshold)]
+        public double EvictionThreshold { get; set; }
+
+        /// <summary>
+        /// Gets or sets the minimal number of empty pages to be present in reuse lists for this memory policy.
+        /// This parameter ensures that Ignite will be able to successfully evict old data entries when the size of
+        /// (key, value) pair is slightly larger than page size / 2.
+        /// Increase this parameter if cache can contain very big entries (total size of pages in this pool
+        /// should be enough to contain largest cache entry).
+        /// </summary>
+        [DefaultValue(DefaultEmptyPagesPoolSize)]
+        public int EmptyPagesPoolSize { get;set; }
     }
 }

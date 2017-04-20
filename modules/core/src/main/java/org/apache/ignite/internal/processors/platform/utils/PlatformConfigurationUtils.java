@@ -640,8 +640,7 @@ public class PlatformConfigurationUtils {
                 break;
         }
 
-        if (in.readBoolean())
-            cfg.setMemoryConfiguration(readMemoryConfiguration(in));
+        cfg.setMemoryConfiguration(readMemoryConfiguration(in));
 
         readPluginConfiguration(cfg, in);
     }
@@ -1071,6 +1070,8 @@ public class PlatformConfigurationUtils {
             w.writeLong(((MemoryEventStorageSpi)eventStorageSpi).getExpireAgeMs());
         }
 
+        writeMemoryConfiguration(w, cfg.getMemoryConfiguration());
+
         w.writeString(cfg.getIgniteHome());
 
         w.writeLong(ManagementFactory.getMemoryMXBean().getHeapMemoryUsage().getInit());
@@ -1317,6 +1318,9 @@ public class PlatformConfigurationUtils {
      * @return Config.
      */
     private static MemoryConfiguration readMemoryConfiguration(BinaryRawReader in) {
+        if (!in.readBoolean())
+            return null;
+
         MemoryConfiguration res = new MemoryConfiguration();
 
         res.setSystemCacheMemorySize(in.readLong())
@@ -1345,6 +1349,44 @@ public class PlatformConfigurationUtils {
 
         return res;
     }
+
+    /**
+     * Writes the memory configuration.
+     *
+     * @param w Writer.
+     * @param cfg Config.
+     */
+    private static void writeMemoryConfiguration(BinaryRawWriter w, MemoryConfiguration cfg) {
+        if (cfg == null) {
+            w.writeBoolean(false);
+            return;
+        }
+
+        w.writeBoolean(true);
+
+        w.writeLong(cfg.getSystemCacheMemorySize());
+        w.writeInt(cfg.getPageSize());
+        w.writeInt(cfg.getConcurrencyLevel());
+        w.writeString(cfg.getDefaultMemoryPolicyName());
+
+        MemoryPolicyConfiguration[] plcs = cfg.getMemoryPolicies();
+
+        if (plcs != null) {
+            w.writeInt(plcs.length);
+
+            for (MemoryPolicyConfiguration plc : plcs) {
+                w.writeString(plc.getName());
+                w.writeLong(plc.getSize());
+                w.writeString(plc.getSwapFilePath());
+                w.writeInt(plc.getPageEvictionMode().ordinal());
+            }
+        }
+        else {
+            w.writeInt(0);
+        }
+    }
+
+
 
     /**
      * Private constructor.
