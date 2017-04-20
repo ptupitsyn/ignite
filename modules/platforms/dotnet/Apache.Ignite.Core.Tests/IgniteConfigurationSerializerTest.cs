@@ -262,6 +262,12 @@ namespace Apache.Ignite.Core.Tests
             Assert.AreEqual(67, memCfg.SystemCacheMemorySize);
 
             var memPlc = memCfg.MemoryPolicies.Single();
+            Assert.AreEqual(1, memPlc.EmptyPagesPoolSize);
+            Assert.AreEqual(0.2, memPlc.EvictionThreshold);
+            Assert.AreEqual("dfPlc", memPlc.Name);
+            Assert.AreEqual(DataPageEvictionMode.RandomLru, memPlc.PageEvictionMode);
+            Assert.AreEqual("abc", memPlc.SwapFilePath);
+            Assert.AreEqual(89, memPlc.Size);
         }
 
         /// <summary>
