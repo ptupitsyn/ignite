@@ -575,19 +575,19 @@ namespace Apache.Ignite.Core.Tests
                         {
                             Name = "myDefaultPlc",
                             PageEvictionMode = DataPageEvictionMode.Random2Lru,
-                            Size = 3 * 1024 * 1024,
+                            Size = 345 * 1024 * 1024,
                             EvictionThreshold = 0.88,
                             EmptyPagesPoolSize = 77,
-                            SwapFilePath = Path.GetTempPath()
+                            SwapFilePath = "myPath1"
                         },
                         new MemoryPolicyConfiguration
                         {
                             Name = "customPlc",
                             PageEvictionMode = DataPageEvictionMode.RandomLru,
-                            Size = 4 * 1024 * 1024,
+                            Size = 456 * 1024 * 1024,
                             EvictionThreshold = 0.77,
                             EmptyPagesPoolSize = 66,
-                            SwapFilePath = Path.GetTempPath()
+                            SwapFilePath = "somePath2"
                         } 
                     }
                 }
