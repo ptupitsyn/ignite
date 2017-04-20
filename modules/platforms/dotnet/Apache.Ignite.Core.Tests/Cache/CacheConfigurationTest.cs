@@ -64,7 +64,18 @@ namespace Apache.Ignite.Core.Tests.Cache
                     GetCustomCacheConfiguration2()
                 },
                 IgniteInstanceName = CacheName,
-                BinaryConfiguration = new BinaryConfiguration(typeof (Entity))
+                BinaryConfiguration = new BinaryConfiguration(typeof(Entity)),
+                MemoryConfiguration = new MemoryConfiguration
+                {
+                    MemoryPolicies = new[]
+                    {
+                        new MemoryPolicyConfiguration
+                        {
+                            Name = "myMemPolicy",
+                            Size = 99 * 1024 * 1024
+                        }
+                    }
+                }
             };
 
             _ignite = Ignition.Start(cfg);
