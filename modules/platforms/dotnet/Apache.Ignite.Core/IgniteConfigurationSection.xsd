@@ -1149,7 +1149,7 @@
                                                         <xs:documentation>Threshold for memory pages eviction initiation. For instance, if the threshold is 0.9 it means that the page memory will start the eviction only after 90% of the memory region (defined by this policy) is occupied.</xs:documentation>
                                                     </xs:annotation>
                                                 </xs:attribute>
-                                                <xs:attribute name="name" type="xs:string">
+                                                <xs:attribute name="name" type="xs:string" use="required">
                                                     <xs:annotation>
                                                         <xs:documentation>Memory policy name.</xs:documentation>
                                                     </xs:annotation>
@@ -1159,7 +1159,7 @@
                                                         <xs:documentation>Page eviction mode.</xs:documentation>
                                                     </xs:annotation>
                                                 </xs:attribute>
-                                                <xs:attribute name="size" type="xs:int">
+                                                <xs:attribute name="size" type="xs:int" use="required">
                                                     <xs:annotation>
                                                         <xs:documentation>Maximum memory region size defined by this memory policy.</xs:documentation>
                                                     </xs:annotation>
@@ -1175,10 +1175,26 @@
                                 </xs:complexType>
                             </xs:element>
                         </xs:sequence>
-                        <xs:attribute name="concurrencyLevel" type="xs:int"></xs:attribute>
-                        <xs:attribute name="defaultMemoryPolicyName" type="xs:string"></xs:attribute>
-                        <xs:attribute name="pageSize" type="xs:int"></xs:attribute>
-                        <xs:attribute name="systemCacheMemorySize" type="xs:int"></xs:attribute>
+                        <xs:attribute name="concurrencyLevel" type="xs:int">
+                            <xs:annotation>
+                                <xs:documentation>Number of concurrent segments in Ignite internal page mapping tables.</xs:documentation>
+                            </xs:annotation>
+                        </xs:attribute>
+                        <xs:attribute name="defaultMemoryPolicyName" type="xs:string">
+                            <xs:annotation>
+                                <xs:documentation>Name of the default memory policy in MemoryPolicies.</xs:documentation>
+                            </xs:annotation>
+                        </xs:attribute>
+                        <xs:attribute name="pageSize" type="xs:int">
+                            <xs:annotation>
+                                <xs:documentation>Size of the memory page.</xs:documentation>
+                            </xs:annotation>
+                        </xs:attribute>
+                        <xs:attribute name="systemCacheMemorySize" type="xs:int">
+                            <xs:annotation>
+                                <xs:documentation>Size of a memory chunk reserved for system cache needs.</xs:documentation>
+                            </xs:annotation>
+                        </xs:attribute>
                     </xs:complexType>
                 </xs:element>
                 <xs:element name="pluginConfigurations" minOccurs="0">
