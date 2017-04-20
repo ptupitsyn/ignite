@@ -567,7 +567,7 @@ namespace Apache.Ignite.Core.Tests
                 {
                     ConcurrencyLevel = 3,
                     DefaultMemoryPolicyName = "myDefaultPlc",
-                    PageSize = 512,
+                    PageSize = 2048,
                     SystemCacheMemorySize = 13 * 1024 * 1024,
                     MemoryPolicies = new[]
                     {
@@ -575,9 +575,18 @@ namespace Apache.Ignite.Core.Tests
                         {
                             Name = "myDefaultPlc",
                             PageEvictionMode = DataPageEvictionMode.Random2Lru,
-                            Size = 3456,
+                            Size = 3 * 1024 * 1024,
                             EvictionThreshold = 0.88,
                             EmptyPagesPoolSize = 77,
+                            SwapFilePath = Path.GetTempPath()
+                        },
+                        new MemoryPolicyConfiguration
+                        {
+                            Name = "customPlc",
+                            PageEvictionMode = DataPageEvictionMode.RandomLru,
+                            Size = 4 * 1024 * 1024,
+                            EvictionThreshold = 0.77,
+                            EmptyPagesPoolSize = 66,
                             SwapFilePath = Path.GetTempPath()
                         } 
                     }
