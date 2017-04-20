@@ -253,6 +253,15 @@ namespace Apache.Ignite.Core.Tests
             Assert.IsNotNull(eventStorage);
             Assert.AreEqual(23.45, eventStorage.ExpirationTimeout.TotalSeconds);
             Assert.AreEqual(129, eventStorage.MaxEventCount);
+
+            var memCfg = cfg.MemoryConfiguration;
+            Assert.IsNotNull(memCfg);
+            Assert.AreEqual(3, memCfg.ConcurrencyLevel);
+            Assert.AreEqual("dfPlc", memCfg.DefaultMemoryPolicyName);
+            Assert.AreEqual(45, memCfg.PageSize);
+            Assert.AreEqual(67, memCfg.SystemCacheMemorySize);
+
+            var memPlc = memCfg.MemoryPolicies.Single();
         }
 
         /// <summary>
