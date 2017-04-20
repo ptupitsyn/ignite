@@ -53,6 +53,7 @@ import org.apache.ignite.configuration.AtomicConfiguration;
 import org.apache.ignite.configuration.BinaryConfiguration;
 import org.apache.ignite.configuration.CacheConfiguration;
 import org.apache.ignite.configuration.IgniteConfiguration;
+import org.apache.ignite.configuration.MemoryConfiguration;
 import org.apache.ignite.configuration.NearCacheConfiguration;
 import org.apache.ignite.configuration.TransactionConfiguration;
 import org.apache.ignite.internal.binary.BinaryArrayIdentityResolver;
@@ -521,20 +522,36 @@ public class PlatformConfigurationUtils {
      * @param cfg Configuration.
      */
     public static void readIgniteConfiguration(BinaryRawReaderEx in, IgniteConfiguration cfg) {
-        if (in.readBoolean()) cfg.setClientMode(in.readBoolean());
-        int[] eventTypes = in.readIntArray(); if (eventTypes != null) cfg.setIncludeEventTypes(eventTypes);
-        if (in.readBoolean()) cfg.setMetricsExpireTime(in.readLong());
-        if (in.readBoolean()) cfg.setMetricsHistorySize(in.readInt());
-        if (in.readBoolean()) cfg.setMetricsLogFrequency(in.readLong());
-        if (in.readBoolean()) cfg.setMetricsUpdateFrequency(in.readLong());
-        if (in.readBoolean()) cfg.setNetworkSendRetryCount(in.readInt());
-        if (in.readBoolean()) cfg.setNetworkSendRetryDelay(in.readLong());
-        if (in.readBoolean()) cfg.setNetworkTimeout(in.readLong());
-        String workDir = in.readString(); if (workDir != null) cfg.setWorkDirectory(workDir);
-        String localHost = in.readString(); if (localHost != null) cfg.setLocalHost(localHost);
-        if (in.readBoolean()) cfg.setDaemon(in.readBoolean());
-        if (in.readBoolean()) cfg.setLateAffinityAssignment(in.readBoolean());
-        if (in.readBoolean()) cfg.setFailureDetectionTimeout(in.readLong());
+        if (in.readBoolean())
+            cfg.setClientMode(in.readBoolean());
+        int[] eventTypes = in.readIntArray();
+        if (eventTypes != null) cfg.setIncludeEventTypes(eventTypes);
+        if (in.readBoolean())
+            cfg.setMetricsExpireTime(in.readLong());
+        if (in.readBoolean())
+            cfg.setMetricsHistorySize(in.readInt());
+        if (in.readBoolean())
+            cfg.setMetricsLogFrequency(in.readLong());
+        if (in.readBoolean())
+            cfg.setMetricsUpdateFrequency(in.readLong());
+        if (in.readBoolean())
+            cfg.setNetworkSendRetryCount(in.readInt());
+        if (in.readBoolean())
+            cfg.setNetworkSendRetryDelay(in.readLong());
+        if (in.readBoolean())
+            cfg.setNetworkTimeout(in.readLong());
+        String workDir = in.readString();
+        if (workDir != null)
+            cfg.setWorkDirectory(workDir);
+        String localHost = in.readString();
+        if (localHost != null)
+            cfg.setLocalHost(localHost);
+        if (in.readBoolean())
+            cfg.setDaemon(in.readBoolean());
+        if (in.readBoolean())
+            cfg.setLateAffinityAssignment(in.readBoolean());
+        if (in.readBoolean())
+            cfg.setFailureDetectionTimeout(in.readLong());
 
         readCacheConfigurations(in, cfg);
         readDiscoveryConfiguration(in, cfg);
@@ -620,6 +637,9 @@ public class PlatformConfigurationUtils {
                         .setExpireAgeMs(in.readLong()));
                 break;
         }
+
+        if (in.readBoolean())
+            cfg.setMemoryConfiguration(readMemoryConfiguration(in));
 
         readPluginConfiguration(cfg, in);
     }
@@ -920,20 +940,30 @@ public class PlatformConfigurationUtils {
         assert w != null;
         assert cfg != null;
 
-        w.writeBoolean(true); w.writeBoolean(cfg.isClientMode());
+        w.writeBoolean(true);
+        w.writeBoolean(cfg.isClientMode());
         w.writeIntArray(cfg.getIncludeEventTypes());
-        w.writeBoolean(true); w.writeLong(cfg.getMetricsExpireTime());
-        w.writeBoolean(true); w.writeInt(cfg.getMetricsHistorySize());
-        w.writeBoolean(true); w.writeLong(cfg.getMetricsLogFrequency());
-        w.writeBoolean(true); w.writeLong(cfg.getMetricsUpdateFrequency());
-        w.writeBoolean(true); w.writeInt(cfg.getNetworkSendRetryCount());
-        w.writeBoolean(true); w.writeLong(cfg.getNetworkSendRetryDelay());
-        w.writeBoolean(true); w.writeLong(cfg.getNetworkTimeout());
+        w.writeBoolean(true);
+        w.writeLong(cfg.getMetricsExpireTime());
+        w.writeBoolean(true);
+        w.writeInt(cfg.getMetricsHistorySize());
+        w.writeBoolean(true);
+        w.writeLong(cfg.getMetricsLogFrequency());
+        w.writeBoolean(true);
+        w.writeLong(cfg.getMetricsUpdateFrequency());
+        w.writeBoolean(true);
+        w.writeInt(cfg.getNetworkSendRetryCount());
+        w.writeBoolean(true);w.writeLong(cfg.getNetworkSendRetryDelay());
+        w.writeBoolean(true);
+        w.writeLong(cfg.getNetworkTimeout());
         w.writeString(cfg.getWorkDirectory());
         w.writeString(cfg.getLocalHost());
-        w.writeBoolean(true); w.writeBoolean(cfg.isDaemon());
-        w.writeBoolean(true); w.writeBoolean(cfg.isLateAffinityAssignment());
-        w.writeBoolean(true); w.writeLong(cfg.getFailureDetectionTimeout());
+        w.writeBoolean(true);
+        w.writeBoolean(cfg.isDaemon());
+        w.writeBoolean(true);
+        w.writeBoolean(cfg.isLateAffinityAssignment());
+        w.writeBoolean(true);
+        w.writeLong(cfg.getFailureDetectionTimeout());
 
         CacheConfiguration[] cacheCfg = cfg.getCacheConfiguration();
 
@@ -1276,6 +1306,21 @@ public class PlatformConfigurationUtils {
         }
 
         return factory.create();
+    }
+
+    /**
+     * Reads the memory configuration.
+     *
+     * @param in Reader
+     * @return Config.
+     */
+    private static MemoryConfiguration readMemoryConfiguration(BinaryRawReader in) {
+        MemoryConfiguration res = new MemoryConfiguration();
+
+        res.setSystemCacheMemorySize(in.readLong())
+                .setPageSize(in.readInt());
+
+        return res;
     }
 
     /**
