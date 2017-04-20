@@ -74,6 +74,8 @@ namespace Apache.Ignite.Core.Cache.Configuration
 
             SystemCacheMemorySize = reader.ReadLong();
             PageSize = reader.ReadInt();
+            ConcurrencyLevel = reader.ReadInt();
+            DefaultMemoryPolicyName = reader.ReadString();
 
             var count = reader.ReadInt();
 
@@ -95,6 +97,8 @@ namespace Apache.Ignite.Core.Cache.Configuration
 
             writer.WriteLong(SystemCacheMemorySize);
             writer.WriteInt(PageSize);
+            writer.WriteInt(ConcurrencyLevel);
+            writer.WriteString(DefaultMemoryPolicyName);
 
             if (MemoryPolicies != null)
             {
@@ -127,6 +131,16 @@ namespace Apache.Ignite.Core.Cache.Configuration
         /// </summary>
         [DefaultValue(DefaultPageSize)]
         public int PageSize { get; set; }
+
+        /// <summary>
+        /// Gets or sets the number of concurrent segments in Ignite internal page mapping tables.
+        /// </summary>
+        public int ConcurrencyLevel { get;set; }
+
+        /// <summary>
+        /// Gets or sets the name of the default memory policy in <see cref="MemoryPolicies"/>.
+        /// </summary>
+        public string DefaultMemoryPolicyName { get; set; }
 
         /// <summary>
         /// Gets or sets the memory policies.
