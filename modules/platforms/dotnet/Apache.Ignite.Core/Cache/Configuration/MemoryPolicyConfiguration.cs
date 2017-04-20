@@ -48,5 +48,7 @@ namespace Apache.Ignite.Core.Cache.Configuration
         {
             // TODO
         }
+
+        public long Size { get; set; }
     }
 }
