@@ -38,7 +38,10 @@ namespace Apache.Ignite.Core.Cache.Configuration
         /// <param name="reader">The reader.</param>
         internal MemoryPolicyConfiguration(IBinaryRawReader reader)
         {
-            // TODO
+            Name = reader.ReadString();
+            Size = reader.ReadLong();
+            SwapFilePath = reader.ReadString();
+            PageEvictionMode = (DataPageEvictionMode) reader.ReadInt();
         }
 
         /// <summary>
@@ -46,7 +49,10 @@ namespace Apache.Ignite.Core.Cache.Configuration
         /// </summary>
         internal void Write(IBinaryRawWriter writer)
         {
-            // TODO
+            writer.WriteString(Name);
+            writer.WriteLong(Size);
+            writer.WriteString(SwapFilePath);
+            writer.WriteInt((int) PageEvictionMode);
         }
 
         /// <summary>
