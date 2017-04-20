@@ -78,6 +78,14 @@
         </xs:restriction>
     </xs:simpleType>
 
+    <xs:simpleType name="dataPageEvictionMode" final="restriction">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="Disabled" />
+            <xs:enumeration value="RandomLru" />
+            <xs:enumeration value="Random2Lru" />
+        </xs:restriction>
+    </xs:simpleType>
+
     <xs:element name="igniteConfiguration">
         <xs:annotation>
             <xs:documentation>Ignite configuration root.</xs:documentation>
@@ -1154,7 +1162,7 @@
                                                         <xs:documentation>Memory policy name.</xs:documentation>
                                                     </xs:annotation>
                                                 </xs:attribute>
-                                                <xs:attribute name="pageEvictionMode" type="xs:string">
+                                                <xs:attribute name="pageEvictionMode" type="dataPageEvictionMode">
                                                     <xs:annotation>
                                                         <xs:documentation>Page eviction mode.</xs:documentation>
                                                     </xs:annotation>

@@ -134,6 +134,11 @@ namespace Apache.Ignite.Core.Tests
                                 <iPluginConfiguration type='Apache.Ignite.Core.Tests.Plugin.TestIgnitePluginConfiguration, Apache.Ignite.Core.Tests' />
                             </pluginConfigurations>
                             <eventStorageSpi type='MemoryEventStorageSpi' expirationTimeout='00:00:23.45' maxEventCount='129' />
+                            <memoryConfiguration concurrencyLevel='3' defaultMemoryPolicyName='dfPlc' pageSize='45' systemCacheMemorySize='67'>
+                                <memoryPolicies>
+                                    <memoryPolicyConfiguration emptyPagesPoolSize='1' evictionThreshold='0.2' name='dfPlc' pageEvictionMode='RandomLru' size='89' swapFilePath='abc' />
+                                </memoryPolicies>
+                            </memoryConfiguration>
                         </igniteConfig>";
 
             var cfg = IgniteConfiguration.FromXml(xml);
