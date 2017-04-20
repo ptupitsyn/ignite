@@ -49,6 +49,12 @@ namespace Apache.Ignite.Core.Cache.Configuration
             // TODO
         }
 
+        public string Name { get; set; }
+
         public long Size { get; set; }
+
+        public string SwapFilePath { get; set; }
+
+        public DataPageEvictionMode PageEvictionMode { get; set; }
     }
 }
