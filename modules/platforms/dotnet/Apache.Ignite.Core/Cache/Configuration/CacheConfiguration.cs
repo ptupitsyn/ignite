@@ -233,6 +233,7 @@ namespace Apache.Ignite.Core.Cache.Configuration
             WriteBehindFlushFrequency = reader.ReadLongAsTimespan();
             WriteBehindFlushSize = reader.ReadInt();
             WriteBehindFlushThreadCount = reader.ReadInt();
+            WriteBehindCoalescing = reader.ReadBoolean();
             WriteSynchronizationMode = (CacheWriteSynchronizationMode) reader.ReadInt();
             ReadThrough = reader.ReadBoolean();
             WriteThrough = reader.ReadBoolean();
@@ -289,6 +290,7 @@ namespace Apache.Ignite.Core.Cache.Configuration
             writer.WriteLong((long) WriteBehindFlushFrequency.TotalMilliseconds);
             writer.WriteInt(WriteBehindFlushSize);
             writer.WriteInt(WriteBehindFlushThreadCount);
+            writer.WriteBoolean(WriteBehindCoalescing);
             writer.WriteInt((int) WriteSynchronizationMode);
             writer.WriteBoolean(ReadThrough);
             writer.WriteBoolean(WriteThrough);

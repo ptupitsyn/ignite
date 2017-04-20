@@ -513,6 +513,7 @@ namespace Apache.Ignite.Core.Tests.Cache
                 CacheStoreFactory = new CacheStoreFactoryTest(),
                 ReadThrough = true,
                 WriteThrough = true,
+                WriteBehindCoalescing = false,
                 QueryEntities = new[]
                 {
                     new QueryEntity
