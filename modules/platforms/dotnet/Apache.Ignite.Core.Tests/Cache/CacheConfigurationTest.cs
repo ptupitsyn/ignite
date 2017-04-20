@@ -213,6 +213,8 @@ namespace Apache.Ignite.Core.Tests.Cache
             Assert.AreEqual(CacheConfiguration.DefaultWriteBehindEnabled, cfg.WriteBehindEnabled);
             Assert.AreEqual(CacheConfiguration.DefaultWriteBehindFlushFrequency, cfg.WriteBehindFlushFrequency);
             Assert.AreEqual(CacheConfiguration.DefaultWriteBehindFlushSize, cfg.WriteBehindFlushSize);
+            Assert.AreEqual(CacheConfiguration.DefaultWriteBehindFlushThreadCount, cfg.WriteBehindFlushThreadCount);
+            Assert.AreEqual(CacheConfiguration.DefaultWriteBehindCoalescing, cfg.WriteBehindCoalescing);
         }
 
         /// <summary>
