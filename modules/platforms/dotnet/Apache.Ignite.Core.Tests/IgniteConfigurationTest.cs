@@ -80,6 +80,7 @@ namespace Apache.Ignite.Core.Tests
             CheckDefaultValueAttributes(new TransactionConfiguration());
             CheckDefaultValueAttributes(new MemoryEventStorageSpi());
             CheckDefaultValueAttributes(new MemoryConfiguration());
+            CheckDefaultValueAttributes(new MemoryPolicyConfiguration());
         }
 
         /// <summary>
@@ -191,6 +192,12 @@ namespace Apache.Ignite.Core.Tests
                 Assert.IsNotNull(resEventCfg);
                 Assert.AreEqual(eventCfg.ExpirationTimeout, resEventCfg.ExpirationTimeout);
                 Assert.AreEqual(eventCfg.MaxEventCount, resEventCfg.MaxEventCount);
+
+                var memCfg = cfg.MemoryConfiguration;
+                var resMemCfg = resCfg.MemoryConfiguration;
+                Assert.IsNotNull(memCfg);
+                Assert.IsNotNull(resMemCfg);
+                // TODO
             }
         }
 
@@ -535,6 +542,25 @@ namespace Apache.Ignite.Core.Tests
                 {
                     ExpirationTimeout = TimeSpan.FromSeconds(5),
                     MaxEventCount = 10
+                },
+                MemoryConfiguration = new MemoryConfiguration
+                {
+                    ConcurrencyLevel = 3,
+                    DefaultMemoryPolicyName = "myDefaultPlc",
+                    PageSize = 512,
+                    SystemCacheMemorySize = 13 * 1024 * 1024,
+                    MemoryPolicies = new[]
+                    {
+                        new MemoryPolicyConfiguration
+                        {
+                            Name = "myDefaultPlc",
+                            PageEvictionMode = DataPageEvictionMode.Random2Lru,
+                            Size = 3456,
+                            EvictionThreshold = 0.88,
+                            EmptyPagesPoolSize = 77,
+                            SwapFilePath = Path.GetTempPath()
+                        } 
+                    }
                 }
             };
         }
