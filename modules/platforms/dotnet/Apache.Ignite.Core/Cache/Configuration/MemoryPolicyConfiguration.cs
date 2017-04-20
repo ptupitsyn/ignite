@@ -54,6 +54,8 @@ namespace Apache.Ignite.Core.Cache.Configuration
             Size = reader.ReadLong();
             SwapFilePath = reader.ReadString();
             PageEvictionMode = (DataPageEvictionMode) reader.ReadInt();
+            EvictionThreshold = reader.ReadDouble();
+            EmptyPagesPoolSize = reader.ReadInt();
         }
 
         /// <summary>
