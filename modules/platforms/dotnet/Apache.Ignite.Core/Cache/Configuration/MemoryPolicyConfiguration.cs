@@ -65,6 +65,8 @@ namespace Apache.Ignite.Core.Cache.Configuration
             writer.WriteLong(Size);
             writer.WriteString(SwapFilePath);
             writer.WriteInt((int) PageEvictionMode);
+            writer.WriteDouble(EvictionThreshold);
+            writer.WriteInt(EmptyPagesPoolSize);
         }
 
         /// <summary>

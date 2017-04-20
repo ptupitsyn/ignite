@@ -1339,7 +1339,9 @@ public class PlatformConfigurationUtils {
                 cfg.setName(in.readString())
                         .setSize(in.readLong())
                         .setSwapFilePath(in.readString())
-                        .setPageEvictionMode(DataPageEvictionMode.values()[in.readInt()]);
+                        .setPageEvictionMode(DataPageEvictionMode.values()[in.readInt()])
+                        .setEvictionThreshold(in.readDouble())
+                        .setEmptyPagesPoolSize(in.readInt());
 
                 plcs[i] = cfg;
             }
@@ -1379,6 +1381,8 @@ public class PlatformConfigurationUtils {
                 w.writeLong(plc.getSize());
                 w.writeString(plc.getSwapFilePath());
                 w.writeInt(plc.getPageEvictionMode().ordinal());
+                w.writeDouble(plc.getEvictionThreshold());
+                w.writeInt(plc.getEmptyPagesPoolSize());
             }
         }
         else {
