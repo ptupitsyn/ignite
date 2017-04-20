@@ -52,8 +52,10 @@ import org.apache.ignite.cache.eviction.lru.LruEvictionPolicy;
 import org.apache.ignite.configuration.AtomicConfiguration;
 import org.apache.ignite.configuration.BinaryConfiguration;
 import org.apache.ignite.configuration.CacheConfiguration;
+import org.apache.ignite.configuration.DataPageEvictionMode;
 import org.apache.ignite.configuration.IgniteConfiguration;
 import org.apache.ignite.configuration.MemoryConfiguration;
+import org.apache.ignite.configuration.MemoryPolicyConfiguration;
 import org.apache.ignite.configuration.NearCacheConfiguration;
 import org.apache.ignite.configuration.TransactionConfiguration;
 import org.apache.ignite.internal.binary.BinaryArrayIdentityResolver;
@@ -1318,7 +1320,28 @@ public class PlatformConfigurationUtils {
         MemoryConfiguration res = new MemoryConfiguration();
 
         res.setSystemCacheMemorySize(in.readLong())
-                .setPageSize(in.readInt());
+                .setPageSize(in.readInt())
+                .setConcurrencyLevel(in.readInt())
+                .setDefaultMemoryPolicyName(in.readString());
+
+        int cnt = in.readInt();
+
+        if (cnt > 0) {
+            MemoryPolicyConfiguration[] plcs = new MemoryPolicyConfiguration[cnt];
+
+            for (int i = 0; i < cnt; i++) {
+                MemoryPolicyConfiguration cfg = new MemoryPolicyConfiguration();
+
+                cfg.setName(in.readString())
+                        .setSize(in.readLong())
+                        .setSwapFilePath(in.readString())
+                        .setPageEvictionMode(DataPageEvictionMode.values()[in.readInt()]);
+
+                plcs[i] = cfg;
+            }
+
+            res.setMemoryPolicies(plcs);
+        }
 
         return res;
     }
