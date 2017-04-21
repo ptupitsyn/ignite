@@ -38,13 +38,13 @@ namespace Apache.Ignite.Core.Tests.Cache
         private const string CacheName = "lossTestCache";
 
         [TestFixtureSetUp]
-        private void FixtureSetUp()
+        public void FixtureSetUp()
         {
             Ignition.Start(TestUtils.GetTestConfiguration());
         }
 
         [TestFixtureTearDown]
-        private void FixtureTearDown()
+        public void FixtureTearDown()
         {
             Ignition.StopAll(true);
         }
@@ -114,7 +114,7 @@ namespace Apache.Ignite.Core.Tests.Cache
                 if (safe)
                 {
                     int val;
-                    var ex = Assert.Throws<IgniteException>(() => cache.TryGet(part, out val));
+                    var ex = Assert.Throws<CacheException>(() => cache.TryGet(part, out val));
                     Assert.AreEqual("", ex.Message);
                 }
                 else
@@ -130,7 +130,7 @@ namespace Apache.Ignite.Core.Tests.Cache
                 }
                 else
                 {
-                    var ex = Assert.Throws<IgniteException>(() => cache.Put(part, part));
+                    var ex = Assert.Throws<CacheException>(() => cache.Put(part, part));
                     Assert.AreEqual("", ex.Message);
                 }
 
