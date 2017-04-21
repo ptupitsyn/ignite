@@ -17,6 +17,7 @@
 
 namespace Apache.Ignite.Core.Tests.Cache
 {
+    using System.Linq;
     using Apache.Ignite.Core.Cache;
     using Apache.Ignite.Core.Cache.Affinity.Rendezvous;
     using Apache.Ignite.Core.Cache.Configuration;
@@ -61,13 +62,20 @@ namespace Apache.Ignite.Core.Tests.Cache
         }
 
         /// <summary>
-        /// Prepares the topology.
+        /// Prepares the topology: starts a new node and stops it after rebalance to ensure data loss.
         /// </summary>
         private static void PrepareTopology()
         {
-            var ignite = Ignition.GetIgnite();
+            using (var ignite = Ignition.Start(TestUtils.GetTestConfiguration(name: "ignite-2")))
+            {
+                var cache = ignite.GetCache<int, int>(CacheName);
 
-            var ignite2 = Ignition.Start(TestUtils.GetTestConfiguration(name: "ignite-2"));
+                var affinity = ignite.GetAffinity(CacheName);
+
+                cache.PutAll(Enumerable.Range(1, affinity.Partitions).ToDictionary(x => x, x => x));
+
+                cache.Rebalance().Wait();
+            }
         }
     }
 }
