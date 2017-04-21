@@ -889,5 +889,13 @@ namespace Apache.Ignite.Core.Cache
         /// </summary>
         /// <returns>Cache with no-retries behavior enabled.</returns>
         ICache<TK, TV> WithNoRetries();
+
+        /// <summary>
+        /// Gets lost partitions IDs.
+        /// <para />
+        /// See also <see cref="CacheConfiguration.PartitionLossPolicy"/>
+        /// and <see cref="IIgnite.ResetLostPartitions"/>.
+        /// </summary>
+        ICollection<int> GetLostPartitions();
     }
 }
