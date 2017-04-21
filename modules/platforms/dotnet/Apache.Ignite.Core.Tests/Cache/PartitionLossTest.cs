@@ -114,10 +114,12 @@ namespace Apache.Ignite.Core.Tests.Cache
                 {
                     int val;
                     var ex = Assert.Throws<CacheException>(() => cache.TryGet(part, out val));
-                    Assert.AreEqual("class org.apache.ignite.internal.processors.cache.CacheInvalidStateException" +
-                                    ": Failed to execute cache operation (all partition owners have left the grid, " +
-                                    "partition data has been lost) [cacheName=lossTestCache, part=1," +
-                                    " key=UserKeyCacheObjectImpl [part=1, val=1, hasValBytes=false]]", ex.Message);
+                    Assert.AreEqual(string.Format(
+                        "class org.apache.ignite.internal.processors.cache.CacheInvalidStateException" +
+                        ": Failed to execute cache operation (all partition owners have left the grid, " +
+                        "partition data has been lost) [cacheName={0}, part={1}," +
+                        " key=UserKeyCacheObjectImpl [part={1}, val={1}, hasValBytes=false]]", 
+                        CacheName, part), ex.Message);
                 }
                 else
                 {
@@ -133,16 +135,14 @@ namespace Apache.Ignite.Core.Tests.Cache
                 else
                 {
                     var ex = Assert.Throws<CacheException>(() => cache.Put(part, part));
-                    Assert.AreEqual("class org.apache.ignite.IgniteCheckedException: " +
-                                    "Failed to write to cache (cache is moved to a read-only state): " +
-                                    "lossTestCache", ex.Message);
+                    Assert.AreEqual(string.Format(
+                        "class org.apache.ignite.IgniteCheckedException: " +
+                        "Failed to write to cache (cache is moved to a read-only state): {0}",
+                        CacheName), ex.Message);
                 }
 
                 // Check recover cache.
                 var recoverCache = cache.WithPartitionRecover();
-                int res;
-                Assert.IsFalse(recoverCache.TryGet(part, out res));
-
                 recoverCache[part] = part;
                 Assert.AreEqual(part, recoverCache[part]);
             }
