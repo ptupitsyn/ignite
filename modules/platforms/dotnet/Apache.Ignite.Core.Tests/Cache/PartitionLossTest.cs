@@ -107,7 +107,17 @@ namespace Apache.Ignite.Core.Tests.Cache
         [Test]
         public void TestIgnoreLoss()
         {
-            // TODO
+            var ignite = Ignition.GetIgnite();
+
+            var cache = CreateCache(PartitionLossPolicy.Ignore, ignite);
+
+            var lostPart = PrepareTopology();
+
+            Assert.IsEmpty(cache.GetLostPartitions());
+
+            cache[lostPart] = lostPart;
+
+            Assert.AreEqual(lostPart, cache[lostPart]);
         }
 
         /// <summary>
