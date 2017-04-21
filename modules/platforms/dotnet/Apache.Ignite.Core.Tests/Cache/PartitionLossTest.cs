@@ -129,8 +129,20 @@ namespace Apache.Ignite.Core.Tests.Cache
 
                 if (canWrite)
                 {
-                    cache[part] = part;
-                    Assert.AreEqual(part, cache[part]);
+                    if (safe)
+                    {
+                        var ex = Assert.Throws<CacheException>(() => cache.Put(part, part));
+                        Assert.AreEqual(string.Format(
+                            "class org.apache.ignite.internal.processors.cache.CacheInvalidStateException: " +
+                            "Failed to execute cache operation (all partition owners have left the grid, " +
+                            "partition data has been lost) [cacheName={0}, part={1}, key={1}]",
+                            CacheName, part), ex.Message);
+                    }
+                    else
+                    {
+                        cache[part] = part;
+                        Assert.AreEqual(part, cache[part]);
+                    }
                 }
                 else
                 {
