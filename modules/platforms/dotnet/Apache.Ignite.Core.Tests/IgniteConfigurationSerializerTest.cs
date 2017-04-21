@@ -701,7 +701,9 @@ namespace Apache.Ignite.Core.Tests
                         PluginConfigurations = new[]
                         {
                             new MyPluginConfiguration()
-                        }
+                        },
+                        MemoryPolicyName = "somePolicy",
+                        PartitionLossPolicy = PartitionLossPolicy.ReadOnlyAll
                     }
                 },
                 ClientMode = true,
