@@ -64,7 +64,8 @@ namespace Apache.Ignite.Core.Tests.Cache
         /// <summary>
         /// Prepares the topology: starts a new node and stops it after rebalance to ensure data loss.
         /// </summary>
-        private static void PrepareTopology()
+        /// <returns>Lost partition id.</returns>
+        private static int PrepareTopology()
         {
             using (var ignite = Ignition.Start(TestUtils.GetTestConfiguration(name: "ignite-2")))
             {
@@ -72,9 +73,15 @@ namespace Apache.Ignite.Core.Tests.Cache
 
                 var affinity = ignite.GetAffinity(CacheName);
 
-                cache.PutAll(Enumerable.Range(1, affinity.Partitions).ToDictionary(x => x, x => x));
+                var keys = Enumerable.Range(1, affinity.Partitions).ToArray();
+
+                cache.PutAll(keys.ToDictionary(x => x, x => x));
 
                 cache.Rebalance().Wait();
+
+                var node = ignite.GetCluster().GetLocalNode();
+
+                return keys.First(x => affinity.IsPrimary(node, x));
             }
         }
     }
