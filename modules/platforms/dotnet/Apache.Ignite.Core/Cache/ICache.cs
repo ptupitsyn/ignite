@@ -891,6 +891,13 @@ namespace Apache.Ignite.Core.Cache
         ICache<TK, TV> WithNoRetries();
 
         /// <summary>
+        /// Gets an instance of cache that will be allowed to execute cache operations (read, write)
+        /// regardless of partition loss policy.
+        /// </summary>
+        /// <returns>Cache without partition loss protection.</returns>
+        ICache<TK, TV> WithPartitionRecover();
+
+        /// <summary>
         /// Gets lost partitions IDs.
         /// <para />
         /// See also <see cref="CacheConfiguration.PartitionLossPolicy"/>

@@ -499,6 +499,11 @@ namespace Apache.Ignite.AspNet.Tests
                 throw new NotImplementedException();
             }
 
+            public ICache<int, int> WithPartitionRecover()
+            {
+                throw new NotImplementedException();
+            }
+
             public ICollection<int> GetLostPartitions()
             {
                 throw new NotImplementedException();

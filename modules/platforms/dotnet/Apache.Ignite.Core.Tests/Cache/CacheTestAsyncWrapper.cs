@@ -548,6 +548,12 @@ namespace Apache.Ignite.Core.Tests.Cache
         }
 
         /** <inheritDoc /> */
+        public ICache<TK, TV> WithPartitionRecover()
+        {
+            return _cache.WithPartitionRecover();
+        }
+
+        /** <inheritDoc /> */
         public ICollection<int> GetLostPartitions()
         {
             return _cache.GetLostPartitions();

@@ -23,10 +23,11 @@ namespace Apache.Ignite.Core.Tests.Cache
     using NUnit.Framework;
 
     /// <summary>
-    /// Tests <see cref="PartitionLossPolicy"/>, <see cref="IIgnite.ResetLostPartitions"/>,
-    /// and <see cref="ICache{TK,TV}.GetLostPartitions"/>.
+    /// Tests partition loss management functionality:
+    /// <see cref="PartitionLossPolicy"/>, <see cref="IIgnite.ResetLostPartitions"/>,
+    /// <see cref="ICache{TK,TV}.GetLostPartitions"/>, <see cref="ICache{TK,TV}"/>.
     /// </summary>
-    public class PartitionLossPolicyTest
+    public class PartitionLossTest
     {
         [Test]
         public void Test()
