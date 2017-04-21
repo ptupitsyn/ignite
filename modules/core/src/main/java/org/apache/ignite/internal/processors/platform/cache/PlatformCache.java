@@ -201,7 +201,7 @@ public class PlatformCache extends PlatformAbstractTarget {
     public static final int OP_CLEAR_CACHE = 41;
 
     /** */
-    public static final int OP_WITH_ASYNC = 42;
+    public static final int OP_WITH_PARTITION_RECOVER = 42;
 
     /** */
     public static final int OP_REMOVE_ALL2 = 43;
@@ -991,11 +991,8 @@ public class PlatformCache extends PlatformAbstractTarget {
     /** {@inheritDoc} */
     @Override public PlatformTarget processOutObject(int type) throws IgniteCheckedException {
         switch (type) {
-            case OP_WITH_ASYNC: {
-                if (cache.isAsync())
-                    return this;
-
-                return copy(rawCache.withAsync(), keepBinary);
+            case OP_WITH_PARTITION_RECOVER: {
+                return copy(rawCache.withPartitionRecover(), keepBinary);
             }
 
             case OP_WITH_KEEP_BINARY: {
