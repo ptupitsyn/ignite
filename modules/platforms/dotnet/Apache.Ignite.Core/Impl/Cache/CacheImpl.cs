@@ -1016,6 +1016,27 @@ namespace Apache.Ignite.Core.Impl.Cache
                 _flagSkipStore, _flagKeepBinary, true);
         }
 
+        /** <inheritDoc /> */
+        public ICollection<int> GetLostPartitions()
+        {
+            return DoInOp((int) CacheOp.GetLostPartitions, s =>
+            {
+                var cnt = s.ReadInt();
+
+                var res = new List<int>();
+
+                if (cnt > 0)
+                {
+                    for (int i = 0; i < cnt; i++)
+                    {
+                        res.Add(s.ReadInt());
+                    }
+                }
+
+                return res;
+            });
+        }
+
         #region Queries
 
         /** <inheritDoc /> */
