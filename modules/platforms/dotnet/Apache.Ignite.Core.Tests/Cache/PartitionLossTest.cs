@@ -133,6 +133,14 @@ namespace Apache.Ignite.Core.Tests.Cache
                     var ex = Assert.Throws<IgniteException>(() => cache.Put(part, part));
                     Assert.AreEqual("", ex.Message);
                 }
+
+                // Check recover cache.
+                var recoverCache = cache.WithPartitionRecover();
+                int res;
+                Assert.IsFalse(recoverCache.TryGet(part, out res));
+
+                recoverCache[part] = part;
+                Assert.AreEqual(part, recoverCache[part]);
             }
 
             // Reset and verify.
