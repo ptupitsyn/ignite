@@ -29,10 +29,13 @@ namespace Apache.Ignite.Core.Tests.Cache
     /// </summary>
     public class PartitionLossTest
     {
+        /** */
+        private const string CacheName = "lossTestCache";
+
         [Test]
         public void Test()
         {
-            var cacheCfg = new CacheConfiguration
+            var cacheCfg = new CacheConfiguration(CacheName)
             {
                 CacheMode = CacheMode.Partitioned,
                 Backups = 0,
@@ -46,10 +49,25 @@ namespace Apache.Ignite.Core.Tests.Cache
             };
 
             using (var ignite = Ignition.Start(TestUtils.GetTestConfiguration()))
-            using (var ignite2 = Ignition.Start(TestUtils.GetTestConfiguration(name: "grid2")))
             {
                 var cache = ignite.CreateCache<int, int>(cacheCfg);
             }
+        }
+
+        [TearDown]
+        public void TearDown()
+        {
+            Ignition.StopAll(true);
+        }
+
+        /// <summary>
+        /// Prepares the topology.
+        /// </summary>
+        private static void PrepareTopology()
+        {
+            var ignite = Ignition.GetIgnite();
+
+            var ignite2 = Ignition.Start(TestUtils.GetTestConfiguration(name: "ignite-2"));
         }
     }
 }
