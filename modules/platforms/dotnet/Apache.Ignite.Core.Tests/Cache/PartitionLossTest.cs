@@ -56,14 +56,20 @@ namespace Apache.Ignite.Core.Tests.Cache
             {
                 var cache = ignite.CreateCache<int, int>(cacheCfg);
 
+                // Loose data and verify lost partition.
                 var lostPart = PrepareTopology();
-
                 var lostParts = cache.GetLostPartitions();
-
                 Assert.IsTrue(lostParts.Contains(lostPart));
 
-                ignite.ResetLostPartitions(CacheName);
+                // Check cache operations.
+                foreach (var part in lostParts)
+                {
+                    cache.Get(part);
+                    cache[part] = part;
+                }
 
+                // Reset and verify.
+                ignite.ResetLostPartitions(CacheName);
                 Assert.IsEmpty(cache.GetLostPartitions());
 
                 // Check another ResetLostPartitions overload.
