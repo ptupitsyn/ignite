@@ -36,18 +36,27 @@ namespace Apache.Ignite.Core.Tests.Cache
         /** */
         private const string CacheName = "lossTestCache";
 
+        /// <summary>
+        /// Fixture set up.
+        /// </summary>
         [TestFixtureSetUp]
         public void FixtureSetUp()
         {
             Ignition.Start(TestUtils.GetTestConfiguration());
         }
 
+        /// <summary>
+        /// Fixture tear down.
+        /// </summary>
         [TestFixtureTearDown]
         public void FixtureTearDown()
         {
             Ignition.StopAll(true);
         }
 
+        /// <summary>
+        /// Test teardown.
+        /// </summary>
         [TearDown]
         public void TearDown()
         {
@@ -56,28 +65,49 @@ namespace Apache.Ignite.Core.Tests.Cache
             ignite.GetCacheNames().ToList().ForEach(ignite.DestroyCache);
         }
 
+        /// <summary>
+        /// Tests the ReadOnlySafe mode.
+        /// </summary>
         [Test]
         public void TestReadOnlySafe()
         {
             TestPartitionLoss(PartitionLossPolicy.ReadOnlySafe, false, true);
         }
 
+        /// <summary>
+        /// Tests the ReadWriteSafe mode.
+        /// </summary>
         [Test]
         public void TestReadWriteSafe()
         {
             TestPartitionLoss(PartitionLossPolicy.ReadWriteSafe, true, true);
         }
 
+        /// <summary>
+        /// Tests the ReadOnlyAll mode.
+        /// </summary>
         [Test]
         public void TestReadOnlyAll()
         {
             TestPartitionLoss(PartitionLossPolicy.ReadOnlyAll, false, false);
         }
 
+        /// <summary>
+        /// Tests the ReadWriteAll mode.
+        /// </summary>
         [Test]
         public void TestReadWriteAll()
         {
             TestPartitionLoss(PartitionLossPolicy.ReadWriteAll, true, false);
+        }
+
+        /// <summary>
+        /// Tests the Ignore mode.
+        /// </summary>
+        [Test]
+        public void TestIgnoreLoss()
+        {
+            // TODO
         }
 
         /// <summary>
@@ -87,20 +117,7 @@ namespace Apache.Ignite.Core.Tests.Cache
         {
             var ignite = Ignition.GetIgnite();
 
-            var cacheCfg = new CacheConfiguration(CacheName)
-            {
-                CacheMode = CacheMode.Partitioned,
-                Backups = 0,
-                WriteSynchronizationMode = CacheWriteSynchronizationMode.FullSync,
-                PartitionLossPolicy = policy,
-                AffinityFunction = new RendezvousAffinityFunction
-                {
-                    ExcludeNeighbors = false,
-                    Partitions = 32
-                }
-            };
-
-            var cache = ignite.CreateCache<int, int>(cacheCfg);
+            var cache = CreateCache(policy, ignite);
 
             // Loose data and verify lost partition.
             var lostPart = PrepareTopology();
@@ -110,48 +127,7 @@ namespace Apache.Ignite.Core.Tests.Cache
             // Check cache operations.
             foreach (var part in lostParts)
             {
-                if (safe)
-                {
-                    int val;
-                    var ex = Assert.Throws<CacheException>(() => cache.TryGet(part, out val));
-                    Assert.AreEqual(string.Format(
-                        "class org.apache.ignite.internal.processors.cache.CacheInvalidStateException" +
-                        ": Failed to execute cache operation (all partition owners have left the grid, " +
-                        "partition data has been lost) [cacheName={0}, part={1}," +
-                        " key=UserKeyCacheObjectImpl [part={1}, val={1}, hasValBytes=false]]", 
-                        CacheName, part), ex.Message);
-                }
-                else
-                {
-                    int val;
-                    Assert.IsFalse(cache.TryGet(part, out val));
-                }
-
-                if (canWrite)
-                {
-                    if (safe)
-                    {
-                        var ex = Assert.Throws<CacheException>(() => cache.Put(part, part));
-                        Assert.AreEqual(string.Format(
-                            "class org.apache.ignite.internal.processors.cache.CacheInvalidStateException: " +
-                            "Failed to execute cache operation (all partition owners have left the grid, " +
-                            "partition data has been lost) [cacheName={0}, part={1}, key={1}]",
-                            CacheName, part), ex.Message);
-                    }
-                    else
-                    {
-                        cache[part] = part;
-                        Assert.AreEqual(part, cache[part]);
-                    }
-                }
-                else
-                {
-                    var ex = Assert.Throws<CacheException>(() => cache.Put(part, part));
-                    Assert.AreEqual(string.Format(
-                        "class org.apache.ignite.IgniteCheckedException: " +
-                        "Failed to write to cache (cache is moved to a read-only state): {0}",
-                        CacheName), ex.Message);
-                }
+                VerifyCacheOperations(cache, part, canWrite, safe);
 
                 // Check recover cache.
                 var recoverCache = cache.WithPartitionRecover();
@@ -177,6 +153,74 @@ namespace Apache.Ignite.Core.Tests.Cache
             ex = Assert.Throws<IgniteException>(() => ignite.ResetLostPartitions(CacheName, "baz"));
             Assert.AreEqual("x", ex.Message);
             */
+        }
+
+        /// <summary>
+        /// Verifies the cache operations.
+        /// </summary>
+        private static void VerifyCacheOperations(ICache<int, int> cache, int part, bool canWrite, bool safe)
+        {
+            if (safe)
+            {
+                int val;
+                var ex = Assert.Throws<CacheException>(() => cache.TryGet(part, out val));
+                Assert.AreEqual(string.Format(
+                    "class org.apache.ignite.internal.processors.cache.CacheInvalidStateException" +
+                    ": Failed to execute cache operation (all partition owners have left the grid, " +
+                    "partition data has been lost) [cacheName={0}, part={1}," +
+                    " key=UserKeyCacheObjectImpl [part={1}, val={1}, hasValBytes=false]]",
+                    CacheName, part), ex.Message);
+            }
+            else
+            {
+                int val;
+                Assert.IsFalse(cache.TryGet(part, out val));
+            }
+
+            if (canWrite)
+            {
+                if (safe)
+                {
+                    var ex = Assert.Throws<CacheException>(() => cache.Put(part, part));
+                    Assert.AreEqual(string.Format(
+                        "class org.apache.ignite.internal.processors.cache.CacheInvalidStateException: " +
+                        "Failed to execute cache operation (all partition owners have left the grid, " +
+                        "partition data has been lost) [cacheName={0}, part={1}, key={1}]",
+                        CacheName, part), ex.Message);
+                }
+                else
+                {
+                    cache[part] = part;
+                    Assert.AreEqual(part, cache[part]);
+                }
+            }
+            else
+            {
+                var ex = Assert.Throws<CacheException>(() => cache.Put(part, part));
+                Assert.AreEqual(string.Format(
+                    "class org.apache.ignite.IgniteCheckedException: " +
+                    "Failed to write to cache (cache is moved to a read-only state): {0}",
+                    CacheName), ex.Message);
+            }
+        }
+
+        /// <summary>
+        /// Creates the cache.
+        /// </summary>
+        private static ICache<int, int> CreateCache(PartitionLossPolicy policy, IIgnite ignite)
+        {
+            return ignite.CreateCache<int, int>(new CacheConfiguration(CacheName)
+            {
+                CacheMode = CacheMode.Partitioned,
+                Backups = 0,
+                WriteSynchronizationMode = CacheWriteSynchronizationMode.FullSync,
+                PartitionLossPolicy = policy,
+                AffinityFunction = new RendezvousAffinityFunction
+                {
+                    ExcludeNeighbors = false,
+                    Partitions = 32
+                }
+            });
         }
 
         /// <summary>
