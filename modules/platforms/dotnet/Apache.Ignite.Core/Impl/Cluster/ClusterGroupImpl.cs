@@ -511,6 +511,16 @@ namespace Apache.Ignite.Core.Impl.Cluster
         }
 
         /// <summary>
+        /// Resets the lost partitions.
+        /// </summary>
+        public void ResetLostPartitions(IEnumerable<string> cacheNames)
+        {
+            IgniteArgumentCheck.NotNull(cacheNames, "cacheNames");
+
+            // TODO
+        }
+
+        /// <summary>
         /// Gets the cache metrics within this cluster group.
         /// </summary>
         /// <param name="cacheName">Name of the cache.</param>

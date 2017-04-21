@@ -703,6 +703,14 @@ namespace Apache.Ignite.Core.Impl
             return PluginProcessor.GetProvider(name).GetPlugin<T>();
         }
 
+        /** <inheritdoc /> */
+        public void ResetLostPartitions(IEnumerable<string> cacheNames)
+        {
+            IgniteArgumentCheck.NotNull(cacheNames, "cacheNames");
+
+            _prj.ResetLostPartitions(cacheNames);
+        }
+
         /// <summary>
         /// Gets or creates near cache.
         /// </summary>
