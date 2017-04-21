@@ -17,8 +17,10 @@
 
 namespace Apache.Ignite.Core.Tests.Cache
 {
+    using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Threading;
     using Apache.Ignite.Core.Cache;
     using Apache.Ignite.Core.Cache.Affinity.Rendezvous;
     using Apache.Ignite.Core.Cache.Configuration;
@@ -99,11 +101,18 @@ namespace Apache.Ignite.Core.Tests.Cache
 
                 cache.PutAll(keys.ToDictionary(x => x, x => x));
 
-                cache.Rebalance().Wait();
+                cache.Rebalance();
 
+                // Wait for rebalance to complete.
                 var node = ignite.GetCluster().GetLocalNode();
+                Func<int, bool> isPrimary = x => affinity.IsPrimary(node, x);
 
-                return keys.First(x => affinity.IsPrimary(node, x));
+                while (!keys.Any(isPrimary))
+                {
+                    Thread.Sleep(10);
+                }
+
+                return keys.First(isPrimary);
             }
         }
     }
