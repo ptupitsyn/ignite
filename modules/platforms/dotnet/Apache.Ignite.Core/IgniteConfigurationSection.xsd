@@ -727,6 +727,11 @@
                                             <xs:documentation>Name of the MemoryPolicyConfiguration for this cache.</xs:documentation>
                                         </xs:annotation>
                                     </xs:attribute>
+                                    <xs:attribute name="partitionLossPolicy" type="partitionLossPolicy">
+                                        <xs:annotation>
+                                            <xs:documentation>Partition loss policy defines how Ignite will react to a situation when all nodes for some partition leave the cluster.</xs:documentation>
+                                        </xs:annotation>
+                                    </xs:attribute>
                                 </xs:complexType>
                             </xs:element>
                         </xs:sequence>
