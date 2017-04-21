@@ -63,6 +63,24 @@ namespace Apache.Ignite.Core.Tests.Cache
             TestPartitionLoss(PartitionLossPolicy.ReadOnlySafe, false, true);
         }
 
+        [Test]
+        public void TestReadWriteSafe()
+        {
+            TestPartitionLoss(PartitionLossPolicy.ReadWriteSafe, true, true);
+        }
+
+        [Test]
+        public void TestReadOnlyAll()
+        {
+            TestPartitionLoss(PartitionLossPolicy.ReadOnlyAll, false, false);
+        }
+
+        [Test]
+        public void TestReadWriteAll()
+        {
+            TestPartitionLoss(PartitionLossPolicy.ReadWriteAll, true, false);
+        }
+
         /// <summary>
         /// Tests the partition loss.
         /// </summary>
