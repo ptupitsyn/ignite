@@ -498,6 +498,11 @@ namespace Apache.Ignite.AspNet.Tests
             {
                 throw new NotImplementedException();
             }
+
+            public ICollection<int> GetLostPartitions()
+            {
+                throw new NotImplementedException();
+            }
         }
     }
 }

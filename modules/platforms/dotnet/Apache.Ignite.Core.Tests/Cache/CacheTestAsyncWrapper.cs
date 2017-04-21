@@ -548,6 +548,12 @@ namespace Apache.Ignite.Core.Tests.Cache
         }
 
         /** <inheritDoc /> */
+        public ICollection<int> GetLostPartitions()
+        {
+            return _cache.GetLostPartitions();
+        }
+
+        /** <inheritDoc /> */
         public IEnumerator<ICacheEntry<TK, TV>> GetEnumerator()
         {
             return _cache.GetEnumerator();

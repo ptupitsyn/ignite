@@ -17,12 +17,38 @@
 
 namespace Apache.Ignite.Core.Tests.Cache
 {
+    using Apache.Ignite.Core.Cache;
+    using Apache.Ignite.Core.Cache.Affinity.Rendezvous;
     using Apache.Ignite.Core.Cache.Configuration;
+    using NUnit.Framework;
 
     /// <summary>
-    /// Tests <see cref="PartitionLossPolicy"/> and <see cref="IIgnite.ResetLostPartitions"/>.
+    /// Tests <see cref="PartitionLossPolicy"/>, <see cref="IIgnite.ResetLostPartitions"/>,
+    /// and <see cref="ICache{TK,TV}.GetLostPartitions"/>.
     /// </summary>
     public class PartitionLossPolicyTest
     {
+        [Test]
+        public void Test()
+        {
+            var cacheCfg = new CacheConfiguration
+            {
+                CacheMode = CacheMode.Partitioned,
+                Backups = 0,
+                WriteSynchronizationMode = CacheWriteSynchronizationMode.FullSync,
+                PartitionLossPolicy = PartitionLossPolicy.ReadOnlyAll,
+                AffinityFunction = new RendezvousAffinityFunction
+                {
+                    ExcludeNeighbors = false,
+                    Partitions = 32
+                }
+            };
+
+            using (var ignite = Ignition.Start(TestUtils.GetTestConfiguration()))
+            using (var ignite2 = Ignition.Start(TestUtils.GetTestConfiguration(name: "grid2")))
+            {
+                var cache = ignite.CreateCache<int, int>(cacheCfg);
+            }
+        }
     }
 }
