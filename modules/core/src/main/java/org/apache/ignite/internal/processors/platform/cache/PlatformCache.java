@@ -67,6 +67,7 @@ import javax.cache.Cache;
 import javax.cache.integration.CompletionListener;
 import javax.cache.processor.EntryProcessorException;
 import javax.cache.processor.EntryProcessorResult;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
@@ -325,6 +326,9 @@ public class PlatformCache extends PlatformAbstractTarget {
 
     /** */
     public static final int OP_GLOBAL_METRICS = 83;
+
+    /** */
+    public static final int OP_GET_LOST_PARTITIONS = 84;
 
     /** Underlying JCache in binary mode. */
     private final IgniteCacheProxy cache;
@@ -980,6 +984,17 @@ public class PlatformCache extends PlatformAbstractTarget {
                         getConfiguration(CacheConfiguration.class);
 
                 PlatformConfigurationUtils.writeCacheConfiguration(writer, ccfg);
+
+                break;
+
+            case OP_GET_LOST_PARTITIONS:
+                Collection<Integer> parts = cache.lostPartitions();
+
+                writer.writeInt(parts.size());
+
+                for (int p : parts) {
+                    writer.writeInt(p);
+                }
 
                 break;
 

@@ -1040,11 +1040,11 @@ namespace Apache.Ignite.Core.Impl.Cache
             {
                 var cnt = s.ReadInt();
 
-                var res = new List<int>();
+                var res = new List<int>(cnt);
 
                 if (cnt > 0)
                 {
-                    for (int i = 0; i < cnt; i++)
+                    for (var i = 0; i < cnt; i++)
                     {
                         res.Add(s.ReadInt());
                     }
