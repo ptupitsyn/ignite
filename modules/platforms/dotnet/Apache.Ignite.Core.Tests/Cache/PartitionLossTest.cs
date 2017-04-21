@@ -152,17 +152,8 @@ namespace Apache.Ignite.Core.Tests.Cache
             // Check another ResetLostPartitions overload.
             PrepareTopology();
             Assert.IsNotEmpty(cache.GetLostPartitions());
-            ignite.ResetLostPartitions(new List<string> {CacheName});
+            ignite.ResetLostPartitions(new List<string> {CacheName, "foo"});
             Assert.IsEmpty(cache.GetLostPartitions());
-
-            // Invalid cache name.
-            /**
-            var ex = Assert.Throws<IgniteException>(() => ignite.ResetLostPartitions("baz"));
-            Assert.AreEqual("x", ex.Message);
-
-            ex = Assert.Throws<IgniteException>(() => ignite.ResetLostPartitions(CacheName, "baz"));
-            Assert.AreEqual("x", ex.Message);
-            */
         }
 
         /// <summary>
