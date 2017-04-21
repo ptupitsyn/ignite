@@ -31,5 +31,36 @@ namespace Apache.Ignite.Core.Cache.Configuration
     /// </summary>
     public enum PartitionLossPolicy
     {
+        /// <summary>
+        /// All writes to the cache will be failed with an exception, reads will only be allowed for keys in
+        /// non-lost partitions. Reads from lost partitions will be failed with an exception.
+        /// </summary>
+        ReadOnlySafe,
+
+        /// <summary>
+        /// All writes to the cache will be failed with an exception. All reads will proceed as if all partitions
+        /// were in a consistent state. The result of reading from a lost partition is undefined and may be different
+        /// on different nodes in the cluster.
+        /// </summary>
+        ReadOnlyAll,
+
+        /// <summary>
+        /// All reads and writes will be allowed for keys in valid partitions. All reads and writes for keys
+        /// in lost partitions will be failed with an exception.
+        /// </summary>
+        ReadWriteSafe,
+
+        /// <summary>
+        /// All reads and writes will proceed as if all partitions were in a consistent state. The result of
+        /// reading from a lost partition is undefined and may be different on different nodes in the cluster.
+        /// </summary>
+        ReadWriteAll,
+
+        /// <summary>
+        /// If partition is lost, reset it's state and do not clear intermediate data. The result of reading from
+        /// a previously lost and not cleared partition is undefined and may be different on different nodes in the
+        /// cluster.
+        /// </summary>
+        Ignore
     }
 }
