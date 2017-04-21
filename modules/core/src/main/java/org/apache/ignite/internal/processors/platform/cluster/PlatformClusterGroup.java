@@ -238,6 +238,8 @@ public class PlatformClusterGroup extends PlatformAbstractTarget {
 
                 platformCtx.kernalContext().grid().resetLostPartitions(cacheNames);
 
+                break;
+
             default:
                 return super.processInStreamOutLong(type, reader);
         }
