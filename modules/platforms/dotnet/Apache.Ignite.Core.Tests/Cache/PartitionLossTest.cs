@@ -24,6 +24,7 @@ namespace Apache.Ignite.Core.Tests.Cache
     using Apache.Ignite.Core.Cache;
     using Apache.Ignite.Core.Cache.Affinity.Rendezvous;
     using Apache.Ignite.Core.Cache.Configuration;
+    using Apache.Ignite.Core.Common;
     using NUnit.Framework;
 
     /// <summary>
@@ -36,15 +37,45 @@ namespace Apache.Ignite.Core.Tests.Cache
         /** */
         private const string CacheName = "lossTestCache";
 
-        [Test]
-        public void Test()
+        [TestFixtureSetUp]
+        private void FixtureSetUp()
         {
+            Ignition.Start(TestUtils.GetTestConfiguration());
+        }
+
+        [TestFixtureTearDown]
+        private void FixtureTearDown()
+        {
+            Ignition.StopAll(true);
+        }
+
+        [TearDown]
+        public void TearDown()
+        {
+            var ignite = Ignition.GetIgnite();
+
+            ignite.GetCacheNames().ToList().ForEach(ignite.DestroyCache);
+        }
+
+        [Test]
+        public void TestReadOnlySafe()
+        {
+            TestPartitionLoss(PartitionLossPolicy.ReadOnlySafe, false, true);
+        }
+
+        /// <summary>
+        /// Tests the partition loss.
+        /// </summary>
+        private static void TestPartitionLoss(PartitionLossPolicy policy, bool canWrite, bool safe)
+        {
+            var ignite = Ignition.GetIgnite();
+
             var cacheCfg = new CacheConfiguration(CacheName)
             {
                 CacheMode = CacheMode.Partitioned,
                 Backups = 0,
                 WriteSynchronizationMode = CacheWriteSynchronizationMode.FullSync,
-                PartitionLossPolicy = PartitionLossPolicy.ReadOnlyAll,
+                PartitionLossPolicy = policy,
                 AffinityFunction = new RendezvousAffinityFunction
                 {
                     ExcludeNeighbors = false,
@@ -52,48 +83,58 @@ namespace Apache.Ignite.Core.Tests.Cache
                 }
             };
 
-            using (var ignite = Ignition.Start(TestUtils.GetTestConfiguration()))
+            var cache = ignite.CreateCache<int, int>(cacheCfg);
+
+            // Loose data and verify lost partition.
+            var lostPart = PrepareTopology();
+            var lostParts = cache.GetLostPartitions();
+            Assert.IsTrue(lostParts.Contains(lostPart));
+
+            // Check cache operations.
+            foreach (var part in lostParts)
             {
-                var cache = ignite.CreateCache<int, int>(cacheCfg);
-
-                // Loose data and verify lost partition.
-                var lostPart = PrepareTopology();
-                var lostParts = cache.GetLostPartitions();
-                Assert.IsTrue(lostParts.Contains(lostPart));
-
-                // Check cache operations.
-                foreach (var part in lostParts)
+                if (safe)
                 {
-                    cache.Get(part);
-                    cache[part] = part;
+                    int val;
+                    var ex = Assert.Throws<IgniteException>(() => cache.TryGet(part, out val));
+                    Assert.AreEqual("", ex.Message);
+                }
+                else
+                {
+                    int val;
+                    Assert.IsFalse(cache.TryGet(part, out val));
                 }
 
-                // Reset and verify.
-                ignite.ResetLostPartitions(CacheName);
-                Assert.IsEmpty(cache.GetLostPartitions());
-
-                // Check another ResetLostPartitions overload.
-                PrepareTopology();
-                Assert.IsNotEmpty(cache.GetLostPartitions());
-                ignite.ResetLostPartitions(new List<string> {CacheName});
-                Assert.IsEmpty(cache.GetLostPartitions());
-
-                // Invalid cache name.
-                /**
-                var ex = Assert.Throws<IgniteException>(() => ignite.ResetLostPartitions("baz"));
-                Assert.AreEqual("x", ex.Message);
-
-                ex = Assert.Throws<IgniteException>(() => ignite.ResetLostPartitions(CacheName, "baz"));
-                Assert.AreEqual("x", ex.Message);
-                */
-
+                if (canWrite)
+                {
+                    cache[part] = part;
+                    Assert.AreEqual(part, cache[part]);
+                }
+                else
+                {
+                    var ex = Assert.Throws<IgniteException>(() => cache.Put(part, part));
+                    Assert.AreEqual("", ex.Message);
+                }
             }
-        }
 
-        [TearDown]
-        public void TearDown()
-        {
-            Ignition.StopAll(true);
+            // Reset and verify.
+            ignite.ResetLostPartitions(CacheName);
+            Assert.IsEmpty(cache.GetLostPartitions());
+
+            // Check another ResetLostPartitions overload.
+            PrepareTopology();
+            Assert.IsNotEmpty(cache.GetLostPartitions());
+            ignite.ResetLostPartitions(new List<string> {CacheName});
+            Assert.IsEmpty(cache.GetLostPartitions());
+
+            // Invalid cache name.
+            /**
+            var ex = Assert.Throws<IgniteException>(() => ignite.ResetLostPartitions("baz"));
+            Assert.AreEqual("x", ex.Message);
+
+            ex = Assert.Throws<IgniteException>(() => ignite.ResetLostPartitions(CacheName, "baz"));
+            Assert.AreEqual("x", ex.Message);
+            */
         }
 
         /// <summary>
