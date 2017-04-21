@@ -74,8 +74,12 @@ namespace Apache.Ignite.Core.Tests.Cache
                 Assert.IsEmpty(cache.GetLostPartitions());
 
                 // Invalid cache name.
-                var ex = Assert.Throws<IgniteException>(() => ignite.ResetLostPartitions(CacheName, "baz"));
+                var ex = Assert.Throws<IgniteException>(() => ignite.ResetLostPartitions("baz"));
                 Assert.AreEqual("todo", ex.Message);
+
+                ex = Assert.Throws<IgniteException>(() => ignite.ResetLostPartitions(CacheName, "baz"));
+                Assert.AreEqual("todo", ex.Message);
+
             }
         }
 
