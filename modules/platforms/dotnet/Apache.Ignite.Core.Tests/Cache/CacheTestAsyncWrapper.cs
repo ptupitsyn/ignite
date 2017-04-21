@@ -583,7 +583,7 @@ namespace Apache.Ignite.Core.Tests.Cache
             }
             catch (AggregateException ex)
             {
-                throw ex.InnerException;
+                throw ex.InnerException ?? ex;
             }
         }
 
@@ -598,7 +598,7 @@ namespace Apache.Ignite.Core.Tests.Cache
             }
             catch (Exception ex)
             {
-                throw ex.InnerException;
+                throw ex.InnerException ?? ex;
             }
         }
     }
