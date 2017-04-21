@@ -901,7 +901,7 @@ namespace Apache.Ignite.Core.Cache
         /// Gets lost partitions IDs.
         /// <para />
         /// See also <see cref="CacheConfiguration.PartitionLossPolicy"/>
-        /// and <see cref="IIgnite.ResetLostPartitions"/>.
+        /// and <see cref="IIgnite.ResetLostPartitions(IEnumerable{string})"/>.
         /// </summary>
         ICollection<int> GetLostPartitions();
     }

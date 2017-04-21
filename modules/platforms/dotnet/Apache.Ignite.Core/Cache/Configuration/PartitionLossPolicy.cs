@@ -17,12 +17,14 @@
 
 namespace Apache.Ignite.Core.Cache.Configuration
 {
+    using System.Collections.Generic;
+
     /// <summary>
     /// Partition loss policy. Defines how cache will behave in a case when one or more partitions are
     /// lost because of a node(s) failure.
     /// <para />
     /// All *Safe policies prevent a user from interaction with partial data in lost partitions until 
-    /// <see cref="IIgnite.ResetLostPartitions"/> method is called.
+    /// <see cref="IIgnite.ResetLostPartitions(IEnumerable{string})"/> method is called.
     /// <para />
     /// *All policies allow working with partial data in lost partitions.
     /// <para />

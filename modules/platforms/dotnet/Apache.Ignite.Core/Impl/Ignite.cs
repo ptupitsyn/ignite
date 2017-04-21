@@ -711,6 +711,12 @@ namespace Apache.Ignite.Core.Impl
             _prj.ResetLostPartitions(cacheNames);
         }
 
+        /** <inheritdoc /> */
+        public void ResetLostPartitions(params string[] cacheNames)
+        {
+            ResetLostPartitions((IEnumerable<string>) cacheNames);
+        }
+
         /// <summary>
         /// Gets or creates near cache.
         /// </summary>

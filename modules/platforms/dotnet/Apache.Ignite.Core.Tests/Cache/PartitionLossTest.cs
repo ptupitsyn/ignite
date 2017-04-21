@@ -17,6 +17,7 @@
 
 namespace Apache.Ignite.Core.Tests.Cache
 {
+    using System.Collections.Generic;
     using System.Linq;
     using Apache.Ignite.Core.Cache;
     using Apache.Ignite.Core.Cache.Affinity.Rendezvous;
@@ -25,7 +26,7 @@ namespace Apache.Ignite.Core.Tests.Cache
 
     /// <summary>
     /// Tests partition loss management functionality:
-    /// <see cref="PartitionLossPolicy"/>, <see cref="IIgnite.ResetLostPartitions"/>,
+    /// <see cref="PartitionLossPolicy"/>, <see cref="IIgnite.ResetLostPartitions(IEnumerable{string})"/>,
     /// <see cref="ICache{TK,TV}.GetLostPartitions"/>, <see cref="ICache{TK,TV}"/>.
     /// </summary>
     public class PartitionLossTest
@@ -52,6 +53,16 @@ namespace Apache.Ignite.Core.Tests.Cache
             using (var ignite = Ignition.Start(TestUtils.GetTestConfiguration()))
             {
                 var cache = ignite.CreateCache<int, int>(cacheCfg);
+
+                var lostPart = PrepareTopology();
+
+                var lostParts = cache.GetLostPartitions();
+
+                Assert.IsTrue(lostParts.Contains(lostPart));
+
+                ignite.ResetLostPartitions(CacheName);
+
+                Assert.IsEmpty(cache.GetLostPartitions());
             }
         }
 
