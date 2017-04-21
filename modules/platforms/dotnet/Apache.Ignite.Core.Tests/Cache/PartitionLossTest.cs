@@ -22,6 +22,7 @@ namespace Apache.Ignite.Core.Tests.Cache
     using Apache.Ignite.Core.Cache;
     using Apache.Ignite.Core.Cache.Affinity.Rendezvous;
     using Apache.Ignite.Core.Cache.Configuration;
+    using Apache.Ignite.Core.Common;
     using NUnit.Framework;
 
     /// <summary>
@@ -63,6 +64,16 @@ namespace Apache.Ignite.Core.Tests.Cache
                 ignite.ResetLostPartitions(CacheName);
 
                 Assert.IsEmpty(cache.GetLostPartitions());
+
+                // Check another ResetLostPartitions overload.
+                PrepareTopology();
+                Assert.IsNotEmpty(cache.GetLostPartitions());
+                ignite.ResetLostPartitions(new List<string> {CacheName});
+                Assert.IsEmpty(cache.GetLostPartitions());
+
+                // Invalid cache name.
+                var ex = Assert.Throws<IgniteException>(() => ignite.ResetLostPartitions(CacheName, "baz"));
+                Assert.AreEqual("todo", ex.Message);
             }
         }
 
