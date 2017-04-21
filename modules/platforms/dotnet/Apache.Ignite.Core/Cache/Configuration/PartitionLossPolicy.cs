@@ -21,11 +21,13 @@ namespace Apache.Ignite.Core.Cache.Configuration
     /// Partition loss policy. Defines how cache will behave in a case when one or more partitions are
     /// lost because of a node(s) failure.
     /// <para />
-    /// All *Safe policies prevent a user from interaction with partial data in lost partitions until {@link Ignite#resetLostPartitions(Collection)} method is called. <code>*_ALL</code> policies allow working with
-* partial data in lost partitions.
-* <p>
-* <code>READ_ONLY_*</code> and<code> READ_WRITE_*</code> policies do not automatically change partition state
-    * and thus do not change rebalancing assignments for such partitions.
+    /// All *Safe policies prevent a user from interaction with partial data in lost partitions until 
+    /// <see cref="IIgnite.ResetLostPartitions"/> method is called.
+    /// <para />
+    /// *All policies allow working with partial data in lost partitions.
+    /// <para />
+    /// ReadOnly* and ReadWrite* policies do not automatically change partition state and thus do not change
+    /// rebalancing assignments for such partitions.
     /// </summary>
     public enum PartitionLossPolicy
     {
