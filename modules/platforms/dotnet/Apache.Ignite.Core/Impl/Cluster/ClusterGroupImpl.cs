@@ -115,6 +115,9 @@ namespace Apache.Ignite.Core.Impl.Cluster
         /** */
         private const int OpCacheMetrics = 24;
         
+        /** */
+        private const int OpResetLostPartitions = 25;
+        
         /** Initial Ignite instance. */
         private readonly Ignite _ignite;
         
@@ -517,7 +520,21 @@ namespace Apache.Ignite.Core.Impl.Cluster
         {
             IgniteArgumentCheck.NotNull(cacheNames, "cacheNames");
 
-            // TODO
+            DoOutOp(OpResetLostPartitions, w =>
+            {
+                var pos = w.Stream.Position;
+
+                var count = 0;
+                w.WriteInt(count);  // Reserve space.
+
+                foreach (var cacheName in cacheNames)
+                {
+                    w.WriteString(cacheName);
+                    count++;
+                }
+
+                w.Stream.WriteInt(pos, count);
+            });
         }
 
         /// <summary>
