@@ -22,5 +22,14 @@ namespace Apache.Ignite.Core.Cache
     /// </summary>
     public interface IMemoryMetrics
     {
+        /// <summary>
+        /// Gets the memory policy name.
+        /// </summary>
+        string Name { get; }
+
+        /// <summary>
+        /// Gets the size.
+        /// </summary>
+        int Size { get; }
     }
 }
