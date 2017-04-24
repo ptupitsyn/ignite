@@ -28,8 +28,28 @@ namespace Apache.Ignite.Core.Cache
         string Name { get; }
 
         /// <summary>
-        /// Gets the size.
+        /// Gets the memory size, in bytes.
         /// </summary>
-        int Size { get; }
+        long Size { get; }
+
+        /// <summary>
+        /// Gets the swap file path.
+        /// </summary>
+        string SwapFilePath { get; }
+
+        /// <summary>
+        /// Gets the count of allocated pages.
+        /// </summary>
+        long PageCount { get; }
+
+        /// <summary>
+        /// Gets the allocation rate, in pages per second.
+        /// </summary>
+        float AllocationRate { get; }
+
+        /// <summary>
+        /// Gets the eviction rate, in pages per second.
+        /// </summary>
+        float EvictionRate { get; }
     }
 }
