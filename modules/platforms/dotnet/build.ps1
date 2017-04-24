@@ -158,9 +158,9 @@ echo "Restoring NuGet..."
 # Build
 $targets = if ($clean) {"Clean;Rebuild"} else {"Build"}
 $codeAnalysis = if ($skipCodeAnalysis) {"/p:RunCodeAnalysis=false"} else {""}
-$msBuildCommand = "$msbuildExe Apache.Ignite.sln /target:$targets /p:Configuration=$configuration /p:Platform=`"$platform`" $codeAnalysis /p:UseSharedCompilation=false"
+$msBuildCommand = "Apache.Ignite.sln /target:$targets /p:Configuration=$configuration /p:Platform=`"$platform`" $codeAnalysis /p:UseSharedCompilation=false"
 echo "Starting MsBuild: '$msBuildCommand'"
-& $msbuildExe
+& $msBuildExe $msBuildCommand
 
 # Check result
 if ($LastExitCode -ne 0) {
