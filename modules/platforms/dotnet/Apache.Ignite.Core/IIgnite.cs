@@ -332,6 +332,8 @@ namespace Apache.Ignite.Core
 
         /// <summary>
         /// Gets a collection of memory metrics, one for each <see cref="MemoryConfiguration.MemoryPolicies"/>.
+        /// <para />
+        /// Memory metrics should be enabled with <see cref="EnableMemoryMetrics(bool, string)"/> call.
         /// </summary>
         ICollection<IMemoryMetrics> GetMemoryMetrics();
 

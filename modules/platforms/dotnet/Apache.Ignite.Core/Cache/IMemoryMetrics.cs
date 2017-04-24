@@ -18,7 +18,7 @@
 namespace Apache.Ignite.Core.Cache
 {
     /// <summary>
-    /// Memory usage metrics. See TODO.
+    /// Memory usage metrics.
     /// </summary>
     public interface IMemoryMetrics
     {
