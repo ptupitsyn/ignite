@@ -51,5 +51,15 @@ namespace Apache.Ignite.Core.Cache
         /// Gets the eviction rate, in pages per second.
         /// </summary>
         float EvictionRate { get; }
+
+        /// <summary>
+        /// Gets the percentage of pages fully occupied by entries that are larger than page.
+        /// </summary>
+        float LargeEntriesPagesPercentage { get; }
+
+        /// <summary>
+        /// Gets the page fill factor: free space to overall size ratio across all pages.
+        /// </summary>
+        float PageFillFactor { get; }
     }
 }
