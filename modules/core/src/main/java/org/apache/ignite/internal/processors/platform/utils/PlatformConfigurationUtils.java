@@ -557,10 +557,10 @@ public class PlatformConfigurationUtils {
             cfg.setDaemon(in.readBoolean());
         if (in.readBoolean())
             cfg.setLateAffinityAssignment(in.readBoolean());
-        if (in.readBoolean()) {
-            cfg.setClientFailureDetectionTimeout(in.readLong());
+        if (in.readBoolean())
             cfg.setFailureDetectionTimeout(in.readLong());
-        }
+        if (in.readBoolean())
+            cfg.setClientFailureDetectionTimeout(in.readLong());
 
         readCacheConfigurations(in, cfg);
         readDiscoveryConfiguration(in, cfg);
@@ -758,6 +758,7 @@ public class PlatformConfigurationUtils {
         disco.setStatisticsPrintFrequency(in.readLong());
         disco.setIpFinderCleanFrequency(in.readLong());
         disco.setThreadPriority(in.readInt());
+        disco.setMetricsUpdateFrequency(in.readLong());
         disco.setTopHistorySize(in.readInt());
 
         cfg.setDiscoverySpi(disco);
@@ -1155,6 +1156,7 @@ public class PlatformConfigurationUtils {
         w.writeLong(tcp.getStatisticsPrintFrequency());
         w.writeLong(tcp.getIpFinderCleanFrequency());
         w.writeInt(tcp.getThreadPriority());
+        w.writeLong(tcp.getMetricsUpdateFrequency());
         w.writeInt((int)tcp.getTopHistorySize());
     }
 
