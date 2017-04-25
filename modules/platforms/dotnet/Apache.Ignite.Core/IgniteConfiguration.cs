@@ -949,7 +949,7 @@ namespace Apache.Ignite.Core
 
         /// <summary>
         /// Gets or sets the failure detection timeout used by <see cref="TcpDiscoverySpi"/> 
-        /// and <see cref="TcpCommunicationSpi"/>.
+        /// and <see cref="TcpCommunicationSpi"/> for client nodes.
         /// </summary>
         [DefaultValue(typeof(TimeSpan), "00:00:30")]
         public TimeSpan ClientFailureDetectionTimeout
