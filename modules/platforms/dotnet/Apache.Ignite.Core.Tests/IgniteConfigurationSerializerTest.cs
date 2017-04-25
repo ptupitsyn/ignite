@@ -730,8 +730,6 @@ namespace Apache.Ignite.Core.Tests
                     LocalAddress = "127.0.0.1",
                     LocalPort = 49900,
                     LocalPortRange = 13,
-                    MaxMissedClientHeartbeats = 9,
-                    MaxMissedHeartbeats = 7,
                     ReconnectCount = 11,
                     StatisticsPrintFrequency = TimeSpan.FromSeconds(20),
                     ThreadPriority = 6,

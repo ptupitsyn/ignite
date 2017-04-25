@@ -107,8 +107,6 @@ namespace Apache.Ignite.Core.Tests
                 Assert.AreEqual(disco.LocalAddress, resDisco.LocalAddress);
                 Assert.AreEqual(disco.LocalPort, resDisco.LocalPort);
                 Assert.AreEqual(disco.LocalPortRange, resDisco.LocalPortRange);
-                Assert.AreEqual(disco.MaxMissedClientHeartbeats, resDisco.MaxMissedClientHeartbeats);
-                Assert.AreEqual(disco.MaxMissedHeartbeats, resDisco.MaxMissedHeartbeats);
                 Assert.AreEqual(disco.ReconnectCount, resDisco.ReconnectCount);
                 Assert.AreEqual(disco.StatisticsPrintFrequency, resDisco.StatisticsPrintFrequency);
                 Assert.AreEqual(disco.ThreadPriority, resDisco.ThreadPriority);
@@ -484,8 +482,6 @@ namespace Apache.Ignite.Core.Tests
                     LocalAddress = "127.0.0.1",
                     LocalPort = 49900,
                     LocalPortRange = 13,
-                    MaxMissedClientHeartbeats = 9,
-                    MaxMissedHeartbeats = 7,
                     ReconnectCount = 11,
                     StatisticsPrintFrequency = TimeSpan.FromSeconds(20),
                     ThreadPriority = 6,
