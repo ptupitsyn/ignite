@@ -791,6 +791,7 @@ namespace Apache.Ignite.Core.Tests
                 SpringConfigUrl = "test",
                 Logger = new IgniteNLogLogger(),
                 FailureDetectionTimeout = TimeSpan.FromMinutes(2),
+                ClientFailureDetectionTimeout = TimeSpan.FromMinutes(3),
                 PluginConfigurations = new[] {new TestIgnitePluginConfiguration() },
                 EventStorageSpi = new MemoryEventStorageSpi
                 {

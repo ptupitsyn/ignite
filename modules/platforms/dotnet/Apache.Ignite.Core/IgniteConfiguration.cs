@@ -96,6 +96,11 @@ namespace Apache.Ignite.Core
         /// </summary>
         public static readonly TimeSpan DefaultFailureDetectionTimeout = TimeSpan.FromSeconds(10);
 
+        /// <summary>
+        /// Default failure detection timeout.
+        /// </summary>
+        public static readonly TimeSpan DefaultClientFailureDetectionTimeout = TimeSpan.FromSeconds(30);
+
         /** */
         private TimeSpan? _metricsExpireTime;
 
@@ -128,6 +133,9 @@ namespace Apache.Ignite.Core
 
         /** */
         private TimeSpan? _failureDetectionTimeout;
+
+        /** */
+        private TimeSpan? _clientFailureDetectionTimeout;
 
         /// <summary>
         /// Default network retry count.
@@ -937,6 +945,17 @@ namespace Apache.Ignite.Core
         {
             get { return _failureDetectionTimeout ?? DefaultFailureDetectionTimeout; }
             set { _failureDetectionTimeout = value; }
+        }
+
+        /// <summary>
+        /// Gets or sets the failure detection timeout used by <see cref="TcpDiscoverySpi"/> 
+        /// and <see cref="TcpCommunicationSpi"/>.
+        /// </summary>
+        [DefaultValue(typeof(TimeSpan), "00:00:30")]
+        public TimeSpan ClientFailureDetectionTimeout
+        {
+            get { return _clientFailureDetectionTimeout ?? DefaultClientFailureDetectionTimeout; }
+            set { _clientFailureDetectionTimeout = value; }
         }
 
         /// <summary>
