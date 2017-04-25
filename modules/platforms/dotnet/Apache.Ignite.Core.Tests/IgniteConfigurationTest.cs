@@ -489,7 +489,7 @@ namespace Apache.Ignite.Core.Tests
                     StatisticsPrintFrequency = TimeSpan.FromSeconds(20),
                     ThreadPriority = 6,
                     TopologyHistorySize = 1234567,
-                    MetricsUpdateFrequency = TimeSpan.FromMinutes(1.5)
+                    MetricsUpdateFrequency = TimeSpan.FromMinutes(5.6)
                 },
                 IgniteInstanceName = "gridName1",
                 IncludedEventTypes = EventType.DiscoveryAll,
@@ -542,7 +542,7 @@ namespace Apache.Ignite.Core.Tests
                     UnacknowledgedMessagesBufferSize = 3450
                 },
                 FailureDetectionTimeout = TimeSpan.FromSeconds(3.5),
-                ClientFailureDetectionTimeout = TimeSpan.FromSeconds(4.5),
+                ClientFailureDetectionTimeout = TimeSpan.FromMinutes(12.3),
                 BinaryConfiguration = new BinaryConfiguration
                 {
                     CompactFooter = false,

@@ -972,8 +972,9 @@ public class PlatformConfigurationUtils {
         w.writeBoolean(true);
         w.writeBoolean(cfg.isLateAffinityAssignment());
         w.writeBoolean(true);
-        w.writeLong(cfg.getClientFailureDetectionTimeout());
         w.writeLong(cfg.getFailureDetectionTimeout());
+        w.writeBoolean(true);
+        w.writeLong(cfg.getClientFailureDetectionTimeout());
 
         CacheConfiguration[] cacheCfg = cfg.getCacheConfiguration();
 
