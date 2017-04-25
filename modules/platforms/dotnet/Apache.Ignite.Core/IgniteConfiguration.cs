@@ -218,6 +218,7 @@ namespace Apache.Ignite.Core
             writer.WriteBooleanNullable(_isDaemon);
             writer.WriteBooleanNullable(_isLateAffinityAssignment);
             writer.WriteTimeSpanAsLongNullable(_failureDetectionTimeout);
+            writer.WriteTimeSpanAsLongNullable(_clientFailureDetectionTimeout);
 
             // Cache config
             var caches = CacheConfiguration;
@@ -433,6 +434,7 @@ namespace Apache.Ignite.Core
             _isDaemon = r.ReadBooleanNullable();
             _isLateAffinityAssignment = r.ReadBooleanNullable();
             _failureDetectionTimeout = r.ReadTimeSpanNullable();
+            _clientFailureDetectionTimeout = r.ReadTimeSpanNullable();
 
             // Cache config
             var cacheCfgCount = r.ReadInt();
