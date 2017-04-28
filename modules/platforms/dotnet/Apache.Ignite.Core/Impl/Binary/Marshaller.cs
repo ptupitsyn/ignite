@@ -456,7 +456,10 @@ namespace Apache.Ignite.Core.Impl.Binary
             if (requiresType)
             {
                 // Check marshaller context for dynamically registered type.
-                var type = _ignite == null ? null : _ignite.BinaryProcessor.GetType(typeId);
+                var type = _ignite == null
+                    ? null
+                    : _ignite.BinaryProcessor.GetType(typeId)
+                      ?? PeerAssemblyResolver.LoadAssemblyAndGetType(typeId, this);
 
                 if (type != null)
                     return AddUserType(type, typeId, GetTypeName(type), true, desc);
@@ -466,6 +469,8 @@ namespace Apache.Ignite.Core.Impl.Binary
 
             if (meta != BinaryType.Empty)
             {
+                // This code is executed when a BinaryObject with unknown type is constructed.
+                // Peer loading is not applicable here.
                 desc = new BinaryFullTypeDescriptor(null, meta.TypeId, meta.TypeName, true, null, null, null, false,
                     meta.AffinityKeyFieldName, meta.IsEnum, new BinaryTypeConfiguration
                     {
