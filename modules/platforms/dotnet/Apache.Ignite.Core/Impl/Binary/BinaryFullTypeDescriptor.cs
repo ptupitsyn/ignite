@@ -114,6 +114,7 @@ namespace Apache.Ignite.Core.Impl.Binary
             _typeConfiguration = typeCfg;
 
             _isRegistered = isRegistered;
+            _isEnum = isEnum;
             _schema = new BinaryObjectSchema();
         }
 
