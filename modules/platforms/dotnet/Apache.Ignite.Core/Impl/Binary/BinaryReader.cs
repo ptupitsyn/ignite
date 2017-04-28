@@ -698,7 +698,7 @@ namespace Apache.Ignite.Core.Impl.Binary
                         : _marsh.GetDescriptor(hdr.IsUserType, hdr.TypeId, true);
 
                     // Instantiate object. 
-                    if (type == null)
+                    if (desc.Type == null)
                     {
                         if (desc is BinarySurrogateTypeDescriptor)
                         {

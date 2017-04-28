@@ -446,6 +446,7 @@ namespace Apache.Ignite.Core.Impl.Binary
             var typeKey = BinaryUtils.TypeKey(userType, typeId);
 
             if (_idToDesc.TryGetValue(typeKey, out desc) && (!requiresType || desc.Type != null))
+            {
                 return desc;
             }
 
@@ -466,7 +467,12 @@ namespace Apache.Ignite.Core.Impl.Binary
             if (meta != BinaryType.Empty)
             {
                 desc = new BinaryFullTypeDescriptor(null, meta.TypeId, meta.TypeName, true, null, null, null, false,
-                    meta.AffinityKeyFieldName, meta.IsEnum);
+                    meta.AffinityKeyFieldName, meta.IsEnum, new BinaryTypeConfiguration
+                    {
+                        IsEnum = meta.IsEnum,
+                        AffinityKeyFieldName = meta.AffinityKeyFieldName,
+                        TypeName = meta.TypeName
+                    });
 
                 _idToDesc.GetOrAdd(typeKey, _ => desc);
 
