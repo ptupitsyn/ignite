@@ -35,6 +35,7 @@ import org.apache.ignite.cache.store.jdbc.model.PersonKey;
 import org.apache.ignite.configuration.CacheConfiguration;
 import org.apache.ignite.configuration.ConnectorConfiguration;
 import org.apache.ignite.configuration.IgniteConfiguration;
+import org.apache.ignite.internal.binary.BinaryMarshaller;
 import org.apache.ignite.internal.util.typedef.internal.U;
 import org.apache.ignite.marshaller.Marshaller;
 import org.apache.ignite.spi.discovery.tcp.TcpDiscoverySpi;
@@ -131,8 +132,8 @@ public abstract class CacheJdbcPojoStoreAbstractSelfTest extends GridCommonAbstr
     }
 
     /** {@inheritDoc} */
-    @Override protected IgniteConfiguration getConfiguration(String gridName) throws Exception {
-        IgniteConfiguration cfg = super.getConfiguration(gridName);
+    @Override protected IgniteConfiguration getConfiguration(String igniteInstanceName) throws Exception {
+        IgniteConfiguration cfg = super.getConfiguration(igniteInstanceName);
 
         TcpDiscoverySpi disco = new TcpDiscoverySpi();
 
@@ -219,8 +220,8 @@ public abstract class CacheJdbcPojoStoreAbstractSelfTest extends GridCommonAbstr
         cc.setName(CACHE_NAME);
         cc.setCacheMode(PARTITIONED);
         cc.setAtomicityMode(transactional ? TRANSACTIONAL : ATOMIC);
-        cc.setSwapEnabled(false);
         cc.setWriteBehindEnabled(false);
+        cc.setStoreKeepBinary(storeKeepBinary());
 
         CacheJdbcPojoStoreFactory<Object, Object> storeFactory = new CacheJdbcPojoStoreFactory<>();
         storeFactory.setDialect(new H2Dialect());
@@ -235,6 +236,13 @@ public abstract class CacheJdbcPojoStoreAbstractSelfTest extends GridCommonAbstr
         cc.setLoadPreviousValue(true);
 
         return cc;
+    }
+
+    /**
+     * @return Flag indicate keep value in binary format or not.
+     */
+    protected boolean storeKeepBinary(){
+        return false;
     }
 
     /**
@@ -397,12 +405,12 @@ public abstract class CacheJdbcPojoStoreAbstractSelfTest extends GridCommonAbstr
      * @throws Exception If failed.
      */
     private void checkPutRemove() throws Exception {
+        boolean binaryMarshaller = marshaller() instanceof BinaryMarshaller || marshaller() == null;
+
         IgniteCache<Object, Person> c1 = grid().cache(CACHE_NAME);
 
         Connection conn = getConnection();
         try {
-            Random rnd = new Random();
-
             PreparedStatement stmt = conn.prepareStatement("SELECT ID, ORG_ID, BIRTHDAY, NAME, GENDER FROM PERSON WHERE ID = ?");
 
             stmt.setInt(1, -1);
@@ -431,7 +439,9 @@ public abstract class CacheJdbcPojoStoreAbstractSelfTest extends GridCommonAbstr
             assertEquals(-2, rs.getInt(2));
             assertEquals(testDate, rs.getDate(3));
             assertEquals("Person-to-test-put-insert", rs.getString(4));
-            assertEquals(testGender.toString(), rs.getString(5));
+
+            assertEquals(testGender.toString(),
+                binaryMarshaller ? Gender.values()[rs.getInt(5)].toString(): rs.getString(5));
 
             assertFalse("Unexpected more data in result set", rs.next());
 
@@ -450,7 +460,9 @@ public abstract class CacheJdbcPojoStoreAbstractSelfTest extends GridCommonAbstr
             assertEquals(-3, rs.getInt(2));
             assertEquals(testDate, rs.getDate(3));
             assertEquals("Person-to-test-put-update", rs.getString(4));
-            assertEquals(testGender.toString(), rs.getString(5));
+
+            assertEquals(testGender.toString(),
+                binaryMarshaller ? Gender.values()[rs.getInt(5)].toString(): rs.getString(5));
 
             assertFalse("Unexpected more data in result set", rs.next());
 
