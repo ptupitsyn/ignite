@@ -66,9 +66,6 @@ namespace Apache.Ignite.Core.Impl.Binary
         /** */
         private readonly ILogger _log;
 
-        /** Locker for peer assembly loading. */
-        private readonly object _peerLoadingSyncRoot = new object();
-
         /// <summary>
         /// Constructor.
         /// </summary>
@@ -134,14 +131,6 @@ namespace Apache.Ignite.Core.Impl.Binary
         /// This may be desirable for static system marshallers where everything is written in unregistered mode.
         /// </summary>
         public bool RegistrationDisabled { get; set; }
-
-        /// <summary>
-        /// Gets an object that can be used to synchronize peer assembly loading process.
-        /// </summary>
-        public object PeerLoadingSyncRoot
-        {
-            get { return _peerLoadingSyncRoot; }
-        }
 
         /// <summary>
         /// Marshal object.
