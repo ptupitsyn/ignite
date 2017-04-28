@@ -55,7 +55,7 @@ namespace Apache.Ignite.Core.Tests.Binary.Deployment
         {
             TestDeployment(ignite =>
             {
-                ignite.GetOrCreateCache<int, ProcessNameFuncBinarizable>((string)null)[1] =
+                ignite.GetOrCreateCache<int, ProcessNameFuncBinarizable>("default")[1] =
                     new ProcessNameFuncBinarizable { Foo = "foo" };
 
                 var result = ignite.GetCluster().ForRemotes().GetCompute().Call(
