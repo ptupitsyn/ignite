@@ -20,7 +20,6 @@ namespace Apache.Ignite.Core.Tests.Binary.Deployment
     using System;
     using System.IO;
     using System.Threading;
-    using Apache.Ignite.Core.Binary;
     using Apache.Ignite.Core.Impl;
     using Apache.Ignite.Core.Impl.Common;
     using Apache.Ignite.Core.Tests.Process;
@@ -125,12 +124,7 @@ namespace Apache.Ignite.Core.Tests.Binary.Deployment
             Assert.IsFalse(proc.HasExited);
 
             // Start Ignite and execute computation on remote node.
-            var cfg = new IgniteConfiguration(TestUtils.GetTestConfiguration())
-            {
-                BinaryConfiguration = new BinaryConfiguration(typeof(ProcessNameFuncBinarizable))
-            };
-
-            using (var ignite = Ignition.Start(cfg))
+            using (var ignite = Ignition.Start(TestUtils.GetTestConfiguration()))
             {
                 Assert.IsTrue(ignite.WaitTopology(2));
 
