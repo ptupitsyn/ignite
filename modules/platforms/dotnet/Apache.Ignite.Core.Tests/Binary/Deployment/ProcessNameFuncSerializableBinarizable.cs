@@ -35,7 +35,7 @@ namespace Apache.Ignite.Core.Tests.Binary.Deployment
         /** <inheritdoc /> */
         public string Invoke()
         {
-            var binObj = _ignite.GetCache<int, int>(null).WithKeepBinary<int, IBinaryObject>()[1];
+            var binObj = _ignite.GetCache<int, int>("default").WithKeepBinary<int, IBinaryObject>()[1];
 
             var cacheObj = binObj.Deserialize<ProcessNameFuncBinarizable>();
 
