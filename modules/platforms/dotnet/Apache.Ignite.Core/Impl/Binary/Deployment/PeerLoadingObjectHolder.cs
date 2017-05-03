@@ -56,6 +56,8 @@ namespace Apache.Ignite.Core.Impl.Binary.Deployment
             var type = Type.GetType(typeName, false)
                        ?? PeerAssemblyResolver.LoadAssemblyAndGetType(typeName, reader.Marshaller.Ignite);
 
+            Debug.Assert(type != null);
+
             _object = reader.ReadObjectAs(type);
         }
 
