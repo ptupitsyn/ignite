@@ -732,7 +732,9 @@ namespace Apache.Ignite.Core.Impl.Binary
             AddSystemType(BinaryUtils.TypePlatformJavaObjectFactoryProxy, r => new PlatformJavaObjectFactoryProxy());
             AddSystemType(0, r => new ObjectInfoHolder(r));
             AddSystemType(BinaryUtils.TypeIgniteUuid, r => new IgniteGuid(r));
-            AddSystemType(0, r => new GetAssemblyFunc(r.Marshaller));
+            AddSystemType(0, r => new GetAssemblyFunc());
+            AddSystemType(0, r => new AssemblyRequest(r));
+            AddSystemType(0, r => new AssemblyRequestResult(r));
             AddSystemType(0, r => new PeerLoadingObjectHolder(r));
         }
 

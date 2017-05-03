@@ -19,7 +19,6 @@ namespace Apache.Ignite.Core.Impl.Binary.Deployment
 {
     using System;
     using System.Diagnostics;
-    using System.Reflection;
 
     /// <summary>
     /// Loads assemblies from other nodes.
@@ -30,9 +29,9 @@ namespace Apache.Ignite.Core.Impl.Binary.Deployment
         /// Gets the assembly from remote nodes.
         /// </summary>
         /// <param name="typeName">Assembly-qualified type name.</param>
-        /// <param name="marshaller">The marshaller.</param>
+        /// <param name="ignite">Ignite.</param>
         /// <returns>Resulting type or null.</returns>
-        public static Type LoadAssemblyAndGetType(string typeName, Marshaller marshaller)
+        public static Type LoadAssemblyAndGetType(string typeName, Ignite ignite)
         {
             Debug.Assert(!string.IsNullOrEmpty(typeName));
 
@@ -41,7 +40,7 @@ namespace Apache.Ignite.Core.Impl.Binary.Deployment
             if (assemblyName == null)
                 return null;
 
-            var res = RequestAssembly(assemblyName, null, marshaller);
+            var res = RequestAssembly(assemblyName, ignite);
 
             if (res == null)
                 return null;
@@ -54,33 +53,12 @@ namespace Apache.Ignite.Core.Impl.Binary.Deployment
         /// <summary>
         /// Gets the assembly from remote nodes.
         /// </summary>
-        /// <param name="typeId">Type id.</param>
-        /// <param name="marshaller">The marshaller.</param>
-        /// <returns>Peer-loaded assembly or null.</returns>
-        public static Type LoadAssemblyAndGetType(int typeId, Marshaller marshaller)
-        {
-            var res =  RequestAssembly(null, typeId, marshaller);
-
-            if (res == null)
-                return null;
-
-            var asm = AssemblyLoader.LoadAssembly(res.AssemblyBytes, res.AssemblyName);
-
-            return asm.GetType(res.TypeName);
-        }
-
-        /// <summary>
-        /// Gets the assembly from remote nodes.
-        /// </summary>
         /// <param name="assemblyName">Name of the assembly.</param>
-        /// <param name="typeId">Type id.</param>
-        /// <param name="marshaller">The marshaller.</param>
+        /// <param name="ignite">Ignite.</param>
         /// <returns>Successful result or null.</returns>
-        private static AssemblyRequestResult RequestAssembly(string assemblyName, int? typeId, Marshaller marshaller)
+        private static AssemblyRequestResult RequestAssembly(string assemblyName, Ignite ignite)
         {
-            Debug.Assert(marshaller != null);
-
-            var ignite = marshaller.Ignite;
+            Debug.Assert(assemblyName != null);
             Debug.Assert(ignite != null);
 
             if (!ignite.Configuration.IsPeerAssemblyLoadingEnabled)
@@ -88,8 +66,8 @@ namespace Apache.Ignite.Core.Impl.Binary.Deployment
 
             // TODO: Track new nodes? Not sure if this makes sense, since some of the old nodes caused this call.
             var dotNetNodes = ignite.GetCluster().ForDotNet().ForRemotes().GetNodes();
-            var func = new GetAssemblyFunc(marshaller);
-            var req = new AssemblyRequest(assemblyName, typeId);
+            var func = new GetAssemblyFunc();
+            var req = new AssemblyRequest(assemblyName);
 
             foreach (var node in dotNetNodes)
             {

@@ -17,7 +17,6 @@
  
 namespace Apache.Ignite.Core.Impl.Binary.Deployment
 {
-    using System.Diagnostics;
     using Apache.Ignite.Core.Binary;
     using Apache.Ignite.Core.Common;
     using Apache.Ignite.Core.Compute;
@@ -28,64 +27,32 @@ namespace Apache.Ignite.Core.Impl.Binary.Deployment
     /// </summary>
     internal class GetAssemblyFunc : IComputeFunc<AssemblyRequest, AssemblyRequestResult>, IBinaryWriteAware
     {
-        /** Marshaller. */
-        private readonly Marshaller _marshaller;
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="GetAssemblyFunc"/> class.
-        /// </summary>
-        /// <param name="marshaller">The marshaller.</param>
-        public GetAssemblyFunc(Marshaller marshaller)
-        {
-            Debug.Assert(marshaller != null);
-
-            _marshaller = marshaller;
-        }
-
         /** <inheritdoc /> */
         public AssemblyRequestResult Invoke(AssemblyRequest arg)
         {
             if (arg == null)
+            {
                 throw new IgniteException("GetAssemblyFunc does not allow null arguments.");
-
-            if (arg.AssemblyName != null)
-            {
-                var asm = LoadedAssembliesResolver.Instance.GetAssembly(arg.AssemblyName);
-
-                if (asm == null)
-                    return null;
-
-                // Dynamic assemblies are not supported.
-                if (asm.IsDynamic)
-                {
-                    return new AssemblyRequestResult(
-                        "Peer assembly loading does not support dynamic assemblies: " + asm);
-                }
-
-                return new AssemblyRequestResult(AssemblyLoader.GetAssemblyBytes(asm), null, null, asm.FullName);
             }
 
-            if (arg.TypeId != null)
+            if (arg.AssemblyName == null)
             {
-                var desc = _marshaller.GetDescriptor(true, arg.TypeId.Value);
+                throw new IgniteException("GetAssemblyFunc does not allow null AssemblyName.");
+            }
+            
+            var asm = LoadedAssembliesResolver.Instance.GetAssembly(arg.AssemblyName);
 
-                if (desc == null || desc.Type == null)
-                    return null;
+            if (asm == null)
+                return null;
 
-                var type = desc.Type;
-
-                // Dynamic assemblies are not supported.
-                if (type.Assembly.IsDynamic)
-                {
-                    return new AssemblyRequestResult(
-                        "Peer assembly loading does not support dynamic assemblies: " + type.Assembly);
-                }
-
-                return new AssemblyRequestResult(AssemblyLoader.GetAssemblyBytes(type.Assembly), null, 
-                    type.FullName, type.Assembly.FullName);
+            // Dynamic assemblies are not supported.
+            if (asm.IsDynamic)
+            {
+                return new AssemblyRequestResult(
+                    "Peer assembly loading does not support dynamic assemblies: " + asm);
             }
 
-            throw new IgniteException("AssemblyName and TypeId are null in AssemblyRequest.");
+            return new AssemblyRequestResult(AssemblyLoader.GetAssemblyBytes(asm), null, null, asm.FullName);
         }
 
         /** <inheritdoc /> */
