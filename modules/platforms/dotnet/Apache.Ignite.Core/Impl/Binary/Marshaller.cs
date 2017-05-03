@@ -724,6 +724,7 @@ namespace Apache.Ignite.Core.Impl.Binary
             AddSystemType(0, r => new ObjectInfoHolder(r));
             AddSystemType(BinaryUtils.TypeIgniteUuid, r => new IgniteGuid(r));
             AddSystemType(0, r => new GetAssemblyFunc(r.Marshaller));
+            AddSystemType(0, r => new PeerLoadingObjectHolder(r));
         }
 
         /// <summary>

@@ -44,14 +44,6 @@ namespace Apache.Ignite.Core.Impl.Binary.Deployment
         }
 
         /// <summary>
-        /// Gets the object.
-        /// </summary>
-        public object Object
-        {
-            get { return _object; }
-        }
-
-        /// <summary>
         /// Initializes a new instance of the <see cref="PeerLoadingObjectHolder"/> class.
         /// </summary>
         public PeerLoadingObjectHolder(BinaryReader reader)
@@ -61,11 +53,18 @@ namespace Apache.Ignite.Core.Impl.Binary.Deployment
             var typeName = reader.ReadString();
 
             // Resolve type from existing assemblies or from remote nodes.
-            // TODO: Check configuration for peerLoading flag.
             var type = Type.GetType(typeName, false)
                        ?? PeerAssemblyResolver.LoadAssemblyAndGetType(0, reader.Marshaller);
 
             _object = reader.ReadObjectAs(type);
+        }
+
+        /// <summary>
+        /// Gets the object.
+        /// </summary>
+        public object Object
+        {
+            get { return _object; }
         }
 
         /** <inheritdoc /> */
