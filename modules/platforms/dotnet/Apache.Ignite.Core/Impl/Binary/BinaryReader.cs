@@ -591,13 +591,18 @@ namespace Apache.Ignite.Core.Impl.Binary
         }
 
         /// <summary>
-        /// Reads the object as specified type, bypassing default type resolving mechanism.
+        /// Reads the object as specified type, overriding default type resolving mechanism.
         /// </summary>
-        public object ReadObjectAs(Type type)
+        /// <param name="typeOverride">The type override.
+        /// There can be multiple versions of the same type when peer assembly loading is enabled.
+        /// Only first one is registered in Marshaller.
+        /// This parameter specifies exact type to be instantiated.</param>
+        /// <returns>Resulting object.</returns>
+        public object ReadObjectAs(Type typeOverride)
         {
-            Debug.Assert(type != null);
+            Debug.Assert(typeOverride != null);
 
-            return ReadFullObject<object>(Stream.Position, type);
+            return ReadFullObject<object>(Stream.Position, typeOverride);
         }
 
         /// <summary>
@@ -665,8 +670,14 @@ namespace Apache.Ignite.Core.Impl.Binary
         /// <summary>
         /// Reads the full object.
         /// </summary>
+        /// <param name="pos">The position.</param>
+        /// <param name="typeOverride">The type override.
+        /// There can be multiple versions of the same type when peer assembly loading is enabled.
+        /// Only first one is registered in Marshaller.
+        /// This parameter specifies exact type to be instantiated.</param>
+        /// <returns>Resulting object</returns>
         [SuppressMessage("Microsoft.Performance", "CA1804:RemoveUnusedLocals", MessageId = "hashCode")]
-        private T ReadFullObject<T>(int pos, Type knownType = null)
+        private T ReadFullObject<T>(int pos, Type typeOverride = null)
         {
             var hdr = BinaryObjectHeader.Read(Stream, pos);
 
@@ -704,8 +715,8 @@ namespace Apache.Ignite.Core.Impl.Binary
                 {
                     // Find descriptor.
                     var desc = hdr.TypeId == BinaryUtils.TypeUnregistered
-                        ? _marsh.GetDescriptor(ReadUnregisteredType(knownType))
-                        : _marsh.GetDescriptor(hdr.IsUserType, hdr.TypeId, true, knownType);
+                        ? _marsh.GetDescriptor(ReadUnregisteredType(typeOverride))
+                        : _marsh.GetDescriptor(hdr.IsUserType, hdr.TypeId, true, typeOverride);
 
                     // Instantiate object. 
                     if (desc.Type == null)
@@ -736,7 +747,7 @@ namespace Apache.Ignite.Core.Impl.Binary
                     _frame.Raw = false;
 
                     // Read object.
-                    var obj = desc.Serializer.ReadBinary<T>(this, desc, pos);
+                    var obj = desc.Serializer.ReadBinary<T>(this, desc, pos, typeOverride);
 
                     _frame.Struct.UpdateReaderStructure();
 
