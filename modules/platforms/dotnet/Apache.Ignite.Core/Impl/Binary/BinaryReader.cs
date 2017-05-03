@@ -600,8 +600,6 @@ namespace Apache.Ignite.Core.Impl.Binary
         /// <returns>Resulting object.</returns>
         public object ReadObjectAs(Type typeOverride)
         {
-            Debug.Assert(typeOverride != null);
-
             return ReadFullObject<object>(Stream.Position, typeOverride);
         }
 
