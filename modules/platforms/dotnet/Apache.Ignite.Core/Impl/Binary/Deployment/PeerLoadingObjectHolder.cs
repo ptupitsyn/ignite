@@ -54,7 +54,7 @@ namespace Apache.Ignite.Core.Impl.Binary.Deployment
 
             // Resolve type from existing assemblies or from remote nodes.
             var type = Type.GetType(typeName, false)
-                       ?? PeerAssemblyResolver.LoadAssemblyAndGetType(0, reader.Marshaller);
+                       ?? PeerAssemblyResolver.LoadAssemblyAndGetType(typeName, reader.Marshaller);
 
             _object = reader.ReadObjectAs(type);
         }

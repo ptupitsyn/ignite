@@ -124,7 +124,12 @@ namespace Apache.Ignite.Core.Tests.Binary.Deployment
             Assert.IsFalse(proc.HasExited);
 
             // Start Ignite and execute computation on remote node.
-            using (var ignite = Ignition.Start(TestUtils.GetTestConfiguration()))
+            var cfg = new IgniteConfiguration(TestUtils.GetTestConfiguration())
+            {
+                IsPeerAssemblyLoadingEnabled = true
+            };
+
+            using (var ignite = Ignition.Start(cfg))
             {
                 Assert.IsTrue(ignite.WaitTopology(2));
 
