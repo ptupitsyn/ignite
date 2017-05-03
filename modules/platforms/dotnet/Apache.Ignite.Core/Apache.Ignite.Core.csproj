@@ -114,6 +114,7 @@
     <Compile Include="Impl\Binary\Deployment\AssemblyRequestResult.cs" />
     <Compile Include="Impl\Binary\Deployment\GetAssemblyFunc.cs" />
     <Compile Include="Impl\Binary\Deployment\PeerAssemblyResolver.cs" />
+    <Compile Include="Impl\Binary\Deployment\PeerLoadingExtensions.cs" />
     <Compile Include="Impl\Binary\Deployment\PeerLoadingObjectHolder.cs" />
     <Compile Include="Impl\Binary\IBinarySerializerInternal.cs" />
     <Compile Include="Binary\Package-Info.cs" />

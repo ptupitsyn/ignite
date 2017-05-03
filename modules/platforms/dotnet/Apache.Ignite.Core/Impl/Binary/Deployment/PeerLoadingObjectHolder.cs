@@ -18,7 +18,6 @@
 namespace Apache.Ignite.Core.Impl.Binary.Deployment
 {
     using System;
-    using System.CodeDom;
     using System.Diagnostics;
     using Apache.Ignite.Core.Binary;
 
@@ -42,6 +41,14 @@ namespace Apache.Ignite.Core.Impl.Binary.Deployment
             Debug.Assert(o != null);
 
             _object = o;
+        }
+
+        /// <summary>
+        /// Gets the object.
+        /// </summary>
+        public object Object
+        {
+            get { return _object; }
         }
 
         /// <summary>
