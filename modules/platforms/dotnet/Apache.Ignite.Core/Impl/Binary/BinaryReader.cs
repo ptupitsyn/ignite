@@ -591,6 +591,15 @@ namespace Apache.Ignite.Core.Impl.Binary
         }
 
         /// <summary>
+        /// Reads the object as specified type, bypassing default type resolving mechanism.
+        /// </summary>
+        public object ReadObjectAs(Type type)
+        {
+            // TODO
+            return ReadFullObject<object>(Stream.Position);
+        }
+
+        /// <summary>
         /// Reads the binary object.
         /// </summary>
         private T ReadBinaryObject<T>(bool doDetach)

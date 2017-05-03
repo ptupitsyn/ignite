@@ -29,16 +29,26 @@ namespace Apache.Ignite.Core.Impl.Binary.Deployment
         /// <summary>
         /// Gets the assembly from remote nodes.
         /// </summary>
-        /// <param name="assemblyName">Name of the assembly.</param>
+        /// <param name="typeName">Assembly-qualified type name.</param>
         /// <param name="marshaller">The marshaller.</param>
-        /// <returns>Peer-loaded assembly or null.</returns>
-        public static Assembly LoadAssembly(string assemblyName, Marshaller marshaller)
+        /// <returns>Resulting type or null.</returns>
+        public static Type LoadAssemblyAndGetType(string typeName, Marshaller marshaller)
         {
-            Debug.Assert(!string.IsNullOrEmpty(assemblyName));
+            Debug.Assert(!string.IsNullOrEmpty(typeName));
+
+            var assemblyName = TypeNameParser.Parse(typeName).GetAssemblyName();
+
+            if (assemblyName == null)
+                return null;
 
             var res = RequestAssembly(assemblyName, null, marshaller);
 
-            return res == null ? null : AssemblyLoader.LoadAssembly(res.AssemblyBytes, res.AssemblyName);
+            if (res == null)
+                return null;
+
+            var asm = AssemblyLoader.LoadAssembly(res.AssemblyBytes, res.AssemblyName);
+
+            return asm.GetType(typeName, false);
         }
 
         /// <summary>
