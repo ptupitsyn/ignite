@@ -19,7 +19,6 @@ namespace Apache.Ignite.Core.Impl.Binary
 {
     using System;
     using System.Collections.Generic;
-    using System.Diagnostics;
     using Apache.Ignite.Core.Binary;
     using Apache.Ignite.Core.Impl.Binary.Structure;
 
@@ -70,9 +69,6 @@ namespace Apache.Ignite.Core.Impl.Binary
         /** Register flag. */
         private readonly bool _isRegistered;
 
-        /** Type configuration. */
-        private readonly BinaryTypeConfiguration _typeConfiguration;
-
         /// <summary>
         /// Constructor.
         /// </summary>
@@ -87,7 +83,6 @@ namespace Apache.Ignite.Core.Impl.Binary
         /// <param name="affKeyFieldName">Affinity field key name.</param>
         /// <param name="isEnum">Enum flag.</param>
         /// <param name="isRegistered">Registered flag.</param>
-        /// <param name="typeCfg">Binary type configuration.</param>
         public BinaryFullTypeDescriptor(
             Type type, 
             int typeId, 
@@ -99,7 +94,6 @@ namespace Apache.Ignite.Core.Impl.Binary
             bool keepDeserialized, 
             string affKeyFieldName,
             bool isEnum,
-            BinaryTypeConfiguration typeCfg,
             bool isRegistered = true)
         {
             _type = type;
@@ -111,10 +105,9 @@ namespace Apache.Ignite.Core.Impl.Binary
             _serializer = serializer;
             _keepDeserialized = keepDeserialized;
             _affKeyFieldName = affKeyFieldName;
-            _typeConfiguration = typeCfg;
+            _isEnum = isEnum;
 
             _isRegistered = isRegistered;
-            _isEnum = isEnum;
             _schema = new BinaryObjectSchema();
         }
 
@@ -266,14 +259,6 @@ namespace Apache.Ignite.Core.Impl.Binary
         public bool IsRegistered
         {
             get { return _isRegistered; }
-        }
-
-        /// <summary>
-        /// Gets the type configuration. Null for system types, non-null for user types.
-        /// </summary>
-        public BinaryTypeConfiguration TypeConfiguration
-        {
-            get { return _typeConfiguration; }
         }
     }
 }
