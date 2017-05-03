@@ -17,6 +17,8 @@
 
 namespace Apache.Ignite.Core.Impl.Binary.Deployment
 {
+    using Apache.Ignite.Core.Binary;
+
     /// <summary>
     /// Reader and Writer extensions for peer deployment.
     /// </summary>
@@ -37,7 +39,7 @@ namespace Apache.Ignite.Core.Impl.Binary.Deployment
         /// <summary>
         /// Reads the object with peer deployment (when written accordingly) or normally otherwise.
         /// </summary>
-        public static object ReadWithPeerDeployment(this BinaryReader reader)
+        public static object ReadWithPeerDeployment(this IBinaryRawReader reader)
         {
             var o = reader.ReadObject<object>();
 
