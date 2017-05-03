@@ -25,6 +25,7 @@ namespace Apache.Ignite.Core.Impl.Binary
     using Apache.Ignite.Core.Binary;
     using Apache.Ignite.Core.Cache.Affinity;
     using Apache.Ignite.Core.Common;
+    using Apache.Ignite.Core.Impl.Binary.Deployment;
     using Apache.Ignite.Core.Impl.Binary.IO;
     using Apache.Ignite.Core.Impl.Binary.Metadata;
     using Apache.Ignite.Core.Impl.Cache;
@@ -698,7 +699,7 @@ namespace Apache.Ignite.Core.Impl.Binary
                 typeId = BinaryUtils.GetStringHashCode(typeName);
             }
 
-            AddType(type, typeId, typeName, false, false, null, null, serializer, affKeyFldName, false, null);
+            AddType(type, typeId, typeName, false, false, null, null, serializer, affKeyFldName, false);
         }
 
         /// <summary>
