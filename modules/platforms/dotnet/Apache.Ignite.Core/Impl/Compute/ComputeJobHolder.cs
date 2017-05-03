@@ -54,6 +54,12 @@ namespace Apache.Ignite.Core.Impl.Compute
             _ignite = reader.Marshaller.Ignite;
 
             _job = reader.ReadObject<IComputeJob>();
+
+            // TODO: Include type information here. Do peer loading on API level, not on marshaller level.
+            // For cache we rely on Binary format version compatibility.
+            // For Compute and other cases we rely on a custom mechanism for resolving types and assemblies.
+            
+            // We should probably introduce a common wrapper for such things.
         }
 
         /// <summary>
