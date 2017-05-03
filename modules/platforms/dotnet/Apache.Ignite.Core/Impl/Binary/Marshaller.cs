@@ -425,10 +425,12 @@ namespace Apache.Ignite.Core.Impl.Binary
         /// Only when we really deserialize the value, requiresType is set to true
         /// and we attempt to resolve the type by all means.
         /// </param>
+        /// <param name="knownType">Optional known type.</param>
         /// <returns>
         /// Descriptor.
         /// </returns>
-        public IBinaryTypeDescriptor GetDescriptor(bool userType, int typeId, bool requiresType = false)
+        public IBinaryTypeDescriptor GetDescriptor(bool userType, int typeId, bool requiresType = false,
+            Type knownType = null)
         {
             BinaryFullTypeDescriptor desc;
 
@@ -443,10 +445,17 @@ namespace Apache.Ignite.Core.Impl.Binary
             if (requiresType)
             {
                 // Check marshaller context for dynamically registered type.
-                var type = _ignite == null ? null : _ignite.BinaryProcessor.GetType(typeId);
+                var type = knownType;
+
+                if (type == null && _ignite != null)
+                {
+                    type = _ignite.BinaryProcessor.GetType(typeId);
+                }
 
                 if (type != null)
+                {
                     return AddUserType(type, typeId, GetTypeName(type), true, desc);
+                }
             }
 
             var meta = GetBinaryType(typeId);

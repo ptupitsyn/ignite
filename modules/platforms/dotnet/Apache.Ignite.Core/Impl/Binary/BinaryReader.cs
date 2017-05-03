@@ -595,8 +595,9 @@ namespace Apache.Ignite.Core.Impl.Binary
         /// </summary>
         public object ReadObjectAs(Type type)
         {
-            // TODO
-            return ReadFullObject<object>(Stream.Position);
+            Debug.Assert(type != null);
+
+            return ReadFullObject<object>(Stream.Position, type);
         }
 
         /// <summary>
@@ -665,7 +666,7 @@ namespace Apache.Ignite.Core.Impl.Binary
         /// Reads the full object.
         /// </summary>
         [SuppressMessage("Microsoft.Performance", "CA1804:RemoveUnusedLocals", MessageId = "hashCode")]
-        private T ReadFullObject<T>(int pos)
+        private T ReadFullObject<T>(int pos, Type knownType = null)
         {
             var hdr = BinaryObjectHeader.Read(Stream, pos);
 
@@ -703,8 +704,8 @@ namespace Apache.Ignite.Core.Impl.Binary
                 {
                     // Find descriptor.
                     var desc = hdr.TypeId == BinaryUtils.TypeUnregistered
-                        ? _marsh.GetDescriptor(Type.GetType(ReadString(), true))
-                        : _marsh.GetDescriptor(hdr.IsUserType, hdr.TypeId, true);
+                        ? _marsh.GetDescriptor(ReadUnregisteredType(knownType))
+                        : _marsh.GetDescriptor(hdr.IsUserType, hdr.TypeId, true, knownType);
 
                     // Instantiate object. 
                     if (desc.Type == null)
@@ -750,6 +751,16 @@ namespace Apache.Ignite.Core.Impl.Binary
                 // Advance stream pointer.
                 Stream.Seek(pos + hdr.Length, SeekOrigin.Begin);
             }
+        }
+
+        /// <summary>
+        /// Reads the unregistered type.
+        /// </summary>
+        private Type ReadUnregisteredType(Type knownType)
+        {
+            var typeName = ReadString();  // Must read always.
+
+            return knownType ?? Type.GetType(typeName, true);
         }
 
         /// <summary>
