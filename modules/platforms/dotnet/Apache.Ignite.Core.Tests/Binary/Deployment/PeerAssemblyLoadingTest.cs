@@ -33,6 +33,15 @@ namespace Apache.Ignite.Core.Tests.Binary.Deployment
     public class PeerAssemblyLoadingTest
     {
         /// <summary>
+        /// Tests that peer loading does not happen when not enabled in config, and error message is informative.
+        /// </summary>
+        [Test]
+        public void TestDisabledPeerLoading()
+        {
+            // TODO
+        }
+
+        /// <summary>
         /// Tests single assembly deployment (basic test).
         /// </summary>
         [Test]
