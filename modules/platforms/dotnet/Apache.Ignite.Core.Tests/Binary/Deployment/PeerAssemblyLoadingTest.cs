@@ -115,7 +115,15 @@ public class GridNameFunc : IComputeFunc<string> { public string Invoke() { retu
 
             var results = CodeDomProvider.CreateProvider("CSharp").CompileAssemblyFromSource(parameters, src);
 
-            Assert.IsNull(results.Errors);
+            var proc = System.Diagnostics.Process.Start(exePath);
+
+            Assert.IsNotNull(proc);
+
+            proc.WaitForExit();
+
+            Assert.AreEqual(0, proc.ExitCode);
+
+            Assert.IsEmpty(results.Errors);
         }
 
         /// <summary>
