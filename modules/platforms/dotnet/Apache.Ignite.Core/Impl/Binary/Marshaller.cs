@@ -449,7 +449,19 @@ namespace Apache.Ignite.Core.Impl.Binary
 
                 if (type == null && _ignite != null)
                 {
-                    type = _ignite.BinaryProcessor.GetType(typeId);
+                    var typeName = _ignite.BinaryProcessor.GetTypeName(typeId);
+
+                    if (typeName != null)
+                    {
+                        // TODO: Add AssemblyLoader to TypeResolver?
+                        type = new TypeResolver().ResolveType(typeName);
+
+                        if (type == null)
+                        {
+                            // Type is registered, but assembly is not present.
+                            return new BinarySurrogateTypeDescriptor(_cfg, typeId, typeName);
+                        }
+                    }
                 }
 
                 if (type != null)

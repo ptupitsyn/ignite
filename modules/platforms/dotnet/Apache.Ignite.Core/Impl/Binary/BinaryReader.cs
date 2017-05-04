@@ -719,14 +719,6 @@ namespace Apache.Ignite.Core.Impl.Binary
                     // Instantiate object. 
                     if (desc.Type == null)
                     {
-                        if (desc is BinarySurrogateTypeDescriptor)
-                        {
-                            throw new BinaryObjectException(string.Format(
-                                "Unknown type ID: {0}. " +
-                                "This usually indicates missing BinaryConfiguration. " +
-                                "Make sure that all nodes have the same BinaryConfiguration.", hdr.TypeId));
-                        }
-
                         throw new BinaryObjectException(string.Format(
                             "No matching type found for object [typeId={0}, typeName={1}]. " +
                             "This usually indicates that assembly with specified type is not loaded on a node." +
