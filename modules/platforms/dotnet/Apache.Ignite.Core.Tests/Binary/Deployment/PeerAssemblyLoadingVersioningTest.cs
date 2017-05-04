@@ -48,8 +48,6 @@ namespace Apache.Ignite.Core.Tests.Binary.Deployment
         [Test]
         public void TestMultipleVersionsOfSameAssembly()
         {
-            var exePath = Path.Combine(TempDir, "PeerTest1.exe");
-
             // Copy required assemblies.
             foreach (var type in new[] { typeof(Ignition), GetType() })
             {
@@ -58,6 +56,47 @@ namespace Apache.Ignite.Core.Tests.Binary.Deployment
                 File.Copy(loc, Path.Combine(TempDir, type.Assembly.GetName().Name + ".dll"));
             }
 
+            var exePath = Path.Combine(TempDir, "PeerTest1.exe");
+            CompileClientNode(exePath);
+
+            using (Ignition.Start(new IgniteConfiguration(TestUtils.GetTestConfiguration())
+            {
+                IsPeerAssemblyLoadingEnabled = true,
+                IgniteInstanceName = "peerDeployTest",
+                DiscoverySpi = new TcpDiscoverySpi
+                {
+                    IpFinder = new TcpDiscoveryStaticIpFinder {Endpoints = new[] {"127.0.0.1:47500..47502"}}
+                }
+            }))
+            {
+                var procStart = new ProcessStartInfo
+                {
+                    FileName = exePath,
+                    CreateNoWindow = true,
+                    UseShellExecute = false,
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true
+                };
+
+                var proc = Process.Start(procStart);
+
+                Assert.IsNotNull(proc);
+
+                proc.WaitForExit(40000);
+                
+                Console.WriteLine(proc.StandardOutput.ReadToEnd());
+                Console.WriteLine(proc.StandardError.ReadToEnd());
+
+                Assert.IsTrue(proc.HasExited);
+                Assert.AreEqual(0, proc.ExitCode);
+            }
+        }
+
+        /// <summary>
+        /// Compiles the client node.
+        /// </summary>
+        private void CompileClientNode(string exePath)
+        {
             var parameters = new CompilerParameters
             {
                 GenerateExecutable = true,
@@ -98,38 +137,6 @@ public class GridNameFunc : IComputeFunc<string> { public string Invoke() { retu
             var results = CodeDomProvider.CreateProvider("CSharp").CompileAssemblyFromSource(parameters, src);
 
             Assert.IsEmpty(results.Errors);
-
-            using (Ignition.Start(new IgniteConfiguration(TestUtils.GetTestConfiguration())
-            {
-                IsPeerAssemblyLoadingEnabled = true,
-                IgniteInstanceName = "peerDeployTest",
-                DiscoverySpi = new TcpDiscoverySpi
-                {
-                    IpFinder = new TcpDiscoveryStaticIpFinder {Endpoints = new[] {"127.0.0.1:47500..47502"}}
-                }
-            }))
-            {
-                var procStart = new ProcessStartInfo
-                {
-                    FileName = exePath,
-                    CreateNoWindow = true,
-                    UseShellExecute = false,
-                    RedirectStandardOutput = true,
-                    RedirectStandardError = true
-                };
-
-                var proc = Process.Start(procStart);
-
-                Assert.IsNotNull(proc);
-
-                proc.WaitForExit(40000);
-                
-                Console.WriteLine(proc.StandardOutput.ReadToEnd());
-                Console.WriteLine(proc.StandardError.ReadToEnd());
-
-                Assert.IsTrue(proc.HasExited);
-                Assert.AreEqual(0, proc.ExitCode);
-            }
         }
     }
 }
