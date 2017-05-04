@@ -120,14 +120,17 @@ namespace Apache.Ignite.Core.Tests.Binary.Deployment
             };
 
             var src = @"
-[assembly: AssemblyVersion("""+version + @""")]
 using System;
+using System.Reflection;
+
 using Apache.Ignite.Core;
 using Apache.Ignite.Core.Compute;
 using Apache.Ignite.Core.Tests;
 using Apache.Ignite.Core.Discovery;
 using Apache.Ignite.Core.Discovery.Tcp;
 using Apache.Ignite.Core.Discovery.Tcp.Static;
+
+[assembly: AssemblyVersion(""" + version + @""")]
 
 class Program
 {
