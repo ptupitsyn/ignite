@@ -33,65 +33,33 @@ namespace Apache.Ignite.Core.Tests.Binary.Deployment
     public class PeerAssemblyLoadingTest
     {
         /// <summary>
-        /// Tests that a [Serializable] type can be peer deployed.
+        /// Tests that a binarizable type can be peer deployed.
         /// </summary>
         [Test]
-        public void TestSerializable()
+        public void TestComputeCall()
         {
             TestDeployment(ignite =>
             {
-                var result = ignite.GetCluster().ForRemotes().GetCompute().Call(new ProcessNameFuncSerializable());
+                var result = ignite.GetCluster().ForRemotes().GetCompute().Call(new ProcessNameFunc());
 
                 Assert.AreEqual("Apache.Ignite", result);
             });
         }
 
         /// <summary>
-        /// Tests that a [Serializable] type which uses binarizable inside can be peer deployed.
+        /// Tests that a type which requires multiple assemblies can be peer deployed.
         /// </summary>
         [Test]
-        public void TestSerializableBinarizable()
-        {
-            TestDeployment(ignite =>
-            {
-                ignite.GetOrCreateCache<int, ProcessNameFuncBinarizable>("default")[1] =
-                    new ProcessNameFuncBinarizable { Foo = "foo" };
-
-                var result = ignite.GetCluster().ForRemotes().GetCompute().Call(
-                    new ProcessNameFuncSerializableBinarizable());
-
-                Assert.AreEqual("fooApache.Ignite", result);
-            });
-        }
-
-        /// <summary>
-        /// Tests that a [Serializable] type which requires multiple assemblies can be peer deployed.
-        /// </summary>
-        [Test]
-        public void TestSerializableMultipleAssemblies()
+        public void TestMultipleAssemblies()
         {
             // TODO
         }
 
         /// <summary>
-        /// Tests that a binarizable type can be peer deployed.
+        /// Tests that multiple versions of same assembly can be used on remote nodes.
         /// </summary>
         [Test]
-        public void TestBinarizable()
-        {
-            TestDeployment(ignite =>
-            {
-                var result = ignite.GetCluster().ForRemotes().GetCompute().Call(new ProcessNameFuncBinarizable());
-
-                Assert.AreEqual("Apache.Ignite", result);
-            });
-        }
-
-        /// <summary>
-        /// Tests that a binarizable type which requires multiple assemblies can be peer deployed.
-        /// </summary>
-        [Test]
-        public void TestBinarizableMultipleAssemblies()
+        public void TestMultipleVersionsOfSameAssembly()
         {
             // TODO
         }

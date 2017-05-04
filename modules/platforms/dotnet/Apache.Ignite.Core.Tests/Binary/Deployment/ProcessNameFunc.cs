@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
@@ -17,29 +17,22 @@
 
 namespace Apache.Ignite.Core.Tests.Binary.Deployment
 {
-    using System;
-    using Apache.Ignite.Core.Binary;
     using Apache.Ignite.Core.Compute;
-    using Apache.Ignite.Core.Resource;
 
     /// <summary>
-    /// Serializable func which uses binarizable inside.
+    /// Function that returns parent process name.
     /// </summary>
-    [Serializable]
-    public class ProcessNameFuncSerializableBinarizable : IComputeFunc<string>
+    public class ProcessNameFunc : IComputeFunc<string>
     {
-        /** Ignite instance. */
-        [InstanceResource]
-        private readonly IIgnite _ignite = null;
+        /// <summary>
+        /// Gets or sets the foo.
+        /// </summary>
+        public string Foo { get; set; }
 
         /** <inheritdoc /> */
         public string Invoke()
         {
-            var binObj = _ignite.GetCache<int, int>("default").WithKeepBinary<int, IBinaryObject>()[1];
-
-            var cacheObj = binObj.Deserialize<ProcessNameFuncBinarizable>();
-
-            return cacheObj.Foo + System.Diagnostics.Process.GetCurrentProcess().ProcessName;
+            return System.Diagnostics.Process.GetCurrentProcess().ProcessName;
         }
     }
 }
