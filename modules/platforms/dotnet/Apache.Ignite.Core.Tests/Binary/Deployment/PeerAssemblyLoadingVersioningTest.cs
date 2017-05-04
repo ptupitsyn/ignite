@@ -83,7 +83,7 @@ class Program
 {
     static void Main(string[] args)
     {
-        using (var ignite = Ignition.Start(new IgniteConfiguration(TestUtils.GetTestConfiguration()) {ClientMode = true, IsPeerAssemblyLoadingEnabled = true,
+        using (var ignite = Ignition.Start(new IgniteConfiguration(TestUtils.GetTestConfiguration(false)) {ClientMode = true, IsPeerAssemblyLoadingEnabled = true,
                 DiscoverySpi = new TcpDiscoverySpi { IpFinder = new TcpDiscoveryStaticIpFinder { Endpoints = new[] { ""127.0.0.1:47500..47502"" } } }
 }))
         {
@@ -122,11 +122,12 @@ public class GridNameFunc : IComputeFunc<string> { public string Invoke() { retu
 
                 Assert.IsNotNull(proc);
 
-                Assert.IsTrue(proc.WaitForExit(15000));
-
+                proc.WaitForExit(45000);
+                
                 Console.WriteLine(proc.StandardOutput.ReadToEnd());
                 Console.WriteLine(proc.StandardError.ReadToEnd());
 
+                Assert.IsTrue(proc.HasExited);
                 Assert.AreEqual(0, proc.ExitCode);
             }
         }
