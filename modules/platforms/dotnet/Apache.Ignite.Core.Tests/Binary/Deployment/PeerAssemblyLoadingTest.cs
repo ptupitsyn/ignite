@@ -52,7 +52,15 @@ namespace Apache.Ignite.Core.Tests.Binary.Deployment
         [Test]
         public void TestMultipleAssemblies()
         {
-            // TODO
+            TestDeployment(ignite =>
+            {
+                var result = ignite.GetCluster().ForRemotes().GetCompute().Apply(new GetAccountFunc(), 3);
+
+                Assert.IsNotNull(result);
+
+                Assert.AreEqual(3, result.Id);
+                Assert.AreEqual(0.3, result.Balance);
+            });
         }
 
         /// <summary>
