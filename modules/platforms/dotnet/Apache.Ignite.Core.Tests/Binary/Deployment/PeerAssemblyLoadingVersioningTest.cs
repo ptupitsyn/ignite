@@ -24,6 +24,7 @@ namespace Apache.Ignite.Core.Tests.Binary.Deployment
     using Apache.Ignite.Core.Discovery.Tcp;
     using Apache.Ignite.Core.Discovery.Tcp.Static;
     using Apache.Ignite.Core.Impl;
+    using Apache.Ignite.Core.Tests.Process;
     using NUnit.Framework;
 
     /// <summary>
@@ -65,7 +66,8 @@ namespace Apache.Ignite.Core.Tests.Binary.Deployment
                 IgniteInstanceName = "peerDeployTest",
                 DiscoverySpi = new TcpDiscoverySpi
                 {
-                    IpFinder = new TcpDiscoveryStaticIpFinder {Endpoints = new[] {"127.0.0.1:47500..47502"}}
+                    IpFinder = new TcpDiscoveryStaticIpFinder {Endpoints = new[] {"127.0.0.1:47500..47502"}},
+                    SocketTimeout = TimeSpan.FromSeconds(0.3)
                 }
             }))
             {
@@ -75,19 +77,15 @@ namespace Apache.Ignite.Core.Tests.Binary.Deployment
                     CreateNoWindow = true,
                     UseShellExecute = false,
                     RedirectStandardOutput = true,
-                    RedirectStandardError = true
+                    RedirectStandardError = true,
                 };
 
                 var proc = Process.Start(procStart);
-
                 Assert.IsNotNull(proc);
 
-                proc.WaitForExit(40000);
-                
-                Console.WriteLine(proc.StandardOutput.ReadToEnd());
-                Console.WriteLine(proc.StandardError.ReadToEnd());
+                IgniteProcess.AttachProcessConsoleReader(proc);
 
-                Assert.IsTrue(proc.HasExited);
+                Assert.IsTrue(proc.WaitForExit(30000));
                 Assert.AreEqual(0, proc.ExitCode);
             }
         }
@@ -123,7 +121,7 @@ class Program
     static void Main(string[] args)
     {
         using (var ignite = Ignition.Start(new IgniteConfiguration(TestUtils.GetTestConfiguration(false)) {ClientMode = true, IsPeerAssemblyLoadingEnabled = true,
-                DiscoverySpi = new TcpDiscoverySpi { IpFinder = new TcpDiscoveryStaticIpFinder { Endpoints = new[] { ""127.0.0.1:47500..47502"" } } }
+                DiscoverySpi = new TcpDiscoverySpi { IpFinder = new TcpDiscoveryStaticIpFinder { Endpoints = new[] { ""127.0.0.1:47500..47502"" } }, SocketTimeout = TimeSpan.FromSeconds(0.3) }
 }))
         {
             if (ignite.GetCompute().Call(new GridNameFunc()) != ""peerDeployTest"") throw new Exception(""fail"");
