@@ -33,10 +33,10 @@ namespace Apache.Ignite.Core.Tests.Binary.Deployment
     public class PeerAssemblyLoadingTest
     {
         /// <summary>
-        /// Tests that a binarizable type can be peer deployed.
+        /// Tests single assembly deployment (basic test).
         /// </summary>
         [Test]
-        public void TestComputeCall()
+        public void TestSingleAssembly()
         {
             TestDeployment(ignite =>
             {
@@ -67,7 +67,7 @@ namespace Apache.Ignite.Core.Tests.Binary.Deployment
         /// <summary>
         /// Tests the peer deployment.
         /// </summary>
-        private void TestDeployment(Action<IIgnite> test)
+        public static void TestDeployment(Action<IIgnite> test)
         {
             // Copy Apache.Ignite.exe and Apache.Ignite.Core.dll 
             // to a separate folder so that it does not locate our assembly automatically.
