@@ -143,7 +143,8 @@ class Program
                 DiscoverySpi = new TcpDiscoverySpi { IpFinder = new TcpDiscoveryStaticIpFinder { Endpoints = new[] { ""127.0.0.1:47500..47502"" } }, SocketTimeout = TimeSpan.FromSeconds(0.3) }
 }))
         {
-            if (ignite.GetCompute().Call(new GridNameFunc()) != ""peerDeployTest_" + version + @""") throw new Exception(""fail"");
+            var res = ignite.GetCompute().Call(new GridNameFunc());
+            if (res != ""peerDeployTest_" + version + @""") throw new Exception(""fail: "" + res);
         }
     }
 }
