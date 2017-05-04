@@ -22,6 +22,7 @@ namespace Apache.Ignite.Core.Impl.Compute
     using Apache.Ignite.Core.Binary;
     using Apache.Ignite.Core.Compute;
     using Apache.Ignite.Core.Impl.Binary;
+    using Apache.Ignite.Core.Impl.Binary.Deployment;
     using Apache.Ignite.Core.Impl.Common;
     using Apache.Ignite.Core.Impl.Resource;
     using Apache.Ignite.Core.Resource;
@@ -76,9 +77,9 @@ namespace Apache.Ignite.Core.Impl.Compute
         /** <inheritDoc /> */
         public void WriteBinary(IBinaryWriter writer)
         {
-            var writer0 = (BinaryWriter)writer.GetRawWriter();
+            var writer0 = (BinaryWriter) writer.GetRawWriter();
 
-            writer0.WithDetach(w => w.WriteObject(_func));
+            writer0.WithDetach(w => w.WriteWithPeerDeployment(_func));
         }
 
         /// <summary>
@@ -87,7 +88,7 @@ namespace Apache.Ignite.Core.Impl.Compute
         /// <param name="reader">The reader.</param>
         public ComputeFuncWrapper(IBinaryRawReader reader)
         {
-            _func = reader.ReadObject<object>();
+            _func = reader.ReadWithPeerDeployment();
 
             _invoker = DelegateTypeDescriptor.GetComputeFunc(_func.GetType());
         }
