@@ -75,11 +75,14 @@ namespace Apache.Ignite.Core.Tests.Binary.Deployment
                 }
             }))
             {
-                RunClientProcess(CompileClientNode(Path.Combine(TempDir, "PeerTest.exe"), "1.0.0"));
-                RunClientProcess(CompileClientNode(Path.Combine(TempDir, "PeerTest.exe"), "1.0.1"));
+                RunClientProcess(CompileClientNode(Path.Combine(TempDir, "PeerTest.exe"), "1.0.1.0"));
+                RunClientProcess(CompileClientNode(Path.Combine(TempDir, "PeerTest.exe"), "1.0.2.0"));
             }
         }
 
+        /// <summary>
+        /// Runs the client process.
+        /// </summary>
         private static void RunClientProcess(string exePath)
         {
             var procStart = new ProcessStartInfo
@@ -140,12 +143,12 @@ class Program
                 DiscoverySpi = new TcpDiscoverySpi { IpFinder = new TcpDiscoveryStaticIpFinder { Endpoints = new[] { ""127.0.0.1:47500..47502"" } }, SocketTimeout = TimeSpan.FromSeconds(0.3) }
 }))
         {
-            if (ignite.GetCompute().Call(new GridNameFunc()) != ""peerDeployTest"") throw new Exception(""fail"");
+            if (ignite.GetCompute().Call(new GridNameFunc()) != ""peerDeployTest_" + version + @""") throw new Exception(""fail"");
         }
     }
 }
 
-public class GridNameFunc : IComputeFunc<string> { public string Invoke() { return Ignition.GetIgnite().Name; } }
+public class GridNameFunc : IComputeFunc<string> { public string Invoke() { return Ignition.GetIgnite().Name + ""_"" + GetType().Assembly.GetName().Version; } }
 ";
 
             var results = CodeDomProvider.CreateProvider("CSharp").CompileAssemblyFromSource(parameters, src);
