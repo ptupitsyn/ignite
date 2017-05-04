@@ -18,6 +18,7 @@
 namespace Apache.Ignite.Core.Tests.Binary.Deployment
 {
     using System;
+    using System.CodeDom.Compiler;
     using System.IO;
     using System.Threading;
     using Apache.Ignite.Core.Impl;
@@ -78,7 +79,43 @@ namespace Apache.Ignite.Core.Tests.Binary.Deployment
         [Test]
         public void TestMultipleVersionsOfSameAssembly()
         {
-            // TODO
+            var exePath = Path.Combine(IgniteUtils.GetTempDirectoryName(), "PeerTest1.exe");
+
+            var parameters = new CompilerParameters
+            {
+                GenerateExecutable = true,
+                OutputAssembly = exePath,
+                ReferencedAssemblies =
+                {
+                    typeof(Ignition).Assembly.Location,
+                    GetType().Assembly.Location,
+                    "System.dll"
+                }
+            };
+
+            var src = @"
+using System;
+using Apache.Ignite.Core;
+using Apache.Ignite.Core.Compute;
+using Apache.Ignite.Core.Tests;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        using (var ignite = Ignition.Start(new IgniteConfiguration(TestUtils.GetTestConfiguration()) {ClientMode = true}))
+        {
+            if (ignite.GetCompute().Call(new GridNameFunc()) != ""peerDeployTest"") throw new Exception(""fail"");
+        }
+    }
+}
+
+public class GridNameFunc : IComputeFunc<string> { public string Invoke() { return Ignition.GetIgnite().Name; } }
+";
+
+            var results = CodeDomProvider.CreateProvider("CSharp").CompileAssemblyFromSource(parameters, src);
+
+            Assert.IsNull(results.Errors);
         }
 
         /// <summary>
