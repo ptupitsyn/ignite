@@ -46,9 +46,7 @@ namespace Apache.Ignite.Core.Impl.Binary.Deployment
 
             Debug.Assert(assemblyName != null);
 
-            var asm = LoadedAssembliesResolver.Instance.GetAssembly(assemblyName)
-                      ?? AssemblyLoader.GetAssembly(assemblyName)
-                      ?? LoadAssembly(ignite, assemblyName);
+            var asm = GetAssemblyWithDependencies(ignite, assemblyName);
 
             if (asm == null)
             {
@@ -57,6 +55,46 @@ namespace Apache.Ignite.Core.Impl.Binary.Deployment
 
             // Assembly.GetType does not work for assembly-qualified names.
             return asm.GetType(parsedName.GetFullName(), false);
+        }
+
+        /// <summary>
+        /// Gets the assembly.
+        /// </summary>
+        private static Assembly GetAssemblyWithDependencies(Ignite ignite, string assemblyName)
+        {
+            return LoadedAssembliesResolver.Instance.GetAssembly(assemblyName)
+                   ?? AssemblyLoader.GetAssembly(assemblyName)
+                   ?? LoadAssemblyWithDependencies(ignite, assemblyName);
+        }
+
+        /// <summary>
+        /// Gets the assembly.
+        /// </summary>
+        private static Assembly GetAssembly(Ignite ignite, string assemblyName)
+        {
+            return LoadedAssembliesResolver.Instance.GetAssembly(assemblyName)
+                   ?? AssemblyLoader.GetAssembly(assemblyName)
+                   ?? LoadAssembly(ignite, assemblyName);
+        }
+
+        /// <summary>
+        /// Loads the assembly.
+        /// </summary>
+        private static Assembly LoadAssemblyWithDependencies(Ignite ignite, string assemblyName)
+        {
+            // Fetch transient dependencies by tracking assembly resolve requests.
+            ResolveEventHandler asmResolve = (sender, args) => GetAssembly(ignite, args.Name);
+
+            AppDomain.CurrentDomain.AssemblyResolve += asmResolve;
+
+            try
+            {
+                return LoadAssembly(ignite, assemblyName);
+            }
+            finally 
+            {
+                AppDomain.CurrentDomain.AssemblyResolve -= asmResolve;
+            }
         }
 
         /// <summary>
@@ -69,7 +107,6 @@ namespace Apache.Ignite.Core.Impl.Binary.Deployment
             if (res == null)
                 return null;
 
-            // TODO: Fetch transient dependencies. Subscribe to AssemblyResolve temporarily.
             return AssemblyLoader.LoadAssembly(res.AssemblyBytes, assemblyName);
         }
 
