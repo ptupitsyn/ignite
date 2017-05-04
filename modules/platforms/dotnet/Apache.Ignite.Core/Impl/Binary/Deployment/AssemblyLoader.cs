@@ -48,6 +48,7 @@ namespace Apache.Ignite.Core.Impl.Binary.Deployment
             // InvalidCastException with message like "Type A originates from <>. Type A originates from <>."
 
             // TODO: We should not use Load(byte[]) overload, because it loads an assembly outside any context.
+            // BUT can we use LoadFrom to load same assembly with different version?
             // Instead, we should probably use LoadFrom: https://msdn.microsoft.com/en-us/library/1009fa28(v=vs.110).aspx
             // This one suits us well:
             // * If an assembly with the same identity is already loaded, LoadFrom returns the loaded assembly even if a different path was specified.
