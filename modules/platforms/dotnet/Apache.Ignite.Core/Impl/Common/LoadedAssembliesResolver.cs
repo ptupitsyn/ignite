@@ -19,6 +19,7 @@ namespace Apache.Ignite.Core.Impl.Common
 {
     using System;
     using System.Collections.Generic;
+    using System.Diagnostics;
     using System.Diagnostics.CodeAnalysis;
     using System.Reflection;
 
@@ -90,6 +91,8 @@ namespace Apache.Ignite.Core.Impl.Common
         [SuppressMessage("ReSharper", "InconsistentlySynchronizedField")]
         public Assembly GetAssembly(string assemblyName)
         {
+            Debug.Assert(!string.IsNullOrWhiteSpace(assemblyName));
+
             Assembly asm;
 
             return _map.TryGetValue(assemblyName, out asm) ? asm : null;

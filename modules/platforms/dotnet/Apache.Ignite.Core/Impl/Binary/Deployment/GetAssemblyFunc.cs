@@ -39,20 +39,29 @@ namespace Apache.Ignite.Core.Impl.Binary.Deployment
             {
                 throw new IgniteException("GetAssemblyFunc does not allow null AssemblyName.");
             }
-            
+
+            // Try assemblies in main context.
             var asm = LoadedAssembliesResolver.Instance.GetAssembly(arg.AssemblyName);
 
-            if (asm == null)
-                return null;
-
-            // Dynamic assemblies are not supported.
-            if (asm.IsDynamic)
+            if (asm != null)
             {
-                return new AssemblyRequestResult(
-                    "Peer assembly loading does not support dynamic assemblies: " + asm);
+                if (asm.IsDynamic)
+                {
+                    return new AssemblyRequestResult(null, 
+                        "Peer assembly loading does not support dynamic assemblies: " + asm);
+                }
+
+                return new AssemblyRequestResult(AssemblyLoader.GetAssemblyBytes(asm), null);
             }
 
-            return new AssemblyRequestResult(AssemblyLoader.GetAssemblyBytes(asm), null, null, asm.FullName);
+            var bytes = AssemblyLoader.GetAssemblyBytes(arg.AssemblyName);
+
+            if (bytes != null)
+            {
+                return new AssemblyRequestResult(bytes, null);
+            }
+
+            return null;
         }
 
         /** <inheritdoc /> */

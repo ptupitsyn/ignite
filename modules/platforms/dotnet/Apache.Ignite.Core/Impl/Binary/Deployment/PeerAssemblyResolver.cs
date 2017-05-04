@@ -19,6 +19,8 @@ namespace Apache.Ignite.Core.Impl.Binary.Deployment
 {
     using System;
     using System.Diagnostics;
+    using System.Reflection;
+    using Apache.Ignite.Core.Impl.Common;
 
     /// <summary>
     /// Loads assemblies from other nodes.
@@ -37,17 +39,31 @@ namespace Apache.Ignite.Core.Impl.Binary.Deployment
 
             var assemblyName = TypeNameParser.Parse(typeName).GetAssemblyName();
 
-            if (assemblyName == null)
-                return null;
+            Debug.Assert(assemblyName != null);
 
+            var asm = LoadedAssembliesResolver.Instance.GetAssembly(assemblyName)
+                      ?? AssemblyLoader.GetAssembly(assemblyName)
+                      ?? LoadAssembly(ignite, assemblyName);
+
+            if (asm == null)
+            {
+                return null;
+            }
+
+            return asm.GetType(typeName, false);
+        }
+
+        /// <summary>
+        /// Loads the assembly.
+        /// </summary>
+        private static Assembly LoadAssembly(Ignite ignite, string assemblyName)
+        {
             var res = RequestAssembly(assemblyName, ignite);
 
             if (res == null)
                 return null;
 
-            var asm = AssemblyLoader.LoadAssembly(res.AssemblyBytes, res.AssemblyName);
-
-            return asm.GetType(typeName, false);
+            return AssemblyLoader.LoadAssembly(res.AssemblyBytes, assemblyName);
         }
 
         /// <summary>

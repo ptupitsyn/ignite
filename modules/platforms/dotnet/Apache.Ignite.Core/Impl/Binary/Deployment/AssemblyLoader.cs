@@ -17,6 +17,7 @@
 
 namespace Apache.Ignite.Core.Impl.Binary.Deployment
 {
+    using System;
     using System.Collections.Generic;
     using System.Diagnostics;
     using System.IO;
@@ -37,7 +38,9 @@ namespace Apache.Ignite.Core.Impl.Binary.Deployment
                 = new CopyOnWriteConcurrentDictionary<string, KeyValuePair<Assembly, byte[]>>();
 
         /// <summary>
-        /// Loads the assembly from bytes.
+        /// Loads the assembly from bytes outside of any context.
+        /// Resulting assembly can only be retrieved with <see cref="GetAssembly"/> call later.
+        /// It won't be located with <see cref="Type.GetType()"/> call.
         /// </summary>
         public static Assembly LoadAssembly(byte[] bytes, string assemblyName)
         {
@@ -57,6 +60,30 @@ namespace Apache.Ignite.Core.Impl.Binary.Deployment
 
                 return new KeyValuePair<Assembly, byte[]>(asm, bytes);
             }).Key;
+        }
+
+        /// <summary>
+        /// Gets the assembly.
+        /// </summary>
+        public static byte[] GetAssemblyBytes(string assemblyName)
+        {
+            Debug.Assert(!string.IsNullOrWhiteSpace(assemblyName));
+
+            KeyValuePair<Assembly, byte[]> res;
+
+            return InMemoryAssemblies.TryGetValue(assemblyName, out res) ? res.Value : null;
+        }
+
+        /// <summary>
+        /// Gets the assembly.
+        /// </summary>
+        public static Assembly GetAssembly(string assemblyName)
+        {
+            Debug.Assert(!string.IsNullOrWhiteSpace(assemblyName));
+
+            KeyValuePair<Assembly, byte[]> res;
+
+            return InMemoryAssemblies.TryGetValue(assemblyName, out res) ? res.Key : null;
         }
 
         /// <summary>
