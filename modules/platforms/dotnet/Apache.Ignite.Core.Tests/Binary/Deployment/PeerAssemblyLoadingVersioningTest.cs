@@ -17,8 +17,12 @@
 
 namespace Apache.Ignite.Core.Tests.Binary.Deployment
 {
+    using System;
     using System.CodeDom.Compiler;
+    using System.Diagnostics;
     using System.IO;
+    using Apache.Ignite.Core.Discovery.Tcp;
+    using Apache.Ignite.Core.Discovery.Tcp.Static;
     using Apache.Ignite.Core.Impl;
     using NUnit.Framework;
 
@@ -71,12 +75,17 @@ using System;
 using Apache.Ignite.Core;
 using Apache.Ignite.Core.Compute;
 using Apache.Ignite.Core.Tests;
+using Apache.Ignite.Core.Discovery;
+using Apache.Ignite.Core.Discovery.Tcp;
+using Apache.Ignite.Core.Discovery.Tcp.Static;
 
 class Program
 {
     static void Main(string[] args)
     {
-        using (var ignite = Ignition.Start(new IgniteConfiguration(TestUtils.GetTestConfiguration()) {ClientMode = true, IsPeerAssemblyLoadingEnabled = true}))
+        using (var ignite = Ignition.Start(new IgniteConfiguration(TestUtils.GetTestConfiguration()) {ClientMode = true, IsPeerAssemblyLoadingEnabled = true,
+                DiscoverySpi = new TcpDiscoverySpi { IpFinder = new TcpDiscoveryStaticIpFinder { Endpoints = new[] { ""127.0.0.1:47500..47502"" } } }
+}))
         {
             if (ignite.GetCompute().Call(new GridNameFunc()) != ""peerDeployTest"") throw new Exception(""fail"");
         }
@@ -93,14 +102,30 @@ public class GridNameFunc : IComputeFunc<string> { public string Invoke() { retu
             using (Ignition.Start(new IgniteConfiguration(TestUtils.GetTestConfiguration())
             {
                 IsPeerAssemblyLoadingEnabled = true,
-                IgniteInstanceName = "peerDeployTest"
+                IgniteInstanceName = "peerDeployTest",
+                DiscoverySpi = new TcpDiscoverySpi
+                {
+                    IpFinder = new TcpDiscoveryStaticIpFinder {Endpoints = new[] {"127.0.0.1:47500..47502"}}
+                }
             }))
             {
-                var proc = System.Diagnostics.Process.Start(exePath);
+                var procStart = new ProcessStartInfo
+                {
+                    FileName = exePath,
+                    CreateNoWindow = true,
+                    UseShellExecute = false,
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true
+                };
+
+                var proc = Process.Start(procStart);
 
                 Assert.IsNotNull(proc);
 
-                proc.WaitForExit();
+                Assert.IsTrue(proc.WaitForExit(15000));
+
+                Console.WriteLine(proc.StandardOutput.ReadToEnd());
+                Console.WriteLine(proc.StandardError.ReadToEnd());
 
                 Assert.AreEqual(0, proc.ExitCode);
             }
