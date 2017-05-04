@@ -40,9 +40,11 @@ namespace Apache.Ignite.Core.Tests.Binary
             // One letter.
             var res = TypeNameParser.Parse("x");
             Assert.AreEqual("x", res.GetNameWithNamespace());
+            Assert.AreEqual("x", res.GetFullName());
             Assert.AreEqual("x", res.GetName());
             Assert.AreEqual(0, res.NameStart);
             Assert.AreEqual(0, res.NameEnd);
+            Assert.AreEqual(0, res.FullNameEnd);
             Assert.AreEqual(-1, res.AssemblyStart);
             Assert.AreEqual(-1, res.AssemblyEnd);
             Assert.IsNull(res.Generics);
@@ -52,6 +54,7 @@ namespace Apache.Ignite.Core.Tests.Binary
 
             Assert.AreEqual(7, res.NameStart);
             Assert.AreEqual(9, res.NameEnd);
+            Assert.AreEqual(9, res.FullNameEnd);
             Assert.IsNull(res.Generics);
             Assert.AreEqual(-1, res.AssemblyStart);
 
@@ -60,6 +63,7 @@ namespace Apache.Ignite.Core.Tests.Binary
 
             Assert.AreEqual(7, res.NameStart);
             Assert.AreEqual(9, res.NameEnd);
+            Assert.AreEqual(9, res.FullNameEnd);
             Assert.IsNull(res.Generics);
             Assert.AreEqual(12, res.AssemblyStart);
 
@@ -211,6 +215,7 @@ namespace Apache.Ignite.Core.Tests.Binary
             }
 
             Assert.AreEqual(type.FullName.Length + 2, res.AssemblyStart);
+            Assert.AreEqual(type.FullName, res.GetFullName());
         }
 
         private class Nested
