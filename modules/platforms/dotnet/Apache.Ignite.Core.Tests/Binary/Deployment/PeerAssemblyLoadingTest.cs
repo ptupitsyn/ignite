@@ -68,7 +68,7 @@ namespace Apache.Ignite.Core.Tests.Binary.Deployment
                 Assert.IsNotNull(result);
 
                 Assert.AreEqual(3, result.Id);
-                Assert.AreEqual(0.3, result.Balance);
+                Assert.AreEqual(0.4m, result.Balance);
             });
         }
 
