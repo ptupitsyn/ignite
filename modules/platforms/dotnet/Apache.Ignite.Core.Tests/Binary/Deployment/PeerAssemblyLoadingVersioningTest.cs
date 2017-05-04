@@ -122,7 +122,7 @@ public class GridNameFunc : IComputeFunc<string> { public string Invoke() { retu
 
                 Assert.IsNotNull(proc);
 
-                proc.WaitForExit(45000);
+                proc.WaitForExit(40000);
                 
                 Console.WriteLine(proc.StandardOutput.ReadToEnd());
                 Console.WriteLine(proc.StandardError.ReadToEnd());
