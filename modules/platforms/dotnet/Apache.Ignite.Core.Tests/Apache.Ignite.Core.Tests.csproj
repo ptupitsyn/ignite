@@ -76,6 +76,7 @@
     <Compile Include="Binary\BinarySelfTestSimpleName.cs" />
     <Compile Include="Binary\Deployment\GetAccountFunc.cs" />
     <Compile Include="Binary\Deployment\PeerAssemblyLoadingAllApisTest.cs" />
+    <Compile Include="Binary\Deployment\PeerAssemblyLoadingVersioningTest.cs" />
     <Compile Include="Binary\Deployment\ProcessNameFunc.cs" />
     <Compile Include="Binary\IO\BinaryStreamsTest.cs" />
     <Compile Include="Binary\JavaBinaryInteropTest.cs" />

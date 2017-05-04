@@ -18,7 +18,6 @@
 namespace Apache.Ignite.Core.Tests.Binary.Deployment
 {
     using System;
-    using System.CodeDom.Compiler;
     using System.IO;
     using System.Threading;
     using Apache.Ignite.Core.Impl;
@@ -71,75 +70,6 @@ namespace Apache.Ignite.Core.Tests.Binary.Deployment
                 Assert.AreEqual(3, result.Id);
                 Assert.AreEqual(0.4m, result.Balance);
             });
-        }
-
-        /// <summary>
-        /// Tests that multiple versions of same assembly can be used on remote nodes.
-        /// </summary>
-        [Test]
-        public void TestMultipleVersionsOfSameAssembly()
-        {
-            var dir = IgniteUtils.GetTempDirectoryName();
-            var exePath = Path.Combine(dir, "PeerTest1.exe");
-
-            // Copy required assemblies.
-            foreach (var type in new[]{typeof(Ignition), GetType()})
-            {
-                var loc = type.Assembly.Location;
-                Assert.IsNotNull(loc);
-                File.Copy(loc, Path.Combine(dir, type.Assembly.GetName().Name + ".dll"));
-            }
-            
-            var parameters = new CompilerParameters
-            {
-                GenerateExecutable = true,
-                OutputAssembly = exePath,
-                ReferencedAssemblies =
-                {
-                    typeof(Ignition).Assembly.Location,
-                    GetType().Assembly.Location,
-                    "System.dll"
-                }
-            };
-
-            var src = @"
-using System;
-using Apache.Ignite.Core;
-using Apache.Ignite.Core.Compute;
-using Apache.Ignite.Core.Tests;
-
-class Program
-{
-    static void Main(string[] args)
-    {
-        using (var ignite = Ignition.Start(new IgniteConfiguration(TestUtils.GetTestConfiguration()) {ClientMode = true, IsPeerAssemblyLoadingEnabled = true}))
-        {
-            if (ignite.GetCompute().Call(new GridNameFunc()) != ""peerDeployTest"") throw new Exception(""fail"");
-        }
-    }
-}
-
-public class GridNameFunc : IComputeFunc<string> { public string Invoke() { return Ignition.GetIgnite().Name; } }
-";
-
-            var results = CodeDomProvider.CreateProvider("CSharp").CompileAssemblyFromSource(parameters, src);
-
-            Assert.IsEmpty(results.Errors);
-
-            using (Ignition.Start(new IgniteConfiguration(TestUtils.GetTestConfiguration())
-            {
-                IsPeerAssemblyLoadingEnabled = true,
-                IgniteInstanceName = "peerDeployTest"
-            }))
-            {
-                var proc = System.Diagnostics.Process.Start(exePath);
-
-                Assert.IsNotNull(proc);
-
-                proc.WaitForExit();
-
-                Assert.AreEqual(0, proc.ExitCode);
-            }
         }
 
         /// <summary>
