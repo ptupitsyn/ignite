@@ -112,7 +112,7 @@ class Program
 {
     static void Main(string[] args)
     {
-        using (var ignite = Ignition.Start(new IgniteConfiguration(TestUtils.GetTestConfiguration()) {ClientMode = true}))
+        using (var ignite = Ignition.Start(new IgniteConfiguration(TestUtils.GetTestConfiguration()) {ClientMode = true, IsPeerAssemblyLoadingEnabled = true}))
         {
             if (ignite.GetCompute().Call(new GridNameFunc()) != ""peerDeployTest"") throw new Exception(""fail"");
         }
@@ -124,15 +124,22 @@ public class GridNameFunc : IComputeFunc<string> { public string Invoke() { retu
 
             var results = CodeDomProvider.CreateProvider("CSharp").CompileAssemblyFromSource(parameters, src);
 
-            var proc = System.Diagnostics.Process.Start(exePath);
-
-            Assert.IsNotNull(proc);
-
-            proc.WaitForExit();
-
-            Assert.AreEqual(0, proc.ExitCode);
-
             Assert.IsEmpty(results.Errors);
+
+            using (Ignition.Start(new IgniteConfiguration(TestUtils.GetTestConfiguration())
+            {
+                IsPeerAssemblyLoadingEnabled = true,
+                IgniteInstanceName = "peerDeployTest"
+            }))
+            {
+                var proc = System.Diagnostics.Process.Start(exePath);
+
+                Assert.IsNotNull(proc);
+
+                proc.WaitForExit();
+
+                Assert.AreEqual(0, proc.ExitCode);
+            }
         }
 
         /// <summary>
