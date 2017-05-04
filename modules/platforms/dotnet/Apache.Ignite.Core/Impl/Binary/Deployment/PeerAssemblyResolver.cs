@@ -46,25 +46,27 @@ namespace Apache.Ignite.Core.Impl.Binary.Deployment
 
             Debug.Assert(assemblyName != null);
 
-            var asm = GetAssemblyWithDependencies(ignite, assemblyName);
+            var asm = GetAssembly(ignite, assemblyName);
 
             if (asm == null)
             {
                 return null;
             }
 
-            // Assembly.GetType does not work for assembly-qualified names.
-            return asm.GetType(parsedName.GetFullName(), false);
-        }
+            // Fetch transient dependencies by tracking assembly resolve requests.
+            ResolveEventHandler asmResolve = (sender, args) => GetAssembly(ignite, args.Name);
 
-        /// <summary>
-        /// Gets the assembly.
-        /// </summary>
-        private static Assembly GetAssemblyWithDependencies(Ignite ignite, string assemblyName)
-        {
-            return LoadedAssembliesResolver.Instance.GetAssembly(assemblyName)
-                   ?? AssemblyLoader.GetAssembly(assemblyName)
-                   ?? LoadAssemblyWithDependencies(ignite, assemblyName);
+            AppDomain.CurrentDomain.AssemblyResolve += asmResolve;
+
+            try
+            {
+                // Assembly.GetType does not work for assembly-qualified names. Full name is required without assembly.
+                return asm.GetType(parsedName.GetFullName(), false);
+            }
+            finally
+            {
+                AppDomain.CurrentDomain.AssemblyResolve -= asmResolve;
+            }
         }
 
         /// <summary>
@@ -75,26 +77,6 @@ namespace Apache.Ignite.Core.Impl.Binary.Deployment
             return LoadedAssembliesResolver.Instance.GetAssembly(assemblyName)
                    ?? AssemblyLoader.GetAssembly(assemblyName)
                    ?? LoadAssembly(ignite, assemblyName);
-        }
-
-        /// <summary>
-        /// Loads the assembly.
-        /// </summary>
-        private static Assembly LoadAssemblyWithDependencies(Ignite ignite, string assemblyName)
-        {
-            // Fetch transient dependencies by tracking assembly resolve requests.
-            ResolveEventHandler asmResolve = (sender, args) => GetAssembly(ignite, args.Name);
-
-            AppDomain.CurrentDomain.AssemblyResolve += asmResolve;
-
-            try
-            {
-                return LoadAssembly(ignite, assemblyName);
-            }
-            finally 
-            {
-                AppDomain.CurrentDomain.AssemblyResolve -= asmResolve;
-            }
         }
 
         /// <summary>
