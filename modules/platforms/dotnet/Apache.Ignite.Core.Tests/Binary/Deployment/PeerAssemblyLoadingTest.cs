@@ -79,8 +79,17 @@ namespace Apache.Ignite.Core.Tests.Binary.Deployment
         [Test]
         public void TestMultipleVersionsOfSameAssembly()
         {
-            var exePath = Path.Combine(IgniteUtils.GetTempDirectoryName(), "PeerTest1.exe");
+            var dir = IgniteUtils.GetTempDirectoryName();
+            var exePath = Path.Combine(dir, "PeerTest1.exe");
 
+            // Copy required assemblies.
+            foreach (var type in new[]{typeof(Ignition), GetType()})
+            {
+                var loc = type.Assembly.Location;
+                Assert.IsNotNull(loc);
+                File.Copy(loc, Path.Combine(dir, type.Assembly.GetName().Name + ".dll"));
+            }
+            
             var parameters = new CompilerParameters
             {
                 GenerateExecutable = true,
