@@ -70,7 +70,7 @@ namespace Apache.Ignite.Core.Impl.Binary
         /// </returns>
         private static Type ResolveType(string assemblyName, TypeNameParser typeName, ICollection<Assembly> assemblies)
         {
-            var type = ResolveNonGenericType(assemblyName, typeName.GetFullName(), assemblies);
+            var type = ResolveNonGenericType(assemblyName, typeName.GetNameWithNamespace(), assemblies);
 
             if (type == null)
             {

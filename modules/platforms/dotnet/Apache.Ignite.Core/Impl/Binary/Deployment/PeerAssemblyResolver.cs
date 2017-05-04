@@ -37,7 +37,9 @@ namespace Apache.Ignite.Core.Impl.Binary.Deployment
         {
             Debug.Assert(!string.IsNullOrEmpty(typeName));
 
-            var assemblyName = TypeNameParser.Parse(typeName).GetAssemblyName();
+            var parsedName = TypeNameParser.Parse(typeName);
+
+            var assemblyName = parsedName.GetAssemblyName();
 
             Debug.Assert(assemblyName != null);
 
@@ -50,7 +52,8 @@ namespace Apache.Ignite.Core.Impl.Binary.Deployment
                 return null;
             }
 
-            return asm.GetType(typeName, false);
+            // Assembly.GetType does not work for assembly-qualified names.
+            return asm.GetType(parsedName.GetFullName(), false);
         }
 
         /// <summary>
