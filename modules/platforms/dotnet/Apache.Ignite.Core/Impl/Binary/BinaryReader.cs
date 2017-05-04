@@ -723,7 +723,7 @@ namespace Apache.Ignite.Core.Impl.Binary
                         {
                             throw new BinaryObjectException(string.Format(
                                 "Unknown type ID: {0}. " +
-                                "This usually indicates missing BinaryConfiguration." +
+                                "This usually indicates missing BinaryConfiguration. " +
                                 "Make sure that all nodes have the same BinaryConfiguration.", hdr.TypeId));
                         }
 
