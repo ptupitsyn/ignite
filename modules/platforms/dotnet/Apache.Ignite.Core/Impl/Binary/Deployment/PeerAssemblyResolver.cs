@@ -20,6 +20,9 @@ namespace Apache.Ignite.Core.Impl.Binary.Deployment
     using System;
     using System.Diagnostics;
     using System.Reflection;
+    using Apache.Ignite.Core.Cluster;
+    using Apache.Ignite.Core.Common;
+    using Apache.Ignite.Core.Compute;
     using Apache.Ignite.Core.Impl.Common;
 
     /// <summary>
@@ -66,6 +69,7 @@ namespace Apache.Ignite.Core.Impl.Binary.Deployment
             if (res == null)
                 return null;
 
+            // TODO: Fetch transient dependencies. Subscribe to AssemblyResolve temporarily.
             return AssemblyLoader.LoadAssembly(res.AssemblyBytes, assemblyName);
         }
 
@@ -83,7 +87,7 @@ namespace Apache.Ignite.Core.Impl.Binary.Deployment
             if (!ignite.Configuration.IsPeerAssemblyLoadingEnabled)
                 return null;
 
-            // TODO: Track new nodes? Not sure if this makes sense, since some of the old nodes caused this call.
+            // New nodes are not tracked during the loop, since some of the existing nodes caused this call.
             var dotNetNodes = ignite.GetCluster().ForDotNet().ForRemotes().GetNodes();
             var func = new GetAssemblyFunc();
             var req = new AssemblyRequest(assemblyName);
@@ -91,20 +95,40 @@ namespace Apache.Ignite.Core.Impl.Binary.Deployment
             foreach (var node in dotNetNodes)
             {
                 var compute = ignite.GetCluster().ForNodes(node).GetCompute();
+                var result = ComputeApplySafe(compute, func, req);
 
-                // TODO: What if the node leaves in process? We should handle this. Add test.
-                var result = compute.Apply(func, req);
-
-                if (result != null && result.AssemblyBytes != null)
+                if (result != null)
                 {
-                    return result;
-                }
+                    if (result.AssemblyBytes != null)
+                    {
+                        return result;
+                    }
 
-                // TODO: Handle error messages
+                    if (result.Message != null)
+                    {
+                        throw new IgniteException(result.Message);
+                    }
+                }
             }
 
-            // TODO: Cache non-resolvable types (per Ignite instance).
             return null;
+        }
+
+        /// <summary>
+        /// Performs computation ignoring leaving nodes.
+        /// </summary>
+        private static AssemblyRequestResult ComputeApplySafe(ICompute compute, GetAssemblyFunc func,
+            AssemblyRequest req)
+        {
+            try
+            {
+                return compute.Apply(func, req);
+            }
+            catch (ClusterGroupEmptyException)
+            {
+                // Normal situation: node has left.
+                return null;
+            }
         }
     }
 }

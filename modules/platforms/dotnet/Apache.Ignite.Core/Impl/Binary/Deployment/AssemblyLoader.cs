@@ -47,13 +47,10 @@ namespace Apache.Ignite.Core.Impl.Binary.Deployment
             Debug.Assert(bytes != null);
             Debug.Assert(!string.IsNullOrWhiteSpace(assemblyName));
 
-            // TODO: We must be sure to never load the same assembly twice, because it leads to
-            // InvalidCastException with message like "Type A originates from <>. Type A originates from <>."
-            // LoadFrom does not work for us,
-            // because it can lead to exceptions when there are more than one version of the same assembly.
-
             return InMemoryAssemblies.GetOrAdd(assemblyName, _ =>
             {
+                // Load is better for us than LoadFrom: we want to track loaded assemblies manually.
+                // LoadFrom can cause exceptions when multiple versions of the same assembly exist.
                 var asm = Assembly.Load(bytes);
 
                 Debug.Assert(assemblyName == asm.FullName);
