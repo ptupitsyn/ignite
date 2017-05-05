@@ -442,7 +442,7 @@ namespace Apache.Ignite.Core.Impl.Binary
             if (!userType)
                 return null;
 
-            if (requiresType)
+            if (requiresType && _ignite != null)
             {
                 // Check marshaller context for dynamically registered type.
                 var type = knownType;
@@ -454,7 +454,7 @@ namespace Apache.Ignite.Core.Impl.Binary
                     if (typeName != null)
                     {
                         // TODO: Add AssemblyLoader to TypeResolver?
-                        type = new TypeResolver().ResolveType(typeName);
+                        type = new TypeResolver().ResolveType(typeName, nameMapper: _cfg.NameMapper ?? GetDefaultNameMapper());
 
                         if (type == null)
                         {
@@ -497,7 +497,7 @@ namespace Apache.Ignite.Core.Impl.Binary
             var typeName = GetTypeName(type);
             var typeId = GetTypeId(typeName, _cfg.IdMapper);
 
-            var registered = _ignite != null && _ignite.BinaryProcessor.RegisterType(typeId, type);
+            var registered = _ignite != null && _ignite.BinaryProcessor.RegisterType(typeId, typeName);
 
             return AddUserType(type, typeId, typeName, registered, desc);
         }

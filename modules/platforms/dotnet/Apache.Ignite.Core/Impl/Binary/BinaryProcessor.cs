@@ -161,17 +161,17 @@ namespace Apache.Ignite.Core.Impl.Binary
         /// Registers the type.
         /// </summary>
         /// <param name="id">The identifier.</param>
-        /// <param name="type">The type.</param>
+        /// <param name="typeName">The type name.</param>
         /// <returns>True if registration succeeded; otherwise, false.</returns>
-        public bool RegisterType(int id, Type type)
+        public bool RegisterType(int id, string typeName)
         {
-            Debug.Assert(type != null);
+            Debug.Assert(typeName != null);
             Debug.Assert(id != BinaryUtils.TypeUnregistered);
 
             return DoOutOp((int) Op.RegisterType, w =>
             {
                 w.WriteInt(id);
-                w.WriteString(type.AssemblyQualifiedName);
+                w.WriteString(typeName);
             }) == True;
         }
 
@@ -179,7 +179,7 @@ namespace Apache.Ignite.Core.Impl.Binary
         /// Gets the type name by id.
         /// </summary>
         /// <param name="id">The identifier.</param>
-        /// <returns>Type name or null.</returns>
+        /// <returns>Type or null.</returns>
         public string GetTypeName(int id)
         {
             return DoOutInOp((int) Op.GetType, w => w.WriteInt(id), r => Marshaller.StartUnmarshal(r).ReadString());

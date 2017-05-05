@@ -197,7 +197,7 @@ namespace Apache.Ignite.Core.Impl.Binary
 
                 if (Char == '`')
                 {
-                    // Non-null ist indicates detected generic type.
+                    // Non-null list indicates detected generic type.
                     Generics = Generics ?? new List<TypeNameParser>();
                 }
 
@@ -218,6 +218,12 @@ namespace Apache.Ignite.Core.Impl.Binary
 
             if (Generics == null)
             {
+                return;
+            }
+
+            if (End || Char == ',')
+            {
+                // Open (unbound) generic.
                 return;
             }
 
@@ -288,15 +294,18 @@ namespace Apache.Ignite.Core.Impl.Binary
                 {
                     if (!bracket)
                     {
-                        throw new IgniteException("Invalid array specification: " + _typeName);
+                        ArrayEnd = _pos - 1;
+                        return;
                     }
 
                     bracket = false;
                 }
-                else if (Char == ',')
+                else if (Char == ',' || Char == '*')
                 {
                     if (!bracket)
+                    {
                         break;
+                    }
                 }
                 else
                 {

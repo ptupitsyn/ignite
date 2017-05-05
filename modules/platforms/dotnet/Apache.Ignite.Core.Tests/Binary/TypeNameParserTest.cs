@@ -40,7 +40,6 @@ namespace Apache.Ignite.Core.Tests.Binary
             // One letter.
             var res = TypeNameParser.Parse("x");
             Assert.AreEqual("x", res.GetNameWithNamespace());
-            Assert.AreEqual("x", res.GetFullName());
             Assert.AreEqual("x", res.GetName());
             Assert.AreEqual(0, res.NameStart);
             Assert.AreEqual(0, res.NameEnd);
@@ -83,12 +82,42 @@ namespace Apache.Ignite.Core.Tests.Binary
         [Test]
         public void TestGenericTypes()
         {
-            // Custom strings.
+            // Simple name.
             var res = TypeNameParser.Parse("List`1[[Int]]");
             Assert.AreEqual("List`1", res.GetName());
             Assert.AreEqual("List`1", res.GetNameWithNamespace());
             Assert.AreEqual("Int", res.Generics.Single().GetName());
             Assert.AreEqual("Int", res.Generics.Single().GetNameWithNamespace());
+
+            // Simple name array.
+            res = TypeNameParser.Parse("List`1[[Byte[]]]");
+            Assert.AreEqual("List`1", res.GetName());
+            Assert.AreEqual("List`1", res.GetNameWithNamespace());
+            Assert.AreEqual("Byte", res.Generics.Single().GetName());
+            Assert.AreEqual("Byte", res.Generics.Single().GetNameWithNamespace());
+            Assert.AreEqual("[]", res.Generics.Single().GetArray());
+
+            // Simple name two-dimension array.
+            res = TypeNameParser.Parse("List`1[[Byte[,]]]");
+            Assert.AreEqual("List`1", res.GetName());
+            Assert.AreEqual("List`1", res.GetNameWithNamespace());
+            Assert.AreEqual("Byte", res.Generics.Single().GetName());
+            Assert.AreEqual("Byte", res.Generics.Single().GetNameWithNamespace());
+            Assert.AreEqual("[,]", res.Generics.Single().GetArray());
+
+            // Simple name jagged array.
+            res = TypeNameParser.Parse("List`1[[Byte[][]]]");
+            Assert.AreEqual("List`1", res.GetName());
+            Assert.AreEqual("List`1", res.GetNameWithNamespace());
+            Assert.AreEqual("Byte", res.Generics.Single().GetName());
+            Assert.AreEqual("Byte", res.Generics.Single().GetNameWithNamespace());
+            Assert.AreEqual("[][]", res.Generics.Single().GetArray());
+
+            // Open generic.
+            res = TypeNameParser.Parse("List`1");
+            Assert.AreEqual("List`1", res.GetName());
+            Assert.AreEqual("List`1", res.GetNameWithNamespace());
+            Assert.IsEmpty(res.Generics);
 
             // One arg.
             res = TypeNameParser.Parse(typeof(List<int>).AssemblyQualifiedName);
@@ -101,6 +130,13 @@ namespace Apache.Ignite.Core.Tests.Binary
             Assert.AreEqual("Int32", gen.GetName());
             Assert.AreEqual("System.Int32", gen.GetNameWithNamespace());
             Assert.IsTrue(gen.GetAssemblyName().StartsWith("mscorlib,"));
+
+            // One arg open.
+            res = TypeNameParser.Parse(typeof(List<>).AssemblyQualifiedName);
+            Assert.AreEqual("List`1", res.GetName());
+            Assert.AreEqual("System.Collections.Generic.List`1", res.GetNameWithNamespace());
+            Assert.IsTrue(res.GetAssemblyName().StartsWith("mscorlib,"));
+            Assert.IsEmpty(res.Generics);
 
             // Two args.
             res = TypeNameParser.Parse(typeof(Dictionary<int, string>).AssemblyQualifiedName);
@@ -167,10 +203,31 @@ namespace Apache.Ignite.Core.Tests.Binary
         [Test]
         public void TestArrays()
         {
+            var res = TypeNameParser.Parse("Int32[]");
+            Assert.AreEqual("Int32", res.GetName());
+            Assert.AreEqual("Int32", res.GetNameWithNamespace());
+            Assert.AreEqual("Int32[]", res.GetFullName());
+            Assert.AreEqual("[]", res.GetArray());
+
+            res = TypeNameParser.Parse("Int32[*]");
+            Assert.AreEqual("Int32", res.GetName());
+            Assert.AreEqual("Int32", res.GetNameWithNamespace());
+            Assert.AreEqual("Int32[*]", res.GetFullName());
+            Assert.AreEqual("[*]", res.GetArray());
+
+            res = TypeNameParser.Parse("List`1[[Int32]][]");
+            Assert.AreEqual("List`1", res.GetName());
+            Assert.AreEqual("List`1", res.GetNameWithNamespace());
+            Assert.AreEqual("List`1[[Int32]][]", res.GetFullName());
+            Assert.AreEqual("[]", res.GetArray());
+
             CheckType(typeof(int[]));
+            CheckType(typeof(int).MakeArrayType(1));
             CheckType(typeof(int[,]));
+            CheckType(typeof(int[,,]));
             CheckType(typeof(int[][]));
-            
+            CheckType(typeof(int[,,,][,,]));
+
             CheckType(typeof(List<int>[]));
             CheckType(typeof(List<int>[,]));
             CheckType(typeof(List<int>[][]));
@@ -188,12 +245,9 @@ namespace Apache.Ignite.Core.Tests.Binary
             Assert.Throws<IgniteException>(() => TypeNameParser.Parse("x["));
             Assert.Throws<IgniteException>(() => TypeNameParser.Parse("x[[]"));
             Assert.Throws<IgniteException>(() => TypeNameParser.Parse("x`["));
-            Assert.Throws<IgniteException>(() => TypeNameParser.Parse("x`]"));
             Assert.Throws<IgniteException>(() => TypeNameParser.Parse("x`[ ]"));
             Assert.Throws<IgniteException>(() => TypeNameParser.Parse("x,"));
-            Assert.Throws<IgniteException>(() => TypeNameParser.Parse("x`x"));
             Assert.Throws<IgniteException>(() => TypeNameParser.Parse("x`2[x"));
-            Assert.Throws<IgniteException>(() => TypeNameParser.Parse("x`2xx"));
         }
 
         /// <summary>
