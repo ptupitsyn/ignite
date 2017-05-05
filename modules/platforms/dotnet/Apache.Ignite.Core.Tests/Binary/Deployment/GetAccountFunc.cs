@@ -17,18 +17,19 @@
 
 namespace Apache.Ignite.Core.Tests.Binary.Deployment
 {
+    extern alias ExamplesDll;
+
     using Apache.Ignite.Core.Compute;
-    using Apache.Ignite.ExamplesDll.Binary;
 
     /// <summary>
     /// Function that returns an instance of a class from another assembly.
     /// </summary>
-    public class GetAccountFunc : IComputeFunc<int, Account>
+    public class GetAccountFunc : IComputeFunc<int, ExamplesDll::Apache.Ignite.ExamplesDll.Binary.Account>
     {
         /** <inheritdoc /> */
-        public Account Invoke(int arg)
+        public ExamplesDll::Apache.Ignite.ExamplesDll.Binary.Account Invoke(int arg)
         {
-            return new Account(arg, (decimal) (arg + 1) / 10);
+            return new ExamplesDll::Apache.Ignite.ExamplesDll.Binary.Account(arg, (decimal) (arg + 1) / 10);
         }
     }
 }
