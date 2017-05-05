@@ -63,12 +63,12 @@ namespace Apache.Ignite.Core.Tests.Binary.Deployment
         {
             TestDeployment(ignite =>
             {
-                var result = ignite.GetCluster().ForRemotes().GetCompute().Apply(new GetAccountFunc(), 3);
+                var result = ignite.GetCluster().ForRemotes().GetCompute().Apply(new GetAddressFunc(), 3);
 
                 Assert.IsNotNull(result);
 
-                Assert.AreEqual(3, result.Id);
-                Assert.AreEqual(0.4m, result.Balance);
+                Assert.AreEqual(3, result.Zip);
+                Assert.AreEqual("addr3", result.Street);
             });
         }
 
