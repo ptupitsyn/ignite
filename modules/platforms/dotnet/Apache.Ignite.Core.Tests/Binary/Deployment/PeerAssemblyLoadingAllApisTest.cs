@@ -17,6 +17,7 @@
 
 namespace Apache.Ignite.Core.Tests.Binary.Deployment
 {
+    using Apache.Ignite.Core.Tests.Process;
     using NUnit.Framework;
 
     /// <summary>
@@ -37,6 +38,16 @@ namespace Apache.Ignite.Core.Tests.Binary.Deployment
 
                 Assert.AreEqual("Apache.Ignite", result);
             });
+        }
+
+        /// <summary>
+        /// Tears down the test.
+        /// </summary>
+        [TearDown]
+        public void TearDown()
+        {
+            Ignition.StopAll(true);
+            IgniteProcess.KillAll();
         }
     }
 }
