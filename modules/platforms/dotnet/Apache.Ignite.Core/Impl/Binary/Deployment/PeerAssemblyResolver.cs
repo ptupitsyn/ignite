@@ -107,6 +107,8 @@ namespace Apache.Ignite.Core.Impl.Binary.Deployment
             if (!ignite.Configuration.IsPeerAssemblyLoadingEnabled)
                 return null;
 
+            Debug.WriteLine("Requesting assembly from other nodes: " + assemblyName);
+
             // New nodes are not tracked during the loop, since some of the existing nodes caused this call.
             var dotNetNodes = ignite.GetCluster().ForDotNet().ForRemotes().GetNodes();
             var func = new GetAssemblyFunc();

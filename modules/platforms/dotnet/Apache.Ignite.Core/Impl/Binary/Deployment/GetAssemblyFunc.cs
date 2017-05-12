@@ -17,6 +17,7 @@
  
 namespace Apache.Ignite.Core.Impl.Binary.Deployment
 {
+    using System.Diagnostics;
     using Apache.Ignite.Core.Binary;
     using Apache.Ignite.Core.Common;
     using Apache.Ignite.Core.Compute;
@@ -39,6 +40,8 @@ namespace Apache.Ignite.Core.Impl.Binary.Deployment
             {
                 throw new IgniteException("GetAssemblyFunc does not allow null AssemblyName.");
             }
+
+            Debug.WriteLine("Peer assembly request: " + arg.AssemblyName);
 
             // Try assemblies in main context.
             var asm = LoadedAssembliesResolver.Instance.GetAssembly(arg.AssemblyName);
