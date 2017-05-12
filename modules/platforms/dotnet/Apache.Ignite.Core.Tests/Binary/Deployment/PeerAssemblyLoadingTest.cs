@@ -138,14 +138,5 @@ namespace Apache.Ignite.Core.Tests.Binary.Deployment
             Ignition.StopAll(true);
             IgniteProcess.KillAll();
         }
-
-        /// <summary>
-        /// Tests that a dynamic in-memory assembly can be peer deployed.
-        /// </summary>
-        [Test]
-        public void TestDynamicAssembly()
-        {
-            // TODO: ???
-        }
     }
 }
