@@ -24,15 +24,22 @@ namespace Apache.Ignite.Core.Tests.Binary.Deployment
     /// </summary>
     public class ProcessNameFunc : IComputeFunc<string>
     {
-        /// <summary>
-        /// Gets or sets the foo.
-        /// </summary>
-        public string Foo { get; set; }
-
         /** <inheritdoc /> */
         public string Invoke()
         {
             return System.Diagnostics.Process.GetCurrentProcess().ProcessName;
+        }
+    }
+
+    /// <summary>
+    /// Function that returns parent process name.
+    /// </summary>
+    public class ProcessNameArgFunc : IComputeFunc<string, string>
+    {
+        /** <inheritdoc /> */
+        public string Invoke(string arg)
+        {
+            return System.Diagnostics.Process.GetCurrentProcess().ProcessName + arg;
         }
     }
 }

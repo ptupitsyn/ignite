@@ -98,10 +98,10 @@ namespace Apache.Ignite.Core.Tests.Binary.Deployment
         }
 
         /// <summary>
-        /// Tests Compute.Broadcast(IComputeFunc).
+        /// Tests Compute.Broadcast(IComputeFunc{T}).
         /// </summary>
         [Test]
-        public void TestComputeBroadcastFunc([Values(true, false)] bool async)
+        public void TestComputeBroadcastOutFunc([Values(true, false)] bool async)
         {
             PeerAssemblyLoadingTest.TestDeployment(remoteCompute =>
             {
@@ -111,7 +111,22 @@ namespace Apache.Ignite.Core.Tests.Binary.Deployment
 
                 Assert.AreEqual("Apache.Ignite", results.Single());
             });
+        }
 
+        /// <summary>
+        /// Tests Compute.Broadcast(IComputeFunc{TArg, TRes}).
+        /// </summary>
+        [Test]
+        public void TestComputeBroadcastFunc([Values(true, false)] bool async)
+        {
+            PeerAssemblyLoadingTest.TestDeployment(remoteCompute =>
+            {
+                var results = async
+                    ? remoteCompute.BroadcastAsync(new ProcessNameArgFunc(), "_").Result
+                    : remoteCompute.Broadcast(new ProcessNameArgFunc(), "_");
+
+                Assert.AreEqual("Apache.Ignite_", results.Single());
+            });
         }
 
         /// <summary>
