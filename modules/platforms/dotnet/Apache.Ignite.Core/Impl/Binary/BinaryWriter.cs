@@ -1167,7 +1167,7 @@ namespace Apache.Ignite.Core.Impl.Binary
             }
 
             // Peer deployment mode: all user objects are wrapped.
-            if (EnablePeerDeployment)
+            if (EnablePeerDeployment && type != typeof(PeerLoadingObjectHolder))
             {
                 Write(new PeerLoadingObjectHolder(obj));
 
