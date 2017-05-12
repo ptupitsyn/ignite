@@ -62,6 +62,7 @@ namespace Apache.Ignite.Core.Impl.Binary.Deployment
             try
             {
                 // GetTypes() call ensures that all dependencies for all types are requested.
+                // TODO: No, it does not. We must force load all dependencies.
                 return asm.GetTypes().FirstOrDefault(x => x.AssemblyQualifiedName == typeName);
             }
             finally

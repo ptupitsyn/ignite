@@ -27,6 +27,7 @@ namespace Apache.Ignite.Core.Tests.Binary.Deployment
     using Apache.Ignite.Core.Impl;
     using Apache.Ignite.Core.Impl.Common;
     using Apache.Ignite.Core.Tests.Process;
+    using Apache.Ignite.Log4Net;
     using ExamplesDll::Apache.Ignite.ExamplesDll.Binary;
     using NUnit.Framework;
 
@@ -84,14 +85,33 @@ namespace Apache.Ignite.Core.Tests.Binary.Deployment
                 Assert.AreEqual(3, result.Zip);
                 Assert.AreEqual("addr3", result.Street);
             });
+        }
 
-            TearDown();
-
+        /// <summary>
+        /// Tests that a type which requires multiple assemblies can be peer deployed.
+        /// </summary>
+        [Test]
+        public void TestMultipleAssembliesIndirectDependency()
+        {
             TestDeployment(remoteCompute =>
             {
                 // Arg is object, but value is from Examples assembly.
                 Assert.AreEqual("Apache.IgniteAddress [street=Central, zip=2]", remoteCompute.Call(
                     new ProcessNameFunc {Arg = new Address("Central", 2)}));
+            });
+        }
+
+        /// <summary>
+        /// Tests that a type which requires multiple assemblies can be peer deployed.
+        /// </summary>
+        [Test]
+        public void TestMultipleAssembliesIndirectDependencyMultiLevel()
+        {
+            TestDeployment(remoteCompute =>
+            {
+                // Arg is object, value is from Apache.Ignite.Log4Net, and it further depends on log4net.
+                Assert.AreEqual("Apache.IgniteAddress [street=Central, zip=2]", remoteCompute.Call(
+                    new ProcessNameFunc {Arg = new IgniteLog4NetLogger()}));
             });
         }
 
