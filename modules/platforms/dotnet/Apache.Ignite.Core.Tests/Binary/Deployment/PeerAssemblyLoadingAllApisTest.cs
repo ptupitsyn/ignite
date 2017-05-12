@@ -125,11 +125,14 @@ namespace Apache.Ignite.Core.Tests.Binary.Deployment
         {
             PeerAssemblyLoadingTest.TestDeployment(remoteCompute =>
             {
-                var results = async
-                    ? remoteCompute.BroadcastAsync(new ProcessNameArgFunc(), "_").Result
-                    : remoteCompute.Broadcast(new ProcessNameArgFunc(), "_");
+                // Argument is from different assembly and should be peer deployed as well.
+                var taskArg = new Address("1", 2);
 
-                Assert.AreEqual("Apache.Ignite_", results.Single());
+                var results = async
+                    ? remoteCompute.BroadcastAsync(new ProcessNameArgFunc(), taskArg).Result
+                    : remoteCompute.Broadcast(new ProcessNameArgFunc(), taskArg);
+
+                Assert.AreEqual("Apache.IgniteAddress [street=1, zip=2]", results.Single());
             });
         }
 
