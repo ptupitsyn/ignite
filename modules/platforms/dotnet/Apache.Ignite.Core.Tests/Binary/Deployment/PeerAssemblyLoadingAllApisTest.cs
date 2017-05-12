@@ -73,6 +73,7 @@ namespace Apache.Ignite.Core.Tests.Binary.Deployment
         {
             PeerAssemblyLoadingTest.TestDeployment(remoteCompute =>
             {
+                // Argument is from different assembly and should be peer deployed as well.
                 var taskArg = new Address("1", 2);
 
                 Assert.AreEqual("Apache.Ignite", async
@@ -140,6 +141,7 @@ namespace Apache.Ignite.Core.Tests.Binary.Deployment
         {
             PeerAssemblyLoadingTest.TestDeployment(remoteCompute =>
             {
+                // Argument is from different assembly and should be peer deployed as well.
                 var taskArg = new Address("1", 2);
 
                 Assert.AreEqual("Apache.Ignite_", async
