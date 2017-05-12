@@ -29,11 +29,22 @@ namespace Apache.Ignite.Core.Impl.Binary.Deployment
         /// </summary>
         public static void WriteWithPeerDeployment(this BinaryWriter writer, object o)
         {
-            o = writer.Marshaller.IsPeerAssemblyLoadingEnabled() 
-                ? new PeerLoadingObjectHolder(o) 
-                : o;
-
-            writer.WriteObject(o);
+            if (writer.Marshaller.IsPeerAssemblyLoadingEnabled())
+            {
+                try
+                {
+                    writer.EnablePeerDeployment = true;
+                    writer.WriteObject(o);
+                }
+                finally
+                {
+                    writer.EnablePeerDeployment = false;
+                }
+            }
+            else
+            {
+                writer.WriteObject(o);
+            }
         }
 
         /// <summary>
@@ -41,11 +52,8 @@ namespace Apache.Ignite.Core.Impl.Binary.Deployment
         /// </summary>
         public static object ReadWithPeerDeployment(this IBinaryRawReader reader)
         {
-            var o = reader.ReadObject<object>();
-
-            var holder = o as PeerLoadingObjectHolder;
-
-            return holder == null ? o : holder.Object;
+            // TODO: Inline me.
+            return reader.ReadObject<object>();
         }
 
         /// <summary>
