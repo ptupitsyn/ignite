@@ -38,7 +38,12 @@ namespace Apache.Ignite.Core.Tests.Binary.Deployment
         [Test]
         public void TestDisabledPeerLoading()
         {
-            // TODO
+            TestDeployment(ignite =>
+            {
+                var result = ignite.GetCluster().ForRemotes().GetCompute().Call(new ProcessNameFunc());
+
+                Assert.AreEqual("Apache.Ignite", result);
+            }, false);
         }
 
         /// <summary>
@@ -76,7 +81,7 @@ namespace Apache.Ignite.Core.Tests.Binary.Deployment
         /// <summary>
         /// Tests the peer deployment.
         /// </summary>
-        public static void TestDeployment(Action<IIgnite> test)
+        public static void TestDeployment(Action<IIgnite> test, bool enablePeerDeployment = true)
         {
             // Copy Apache.Ignite.exe and Apache.Ignite.Core.dll 
             // to a separate folder so that it does not locate our assembly automatically.
@@ -103,7 +108,7 @@ namespace Apache.Ignite.Core.Tests.Binary.Deployment
             // Start Ignite and execute computation on remote node.
             var cfg = new IgniteConfiguration(TestUtils.GetTestConfiguration())
             {
-                IsPeerAssemblyLoadingEnabled = true
+                IsPeerAssemblyLoadingEnabled = enablePeerDeployment
             };
 
             using (var ignite = Ignition.Start(cfg))
