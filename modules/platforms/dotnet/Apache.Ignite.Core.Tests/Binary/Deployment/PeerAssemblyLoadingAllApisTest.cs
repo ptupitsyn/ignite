@@ -59,15 +59,14 @@ namespace Apache.Ignite.Core.Tests.Binary.Deployment
         {
             PeerAssemblyLoadingTest.TestDeployment(ignite =>
             {
-                var cache = ignite.CreateCache<int, int>("myCache");
+                var cache = ignite.GetOrCreateCache<int, int>("myCache");
+
                 var key = TestUtils.GetPrimaryKey(ignite, cache.Name, ignite.GetCluster().ForRemotes().GetNode());
                 
                 Assert.AreEqual("Apache.Ignite",
                     ignite.GetCompute().AffinityCall(cache.Name, key, new ProcessNameFunc()));
             });
         }
-
-
 
         /// <summary>
         /// Tests Compute.Execute.
