@@ -58,6 +58,7 @@ namespace Apache.Ignite.Core.Impl.Binary.Deployment
 
             Debug.Assert(type != null);
 
+            // TODO: Wrap this in AssemblyResolve handler. Some disposable helper maybe.
             _object = reader.ReadObjectAs(type);
         }
 
