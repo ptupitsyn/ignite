@@ -20,7 +20,9 @@ namespace Apache.Ignite.Core.Tests.Binary.Deployment
     using System;
     using System.IO;
     using System.Threading;
+    using Apache.Ignite.Core.Cluster;
     using Apache.Ignite.Core.Common;
+    using Apache.Ignite.Core.Compute;
     using Apache.Ignite.Core.Impl;
     using Apache.Ignite.Core.Impl.Common;
     using Apache.Ignite.Core.Tests.Process;
@@ -39,10 +41,9 @@ namespace Apache.Ignite.Core.Tests.Binary.Deployment
         [Test]
         public void TestDisabledPeerLoading()
         {
-            TestDeployment(ignite =>
+            TestDeployment(remoteCompute =>
             {
-                var ex = Assert.Throws<IgniteException>(
-                    () => ignite.GetCluster().ForRemotes().GetCompute().Call(new ProcessNameFunc()));
+                var ex = Assert.Throws<IgniteException>(() => remoteCompute.Call(new ProcessNameFunc()));
 
                 Assert.AreEqual("Compute job has failed on remote node, examine InnerException for details.", 
                     ex.Message);
@@ -59,11 +60,9 @@ namespace Apache.Ignite.Core.Tests.Binary.Deployment
         [Test]
         public void TestSingleAssembly()
         {
-            TestDeployment(ignite =>
+            TestDeployment(remoteCompute =>
             {
-                var result = ignite.GetCluster().ForRemotes().GetCompute().Call(new ProcessNameFunc());
-
-                Assert.AreEqual("Apache.Ignite", result);
+                Assert.AreEqual("Apache.Ignite", remoteCompute.Call(new ProcessNameFunc()));
             });
         }
 
@@ -73,16 +72,32 @@ namespace Apache.Ignite.Core.Tests.Binary.Deployment
         [Test]
         public void TestMultipleAssemblies()
         {
-            TestDeployment(ignite =>
+            TestDeployment(remoteCompute =>
             {
                 // GetAddressFunc requires Tests and Examples assemblies.
-                var result = ignite.GetCluster().ForRemotes().GetCompute().Apply(new GetAddressFunc(), 3);
+                var result = remoteCompute.Apply(new GetAddressFunc(), 3);
 
                 Assert.IsNotNull(result);
 
                 Assert.AreEqual(3, result.Zip);
                 Assert.AreEqual("addr3", result.Street);
             });
+        }
+
+        /// <summary>
+        /// Tests the peer deployment.
+        /// </summary>
+        public static void TestDeployment(Action<ICompute> test, bool enablePeerDeployment = true)
+        {
+            TestDeployment((IClusterGroup remoteCluster) => test(remoteCluster.GetCompute()), enablePeerDeployment);
+        }
+
+        /// <summary>
+        /// Tests the peer deployment.
+        /// </summary>
+        public static void TestDeployment(Action<IClusterGroup> test, bool enablePeerDeployment = true)
+        {
+            TestDeployment(ignite => test(ignite.GetCluster().ForRemotes()), enablePeerDeployment);
         }
 
         /// <summary>

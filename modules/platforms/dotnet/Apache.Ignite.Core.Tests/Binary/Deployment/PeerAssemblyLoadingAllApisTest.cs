@@ -17,6 +17,7 @@
 
 namespace Apache.Ignite.Core.Tests.Binary.Deployment
 {
+    using System.Threading.Tasks;
     using Apache.Ignite.Core.Tests.Process;
     using NUnit.Framework;
 
@@ -32,11 +33,21 @@ namespace Apache.Ignite.Core.Tests.Binary.Deployment
         [Test]
         public void TestComputeCall()
         {
-            PeerAssemblyLoadingTest.TestDeployment(ignite =>
+            PeerAssemblyLoadingTest.TestDeployment(remoteCompute =>
             {
-                var result = ignite.GetCluster().ForRemotes().GetCompute().Call(new ProcessNameFunc());
+                Assert.AreEqual("Apache.Ignite", remoteCompute.Call(new ProcessNameFunc()));
+            });
+        }
 
-                Assert.AreEqual("Apache.Ignite", result);
+        /// <summary>
+        /// Tests Compute.Call.
+        /// </summary>
+        [Test]
+        public void TestComputeCallAsync()
+        {
+            PeerAssemblyLoadingTest.TestDeployment(remoteCompute =>
+            {
+                Assert.AreEqual("Apache.Ignite", remoteCompute.CallAsync(new ProcessNameFunc()).Result);
             });
         }
 
