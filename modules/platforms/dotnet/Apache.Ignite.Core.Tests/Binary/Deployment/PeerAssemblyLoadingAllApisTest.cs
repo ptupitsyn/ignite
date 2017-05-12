@@ -19,7 +19,6 @@ namespace Apache.Ignite.Core.Tests.Binary.Deployment
 {
     extern alias ExamplesDll;
     using System.Linq;
-    using Apache.Ignite.Core.Cluster;
     using Apache.Ignite.Core.Tests.Compute;
     using Apache.Ignite.Core.Tests.Process;
     using ExamplesDll::Apache.Ignite.ExamplesDll.Binary;
