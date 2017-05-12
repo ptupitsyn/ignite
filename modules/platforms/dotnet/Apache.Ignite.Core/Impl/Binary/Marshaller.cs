@@ -453,8 +453,8 @@ namespace Apache.Ignite.Core.Impl.Binary
 
                     if (typeName != null)
                     {
-                        // TODO: Add AssemblyLoader to TypeResolver?
-                        type = new TypeResolver().ResolveType(typeName, nameMapper: _cfg.NameMapper ?? GetDefaultNameMapper());
+                        type = new TypeResolver().ResolveType(typeName, 
+                            nameMapper: _cfg.NameMapper ?? GetDefaultNameMapper());
 
                         if (type == null)
                         {
