@@ -77,6 +77,24 @@ namespace Apache.Ignite.Core.Tests.Binary.Deployment
         }
 
         /// <summary>
+        /// Tests Compute.Broadcast(IComputeAction).
+        /// </summary>
+        [Test]
+        public void TestComputeBroadcastAction()
+        {
+            
+        }
+
+        /// <summary>
+        /// Tests Compute.Broadcast(IComputeFunc).
+        /// </summary>
+        [Test]
+        public void TestComputeBroadcastFunc()
+        {
+            
+        }
+
+        /// <summary>
         /// Tears down the test.
         /// </summary>
         [TearDown]
