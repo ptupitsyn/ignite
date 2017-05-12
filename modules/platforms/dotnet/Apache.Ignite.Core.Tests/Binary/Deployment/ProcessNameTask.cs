@@ -20,6 +20,7 @@ namespace Apache.Ignite.Core.Tests.Binary.Deployment
     using System.Collections.Generic;
     using System.Linq;
     using Apache.Ignite.Core.Cluster;
+    using Apache.Ignite.Core.Common;
     using Apache.Ignite.Core.Compute;
 
     /// <summary>
@@ -42,6 +43,11 @@ namespace Apache.Ignite.Core.Tests.Binary.Deployment
         /** <inheritdoc /> */
         public string Reduce(IList<IComputeJobResult<string>> results)
         {
+            var ex = results.Select(x => x.Exception).FirstOrDefault(x => x != null);
+
+            if (ex != null)
+                throw new IgniteException("Task failed", ex);
+
             return results.Select(x => x.Data).FirstOrDefault();
         }
 
