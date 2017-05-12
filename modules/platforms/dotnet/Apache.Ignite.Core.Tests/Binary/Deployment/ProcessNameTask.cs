@@ -61,7 +61,7 @@ namespace Apache.Ignite.Core.Tests.Binary.Deployment
             /** <inheritdoc /> */
             public string Execute()
             {
-                return System.Diagnostics.Process.GetCurrentProcess().ProcessName + Arg;
+                return System.Diagnostics.Process.GetCurrentProcess().ProcessName + "_" + Arg;
             }
 
             /** <inheritdoc /> */
