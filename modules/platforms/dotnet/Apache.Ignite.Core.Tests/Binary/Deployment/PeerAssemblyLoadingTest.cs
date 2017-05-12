@@ -63,6 +63,7 @@ namespace Apache.Ignite.Core.Tests.Binary.Deployment
         {
             TestDeployment(ignite =>
             {
+                // GetAddressFunc requires Tests and Examples assemblies.
                 var result = ignite.GetCluster().ForRemotes().GetCompute().Apply(new GetAddressFunc(), 3);
 
                 Assert.IsNotNull(result);
