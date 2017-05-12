@@ -17,7 +17,9 @@
 
 namespace Apache.Ignite.Core.Tests.Binary.Deployment
 {
+    using System.Linq;
     using Apache.Ignite.Core.Cluster;
+    using Apache.Ignite.Core.Tests.Compute;
     using Apache.Ignite.Core.Tests.Process;
     using NUnit.Framework;
 
@@ -80,18 +82,36 @@ namespace Apache.Ignite.Core.Tests.Binary.Deployment
         /// Tests Compute.Broadcast(IComputeAction).
         /// </summary>
         [Test]
-        public void TestComputeBroadcastAction()
+        public void TestComputeBroadcastAction([Values(true, false)] bool async)
         {
-            
+            PeerAssemblyLoadingTest.TestDeployment(remoteCompute =>
+            {
+                if (async)
+                {
+                    remoteCompute.BroadcastAsync(new ComputeAction()).Wait();
+                }
+                else
+                {
+                    remoteCompute.Broadcast(new ComputeAction());
+                }
+            });
         }
 
         /// <summary>
         /// Tests Compute.Broadcast(IComputeFunc).
         /// </summary>
         [Test]
-        public void TestComputeBroadcastFunc()
+        public void TestComputeBroadcastFunc([Values(true, false)] bool async)
         {
-            
+            PeerAssemblyLoadingTest.TestDeployment(remoteCompute =>
+            {
+                var results = async
+                    ? remoteCompute.BroadcastAsync(new ProcessNameFunc()).Result
+                    : remoteCompute.Broadcast(new ProcessNameFunc());
+
+                Assert.AreEqual("Apache.Ignite", results.Single());
+            });
+
         }
 
         /// <summary>
