@@ -95,7 +95,7 @@ namespace Apache.Ignite.Core.Tests.Binary.Deployment
         /// <summary>
         /// Tests the peer deployment.
         /// </summary>
-        public static void TestDeployment(Action<IClusterGroup> test, bool enablePeerDeployment = true)
+        private static void TestDeployment(Action<IClusterGroup> test, bool enablePeerDeployment = true)
         {
             TestDeployment(ignite => test(ignite.GetCluster().ForRemotes()), enablePeerDeployment);
         }

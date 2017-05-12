@@ -19,6 +19,7 @@ namespace Apache.Ignite.Core.Impl.Binary.Deployment
 {
     using System;
     using System.Diagnostics;
+    using System.Linq;
     using System.Reflection;
     using Apache.Ignite.Core.Cluster;
     using Apache.Ignite.Core.Common;
@@ -60,8 +61,8 @@ namespace Apache.Ignite.Core.Impl.Binary.Deployment
 
             try
             {
-                // Assembly.GetType does not work for assembly-qualified names. Full name is required without assembly.
-                return asm.GetType(parsedName.GetFullName(), false);
+                // GetTypes() call ensures that all dependencies for all types are requested.
+                return asm.GetTypes().FirstOrDefault(x => x.AssemblyQualifiedName == typeName);
             }
             finally
             {
