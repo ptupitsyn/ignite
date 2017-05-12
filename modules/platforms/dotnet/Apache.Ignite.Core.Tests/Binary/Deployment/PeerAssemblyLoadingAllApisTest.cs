@@ -21,6 +21,7 @@ namespace Apache.Ignite.Core.Tests.Binary.Deployment
     using System.Linq;
     using Apache.Ignite.Core.Tests.Compute;
     using Apache.Ignite.Core.Tests.Process;
+    using Apache.Ignite.Log4Net;
     using ExamplesDll::Apache.Ignite.ExamplesDll.Binary;
     using NUnit.Framework;
 
@@ -125,8 +126,8 @@ namespace Apache.Ignite.Core.Tests.Binary.Deployment
         {
             PeerAssemblyLoadingTest.TestDeployment(remoteCompute =>
             {
-                // Argument is from different assembly and should be peer deployed as well.
-                var taskArg = new Address("1", 2);
+                // Argument requires additional assembly.
+                var taskArg = new IgniteLog4NetLogger();
 
                 var results = async
                     ? remoteCompute.BroadcastAsync(new ProcessNameArgFunc(), taskArg).Result
