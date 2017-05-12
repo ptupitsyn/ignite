@@ -85,6 +85,8 @@ namespace Apache.Ignite.Core.Tests.Binary.Deployment
                 Assert.AreEqual("addr3", result.Street);
             });
 
+            TearDown();
+
             TestDeployment(remoteCompute =>
             {
                 // Arg is object, but value is from Examples assembly.
