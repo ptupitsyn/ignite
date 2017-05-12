@@ -20,6 +20,7 @@ namespace Apache.Ignite.Core.Tests.Binary.Deployment
     using System;
     using System.IO;
     using System.Threading;
+    using Apache.Ignite.Core.Common;
     using Apache.Ignite.Core.Impl;
     using Apache.Ignite.Core.Impl.Common;
     using Apache.Ignite.Core.Tests.Process;
@@ -40,9 +41,15 @@ namespace Apache.Ignite.Core.Tests.Binary.Deployment
         {
             TestDeployment(ignite =>
             {
-                var result = ignite.GetCluster().ForRemotes().GetCompute().Call(new ProcessNameFunc());
+                var ex = Assert.Throws<IgniteException>(
+                    () => ignite.GetCluster().ForRemotes().GetCompute().Call(new ProcessNameFunc()));
 
-                Assert.AreEqual("Apache.Ignite", result);
+                Assert.AreEqual("Compute job has failed on remote node, examine InnerException for details.", 
+                    ex.Message);
+
+                Assert.IsNotNull(ex.InnerException);
+                Assert.AreEqual("Failed to deserialize the job [errType=BinaryObjectException, errMsg=No matching " +
+                                "type found for object", ex.InnerException.Message.Substring(0, 102));
             }, false);
         }
 
