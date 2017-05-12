@@ -31,11 +31,13 @@ namespace Apache.Ignite.Core.Tests.Binary.Deployment
         /// Tests Compute.Call.
         /// </summary>
         [Test]
-        public void TestComputeCall()
+        public void TestComputeCall([Values(true, false)] bool async)
         {
             PeerAssemblyLoadingTest.TestDeployment(remoteCompute =>
             {
-                Assert.AreEqual("Apache.Ignite", remoteCompute.Call(new ProcessNameFunc()));
+                Assert.AreEqual("Apache.Ignite", async
+                    ? remoteCompute.CallAsync(new ProcessNameFunc()).Result
+                    : remoteCompute.Call(new ProcessNameFunc()));
             });
         }
 
@@ -43,28 +45,20 @@ namespace Apache.Ignite.Core.Tests.Binary.Deployment
         /// Tests Compute.Call.
         /// </summary>
         [Test]
-        public void TestComputeCallAsync()
-        {
-            PeerAssemblyLoadingTest.TestDeployment(remoteCompute =>
-            {
-                Assert.AreEqual("Apache.Ignite", remoteCompute.CallAsync(new ProcessNameFunc()).Result);
-            });
-        }
-
-        /// <summary>
-        /// Tests Compute.Call.
-        /// </summary>
-        [Test]
-        public void TestComputeAffinityCall()
+        public void TestComputeAffinityCall([Values(true, false)] bool async)
         {
             PeerAssemblyLoadingTest.TestDeployment(ignite =>
             {
                 var cache = ignite.GetOrCreateCache<int, int>("myCache");
 
                 var key = TestUtils.GetPrimaryKey(ignite, cache.Name, ignite.GetCluster().ForRemotes().GetNode());
-                
+
+                var res = async
+                    ? ignite.GetCompute().AffinityCallAsync(cache.Name, key, new ProcessNameFunc()).Result
+                    : ignite.GetCompute().AffinityCall(cache.Name, key, new ProcessNameFunc());
+
                 Assert.AreEqual("Apache.Ignite",
-                    ignite.GetCompute().AffinityCall(cache.Name, key, new ProcessNameFunc()));
+                    res);
             });
         }
 
@@ -72,23 +66,13 @@ namespace Apache.Ignite.Core.Tests.Binary.Deployment
         /// Tests Compute.Execute.
         /// </summary>
         [Test]
-        public void TestComputeExecute()
+        public void TestComputeExecute([Values(true, false)] bool async)
         {
             PeerAssemblyLoadingTest.TestDeployment(remoteCompute =>
             {
-                Assert.AreEqual("Apache.Ignite", remoteCompute.Execute(new ProcessNameTask()));
-            });
-        }
-
-        /// <summary>
-        /// Tests Compute.Execute.
-        /// </summary>
-        [Test]
-        public void TestComputeExecuteAsync()
-        {
-            PeerAssemblyLoadingTest.TestDeployment(remoteCompute =>
-            {
-                Assert.AreEqual("Apache.Ignite", remoteCompute.ExecuteAsync(new ProcessNameTask()));
+                Assert.AreEqual("Apache.Ignite", async 
+                    ? remoteCompute.ExecuteAsync(new ProcessNameTask()).Result
+                    : remoteCompute.Execute(new ProcessNameTask()));
             });
         }
 
