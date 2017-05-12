@@ -144,7 +144,7 @@ namespace Apache.Ignite.Core.Tests.Binary.Deployment
                 // Argument is from different assembly and should be peer deployed as well.
                 var taskArg = new Address("1", 2);
 
-                Assert.AreEqual("Apache.Ignite_", async
+                Assert.AreEqual("Apache.IgniteAddress [street=1, zip=2]", async
                     ? remoteCompute.ApplyAsync(new ProcessNameArgFunc(), taskArg).Result
                     : remoteCompute.Apply(new ProcessNameArgFunc(), taskArg));
             });
