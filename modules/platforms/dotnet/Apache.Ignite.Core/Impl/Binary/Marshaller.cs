@@ -747,7 +747,7 @@ namespace Apache.Ignite.Core.Impl.Binary
             AddSystemType(0, r => new GetAssemblyFunc());
             AddSystemType(0, r => new AssemblyRequest(r));
             AddSystemType(0, r => new AssemblyRequestResult(r));
-            AddSystemType(0, r => new PeerLoadingObjectHolder(r));
+            AddSystemType(0, r => new PeerLoadingObjectHolder(r));  // TODO: Unwrap on read.
         }
 
         /// <summary>

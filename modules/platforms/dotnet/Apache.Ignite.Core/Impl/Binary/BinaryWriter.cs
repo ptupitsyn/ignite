@@ -23,6 +23,7 @@ namespace Apache.Ignite.Core.Impl.Binary
     using System.Diagnostics;
     using System.IO;
     using Apache.Ignite.Core.Binary;
+    using Apache.Ignite.Core.Impl.Binary.Deployment;
     using Apache.Ignite.Core.Impl.Binary.IO;
     using Apache.Ignite.Core.Impl.Binary.Metadata;
     using Apache.Ignite.Core.Impl.Binary.Structure;
@@ -1165,6 +1166,14 @@ namespace Apache.Ignite.Core.Impl.Binary
                 return;
             }
 
+            // Peer deployment mode: all user objects are wrapped.
+            if (EnablePeerDeployment)
+            {
+                Write(new PeerLoadingObjectHolder(obj));
+
+                return;
+            }
+
             // Suppose that we faced normal object and perform descriptor lookup.
             var desc = _marsh.GetDescriptor(type);
 
@@ -1422,6 +1431,12 @@ namespace Apache.Ignite.Core.Impl.Binary
                 }
             }
         }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether all user objects
+        /// should be wrapped into <see cref="PeerLoadingObjectHolder"/>.
+        /// </summary>
+        internal bool EnablePeerDeployment { get; set; }
 
         /// <summary>
         /// Stream.
