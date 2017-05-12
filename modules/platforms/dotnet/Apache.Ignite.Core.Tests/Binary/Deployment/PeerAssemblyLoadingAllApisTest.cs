@@ -23,7 +23,7 @@ namespace Apache.Ignite.Core.Tests.Binary.Deployment
     /// <summary>
     /// Tests all APIs that support peer assembly loading.
     /// </summary>
-    [System.ComponentModel.Category(TestUtils.CategoryIntensive)]
+    [Category(TestUtils.CategoryIntensive)]
     public class PeerAssemblyLoadingAllApisTest
     {
         /// <summary>
