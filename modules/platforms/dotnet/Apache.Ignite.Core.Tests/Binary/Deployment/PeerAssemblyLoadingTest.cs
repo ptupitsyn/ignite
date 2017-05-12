@@ -17,6 +17,7 @@
 
 namespace Apache.Ignite.Core.Tests.Binary.Deployment
 {
+    extern alias ExamplesDll;
     using System;
     using System.IO;
     using System.Threading;
@@ -26,6 +27,7 @@ namespace Apache.Ignite.Core.Tests.Binary.Deployment
     using Apache.Ignite.Core.Impl;
     using Apache.Ignite.Core.Impl.Common;
     using Apache.Ignite.Core.Tests.Process;
+    using ExamplesDll::Apache.Ignite.ExamplesDll.Binary;
     using NUnit.Framework;
 
     /// <summary>
@@ -81,6 +83,13 @@ namespace Apache.Ignite.Core.Tests.Binary.Deployment
 
                 Assert.AreEqual(3, result.Zip);
                 Assert.AreEqual("addr3", result.Street);
+            });
+
+            TestDeployment(remoteCompute =>
+            {
+                // Arg is object, but value is from Examples assembly.
+                Assert.AreEqual("Apache.IgniteAddress [street=Central, zip=2]", remoteCompute.Call(
+                    new ProcessNameFunc {Arg = new Address("Central", 2)}));
             });
         }
 
