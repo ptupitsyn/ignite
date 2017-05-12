@@ -55,6 +55,9 @@ namespace Apache.Ignite.Core.Impl.Binary
         /** Whether we are currently detaching an object. */
         private bool _detaching;
 
+        /** Whether we are directly within peer loading object holder. */
+        private bool _isInPeerHolder;
+
         /** Schema holder. */
         private readonly BinaryObjectSchemaHolder _schema = BinaryObjectSchemaHolder.Current;
 
@@ -1169,9 +1172,17 @@ namespace Apache.Ignite.Core.Impl.Binary
             // Peer deployment mode: all user objects are wrapped.
             if (EnablePeerDeployment && type != typeof(PeerLoadingObjectHolder))
             {
-                Write(new PeerLoadingObjectHolder(obj));
+                if (_isInPeerHolder)
+                {
+                    _isInPeerHolder = false;
+                }
+                else
+                {
+                    _isInPeerHolder = true;
+                    Write(new PeerLoadingObjectHolder(obj));
 
-                return;
+                    return;
+                }
             }
 
             // Suppose that we faced normal object and perform descriptor lookup.
