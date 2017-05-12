@@ -17,10 +17,12 @@
 
 namespace Apache.Ignite.Core.Tests.Binary.Deployment
 {
+    extern alias ExamplesDll;
     using System.Linq;
     using Apache.Ignite.Core.Cluster;
     using Apache.Ignite.Core.Tests.Compute;
     using Apache.Ignite.Core.Tests.Process;
+    using ExamplesDll::Apache.Ignite.ExamplesDll.Binary;
     using NUnit.Framework;
 
     /// <summary>
@@ -72,9 +74,11 @@ namespace Apache.Ignite.Core.Tests.Binary.Deployment
         {
             PeerAssemblyLoadingTest.TestDeployment(remoteCompute =>
             {
-                Assert.AreEqual("Apache.Ignite", async 
-                    ? remoteCompute.ExecuteAsync(new ProcessNameTask()).Result
-                    : remoteCompute.Execute(new ProcessNameTask()));
+                var taskArg = new Address("1", 2);
+
+                Assert.AreEqual("Apache.Ignite", async
+                    ? remoteCompute.ExecuteAsync(new ProcessNameTask(), taskArg).Result
+                    : remoteCompute.Execute(new ProcessNameTask(), taskArg));
             });
         }
 
@@ -126,6 +130,22 @@ namespace Apache.Ignite.Core.Tests.Binary.Deployment
                     : remoteCompute.Broadcast(new ProcessNameArgFunc(), "_");
 
                 Assert.AreEqual("Apache.Ignite_", results.Single());
+            });
+        }
+
+        /// <summary>
+        /// Tests Compute.Apply.
+        /// </summary>
+        [Test]
+        public void TestComputeApply([Values(true, false)] bool async)
+        {
+            PeerAssemblyLoadingTest.TestDeployment(remoteCompute =>
+            {
+                var taskArg = new Address("1", 2);
+
+                Assert.AreEqual("Apache.Ignite_", async
+                    ? remoteCompute.ApplyAsync(new ProcessNameArgFunc(), taskArg).Result
+                    : remoteCompute.Apply(new ProcessNameArgFunc(), taskArg));
             });
         }
 

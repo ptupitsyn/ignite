@@ -26,12 +26,12 @@ namespace Apache.Ignite.Core.Tests.Binary.Deployment
     /// <summary>
     /// Task that returns process name.
     /// </summary>
-    public class ProcessNameTask : IComputeTask<string, string>
+    public class ProcessNameTask : IComputeTask<object, string, string>
     {
         /** <inheritdoc /> */
         public IDictionary<IComputeJob<string>, IClusterNode> Map(IList<IClusterNode> subgrid, object arg)
         {
-            return subgrid.ToDictionary(x => (IComputeJob<string>) new ProcessNameJob(), x => x);
+            return subgrid.ToDictionary(x => (IComputeJob<string>) new ProcessNameJob {Arg = arg}, x => x);
         }
 
         /** <inheritdoc /> */
@@ -56,10 +56,12 @@ namespace Apache.Ignite.Core.Tests.Binary.Deployment
         /// </summary>
         private class ProcessNameJob : IComputeJob<string>
         {
+            public object Arg { get; set; }
+
             /** <inheritdoc /> */
             public string Execute()
             {
-                return System.Diagnostics.Process.GetCurrentProcess().ProcessName;
+                return System.Diagnostics.Process.GetCurrentProcess().ProcessName + Arg;
             }
 
             /** <inheritdoc /> */

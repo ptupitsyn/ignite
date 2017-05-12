@@ -34,10 +34,10 @@ namespace Apache.Ignite.Core.Tests.Binary.Deployment
     /// <summary>
     /// Function that returns parent process name.
     /// </summary>
-    public class ProcessNameArgFunc : IComputeFunc<string, string>
+    public class ProcessNameArgFunc : IComputeFunc<object, string>
     {
         /** <inheritdoc /> */
-        public string Invoke(string arg)
+        public string Invoke(object arg)
         {
             return System.Diagnostics.Process.GetCurrentProcess().ProcessName + arg;
         }
