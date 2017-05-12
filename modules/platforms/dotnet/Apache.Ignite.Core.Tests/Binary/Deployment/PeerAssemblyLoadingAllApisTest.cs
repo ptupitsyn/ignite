@@ -52,6 +52,19 @@ namespace Apache.Ignite.Core.Tests.Binary.Deployment
         }
 
         /// <summary>
+        /// Tests Compute.Execute.
+        /// </summary>
+        [Test]
+        public void TestComputeExecute()
+        {
+            PeerAssemblyLoadingTest.TestDeployment(remoteCompute =>
+            {
+                Assert.AreEqual("Apache.Ignite", remoteCompute.Execute<>().CallAsync(new ProcessNameFunc()).Result);
+            });
+
+        }
+
+        /// <summary>
         /// Tears down the test.
         /// </summary>
         [TearDown]

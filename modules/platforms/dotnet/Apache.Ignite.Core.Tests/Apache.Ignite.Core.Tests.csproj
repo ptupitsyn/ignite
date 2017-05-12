@@ -78,6 +78,7 @@
     <Compile Include="Binary\Deployment\PeerAssemblyLoadingAllApisTest.cs" />
     <Compile Include="Binary\Deployment\PeerAssemblyLoadingVersioningTest.cs" />
     <Compile Include="Binary\Deployment\ProcessNameFunc.cs" />
+    <Compile Include="Binary\Deployment\ProcessNameTask.cs" />
     <Compile Include="Binary\IO\BinaryStreamsTest.cs" />
     <Compile Include="Binary\JavaBinaryInteropTest.cs" />
     <Compile Include="Binary\JavaTypeMappingTest.cs" />
