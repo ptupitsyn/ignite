@@ -1131,6 +1131,12 @@ namespace Apache.Ignite.Core.Tests.Binary
             obj.Hashtable = new TestHashTable();
 
             Assert.AreEqual(obj, marsh.Unmarshal<CollectionsType>(marsh.Marshal(obj)));
+
+            // Test custom collections.
+            obj.Col3 = new TestList {1, "2"};
+            obj.Hashtable2 = new TestHashTable {{1, "2"}};
+
+            Assert.AreEqual(obj, marsh.Unmarshal<CollectionsType>(marsh.Marshal(obj)));
         }
 
         /**
@@ -1698,8 +1704,12 @@ namespace Apache.Ignite.Core.Tests.Binary
             public ICollection Col1 { get; set; }
 
             public ArrayList Col2 { get; set; }
+            
+            public TestList Col3 { get; set; }
 
             public Hashtable Hashtable { get; set; }
+
+            public TestHashTable Hashtable2 { get; set; }
 
             public Dictionary<int, string> Dict { get; set; }
 
@@ -1781,8 +1791,6 @@ namespace Apache.Ignite.Core.Tests.Binary
             if (col1 == null && col2 == null)
                 return true;
             if (col1 == null || col2 == null)
-                return false;
-            if (col1.GetType() != col2.GetType())
                 return false;
 
             return col1.OfType<object>().SequenceEqual(col2.OfType<object>());
