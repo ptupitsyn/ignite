@@ -21,7 +21,7 @@ namespace Apache.Ignite.Core.Impl.Binary.Deployment
     using Apache.Ignite.Core.Impl.Common;
 
     /// <summary>
-    /// Serializer for <see cref="PeerLoadingObjectHolder"/>.
+    /// Serializer for <see cref="PeerLoadingObjectHolder"/>. Unwraps underlying object automatically.
     /// </summary>
     internal class PeerLoadingObjectHolderSerializer : IBinarySerializerInternal
     {
