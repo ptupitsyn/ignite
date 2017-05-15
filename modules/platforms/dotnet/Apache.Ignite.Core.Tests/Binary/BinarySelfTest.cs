@@ -1128,6 +1128,7 @@ namespace Apache.Ignite.Core.Tests.Binary
             Assert.AreEqual(obj, marsh.Unmarshal<CollectionsType>(marsh.Marshal(obj)));
 
             obj.Col2 = new TestList();
+            obj.Hashtable = new TestHashTable();
 
             Assert.AreEqual(obj, marsh.Unmarshal<CollectionsType>(marsh.Marshal(obj)));
         }
