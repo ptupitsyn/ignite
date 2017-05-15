@@ -48,15 +48,6 @@ namespace Apache.Ignite.Core.Impl.Binary.Deployment
         }
 
         /// <summary>
-        /// Reads the object with peer deployment (when written accordingly) or normally otherwise.
-        /// </summary>
-        public static object ReadWithPeerDeployment(this IBinaryRawReader reader)
-        {
-            // TODO: Inline me.
-            return reader.ReadObject<object>();
-        }
-
-        /// <summary>
         /// Determines whether peer loading is enabled.
         /// </summary>
         private static bool IsPeerAssemblyLoadingEnabled(this Marshaller marshaller)

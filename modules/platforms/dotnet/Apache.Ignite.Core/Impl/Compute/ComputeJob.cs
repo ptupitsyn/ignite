@@ -55,7 +55,7 @@ namespace Apache.Ignite.Core.Impl.Compute
         /// <param name="reader">The reader.</param>
         public ComputeJobWrapper(IBinaryRawReader reader)
         {
-            _job = reader.ReadWithPeerDeployment();
+            _job = reader.ReadObject<object>();
 
             DelegateTypeDescriptor.GetComputeJob(_job.GetType(), out _execute, out _cancel);
         }

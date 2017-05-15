@@ -88,7 +88,7 @@ namespace Apache.Ignite.Core.Impl.Compute
         /// <param name="reader">The reader.</param>
         public ComputeFuncWrapper(IBinaryRawReader reader)
         {
-            _func = reader.ReadWithPeerDeployment();
+            _func = reader.ReadObject<object>();
 
             _invoker = DelegateTypeDescriptor.GetComputeFunc(_func.GetType());
         }

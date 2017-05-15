@@ -75,7 +75,7 @@ namespace Apache.Ignite.Core.Impl.Compute.Closure
         /// <param name="reader">The reader.</param>
         public ComputeActionJob(IBinaryRawReader reader)
         {
-            _action = (IComputeAction) reader.ReadWithPeerDeployment();
+            _action = (IComputeAction) reader.ReadObject<object>();
         }
     }
 }

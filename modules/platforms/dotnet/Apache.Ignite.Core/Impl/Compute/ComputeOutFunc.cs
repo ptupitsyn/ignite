@@ -92,7 +92,7 @@ namespace Apache.Ignite.Core.Impl.Compute
         /// <param name="reader">The reader.</param>
         public ComputeOutFuncWrapper(IBinaryRawReader reader)
         {
-            _func = reader.ReadWithPeerDeployment();
+            _func = reader.ReadObject<object>();
 
             _invoker = DelegateTypeDescriptor.GetComputeOutFunc(_func.GetType());
         }
