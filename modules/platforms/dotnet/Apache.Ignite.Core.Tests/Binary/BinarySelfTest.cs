@@ -1767,7 +1767,12 @@ namespace Apache.Ignite.Core.Tests.Binary
 
         public class TestList : ArrayList
         {
+            // No-op.
+        }
 
+        public class TestHashTable : Hashtable
+        {
+            // No-op.
         }
 
         private static bool CompareCollections(ICollection col1, ICollection col2)
@@ -1775,6 +1780,8 @@ namespace Apache.Ignite.Core.Tests.Binary
             if (col1 == null && col2 == null)
                 return true;
             if (col1 == null || col2 == null)
+                return false;
+            if (col1.GetType() != col2.GetType())
                 return false;
 
             return col1.OfType<object>().SequenceEqual(col2.OfType<object>());
