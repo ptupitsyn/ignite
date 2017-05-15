@@ -54,15 +54,14 @@ namespace Apache.Ignite.Core.Impl.Binary.Deployment
 
             var ignite = reader.Marshaller.Ignite;
 
-            // Resolve type from existing assemblies or from remote nodes.
-            var type = Type.GetType(typeName, false)
-                       ?? PeerAssemblyResolver.LoadAssemblyAndGetType(typeName, ignite);
-
-            Debug.Assert(type != null);
-
-            // TODO: Wrap this in AssemblyResolve handler. Some disposable helper maybe.
-            using (new PeerAssemblyResolver(ignite))
+            using (new PeerAssemblyResolver(ignite))  // Resolve transitive dependencies when needed.
             {
+                // Resolve type from existing assemblies or from remote nodes.
+                var type = Type.GetType(typeName, false)
+                           ?? PeerAssemblyResolver.LoadAssemblyAndGetType(typeName, ignite);
+
+                Debug.Assert(type != null);
+
                 _object = reader.Deserialize<object>(type);
             }
         }

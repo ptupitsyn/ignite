@@ -75,11 +75,8 @@ namespace Apache.Ignite.Core.Impl.Binary.Deployment
                 return null;
             }
 
-            using (new PeerAssemblyResolver(ignite))
-            {
-                // Assembly.GetType does not work for assembly-qualified names. Full name is required without assembly.
-                return asm.GetType(parsedName.GetFullName(), false);
-            }
+            // Assembly.GetType does not work for assembly-qualified names. Full name is required without assembly.
+            return asm.GetType(parsedName.GetFullName(), false);
         }
 
         /// <summary>
