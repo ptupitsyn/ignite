@@ -133,7 +133,7 @@ namespace Apache.Ignite.Core.Tests.Binary.Deployment
                     ? remoteCompute.BroadcastAsync(new ProcessNameArgFunc(), taskArg).Result
                     : remoteCompute.Broadcast(new ProcessNameArgFunc(), taskArg);
 
-                Assert.AreEqual("Apache.IgniteAddress [street=1, zip=2]", results.Single());
+                Assert.AreEqual("Apache.IgniteApache.Ignite.Log4Net.IgniteLog4NetLogger", results.Single());
             });
         }
 
