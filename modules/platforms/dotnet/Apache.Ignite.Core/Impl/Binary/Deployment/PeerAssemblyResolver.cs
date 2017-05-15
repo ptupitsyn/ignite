@@ -77,9 +77,8 @@ namespace Apache.Ignite.Core.Impl.Binary.Deployment
 
             using (new PeerAssemblyResolver(ignite))
             {
-                // GetTypes() call ensures that all dependencies for all types are requested.
-                // TODO: No, it does not. We must force load all dependencies.
-                return asm.GetTypes().FirstOrDefault(x => x.AssemblyQualifiedName == typeName);
+                // Assembly.GetType does not work for assembly-qualified names. Full name is required without assembly.
+                return asm.GetType(parsedName.GetFullName(), false);
             }
         }
 
