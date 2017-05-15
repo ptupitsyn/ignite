@@ -17,8 +17,6 @@
 
 namespace Apache.Ignite.Core.Impl.Binary.Deployment
 {
-    using Apache.Ignite.Core.Binary;
-
     /// <summary>
     /// Reader and Writer extensions for peer deployment.
     /// </summary>
