@@ -109,10 +109,11 @@ namespace Apache.Ignite.Core.Impl.Binary
                 
                 DeserializationCallbackProcessor.Pop();
             }
-            catch(Exception)
+            catch (Exception)
             {
                 // Clear callbacks on exception to avoid dangling objects.
                 DeserializationCallbackProcessor.Clear();
+                throw;
             }
 
             return (T) obj;
