@@ -29,8 +29,29 @@ namespace Apache.Ignite.Core.Impl.Binary.Deployment
     /// <summary>
     /// Loads assemblies from other nodes.
     /// </summary>
-    internal static class PeerAssemblyResolver
+    internal sealed class PeerAssemblyResolver : IDisposable
     {
+        /** Assembly resolve handler. */
+        private readonly ResolveEventHandler _handler;
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="PeerAssemblyResolver"/> class.
+        /// </summary>
+        public PeerAssemblyResolver(Ignite ignite)
+        {
+            Debug.Assert(ignite != null);
+
+            _handler = (sender, args) => GetAssembly(ignite, args.Name);
+
+            AppDomain.CurrentDomain.AssemblyResolve += _handler;
+        }
+
+        /** <inheritdoc /> */
+        public void Dispose()
+        {
+            AppDomain.CurrentDomain.AssemblyResolve -= _handler;
+        }
+
         /// <summary>
         /// Gets the assembly from remote nodes.
         /// </summary>
@@ -54,20 +75,11 @@ namespace Apache.Ignite.Core.Impl.Binary.Deployment
                 return null;
             }
 
-            // Fetch transient dependencies by tracking assembly resolve requests.
-            ResolveEventHandler asmResolve = (sender, args) => GetAssembly(ignite, args.Name);
-
-            AppDomain.CurrentDomain.AssemblyResolve += asmResolve;
-
-            try
+            using (new PeerAssemblyResolver(ignite))
             {
                 // GetTypes() call ensures that all dependencies for all types are requested.
                 // TODO: No, it does not. We must force load all dependencies.
                 return asm.GetTypes().FirstOrDefault(x => x.AssemblyQualifiedName == typeName);
-            }
-            finally
-            {
-                AppDomain.CurrentDomain.AssemblyResolve -= asmResolve;
             }
         }
 
