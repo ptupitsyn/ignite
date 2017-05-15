@@ -110,7 +110,7 @@ namespace Apache.Ignite.Core.Tests.Binary.Deployment
             TestDeployment(remoteCompute =>
             {
                 // Arg is object, value is from Apache.Ignite.Log4Net, and it further depends on log4net.
-                Assert.AreEqual("Apache.IgniteAddress [street=Central, zip=2]", remoteCompute.Call(
+                Assert.AreEqual("Apache.IgniteApache.Ignite.Log4Net.IgniteLog4NetLogger", remoteCompute.Call(
                     new ProcessNameFunc {Arg = new IgniteLog4NetLogger()}));
             });
         }
