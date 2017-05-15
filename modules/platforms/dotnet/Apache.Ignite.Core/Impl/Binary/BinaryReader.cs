@@ -521,13 +521,17 @@ namespace Apache.Ignite.Core.Impl.Binary
         /// <summary>
         /// Deserialize object.
         /// </summary>
+        /// <param name="typeOverride">The type override.
+        /// There can be multiple versions of the same type when peer assembly loading is enabled.
+        /// Only first one is registered in Marshaller.
+        /// This parameter specifies exact type to be instantiated.</param>
         /// <returns>Deserialized object.</returns>
-        public T Deserialize<T>()
+        public T Deserialize<T>(Type typeOverride = null)
         {
             T res;
 
             // ReSharper disable once CompareNonConstrainedGenericWithNull
-            if (!TryDeserialize(out res) && default(T) != null)
+            if (!TryDeserialize(out res, typeOverride) && default(T) != null)
                 throw new BinaryObjectException(string.Format("Invalid data on deserialization. " +
                     "Expected: '{0}' But was: null", typeof (T)));
 
@@ -537,8 +541,15 @@ namespace Apache.Ignite.Core.Impl.Binary
         /// <summary>
         /// Deserialize object.
         /// </summary>
-        /// <returns>Deserialized object.</returns>
-        public bool TryDeserialize<T>(out T res)
+        /// <param name="res">Deserialized object.</param>
+        /// <param name="typeOverride">The type override.
+        /// There can be multiple versions of the same type when peer assembly loading is enabled.
+        /// Only first one is registered in Marshaller.
+        /// This parameter specifies exact type to be instantiated.</param>
+        /// <returns>
+        /// Deserialized object.
+        /// </returns>
+        public bool TryDeserialize<T>(out T res, Type typeOverride = null)
         {
             int pos = Stream.Position;
 
@@ -556,12 +567,12 @@ namespace Apache.Ignite.Core.Impl.Binary
                     return false;
 
                 case BinaryUtils.HdrHnd:
-                    res = ReadHandleObject<T>(pos);
+                    res = ReadHandleObject<T>(pos, typeOverride);
 
                     return true;
 
                 case BinaryUtils.HdrFull:
-                    res = ReadFullObject<T>(pos);
+                    res = ReadFullObject<T>(pos, typeOverride);
 
                     return true;
 
@@ -588,19 +599,6 @@ namespace Apache.Ignite.Core.Impl.Binary
         public bool GetCustomTypeDataFlag()
         {
             return _frame.Hdr.IsCustomDotNetType;
-        }
-
-        /// <summary>
-        /// Reads the object as specified type, overriding default type resolving mechanism.
-        /// </summary>
-        /// <param name="typeOverride">The type override.
-        /// There can be multiple versions of the same type when peer assembly loading is enabled.
-        /// Only first one is registered in Marshaller.
-        /// This parameter specifies exact type to be instantiated.</param>
-        /// <returns>Resulting object.</returns>
-        public object ReadObjectAs(Type typeOverride)
-        {
-            return ReadFullObject<object>(Stream.Position, typeOverride);
         }
 
         /// <summary>
@@ -675,7 +673,7 @@ namespace Apache.Ignite.Core.Impl.Binary
         /// This parameter specifies exact type to be instantiated.</param>
         /// <returns>Resulting object</returns>
         [SuppressMessage("Microsoft.Performance", "CA1804:RemoveUnusedLocals", MessageId = "hashCode")]
-        private T ReadFullObject<T>(int pos, Type typeOverride = null)
+        private T ReadFullObject<T>(int pos, Type typeOverride)
         {
             var hdr = BinaryObjectHeader.Read(Stream, pos);
 
@@ -835,7 +833,7 @@ namespace Apache.Ignite.Core.Impl.Binary
         /// <summary>
         /// Reads the handle object.
         /// </summary>
-        private T ReadHandleObject<T>(int pos)
+        private T ReadHandleObject<T>(int pos, Type typeOverride)
         {
             // Get handle position.
             int hndPos = pos - Stream.ReadInt();
@@ -853,7 +851,7 @@ namespace Apache.Ignite.Core.Impl.Binary
                         // No such handler, i.e. we trying to deserialize inner object before deserializing outer.
                         Stream.Seek(hndPos, SeekOrigin.Begin);
 
-                        hndObj = Deserialize<T>();
+                        hndObj = Deserialize<T>(typeOverride);
                     }
 
                     // Notify builder that we deserialized object on other location.
@@ -997,7 +995,7 @@ namespace Apache.Ignite.Core.Impl.Binary
                 return default(T);
 
             if (hdr == BinaryUtils.HdrHnd)
-                return ReadHandleObject<T>(Stream.Position - 1);
+                return ReadHandleObject<T>(Stream.Position - 1, null);
 
             if (expHdr != hdr)
                 throw new BinaryObjectException(string.Format("Invalid header on deserialization. " +
