@@ -562,14 +562,6 @@ namespace Apache.Ignite.Core.Impl.Cluster
         }
 
         /// <summary>
-        /// Enables the memory metrics.
-        /// </summary>
-        public void EnableMemoryMetrics(bool enable, string memoryPolicyName)
-        {
-            // TODO
-        }
-
-        /// <summary>
         /// Creates new Cluster Group from given native projection.
         /// </summary>
         /// <param name="prj">Native projection.</param>

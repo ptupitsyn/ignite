@@ -140,5 +140,12 @@ namespace Apache.Ignite.Core.Cache.Configuration
         /// </summary>
         [DefaultValue(DefaultEmptyPagesPoolSize)]
         public int EmptyPagesPoolSize { get;set; }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether memory metrics should be enabled.
+        /// <para />
+        /// Metrics can be retrieved with <see cref="IIgnite.GetMemoryMetrics"/> method.
+        /// </summary>
+        public bool MetricsEnabled { get; set; }
     }
 }
