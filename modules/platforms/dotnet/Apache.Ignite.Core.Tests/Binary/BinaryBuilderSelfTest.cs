@@ -1654,11 +1654,13 @@ namespace Apache.Ignite.Core.Tests.Binary
             var binary = _grid.GetBinary();
 
             int val = (int)TestEnumRegistered.Two;
+            var typeName = GetTypeName(typeof(TestEnumRegistered));
+            var typeId = BinaryUtils.GetStringHashCode(typeName);
 
             var binEnums = new[]
             {
                 binary.BuildEnum(typeof (TestEnumRegistered), val),
-                binary.BuildEnum(GetTypeName(typeof (TestEnumRegistered)), val)
+                binary.BuildEnum(typeName, val)
             };
 
             foreach (var binEnum in binEnums)
@@ -1667,8 +1669,8 @@ namespace Apache.Ignite.Core.Tests.Binary
 
                 Assert.AreEqual(val, binEnum.EnumValue);
 
-                Assert.AreEqual("Apache.Ignite.Core.Tests.Binary.TestEnumRegistered " +
-                                "[typeId=-2111094326, enumValue=1, enumValueName=Two]", binEnum.ToString());
+                Assert.AreEqual(string.Format("{0} [typeId={1}, enumValue={2}, enumValueName={3}]",
+                    typeName, typeId, val, (TestEnumRegistered) val), binEnum.ToString());
 
                 Assert.AreEqual((TestEnumRegistered)val, binEnum.Deserialize<TestEnumRegistered>());
             }
