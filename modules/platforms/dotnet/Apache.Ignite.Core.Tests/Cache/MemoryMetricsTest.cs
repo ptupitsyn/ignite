@@ -18,6 +18,7 @@
 namespace Apache.Ignite.Core.Tests.Cache
 {
     using System.Linq;
+    using Apache.Ignite.Core.Cache;
     using Apache.Ignite.Core.Cache.Configuration;
     using NUnit.Framework;
 
@@ -41,10 +42,14 @@ namespace Apache.Ignite.Core.Tests.Cache
             var ignite = StartIgniteWithTwoPolicies();
 
             // Verify metrics.
-            var metrics = ignite.GetMemoryMetrics().Skip(1).ToList();  // skip system policy.
-            Assert.AreEqual(2, metrics.Count);
+            var metrics = ignite.GetMemoryMetrics().ToArray();
+            Assert.AreEqual(3, metrics.Length);  // two defined plus system.
 
-            var memMetrics = metrics.First();
+            var sysMetrics = metrics[0];
+            Assert.AreEqual("sysMemPlc", sysMetrics.Name);
+            AssertMetricsAreEmpty(sysMetrics);
+
+            var memMetrics = metrics[1];
             Assert.AreEqual(MemoryPolicyWithMetrics, memMetrics.Name);
             Assert.Greater(memMetrics.AllocationRate, 0);
             Assert.AreEqual(0, memMetrics.EvictionRate);
@@ -52,13 +57,21 @@ namespace Apache.Ignite.Core.Tests.Cache
             Assert.Greater(memMetrics.PageFillFactor, 0);
             Assert.Greater(memMetrics.TotalAllocatedPages, 1000);
 
-            var emptyMetrics = metrics.Last();
+            var emptyMetrics = metrics[2];
             Assert.AreEqual(MemoryPolicyNoMetrics, emptyMetrics.Name);
-            Assert.AreEqual(0, emptyMetrics.AllocationRate);
-            Assert.AreEqual(0, emptyMetrics.EvictionRate);
-            Assert.AreEqual(0, emptyMetrics.LargeEntriesPagesPercentage);
-            Assert.AreEqual(0, emptyMetrics.PageFillFactor);
-            Assert.AreEqual(0, emptyMetrics.TotalAllocatedPages);
+            AssertMetricsAreEmpty(emptyMetrics);
+        }
+
+        /// <summary>
+        /// Asserts that metrics are empty.
+        /// </summary>
+        private static void AssertMetricsAreEmpty(IMemoryMetrics metrics)
+        {
+            Assert.AreEqual(0, metrics.AllocationRate);
+            Assert.AreEqual(0, metrics.EvictionRate);
+            Assert.AreEqual(0, metrics.LargeEntriesPagesPercentage);
+            Assert.AreEqual(0, metrics.PageFillFactor);
+            Assert.AreEqual(0, metrics.TotalAllocatedPages);
         }
 
         /// <summary>
