@@ -20,6 +20,7 @@ namespace Apache.Ignite.Core.Impl.Binary
     using System;
     using System.Diagnostics;
     using Apache.Ignite.Core.Binary;
+    using Apache.Ignite.Core.Impl.Binary.Metadata;
 
     /// <summary>
     /// Represents a typed enum in binary form.
@@ -135,6 +136,23 @@ namespace Apache.Ignite.Core.Impl.Binary
         public static bool operator !=(BinaryEnum left, BinaryEnum right)
         {
             return !Equals(left, right);
+        }
+
+        /** <inheritdoc /> */
+        public override string ToString()
+        {
+            var meta = GetBinaryType();
+
+            if (meta == null || meta == BinaryType.Empty)
+            {
+                return string.Format("BinaryEnum [typeId={0}, enumValue={1}]", _typeId, _enumValue);
+            }
+
+            var desc = _marsh.GetDescriptor(true, _typeId);
+            var enumValueName = desc != null && desc.Type != null ? Enum.GetName(desc.Type, _enumValue) : null;
+
+            return string.Format("{0} [typeId={1}, enumValue={2}, enumValueName={3}]",
+                meta.TypeName, _typeId, _enumValue, enumValueName);
         }
     }
 }
