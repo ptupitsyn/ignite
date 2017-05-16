@@ -117,7 +117,10 @@ namespace Apache.Ignite.Core.Impl.Cluster
         
         /** */
         private const int OpResetLostPartitions = 25;
-        
+
+        /** */
+        private const int OpMemoryMetrics = 26;
+
         /** Initial Ignite instance. */
         private readonly Ignite _ignite;
         
@@ -557,8 +560,21 @@ namespace Apache.Ignite.Core.Impl.Cluster
         /// </summary>
         public ICollection<IMemoryMetrics> GetMemoryMetrics()
         {
-            // TODO
-            return null;
+            return DoInOp(OpMemoryMetrics, stream =>
+            {
+                IBinaryRawReader reader = Marshaller.StartUnmarshal(stream, false);
+
+                var cnt = reader.ReadInt();
+
+                var res = new List<IMemoryMetrics>(cnt);
+
+                for (int i = 0; i < cnt; i++)
+                {
+                    res.Add(new MemoryMetrics(reader));
+                }
+
+                return res;
+            });
         }
 
         /// <summary>
