@@ -51,7 +51,7 @@ namespace Apache.Ignite.Core.Impl.Binary.Deployment
         private static bool IsPeerAssemblyLoadingEnabled(this Marshaller marshaller)
         {
             return marshaller != null && marshaller.Ignite != null &&
-                   marshaller.Ignite.Configuration.IsPeerAssemblyLoadingEnabled;
+                   marshaller.Ignite.Configuration.PeerAssemblyLoadingEnabled;
         }
     }
 }

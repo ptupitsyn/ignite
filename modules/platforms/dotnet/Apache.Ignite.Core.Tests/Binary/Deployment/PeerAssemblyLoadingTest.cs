@@ -161,7 +161,7 @@ namespace Apache.Ignite.Core.Tests.Binary.Deployment
             // Start Ignite and execute computation on remote node.
             var cfg = new IgniteConfiguration(TestUtils.GetTestConfiguration())
             {
-                IsPeerAssemblyLoadingEnabled = enablePeerDeployment
+                PeerAssemblyLoadingEnabled = enablePeerDeployment
             };
 
             using (var ignite = Ignition.Start(cfg))

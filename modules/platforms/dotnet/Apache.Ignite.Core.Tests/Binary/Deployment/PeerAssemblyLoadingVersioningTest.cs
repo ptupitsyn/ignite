@@ -66,7 +66,7 @@ namespace Apache.Ignite.Core.Tests.Binary.Deployment
         {
             using (Ignition.Start(new IgniteConfiguration(TestUtils.GetTestConfiguration())
             {
-                IsPeerAssemblyLoadingEnabled = true,
+                PeerAssemblyLoadingEnabled = true,
                 IgniteInstanceName = "peerDeployTest",
                 DiscoverySpi = new TcpDiscoverySpi
                 {
@@ -139,7 +139,7 @@ class Program
 {
     static void Main(string[] args)
     {
-        using (var ignite = Ignition.Start(new IgniteConfiguration(TestUtils.GetTestConfiguration(false)) {ClientMode = true, IsPeerAssemblyLoadingEnabled = true,
+        using (var ignite = Ignition.Start(new IgniteConfiguration(TestUtils.GetTestConfiguration(false)) {ClientMode = true, PeerAssemblyLoadingEnabled = true,
                 DiscoverySpi = new TcpDiscoverySpi { IpFinder = new TcpDiscoveryStaticIpFinder { Endpoints = new[] { ""127.0.0.1:47500..47502"" } }, SocketTimeout = TimeSpan.FromSeconds(0.3) }
 }))
         {

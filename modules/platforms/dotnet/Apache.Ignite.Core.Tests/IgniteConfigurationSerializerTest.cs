@@ -273,7 +273,7 @@ namespace Apache.Ignite.Core.Tests
             Assert.AreEqual(89, memPlc.InitialSize);
             Assert.AreEqual(98, memPlc.MaxSize);
 
-            Assert.IsTrue(cfg.IsPeerAssemblyLoadingEnabled);
+            Assert.IsTrue(cfg.PeerAssemblyLoadingEnabled);
         }
 
         /// <summary>
@@ -832,7 +832,7 @@ namespace Apache.Ignite.Core.Tests
                         }
                     }
                 },
-                IsPeerAssemblyLoadingEnabled = true
+                PeerAssemblyLoadingEnabled = true
             };
         }
 

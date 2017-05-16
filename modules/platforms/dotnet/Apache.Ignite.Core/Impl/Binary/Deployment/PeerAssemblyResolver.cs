@@ -113,7 +113,7 @@ namespace Apache.Ignite.Core.Impl.Binary.Deployment
             Debug.Assert(assemblyName != null);
             Debug.Assert(ignite != null);
 
-            if (!ignite.Configuration.IsPeerAssemblyLoadingEnabled)
+            if (!ignite.Configuration.PeerAssemblyLoadingEnabled)
                 return null;
 
             Debug.WriteLine("Requesting assembly from other nodes: " + assemblyName);
