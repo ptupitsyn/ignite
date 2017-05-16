@@ -35,7 +35,26 @@ namespace Apache.Ignite.Core.Tests.Cache
         [Test]
         public void Test()
         {
-            // Start Ignite with two policies.
+            var ignite = StartIgniteWithTwoPolicies();
+
+            // Verify metrics.
+            var metrics = ignite.GetMemoryMetrics();
+            Assert.AreEqual(2, metrics.Count);
+
+            var memMetrics = metrics.First();
+            Assert.AreEqual(MemoryPolicyWithMetrics, memMetrics.Name);
+            // TODO
+
+            var emptyMetrics = metrics.Last();
+            Assert.AreEqual(MemoryPolicyNoMetrics, emptyMetrics.Name);
+            // TODO
+        }
+
+        /// <summary>
+        /// Starts the ignite with two policies.
+        /// </summary>
+        private static IIgnite StartIgniteWithTwoPolicies()
+        {
             var cfg = new IgniteConfiguration(TestUtils.GetTestConfiguration())
             {
                 MemoryConfiguration = new MemoryConfiguration
@@ -76,15 +95,7 @@ namespace Apache.Ignite.Core.Tests.Cache
             cacheWithMetrics.Put(1, 1);
             cacheWithMetrics.Get(1);
 
-            // Verify metrics.
-            var metrics = ignite.GetMemoryMetrics();
-            Assert.AreEqual(2, metrics.Count);
-
-            var memMetrics = metrics.First();
-            Assert.AreEqual(MemoryPolicyWithMetrics, memMetrics.Name);
-
-            var emptyMetrics = metrics.Last();
-            Assert.AreEqual(MemoryPolicyNoMetrics, emptyMetrics.Name);
+            return ignite;
         }
 
         /// <summary>
