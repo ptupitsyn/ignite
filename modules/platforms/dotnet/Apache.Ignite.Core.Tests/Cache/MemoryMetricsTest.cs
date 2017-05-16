@@ -32,8 +32,11 @@ namespace Apache.Ignite.Core.Tests.Cache
         /** */
         private const string MemoryPolicyNoMetrics = "plcNoMetrics";
 
+        /// <summary>
+        /// Tests the memory metrics.
+        /// </summary>
         [Test]
-        public void Test()
+        public void TestMemoryMetrics()
         {
             var ignite = StartIgniteWithTwoPolicies();
 
