@@ -1645,12 +1645,15 @@ namespace Apache.Ignite.Core.Tests.Binary
             Assert.AreEqual(new[] {"val", "valArr"}, decimalMeta.Fields);
         }
 
+        /// <summary>
+        /// Tests the enum builder.
+        /// </summary>
         [Test]
         public void TestBuildEnum()
         {
             var binary = _grid.GetBinary();
 
-            int val = (int) TestEnumRegistered.Two;
+            int val = (int)TestEnumRegistered.Two;
 
             var binEnums = new[]
             {
@@ -1664,7 +1667,10 @@ namespace Apache.Ignite.Core.Tests.Binary
 
                 Assert.AreEqual(val, binEnum.EnumValue);
 
-                Assert.AreEqual((TestEnumRegistered) val, binEnum.Deserialize<TestEnumRegistered>());
+                Assert.AreEqual("Apache.Ignite.Core.Tests.Binary.TestEnumRegistered " +
+                                "[typeId=-2111094326, enumValue=1, enumValueName=Two]", binEnum.ToString());
+
+                Assert.AreEqual((TestEnumRegistered)val, binEnum.Deserialize<TestEnumRegistered>());
             }
 
             Assert.AreEqual(binEnums[0], binEnums[1]);
