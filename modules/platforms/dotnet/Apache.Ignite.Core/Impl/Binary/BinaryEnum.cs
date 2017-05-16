@@ -127,18 +127,6 @@ namespace Apache.Ignite.Core.Impl.Binary
         }
 
         /** <inheritdoc /> */
-        public static bool operator ==(BinaryEnum left, BinaryEnum right)
-        {
-            return Equals(left, right);
-        }
-
-        /** <inheritdoc /> */
-        public static bool operator !=(BinaryEnum left, BinaryEnum right)
-        {
-            return !Equals(left, right);
-        }
-
-        /** <inheritdoc /> */
         public override string ToString()
         {
             var meta = GetBinaryType();

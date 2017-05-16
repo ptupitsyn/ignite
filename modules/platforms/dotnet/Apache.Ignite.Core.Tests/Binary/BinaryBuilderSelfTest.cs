@@ -1677,12 +1677,8 @@ namespace Apache.Ignite.Core.Tests.Binary
             Assert.AreEqual(binEnums[0].GetHashCode(), binEnums[1].GetHashCode());
             
             Assert.IsFalse(binEnums[0].Equals(null));
-            Assert.IsFalse(binEnums[0].Equals(binEnums[1]));
-
-            // ReSharper disable once PossibleUnintendedReferenceComparison
-            Assert.IsTrue(binEnums[0] == binEnums[1]);
-            // ReSharper disable once PossibleUnintendedReferenceComparison
-            Assert.IsFalse(binEnums[0] != binEnums[1]);
+            Assert.IsFalse(binEnums[0].Equals(new object()));
+            Assert.IsTrue(binEnums[0].Equals(binEnums[1]));
 
             var ex = Assert.Throws<NotSupportedException>(() => binEnums[1].ToBuilder());
             Assert.AreEqual("Builder cannot be created for enum.", ex.Message);
