@@ -71,6 +71,7 @@ namespace Apache.Ignite.Core.Cache.Configuration
             PageEvictionMode = (DataPageEvictionMode) reader.ReadInt();
             EvictionThreshold = reader.ReadDouble();
             EmptyPagesPoolSize = reader.ReadInt();
+            MetricsEnabled = reader.ReadBoolean();
         }
 
         /// <summary>
@@ -85,6 +86,7 @@ namespace Apache.Ignite.Core.Cache.Configuration
             writer.WriteInt((int) PageEvictionMode);
             writer.WriteDouble(EvictionThreshold);
             writer.WriteInt(EmptyPagesPoolSize);
+            writer.WriteBoolean(MetricsEnabled);
         }
 
         /// <summary>
