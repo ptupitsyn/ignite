@@ -90,7 +90,7 @@ namespace Apache.Ignite.Core.Impl.Binary
         /** <inheritdoc /> */
         public IBinaryObjectBuilder ToBuilder()
         {
-            return _marsh.Ignite.GetBinary().GetBuilder(this);
+            throw new NotSupportedException("Builder cannot be created for enum.");
         }
 
         /** <inheritdoc /> */

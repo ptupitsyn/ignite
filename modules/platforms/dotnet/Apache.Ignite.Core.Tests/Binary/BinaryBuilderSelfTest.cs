@@ -1684,6 +1684,8 @@ namespace Apache.Ignite.Core.Tests.Binary
             // ReSharper disable once PossibleUnintendedReferenceComparison
             Assert.IsFalse(binEnums[0] != binEnums[1]);
 
+            var ex = Assert.Throws<NotSupportedException>(() => binEnums[1].ToBuilder());
+            Assert.AreEqual("Builder cannot be created for enum.", ex.Message);
         }
 
         /// <summary>
