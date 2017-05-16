@@ -34,9 +34,7 @@ namespace Apache.Ignite.Core.Impl.Cache
             Debug.Assert(reader != null);
 
             Name = reader.ReadString();
-            Size = reader.ReadLong();
-            SwapFilePath = reader.ReadString();
-            PageCount = reader.ReadLong();
+            TotalAllocatedPages = reader.ReadLong();
             AllocationRate = reader.ReadFloat();
             EvictionRate = reader.ReadFloat();
             LargeEntriesPagesPercentage = reader.ReadFloat();
@@ -45,16 +43,10 @@ namespace Apache.Ignite.Core.Impl.Cache
 
         /** <inheritdoc /> */
         public string Name { get; private set; }
-        
+
         /** <inheritdoc /> */
-        public long Size { get; private set; }
-        
-        /** <inheritdoc /> */
-        public string SwapFilePath { get; private set; }
-        
-        /** <inheritdoc /> */
-        public long PageCount { get; private set; }
-        
+        public long TotalAllocatedPages { get; private set; }
+
         /** <inheritdoc /> */
         public float AllocationRate { get; private set; }
         

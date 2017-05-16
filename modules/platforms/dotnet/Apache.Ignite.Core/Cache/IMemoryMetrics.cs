@@ -28,19 +28,9 @@ namespace Apache.Ignite.Core.Cache
         string Name { get; }
 
         /// <summary>
-        /// Gets the memory size, in bytes.
-        /// </summary>
-        long Size { get; }
-
-        /// <summary>
-        /// Gets the swap file path.
-        /// </summary>
-        string SwapFilePath { get; }
-
-        /// <summary>
         /// Gets the count of allocated pages.
         /// </summary>
-        long PageCount { get; }
+        long TotalAllocatedPages { get; }
 
         /// <summary>
         /// Gets the allocation rate, in pages per second.
