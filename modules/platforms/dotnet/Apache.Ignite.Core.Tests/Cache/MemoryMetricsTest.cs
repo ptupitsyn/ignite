@@ -41,16 +41,24 @@ namespace Apache.Ignite.Core.Tests.Cache
             var ignite = StartIgniteWithTwoPolicies();
 
             // Verify metrics.
-            var metrics = ignite.GetMemoryMetrics();
+            var metrics = ignite.GetMemoryMetrics().Skip(1).ToList();  // skip system policy.
             Assert.AreEqual(2, metrics.Count);
 
             var memMetrics = metrics.First();
             Assert.AreEqual(MemoryPolicyWithMetrics, memMetrics.Name);
-            // TODO
+            Assert.Greater(memMetrics.AllocationRate, 0);
+            Assert.AreEqual(0, memMetrics.EvictionRate);
+            Assert.AreEqual(0, memMetrics.LargeEntriesPagesPercentage);
+            Assert.Greater(memMetrics.PageFillFactor, 0);
+            Assert.Greater(memMetrics.TotalAllocatedPages, 1000);
 
             var emptyMetrics = metrics.Last();
             Assert.AreEqual(MemoryPolicyNoMetrics, emptyMetrics.Name);
-            // TODO
+            Assert.AreEqual(0, emptyMetrics.AllocationRate);
+            Assert.AreEqual(0, emptyMetrics.EvictionRate);
+            Assert.AreEqual(0, emptyMetrics.LargeEntriesPagesPercentage);
+            Assert.AreEqual(0, emptyMetrics.PageFillFactor);
+            Assert.AreEqual(0, emptyMetrics.TotalAllocatedPages);
         }
 
         /// <summary>
