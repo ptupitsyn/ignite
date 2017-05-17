@@ -110,7 +110,8 @@ namespace Apache.Ignite.Core.Binary
         {
             _isInUse = true;
 
-            return new BinaryReflectiveSerializerInternal(_rawMode).Register(type, typeId, converter, idMapper);
+            return new BinaryReflectiveSerializerInternal(_rawMode)
+                .Register(type, typeId, converter, idMapper, _forceTimestamp);
         }
 
         /// <summary>
@@ -119,8 +120,10 @@ namespace Apache.Ignite.Core.Binary
         private void ThrowIfInUse()
         {
             if (_isInUse)
+            {
                 throw new InvalidOperationException(typeof(BinaryReflectiveSerializer).Name +
                                                     ".RawMode cannot be changed after first serialization.");
+            }
         }
     }
 }

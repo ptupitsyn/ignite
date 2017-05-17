@@ -106,8 +106,9 @@ namespace Apache.Ignite.Core.Impl.Binary
         /// <param name="writeAction">Write action.</param>
         /// <param name="readAction">Read action.</param>
         /// <param name="raw">Raw mode.</param>
+        /// <param name="forceTimestamp">Force timestamp serialization for DateTime fields..</param>
         public static void GetTypeActions(FieldInfo field, out BinaryReflectiveWriteAction writeAction,
-            out BinaryReflectiveReadAction readAction, bool raw)
+            out BinaryReflectiveReadAction readAction, bool raw, bool forceTimestamp)
         {
             var type = field.FieldType;
 
@@ -116,7 +117,7 @@ namespace Apache.Ignite.Core.Impl.Binary
             else if (type.IsArray)
                 HandleArray(field, out writeAction, out readAction, raw);
             else
-                HandleOther(field, out writeAction, out readAction, raw);
+                HandleOther(field, out writeAction, out readAction, raw, forceTimestamp);
         }
 
         /// <summary>
@@ -431,8 +432,9 @@ namespace Apache.Ignite.Core.Impl.Binary
         /// <param name="writeAction">Write action.</param>
         /// <param name="readAction">Read action.</param>
         /// <param name="raw">Raw mode.</param>
+        /// <param name="forceTimestamp">Force timestamp serialization for DateTime fields..</param>
         private static void HandleOther(FieldInfo field, out BinaryReflectiveWriteAction writeAction,
-            out BinaryReflectiveReadAction readAction, bool raw)
+            out BinaryReflectiveReadAction readAction, bool raw, bool forceTimestamp)
         {
             var type = field.FieldType;
 
@@ -501,7 +503,7 @@ namespace Apache.Ignite.Core.Impl.Binary
                     ? GetRawReader(field, r => r.ReadCollection())
                     : GetReader(field, (f, r) => r.ReadCollection(f));
             }
-            else if (type == typeof(DateTime) && IsQueryField(field) && !raw)
+            else if (type == typeof(DateTime) && IsTimestamp(field, raw, forceTimestamp))
             {
                 // Special case for DateTime and query fields.
                 // If a field is marked with [QuerySqlField], write it as TimeStamp so that queries work.
@@ -512,7 +514,7 @@ namespace Apache.Ignite.Core.Impl.Binary
                 writeAction = GetWriter<DateTime>(field, (f, w, o) => w.WriteTimestamp(f, o));
                 readAction = GetReader(field, (f, r) => r.ReadObject<DateTime>(f));
             }
-            else if (nullableType == typeof(DateTime) && IsQueryField(field) && !raw)
+            else if (nullableType == typeof(DateTime) && IsTimestamp(field, raw, forceTimestamp))
             {
                 writeAction = GetWriter<DateTime?>(field, (f, w, o) => w.WriteTimestamp(f, o));
                 readAction = GetReader(field, (f, r) => r.ReadTimestamp(f));
@@ -522,6 +524,14 @@ namespace Apache.Ignite.Core.Impl.Binary
                 writeAction = raw ? GetRawWriter(field, MthdWriteObjRaw) : GetWriter(field, MthdWriteObj);
                 readAction = raw ? GetRawReader(field, MthdReadObjRaw) : GetReader(field, MthdReadObj);
             }
+        }
+
+        /// <summary>
+        /// Determines whether specified field should be written as timestamp.
+        /// </summary>
+        private static bool IsTimestamp(FieldInfo field, bool raw, bool forceTimestamp)
+        {
+            return forceTimestamp || (IsQueryField(field) && !raw);
         }
 
         /// <summary>
