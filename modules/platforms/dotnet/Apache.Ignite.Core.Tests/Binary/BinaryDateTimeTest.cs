@@ -112,17 +112,17 @@ namespace Apache.Ignite.Core.Tests.Binary
             Assert.AreEqual("Timestamp", bin.GetBinaryType().GetFieldTypeName("Value"));
         }
 
-        class DateTimeObj
+        private class DateTimeObj
         {
             public DateTime Value { get; set; }
         }
 
-        class DateTimeObj2
+        private class DateTimeObj2
         {
             public DateTime Value { get; set; }
         }
 
-        class DateTimeObjAttribute
+        private class DateTimeObjAttribute
         {
             // TODO
             public DateTime Value { get; set; }
