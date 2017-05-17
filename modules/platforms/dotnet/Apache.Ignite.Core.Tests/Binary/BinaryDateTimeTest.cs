@@ -64,13 +64,16 @@ namespace Apache.Ignite.Core.Tests.Binary
         {
             var binary = Ignition.GetIgnite().GetBinary();
 
-            var obj = new DateTimeObj {Value = DateTime.Now};
-            var bin = binary.ToBinary<IBinaryObject>(obj);
-            var res = bin.Deserialize<DateTimeObj>();
+            foreach (var dateTime in new[]{DateTime.Now, DateTime.UtcNow, DateTime.MinValue, DateTime.MaxValue})
+            {
+                var obj = new DateTimeObj { Value = dateTime };
+                var bin = binary.ToBinary<IBinaryObject>(obj);
+                var res = bin.Deserialize<DateTimeObj>();
 
-            Assert.AreEqual(obj.Value, res.Value);
-            Assert.AreEqual(obj.Value, bin.GetField<IBinaryObject>("Value").Deserialize<DateTime>());
-            Assert.AreEqual("Object", bin.GetBinaryType().GetFieldTypeName("Value"));
+                Assert.AreEqual(obj.Value, res.Value);
+                Assert.AreEqual(obj.Value, bin.GetField<IBinaryObject>("Value").Deserialize<DateTime>());
+                Assert.AreEqual("Object", bin.GetBinaryType().GetFieldTypeName("Value"));
+            }
         }
 
         /// <summary>
