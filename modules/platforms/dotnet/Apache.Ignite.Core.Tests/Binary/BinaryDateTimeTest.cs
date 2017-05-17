@@ -18,6 +18,7 @@
 namespace Apache.Ignite.Core.Tests.Binary
 {
     using System;
+    using System.Linq;
     using Apache.Ignite.Core.Binary;
     using NUnit.Framework;
 
@@ -82,9 +83,19 @@ namespace Apache.Ignite.Core.Tests.Binary
         [Test]
         public void TestSerializerForceTimestamp()
         {
-            var binary = Ignition.GetIgnite().GetBinary();
+            // Check config.
+            var ser = Ignition.GetIgnite()
+                .GetConfiguration()
+                .BinaryConfiguration.TypeConfigurations
+                .Select(x => x.Serializer)
+                .OfType<BinaryReflectiveSerializer>()
+                .Single();
+            
+            Assert.IsTrue(ser.ForceTimestamp);
 
             // Non-UTC DateTime throws.
+            var binary = Ignition.GetIgnite().GetBinary();
+
             var ex = Assert.Throws<BinaryObjectException>(() =>
                 binary.ToBinary<IBinaryObject>(new DateTimeObj2 {Value = DateTime.Now}));
             
