@@ -178,6 +178,7 @@ namespace Apache.Ignite.Core.Tests.Binary
             public DateTime Value { get; set; }
         }
 
+        // TODO: Split into multiple classes
         private class DateTimeObjMemberAttribute
         {
             [Timestamp]
