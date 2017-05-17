@@ -110,7 +110,13 @@ namespace Apache.Ignite.Core.Impl.Binary
         public static void GetTypeActions(FieldInfo field, out BinaryReflectiveWriteAction writeAction,
             out BinaryReflectiveReadAction readAction, bool raw, bool forceTimestamp)
         {
+            Debug.Assert(field != null);
+            Debug.Assert(field.DeclaringType != null);
+
             var type = field.FieldType;
+
+            forceTimestamp = forceTimestamp ||
+                             field.DeclaringType.GetCustomAttributes(typeof(TimestampAttribute), true).Any();
 
             if (type.IsPrimitive)
                 HandlePrimitive(field, out writeAction, out readAction, raw);
@@ -401,33 +407,6 @@ namespace Apache.Ignite.Core.Impl.Binary
         }
 
         /// <summary>
-        /// Determines whether specified field is a query field (has QueryFieldAttribute).
-        /// </summary>
-        private static bool IsTimestampField(FieldInfo fieldInfo)
-        {
-            // TODO: Check for TimestampAttribute on member and class.
-
-            Debug.Assert(fieldInfo != null && fieldInfo.DeclaringType != null);
-
-            var fieldName = BinaryUtils.CleanFieldName(fieldInfo.Name);
-
-            object[] attrs = null;
-
-            if (fieldName != fieldInfo.Name)
-            {
-                // Backing field, check corresponding property
-                var prop = fieldInfo.DeclaringType.GetProperty(fieldName, fieldInfo.FieldType);
-
-                if (prop != null)
-                    attrs = prop.GetCustomAttributes(true);
-            }
-
-            attrs = attrs ?? fieldInfo.GetCustomAttributes(true);
-
-            return attrs.OfType<QuerySqlFieldAttribute>().Any();
-        }
-
-        /// <summary>
         /// Handle other type.
         /// </summary>
         /// <param name="field">The field.</param>
@@ -505,12 +484,12 @@ namespace Apache.Ignite.Core.Impl.Binary
                     ? GetRawReader(field, r => r.ReadCollection())
                     : GetReader(field, (f, r) => r.ReadCollection(f));
             }
-            else if (type == typeof(DateTime) && IsTimestamp(field, forceTimestamp))
+            else if (type == typeof(DateTime) && IsTimestamp(field, forceTimestamp, raw))
             {
                 writeAction = GetWriter<DateTime>(field, (f, w, o) => w.WriteTimestamp(f, o));
                 readAction = GetReader(field, (f, r) => r.ReadObject<DateTime>(f));
             }
-            else if (nullableType == typeof(DateTime) && IsTimestamp(field, forceTimestamp))
+            else if (nullableType == typeof(DateTime) && IsTimestamp(field, forceTimestamp, raw))
             {
                 writeAction = GetWriter<DateTime?>(field, (f, w, o) => w.WriteTimestamp(f, o));
                 readAction = GetReader(field, (f, r) => r.ReadTimestamp(f));
@@ -525,9 +504,41 @@ namespace Apache.Ignite.Core.Impl.Binary
         /// <summary>
         /// Determines whether specified field should be written as timestamp.
         /// </summary>
-        private static bool IsTimestamp(FieldInfo field, bool forceTimestamp)
+        private static bool IsTimestamp(FieldInfo field, bool forceTimestamp, bool raw)
         {
-            return forceTimestamp || IsTimestampField(field);
+            if (forceTimestamp)
+            {
+                return true;
+            }
+
+            Debug.Assert(field != null && field.DeclaringType != null);
+
+            var fieldName = BinaryUtils.CleanFieldName(field.Name);
+
+            object[] attrs = null;
+
+            if (fieldName != field.Name)
+            {
+                // Backing field, check corresponding property
+                var prop = field.DeclaringType.GetProperty(fieldName, field.FieldType);
+
+                if (prop != null)
+                    attrs = prop.GetCustomAttributes(true);
+            }
+
+            attrs = attrs ?? field.GetCustomAttributes(true);
+
+            if (attrs.Any(x => x is TimestampAttribute))
+            {
+                return true;
+            }
+
+            // Special case for DateTime and query fields.
+            // If a field is marked with [QuerySqlField], write it as TimeStamp so that queries work.
+            // This is not needed in raw mode (queries do not work anyway).
+            // It may cause issues when field has attribute, but is used in a cache without queries, and user
+            // may expect non-UTC dates to work. However, such cases are rare, and there are workarounds.
+            return !raw && attrs.Any(x => x is QuerySqlFieldAttribute);
         }
 
         /// <summary>
