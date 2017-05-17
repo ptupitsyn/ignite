@@ -19,7 +19,6 @@ namespace Apache.Ignite.Core.Tests.Binary
 {
     using System;
     using System.Linq;
-    using System.Linq.Expressions;
     using Apache.Ignite.Core.Binary;
     using NUnit.Framework;
 
@@ -92,8 +91,21 @@ namespace Apache.Ignite.Core.Tests.Binary
         [Test]
         public void TestMemberAttributes()
         {
+            AssertTimestampField<DateTimeObjMemberAttribute>((o, d) => o.Value = d, o => o.Value, "Value");
+
+            AssertTimestampField<DateTimeObjMemberAttribute>(
+                (o, d) => o.FieldValue = d, o => o.FieldValue, "FieldValue");
+
+            AssertDateTimeField<DateTimeObjMemberAttribute>((o, d) => o.Value2 = d, o => o.Value2, "Value2");
+        }
+
+        /// <summary>
+        /// Tests TimestampAttribute applied to entire class.
+        /// </summary>
+        [Test]
+        public void TestClassAttributes()
+        {
             // TODO
-            var binary = Ignition.GetIgnite().GetBinary();
         }
 
         /// <summary>
@@ -144,15 +156,6 @@ namespace Apache.Ignite.Core.Tests.Binary
             Assert.AreEqual(getValue(obj), getValue(res));
             Assert.AreEqual(getValue(obj), bin.GetField<DateTime>(fieldName));
             Assert.AreEqual("Timestamp", bin.GetBinaryType().GetFieldTypeName(fieldName));
-        }
-
-        /// <summary>
-        /// Tests TimestampAttribute applied to entire class.
-        /// </summary>
-        [Test]
-        public void TestClassAttributes()
-        {
-            // TODO
         }
 
         private class DateTimeObj
