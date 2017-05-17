@@ -112,6 +112,24 @@ namespace Apache.Ignite.Core.Tests.Binary
             Assert.AreEqual("Timestamp", bin.GetBinaryType().GetFieldTypeName("Value"));
         }
 
+        /// <summary>
+        /// Tests TimestampAttribute applied to class members.
+        /// </summary>
+        [Test]
+        public void TestMemberAttributes()
+        {
+            // TODO
+        }
+
+        /// <summary>
+        /// Tests TimestampAttribute applied to entire class.
+        /// </summary>
+        [Test]
+        public void TestClassAttributes()
+        {
+            // TODO
+        }
+
         private class DateTimeObj
         {
             public DateTime Value { get; set; }
@@ -122,10 +140,21 @@ namespace Apache.Ignite.Core.Tests.Binary
             public DateTime Value { get; set; }
         }
 
-        private class DateTimeObjAttribute
+        private class DateTimeObjMemberAttribute
         {
-            // TODO
+            [Timestamp]
             public DateTime Value { get; set; }
+            
+            public DateTime Value2 { get; set; }
+
+            [Timestamp]
+            public DateTime FieldValue;
+        }
+        
+        [Timestamp]
+        private class DateTimeObjAttribute : DateTimeObjMemberAttribute
+        {
+            // No-op.
         }
     }
 }

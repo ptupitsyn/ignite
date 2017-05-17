@@ -90,6 +90,11 @@ namespace Apache.Ignite.Core.Binary
         /// <para />
         /// Timestamp format is required for values used in SQL and for interoperation with other platforms.
         /// Only UTC values are supported in Timestamp format. Other values will cause an exception on write.
+        /// <para />
+        /// Normally serializer uses <see cref="IBinaryWriter.WriteObject{T}"/> for DateTime fields.
+        /// This attribute changes the behavior to <see cref="IBinaryWriter.WriteTimestamp"/>.
+        /// <para />
+        /// See also <see cref="TimestampAttribute"/>.
         /// </summary>
         public bool ForceTimestamp
         {

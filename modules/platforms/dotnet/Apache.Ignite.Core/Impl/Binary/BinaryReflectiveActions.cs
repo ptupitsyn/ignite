@@ -403,8 +403,10 @@ namespace Apache.Ignite.Core.Impl.Binary
         /// <summary>
         /// Determines whether specified field is a query field (has QueryFieldAttribute).
         /// </summary>
-        private static bool IsQueryField(FieldInfo fieldInfo)
+        private static bool IsTimestampField(FieldInfo fieldInfo)
         {
+            // TODO: Check for TimestampAttribute on member and class.
+
             Debug.Assert(fieldInfo != null && fieldInfo.DeclaringType != null);
 
             var fieldName = BinaryUtils.CleanFieldName(fieldInfo.Name);
@@ -503,18 +505,12 @@ namespace Apache.Ignite.Core.Impl.Binary
                     ? GetRawReader(field, r => r.ReadCollection())
                     : GetReader(field, (f, r) => r.ReadCollection(f));
             }
-            else if (type == typeof(DateTime) && IsTimestamp(field, raw, forceTimestamp))
+            else if (type == typeof(DateTime) && IsTimestamp(field, forceTimestamp))
             {
-                // Special case for DateTime and query fields.
-                // If a field is marked with [QuerySqlField], write it as TimeStamp so that queries work.
-                // This is not needed in raw mode (queries do not work anyway).
-                // It may cause issues when field has attribute, but is used in a cache without queries, and user
-                // may expect non-UTC dates to work. However, such cases are rare, and there are workarounds.
-
                 writeAction = GetWriter<DateTime>(field, (f, w, o) => w.WriteTimestamp(f, o));
                 readAction = GetReader(field, (f, r) => r.ReadObject<DateTime>(f));
             }
-            else if (nullableType == typeof(DateTime) && IsTimestamp(field, raw, forceTimestamp))
+            else if (nullableType == typeof(DateTime) && IsTimestamp(field, forceTimestamp))
             {
                 writeAction = GetWriter<DateTime?>(field, (f, w, o) => w.WriteTimestamp(f, o));
                 readAction = GetReader(field, (f, r) => r.ReadTimestamp(f));
@@ -529,9 +525,9 @@ namespace Apache.Ignite.Core.Impl.Binary
         /// <summary>
         /// Determines whether specified field should be written as timestamp.
         /// </summary>
-        private static bool IsTimestamp(FieldInfo field, bool raw, bool forceTimestamp)
+        private static bool IsTimestamp(FieldInfo field, bool forceTimestamp)
         {
-            return forceTimestamp || (IsQueryField(field) && !raw);
+            return forceTimestamp || IsTimestampField(field);
         }
 
         /// <summary>
