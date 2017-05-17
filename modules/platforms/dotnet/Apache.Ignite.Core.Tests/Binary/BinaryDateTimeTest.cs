@@ -70,6 +70,32 @@ namespace Apache.Ignite.Core.Tests.Binary
 
             Assert.AreEqual(obj.Value, res.Value);
             Assert.AreEqual(obj.Value, bin.GetField<IBinaryObject>("Value").Deserialize<DateTime>());
+            Assert.AreEqual("Object", bin.GetBinaryType().GetFieldTypeName("Value"));
+        }
+
+        /// <summary>
+        /// Tests the ForceTimestamp option in serializer.
+        /// </summary>
+        [Test]
+        public void TestSerializerForceTimestamp()
+        {
+            var binary = Ignition.GetIgnite().GetBinary();
+
+            // Non-UTC DateTime throws.
+            var ex = Assert.Throws<BinaryObjectException>(() =>
+                binary.ToBinary<IBinaryObject>(new DateTimeObj2 {Value = DateTime.Now}));
+            
+            Assert.AreEqual("DateTime is not UTC. Only UTC DateTime can be used for interop with other platforms.",
+                ex.Message);
+
+            // UTC DateTime works.
+            var obj = new DateTimeObj2 {Value = DateTime.UtcNow};
+            var bin = binary.ToBinary<IBinaryObject>(obj);
+            var res = bin.Deserialize<DateTimeObj2>();
+
+            Assert.AreEqual(obj.Value, res.Value);
+            Assert.AreEqual(obj.Value, bin.GetField<DateTime>("Value"));
+            Assert.AreEqual("Timestamp", bin.GetBinaryType().GetFieldTypeName("Value"));
         }
 
         class DateTimeObj
