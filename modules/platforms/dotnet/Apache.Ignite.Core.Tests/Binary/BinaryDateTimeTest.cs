@@ -20,6 +20,7 @@ namespace Apache.Ignite.Core.Tests.Binary
     using System;
     using System.Linq;
     using Apache.Ignite.Core.Binary;
+    using Apache.Ignite.Core.Cache.Configuration;
     using NUnit.Framework;
 
     /// <summary>
@@ -93,6 +94,8 @@ namespace Apache.Ignite.Core.Tests.Binary
         {
             AssertTimestampField<DateTimeObjMemberAttribute>((o, d) => o.Value = d, o => o.Value, "Value");
 
+            AssertTimestampField<DateTimeObjMemberAttribute>((o, d) => o.SqlValue = d, o => o.SqlValue, "SqlValue");
+
             AssertTimestampField<DateTimeObjMemberAttribute>(
                 (o, d) => o.FieldValue = d, o => o.FieldValue, "FieldValue");
 
@@ -105,7 +108,13 @@ namespace Apache.Ignite.Core.Tests.Binary
         [Test]
         public void TestClassAttributes()
         {
-            // TODO
+            AssertTimestampField<DateTimeObjAttribute>((o, d) => o.Value = d, o => o.Value, "Value");
+
+            AssertTimestampField<DateTimeObjAttribute>((o, d) => o.SqlValue = d, o => o.SqlValue, "SqlValue");
+
+            AssertTimestampField<DateTimeObjAttribute>((o, d) => o.FieldValue = d, o => o.FieldValue, "FieldValue");
+
+            AssertTimestampField<DateTimeObjAttribute>((o, d) => o.Value2 = d, o => o.Value2, "Value2");
         }
 
         /// <summary>
@@ -173,6 +182,9 @@ namespace Apache.Ignite.Core.Tests.Binary
         {
             [Timestamp]
             public DateTime Value { get; set; }
+
+            [QuerySqlField]
+            public DateTime SqlValue { get; set; }
             
             public DateTime Value2 { get; set; }
 
