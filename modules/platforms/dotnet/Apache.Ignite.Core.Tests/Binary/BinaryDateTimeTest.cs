@@ -19,6 +19,7 @@ namespace Apache.Ignite.Core.Tests.Binary
 {
     using System;
     using System.Linq;
+    using System.Linq.Expressions;
     using Apache.Ignite.Core.Binary;
     using NUnit.Framework;
 
@@ -63,18 +64,7 @@ namespace Apache.Ignite.Core.Tests.Binary
         [Test]
         public void TestDefaultBehavior()
         {
-            var binary = Ignition.GetIgnite().GetBinary();
-
-            foreach (var dateTime in new[]{DateTime.Now, DateTime.UtcNow, DateTime.MinValue, DateTime.MaxValue})
-            {
-                var obj = new DateTimeObj { Value = dateTime };
-                var bin = binary.ToBinary<IBinaryObject>(obj);
-                var res = bin.Deserialize<DateTimeObj>();
-
-                Assert.AreEqual(obj.Value, res.Value);
-                Assert.AreEqual(obj.Value, bin.GetField<IBinaryObject>("Value").Deserialize<DateTime>());
-                Assert.AreEqual("Object", bin.GetBinaryType().GetFieldTypeName("Value"));
-            }
+            AssertDateTimeField<DateTimeObj>((o, d) => o.Value = d, o => o.Value, "Value");
         }
 
         /// <summary>
@@ -93,23 +83,7 @@ namespace Apache.Ignite.Core.Tests.Binary
             
             Assert.IsTrue(ser.ForceTimestamp);
 
-            // Non-UTC DateTime throws.
-            var binary = Ignition.GetIgnite().GetBinary();
-
-            var ex = Assert.Throws<BinaryObjectException>(() =>
-                binary.ToBinary<IBinaryObject>(new DateTimeObj2 {Value = DateTime.Now}));
-            
-            Assert.AreEqual("DateTime is not UTC. Only UTC DateTime can be used for interop with other platforms.",
-                ex.Message);
-
-            // UTC DateTime works.
-            var obj = new DateTimeObj2 {Value = DateTime.UtcNow};
-            var bin = binary.ToBinary<IBinaryObject>(obj);
-            var res = bin.Deserialize<DateTimeObj2>();
-
-            Assert.AreEqual(obj.Value, res.Value);
-            Assert.AreEqual(obj.Value, bin.GetField<DateTime>("Value"));
-            Assert.AreEqual("Timestamp", bin.GetBinaryType().GetFieldTypeName("Value"));
+            AssertTimestampField<DateTimeObj2>((o, d) => o.Value = d, o => o.Value, "Value");
         }
 
         /// <summary>
@@ -119,6 +93,57 @@ namespace Apache.Ignite.Core.Tests.Binary
         public void TestMemberAttributes()
         {
             // TODO
+            var binary = Ignition.GetIgnite().GetBinary();
+        }
+
+        /// <summary>
+        /// Asserts that specified field is serialized as DateTime object.
+        /// </summary>
+        private static void AssertDateTimeField<T>(Action<T, DateTime> setValue,
+            Func<T, DateTime> getValue, string fieldName) where T : new()
+        {
+            var binary = Ignition.GetIgnite().GetBinary();
+
+            foreach (var dateTime in new[] { DateTime.Now, DateTime.UtcNow, DateTime.MinValue, DateTime.MaxValue })
+            {
+                var obj = new T();
+                setValue(obj, dateTime);
+
+                var bin = binary.ToBinary<IBinaryObject>(obj);
+                var res = bin.Deserialize<T>();
+
+                Assert.AreEqual(getValue(obj), getValue(res));
+                Assert.AreEqual(getValue(obj), bin.GetField<IBinaryObject>(fieldName).Deserialize<DateTime>());
+                Assert.AreEqual("Object", bin.GetBinaryType().GetFieldTypeName(fieldName));
+            }
+        }
+
+        /// <summary>
+        /// Asserts that specified field is serialized as Timestamp.
+        /// </summary>
+        private static void AssertTimestampField<T>(Action<T, DateTime> setValue,
+            Func<T, DateTime> getValue, string fieldName) where T : new()
+        {
+            // Non-UTC DateTime throws.
+            var binary = Ignition.GetIgnite().GetBinary();
+
+            var obj = new T();
+
+            setValue(obj, DateTime.Now);
+
+            var ex = Assert.Throws<BinaryObjectException>(() => binary.ToBinary<IBinaryObject>(obj));
+
+            Assert.AreEqual("DateTime is not UTC. Only UTC DateTime can be used for interop with other platforms.",
+                ex.Message);
+
+            // UTC DateTime works.
+            setValue(obj, DateTime.UtcNow);
+            var bin = binary.ToBinary<IBinaryObject>(obj);
+            var res = bin.Deserialize<T>();
+
+            Assert.AreEqual(getValue(obj), getValue(res));
+            Assert.AreEqual(getValue(obj), bin.GetField<DateTime>(fieldName));
+            Assert.AreEqual("Timestamp", bin.GetBinaryType().GetFieldTypeName(fieldName));
         }
 
         /// <summary>
