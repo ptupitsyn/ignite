@@ -17,6 +17,7 @@
 
 namespace Apache.Ignite.Core.Tests
 {
+    using System;
     using System.Net;
     using NUnit.Framework;
 
@@ -39,8 +40,9 @@ namespace Apache.Ignite.Core.Tests
             using (Ignition.Start(cfg))
             {
                 // TODO: Perform some op via WebClient.
-                var res = new WebClient().DownloadString("http://localhost:8080/ignite?version");
+                var res = new WebClient().DownloadString("http://localhost:8080/ignite?cmd=version");
                 Assert.IsNotEmpty(res);
+                Console.WriteLine(res);
             }
         }
 
@@ -51,6 +53,15 @@ namespace Apache.Ignite.Core.Tests
         public void TestCustomConfig()
         {
             // TODO: Custom ConnectorConfiguration
+        }
+
+        /// <summary>
+        /// Tears down the test.
+        /// </summary>
+        [TearDown]
+        public void TearDown()
+        {
+            Ignition.StopAll(true);
         }
     }
 }
