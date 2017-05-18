@@ -92,14 +92,11 @@ namespace Apache.Ignite.Core.Tests.Binary
         [Test]
         public void TestMemberAttributes()
         {
-            AssertTimestampField<DateTimeObjMemberAttribute>((o, d) => o.Value = d, o => o.Value, "Value");
+            AssertTimestampField<DateTimePropertyAttribute>((o, d) => o.Value = d, o => o.Value, "Value");
 
-            AssertTimestampField<DateTimeObjMemberAttribute>((o, d) => o.SqlValue = d, o => o.SqlValue, "SqlValue");
+            AssertTimestampField<DateTimeFieldAttribute>((o, d) => o.Value = d, o => o.Value, "Value");
 
-            AssertTimestampField<DateTimeObjMemberAttribute>(
-                (o, d) => o.FieldValue = d, o => o.FieldValue, "FieldValue");
-
-            AssertDateTimeField<DateTimeObjMemberAttribute>((o, d) => o.Value2 = d, o => o.Value2, "Value2");
+            AssertTimestampField<DateTimeQueryFieldAttribute>((o, d) => o.Value = d, o => o.Value, "Value");
         }
 
         /// <summary>
@@ -108,13 +105,9 @@ namespace Apache.Ignite.Core.Tests.Binary
         [Test]
         public void TestClassAttributes()
         {
-            AssertTimestampField<DateTimeObjAttribute>((o, d) => o.Value = d, o => o.Value, "Value");
+            AssertTimestampField<DateTimeClassAttribute>((o, d) => o.Value = d, o => o.Value, "Value");
 
-            AssertTimestampField<DateTimeObjAttribute>((o, d) => o.SqlValue = d, o => o.SqlValue, "SqlValue");
-
-            AssertTimestampField<DateTimeObjAttribute>((o, d) => o.FieldValue = d, o => o.FieldValue, "FieldValue");
-
-            AssertTimestampField<DateTimeObjAttribute>((o, d) => o.Value2 = d, o => o.Value2, "Value2");
+            AssertTimestampField<DateTimeClassAttribute2>((o, d) => o.Value = d, o => o.Value, "Value");
         }
 
         /// <summary>
@@ -178,25 +171,34 @@ namespace Apache.Ignite.Core.Tests.Binary
             public DateTime Value { get; set; }
         }
 
-        // TODO: Split into multiple classes
-        private class DateTimeObjMemberAttribute
+        private class DateTimePropertyAttribute
         {
             [Timestamp]
             public DateTime Value { get; set; }
-
-            [QuerySqlField]
-            public DateTime SqlValue { get; set; }
-            
-            public DateTime Value2 { get; set; }
-
-            [Timestamp]
-            public DateTime FieldValue;
         }
-        
-        [Timestamp]
-        private class DateTimeObjAttribute : DateTimeObjMemberAttribute
+
+        private class DateTimeFieldAttribute
         {
-            // No-op.
+            [Timestamp]
+            public DateTime Value;
+        }
+
+        private class DateTimeQueryFieldAttribute
+        {
+            [QuerySqlField]
+            public DateTime Value { get; set; }
+        }
+
+        [Timestamp]
+        private class DateTimeClassAttribute
+        {
+            public DateTime Value { get; set; }
+        }
+
+        [Timestamp]
+        private class DateTimeClassAttribute2
+        {
+            public DateTime Value;
         }
     }
 }
