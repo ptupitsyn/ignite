@@ -17,6 +17,7 @@
 
 namespace Apache.Ignite.Core.Tests
 {
+    using System.Net;
     using NUnit.Framework;
 
     /// <summary>
@@ -30,9 +31,16 @@ namespace Apache.Ignite.Core.Tests
         [Test]
         public void TestDefaultConfig()
         {
-            using (Ignition.Start(TestUtils.GetTestConfiguration()))
+            var cfg = new IgniteConfiguration(TestUtils.GetTestConfiguration())
+            {
+                JvmClasspath = TestUtils.CreateTestClasspath(true)
+            };
+
+            using (Ignition.Start(cfg))
             {
                 // TODO: Perform some op via WebClient.
+                var res = new WebClient().DownloadString("http://localhost:8080/ignite?version");
+                Assert.IsNotEmpty(res);
             }
         }
 

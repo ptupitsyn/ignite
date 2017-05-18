@@ -120,9 +120,9 @@ namespace Apache.Ignite.Core.Tests
         ///
         /// </summary>
         /// <returns></returns>
-        public static string CreateTestClasspath()
+        public static string CreateTestClasspath(bool includeRest = false)
         {
-            return Classpath.CreateClasspath(forceTestClasspath: true);
+            return Classpath.CreateClasspath(forceTestClasspath: true, testClasspathIncludeRest: includeRest);
         }
 
         /// <summary>
