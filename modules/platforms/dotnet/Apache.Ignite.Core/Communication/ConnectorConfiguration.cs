@@ -17,6 +17,8 @@
 
 namespace Apache.Ignite.Core.Communication
 {
+    using System;
+
     /// <summary>
     /// Defines additional node connectivity configuration, such as binary TCP and JSON over HTTP.
     /// <para />
@@ -28,5 +30,45 @@ namespace Apache.Ignite.Core.Communication
     /// </summary>
     public sealed class ConnectorConfiguration
     {
+        /// <summary>
+        /// Gets or sets the host. This can be either an IP address or a domain name.
+        /// <para />
+        /// If not defined, system-wide local address will be used (see <see cref="IgniteConfiguration.Localhost"/>).
+        /// <para />
+        /// You can also use <c>0.0.0.0</c> to bind to all locally-available IP addresses.
+        /// </summary>
+        public string Host { get; set; }
+
+        /// <summary>
+        /// Gets or sets the idle query cursor check frequency that is used to discard inactive query cursors.
+        /// </summary>
+        public TimeSpan IdleQueryCursorCheckFrequency { get; set; }
+
+        /// <summary>
+        /// Gets or sets the idle query cursor timeout. If no fetch request occurs within timeout, the cursor will be
+        /// discarded on next idle check (see <see cref="IdleQueryCursorCheckFrequency"/>).
+        /// </summary>
+        public TimeSpan IdleQueryCursorTimeout { get; set; }
+
+        /// <summary>
+        /// Gets or sets the idle timeout. Half-opened sockets are closed when no packets come within this timeout.
+        /// </summary>
+        public TimeSpan IdleTimeout { get; set; }
+
+        /// <summary>
+        /// Gets or sets the Jetty web server configuration path.
+        /// </summary>
+        public string JettyConfigPath { get; set; }
+
+        /// <summary>
+        /// Gets or sets the port.
+        /// </summary>
+        public int Port { get; set; }
+
+        /// <summary>
+        /// Gets or sets the port range. When <see cref="Port"/> is already in use, a number of consecutive ports
+        /// will be tried according to specified range.
+        /// </summary>
+        public int PortRange { get; set; }
     }
 }
