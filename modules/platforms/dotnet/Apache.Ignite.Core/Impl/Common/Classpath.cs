@@ -20,6 +20,7 @@ namespace Apache.Ignite.Core.Impl.Common
     using System;
     using System.Text;
     using System.IO;
+    using System.Threading;
     using Apache.Ignite.Core.Log;
 
     /// <summary>
@@ -40,11 +41,12 @@ namespace Apache.Ignite.Core.Impl.Common
         /// <param name="forceTestClasspath">Append test directories even if
         /// <see cref="EnvIgniteNativeTestClasspath" /> is not set.</param>
         /// <param name="log">The log.</param>
+        /// <param name="testClasspathIncludeRest">Includes REST module in test classpath.</param>
         /// <returns>
         /// Classpath string.
         /// </returns>
         internal static string CreateClasspath(IgniteConfiguration cfg = null, bool forceTestClasspath = false, 
-            ILogger log = null)
+            ILogger log = null, bool testClasspathIncludeRest = false)
         {
             var cpStr = new StringBuilder();
 
@@ -59,7 +61,7 @@ namespace Apache.Ignite.Core.Impl.Common
             var ggHome = IgniteHome.Resolve(cfg, log);
 
             if (!string.IsNullOrWhiteSpace(ggHome))
-                AppendHomeClasspath(ggHome, forceTestClasspath, cpStr);
+                AppendHomeClasspath(ggHome, forceTestClasspath, cpStr, testClasspathIncludeRest);
 
             if (log != null)
                 log.Debug("Classpath resolved to: " + cpStr);
@@ -72,15 +74,17 @@ namespace Apache.Ignite.Core.Impl.Common
         /// </summary>
         /// <param name="ggHome">The home dir.</param>
         /// <param name="forceTestClasspath">Append test directories even if
-        ///     <see cref="EnvIgniteNativeTestClasspath"/> is not set.</param>
+        /// <see cref="EnvIgniteNativeTestClasspath" /> is not set.</param>
         /// <param name="cpStr">The classpath string.</param>
-        private static void AppendHomeClasspath(string ggHome, bool forceTestClasspath, StringBuilder cpStr)
+        /// <param name="testClasspathIncludeRest">Includes REST module in test classpath.</param>
+        private static void AppendHomeClasspath(string ggHome, bool forceTestClasspath, StringBuilder cpStr,
+            bool testClasspathIncludeRest)
         {
             // Append test directories (if needed) first, because otherwise build *.jar will be picked first.
             if (forceTestClasspath || "true".Equals(Environment.GetEnvironmentVariable(EnvIgniteNativeTestClasspath)))
             {
-                AppendTestClasses(ggHome + "\\examples", cpStr);
-                AppendTestClasses(ggHome + "\\modules", cpStr);
+                AppendTestClasses(ggHome + "\\examples", cpStr, testClasspathIncludeRest);
+                AppendTestClasses(ggHome + "\\modules", cpStr, testClasspathIncludeRest);
             }
 
             string ggLibs = ggHome + "\\libs";
@@ -102,14 +106,17 @@ namespace Apache.Ignite.Core.Impl.Common
         /// </summary>
         /// <param name="path">Path</param>
         /// <param name="cp">Classpath builder.</param>
-        private static void AppendTestClasses(string path, StringBuilder cp)
+        /// <param name="testClasspathIncludeRest">Includes REST module in test classpath.</param>
+        private static void AppendTestClasses(string path, StringBuilder cp, bool testClasspathIncludeRest)
         {
             if (Directory.Exists(path))
             {
-                AppendTestClasses0(path, cp);
+                AppendTestClasses0(path, cp, testClasspathIncludeRest);
 
                 foreach (string moduleDir in Directory.EnumerateDirectories(path))
-                    AppendTestClasses0(moduleDir, cp);
+                {
+                    AppendTestClasses0(moduleDir, cp, testClasspathIncludeRest);
+                }
             }
         }
 
@@ -118,10 +125,14 @@ namespace Apache.Ignite.Core.Impl.Common
         /// </summary>
         /// <param name="path">Path.</param>
         /// <param name="cp">Classpath builder.</param>
-        private static void AppendTestClasses0(string path, StringBuilder cp)
+        /// <param name="testClasspathIncludeRest">Includes REST module in test classpath.</param>
+        private static void AppendTestClasses0(string path, StringBuilder cp, bool testClasspathIncludeRest)
         {
-            if (path.EndsWith("rest-http", StringComparison.OrdinalIgnoreCase))
+            if (!testClasspathIncludeRest && path.EndsWith("rest-http", StringComparison.OrdinalIgnoreCase))
+            {
+                // rest-http module increases startup times, we don't want it normally.
                 return;
+            }
 
             if (Directory.Exists(path + "\\target\\classes"))
                 cp.Append(path + "\\target\\classes;");
