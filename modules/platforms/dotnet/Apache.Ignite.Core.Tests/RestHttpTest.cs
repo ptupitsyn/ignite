@@ -17,6 +17,8 @@
 
 namespace Apache.Ignite.Core.Tests
 {
+    using NUnit.Framework;
+
     /// <summary>
     /// Tests REST HTTP configuration and connectivity.
     /// </summary>
@@ -25,12 +27,22 @@ namespace Apache.Ignite.Core.Tests
         /// <summary>
         /// Tests connectivity with default configuration.
         /// </summary>
+        [Test]
         public void TestDefaultConfig()
         {
             using (Ignition.Start(TestUtils.GetTestConfiguration()))
             {
                 // TODO: Perform some op via WebClient.
             }
+        }
+
+        /// <summary>
+        /// Tests the custom connector configuration.
+        /// </summary>
+        [Test]
+        public void TestCustomConfig()
+        {
+            // TODO: Custom ConnectorConfiguration
         }
     }
 }
