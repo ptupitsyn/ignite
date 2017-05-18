@@ -18,7 +18,7 @@
 namespace Apache.Ignite.Core.Communication
 {
     /// <summary>
-    /// Defines additional node connectivity configuration, such as JSON over HTTP.
+    /// Defines additional node connectivity configuration, such as binary TCP and JSON over HTTP.
     /// <para />
     /// By default, when ignite-rest-http module is present in classpath (corresponding NuGet package is installed),
     /// HTTP interface is available on 8080 port.
