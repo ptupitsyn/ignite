@@ -19,13 +19,12 @@ namespace Apache.Ignite.Core.Tests
 {
     using System;
     using System.Net;
-    using System.Net.Sockets;
     using NUnit.Framework;
 
     /// <summary>
-    /// Tests REST HTTP configuration and connectivity.
+    /// Tests HTTP connectivity.
     /// </summary>
-    public class RestHttpTest
+    public class HttpConnectorTest
     {
         /// <summary>
         /// Tests connectivity with default configuration.
