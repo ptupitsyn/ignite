@@ -32,29 +32,10 @@ namespace Apache.Ignite.Core.Tests
         [Test]
         public void TestDefaultConfig()
         {
-            var cfg = new IgniteConfiguration(TestUtils.GetTestConfiguration())
-            {
-                JvmClasspath = TestUtils.CreateTestClasspath(true)
-            };
-
-            Assert.Catch<Exception>(() => CheckHttpApi(), "Default HTTP API port must be available.");
-
-            using (Ignition.Start(cfg))
+            using (Ignition.Start(GetConfigWithRestHttp()))
             {
                 CheckHttpApi();
             }
-        }
-
-        /// <summary>
-        /// Asserts that HTTP API works.
-        /// </summary>
-        private void CheckHttpApi()
-        {
-            var res = new WebClient().DownloadString("http://localhost:8080/ignite?cmd=version");
-
-            var expected = string.Format("\"response\":\"{0}", GetType().Assembly.GetName().Version.ToString(3));
-
-            Assert.IsTrue(res.Contains(expected), res);
         }
 
         /// <summary>
@@ -67,12 +48,45 @@ namespace Apache.Ignite.Core.Tests
         }
 
         /// <summary>
+        /// Sets up the test.
+        /// </summary>
+        [SetUp]
+        public void TestSetUp()
+        {
+            Assert.Catch<Exception>(() => CheckHttpApi(), "Default HTTP API port must be available.");
+        }
+
+        /// <summary>
         /// Tears down the test.
         /// </summary>
         [TearDown]
         public void TearDown()
         {
             Ignition.StopAll(true);
+            Assert.Catch<Exception>(() => CheckHttpApi(), "Default HTTP API port must be available.");
+        }
+
+        /// <summary>
+        /// Gets the configuration with rest HTTP in classpath.
+        /// </summary>
+        private static IgniteConfiguration GetConfigWithRestHttp()
+        {
+            return new IgniteConfiguration(TestUtils.GetTestConfiguration())
+            {
+                JvmClasspath = TestUtils.CreateTestClasspath(true)
+            };
+        }
+
+        /// <summary>
+        /// Asserts that HTTP API works.
+        /// </summary>
+        private void CheckHttpApi()
+        {
+            var res = new WebClient().DownloadString("http://localhost:8080/ignite?cmd=version");
+
+            var expected = string.Format("\"response\":\"{0}", GetType().Assembly.GetName().Version.ToString(3));
+
+            Assert.IsTrue(res.Contains(expected), res);
         }
     }
 }
