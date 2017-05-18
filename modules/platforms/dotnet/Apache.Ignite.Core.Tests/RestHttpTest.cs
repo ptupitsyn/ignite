@@ -38,7 +38,7 @@ namespace Apache.Ignite.Core.Tests
                 JvmClasspath = TestUtils.CreateTestClasspath(true)
             };
 
-            Assert.Throws<SocketException>(() => CheckHttpApi(), "Default HTTP API port must be available.");
+            Assert.Catch<Exception>(() => CheckHttpApi(), "Default HTTP API port must be available.");
 
             using (Ignition.Start(cfg))
             {
@@ -53,11 +53,9 @@ namespace Apache.Ignite.Core.Tests
         {
             var res = new WebClient().DownloadString("http://localhost:8080/ignite?cmd=version");
 
-            var expected = string.Format(
-                "{{\"successStatus\":0,\"error\":null,\"sessionToken\":null,\"response\":\"{0}\"}}",
-                GetType().Assembly.GetName().Version.ToString(3));
+            var expected = string.Format("\"response\":\"{0}", GetType().Assembly.GetName().Version.ToString(3));
 
-            Assert.AreEqual(expected, res.Replace("-SNAPSHOT", ""));
+            Assert.IsTrue(res.Contains(expected), res);
         }
 
         /// <summary>
