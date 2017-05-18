@@ -19,6 +19,7 @@ namespace Apache.Ignite.Core.Tests
 {
     using System;
     using System.Net;
+    using System.Net.Sockets;
     using NUnit.Framework;
 
     /// <summary>
@@ -37,13 +38,26 @@ namespace Apache.Ignite.Core.Tests
                 JvmClasspath = TestUtils.CreateTestClasspath(true)
             };
 
+            Assert.Throws<SocketException>(() => CheckHttpApi(), "Default HTTP API port must be available.");
+
             using (Ignition.Start(cfg))
             {
-                // TODO: Perform some op via WebClient.
-                var res = new WebClient().DownloadString("http://localhost:8080/ignite?cmd=version");
-                Assert.IsNotEmpty(res);
-                Console.WriteLine(res);
+                CheckHttpApi();
             }
+        }
+
+        /// <summary>
+        /// Asserts that HTTP API works.
+        /// </summary>
+        private void CheckHttpApi()
+        {
+            var res = new WebClient().DownloadString("http://localhost:8080/ignite?cmd=version");
+
+            var expected = string.Format(
+                "{{\"successStatus\":0,\"error\":null,\"sessionToken\":null,\"response\":\"{0}\"}}",
+                GetType().Assembly.GetName().Version.ToString(3));
+
+            Assert.AreEqual(expected, res.Replace("-SNAPSHOT", ""));
         }
 
         /// <summary>
