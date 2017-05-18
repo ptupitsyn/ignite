@@ -37,5 +37,3 @@ $project.ConfigurationManager | % {
 
     Remove-Item -Force -Recurse -ErrorAction SilentlyContinue $libsPath
 }
-
-Write-Host "Welcome to Apache Ignite.NET!"

@@ -1,0 +1,66 @@
+<?xml version="1.0"?>
+
+<!--
+  Licensed to the Apache Software Foundation (ASF) under one or more
+  contributor license agreements.  See the NOTICE file distributed with
+  this work for additional information regarding copyright ownership.
+  The ASF licenses this file to You under the Apache License, Version 2.0
+  (the "License"); you may not use this file except in compliance with
+  the License.  You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+-->
+
+<!-- 
+
+Creating NuGet package:
+1) Build Java: mvn clean package -DskipTests -U -Plgpl
+2) nuget pack Apache.Ignite.RestHttp.nuspec -Version 1.6.1
+
+-->
+
+<package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
+    <metadata>
+        <id>Apache.Ignite.RestHttp</id>
+        <title>Apache Ignite HTTP Connector</title>
+        <!-- -->
+        <version>$version$</version>
+        <authors>Apache Ignite</authors>
+        <owners>Apache Software Foundation</owners>
+        <licenseUrl>http://www.apache.org/licenses/LICENSE-2.0</licenseUrl>
+        <projectUrl>https://ignite.apache.org/</projectUrl>
+        <iconUrl>https://ignite.apache.org/images/logo_ignite_32_32.png</iconUrl>
+        <requireLicenseAcceptance>false</requireLicenseAcceptance>
+        <description>
+HTTP connector allows interacting with Ignite cluster from any language.
+This package only includes JAR files that enable the connector.
+Post-build event is updated automatically.
+
+More info on Apache Ignite.NET: https://apacheignite-net.readme.io/
+        </description>
+        <releaseNotes></releaseNotes>
+        <copyright>Copyright 2017</copyright>
+        <tags>Apache Ignite REST HTTP</tags>
+    </metadata>
+    <files>
+        <!-- Install script should be in tools -->
+        <file src="NuGet\Install.ps1" target="tools" />
+        <file src="NuGet\Uninstall.ps1" target="tools" />
+        <file src="NuGet\PostBuild.ps1" target="tools" />
+
+        <!-- 
+            Library files (jars) should not be included in project, so that NuGet package restore works properly.
+            We keep jars in NuGet dir and copy them over in PostBuild event.
+        -->
+        <file src="..\..\..\..\target\release-package\libs\optional\ignite-rest-http\*.jar" target="Libs" />
+
+        <!-- LINQPad samples -->
+        <!-- TODO: <file src="NuGet\LINQPad\*.*" target="linqpad-samples" />-->
+    </files>
+</package>
