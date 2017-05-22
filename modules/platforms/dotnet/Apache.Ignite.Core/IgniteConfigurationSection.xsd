@@ -1411,7 +1411,7 @@
                     </xs:documentation>
                 </xs:annotation>
             </xs:attribute>
-            <xs:attribute name="isPeerAssemblyLoadingEnabled" type="xs:string">
+            <xs:attribute name="peerAssemblyLoadingEnabled" type="xs:string">
                 <xs:annotation>
                     <xs:documentation>Indicates whether user assemblies should be loaded on remote nodes automatically.</xs:documentation>
                 </xs:annotation>
