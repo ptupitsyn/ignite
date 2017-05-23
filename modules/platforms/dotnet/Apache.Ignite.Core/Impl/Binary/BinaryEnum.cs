@@ -93,9 +93,7 @@ namespace Apache.Ignite.Core.Impl.Binary
         {
             get
             {
-                var map = _marsh.GetBinaryType(_typeId).EnumValuesMap;
-
-                return map != null ? map.Where(x => x.Value == _enumValue).Select(x => x.Key).FirstOrDefault() : null;
+                return _marsh.GetBinaryType(_typeId).GetEnumName(_enumValue);
             }
         }
 

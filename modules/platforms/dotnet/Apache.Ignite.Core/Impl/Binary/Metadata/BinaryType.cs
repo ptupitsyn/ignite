@@ -21,6 +21,7 @@ namespace Apache.Ignite.Core.Impl.Binary.Metadata
     using System.Collections.Generic;
     using System.Diagnostics;
     using System.Diagnostics.CodeAnalysis;
+    using System.Linq;
     using Apache.Ignite.Core.Binary;
     using Apache.Ignite.Core.Impl.Common;
 
@@ -46,7 +47,10 @@ namespace Apache.Ignite.Core.Impl.Binary.Metadata
         private readonly IDictionary<string, BinaryField> _fields;
 
         /** Enum values. */
-        private readonly IDictionary<string, int> _enumValues;
+        private readonly IDictionary<string, int> _enumNameToValue;
+
+        /** Enum names. */
+        private readonly IDictionary<int, string> _enumValueToName;
 
         /** Enum flag. */
         private readonly bool _isEnum;
@@ -145,11 +149,11 @@ namespace Apache.Ignite.Core.Impl.Binary.Metadata
             {
                 var count = reader.ReadInt();
 
-                _enumValues = new Dictionary<string, int>(count);
+                _enumNameToValue = new Dictionary<string, int>(count);
 
                 for (var i = 0; i < count; i++)
                 {
-                    _enumValues[reader.ReadString()] = reader.ReadInt();
+                    _enumNameToValue[reader.ReadString()] = reader.ReadInt();
                 }
             }
         }
@@ -182,7 +186,12 @@ namespace Apache.Ignite.Core.Impl.Binary.Metadata
             _affinityKeyFieldName = affKeyFieldName;
             _fields = fields;
             _isEnum = isEnum;
-            _enumValues = enumValues;
+            _enumNameToValue = enumValues;
+
+            if (_enumNameToValue != null)
+            {
+                _enumValueToName = _enumNameToValue.ToDictionary(x => x.Value, x => x.Key);
+            }
         }
 
         /// <summary>
@@ -289,7 +298,7 @@ namespace Apache.Ignite.Core.Impl.Binary.Metadata
         /// </summary>
         public IDictionary<string, int> EnumValuesMap
         {
-            get { return _enumValues; }
+            get { return _enumNameToValue; }
         }
 
         /// <summary>
@@ -320,7 +329,22 @@ namespace Apache.Ignite.Core.Impl.Binary.Metadata
 
             int res;
 
-            return _enumValues != null && _enumValues.TryGetValue(valueName, out res) ? res : (int?) null;
+            return _enumNameToValue != null && _enumNameToValue.TryGetValue(valueName, out res) ? res : (int?) null;
+        }
+
+        /// <summary>
+        /// Gets the name of the enum value.
+        /// </summary>
+        public string GetEnumName(int value)
+        {
+            if (!_isEnum)
+            {
+                throw new NotSupportedException("Can't get enum value for a non-enum type: " + _typeName);
+            }
+
+            string res;
+
+            return _enumValueToName != null && _enumValueToName.TryGetValue(value, out res) ? res : null;
         }
 
         /// <summary>
