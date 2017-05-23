@@ -88,6 +88,16 @@ namespace Apache.Ignite.Core.Impl.Binary
         }
 
         /** <inheritdoc /> */
+        public string EnumName
+        {
+            get
+            {
+                // TODO: Get from metadata.
+                return "TODO";
+            }
+        }
+
+        /** <inheritdoc /> */
         public IBinaryObjectBuilder ToBuilder()
         {
             throw new NotSupportedException("Builder cannot be created for enum.");

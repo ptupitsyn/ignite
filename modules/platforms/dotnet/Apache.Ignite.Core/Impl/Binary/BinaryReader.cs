@@ -994,7 +994,9 @@ namespace Apache.Ignite.Core.Impl.Binary
             var enumValue = reader.ReadInt();
 
             if (!keepBinary)
+            {
                 return BinaryUtils.GetEnumValue<T>(enumValue, enumType, reader.Marshaller);
+            }
 
             return TypeCaster<T>.Cast(new BinaryEnum(enumType, enumValue, reader.Marshaller));
         }
