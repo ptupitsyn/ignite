@@ -1150,12 +1150,15 @@ namespace Apache.Ignite.Core.Tests.Binary
 
             Assert.AreEqual(_marsh.GetDescriptor(typeof (TestEnumRegistered)).TypeId, binEnum.GetBinaryType().TypeId);
             Assert.AreEqual(0, binEnum.EnumValue);
+            Assert.AreEqual("One", binEnum.EnumName);
 
             var meta = binEnum.GetBinaryType();
 
             Assert.IsTrue(meta.IsEnum);
             Assert.AreEqual(GetTypeName(typeof (TestEnumRegistered)), meta.TypeName);
             Assert.AreEqual(0, meta.Fields.Count);
+            
+            // meta.EnumValues
         }
 
         /// <summary>
@@ -1668,6 +1671,7 @@ namespace Apache.Ignite.Core.Tests.Binary
                 Assert.IsTrue(binEnum.GetBinaryType().IsEnum);
 
                 Assert.AreEqual(val, binEnum.EnumValue);
+                Assert.AreEqual(((TestEnumRegistered) val).ToString(), binEnum.EnumName);
 
                 Assert.AreEqual(string.Format("{0} [typeId={1}, enumValue={2}, enumValueName={3}]",
                     typeName, typeId, val, (TestEnumRegistered) val), binEnum.ToString());
