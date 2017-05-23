@@ -166,7 +166,8 @@ namespace Apache.Ignite.Core.Impl.Binary
         public IBinaryObject BuildEnum(Type type, int value)
         {
             IgniteArgumentCheck.NotNull(type, "type");
-            IgniteArgumentCheck.Ensure(type.IsEnum, "type", "Type should be an Enum.");
+            IgniteArgumentCheck.Ensure(BinaryUtils.IsIgniteEnum(type), "type", 
+                "Type should be an Enum.");
             
             var desc = Marshaller.GetDescriptor(type);
 

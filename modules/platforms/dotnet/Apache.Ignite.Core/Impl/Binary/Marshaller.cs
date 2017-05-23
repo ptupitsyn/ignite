@@ -500,7 +500,7 @@ namespace Apache.Ignite.Core.Impl.Binary
 
             desc = desc == null
                 ? new BinaryFullTypeDescriptor(type, typeId, typeName, true, _cfg.NameMapper,
-                    _cfg.IdMapper, ser, false, null, type.IsEnum, registered)
+                    _cfg.IdMapper, ser, false, null, BinaryUtils.IsIgniteEnum(type), registered)
                 : new BinaryFullTypeDescriptor(desc, type, ser, registered);
 
             if (RegistrationDisabled)
@@ -553,13 +553,13 @@ namespace Apache.Ignite.Core.Impl.Binary
             {
                 ValidateUserType(type);
 
-                if (typeCfg.IsEnum != type.IsEnum)
+                if (typeCfg.IsEnum != BinaryUtils.IsIgniteEnum(type))
                 {
                     throw new BinaryObjectException(
                         string.Format(
                             "Invalid IsEnum flag in binary type configuration. " +
-                            "Configuration value: IsEnum={0}, actual type: IsEnum={1}",
-                            typeCfg.IsEnum, type.IsEnum));
+                            "Configuration value: IsEnum={0}, actual type: IsEnum={1}, type={2}",
+                            typeCfg.IsEnum, type.IsEnum, type));
                 }
 
                 // Type is found.
@@ -569,7 +569,7 @@ namespace Apache.Ignite.Core.Impl.Binary
                 var serializer = GetSerializer(cfg, typeCfg, type, typeId, nameMapper, idMapper, _log);
 
                 AddType(type, typeId, typeName, true, keepDeserialized, nameMapper, idMapper, serializer,
-                    affKeyFld, type.IsEnum);
+                    affKeyFld, BinaryUtils.IsIgniteEnum(type));
             }
             else
             {
