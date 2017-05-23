@@ -66,6 +66,6 @@ namespace Apache.Ignite.Core.Binary
         /// Gets the enum values.
         /// Only valid when <see cref="IsEnum"/> is true.
         /// </summary>
-        IEnumerable<IBinaryObject> EnumValues { get; }
+        IEnumerable<IBinaryObject> GetEnumValues();
     }
 }

@@ -260,22 +260,20 @@ namespace Apache.Ignite.Core.Impl.Binary.Metadata
         }
 
         /** <inheritdoc /> */
-        public IEnumerable<IBinaryObject> EnumValues
-        {
-            get
-            {
-                if (!_isEnum)
-                {
-                    throw new NotSupportedException(
-                        "IBinaryObject.Value is only supported for enums. " +
-                        "Check IBinaryObject.GetBinaryType().IsEnum property before accessing Value.");
-                }
 
-                foreach (var pair in _enumValueToName)
-                {
-                    // TODO: Marshaller?
-                    yield return new BinaryEnum(_typeId, pair.Key, null);
-                }
+        public IEnumerable<IBinaryObject> GetEnumValues()
+        {
+            if (!_isEnum)
+            {
+                throw new NotSupportedException(
+                    "IBinaryObject.Value is only supported for enums. " +
+                    "Check IBinaryObject.GetBinaryType().IsEnum property before accessing Value.");
+            }
+
+            foreach (var pair in _enumValueToName)
+            {
+                // TODO: Marshaller?
+                yield return new BinaryEnum(_typeId, pair.Key, null);
             }
         }
 

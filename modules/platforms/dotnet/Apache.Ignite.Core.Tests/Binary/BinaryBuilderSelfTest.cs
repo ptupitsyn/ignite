@@ -1140,6 +1140,9 @@ namespace Apache.Ignite.Core.Tests.Binary
             Assert.AreEqual(new[] { TestEnum.Two }, obj.FEnumArr);
         }
 
+        /// <summary>
+        /// Tests the enum metadata.
+        /// </summary>
         [Test]
         public void TestEnumMeta()
         {
@@ -1148,17 +1151,21 @@ namespace Apache.Ignite.Core.Tests.Binary
             // Put to cache to populate metas
             var binEnum = bin.ToBinary<IBinaryObject>(TestEnumRegistered.One);
 
-            Assert.AreEqual(_marsh.GetDescriptor(typeof (TestEnumRegistered)).TypeId, binEnum.GetBinaryType().TypeId);
+            Assert.AreEqual(_marsh.GetDescriptor(typeof(TestEnumRegistered)).TypeId, binEnum.GetBinaryType().TypeId);
             Assert.AreEqual(0, binEnum.EnumValue);
             Assert.AreEqual("One", binEnum.EnumName);
 
             var meta = binEnum.GetBinaryType();
 
             Assert.IsTrue(meta.IsEnum);
-            Assert.AreEqual(GetTypeName(typeof (TestEnumRegistered)), meta.TypeName);
+            Assert.AreEqual(GetTypeName(typeof(TestEnumRegistered)), meta.TypeName);
             Assert.AreEqual(0, meta.Fields.Count);
-            
-            // meta.EnumValues
+
+            var enumValues = meta.GetEnumValues().OrderBy(x => x.EnumValue).ToArray();
+            Assert.AreEqual(0, enumValues[0].EnumValue);
+            Assert.AreEqual("One", enumValues[0].EnumName);
+            Assert.AreEqual(1, enumValues[1].EnumValue);
+            Assert.AreEqual("Two", enumValues[1].EnumName);
         }
 
         /// <summary>
