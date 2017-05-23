@@ -282,5 +282,14 @@ namespace Apache.Ignite.Core.Impl.Binary.Metadata
             foreach (var field in fields)
                 _fields[field.Key] = field.Value;
         }
+
+        /// <summary>
+        /// Gets the enum value by name.
+        /// </summary>
+        public int GetEnumValue(string valueName)
+        {
+            // TODO:
+            return 0;
+        }
     }
 }

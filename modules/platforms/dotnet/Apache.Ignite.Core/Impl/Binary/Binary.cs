@@ -182,10 +182,17 @@ namespace Apache.Ignite.Core.Impl.Binary
             IgniteArgumentCheck.NotNullOrEmpty(typeName, "typeName");
             IgniteArgumentCheck.NotNullOrEmpty(valueName, "valueName");
 
-            // TODO: Get ordinal by name and call overload.
-            var type = Marshaller.GetBinaryType(GetTypeId(typeName));
+            var desc = Marshaller.GetDescriptor(typeName);
 
-            return null;
+            IgniteArgumentCheck.Ensure(desc.IsEnum, "typeName", "Type should be an Enum.");
+
+            var type = Marshaller.GetBinaryType(desc.TypeId);
+
+            _marsh.PutBinaryType(desc);
+
+            var value = type.GetEnumValue(valueName);
+
+            return new BinaryEnum(desc.TypeId, value, Marshaller);
         }
 
         /** <inheritDoc /> */
@@ -193,8 +200,17 @@ namespace Apache.Ignite.Core.Impl.Binary
         {
             IgniteArgumentCheck.NotNullOrEmpty(valueName, "valueName");
 
-            // TODO
-            return null;
+            var desc = Marshaller.GetDescriptor(type);
+
+            IgniteArgumentCheck.Ensure(desc.IsEnum, "typeName", "Type should be an Enum.");
+
+            var binaryType = Marshaller.GetBinaryType(desc.TypeId);
+
+            _marsh.PutBinaryType(desc);
+
+            var value = binaryType.GetEnumValue(valueName);
+
+            return new BinaryEnum(desc.TypeId, value, Marshaller);
         }
 
         /// <summary>
