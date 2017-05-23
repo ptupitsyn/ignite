@@ -179,7 +179,7 @@ namespace Apache.Ignite.Core.Impl.Binary
         /** <inheritDoc /> */
         public IBinaryObject BuildEnum(string typeName, string valueName)
         {
-            // TODO
+            // TODO: Get ordinal by name and call overload.
             return null;
         }
 
