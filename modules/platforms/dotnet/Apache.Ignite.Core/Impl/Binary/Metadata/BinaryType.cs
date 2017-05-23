@@ -17,6 +17,7 @@
 
 namespace Apache.Ignite.Core.Impl.Binary.Metadata
 {
+    using System;
     using System.Collections.Generic;
     using System.Diagnostics;
     using System.Diagnostics.CodeAnalysis;
@@ -136,6 +137,8 @@ namespace Apache.Ignite.Core.Impl.Binary.Metadata
             }
             
             _isEnum = reader.ReadBoolean();
+
+            // TODO: Read enum map.
         }
 
         /// <summary>
@@ -230,6 +233,23 @@ namespace Apache.Ignite.Core.Impl.Binary.Metadata
         public bool IsEnum
         {
             get { return _isEnum; }
+        }
+
+        /** <inheritdoc /> */
+        public ICollection<IBinaryObject> EnumValues
+        {
+            get
+            {
+                if (!_isEnum)
+                {
+                    throw new NotSupportedException(
+                        "IBinaryObject.Value is only supported for enums. " +
+                        "Check IBinaryObject.GetBinaryType().IsEnum property before accessing Value.");
+                }
+
+                // TODO
+                return null;
+            }
         }
 
         /// <summary>

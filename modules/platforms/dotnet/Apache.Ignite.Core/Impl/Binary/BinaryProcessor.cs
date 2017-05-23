@@ -126,7 +126,13 @@ namespace Apache.Ignite.Core.Impl.Binary
                         w.WriteInt(field.Value.FieldId);
                     }
 
+                    // Enum data
                     w.WriteBoolean(meta.IsEnum);
+
+                    if (meta.IsEnum)
+                    {
+                        // TODO: Enum map.
+                    }
 
                     // Send schemas
                     var desc = meta.Descriptor;
