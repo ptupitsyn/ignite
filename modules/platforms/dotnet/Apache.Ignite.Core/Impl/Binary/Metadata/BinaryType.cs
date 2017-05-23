@@ -285,6 +285,14 @@ namespace Apache.Ignite.Core.Impl.Binary.Metadata
         }
 
         /// <summary>
+        /// Gets the enum values map.
+        /// </summary>
+        public IDictionary<string, int> EnumValuesMap
+        {
+            get { return _enumValues; }
+        }
+
+        /// <summary>
         /// Updates the fields.
         /// </summary>
         public void UpdateFields(IDictionary<string, BinaryField> fields)

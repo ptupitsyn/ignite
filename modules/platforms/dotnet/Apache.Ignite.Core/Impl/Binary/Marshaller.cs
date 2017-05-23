@@ -368,16 +368,7 @@ namespace Apache.Ignite.Core.Impl.Binary
         {
             foreach (var meta in newMetas)
             {
-                var mergeInfo = new Dictionary<int, Tuple<string, BinaryField>>(meta.GetFieldsMap().Count);
-
-                foreach (var fieldMeta in meta.GetFieldsMap())
-                {
-                    int fieldId = BinaryUtils.FieldId(meta.TypeId, fieldMeta.Key, null, null);
-
-                    mergeInfo[fieldId] = new Tuple<string, BinaryField>(fieldMeta.Key, fieldMeta.Value);
-                }
-
-                _metas[meta.TypeId].Merge(mergeInfo);
+                _metas[meta.TypeId].Merge(meta);
             }
         }
 

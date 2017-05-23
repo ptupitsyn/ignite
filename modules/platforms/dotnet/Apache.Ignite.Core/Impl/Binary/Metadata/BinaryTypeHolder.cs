@@ -19,6 +19,7 @@ namespace Apache.Ignite.Core.Impl.Binary.Metadata
 {
     using System;
     using System.Collections.Generic;
+    using System.Diagnostics;
 
     /// <summary>
     /// Metadata for particular type.
@@ -100,13 +101,19 @@ namespace Apache.Ignite.Core.Impl.Binary.Metadata
         /// <summary>
         /// Merge newly sent field metadatas into existing ones.
         /// </summary>
-        /// <param name="newMap">New field metadatas map.</param>
-        public void Merge(IDictionary<int, Tuple<string, BinaryField>> newMap)
+        /// <param name="meta">Binary type to merge.</param>
+        public void Merge(BinaryType meta)
         {
+            Debug.Assert(meta != null);
+            
             _saved = true;
 
-            if (newMap == null || newMap.Count == 0)
+            var fieldsMap = meta.GetFieldsMap();
+
+            if (fieldsMap.Count == 0)
+            {
                 return;
+            }
 
             lock (this)
             {
@@ -118,20 +125,27 @@ namespace Apache.Ignite.Core.Impl.Binary.Metadata
 
                 IDictionary<string, BinaryField> newFields = meta0 != null 
                     ? new Dictionary<string, BinaryField>(meta0.GetFieldsMap()) 
-                    : new Dictionary<string, BinaryField>(newMap.Count);
+                    : new Dictionary<string, BinaryField>(fieldsMap.Count);
 
                 // 2. Add new fields.
-                foreach (var newEntry in newMap)
+                foreach (var fieldMeta in fieldsMap)
                 {
-                    if (!newIds.Contains(newEntry.Key))
-                        newIds.Add(newEntry.Key);
+                    int fieldId = BinaryUtils.FieldId(meta.TypeId, fieldMeta.Key, null, null);
 
-                    if (!newFields.ContainsKey(newEntry.Value.Item1))
-                        newFields[newEntry.Value.Item1] = newEntry.Value.Item2;
+                    if (!newIds.Contains(fieldId))
+                    {
+                        newIds.Add(fieldId);
+                    }
+
+                    if (!newFields.ContainsKey(fieldMeta.Key))
+                    {
+                        newFields[fieldMeta.Key] = fieldMeta.Value;
+                    }
                 }
 
                 // 3. Assign new meta. Order is important here: meta must be assigned before field IDs.
-                _meta = new BinaryType(_typeId, _typeName, newFields, _affKeyFieldName, _isEnum);
+                // TODO: Merge enum values?
+                _meta = new BinaryType(_typeId, _typeName, newFields, _affKeyFieldName, _isEnum, meta.EnumValuesMap);
                 _ids = newIds;
             }
         }
