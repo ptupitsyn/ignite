@@ -149,7 +149,6 @@ namespace Apache.Ignite.Core.Impl.Binary.Metadata
                 }
 
                 // 3. Assign new meta. Order is important here: meta must be assigned before field IDs.
-                // TODO: Merge enum values?
                 _meta = new BinaryType(_typeId, _typeName, newFields, _affKeyFieldName, _isEnum, 
                     meta.EnumValuesMap, _marshaller);
                 _ids = newIds;
