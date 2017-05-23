@@ -131,7 +131,20 @@ namespace Apache.Ignite.Core.Impl.Binary
 
                     if (meta.IsEnum)
                     {
-                        // TODO: Enum map.
+                        if (meta.EnumValuesMap != null)
+                        {
+                            w.WriteInt(meta.EnumValuesMap.Count);
+
+                            foreach (var pair in meta.EnumValuesMap)
+                            {
+                                w.WriteString(pair.Key);
+                                w.WriteInt(pair.Value);
+                            }
+                        }
+                        else
+                        {
+                            w.WriteInt(0);
+                        }
                     }
 
                     // Send schemas
