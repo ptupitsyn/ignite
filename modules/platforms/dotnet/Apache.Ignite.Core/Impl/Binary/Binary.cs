@@ -176,6 +176,20 @@ namespace Apache.Ignite.Core.Impl.Binary
             return new BinaryEnum(desc.TypeId, value, Marshaller);
         }
 
+        /** <inheritDoc /> */
+        public IBinaryObject BuildEnum(string typeName, string valueName)
+        {
+            // TODO
+            return null;
+        }
+
+        /** <inheritDoc /> */
+        public IBinaryObject BuildEnum(Type type, string valueName)
+        {
+            // TODO
+            return null;
+        }
+
         /// <summary>
         /// Marshaller.
         /// </summary>
