@@ -155,6 +155,8 @@ namespace Apache.Ignite.Core.Impl.Binary.Metadata
                 {
                     _enumNameToValue[reader.ReadString()] = reader.ReadInt();
                 }
+
+                _enumValueToName = _enumNameToValue.ToDictionary(x => x.Value, x => x.Key);
             }
         }
 
