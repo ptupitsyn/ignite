@@ -54,9 +54,9 @@ namespace Apache.Ignite.Core.Impl.Binary
         /// <summary>
         /// Gets metadata for specified type.
         /// </summary>
-        public IBinaryType GetBinaryType(int typeId)
+        public BinaryType GetBinaryType(int typeId)
         {
-            return DoOutInOp<IBinaryType>((int) Op.GetMeta,
+            return DoOutInOp((int) Op.GetMeta,
                 writer => writer.WriteInt(typeId),
                 stream =>
                 {

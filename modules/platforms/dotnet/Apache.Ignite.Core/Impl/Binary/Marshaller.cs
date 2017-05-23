@@ -289,14 +289,16 @@ namespace Apache.Ignite.Core.Impl.Binary
         /// </summary>
         /// <param name="typeId">Type ID.</param>
         /// <returns>Metadata or null.</returns>
-        public IBinaryType GetBinaryType(int typeId)
+        public BinaryType GetBinaryType(int typeId)
         {
             if (Ignite != null)
             {
-                IBinaryType meta = Ignite.BinaryProcessor.GetBinaryType(typeId);
+                var meta = Ignite.BinaryProcessor.GetBinaryType(typeId);
 
                 if (meta != null)
+                {
                     return meta;
+                }
             }
 
             return BinaryType.Empty;

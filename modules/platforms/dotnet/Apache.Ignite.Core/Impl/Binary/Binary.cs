@@ -179,13 +179,20 @@ namespace Apache.Ignite.Core.Impl.Binary
         /** <inheritDoc /> */
         public IBinaryObject BuildEnum(string typeName, string valueName)
         {
+            IgniteArgumentCheck.NotNullOrEmpty(typeName, "typeName");
+            IgniteArgumentCheck.NotNullOrEmpty(valueName, "valueName");
+
             // TODO: Get ordinal by name and call overload.
+            var type = Marshaller.GetBinaryType(GetTypeId(typeName));
+
             return null;
         }
 
         /** <inheritDoc /> */
         public IBinaryObject BuildEnum(Type type, string valueName)
         {
+            IgniteArgumentCheck.NotNullOrEmpty(valueName, "valueName");
+
             // TODO
             return null;
         }
