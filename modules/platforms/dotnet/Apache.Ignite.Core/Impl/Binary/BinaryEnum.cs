@@ -19,6 +19,7 @@ namespace Apache.Ignite.Core.Impl.Binary
 {
     using System;
     using System.Diagnostics;
+    using System.Linq;
     using Apache.Ignite.Core.Binary;
     using Apache.Ignite.Core.Impl.Binary.Metadata;
 
@@ -92,8 +93,9 @@ namespace Apache.Ignite.Core.Impl.Binary
         {
             get
             {
-                // TODO: Get from metadata.
-                return "TODO";
+                var map = _marsh.GetBinaryType(_typeId).EnumValuesMap;
+
+                return map != null ? map.Where(x => x.Value == _enumValue).Select(x => x.Key).FirstOrDefault() : null;
             }
         }
 
