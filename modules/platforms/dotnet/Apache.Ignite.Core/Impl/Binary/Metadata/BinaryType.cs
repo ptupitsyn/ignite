@@ -31,7 +31,7 @@ namespace Apache.Ignite.Core.Impl.Binary.Metadata
     {
         /** Empty metadata. */
         public static readonly BinaryType Empty =
-            new BinaryType(BinaryUtils.TypeObject, BinaryTypeNames.TypeNameObject, null, null, false);
+            new BinaryType(BinaryUtils.TypeObject, BinaryTypeNames.TypeNameObject, null, null, false, null);
 
         /** Empty dictionary. */
         private static readonly IDictionary<string, BinaryField> EmptyDict = new Dictionary<string, BinaryField>();
@@ -44,6 +44,9 @@ namespace Apache.Ignite.Core.Impl.Binary.Metadata
 
         /** Fields. */
         private readonly IDictionary<string, BinaryField> _fields;
+
+        /** Enum values. */
+        private readonly IDictionary<string, int> _enumValues;
 
         /** Enum flag. */
         private readonly bool _isEnum;
@@ -138,7 +141,17 @@ namespace Apache.Ignite.Core.Impl.Binary.Metadata
             
             _isEnum = reader.ReadBoolean();
 
-            // TODO: Read enum map.
+            if (_isEnum)
+            {
+                var count = reader.ReadInt();
+
+                _enumValues = new Dictionary<string, int>(count);
+
+                for (var i = 0; i < count; i++)
+                {
+                    _enumValues[reader.ReadString()] = reader.ReadInt();
+                }
+            }
         }
 
         /// <summary>
@@ -147,7 +160,7 @@ namespace Apache.Ignite.Core.Impl.Binary.Metadata
         /// <param name="desc">Descriptor.</param>
         /// <param name="fields">Fields.</param>
         public BinaryType(IBinaryTypeDescriptor desc, IDictionary<string, BinaryField> fields = null) 
-            : this (desc.TypeId, desc.TypeName, fields, desc.AffinityKeyFieldName, desc.IsEnum)
+            : this (desc.TypeId, desc.TypeName, fields, desc.AffinityKeyFieldName, desc.IsEnum, GetEnumValues(desc))
         {
             _descriptor = desc;
         }
@@ -160,14 +173,16 @@ namespace Apache.Ignite.Core.Impl.Binary.Metadata
         /// <param name="fields">Fields.</param>
         /// <param name="affKeyFieldName">Affinity key field name.</param>
         /// <param name="isEnum">Enum flag.</param>
+        /// <param name="enumValues">Enum values.</param>
         public BinaryType(int typeId, string typeName, IDictionary<string, BinaryField> fields,
-            string affKeyFieldName, bool isEnum)
+            string affKeyFieldName, bool isEnum, IDictionary<string, int> enumValues)
         {
             _typeId = typeId;
             _typeName = typeName;
             _affinityKeyFieldName = affKeyFieldName;
             _fields = fields;
             _isEnum = isEnum;
+            _enumValues = enumValues;
         }
 
         /// <summary>
@@ -286,10 +301,84 @@ namespace Apache.Ignite.Core.Impl.Binary.Metadata
         /// <summary>
         /// Gets the enum value by name.
         /// </summary>
-        public int GetEnumValue(string valueName)
+        public int? GetEnumValue(string valueName)
         {
-            // TODO:
-            return 0;
+            IgniteArgumentCheck.NotNullOrEmpty(valueName, "valueName");
+
+            if (!_isEnum)
+            {
+                throw new NotSupportedException("Can't get enum value for a non-enum type: " + _typeName);
+            }
+
+            int res;
+
+            return _enumValues != null && _enumValues.TryGetValue(valueName, out res) ? res : (int?) null;
+        }
+
+        /// <summary>
+        /// Gets the enum values.
+        /// </summary>
+        private static IDictionary<string, int> GetEnumValues(IBinaryTypeDescriptor desc)
+        {
+            if (desc == null || desc.Type == null || !desc.IsEnum)
+            {
+                return null;
+            }
+
+            var enumType = desc.Type;
+
+            var values = Enum.GetValues(enumType);
+            var res = new Dictionary<string, int>(values.Length);
+
+            var underlyingType = Enum.GetUnderlyingType(enumType);
+
+            foreach (var value in values)
+            {
+                var name = Enum.GetName(enumType, value);
+                Debug.Assert(name != null);
+
+                res[name] = GetEnumValueAsInt(underlyingType, value);
+            }
+
+            return res;
+        }
+
+        /// <summary>
+        /// Gets the enum value as int.
+        /// </summary>
+        private static int GetEnumValueAsInt(Type underlyingType, object value)
+        {
+            if (underlyingType == typeof(int))
+            {
+                return (int) value;
+            }
+
+            if (underlyingType == typeof(byte))
+            {
+                return (byte) value;
+            }
+
+            if (underlyingType == typeof(sbyte))
+            {
+                return (sbyte) value;
+            }
+
+            if (underlyingType == typeof(short))
+            {
+                return (short) value;
+            }
+
+            if (underlyingType == typeof(ushort))
+            {
+                return (ushort) value;
+            }
+
+            if (underlyingType == typeof(uint))
+            {
+                return unchecked((int) (uint) value);
+            }
+
+            throw new BinaryObjectException("Unexpected enum underlying type: " + underlyingType);
         }
     }
 }
