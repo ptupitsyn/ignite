@@ -32,7 +32,7 @@ namespace Apache.Ignite.Core.Impl.Binary.Metadata
     {
         /** Empty metadata. */
         public static readonly BinaryType Empty =
-            new BinaryType(BinaryUtils.TypeObject, BinaryTypeNames.TypeNameObject, null, null, false, null);
+            new BinaryType(BinaryUtils.TypeObject, BinaryTypeNames.TypeNameObject, null, null, false, null, null);
 
         /** Empty dictionary. */
         private static readonly IDictionary<string, BinaryField> EmptyDict = new Dictionary<string, BinaryField>();
@@ -66,6 +66,9 @@ namespace Apache.Ignite.Core.Impl.Binary.Metadata
 
         /** Type descriptor. */
         private readonly IBinaryTypeDescriptor _descriptor;
+
+        /** Marshaller. */
+        private readonly Marshaller _marshaller;
 
         /// <summary>
         /// Initializes the <see cref="BinaryType"/> class.
@@ -125,7 +128,7 @@ namespace Apache.Ignite.Core.Impl.Binary.Metadata
         /// Initializes a new instance of the <see cref="BinaryType" /> class.
         /// </summary>
         /// <param name="reader">The reader.</param>
-        public BinaryType(IBinaryRawReader reader)
+        public BinaryType(BinaryReader reader)
         {
             _typeId = reader.ReadInt();
             _typeName = reader.ReadString();
@@ -158,15 +161,20 @@ namespace Apache.Ignite.Core.Impl.Binary.Metadata
 
                 _enumValueToName = _enumNameToValue.ToDictionary(x => x.Value, x => x.Key);
             }
+
+            _marshaller = reader.Marshaller;
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="BinaryType"/> class.
+        /// Initializes a new instance of the <see cref="BinaryType" /> class.
         /// </summary>
         /// <param name="desc">Descriptor.</param>
+        /// <param name="marshaller">Marshaller.</param>
         /// <param name="fields">Fields.</param>
-        public BinaryType(IBinaryTypeDescriptor desc, IDictionary<string, BinaryField> fields = null) 
-            : this (desc.TypeId, desc.TypeName, fields, desc.AffinityKeyFieldName, desc.IsEnum, GetEnumValues(desc))
+        public BinaryType(IBinaryTypeDescriptor desc, Marshaller marshaller, 
+            IDictionary<string, BinaryField> fields = null) 
+            : this (desc.TypeId, desc.TypeName, fields, desc.AffinityKeyFieldName, desc.IsEnum, 
+                  GetEnumValues(desc), marshaller)
         {
             _descriptor = desc;
         }
@@ -180,8 +188,9 @@ namespace Apache.Ignite.Core.Impl.Binary.Metadata
         /// <param name="affKeyFieldName">Affinity key field name.</param>
         /// <param name="isEnum">Enum flag.</param>
         /// <param name="enumValues">Enum values.</param>
+        /// <param name="marshaller">Marshaller.</param>
         public BinaryType(int typeId, string typeName, IDictionary<string, BinaryField> fields,
-            string affKeyFieldName, bool isEnum, IDictionary<string, int> enumValues)
+            string affKeyFieldName, bool isEnum, IDictionary<string, int> enumValues, Marshaller marshaller)
         {
             _typeId = typeId;
             _typeName = typeName;
@@ -194,6 +203,8 @@ namespace Apache.Ignite.Core.Impl.Binary.Metadata
             {
                 _enumValueToName = _enumNameToValue.ToDictionary(x => x.Value, x => x.Key);
             }
+
+            _marshaller = marshaller;
         }
 
         /// <summary>
@@ -262,7 +273,6 @@ namespace Apache.Ignite.Core.Impl.Binary.Metadata
         }
 
         /** <inheritdoc /> */
-
         public IEnumerable<IBinaryObject> GetEnumValues()
         {
             if (!_isEnum)
@@ -272,10 +282,14 @@ namespace Apache.Ignite.Core.Impl.Binary.Metadata
                     "Check IBinaryObject.GetBinaryType().IsEnum property before accessing Value.");
             }
 
+            if (_marshaller == null)
+            {
+                yield break;
+            }
+
             foreach (var pair in _enumValueToName)
             {
-                // TODO: Marshaller?
-                yield return new BinaryEnum(_typeId, pair.Key, null);
+                yield return new BinaryEnum(_typeId, pair.Key, _marshaller);
             }
         }
 

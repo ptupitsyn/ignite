@@ -316,7 +316,7 @@ namespace Apache.Ignite.Core.Impl.Binary
 
             if (Ignite != null)
             {
-                ICollection<BinaryType> metas = new[] {new BinaryType(desc)};
+                ICollection<BinaryType> metas = new[] {new BinaryType(desc, this)};
                 Ignite.BinaryProcessor.PutBinaryTypes(metas);
             }
         }
@@ -339,7 +339,8 @@ namespace Apache.Ignite.Core.Impl.Binary
                         IDictionary<int, BinaryTypeHolder> metas0 =
                             new Dictionary<int, BinaryTypeHolder>(_metas);
 
-                        holder = new BinaryTypeHolder(desc.TypeId, desc.TypeName, desc.AffinityKeyFieldName, desc.IsEnum);
+                        holder = new BinaryTypeHolder(desc.TypeId, desc.TypeName, desc.AffinityKeyFieldName, 
+                            desc.IsEnum, this);
 
                         metas0[desc.TypeId] = holder;
 
