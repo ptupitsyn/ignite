@@ -260,7 +260,7 @@ namespace Apache.Ignite.Core.Impl.Binary.Metadata
         }
 
         /** <inheritdoc /> */
-        public ICollection<IBinaryObject> EnumValues
+        public IEnumerable<IBinaryObject> EnumValues
         {
             get
             {
@@ -271,8 +271,11 @@ namespace Apache.Ignite.Core.Impl.Binary.Metadata
                         "Check IBinaryObject.GetBinaryType().IsEnum property before accessing Value.");
                 }
 
-                // TODO
-                return null;
+                foreach (var pair in _enumValueToName)
+                {
+                    // TODO: Marshaller?
+                    yield return new BinaryEnum(_typeId, pair.Key, null);
+                }
             }
         }
 
