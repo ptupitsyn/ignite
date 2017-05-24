@@ -528,7 +528,7 @@ namespace Apache.Ignite.Core.Impl.Binary
         {
             var binEnum = obj;
 
-            ctx.Stream.WriteByte(BinaryUtils.TypeEnum);
+            ctx.Stream.WriteByte(BinaryUtils.TypeBinaryEnum);
 
             ctx.WriteInt(binEnum.TypeId);
             ctx.WriteInt(binEnum.EnumValue);
