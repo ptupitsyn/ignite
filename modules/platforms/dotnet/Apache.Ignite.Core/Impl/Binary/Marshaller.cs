@@ -97,13 +97,13 @@ namespace Apache.Ignite.Core.Impl.Binary
 
             if (typeCfgs != null)
                 foreach (BinaryTypeConfiguration typeCfg in typeCfgs)
-                    AddUserType(cfg, typeCfg, typeResolver);
+                    AddUserType(typeCfg, typeResolver);
 
             var typeNames = _cfg.Types;
 
             if (typeNames != null)
                 foreach (string typeName in typeNames)
-                    AddUserType(cfg, new BinaryTypeConfiguration(typeName), typeResolver);
+                    AddUserType(new BinaryTypeConfiguration(typeName), typeResolver);
         }
 
         /// <summary>
@@ -460,16 +460,13 @@ namespace Apache.Ignite.Core.Impl.Binary
 
             if (meta != BinaryType.Empty)
             {
-                desc = new BinaryFullTypeDescriptor(null, meta.TypeId, meta.TypeName, true, null, null, null, false,
-                    meta.AffinityKeyFieldName, meta.IsEnum);
-
-                if (!RegistrationDisabled)
+                var typeCfg = new BinaryTypeConfiguration(meta.TypeName)
                 {
-                    _idToDesc.GetOrAdd(typeKey, _ => desc);
-                    _typeNameToDesc.GetOrAdd(meta.TypeName, _ => desc);
-                }
+                    IsEnum = meta.IsEnum,
+                    AffinityKeyFieldName = meta.AffinityKeyFieldName
+                };
 
-                return desc;
+                return AddUserType(typeCfg, new TypeResolver());
             }
 
             return new BinarySurrogateTypeDescriptor(_cfg, typeId, typeName);
@@ -544,11 +541,10 @@ namespace Apache.Ignite.Core.Impl.Binary
         /// <summary>
         /// Add user type.
         /// </summary>
-        /// <param name="cfg">The binary configuration.</param>
         /// <param name="typeCfg">Type configuration.</param>
         /// <param name="typeResolver">The type resolver.</param>
         /// <exception cref="BinaryObjectException"></exception>
-        private void AddUserType(BinaryConfiguration cfg, BinaryTypeConfiguration typeCfg, TypeResolver typeResolver)
+        private BinaryFullTypeDescriptor AddUserType(BinaryTypeConfiguration typeCfg, TypeResolver typeResolver)
         {
             // Get converter/mapper/serializer.
             IBinaryNameMapper nameMapper = typeCfg.NameMapper ?? _cfg.NameMapper ?? GetDefaultNameMapper();
@@ -577,9 +573,9 @@ namespace Apache.Ignite.Core.Impl.Binary
                 var typeName = GetTypeName(type, nameMapper);
                 int typeId = GetTypeId(typeName, idMapper);
                 var affKeyFld = typeCfg.AffinityKeyFieldName ?? GetAffinityKeyFieldNameFromAttribute(type);
-                var serializer = GetSerializer(cfg, typeCfg, type, typeId, nameMapper, idMapper, _log);
+                var serializer = GetSerializer(_cfg, typeCfg, type, typeId, nameMapper, idMapper, _log);
 
-                AddType(type, typeId, typeName, true, keepDeserialized, nameMapper, idMapper, serializer,
+                return AddType(type, typeId, typeName, true, keepDeserialized, nameMapper, idMapper, serializer,
                     affKeyFld, BinaryUtils.IsIgniteEnum(type));
             }
             else
@@ -589,7 +585,7 @@ namespace Apache.Ignite.Core.Impl.Binary
 
                 int typeId = GetTypeId(typeName, idMapper);
 
-                AddType(null, typeId, typeName, true, keepDeserialized, nameMapper, idMapper, null,
+                return AddType(null, typeId, typeName, true, keepDeserialized, nameMapper, idMapper, null,
                     typeCfg.AffinityKeyFieldName, typeCfg.IsEnum);
             }
         }
@@ -657,7 +653,7 @@ namespace Apache.Ignite.Core.Impl.Binary
         /// <param name="serializer">Serializer.</param>
         /// <param name="affKeyFieldName">Affinity key field name.</param>
         /// <param name="isEnum">Enum flag.</param>
-        private void AddType(Type type, int typeId, string typeName, bool userType,
+        private BinaryFullTypeDescriptor AddType(Type type, int typeId, string typeName, bool userType,
             bool keepDeserialized, IBinaryNameMapper nameMapper, IBinaryIdMapper idMapper,
             IBinarySerializerInternal serializer, string affKeyFieldName, bool isEnum)
         {
@@ -689,6 +685,8 @@ namespace Apache.Ignite.Core.Impl.Binary
                 _typeNameToDesc.GetOrAdd(typeName, x => descriptor);
 
             _idToDesc.GetOrAdd(typeKey, _ => descriptor);
+
+            return descriptor;
         }
 
         /// <summary>
