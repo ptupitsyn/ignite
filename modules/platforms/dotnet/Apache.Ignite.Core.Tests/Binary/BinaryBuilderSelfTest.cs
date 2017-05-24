@@ -1661,6 +1661,7 @@ namespace Apache.Ignite.Core.Tests.Binary
         [Test]
         public void TestBuildEnum()
         {
+            // TODO: Binary enums must be written with a special code.
             var binary = _grid.GetBinary();
 
             int val = (int)TestEnumRegistered.Two;
