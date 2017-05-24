@@ -1706,7 +1706,32 @@ namespace Apache.Ignite.Core.Tests.Binary
         [Test]
         public void TestRegisterEnum()
         {
-            // TODO: Test multiple registrations (unique values are merged, duplicates throw exception).
+            var binary = _grid.GetBinary();
+
+            // Register enum and verify resulting type.
+            const string typeName = "DotNetDynEnum";
+            var binType = binary.RegisterEnum(typeName, new Dictionary<string, int> {{"Baz", 3}, {"Bar", 4}});
+
+            Assert.AreEqual(typeName, binType.TypeName);
+            Assert.IsTrue(binType.IsEnum);
+
+            var enumFields = binType.GetEnumValues().OrderBy(x => x.EnumValue).ToArray();
+            Assert.AreEqual(new[] {3, 4}, enumFields.Select(x => x.EnumValue));
+            Assert.AreEqual(new[] {"Baz", "Bar"}, enumFields.Select(x => x.EnumName));
+
+            // Build enum values.
+            var binEnum1 = binary.BuildEnum(typeName, 3);
+            var binEnum2 = binary.BuildEnum(typeName, "Baz");
+
+            Assert.AreEqual(binEnum1, binEnum2);
+            Assert.AreEqual("Baz", binEnum1.EnumName);
+            Assert.AreEqual(3, binEnum2.EnumValue);
+
+            // Register additional value.
+            // TODO
+
+            // Register duplicate value.
+            // TODO
         }
 
         /// <summary>
