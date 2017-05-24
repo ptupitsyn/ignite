@@ -1661,30 +1661,32 @@ namespace Apache.Ignite.Core.Tests.Binary
         [Test]
         public void TestBuildEnum()
         {
-            // TODO: Binary enums must be written with a special code.
             var binary = _grid.GetBinary();
 
-            int val = (int)TestEnumRegistered.Two;
+            var enumVal = TestEnumRegistered.Two;
+            var intVal = (int) enumVal;
             var typeName = GetTypeName(typeof(TestEnumRegistered));
             var typeId = BinaryUtils.GetStringHashCode(typeName);
 
             var binEnums = new[]
             {
-                binary.BuildEnum(typeof (TestEnumRegistered), val),
-                binary.BuildEnum(typeName, val)
+                binary.BuildEnum(typeof (TestEnumRegistered), intVal),
+                binary.BuildEnum(typeName, intVal),
+                binary.BuildEnum(typeof (TestEnumRegistered), enumVal.ToString()),
+                binary.BuildEnum(typeName, enumVal.ToString())
             };
 
             foreach (var binEnum in binEnums)
             {
                 Assert.IsTrue(binEnum.GetBinaryType().IsEnum);
 
-                Assert.AreEqual(val, binEnum.EnumValue);
-                Assert.AreEqual(((TestEnumRegistered) val).ToString(), binEnum.EnumName);
+                Assert.AreEqual(intVal, binEnum.EnumValue);
+                Assert.AreEqual(enumVal.ToString(), binEnum.EnumName);
 
                 Assert.AreEqual(string.Format("{0} [typeId={1}, enumValue={2}, enumValueName={3}]",
-                    typeName, typeId, val, (TestEnumRegistered) val), binEnum.ToString());
+                    typeName, typeId, intVal, enumVal), binEnum.ToString());
 
-                Assert.AreEqual((TestEnumRegistered)val, binEnum.Deserialize<TestEnumRegistered>());
+                Assert.AreEqual(enumVal, binEnum.Deserialize<TestEnumRegistered>());
             }
 
             Assert.AreEqual(binEnums[0], binEnums[1]);
