@@ -228,7 +228,7 @@ namespace Apache.Ignite.Core.Impl.Binary
 
                     w.Stream.WriteInt(countPos, count);
                 }
-            }, s => new BinaryType(Marshaller.StartUnmarshal(s)));
+            }, s => s.ReadBool() ? new BinaryType(Marshaller.StartUnmarshal(s)) : null);
         }
 
         /// <summary>
