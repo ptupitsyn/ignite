@@ -143,6 +143,8 @@ public class PlatformBinaryProcessor extends PlatformAbstractTarget {
                 BinaryType binaryType = platformCtx.kernalContext().grid().binary().registerEnum(name, vals);
 
                 platformCtx.writeMetadata(writer, binaryType.typeId());
+
+                break;
             }
 
             default:
