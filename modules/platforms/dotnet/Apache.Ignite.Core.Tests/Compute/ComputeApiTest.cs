@@ -949,7 +949,15 @@ namespace Apache.Ignite.Core.Tests.Compute
 
             Assert.AreEqual("JavaFoo", res.EnumName);
             Assert.AreEqual(1, res.EnumValue);
-            // TODO
+
+            var binType = res.GetBinaryType();
+
+            Assert.IsTrue(binType.IsEnum);
+            Assert.AreEqual("JavaDynEnum", binType.TypeName);
+
+            var vals = binType.GetEnumValues().OrderBy(x => x.EnumValue).ToArray();
+            Assert.AreEqual(new[] {1, 2}, vals.Select(x => x.EnumValue));
+            Assert.AreEqual(new[] {"JavaFoo", "JavaBar"}, vals.Select(x => x.EnumName));
         }
 
         /// <summary>
