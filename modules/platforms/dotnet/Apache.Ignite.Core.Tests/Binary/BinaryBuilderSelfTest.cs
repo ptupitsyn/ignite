@@ -2152,13 +2152,13 @@ namespace Apache.Ignite.Core.Tests.Binary
         /** <inheritdoc /> */
         public int GetTypeId(string typeName)
         {
-            return typeName == TestTypeName ? TestTypeId : 0;
+            return typeName == TestTypeName ? TestTypeId : BinaryUtils.GetStringHashCode(typeName);
         }
 
         /** <inheritdoc /> */
         public int GetFieldId(int typeId, string fieldName)
         {
-            return 0;
+            return BinaryUtils.GetStringHashCode(fieldName);
         }
     }
 
