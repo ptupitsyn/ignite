@@ -1740,10 +1740,18 @@ namespace Apache.Ignite.Core.Tests.Binary
             Assert.AreEqual(new[] { "Baz", "Bar", "Foo" }, enumFields.Select(x => x.EnumName));
 
             // Register existing value with different name.
-            binary.RegisterEnum(typeName, new Dictionary<string, int> {{"Baz1", 3}});
+            var ex = Assert.Throws<BinaryObjectException>(
+                () => binary.RegisterEnum(typeName, new Dictionary<string, int> {{"Baz1", 3}}));
+
+            Assert.AreEqual(string.Format("Conflicting enum values. Name 'Baz1' uses ordinal value (3) that " +
+                                          "is also used for name 'Baz' [typeName='{0}']", typeName), ex.Message);
 
             // Register different value with existing name.
-            binary.RegisterEnum(typeName, new Dictionary<string, int> {{"Baz", 33}});
+            ex = Assert.Throws<BinaryObjectException>(
+                () => binary.RegisterEnum(typeName, new Dictionary<string, int> {{"Baz", 33}}));
+
+            Assert.AreEqual(string.Format("Conflicting enum values. Value (33) has name 'Baz' that is " +
+                                          "also used for value '3' [typeName='{0}']", typeName), ex.Message);
         }
 
         /// <summary>
