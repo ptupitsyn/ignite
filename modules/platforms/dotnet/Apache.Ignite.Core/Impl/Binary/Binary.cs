@@ -211,15 +211,19 @@ namespace Apache.Ignite.Core.Impl.Binary
             return new BinaryEnum(desc.TypeId, value, Marshaller);
         }
 
+        /** <inheritDoc /> */
+        public IBinaryType RegisterEnum(string typeName, IEnumerable<KeyValuePair<string, int>> values)
+        {
+            // TODO:
+            throw new NotImplementedException();
+        }
+
         /// <summary>
         /// Marshaller.
         /// </summary>
         internal Marshaller Marshaller
         {
-            get
-            {
-                return _marsh;
-            }
+            get { return _marsh; }
         }
 
         /// <summary>
