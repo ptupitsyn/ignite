@@ -385,7 +385,9 @@ namespace Apache.Ignite.Core.Impl.Binary
             BinaryFullTypeDescriptor desc;
 
             if (!_typeToDesc.TryGetValue(type, out desc) || !desc.IsRegistered)
+            {
                 desc = RegisterType(type, desc);
+            }
 
             return desc;
         }
@@ -399,10 +401,14 @@ namespace Apache.Ignite.Core.Impl.Binary
         {
             BinaryFullTypeDescriptor desc;
 
-            return _typeNameToDesc.TryGetValue(typeName, out desc)
-                ? (IBinaryTypeDescriptor) desc
-                : new BinarySurrogateTypeDescriptor(_cfg,
-                    GetTypeId(typeName, _cfg.IdMapper), typeName);
+            if (_typeNameToDesc.TryGetValue(typeName, out desc))
+            {
+                return desc;
+            }
+
+            var typeId = GetTypeId(typeName, _cfg.IdMapper);
+
+            return GetDescriptor(true, typeId, typeName: typeName);
         }
 
         /// <summary>
@@ -410,18 +416,18 @@ namespace Apache.Ignite.Core.Impl.Binary
         /// </summary>
         /// <param name="userType">User type flag.</param>
         /// <param name="typeId">Type id.</param>
-        /// <param name="requiresType">
-        /// If set to true, resulting descriptor must have Type property populated.
+        /// <param name="requiresType">If set to true, resulting descriptor must have Type property populated.
         /// <para />
         /// When working in binary mode, we don't need Type. And there is no Type at all in some cases.
         /// So we should not attempt to call BinaryProcessor right away.
         /// Only when we really deserialize the value, requiresType is set to true
-        /// and we attempt to resolve the type by all means.
-        /// </param>
+        /// and we attempt to resolve the type by all means.</param>
+        /// <param name="typeName">Known type name.</param>
         /// <returns>
         /// Descriptor.
         /// </returns>
-        public IBinaryTypeDescriptor GetDescriptor(bool userType, int typeId, bool requiresType = false)
+        public IBinaryTypeDescriptor GetDescriptor(bool userType, int typeId, bool requiresType = false, 
+            string typeName = null)
         {
             BinaryFullTypeDescriptor desc;
 
@@ -436,7 +442,7 @@ namespace Apache.Ignite.Core.Impl.Binary
             if (requiresType && _ignite != null)
             {
                 // Check marshaller context for dynamically registered type.
-                var typeName = _ignite.BinaryProcessor.GetTypeName(typeId);
+                typeName = typeName ?? _ignite.BinaryProcessor.GetTypeName(typeId);
 
                 if (typeName != null)
                 {
@@ -457,12 +463,16 @@ namespace Apache.Ignite.Core.Impl.Binary
                 desc = new BinaryFullTypeDescriptor(null, meta.TypeId, meta.TypeName, true, null, null, null, false,
                     meta.AffinityKeyFieldName, meta.IsEnum);
 
-                _idToDesc.GetOrAdd(typeKey, _ => desc);
+                if (!RegistrationDisabled)
+                {
+                    _idToDesc.GetOrAdd(typeKey, _ => desc);
+                    _typeNameToDesc.GetOrAdd(meta.TypeName, _ => desc);
+                }
 
                 return desc;
             }
 
-            return new BinarySurrogateTypeDescriptor(_cfg, typeId, null);
+            return new BinarySurrogateTypeDescriptor(_cfg, typeId, typeName);
         }
 
         /// <summary>
