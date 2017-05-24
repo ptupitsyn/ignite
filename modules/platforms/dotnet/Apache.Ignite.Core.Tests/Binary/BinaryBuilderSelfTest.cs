@@ -1728,12 +1728,22 @@ namespace Apache.Ignite.Core.Tests.Binary
             Assert.AreEqual(3, binEnum2.EnumValue);
 
             // Register additional value explicitly.
-            // TODO
+            binary.RegisterEnum(typeName, new Dictionary<string, int> {{"Foo", 6}});
+            binary.RegisterEnum(typeName, new Dictionary<string, int> {{"Foo", 6}, {"Baz", 3}});
+            binType = binary.GetBinaryType(typeName);
 
-            // Register additional value via builder.
+            Assert.AreEqual(typeName, binType.TypeName);
+            Assert.IsTrue(binType.IsEnum);
 
-            // Register duplicate value.
-            // TODO
+            enumFields = binType.GetEnumValues().OrderBy(x => x.EnumValue).ToArray();
+            Assert.AreEqual(new[] { 3, 4, 6 }, enumFields.Select(x => x.EnumValue));
+            Assert.AreEqual(new[] { "Baz", "Bar", "Foo" }, enumFields.Select(x => x.EnumName));
+
+            // Register existing value with different name.
+            binary.RegisterEnum(typeName, new Dictionary<string, int> {{"Baz1", 3}});
+
+            // Register different value with existing name.
+            binary.RegisterEnum(typeName, new Dictionary<string, int> {{"Baz", 33}});
         }
 
         /// <summary>
