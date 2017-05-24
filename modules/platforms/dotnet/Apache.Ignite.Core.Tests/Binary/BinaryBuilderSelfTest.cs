@@ -1701,6 +1701,15 @@ namespace Apache.Ignite.Core.Tests.Binary
         }
 
         /// <summary>
+        /// Tests enum registration.
+        /// </summary>
+        [Test]
+        public void TestRegisterEnum()
+        {
+            // TODO: Test multiple registrations (unique values are merged, duplicates throw exception).
+        }
+
+        /// <summary>
         /// Tests the compact footer setting.
         /// </summary>
         [Test]
