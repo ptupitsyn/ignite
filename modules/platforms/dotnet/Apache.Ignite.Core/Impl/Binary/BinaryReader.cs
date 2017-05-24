@@ -404,6 +404,9 @@ namespace Apache.Ignite.Core.Impl.Binary
                     // Never read enums in binary mode when reading a field (we do not support half-binary objects)
                     return ReadEnum0<T>(this, false);  
 
+                case BinaryUtils.TypeBinaryEnum:
+                    return ReadEnum0<T>(this, true);  
+
                 case BinaryUtils.HdrFull:
                     // Unregistered enum written as serializable
                     Stream.Seek(-1, SeekOrigin.Current);
@@ -411,9 +414,9 @@ namespace Apache.Ignite.Core.Impl.Binary
                     return ReadObject<T>(); 
 
                 default:
-                    throw new BinaryObjectException(
-                        string.Format("Invalid header on enum deserialization. Expected: {0} or {1} but was: {2}",
-                            BinaryUtils.TypeEnum, BinaryUtils.HdrFull, hdr));
+                    throw new BinaryObjectException(string.Format(
+                        "Invalid header on enum deserialization. Expected: {0} or {1} or {2} but was: {3}",
+                            BinaryUtils.TypeEnum, BinaryUtils.TypeBinaryEnum, BinaryUtils.HdrFull, hdr));
             }
         }
 
