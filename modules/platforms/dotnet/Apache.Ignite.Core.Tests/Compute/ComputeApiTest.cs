@@ -945,7 +945,8 @@ namespace Apache.Ignite.Core.Tests.Compute
         [Test]
         public void TestEchoTaskBinaryEnum()
         {
-            var res = _grid1.GetCompute().ExecuteJavaTask<IBinaryObject>(EchoTask, EchoTypeBinaryEnum);
+            var res = _grid1.GetCompute().WithKeepBinary()
+                .ExecuteJavaTask<IBinaryObject>(EchoTask, EchoTypeBinaryEnum);
 
             Assert.AreEqual("JavaFoo", res.EnumName);
             Assert.AreEqual(1, res.EnumValue);
