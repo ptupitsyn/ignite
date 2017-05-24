@@ -1727,8 +1727,10 @@ namespace Apache.Ignite.Core.Tests.Binary
             Assert.AreEqual("Baz", binEnum1.EnumName);
             Assert.AreEqual(3, binEnum2.EnumValue);
 
-            // Register additional value.
+            // Register additional value explicitly.
             // TODO
+
+            // Register additional value via builder.
 
             // Register duplicate value.
             // TODO

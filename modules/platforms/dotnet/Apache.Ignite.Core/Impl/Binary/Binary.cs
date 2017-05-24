@@ -214,8 +214,7 @@ namespace Apache.Ignite.Core.Impl.Binary
         /** <inheritDoc /> */
         public IBinaryType RegisterEnum(string typeName, IEnumerable<KeyValuePair<string, int>> values)
         {
-            // TODO:
-            throw new NotImplementedException();
+            return Marshaller.Ignite.BinaryProcessor.RegisterEnum(typeName, values);
         }
 
         /// <summary>

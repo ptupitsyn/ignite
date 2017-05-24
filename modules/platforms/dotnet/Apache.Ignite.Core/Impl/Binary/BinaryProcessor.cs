@@ -194,6 +194,18 @@ namespace Apache.Ignite.Core.Impl.Binary
         }
 
         /// <summary>
+        /// Registers the enum.
+        /// </summary>
+        /// <param name="typeName">Name of the type.</param>
+        /// <param name="values">The values.</param>
+        /// <returns>Resulting binary type.</returns>
+        public BinaryType RegisterEnum(string typeName, IEnumerable<KeyValuePair<string, int>> values)
+        {
+            // TODO
+            return null;
+        }
+
+        /// <summary>
         /// Gets the type by id.
         /// </summary>
         /// <param name="id">The identifier.</param>
