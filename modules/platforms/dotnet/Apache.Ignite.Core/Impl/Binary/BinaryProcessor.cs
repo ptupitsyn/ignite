@@ -24,7 +24,7 @@ namespace Apache.Ignite.Core.Impl.Binary
     using Apache.Ignite.Core.Impl.Unmanaged;
 
     /// <summary>
-    /// Binary metadata processor.
+    /// Binary metadata processor, delegates to PlatformBinaryProcessor in Java.
     /// </summary>
     internal class BinaryProcessor : PlatformTarget
     {
@@ -38,7 +38,8 @@ namespace Apache.Ignite.Core.Impl.Binary
             PutMeta = 3,
             GetSchema = 4,
             RegisterType = 5,
-            GetType = 6
+            GetType = 6,
+            RegisterEnum = 7
         }
 
         /// <summary>
@@ -201,8 +202,33 @@ namespace Apache.Ignite.Core.Impl.Binary
         /// <returns>Resulting binary type.</returns>
         public BinaryType RegisterEnum(string typeName, IEnumerable<KeyValuePair<string, int>> values)
         {
-            // TODO
-            return null;
+            Debug.Assert(typeName != null);
+
+            return DoOutInOp((int) Op.RegisterEnum, w =>
+            {
+                w.WriteString(typeName);
+
+                if (values == null)
+                {
+                    w.WriteInt(0);
+                }
+                else
+                {
+                    var countPos = w.Stream.Position;
+                    w.WriteInt(0);
+                    var count = 0;
+
+                    foreach (var enumPair in values)
+                    {
+                        w.WriteString(enumPair.Key);
+                        w.WriteInt(enumPair.Value);
+
+                        count++;
+                    }
+
+                    w.Stream.WriteInt(countPos, count);
+                }
+            }, s => new BinaryType(Marshaller.StartUnmarshal(s)));
         }
 
         /// <summary>
