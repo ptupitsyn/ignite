@@ -1488,6 +1488,15 @@ namespace Apache.Ignite.Core.Tests.Cache.Query
         }
 
         /// <summary>
+        /// Tests the UpdateAll extension.
+        /// </summary>
+        [Test]
+        public void TestUpdateAll()
+        {
+            GetPersonCache().AsCacheQueryable().UpdateAll(x => x.Value.Age = 2);
+        }
+
+        /// <summary>
         /// Gets the person cache.
         /// </summary>
         /// <returns></returns>

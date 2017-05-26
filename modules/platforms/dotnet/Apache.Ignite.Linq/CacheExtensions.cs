@@ -191,5 +191,18 @@ namespace Apache.Ignite.Linq
             return query.Provider.Execute<int>(Expression.Call(null, method, query.Expression,
                 Expression.Quote(predicate)));
         }
+
+        /// <summary>
+        /// Updates all.
+        /// </summary>
+        public static int UpdateAll<TKey, TValue>(this IQueryable<ICacheEntry<TKey, TValue>> query,
+            Expression<Action<ICacheEntry<TKey, TValue>>> updateAction)
+        {
+            var method = typeof(CacheLinqExtensions).GetMethod("UpdateAll")
+                .MakeGenericMethod(typeof(TKey), typeof(TValue));
+            
+            return query.Provider.Execute<int>(Expression.Call(null, method, query.Expression, 
+                Expression.Quote(updateAction)));
+        }
     }
 }
