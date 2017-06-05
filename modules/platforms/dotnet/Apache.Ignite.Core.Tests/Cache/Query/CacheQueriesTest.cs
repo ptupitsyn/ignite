@@ -579,6 +579,17 @@ namespace Apache.Ignite.Core.Tests.Cache.Query
         }
 
         /// <summary>
+        /// Tests the joins.
+        /// </summary>
+        [Test]
+        public void TestSqlFieldsQueryJoins()
+        {
+            // Default schema.
+
+            // Custom schema.
+        }
+
+        /// <summary>
         /// Tests the distributed joins flag.
         /// </summary>
         [Test]
