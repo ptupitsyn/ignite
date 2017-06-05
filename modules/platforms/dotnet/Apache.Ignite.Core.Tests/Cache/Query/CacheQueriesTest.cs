@@ -584,7 +584,19 @@ namespace Apache.Ignite.Core.Tests.Cache.Query
         [Test]
         public void TestSqlFieldsQueryJoins()
         {
+            var doubles = GetIgnite().GetOrCreateCache<int, double>(new CacheConfiguration("doubles", typeof(double)));
+            var strings = GetIgnite().GetOrCreateCache<int, string>(new CacheConfiguration("strings", typeof(string)));
+
+            doubles[1] = 36.6;
+            strings[1] = "foo";
+
             // Default schema.
+            var res = doubles.QueryFields(new SqlFieldsQuery(
+                    "select S._val from double as D join \"strings\".string as S on S._key = D._key"))
+                .Select(x => (string) x[0])
+                .Single();
+
+            Assert.AreEqual("foo", res);
 
             // Custom schema.
         }
