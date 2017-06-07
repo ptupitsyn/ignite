@@ -643,5 +643,7 @@ namespace Apache.Ignite.Core.Cache.Configuration
         /// </summary>
         [DefaultValue(DefaultPartitionLossPolicy)]
         public PartitionLossPolicy PartitionLossPolicy { get; set; }
+
+        public string GroupName { get;set; }
     }
 }
