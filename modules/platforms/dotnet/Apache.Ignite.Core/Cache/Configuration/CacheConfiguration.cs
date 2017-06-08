@@ -236,6 +236,7 @@ namespace Apache.Ignite.Core.Cache.Configuration
             EnableStatistics = reader.ReadBoolean();
             MemoryPolicyName = reader.ReadString();
             PartitionLossPolicy = (PartitionLossPolicy) reader.ReadInt();
+            GroupName = reader.ReadString();
             CacheStoreFactory = reader.ReadObject<IFactory<ICacheStore>>();
 
             var count = reader.ReadInt();
@@ -293,6 +294,7 @@ namespace Apache.Ignite.Core.Cache.Configuration
             writer.WriteBoolean(EnableStatistics);
             writer.WriteString(MemoryPolicyName);
             writer.WriteInt((int) PartitionLossPolicy);
+            writer.WriteString(GroupName);
             writer.WriteObject(CacheStoreFactory);
 
             if (QueryEntities != null)
