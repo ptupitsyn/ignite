@@ -664,9 +664,6 @@ namespace Apache.Ignite.Core.Tests
                         KeepBinaryInStore = true,
                         LoadPreviousValue = true,
                         LockTimeout = TimeSpan.FromSeconds(56),
-#pragma warning disable 618
-                        LongQueryWarningTimeout = TimeSpan.FromSeconds(99),
-#pragma warning restore 618
                         MaxConcurrentAsyncOperations = 24,
                         QueryEntities = new[]
                         {
