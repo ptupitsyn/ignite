@@ -267,6 +267,7 @@ namespace Apache.Ignite.Core
             writer.WriteBooleanNullable(_isLateAffinityAssignment);
             writer.WriteTimeSpanAsLongNullable(_failureDetectionTimeout);
             writer.WriteTimeSpanAsLongNullable(_clientFailureDetectionTimeout);
+            writer.WriteTimeSpanAsLongNullable(_longQueryWarningTimeout);
 
             // Thread pools
             writer.WriteIntNullable(_publicThreadPoolSize);
@@ -505,6 +506,7 @@ namespace Apache.Ignite.Core
             _isLateAffinityAssignment = r.ReadBooleanNullable();
             _failureDetectionTimeout = r.ReadTimeSpanNullable();
             _clientFailureDetectionTimeout = r.ReadTimeSpanNullable();
+            _longQueryWarningTimeout = r.ReadTimeSpanNullable();
 
             // Thread pools
             _publicThreadPoolSize = r.ReadIntNullable();
