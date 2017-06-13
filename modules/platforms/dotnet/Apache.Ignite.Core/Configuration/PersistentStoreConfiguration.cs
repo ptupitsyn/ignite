@@ -56,5 +56,15 @@ namespace Apache.Ignite.Core.Configuration
         /// Gets or sets the number of threads for checkpointing.
         /// </summary>
         public int CheckpointingThreads { get; set; }
+
+        /// <summary>
+        /// Gets or sets the persistent manager file lock wait time.
+        /// </summary>
+        public TimeSpan LockWaitTime { get; set; }
+
+        /// <summary>
+        /// Gets or sets the number of checkpoints to store in Write Ahead Log history.
+        /// </summary>
+        public int WalHistorySize { get;set; }
     }
 }
