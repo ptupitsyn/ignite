@@ -63,8 +63,22 @@ namespace Apache.Ignite.Core.Configuration
         public TimeSpan LockWaitTime { get; set; }
 
         /// <summary>
-        /// Gets or sets the number of checkpoints to store in Write Ahead Log history.
+        /// Gets or sets the number of checkpoints to store in WAL (Write Ahead Log) history.
         /// </summary>
         public int WalHistorySize { get;set; }
+
+        /// <summary>
+        /// Gets or sets a number of WAL (Write Ahead Log) segments to work with.
+        /// For performance reasons, the whole WAL is split into files of fixed length called segments.
+        /// </summary>
+        public int WalSegments { get;set; }
+
+        /// <summary>
+        /// Gets or sets the size of the WAL (Write Ahead Log) segment.
+        /// For performance reasons, the whole WAL is split into files of fixed length called segments.
+        /// </summary>
+        public int WalSegmentSize { get;set; }
+
+
     }
 }
