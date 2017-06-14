@@ -83,5 +83,11 @@ namespace Apache.Ignite.Core.Configuration
         /// Gets or sets the path to the directory where WAL (Write Ahead Log) is stored.
         /// </summary>
         public string WalStorePath { get; set; }
+        
+        /// <summary>
+        /// Gets or sets the path to the directory where WAL (Write Ahead Log) archive is stored.
+        /// Every WAL segment will be fully copied to this directory before it can be reused for WAL purposes.
+        /// </summary>
+        public string WalArchivePath { get; set; }
     }
 }
