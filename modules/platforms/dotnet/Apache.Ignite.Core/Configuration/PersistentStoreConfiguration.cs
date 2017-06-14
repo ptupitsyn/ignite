@@ -89,5 +89,22 @@ namespace Apache.Ignite.Core.Configuration
         /// Every WAL segment will be fully copied to this directory before it can be reused for WAL purposes.
         /// </summary>
         public string WalArchivePath { get; set; }
+
+        /// <summary>
+        /// Gets or sets the WAL (Write Ahead Log) mode.
+        /// </summary>
+        public WalMode WalMode { get; set; }
+    }
+
+    /// <summary>
+    /// Write Ahead Log mode.
+    /// </summary>
+    public enum WalMode
+    {
+        // TODO
+        Default,
+        LogOnly,
+        Background,
+        None
     }
 }
