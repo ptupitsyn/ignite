@@ -17,6 +17,7 @@
 
 namespace Apache.Ignite.Core.Tests.Cache
 {
+    using Apache.Ignite.Core.Common;
     using Apache.Ignite.Core.Configuration;
     using NUnit.Framework;
 
@@ -38,13 +39,13 @@ namespace Apache.Ignite.Core.Tests.Cache
 
             using (var ignite = Ignition.Start(cfg))
             {
-                Assert.IsFalse(ignite.IsActive());
+                CheckIsActive(ignite, false);
 
                 ignite.SetActive(true);
-                Assert.IsTrue(ignite.IsActive());
+                CheckIsActive(ignite, true);
 
                 ignite.SetActive(false);
-                Assert.IsFalse(ignite.IsActive());
+                CheckIsActive(ignite, false);
             }
         }
         
@@ -56,13 +57,33 @@ namespace Apache.Ignite.Core.Tests.Cache
         {
             using (var ignite = Ignition.Start(TestUtils.GetTestConfiguration()))
             {
-                Assert.IsTrue(ignite.IsActive());
+                CheckIsActive(ignite, true);
 
                 ignite.SetActive(false);
-                Assert.IsFalse(ignite.IsActive());
+                CheckIsActive(ignite, false);
 
                 ignite.SetActive(true);
-                Assert.IsTrue(ignite.IsActive());
+                CheckIsActive(ignite, true);
+            }
+        }
+
+        /// <summary>
+        /// Checks active state.
+        /// </summary>
+        private static void CheckIsActive(IIgnite ignite, bool isActive)
+        {
+            Assert.AreEqual(isActive, ignite.IsActive());
+
+            if (isActive)
+            {
+                var cache = ignite.GetOrCreateCache<int, int>("default");
+                cache[1] = 1;
+                Assert.AreEqual(1, cache[1]);
+            }
+            else
+            {
+                var ex = Assert.Throws<IgniteException>(() => ignite.GetOrCreateCache<int, int>("default"));
+                Assert.AreEqual("can not perform operation, because cluster inactive", ex.Message);
             }
         }
     }
