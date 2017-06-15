@@ -1523,6 +1523,8 @@ public class PlatformConfigurationUtils {
             w.writeInt(cfg.getTlbSize());
             w.writeLong(cfg.getWalFlushFrequency());
             w.writeInt(cfg.getWalFsyncDelay());
+            w.writeInt(cfg.getWalRecordIteratorBufferSize());
+            w.writeBoolean(cfg.isAlwaysWriteFullPages());
 
         } else {
             w.writeBoolean(false);
