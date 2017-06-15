@@ -94,5 +94,30 @@ namespace Apache.Ignite.Core.Configuration
         /// Gets or sets the WAL (Write Ahead Log) mode.
         /// </summary>
         public WalMode WalMode { get; set; }
+
+        /// <summary>
+        /// Gets or sets the size of the TLB (Thread-Local Buffer), in bytes.
+        /// </summary>
+        public int TlbSize { get; set; }
+
+        /// <summary>
+        /// Gets or sets the WAL (Write Ahead Log) flush frequency.
+        /// </summary>
+        public TimeSpan WalFlushFrequency { get; set; }
+
+        /// <summary>
+        /// Gets or sets the WAL (Write Ahead Log) fsync (disk sync) delay.
+        /// </summary>
+        public TimeSpan WalFsyncDelay { get; set; }
+
+        /// <summary>
+        /// Gets or sets the size of the WAL (Write Ahead Log) record iterator buffer, in bytes.
+        /// </summary>
+        public int WalRecordIteratorBufferSize { get; set; }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether full pages should always be written.
+        /// </summary>
+        public bool AlwaysWriteFullPages { get; set; }
     }
 }
