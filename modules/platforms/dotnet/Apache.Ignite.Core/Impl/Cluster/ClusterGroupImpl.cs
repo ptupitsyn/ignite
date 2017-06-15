@@ -611,7 +611,7 @@ namespace Apache.Ignite.Core.Impl.Cluster
         /// </returns>
         public bool IsActive()
         {
-            return true;
+            return DoOutInOp(OpIsActive) == True;
         }
 
         /// <summary>
