@@ -1344,6 +1344,56 @@
                                 <xs:documentation>Number of checkpoints to store in WAL (Write Ahead Log) history.</xs:documentation>
                             </xs:annotation>
                         </xs:attribute>
+                        <xs:attribute name="walSegments" type="xs:int">
+                            <xs:annotation>
+                                <xs:documentation>Number of WAL (Write Ahead Log) segments to work with.</xs:documentation>
+                            </xs:annotation>
+                        </xs:attribute>
+                        <xs:attribute name="walSegmentSize" type="xs:int">
+                            <xs:annotation>
+                                <xs:documentation>Size of the WAL (Write Ahead Log) segment.</xs:documentation>
+                            </xs:annotation>
+                        </xs:attribute>
+                        <xs:attribute name="walStorePath" type="xs:string">
+                            <xs:annotation>
+                                <xs:documentation>Path to the directory where WAL (Write Ahead Log) is stored.</xs:documentation>
+                            </xs:annotation>
+                        </xs:attribute>
+                        <xs:attribute name="walArchivePath" type="xs:string">
+                            <xs:annotation>
+                                <xs:documentation>Path to the directory where WAL (Write Ahead Log) archive is stored.</xs:documentation>
+                            </xs:annotation>
+                        </xs:attribute>
+                        <xs:attribute name="walMode" type="walMode">
+                            <xs:annotation>
+                                <xs:documentation>WAL (Write Ahead Log) mode.</xs:documentation>
+                            </xs:annotation>
+                        </xs:attribute>
+                        <xs:attribute name="tlbSize" type="xs:int">
+                            <xs:annotation>
+                                <xs:documentation>Size of the TLB (Thread-Local Buffer), in bytes.</xs:documentation>
+                            </xs:annotation>
+                        </xs:attribute>
+                        <xs:attribute name="walFlushFrequency" type="xs:string">
+                            <xs:annotation>
+                                <xs:documentation>WAL (Write Ahead Log) flush frequency.</xs:documentation>
+                            </xs:annotation>
+                        </xs:attribute>
+                        <xs:attribute name="walFsyncDelayNanos" type="xs:int">
+                            <xs:annotation>
+                                <xs:documentation>WAL (Write Ahead Log) fsync (disk sync) delay, in nanoseconds.</xs:documentation>
+                            </xs:annotation>
+                        </xs:attribute>
+                        <xs:attribute name="walRecordIteratorBufferSize" type="xs:int">
+                            <xs:annotation>
+                                <xs:documentation>Size of the WAL (Write Ahead Log) record iterator buffer, in bytes.</xs:documentation>
+                            </xs:annotation>
+                        </xs:attribute>
+                        <xs:attribute name="alwaysWriteFullPages" type="xs:boolean">
+                            <xs:annotation>
+                                <xs:documentation>Whether full pages should always be written.</xs:documentation>
+                            </xs:annotation>
+                        </xs:attribute>
                     </xs:complexType>
                 </xs:element>
                 <xs:element name="pluginConfigurations" minOccurs="0">
