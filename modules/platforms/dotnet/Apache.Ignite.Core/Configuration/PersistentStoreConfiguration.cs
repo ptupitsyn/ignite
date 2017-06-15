@@ -31,6 +31,7 @@ namespace Apache.Ignite.Core.Configuration
         public PersistentStoreConfiguration()
         {
             CheckpointingPageBufferSize = DefaultCheckpointingPageBufferSize;
+            CheckpointingThreads = DefaultCheckpointingThreads;
             CheckpointingFrequency = DefaultCheckpointingFrequency;
             LockWaitTime = DefaultLockWaitTime;
             WalHistorySize = DefaultWalHistorySize;
@@ -48,6 +49,11 @@ namespace Apache.Ignite.Core.Configuration
         public const long DefaultCheckpointingPageBufferSize = 256L * 1024 * 1024;
 
         /// <summary>
+        /// Default value for <see cref="CheckpointingThreads"/>.
+        /// </summary>
+        public const int DefaultCheckpointingThreads = 1;
+
+        /// <summary>
         /// Default value for <see cref="CheckpointingFrequency"/>.
         /// </summary>
         public static readonly TimeSpan DefaultCheckpointingFrequency = TimeSpan.FromSeconds(180);
@@ -61,7 +67,7 @@ namespace Apache.Ignite.Core.Configuration
         /// Default value for <see cref="WalHistorySize"/>.
         /// </summary>
         public const int DefaultWalHistorySize = 20;
-        
+
         /// <summary>
         /// Default value for <see cref="WalSegments"/>.
         /// </summary>
@@ -113,6 +119,7 @@ namespace Apache.Ignite.Core.Configuration
         /// <summary>
         /// Gets or sets the number of threads for checkpointing.
         /// </summary>
+        [DefaultValue(DefaultCheckpointingThreads)]
         public int CheckpointingThreads { get; set; }
 
         /// <summary>
@@ -125,27 +132,27 @@ namespace Apache.Ignite.Core.Configuration
         /// Gets or sets the number of checkpoints to store in WAL (Write Ahead Log) history.
         /// </summary>
         [DefaultValue(DefaultWalHistorySize)]
-        public int WalHistorySize { get;set; }
+        public int WalHistorySize { get; set; }
 
         /// <summary>
         /// Gets or sets a number of WAL (Write Ahead Log) segments to work with.
         /// For performance reasons, the whole WAL is split into files of fixed length called segments.
         /// </summary>
         [DefaultValue(DefaultWalSegments)]
-        public int WalSegments { get;set; }
+        public int WalSegments { get; set; }
 
         /// <summary>
         /// Gets or sets the size of the WAL (Write Ahead Log) segment.
         /// For performance reasons, the whole WAL is split into files of fixed length called segments.
         /// </summary>
         [DefaultValue(DefaultWalSegmentSize)]
-        public int WalSegmentSize { get;set; }
+        public int WalSegmentSize { get; set; }
 
         /// <summary>
         /// Gets or sets the path to the directory where WAL (Write Ahead Log) is stored.
         /// </summary>
         public string WalStorePath { get; set; }
-        
+
         /// <summary>
         /// Gets or sets the path to the directory where WAL (Write Ahead Log) archive is stored.
         /// Every WAL segment will be fully copied to this directory before it can be reused for WAL purposes.

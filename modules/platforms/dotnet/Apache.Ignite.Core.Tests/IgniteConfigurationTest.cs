@@ -505,6 +505,7 @@ namespace Apache.Ignite.Core.Tests
         {
             Assert.AreEqual(PersistentStoreConfiguration.DefaultTlbSize, cfg.TlbSize);
             Assert.AreEqual(PersistentStoreConfiguration.DefaultCheckpointingFrequency, cfg.CheckpointingFrequency);
+            Assert.AreEqual(PersistentStoreConfiguration.DefaultCheckpointingThreads, cfg.CheckpointingThreads);
             Assert.AreEqual(PersistentStoreConfiguration.DefaultCheckpointingPageBufferSize, 
                 cfg.CheckpointingPageBufferSize);
             Assert.AreEqual(PersistentStoreConfiguration.DefaultLockWaitTime, cfg.LockWaitTime);
