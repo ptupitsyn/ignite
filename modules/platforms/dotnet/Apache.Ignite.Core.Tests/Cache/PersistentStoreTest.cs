@@ -17,7 +17,7 @@
 
 namespace Apache.Ignite.Core.Tests.Cache
 {
-    using System.Runtime.InteropServices;
+    using Apache.Ignite.Core.Configuration;
     using NUnit.Framework;
 
     /// <summary>
@@ -26,12 +26,26 @@ namespace Apache.Ignite.Core.Tests.Cache
     public class PersistentStoreTest
     {
         /// <summary>
-        /// Tests the grid activation.
+        /// Tests the grid activation with persistence (inactive by default).
         /// </summary>
         [Test]
-        public void TestGridActivation()
+        public void TestGridActivationWithPersistence()
         {
-            
+            var cfg = new IgniteConfiguration(TestUtils.GetTestConfiguration())
+            {
+                PersistentStoreConfiguration = new PersistentStoreConfiguration()
+            };
+
+            using (var ignite = Ignition.Start(cfg))
+            {
+                Assert.IsFalse(ignite.IsActive());
+
+                ignite.SetActive(true);
+                Assert.IsTrue(ignite.IsActive());
+
+                ignite.SetActive(false);
+                Assert.IsFalse(ignite.IsActive());
+            }
         }
         
         /// <summary>
