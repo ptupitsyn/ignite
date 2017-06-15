@@ -19,6 +19,9 @@ namespace Apache.Ignite.Core.Configuration
 {
     using System;
     using System.ComponentModel;
+    using System.Diagnostics;
+    using Apache.Ignite.Core.Binary;
+    using Apache.Ignite.Core.Impl.Binary;
 
     /// <summary>
     /// Configures Apache Ignite persistent store.
@@ -41,6 +44,32 @@ namespace Apache.Ignite.Core.Configuration
             WalFlushFrequency = DefaultWalFlushFrequency;
             WalRecordIteratorBufferSize = DefaultWalRecordIteratorBufferSize;
             WalFsyncDelayNanos = DefaultWalFsyncDelayNanos;
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="PersistentStoreConfiguration"/> class.
+        /// </summary>
+        /// <param name="reader">The reader.</param>
+        internal PersistentStoreConfiguration(IBinaryRawReader reader)
+        {
+            Debug.Assert(reader != null);
+
+            PersistentStorePath = reader.ReadString();
+            CheckpointingFrequency = reader.ReadLongAsTimespan();
+            CheckpointingPageBufferSize = reader.ReadLong();
+            CheckpointingThreads = reader.ReadInt();
+            LockWaitTime = reader.ReadLongAsTimespan();
+            WalHistorySize = reader.ReadInt();
+            WalSegments = reader.ReadInt();
+            WalSegmentSize = reader.ReadInt();
+            WalStorePath = reader.ReadString();
+            WalArchivePath = reader.ReadString();
+            WalMode = (WalMode) reader.ReadInt();
+            TlbSize = reader.ReadInt();
+            WalFlushFrequency = reader.ReadLongAsTimespan();
+            WalFsyncDelayNanos = reader.ReadInt();
+            WalRecordIteratorBufferSize = reader.ReadInt();
+            AlwaysWriteFullPages = reader.ReadBoolean();
         }
 
         /// <summary>
