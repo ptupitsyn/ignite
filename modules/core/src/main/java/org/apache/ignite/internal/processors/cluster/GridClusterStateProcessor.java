@@ -248,6 +248,21 @@ public class GridClusterStateProcessor extends GridProcessorAdapter {
         // First node started (coordinator).
         if (nodes.isEmpty() || nodes.get(0).isLocal())
             cacheData.putAll(localCacheData.caches());
+        else if (globalState == INACTIVE) { // Accept inactivate state after join.
+            if (log != null && log.isInfoEnabled())
+                log.info("Got inactivate state from cluster during node join.");
+
+            // Revert start action if get INACTIVE state on join.
+            sharedCtx.snapshot().onDeActivate(ctx);
+
+            if (sharedCtx.pageStore() != null)
+                sharedCtx.pageStore().onDeActivate(ctx);
+
+            if (sharedCtx.wal() != null)
+                sharedCtx.wal().onDeActivate(ctx);
+
+            sharedCtx.database().onDeActivate(ctx);
+        }
     }
 
     /** {@inheritDoc} */
@@ -267,20 +282,6 @@ public class GridClusterStateProcessor extends GridProcessorAdapter {
 
         if (state != null)
             globalState = state;
-
-        // TODO warning, processing in discovery thread!!!
-        if (globalState == INACTIVE) {
-            // Revert start action if get INACTIVE state on join.
-            if (sharedCtx.pageStore() != null)
-                sharedCtx.pageStore().stop(false);
-
-            if (sharedCtx.wal() != null)
-                sharedCtx.wal().stop(false);
-
-            sharedCtx.snapshot().stop(false);
-
-            sharedCtx.database().stop(false);
-        }
     }
 
     /**
@@ -560,7 +561,7 @@ public class GridClusterStateProcessor extends GridProcessorAdapter {
             else if (data.joiningNodeData() instanceof CacheClientReconnectDiscoveryData) {
                 CacheClientReconnectDiscoveryData data0 = (CacheClientReconnectDiscoveryData)data.joiningNodeData();
 
-                //Todo think how handler?
+                // No-op.
             }
         }
     }

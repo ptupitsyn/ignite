@@ -448,12 +448,10 @@ public class GridCacheDatabaseSharedManager extends IgniteCacheDatabaseSharedMan
 
     /** {@inheritDoc} */
     @Override protected void onKernalStart0(boolean reconnect) throws IgniteCheckedException {
-        // Before join local node.
         if (reconnect || cctx.kernalContext().clientNode() || !cctx.kernalContext().state().active())
             return;
 
-        if (persistenceEnabled() && cctx.kernalContext().state().active())
-            initDataBase();
+        initDataBase();
 
         GridCacheProcessor cachePrc = cctx.kernalContext().cache();
 
@@ -509,7 +507,6 @@ public class GridCacheDatabaseSharedManager extends IgniteCacheDatabaseSharedMan
 
         GridCacheProcessor cachePrc = cctx.kernalContext().cache();
 
-        // Todo join local info.
 
         Collection<String> cacheNames = new HashSet<>();
 
@@ -547,7 +544,7 @@ public class GridCacheDatabaseSharedManager extends IgniteCacheDatabaseSharedMan
 
     /** {@inheritDoc} */
     @Override public void onDeActivate(GridKernalContext kctx) throws IgniteCheckedException {
-        stop0(true);
+        stop0(false);
 
         if (log.isDebugEnabled())
             log.debug("DeActivate database manager [id=" + cctx.localNodeId() +
@@ -620,8 +617,6 @@ public class GridCacheDatabaseSharedManager extends IgniteCacheDatabaseSharedMan
             checkpointLock.writeLock().unlock();
         }
 
-        snapshotMgr.onKernalStop(cancel);
-
         shutdownCheckpointer(cancel);
 
         lsnrs.clear();
@@ -645,13 +640,6 @@ public class GridCacheDatabaseSharedManager extends IgniteCacheDatabaseSharedMan
                 U.error(log, "Failed to unregister persistence metrics MBean (will continue stop routine)", e);
             }
         }
-    }
-
-    /** {@inheritDoc} */
-    @Override protected void stop0(boolean cancel) {
-        super.stop0(cancel);
-
-        snapshotMgr.stop(cancel);
     }
 
     /** */
@@ -1977,10 +1965,11 @@ public class GridCacheDatabaseSharedManager extends IgniteCacheDatabaseSharedMan
 
                 Checkpoint chp = markCheckpointBegin(tracker);
 
-                if (chp.cpPages == null)
-                    return;
+                if (chp.cpPages == null){
+                    markCheckpointEnd(chp);
 
-                snapshotMgr.onCheckPointBegin();
+                    return;
+                }
 
                 boolean interrupted = true;
 
@@ -2321,7 +2310,8 @@ public class GridCacheDatabaseSharedManager extends IgniteCacheDatabaseSharedMan
 
             checkpointHist.onCheckpointFinished(chp);
 
-            chp.progress.cpFinishFut.onDone();
+            if (chp.progress != null)
+                chp.progress.cpFinishFut.onDone();
         }
 
         /** {@inheritDoc} */
