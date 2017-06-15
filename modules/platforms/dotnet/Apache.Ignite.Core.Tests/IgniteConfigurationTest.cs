@@ -699,6 +699,25 @@ namespace Apache.Ignite.Core.Tests
                     ThreadPoolSize = 4,
                     TcpNoDelay = false,
                     SocketSendBufferSize = 4096
+                },
+                PersistentStoreConfiguration = new PersistentStoreConfiguration
+                {
+                    AlwaysWriteFullPages = true,
+                    CheckpointingFrequency = TimeSpan.FromSeconds(25),
+                    CheckpointingPageBufferSize = 28 * 1024 * 1024,
+                    CheckpointingThreads = 2,
+                    LockWaitTime = TimeSpan.FromSeconds(5),
+                    PersistentStorePath = Path.GetTempPath(),
+                    TlbSize = 64 * 1024,
+                    WalArchivePath = Path.GetTempPath(),
+                    WalFlushFrequency = TimeSpan.FromSeconds(3),
+                    WalFsyncDelayNanos = 3,
+                    WalHistorySize = 10,
+                    WalMode = WalMode.LogOnly,
+                    WalRecordIteratorBufferSize = 32 * 1024 * 1024,
+                    WalSegments = 6,
+                    WalSegmentSize = 5 * 1024 * 1024,
+                    WalStorePath = Path.GetTempPath()
                 }
             };
         }
