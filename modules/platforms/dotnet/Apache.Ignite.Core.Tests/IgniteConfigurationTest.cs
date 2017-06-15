@@ -245,6 +245,26 @@ namespace Apache.Ignite.Core.Tests
                 Assert.AreEqual(sql.SocketSendBufferSize, resSql.SocketSendBufferSize);
                 Assert.AreEqual(sql.TcpNoDelay, resSql.TcpNoDelay);
                 Assert.AreEqual(sql.ThreadPoolSize, resSql.ThreadPoolSize);
+
+                var pers = cfg.PersistentStoreConfiguration;
+                var resPers = resCfg.PersistentStoreConfiguration;
+
+                Assert.AreEqual(pers.AlwaysWriteFullPages, resPers.AlwaysWriteFullPages);
+                Assert.AreEqual(pers.CheckpointingFrequency, resPers.CheckpointingFrequency);
+                Assert.AreEqual(pers.CheckpointingPageBufferSize, resPers.CheckpointingPageBufferSize);
+                Assert.AreEqual(pers.CheckpointingThreads, resPers.CheckpointingThreads);
+                Assert.AreEqual(pers.LockWaitTime, resPers.LockWaitTime);
+                Assert.AreEqual(pers.PersistentStorePath, resPers.PersistentStorePath);
+                Assert.AreEqual(pers.TlbSize, resPers.TlbSize);
+                Assert.AreEqual(pers.WalArchivePath, resPers.WalArchivePath);
+                Assert.AreEqual(pers.WalFlushFrequency, resPers.WalFlushFrequency);
+                Assert.AreEqual(pers.WalFsyncDelayNanos, resPers.WalFsyncDelayNanos);
+                Assert.AreEqual(pers.WalHistorySize, resPers.WalHistorySize);
+                Assert.AreEqual(pers.WalMode, resPers.WalMode);
+                Assert.AreEqual(pers.WalRecordIteratorBufferSize, resPers.WalRecordIteratorBufferSize);
+                Assert.AreEqual(pers.WalSegments, resPers.WalSegments);
+                Assert.AreEqual(pers.WalSegmentSize, resPers.WalSegmentSize);
+                Assert.AreEqual(pers.WalStorePath, resPers.WalStorePath);
             }
         }
 
