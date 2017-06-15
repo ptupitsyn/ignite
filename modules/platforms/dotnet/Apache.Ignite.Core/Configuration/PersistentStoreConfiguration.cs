@@ -73,6 +73,32 @@ namespace Apache.Ignite.Core.Configuration
         }
 
         /// <summary>
+        /// Writes this instance to the specified writer.
+        /// </summary>
+        /// <param name="writer">The writer.</param>
+        internal void Write(IBinaryRawWriter writer)
+        {
+            Debug.Assert(writer != null);
+
+            writer.WriteString(PersistentStorePath);
+            writer.WriteTimeSpanAsLong(CheckpointingFrequency);
+            writer.WriteLong(CheckpointingPageBufferSize);
+            writer.WriteInt(CheckpointingThreads);
+            writer.WriteTimeSpanAsLong(LockWaitTime);
+            writer.WriteInt(WalHistorySize);
+            writer.WriteInt(WalSegments);
+            writer.WriteInt(WalSegmentSize);
+            writer.WriteString(WalStorePath);
+            writer.WriteString(WalArchivePath);
+            writer.WriteInt((int) WalMode);
+            writer.WriteInt(TlbSize);
+            writer.WriteTimeSpanAsLong(WalFlushFrequency);
+            writer.WriteInt(WalFsyncDelayNanos);
+            writer.WriteInt(WalRecordIteratorBufferSize);
+            writer.WriteBoolean(AlwaysWriteFullPages);
+        }
+
+        /// <summary>
         /// Default value for <see cref="CheckpointingPageBufferSize"/>.
         /// </summary>
         public const long DefaultCheckpointingPageBufferSize = 256L * 1024 * 1024;
