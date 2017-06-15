@@ -661,7 +661,7 @@ namespace Apache.Ignite.Core.Tests
                         }
                     }
                 },
-                PluginConfigurations = new[] { new TestIgnitePluginConfiguration() },
+                PluginConfigurations = new[] { new TestIgnitePluginConfiguration{ SkipCacheCheck = true } },
                 EventStorageSpi = new MemoryEventStorageSpi
                 {
                     ExpirationTimeout = TimeSpan.FromSeconds(5),
