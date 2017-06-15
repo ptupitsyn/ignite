@@ -18,6 +18,7 @@
 namespace Apache.Ignite.Core.Configuration
 {
     using System;
+    using System.ComponentModel;
 
     /// <summary>
     /// Configures Apache Ignite persistent store.
@@ -25,12 +26,17 @@ namespace Apache.Ignite.Core.Configuration
     public class PersistentStoreConfiguration
     {
         /// <summary>
+        /// Initializes a new instance of the <see cref="PersistentStoreConfiguration"/> class.
+        /// </summary>
+        public PersistentStoreConfiguration()
+        {
+            CheckpointingPageBufferSize = DefaultCheckpointingPageBufferSize;
+        }
+
+        /// <summary>
         /// Default value for <see cref="CheckpointingPageBufferSize"/>.
         /// </summary>
         public const long DefaultCheckpointingPageBufferSize = 256L * 1024 * 1024;
-
-        /** */
-        private long? _checkpointingPageBufferSize;
 
         /// <summary>
         /// Gets or sets the path where data and indexes will be persisted.
@@ -46,11 +52,8 @@ namespace Apache.Ignite.Core.Configuration
         /// <summary>
         /// Gets or sets the size of the checkpointing page buffer.
         /// </summary>
-        public long CheckpointingPageBufferSize
-        {
-            get { return _checkpointingPageBufferSize ?? DefaultCheckpointingPageBufferSize; }
-            set { _checkpointingPageBufferSize = value; }
-        }
+        [DefaultValue(DefaultCheckpointingPageBufferSize)]
+        public long CheckpointingPageBufferSize { get; set; }
 
         /// <summary>
         /// Gets or sets the number of threads for checkpointing.
