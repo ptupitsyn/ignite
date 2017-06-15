@@ -1143,6 +1143,8 @@ public class PlatformConfigurationUtils {
 
         writeSqlConnectorConfiguration(w, cfg.getSqlConnectorConfiguration());
 
+        writePersistentStoreConfiguration(w, cfg.getPersistentStoreConfiguration());
+
         w.writeString(cfg.getIgniteHome());
 
         w.writeLong(ManagementFactory.getMemoryMXBean().getHeapMemoryUsage().getInit());
