@@ -31,12 +31,60 @@ namespace Apache.Ignite.Core.Configuration
         public PersistentStoreConfiguration()
         {
             CheckpointingPageBufferSize = DefaultCheckpointingPageBufferSize;
+            CheckpointingFrequency = DefaultCheckpointingFrequency;
+            LockWaitTime = DefaultLockWaitTime;
+            WalHistorySize = DefaultWalHistorySize;
+            WalSegments = DefaultWalSegments;
+            WalSegmentSize = DefaultWalSegmentSize;
+            TlbSize = DefaultTlbSize;
+            WalFlushFrequency = DefaultWalFlushFrequency;
+            WalRecordIteratorBufferSize = DefaultWalRecordIteratorBufferSize;
         }
 
         /// <summary>
         /// Default value for <see cref="CheckpointingPageBufferSize"/>.
         /// </summary>
         public const long DefaultCheckpointingPageBufferSize = 256L * 1024 * 1024;
+
+        /// <summary>
+        /// Default value for <see cref="CheckpointingFrequency"/>.
+        /// </summary>
+        public static readonly TimeSpan DefaultCheckpointingFrequency = TimeSpan.FromSeconds(180);
+
+        /// <summary>
+        /// Default value for <see cref="LockWaitTime"/>.
+        /// </summary>
+        public static readonly TimeSpan DefaultLockWaitTime = TimeSpan.FromSeconds(10);
+
+        /// <summary>
+        /// Default value for <see cref="WalHistorySize"/>.
+        /// </summary>
+        public const int DefaultWalHistorySize = 20;
+        
+        /// <summary>
+        /// Default value for <see cref="WalSegments"/>.
+        /// </summary>
+        public const int DefaultWalSegments = 10;
+
+        /// <summary>
+        /// Default value for <see cref="WalSegmentSize"/>.
+        /// </summary>
+        public const int DefaultWalSegmentSize = 64 * 1024 * 1024;
+
+        /// <summary>
+        /// Default value for <see cref="TlbSize"/>.
+        /// </summary>
+        public const int DefaultTlbSize = 128 * 1024;
+
+        /// <summary>
+        /// Default value for <see cref="WalFlushFrequency"/>.
+        /// </summary>
+        public static readonly TimeSpan DefaultWalFlushFrequency = TimeSpan.FromSeconds(2);
+
+        /// <summary>
+        /// Default value for <see cref="WalRecordIteratorBufferSize"/>.
+        /// </summary>
+        public const int DefaultWalRecordIteratorBufferSize = 64 * 1024 * 1024;
 
         /// <summary>
         /// Gets or sets the path where data and indexes will be persisted.
@@ -47,6 +95,7 @@ namespace Apache.Ignite.Core.Configuration
         /// Gets or sets the checkpointing frequency which is a minimal interval when the dirty pages will be written
         /// to the Persistent Store.
         /// </summary>
+        [DefaultValue(typeof(TimeSpan), "00:03:00")]
         public TimeSpan CheckpointingFrequency { get; set; }
 
         /// <summary>
@@ -63,23 +112,27 @@ namespace Apache.Ignite.Core.Configuration
         /// <summary>
         /// Gets or sets the persistent manager file lock wait time.
         /// </summary>
+        [DefaultValue(typeof(TimeSpan), "00:00:10")]
         public TimeSpan LockWaitTime { get; set; }
 
         /// <summary>
         /// Gets or sets the number of checkpoints to store in WAL (Write Ahead Log) history.
         /// </summary>
+        [DefaultValue(DefaultWalHistorySize)]
         public int WalHistorySize { get;set; }
 
         /// <summary>
         /// Gets or sets a number of WAL (Write Ahead Log) segments to work with.
         /// For performance reasons, the whole WAL is split into files of fixed length called segments.
         /// </summary>
+        [DefaultValue(DefaultWalSegments)]
         public int WalSegments { get;set; }
 
         /// <summary>
         /// Gets or sets the size of the WAL (Write Ahead Log) segment.
         /// For performance reasons, the whole WAL is split into files of fixed length called segments.
         /// </summary>
+        [DefaultValue(DefaultWalSegmentSize)]
         public int WalSegmentSize { get;set; }
 
         /// <summary>
@@ -101,21 +154,24 @@ namespace Apache.Ignite.Core.Configuration
         /// <summary>
         /// Gets or sets the size of the TLB (Thread-Local Buffer), in bytes.
         /// </summary>
+        [DefaultValue(DefaultTlbSize)]
         public int TlbSize { get; set; }
 
         /// <summary>
         /// Gets or sets the WAL (Write Ahead Log) flush frequency.
         /// </summary>
+        [DefaultValue(typeof(TimeSpan), "00:00:02")]
         public TimeSpan WalFlushFrequency { get; set; }
 
         /// <summary>
         /// Gets or sets the WAL (Write Ahead Log) fsync (disk sync) delay.
         /// </summary>
-        public TimeSpan WalFsyncDelay { get; set; }
+        public TimeSpan WalFsyncDelay { get; set; }  // TODO: Default
 
         /// <summary>
         /// Gets or sets the size of the WAL (Write Ahead Log) record iterator buffer, in bytes.
         /// </summary>
+        [DefaultValue(DefaultWalRecordIteratorBufferSize)]
         public int WalRecordIteratorBufferSize { get; set; }
 
         /// <summary>
