@@ -95,16 +95,4 @@ namespace Apache.Ignite.Core.Configuration
         /// </summary>
         public WalMode WalMode { get; set; }
     }
-
-    /// <summary>
-    /// Write Ahead Log mode.
-    /// </summary>
-    public enum WalMode
-    {
-        // TODO
-        Default,
-        LogOnly,
-        Background,
-        None
-    }
 }
