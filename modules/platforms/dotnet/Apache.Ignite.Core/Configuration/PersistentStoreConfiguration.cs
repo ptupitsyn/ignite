@@ -39,6 +39,7 @@ namespace Apache.Ignite.Core.Configuration
             TlbSize = DefaultTlbSize;
             WalFlushFrequency = DefaultWalFlushFrequency;
             WalRecordIteratorBufferSize = DefaultWalRecordIteratorBufferSize;
+            WalFsyncDelayNanos = DefaultWalFsyncDelayNanos;
         }
 
         /// <summary>
@@ -85,6 +86,11 @@ namespace Apache.Ignite.Core.Configuration
         /// Default value for <see cref="WalRecordIteratorBufferSize"/>.
         /// </summary>
         public const int DefaultWalRecordIteratorBufferSize = 64 * 1024 * 1024;
+
+        /// <summary>
+        /// Default value for <see cref="WalFsyncDelayNanos"/>.
+        /// </summary>
+        public const int DefaultWalFsyncDelayNanos = 1;
 
         /// <summary>
         /// Gets or sets the path where data and indexes will be persisted.
@@ -164,9 +170,10 @@ namespace Apache.Ignite.Core.Configuration
         public TimeSpan WalFlushFrequency { get; set; }
 
         /// <summary>
-        /// Gets or sets the WAL (Write Ahead Log) fsync (disk sync) delay.
+        /// Gets or sets the WAL (Write Ahead Log) fsync (disk sync) delay, in nanoseconds
         /// </summary>
-        public TimeSpan WalFsyncDelay { get; set; }  // TODO: Default
+        [DefaultValue(DefaultWalFsyncDelayNanos)]
+        public int WalFsyncDelayNanos { get; set; }
 
         /// <summary>
         /// Gets or sets the size of the WAL (Write Ahead Log) record iterator buffer, in bytes.
