@@ -1449,6 +1449,30 @@ public class PlatformConfigurationUtils {
     }
 
     /**
+     * Writes the SQL connector configuration.
+     *
+     * @param w Writer.
+     */
+    private static void writeSqlConnectorConfiguration(BinaryRawWriter w, SqlConnectorConfiguration cfg) {
+        assert w != null;
+
+        if (cfg != null) {
+            w.writeBoolean(true);
+
+            w.writeString(cfg.getHost());
+            w.writeInt(cfg.getPort());
+            w.writeInt(cfg.getPortRange());
+            w.writeInt(cfg.getSocketSendBufferSize());
+            w.writeInt(cfg.getSocketReceiveBufferSize());
+            w.writeBoolean(cfg.isTcpNoDelay());
+            w.writeInt(cfg.getMaxOpenCursorsPerConnection());
+            w.writeInt(cfg.getThreadPoolSize());
+        } else {
+            w.writeBoolean(false);
+        }
+    }
+
+    /**
      * Reads the persistence store connector configuration.
      *
      * @param in Reader.
@@ -1475,28 +1499,36 @@ public class PlatformConfigurationUtils {
     }
 
     /**
-     * Writes the SQL connector configuration.
+     * Writes the persistent store configuration.
      *
      * @param w Writer.
      */
-    private static void writeSqlConnectorConfiguration(BinaryRawWriter w, SqlConnectorConfiguration cfg) {
+    private static void writePersistentStoreConfiguration(BinaryRawWriter w, PersistentStoreConfiguration cfg) {
         assert w != null;
 
         if (cfg != null) {
             w.writeBoolean(true);
 
-            w.writeString(cfg.getHost());
-            w.writeInt(cfg.getPort());
-            w.writeInt(cfg.getPortRange());
-            w.writeInt(cfg.getSocketSendBufferSize());
-            w.writeInt(cfg.getSocketReceiveBufferSize());
-            w.writeBoolean(cfg.isTcpNoDelay());
-            w.writeInt(cfg.getMaxOpenCursorsPerConnection());
-            w.writeInt(cfg.getThreadPoolSize());
+            w.writeString(cfg.getPersistentStorePath());
+            w.writeLong(cfg.getCheckpointingFrequency());
+            w.writeLong(cfg.getCheckpointingPageBufferSize());
+            w.writeInt(cfg.getCheckpointingThreads());
+            w.writeLong(cfg.getLockWaitTime());
+            w.writeInt(cfg.getWalHistorySize());
+            w.writeInt(cfg.getWalSegments());
+            w.writeInt(cfg.getWalSegmentSize());
+            w.writeString(cfg.getWalStorePath());
+            w.writeString(cfg.getWalArchivePath());
+            w.writeInt(cfg.getWalMode().ordinal());
+            w.writeInt(cfg.getTlbSize());
+            w.writeLong(cfg.getWalFlushFrequency());
+            w.writeInt(cfg.getWalFsyncDelay());
+
         } else {
             w.writeBoolean(false);
         }
     }
+
 
     /**
      * Private constructor.
