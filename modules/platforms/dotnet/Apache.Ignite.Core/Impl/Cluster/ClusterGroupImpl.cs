@@ -124,6 +124,12 @@ namespace Apache.Ignite.Core.Impl.Cluster
         /** */
         private const int OpMemoryMetricsByName = 27;
 
+        /** */
+        private const int OpSetActive = 28;
+
+        /** */
+        private const int OpIsActive = 29;
+
         /** Initial Ignite instance. */
         private readonly Ignite _ignite;
         
@@ -594,7 +600,7 @@ namespace Apache.Ignite.Core.Impl.Cluster
         /// </summary>
         public void SetActive(bool isActive)
         {
-            
+            DoOutInOp(OpSetActive, isActive ? True : False);
         }
 
         /// <summary>

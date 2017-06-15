@@ -385,7 +385,7 @@ public class PlatformClusterGroup extends PlatformAbstractTarget {
             }
 
             case OP_SET_ACTIVE: {
-                prj.ignite().active(val != 0);
+                prj.ignite().active(val == TRUE);
 
                 return TRUE;
             }
