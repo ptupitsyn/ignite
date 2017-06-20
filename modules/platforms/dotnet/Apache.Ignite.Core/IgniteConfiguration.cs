@@ -1202,5 +1202,11 @@ namespace Apache.Ignite.Core
         /// Gets or sets the persistent store configuration.
         /// </summary>
         public PersistentStoreConfiguration PersistentStoreConfiguration { get; set; }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether grid should be active on start.
+        /// See also <see cref="IIgnite.IsActive"/> and <see cref="IIgnite.SetActive"/>.
+        /// </summary>
+        public bool ActiveOnStart { get; set; }
     }
 }
