@@ -505,6 +505,7 @@ namespace Apache.Ignite.Core.Tests
                 cfg.ClientFailureDetectionTimeout);
             Assert.AreEqual(IgniteConfiguration.DefaultLongQueryWarningTimeout, cfg.LongQueryWarningTimeout);
             Assert.AreEqual(IgniteConfiguration.DefaultIsLateAffinityAssignment, cfg.IsLateAffinityAssignment);
+            Assert.AreEqual(IgniteConfiguration.DefaultIsActiveOnStart, cfg.IsActiveOnStart);
 
             // Thread pools.
             Assert.AreEqual(IgniteConfiguration.DefaultManagementThreadPoolSize, cfg.ManagementThreadPoolSize);
