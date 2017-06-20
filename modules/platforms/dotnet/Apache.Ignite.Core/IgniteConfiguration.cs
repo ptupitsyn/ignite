@@ -186,6 +186,9 @@ namespace Apache.Ignite.Core
         /** */
         private TimeSpan? _longQueryWarningTimeout;
 
+        /** */
+        private bool? _activeOnStart;
+
         /// <summary>
         /// Default network retry count.
         /// </summary>
@@ -269,6 +272,7 @@ namespace Apache.Ignite.Core
             writer.WriteTimeSpanAsLongNullable(_failureDetectionTimeout);
             writer.WriteTimeSpanAsLongNullable(_clientFailureDetectionTimeout);
             writer.WriteTimeSpanAsLongNullable(_longQueryWarningTimeout);
+            writer.WriteBooleanNullable(_activeOnStart);
 
             // Thread pools
             writer.WriteIntNullable(_publicThreadPoolSize);
@@ -519,6 +523,7 @@ namespace Apache.Ignite.Core
             _failureDetectionTimeout = r.ReadTimeSpanNullable();
             _clientFailureDetectionTimeout = r.ReadTimeSpanNullable();
             _longQueryWarningTimeout = r.ReadTimeSpanNullable();
+            _activeOnStart = r.ReadBooleanNullable();
 
             // Thread pools
             _publicThreadPoolSize = r.ReadIntNullable();
@@ -1207,6 +1212,10 @@ namespace Apache.Ignite.Core
         /// Gets or sets a value indicating whether grid should be active on start.
         /// See also <see cref="IIgnite.IsActive"/> and <see cref="IIgnite.SetActive"/>.
         /// </summary>
-        public bool ActiveOnStart { get; set; }
+        public bool ActiveOnStart
+        {
+            get { return _activeOnStart.GetValueOrDefault(); }
+            set { _activeOnStart = value; }
+        }
     }
 }
