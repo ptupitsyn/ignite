@@ -223,6 +223,7 @@ namespace Apache.Ignite.Core.Cache.Configuration
                 }
 
                 // Plugins should be copied directly.
+                // TODO: This does not work with IgniteConfiguration copy ctor!
                 PluginConfigurations = other.PluginConfigurations;
             }
         }
