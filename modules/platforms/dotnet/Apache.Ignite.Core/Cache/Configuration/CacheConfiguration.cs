@@ -219,8 +219,11 @@ namespace Apache.Ignite.Core.Cache.Configuration
                     stream.SynchronizeOutput();
                     stream.Seek(0, SeekOrigin.Begin);
 
-                    Read(BinaryUtils.Marshaller.StartUnmarshal(stream));
+                    Read(BinaryUtils.Marshaller.StartUnmarshal(stream), true);
                 }
+
+                // Plugins should be copied directly.
+                PluginConfigurations = other.PluginConfigurations;
             }
         }
 
@@ -237,7 +240,8 @@ namespace Apache.Ignite.Core.Cache.Configuration
         /// Reads data into this instance from the specified reader.
         /// </summary>
         /// <param name="reader">The reader.</param>
-        private void Read(IBinaryRawReader reader)
+        /// <param name="skipPlugins">Whether to skip plugins.</param>
+        private void Read(IBinaryRawReader reader, bool skipPlugins = false)
         {
             // Make sure system marshaller is used.
             Debug.Assert(((BinaryReader) reader).Marshaller == BinaryUtils.Marshaller);
@@ -287,10 +291,13 @@ namespace Apache.Ignite.Core.Cache.Configuration
             AffinityFunction = AffinityFunctionSerializer.Read(reader);
             ExpiryPolicyFactory = ExpiryPolicySerializer.ReadPolicyFactory(reader);
 
-            count = reader.ReadInt();
-            PluginConfigurations = count == 0
-                ? null
-                : Enumerable.Range(0, count).Select(x => reader.ReadObject<ICachePluginConfiguration>()).ToList();
+            if (!skipPlugins)
+            {
+                count = reader.ReadInt();
+                PluginConfigurations = count == 0
+                    ? null
+                    : Enumerable.Range(0, count).Select(x => reader.ReadObject<ICachePluginConfiguration>()).ToList();
+            }
         }
 
         /// <summary>
