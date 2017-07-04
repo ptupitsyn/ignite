@@ -190,6 +190,20 @@ namespace Apache.Ignite.Core.Tests.Cache
         }
 
         /// <summary>
+        /// Tests the copy constructor.
+        /// </summary>
+        [Test]
+        public void TestCopyConstructor()
+        {
+            foreach (var cfg in new[]
+                {new CacheConfiguration(), GetCustomCacheConfiguration(), GetCustomCacheConfiguration2()})
+            {
+                AssertConfigsAreEqual(cfg, cfg);
+                AssertConfigsAreEqual(cfg, new CacheConfiguration(cfg));
+            }
+        }
+
+        /// <summary>
         /// Asserts the configuration is default.
         /// </summary>
         private static void AssertConfigIsDefault(CacheConfiguration cfg)
