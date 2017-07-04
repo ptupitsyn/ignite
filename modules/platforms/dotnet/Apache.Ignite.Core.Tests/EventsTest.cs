@@ -949,8 +949,6 @@ namespace Apache.Ignite.Core.Tests
         /** <inheritdoc /> */
         bool IEventListener<T>.Invoke(T evt)
         {
-            Assert.IsNotNull(Ignite);
-
             return _invoke(evt);
         }
 
