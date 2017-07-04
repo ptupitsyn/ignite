@@ -1317,9 +1317,9 @@ public class PlatformConfigurationUtils {
      * @param in Reader.
      */
     private static void readCachePluginConfiguration(CacheConfiguration cfg, BinaryRawReader in) {
-        in.readInt(); // skip size.
-
         int plugCfgFactoryId = in.readInt();
+
+        in.readInt(); // skip size.
 
         PlatformCachePluginConfigurationClosure plugCfg = cachePluginConfiguration(plugCfgFactoryId);
 
