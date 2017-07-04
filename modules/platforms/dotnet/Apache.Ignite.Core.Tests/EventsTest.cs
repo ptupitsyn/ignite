@@ -17,6 +17,8 @@
 
 // ReSharper disable MemberCanBePrivate.Global
 // ReSharper disable UnusedParameter.Global
+// ReSharper disable UnusedAutoPropertyAccessor.Local
+// ReSharper disable UnusedAutoPropertyAccessor.Global
 #pragma warning disable 618
 namespace Apache.Ignite.Core.Tests
 {
@@ -33,6 +35,7 @@ namespace Apache.Ignite.Core.Tests
     using Apache.Ignite.Core.Events;
     using Apache.Ignite.Core.Impl;
     using Apache.Ignite.Core.Impl.Events;
+    using Apache.Ignite.Core.Resource;
     using Apache.Ignite.Core.Tests.Compute;
     using NUnit.Framework;
 
@@ -922,6 +925,10 @@ namespace Apache.Ignite.Core.Tests
         /** */
         private readonly Func<T, bool> _invoke;
 
+        /** */
+        [InstanceResource]
+        private IIgnite Ignite { get; set; }
+
         /// <summary>
         /// Initializes a new instance of the <see cref="RemoteListenEventFilter"/> class.
         /// </summary>
@@ -934,12 +941,16 @@ namespace Apache.Ignite.Core.Tests
         /** <inheritdoc /> */
         bool IEventFilter<T>.Invoke(T evt)
         {
+            Assert.IsNotNull(Ignite);
+
             return _invoke(evt);
         }
 
         /** <inheritdoc /> */
         bool IEventListener<T>.Invoke(T evt)
         {
+            Assert.IsNotNull(Ignite);
+
             return _invoke(evt);
         }
 
@@ -960,6 +971,10 @@ namespace Apache.Ignite.Core.Tests
         /** */
         private readonly int _type;
 
+        /** */
+        [InstanceResource]
+        public IIgnite Ignite { get; set; }
+
         public RemoteEventFilter(int type)
         {
             _type = type;
@@ -968,6 +983,8 @@ namespace Apache.Ignite.Core.Tests
         /** <inheritdoc /> */
         public bool Invoke(IEvent evt)
         {
+            Assert.IsNotNull(Ignite);
+
             return evt.Type == _type;
         }
     }
