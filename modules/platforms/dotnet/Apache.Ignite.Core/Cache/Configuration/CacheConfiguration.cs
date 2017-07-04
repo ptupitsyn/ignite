@@ -305,10 +305,10 @@ namespace Apache.Ignite.Core.Cache.Configuration
         /// Writes this instance to the specified writer.
         /// </summary>
         /// <param name="writer">The writer.</param>
-        internal void Write(IBinaryRawWriter writer)
+        internal void Write(BinaryWriter writer)
         {
             // Make sure system marshaller is used.
-            Debug.Assert(((BinaryWriter) writer).Marshaller == BinaryUtils.Marshaller);
+            Debug.Assert(writer.Marshaller == BinaryUtils.Marshaller);
 
             writer.WriteInt((int) AtomicityMode);
             writer.WriteInt(Backups);
@@ -387,7 +387,13 @@ namespace Apache.Ignite.Core.Cache.Configuration
                     {
                         writer.WriteBoolean(true);
                         writer.WriteInt(cachePlugin.CachePluginConfigurationClosureFactoryId.Value);
+
+                        int pos = writer.Stream.Position;
+                        writer.WriteInt(0);  // Reserve size.
+
                         cachePlugin.WriteBinary(writer);
+
+                        writer.Stream.WriteInt(pos, writer.Stream.Position - pos);  // Write size.
                     }
                     else
                     {
