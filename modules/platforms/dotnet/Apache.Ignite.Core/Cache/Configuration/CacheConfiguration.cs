@@ -25,6 +25,7 @@ namespace Apache.Ignite.Core.Cache.Configuration
     using System.ComponentModel;
     using System.Diagnostics;
     using System.Diagnostics.CodeAnalysis;
+    using System.IO;
     using System.Linq;
     using Apache.Ignite.Core.Binary;
     using Apache.Ignite.Core.Cache;
@@ -34,11 +35,15 @@ namespace Apache.Ignite.Core.Cache.Configuration
     using Apache.Ignite.Core.Cache.Expiry;
     using Apache.Ignite.Core.Cache.Store;
     using Apache.Ignite.Core.Common;
+    using Apache.Ignite.Core.Impl;
     using Apache.Ignite.Core.Impl.Binary;
     using Apache.Ignite.Core.Impl.Cache.Affinity;
     using Apache.Ignite.Core.Impl.Cache.Expiry;
+    using Apache.Ignite.Core.Impl.Common;
     using Apache.Ignite.Core.Log;
     using Apache.Ignite.Core.Plugin.Cache;
+    using BinaryReader = Apache.Ignite.Core.Impl.Binary.BinaryReader;
+    using BinaryWriter = Apache.Ignite.Core.Impl.Binary.BinaryWriter;
 
     /// <summary>
     /// Defines grid cache configuration.
@@ -199,10 +204,40 @@ namespace Apache.Ignite.Core.Cache.Configuration
         }
 
         /// <summary>
+        /// Initializes a new instance of the <see cref="CacheConfiguration"/> class,
+        /// performing a deep copy of specified cache configuration.
+        /// </summary>
+        /// <param name="other">The other configuration to perfrom deep copy from.</param>
+        public CacheConfiguration(CacheConfiguration other)
+        {
+            if (other != null)
+            {
+                using (var stream = IgniteManager.Memory.Allocate().GetStream())
+                {
+                    other.Write(BinaryUtils.Marshaller.StartMarshal(stream));
+
+                    stream.SynchronizeOutput();
+                    stream.Seek(0, SeekOrigin.Begin);
+
+                    Read(BinaryUtils.Marshaller.StartUnmarshal(stream));
+                }
+            }
+        }
+
+        /// <summary>
         /// Initializes a new instance of the <see cref="CacheConfiguration"/> class.
         /// </summary>
         /// <param name="reader">The reader.</param>
         internal CacheConfiguration(IBinaryRawReader reader)
+        {
+            Read(reader);
+        }
+
+        /// <summary>
+        /// Reads data into this instance from the specified reader.
+        /// </summary>
+        /// <param name="reader">The reader.</param>
+        private void Read(IBinaryRawReader reader)
         {
             // Make sure system marshaller is used.
             Debug.Assert(((BinaryReader) reader).Marshaller == BinaryUtils.Marshaller);
@@ -216,9 +251,9 @@ namespace Apache.Ignite.Core.Cache.Configuration
             KeepBinaryInStore = reader.ReadBoolean();
             LoadPreviousValue = reader.ReadBoolean();
             LockTimeout = reader.ReadLongAsTimespan();
-#pragma warning disable 618
+            #pragma warning disable 618
             LongQueryWarningTimeout = reader.ReadLongAsTimespan();
-#pragma warning restore 618
+            #pragma warning restore 618
             MaxConcurrentAsyncOperations = reader.ReadInt();
             Name = reader.ReadString();
             ReadFromBackup = reader.ReadBoolean();
