@@ -198,8 +198,15 @@ namespace Apache.Ignite.Core.Tests.Cache
             foreach (var cfg in new[]
                 {new CacheConfiguration(), GetCustomCacheConfiguration(), GetCustomCacheConfiguration2()})
             {
+                // Check direct copy.
                 AssertConfigsAreEqual(cfg, cfg);
                 AssertConfigsAreEqual(cfg, new CacheConfiguration(cfg));
+
+                // Check copy via Ignite config.
+                var igniteCfg = new IgniteConfiguration {CacheConfiguration = new[] {cfg}};
+                var igniteCfgCopy = new IgniteConfiguration(igniteCfg);
+
+                AssertConfigsAreEqual(cfg, igniteCfgCopy.CacheConfiguration.Single());
             }
         }
 
