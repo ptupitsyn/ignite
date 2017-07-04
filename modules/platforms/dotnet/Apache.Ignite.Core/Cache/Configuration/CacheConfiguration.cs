@@ -39,7 +39,6 @@ namespace Apache.Ignite.Core.Cache.Configuration
     using Apache.Ignite.Core.Impl.Binary;
     using Apache.Ignite.Core.Impl.Cache.Affinity;
     using Apache.Ignite.Core.Impl.Cache.Expiry;
-    using Apache.Ignite.Core.Impl.Common;
     using Apache.Ignite.Core.Log;
     using Apache.Ignite.Core.Plugin.Cache;
     using BinaryReader = Apache.Ignite.Core.Impl.Binary.BinaryReader;
@@ -219,11 +218,10 @@ namespace Apache.Ignite.Core.Cache.Configuration
                     stream.SynchronizeOutput();
                     stream.Seek(0, SeekOrigin.Begin);
 
-                    Read(BinaryUtils.Marshaller.StartUnmarshal(stream), true);
+                    Read(BinaryUtils.Marshaller.StartUnmarshal(stream));
                 }
 
                 // Plugins should be copied directly.
-                // TODO: This does not work with IgniteConfiguration copy ctor!
                 PluginConfigurations = other.PluginConfigurations;
             }
         }
@@ -232,7 +230,7 @@ namespace Apache.Ignite.Core.Cache.Configuration
         /// Initializes a new instance of the <see cref="CacheConfiguration"/> class.
         /// </summary>
         /// <param name="reader">The reader.</param>
-        internal CacheConfiguration(IBinaryRawReader reader)
+        internal CacheConfiguration(BinaryReader reader)
         {
             Read(reader);
         }
@@ -241,8 +239,7 @@ namespace Apache.Ignite.Core.Cache.Configuration
         /// Reads data into this instance from the specified reader.
         /// </summary>
         /// <param name="reader">The reader.</param>
-        /// <param name="skipPlugins">Whether to skip plugins.</param>
-        private void Read(IBinaryRawReader reader, bool skipPlugins = false)
+        private void Read(BinaryReader reader)
         {
             // Make sure system marshaller is used.
             Debug.Assert(((BinaryReader) reader).Marshaller == BinaryUtils.Marshaller);
@@ -256,9 +253,9 @@ namespace Apache.Ignite.Core.Cache.Configuration
             KeepBinaryInStore = reader.ReadBoolean();
             LoadPreviousValue = reader.ReadBoolean();
             LockTimeout = reader.ReadLongAsTimespan();
-            #pragma warning disable 618
+#pragma warning disable 618
             LongQueryWarningTimeout = reader.ReadLongAsTimespan();
-            #pragma warning restore 618
+#pragma warning restore 618
             MaxConcurrentAsyncOperations = reader.ReadInt();
             Name = reader.ReadString();
             ReadFromBackup = reader.ReadBoolean();
@@ -284,7 +281,9 @@ namespace Apache.Ignite.Core.Cache.Configuration
             CacheStoreFactory = reader.ReadObject<IFactory<ICacheStore>>();
 
             var count = reader.ReadInt();
-            QueryEntities = count == 0 ? null : Enumerable.Range(0, count).Select(x => new QueryEntity(reader)).ToList();
+            QueryEntities = count == 0
+                ? null
+                : Enumerable.Range(0, count).Select(x => new QueryEntity(reader)).ToList();
 
             NearConfiguration = reader.ReadBoolean() ? new NearCacheConfiguration(reader) : null;
 
@@ -292,12 +291,25 @@ namespace Apache.Ignite.Core.Cache.Configuration
             AffinityFunction = AffinityFunctionSerializer.Read(reader);
             ExpiryPolicyFactory = ExpiryPolicySerializer.ReadPolicyFactory(reader);
 
-            if (!skipPlugins)
+            count = reader.ReadInt();
+
+            if (count > 0)
             {
-                count = reader.ReadInt();
-                PluginConfigurations = count == 0
-                    ? null
-                    : Enumerable.Range(0, count).Select(x => reader.ReadObject<ICachePluginConfiguration>()).ToList();
+                PluginConfigurations = new List<ICachePluginConfiguration>(count);
+                for (int i = 0; i < count; i++)
+                {
+                    if (reader.ReadBoolean())
+                    {
+                        // FactoryId-based plugin: skip.
+                        var size = reader.ReadInt();
+                        reader.Stream.Seek(size, SeekOrigin.Current);
+                    }
+                    else
+                    {
+                        // Pure .NET plugin.
+                        PluginConfigurations.Add(reader.ReadObject<ICachePluginConfiguration>());
+                    }
+                }
             }
         }
 
