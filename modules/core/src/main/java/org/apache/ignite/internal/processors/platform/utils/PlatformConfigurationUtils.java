@@ -885,8 +885,10 @@ public class PlatformConfigurationUtils {
             writer.writeInt(cnt);
 
             for (CachePluginConfiguration cfg : plugins) {
-                if (cfg instanceof PlatformCachePluginConfiguration)
-                    writer.writeObject(((PlatformCachePluginConfiguration)cfg).nativeCfg());
+                if (cfg instanceof PlatformCachePluginConfiguration) {
+                    writer.writeBoolean(false);  // Pure platform plugin.
+                    writer.writeObject(((PlatformCachePluginConfiguration) cfg).nativeCfg());
+                }
             }
         }
     }
