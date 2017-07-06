@@ -17,7 +17,9 @@
 
 namespace Apache.Ignite.Core.Tests.Cache
 {
+    using System.IO;
     using Apache.Ignite.Core.Common;
+    using Apache.Ignite.Core.Impl;
     using Apache.Ignite.Core.PersistentStore;
     using NUnit.Framework;
 
@@ -26,6 +28,57 @@ namespace Apache.Ignite.Core.Tests.Cache
     /// </summary>
     public class PersistentStoreTest
     {
+        /** Temp dir for WAL. */
+        private readonly string _tempDir = IgniteUtils.GetTempDirectoryName();
+
+        /// <summary>
+        /// Tears down the test.
+        /// </summary>
+        [TearDown]
+        public void TearDown()
+        {
+            Ignition.StopAll(true);
+            Directory.Delete(_tempDir);
+        }
+
+        /// <summary>
+        /// Tests that cache data survives node restart.
+        /// </summary>
+        [Test]
+        public void TestCacheDataSurvivesNodeRestart()
+        {
+            var cfg = new IgniteConfiguration(TestUtils.GetTestConfiguration())
+            {
+                PersistentStoreConfiguration = new PersistentStoreConfiguration
+                {
+                    WalStorePath = _tempDir
+                }
+            };
+
+            const string cacheName = "persistentCache";
+
+            // Start Ignite, put data, stop.
+            using (var ignite = Ignition.Start(cfg))
+            {
+                var cache = ignite.CreateCache<int, int>(cacheName);
+
+                cache[1] = 1;
+            }
+
+            // Verify directory.
+            Assert.IsTrue(Directory.Exists(_tempDir));
+            var dirContents = Directory.GetFileSystemEntries(_tempDir);
+            Assert.IsNotEmpty(dirContents);
+
+            // Start Ignite, verify data survival.
+            using (var ignite = Ignition.Start(cfg))
+            {
+                var cache = ignite.GetCache<int, int>(cacheName);
+
+                Assert.AreEqual(1, cache[1]);
+            }
+        }
+
         /// <summary>
         /// Tests the grid activation with persistence (inactive by default).
         /// </summary>
