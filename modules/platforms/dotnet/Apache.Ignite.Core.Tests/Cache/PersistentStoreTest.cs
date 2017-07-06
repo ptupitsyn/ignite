@@ -51,8 +51,9 @@ namespace Apache.Ignite.Core.Tests.Cache
             {
                 PersistentStoreConfiguration = new PersistentStoreConfiguration
                 {
-                    WalStorePath = _tempDir,
-                    WalArchivePath = Path.Combine(_tempDir, "__archive")
+                    PersistentStorePath = Path.Combine(_tempDir, "Store"),
+                    WalStorePath = Path.Combine(_tempDir, "WalStore"),
+                    WalArchivePath = Path.Combine(_tempDir, "WalArchive")
                 }
             };
 
@@ -68,10 +69,10 @@ namespace Apache.Ignite.Core.Tests.Cache
                 cache[1] = 1;
             }
 
-            // Verify directory.
-            Assert.IsTrue(Directory.Exists(_tempDir));
-            var dirContents = Directory.GetFileSystemEntries(_tempDir);
-            Assert.IsNotEmpty(dirContents);
+            // Verify directories.
+            Assert.IsTrue(Directory.Exists(cfg.PersistentStoreConfiguration.PersistentStorePath));
+            Assert.IsTrue(Directory.Exists(cfg.PersistentStoreConfiguration.WalStorePath));
+            Assert.IsTrue(Directory.Exists(cfg.PersistentStoreConfiguration.WalArchivePath));
 
             // Start Ignite, verify data survival.
             using (var ignite = Ignition.Start(cfg))
