@@ -83,6 +83,17 @@ namespace Apache.Ignite.Core.Tests.Cache
 
                 Assert.AreEqual(1, cache[1]);
             }
+
+            // Delete store directory.
+            Directory.Delete(_tempDir, true);
+
+            // Start Ignite, verify data loss.
+            using (var ignite = Ignition.Start(cfg))
+            {
+                ignite.SetActive(true);
+
+                Assert.IsFalse(ignite.GetCacheNames().Contains(cacheName));
+            }
         }
 
         /// <summary>
