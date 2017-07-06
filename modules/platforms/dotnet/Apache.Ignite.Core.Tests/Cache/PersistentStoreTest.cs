@@ -51,7 +51,8 @@ namespace Apache.Ignite.Core.Tests.Cache
             {
                 PersistentStoreConfiguration = new PersistentStoreConfiguration
                 {
-                    WalStorePath = _tempDir
+                    WalStorePath = _tempDir,
+                    WalArchivePath = Path.Combine(_tempDir, "__archive")
                 }
             };
 
@@ -60,6 +61,8 @@ namespace Apache.Ignite.Core.Tests.Cache
             // Start Ignite, put data, stop.
             using (var ignite = Ignition.Start(cfg))
             {
+                ignite.SetActive(true);
+
                 var cache = ignite.CreateCache<int, int>(cacheName);
 
                 cache[1] = 1;
@@ -73,6 +76,8 @@ namespace Apache.Ignite.Core.Tests.Cache
             // Start Ignite, verify data survival.
             using (var ignite = Ignition.Start(cfg))
             {
+                ignite.SetActive(true);
+
                 var cache = ignite.GetCache<int, int>(cacheName);
 
                 Assert.AreEqual(1, cache[1]);
