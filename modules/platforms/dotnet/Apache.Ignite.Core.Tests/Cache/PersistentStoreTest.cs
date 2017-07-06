@@ -38,7 +38,7 @@ namespace Apache.Ignite.Core.Tests.Cache
         public void TearDown()
         {
             Ignition.StopAll(true);
-            Directory.Delete(_tempDir);
+            Directory.Delete(_tempDir, true);
         }
 
         /// <summary>
