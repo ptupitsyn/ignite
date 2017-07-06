@@ -38,6 +38,7 @@ namespace Apache.Ignite.Core.Impl.Cluster
     using Apache.Ignite.Core.Impl.Services;
     using Apache.Ignite.Core.Impl.Unmanaged;
     using Apache.Ignite.Core.Messaging;
+    using Apache.Ignite.Core.PersistentStore;
     using Apache.Ignite.Core.Services;
     using UU = Apache.Ignite.Core.Impl.Unmanaged.UnmanagedUtils;
 
@@ -612,6 +613,15 @@ namespace Apache.Ignite.Core.Impl.Cluster
         public bool IsActive()
         {
             return DoOutInOp(OpIsActive) == True;
+        }
+
+        /// <summary>
+        /// Gets the persistent store metrics.
+        /// </summary>
+        public IPersistentStoreMetrics GetPersistentStoreMetrics()
+        {
+            // TODO
+            return null;
         }
 
         /// <summary>
