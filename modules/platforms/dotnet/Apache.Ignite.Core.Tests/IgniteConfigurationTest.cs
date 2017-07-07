@@ -266,6 +266,9 @@ namespace Apache.Ignite.Core.Tests
                 Assert.AreEqual(pers.WalSegments, resPers.WalSegments);
                 Assert.AreEqual(pers.WalSegmentSize, resPers.WalSegmentSize);
                 Assert.AreEqual(pers.WalStorePath, resPers.WalStorePath);
+                Assert.AreEqual(pers.EnableMetrics, resPers.EnableMetrics);
+                Assert.AreEqual(pers.RateTimeInterval, resPers.RateTimeInterval);
+                Assert.AreEqual(pers.SubIntervals, resPers.SubIntervals);
             }
         }
 
@@ -744,7 +747,10 @@ namespace Apache.Ignite.Core.Tests
                     WalRecordIteratorBufferSize = 32 * 1024 * 1024,
                     WalSegments = 6,
                     WalSegmentSize = 5 * 1024 * 1024,
-                    WalStorePath = Path.GetTempPath()
+                    WalStorePath = Path.GetTempPath(),
+                    EnableMetrics = true,
+                    SubIntervals = 7,
+                    RateTimeInterval = TimeSpan.FromSeconds(9)
                 }
             };
         }
