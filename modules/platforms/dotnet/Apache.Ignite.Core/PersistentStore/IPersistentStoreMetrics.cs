@@ -17,6 +17,8 @@
 
 namespace Apache.Ignite.Core.PersistentStore
 {
+    using System;
+
     /// <summary>
     /// Persistent store metrics.
     /// </summary>
@@ -43,29 +45,29 @@ namespace Apache.Ignite.Core.PersistentStore
         float WalFsyncTimeAverage { get; }
 
         /// <summary>
-        /// Gets the duration of the last checkpoint in milliseconds.
+        /// Gets the duration of the last checkpoint.
         /// </summary>
-        long LastCheckpointingDuration { get; }
+        TimeSpan LastCheckpointingDuration { get; }
 
         /// <summary>
-        /// Gets the duration of last checkpoint lock wait in milliseconds.
+        /// Gets the duration of last checkpoint lock wait.
         /// </summary>
-        long LastCheckpointLockWaitDuration { get; }
+        TimeSpan LastCheckpointLockWaitDuration { get; }
 
         /// <summary>
-        /// Gets the duration of last checkpoint mark phase in milliseconds.
+        /// Gets the duration of last checkpoint mark phase.
         /// </summary>
-        long LastCheckpointMarkDuration { get; }
+        TimeSpan LastCheckpointMarkDuration { get; }
 
         /// <summary>
-        /// Gets the duration of last checkpoint pages write phase in milliseconds.
+        /// Gets the duration of last checkpoint pages write phase.
         /// </summary>
-        long LastCheckpointPagesWriteDuration { get; }
+        TimeSpan LastCheckpointPagesWriteDuration { get; }
 
         /// <summary>
-        /// Gets the duration of the sync phase of the last checkpoint in milliseconds.
+        /// Gets the duration of the sync phase of the last checkpoint.
         /// </summary>
-        long LastCheckpointFsyncDuration { get; }
+        TimeSpan LastCheckpointFsyncDuration { get; }
 
         /// <summary>
         /// Gets the total number of pages written during the last checkpoint.

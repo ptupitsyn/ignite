@@ -475,7 +475,7 @@ public class PlatformClusterGroup extends PlatformAbstractTarget {
         writer.writeFloat(metrics.getWalLoggingRate());
         writer.writeFloat(metrics.getWalWritingRate());
         writer.writeInt(metrics.getWalArchiveSegments());
-        writer.writeLong((long) metrics.getWalFsyncTimeAverage());
+        writer.writeFloat(metrics.getWalFsyncTimeAverage());
         writer.writeLong(metrics.getLastCheckpointingDuration());
         writer.writeLong(metrics.getLastCheckpointLockWaitDuration());
         writer.writeLong(metrics.getLastCheckpointMarkDuration());
