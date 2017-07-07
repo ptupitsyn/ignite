@@ -539,6 +539,9 @@ namespace Apache.Ignite.Core.Tests
             Assert.AreEqual(PersistentStoreConfiguration.DefaultWalSegmentSize, cfg.WalSegmentSize);
             Assert.AreEqual(PersistentStoreConfiguration.DefaultWalSegments, cfg.WalSegments);
             Assert.AreEqual(WalMode.Default, cfg.WalMode);
+            Assert.IsFalse(cfg.EnableMetrics);
+            Assert.AreEqual(PersistentStoreConfiguration.DefaultSubIntervals, cfg.SubIntervals);
+            Assert.AreEqual(PersistentStoreConfiguration.DefaultRateTimeInterval, cfg.RateTimeInterval);
         }
 
         /// <summary>

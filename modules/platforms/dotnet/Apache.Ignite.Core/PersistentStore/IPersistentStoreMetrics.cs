@@ -22,5 +22,64 @@ namespace Apache.Ignite.Core.PersistentStore
     /// </summary>
     public interface IPersistentStoreMetrics
     {
+        /// <summary>
+        /// Gets the average number of WAL records per second written during the last time interval. 
+        /// </summary>
+        float WalLoggingRate { get; }
+
+        /// <summary>
+        /// Gets the average number of bytes per second written during the last time interval.
+        /// </summary>
+        float WalWritingRate { get; }
+
+        /// <summary>
+        /// Gets the current number of WAL segments in the WAL archive.
+        /// </summary>
+        int WalArchiveSegments { get; }
+
+        /// <summary>
+        /// Gets the average WAL fsync duration in microseconds over the last time interval.
+        /// </summary>
+        float WalFsyncTimeAverage { get; }
+
+        /// <summary>
+        /// Gets the duration of the last checkpoint in milliseconds.
+        /// </summary>
+        long LastCheckpointingDuration { get; }
+
+        /// <summary>
+        /// Gets the duration of last checkpoint lock wait in milliseconds.
+        /// </summary>
+        long LastCheckpointLockWaitDuration { get; }
+
+        /// <summary>
+        /// Gets the duration of last checkpoint mark phase in milliseconds.
+        /// </summary>
+        long LastCheckpointMarkDuration { get; }
+
+        /// <summary>
+        /// Gets the duration of last checkpoint pages write phase in milliseconds.
+        /// </summary>
+        long LastCheckpointPagesWriteDuration { get; }
+
+        /// <summary>
+        /// Gets the duration of the sync phase of the last checkpoint in milliseconds.
+        /// </summary>
+        long LastCheckpointFsyncDuration { get; }
+
+        /// <summary>
+        /// Gets the total number of pages written during the last checkpoint.
+        /// </summary>
+        long LastCheckpointTotalPagesNumber { get; }
+
+        /// <summary>
+        /// Gets the number of data pages written during the last checkpoint.
+        /// </summary>
+        long LastCheckpointDataPagesNumber { get; }
+
+        /// <summary>
+        /// Gets the number of pages copied to a temporary checkpoint buffer during the last checkpoint.
+        /// </summary>
+        long LastCheckpointCopiedOnWritePagesNumber { get; }
     }
 }
