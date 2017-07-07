@@ -140,6 +140,9 @@ namespace Apache.Ignite.Core.PersistentStore
             WalFsyncDelayNanos = reader.ReadInt();
             WalRecordIteratorBufferSize = reader.ReadInt();
             AlwaysWriteFullPages = reader.ReadBoolean();
+            MetricsEnabled = reader.ReadBoolean();
+            SubIntervals = reader.ReadInt();
+            RateTimeInterval = reader.ReadLongAsTimespan();
         }
 
         /// <summary>
@@ -166,6 +169,9 @@ namespace Apache.Ignite.Core.PersistentStore
             writer.WriteInt(WalFsyncDelayNanos);
             writer.WriteInt(WalRecordIteratorBufferSize);
             writer.WriteBoolean(AlwaysWriteFullPages);
+            writer.WriteBoolean(MetricsEnabled);
+            writer.WriteInt(SubIntervals);
+            writer.WriteTimeSpanAsLong(RateTimeInterval);
         }
 
         /// <summary>
