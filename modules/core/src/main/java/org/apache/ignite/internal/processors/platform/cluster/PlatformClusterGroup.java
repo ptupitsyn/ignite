@@ -165,7 +165,7 @@ public class PlatformClusterGroup extends PlatformAbstractTarget {
             case OP_PERSISTENT_STORE_METRICS: {
                 PersistenceMetrics metrics = prj.ignite().persistentStoreMetrics();
 
-                writePersistentStoreMetrics(metrics);
+                writePersistentStoreMetrics(writer, metrics);
 
                 break;
             }
@@ -472,6 +472,17 @@ public class PlatformClusterGroup extends PlatformAbstractTarget {
         assert writer != null;
         assert metrics != null;
 
-
+        writer.writeFloat(metrics.getWalLoggingRate());
+        writer.writeFloat(metrics.getWalWritingRate());
+        writer.writeInt(metrics.getWalArchiveSegments());
+        writer.writeLong((long) metrics.getWalFsyncTimeAverage());
+        writer.writeLong(metrics.getLastCheckpointingDuration());
+        writer.writeLong(metrics.getLastCheckpointLockWaitDuration());
+        writer.writeLong(metrics.getLastCheckpointMarkDuration());
+        writer.writeLong(metrics.getLastCheckpointPagesWriteDuration());
+        writer.writeLong(metrics.getLastCheckpointFsyncDuration());
+        writer.writeLong(metrics.getLastCheckpointTotalPagesNumber());
+        writer.writeLong(metrics.getLastCheckpointDataPagesNumber());
+        writer.writeLong(metrics.getLastCheckpointCopiedOnWritePagesNumber());
     }
 }
