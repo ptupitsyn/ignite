@@ -266,7 +266,7 @@ namespace Apache.Ignite.Core.Tests
                 Assert.AreEqual(pers.WalSegments, resPers.WalSegments);
                 Assert.AreEqual(pers.WalSegmentSize, resPers.WalSegmentSize);
                 Assert.AreEqual(pers.WalStorePath, resPers.WalStorePath);
-                Assert.AreEqual(pers.EnableMetrics, resPers.EnableMetrics);
+                Assert.AreEqual(pers.MetricsEnabled, resPers.MetricsEnabled);
                 Assert.AreEqual(pers.RateTimeInterval, resPers.RateTimeInterval);
                 Assert.AreEqual(pers.SubIntervals, resPers.SubIntervals);
             }
@@ -542,7 +542,7 @@ namespace Apache.Ignite.Core.Tests
             Assert.AreEqual(PersistentStoreConfiguration.DefaultWalSegmentSize, cfg.WalSegmentSize);
             Assert.AreEqual(PersistentStoreConfiguration.DefaultWalSegments, cfg.WalSegments);
             Assert.AreEqual(WalMode.Default, cfg.WalMode);
-            Assert.IsFalse(cfg.EnableMetrics);
+            Assert.IsFalse(cfg.MetricsEnabled);
             Assert.AreEqual(PersistentStoreConfiguration.DefaultSubIntervals, cfg.SubIntervals);
             Assert.AreEqual(PersistentStoreConfiguration.DefaultRateTimeInterval, cfg.RateTimeInterval);
         }
@@ -748,7 +748,7 @@ namespace Apache.Ignite.Core.Tests
                     WalSegments = 6,
                     WalSegmentSize = 5 * 1024 * 1024,
                     WalStorePath = Path.GetTempPath(),
-                    EnableMetrics = true,
+                    MetricsEnabled = true,
                     SubIntervals = 7,
                     RateTimeInterval = TimeSpan.FromSeconds(9)
                 }
