@@ -148,14 +148,6 @@ namespace Apache.Ignite.Core.Tests.Binary
             // SQL.
             var res = cache.QueryFields(new SqlFieldsQuery("select int from OffsetTest")).GetAll()[0][0];
             Assert.AreEqual(dt.Int, (int) res);
-
-            // DML.
-            var dmlRes = cache.QueryFields(new SqlFieldsQuery(
-                "insert into OffsetTest (_key, Arr, Int) values (?, ?, ?)", 2, dt.Arr, dt.Int)).GetAll()[0][0];
-
-            Assert.AreEqual(1, (long) dmlRes);  // 1 row inserted.
-            Assert.AreEqual(dt.Int, cache[2].Int);
-            Assert.AreEqual(dt.Arr, cache[2].Arr);
         }
 
         /// <summary>
