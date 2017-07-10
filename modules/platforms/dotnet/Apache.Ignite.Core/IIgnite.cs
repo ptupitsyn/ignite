@@ -363,6 +363,9 @@ namespace Apache.Ignite.Core
 
         /// <summary>
         /// Gets the persistent store metrics.
+        /// <para />
+        /// To enable metrics set <see cref="PersistentStoreConfiguration.MetricsEnabled"/> property
+        /// in <see cref="IgniteConfiguration.PersistentStoreConfiguration"/>.
         /// </summary>
         IPersistentStoreMetrics GetPersistentStoreMetrics();
     }
