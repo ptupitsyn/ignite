@@ -145,7 +145,7 @@ namespace Apache.Ignite.Core.Tests.Binary
             Assert.AreEqual(dt.Int, cache[1].Int);
             Assert.AreEqual(dt.Arr, cache[1].Arr);
 
-            // SQL.
+            // SQL: read field on Java side to ensure correct offset handling.
             var res = cache.QueryFields(new SqlFieldsQuery("select int from OffsetTest")).GetAll()[0][0];
             Assert.AreEqual(dt.Int, (int) res);
         }
