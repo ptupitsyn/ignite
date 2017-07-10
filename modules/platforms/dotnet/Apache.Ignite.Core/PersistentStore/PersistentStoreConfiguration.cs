@@ -289,6 +289,5 @@ namespace Apache.Ignite.Core.PersistentStore
         [SuppressMessage("Microsoft.Naming", "CA1702:CompoundWordsShouldBeCasedCorrectly",
             Justification = "Consistency with Java config")]
         public int SubIntervals { get; set; }
-
     }
 }
