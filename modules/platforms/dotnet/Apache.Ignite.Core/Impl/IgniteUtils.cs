@@ -73,7 +73,7 @@ namespace Apache.Ignite.Core.Impl
         internal const string FileIgniteJniDll = "ignite.jni.dll";
         
         /** Prefix for temp directory names. */
-        private const string DirIgniteTmp = "Ignite_";
+        private static readonly string DirIgniteTmp = Path.Combine(Path.GetTempPath(), "Ignite_");
         
         /** Loaded. */
         private static bool _loaded;        
@@ -384,7 +384,7 @@ namespace Apache.Ignite.Core.Impl
         {
             while (true)
             {
-                var dir = Path.Combine(Path.GetTempPath(), DirIgniteTmp + Path.GetRandomFileName());
+                var dir = DirIgniteTmp + Path.GetRandomFileName();
 
                 try
                 {
@@ -408,8 +408,6 @@ namespace Apache.Ignite.Core.Impl
         {
             // Unload unmanaged dlls and remove temp folders.
             // Multiple AppDomains could load multiple instances of the dll, so iterate over all modules.
-            var tempPath = Path.Combine(Path.GetTempPath(), DirIgniteTmp);
-
             foreach (ProcessModule mod in Process.GetCurrentProcess().Modules)
             {
                 if (mod.ModuleName != FileIgniteJniDll)
@@ -417,35 +415,43 @@ namespace Apache.Ignite.Core.Impl
                     continue;
                 }
 
-                while (NativeMethods.FreeLibrary(mod.BaseAddress))
+                UnloadJniDllAndRemoveTempDirectory(mod.BaseAddress, mod.FileName);
+            }
+        }
+
+        /// <summary>
+        /// Unloads the jni DLL and removes temporary directory.
+        /// </summary>
+        internal static void UnloadJniDllAndRemoveTempDirectory(IntPtr address, string fileName)
+        {
+            var dir = Path.GetDirectoryName(fileName);
+
+            if (dir == null || !dir.StartsWith(DirIgniteTmp))
+            {
+                return;
+            }
+
+            while (NativeMethods.FreeLibrary(address))
+            {
+                // No-op.
+                // FreeLibrary needs to be called multiple times, because each DllImport increases reference count.
+            }
+
+            // Retry 3 times: FreeLibrary might have a delay.
+            for (var i = 0; i < 3; i++)
+            {
+                try
                 {
-                    // No-op.
-                    // FreeLibrary needs to be called multiple times, because each DllImport increases reference count.
+                    Directory.Delete(dir, true);
+                    break;
                 }
-
-                var dir = Path.GetDirectoryName(mod.FileName);
-
-                if (dir == null || !dir.StartsWith(tempPath))
+                catch (IOException)
                 {
-                    continue;
+                    // Expected
                 }
-
-                // Retry 3 times: FreeLibrary might have a delay.
-                for (int i = 0; i < 3; i++)
+                catch (UnauthorizedAccessException)
                 {
-                    try
-                    {
-                        Directory.Delete(dir, true);
-                        break;
-                    }
-                    catch (IOException)
-                    {
-                        // Expected
-                    }
-                    catch (UnauthorizedAccessException)
-                    {
-                        // Expected
-                    }
+                    // Expected
                 }
             }
         }
