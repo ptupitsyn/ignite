@@ -560,8 +560,16 @@ namespace Apache.Ignite.Core.Impl.Unmanaged
 
         #endregion
 
+        /// <summary>
+        /// A trick to clean up ignite.jni.dll when Ignite is started in non-default AppDomain.
+        /// We rely on finalizer order here, which is technically undefined:
+        /// everything that uses UnmanagedUtils must be cleaned up when this class is finalized.
+        /// </summary>
         private class Finalizer
         {
+            /// <summary>
+            /// Finalizes an instance of the <see cref="Finalizer"/> class.
+            /// </summary>
             ~Finalizer()
             {
                 // Clean up ignite.jni.dll for the current domain.
