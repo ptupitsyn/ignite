@@ -35,6 +35,9 @@ namespace Apache.Ignite.Core.Impl.Unmanaged
         /** JNI dll pointer. */
         private static readonly IntPtr JniDllPtr;
 
+        /** JNI dll finalizer. */
+        private static readonly Finalizer JniDllFinalizer;
+
         /** Interop factory ID for .Net. */
         private const int InteropFactoryId = 1;
 
@@ -60,6 +63,8 @@ namespace Apache.Ignite.Core.Impl.Unmanaged
                     IgniteUtils.FileIgniteJniDll, JniDllPath, IgniteUtils.FormatWin32Error(err)));
             }
 
+            JniDllFinalizer = new Finalizer();
+
             AppDomain.CurrentDomain.ProcessExit += CurrentDomain_ProcessExit;
 
             // Note: this event is never called for the default AppDomain.
@@ -73,9 +78,10 @@ namespace Apache.Ignite.Core.Impl.Unmanaged
         /// </summary>
         private static void CurrentDomain_ProcessExit(object sender, EventArgs e)
         {
-            // We unload ignite.jni.dll both in ProcessExit and DomainUnload:
-            // * DomainUnload is not called for default domain;
-            // * ProcessExit is not called from custom domain (NUnit does this, for example).
+            // We unload ignite.jni.dll both in ProcessExit and Finalizer:
+            // ProcessExit is not called from custom domain (NUnit does this, for example).
+            // DomainUnload can't be used because it fires before all UnmanagedTargets are released.
+            GC.SuppressFinalize(JniDllFinalizer);
             IgniteUtils.UnloadJniDllAndRemoveTempDirectory();
         }
 
@@ -88,11 +94,6 @@ namespace Apache.Ignite.Core.Impl.Unmanaged
             var removedCnt = JNI.RemoveConsoleHandler(UnmanagedCallbacks.ConsoleWriteHandler);
 
             Debug.Assert(removedCnt == 1);
-
-            // Clean up ignite.jni.dll for the current domain.
-            // TODO: This will cause exceptions during unmanaged resource cleanup in finalizers.
-            // We can't rely on GC or finalizer order; we need to free these unmanaged resources.
-            IgniteUtils.UnloadJniDllAndRemoveTempDirectory(JniDllPtr, JniDllPath);
         }
 
         /// <summary>
@@ -558,5 +559,14 @@ namespace Apache.Ignite.Core.Impl.Unmanaged
         }
 
         #endregion
+
+        private class Finalizer
+        {
+            ~Finalizer()
+            {
+                // Clean up ignite.jni.dll for the current domain.
+                IgniteUtils.UnloadJniDllAndRemoveTempDirectory(JniDllPtr, JniDllPath);
+            }
+        }
     }
 }
