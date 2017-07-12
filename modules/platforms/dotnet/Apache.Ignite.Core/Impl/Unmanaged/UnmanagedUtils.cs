@@ -29,6 +29,12 @@ namespace Apache.Ignite.Core.Impl.Unmanaged
     /// </summary>
     internal static unsafe class UnmanagedUtils
     {
+        /** JNI dll path. */
+        private static readonly string JniDllPath;
+
+        /** JNI dll pointer. */
+        private static readonly IntPtr JniDllPtr;
+
         /** Interop factory ID for .Net. */
         private const int InteropFactoryId = 1;
 
@@ -42,16 +48,16 @@ namespace Apache.Ignite.Core.Impl.Unmanaged
 
             var resName = string.Format("{0}.{1}", platform, IgniteUtils.FileIgniteJniDll);
 
-            var path = IgniteUtils.UnpackEmbeddedResource(resName, IgniteUtils.FileIgniteJniDll);
+            JniDllPath = IgniteUtils.UnpackEmbeddedResource(resName, IgniteUtils.FileIgniteJniDll);
 
-            var ptr = NativeMethods.LoadLibrary(path);
+            JniDllPtr = NativeMethods.LoadLibrary(JniDllPath);
 
-            if (ptr == IntPtr.Zero)
+            if (JniDllPtr == IntPtr.Zero)
             {
                 var err = Marshal.GetLastWin32Error();
 
                 throw new IgniteException(string.Format("Failed to load {0} from {1}: [{2}]",
-                    IgniteUtils.FileIgniteJniDll, path, IgniteUtils.FormatWin32Error(err)));
+                    IgniteUtils.FileIgniteJniDll, JniDllPath, IgniteUtils.FormatWin32Error(err)));
             }
 
             AppDomain.CurrentDomain.ProcessExit += CurrentDomain_ProcessExit;
@@ -80,6 +86,8 @@ namespace Apache.Ignite.Core.Impl.Unmanaged
 
             Debug.Assert(removedCnt == 1);
 
+            // Clean up ignite.jni.dll for the current domain.
+            IgniteUtils.UnloadJniDllAndRemoveTempDirectory(JniDllPtr, JniDllPath);
         }
 
         /// <summary>
