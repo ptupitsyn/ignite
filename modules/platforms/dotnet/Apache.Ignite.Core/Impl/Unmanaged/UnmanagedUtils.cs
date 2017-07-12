@@ -90,6 +90,9 @@ namespace Apache.Ignite.Core.Impl.Unmanaged
             Debug.Assert(removedCnt == 1);
 
             // Clean up ignite.jni.dll for the current domain.
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
+
             IgniteUtils.UnloadJniDllAndRemoveTempDirectory(JniDllPtr, JniDllPath);
         }
 

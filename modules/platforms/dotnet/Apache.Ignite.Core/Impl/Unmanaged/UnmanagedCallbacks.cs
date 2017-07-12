@@ -1358,6 +1358,9 @@ namespace Apache.Ignite.Core.Impl.Unmanaged
             _ignite = null;
 
             _handleRegistry.Close();
+
+            // TODO: Manual cleanup?
+            _ctx = null;
         }
 
         /// <summary>
