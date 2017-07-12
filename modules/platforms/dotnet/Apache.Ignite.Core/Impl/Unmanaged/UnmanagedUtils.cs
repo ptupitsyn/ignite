@@ -73,6 +73,9 @@ namespace Apache.Ignite.Core.Impl.Unmanaged
         /// </summary>
         private static void CurrentDomain_ProcessExit(object sender, EventArgs e)
         {
+            // We unload ignite.jni.dll both in ProcessExit and DomainUnload:
+            // * DomainUnload is not called for default domain
+            // * ProcessExit is not called from custom domain (NUnit does this, for example)
             IgniteUtils.UnloadJniDllAndRemoveTempDirectory();
         }
 
