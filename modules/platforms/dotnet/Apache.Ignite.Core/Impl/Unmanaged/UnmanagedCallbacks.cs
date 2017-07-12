@@ -1033,8 +1033,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged
             // ReSharper disable once ImpureMethodCallOnReadonlyValueField
             _thisHnd.Free();
 
-            // Clean up unmanaged context.
-            _ctx.Dispose();
+            // Allow context to be collected, which will cause resource cleanup in finalizer.
             _ctx = null;
 
             // Notify grid

@@ -17,12 +17,11 @@
 
 namespace Apache.Ignite.Core.Impl.Unmanaged
 {
-    using System;
     /// <summary>
     /// Unmanaged context.
     /// Wrapper around native ctx pointer to track finalization.
     /// </summary>
-    internal unsafe class UnmanagedContext : IDisposable
+    internal unsafe class UnmanagedContext
     {
         /** Context */
         private readonly void* _nativeCtx;
@@ -48,22 +47,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged
         /// </summary>
         ~UnmanagedContext()
         {
-            ReleaseUnmanagedResources();
-        }
-
-        /// <summary>
-        /// Releases unmanaged resources.
-        /// </summary>
-        private void ReleaseUnmanagedResources()
-        {
             UnmanagedUtils.DeleteContext(_nativeCtx); // Release CPP object.
-        }
-
-        /** <inheritdoc /> */
-        public void Dispose()
-        {
-            ReleaseUnmanagedResources();
-            GC.SuppressFinalize(this);
         }
     }
 }
