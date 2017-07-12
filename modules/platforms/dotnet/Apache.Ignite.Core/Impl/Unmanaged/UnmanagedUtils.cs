@@ -20,6 +20,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged
     using System;
     using System.Diagnostics;
     using System.Diagnostics.CodeAnalysis;
+    using System.IO;
     using System.Runtime.InteropServices;
     using Apache.Ignite.Core.Common;
     using JNI = IgniteJniNativeMethods;
@@ -54,9 +55,52 @@ namespace Apache.Ignite.Core.Impl.Unmanaged
                     IgniteUtils.FileIgniteJniDll, path, IgniteUtils.FormatWin32Error(err)));
             }
 
+            AppDomain.CurrentDomain.ProcessExit += CurrentDomain_ProcessExit;
+
+            // Note: this event is never called for the default AppDomain.
             AppDomain.CurrentDomain.DomainUnload += CurrentDomain_DomainUnload;
 
             JNI.SetConsoleHandler(UnmanagedCallbacks.ConsoleWriteHandler);
+        }
+
+        /// <summary>
+        /// Handles the ProcessExit event of the current AppDomain.
+        /// </summary>
+        private static void CurrentDomain_ProcessExit(object sender, EventArgs e)
+        {
+            // Unload unmanaged dlls and remove temp folders.
+            // Multiple AppDomains could load multiple instances of the dll, so iterate over all modules.
+            var tempPath = Path.Combine(Path.GetTempPath(), IgniteUtils.DirIgniteTmp);
+
+            foreach (ProcessModule mod in Process.GetCurrentProcess().Modules)
+            {
+                if (mod.ModuleName != IgniteUtils.FileIgniteJniDll)
+                {
+                    continue;
+                }
+
+                NativeMethods.FreeLibrary(mod.BaseAddress);
+
+                var dir = Path.GetDirectoryName(mod.FileName);
+
+                if (dir == null || !dir.StartsWith(tempPath))
+                {
+                    continue;
+                }
+
+                try
+                {
+                    Directory.Delete(dir, true);
+                }
+                catch (IOException)
+                {
+                    // Expected
+                }
+                catch (UnauthorizedAccessException)
+                {
+                    // Expected
+                }
+            }
         }
 
         /// <summary>
@@ -68,6 +112,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged
             var removedCnt = JNI.RemoveConsoleHandler(UnmanagedCallbacks.ConsoleWriteHandler);
 
             Debug.Assert(removedCnt == 1);
+
         }
 
         /// <summary>
