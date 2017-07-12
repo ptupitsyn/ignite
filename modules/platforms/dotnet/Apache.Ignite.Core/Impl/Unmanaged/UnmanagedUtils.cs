@@ -90,9 +90,8 @@ namespace Apache.Ignite.Core.Impl.Unmanaged
             Debug.Assert(removedCnt == 1);
 
             // Clean up ignite.jni.dll for the current domain.
-            GC.Collect();
-            GC.WaitForPendingFinalizers();
-
+            // TODO: This will cause exceptions during unmanaged resource cleanup in finalizers.
+            // We can't rely on GC or finalizer order; we need to free these unmanaged resources.
             IgniteUtils.UnloadJniDllAndRemoveTempDirectory(JniDllPtr, JniDllPath);
         }
 
