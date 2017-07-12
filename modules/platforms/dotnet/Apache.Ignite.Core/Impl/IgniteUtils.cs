@@ -20,6 +20,7 @@ namespace Apache.Ignite.Core.Impl
     using System;
     using System.Collections.Generic;
     using System.ComponentModel;
+    using System.Diagnostics;
     using System.Diagnostics.CodeAnalysis;
     using System.Globalization;
     using System.IO;
@@ -72,7 +73,7 @@ namespace Apache.Ignite.Core.Impl
         internal const string FileIgniteJniDll = "ignite.jni.dll";
         
         /** Prefix for temp directory names. */
-        internal const string DirIgniteTmp = "Ignite_";
+        private const string DirIgniteTmp = "Ignite_";
         
         /** Loaded. */
         private static bool _loaded;        
@@ -396,6 +397,55 @@ namespace Apache.Ignite.Core.Impl
                 catch (UnauthorizedAccessException)
                 {
                     // Expected
+                }
+            }
+        }
+
+        /// <summary>
+        /// Unloads the jni DLL and removes temporary directory.
+        /// </summary>
+        internal static void UnloadJniDllAndRemoveTempDirectory()
+        {
+            // Unload unmanaged dlls and remove temp folders.
+            // Multiple AppDomains could load multiple instances of the dll, so iterate over all modules.
+            var tempPath = Path.Combine(Path.GetTempPath(), DirIgniteTmp);
+
+            foreach (ProcessModule mod in Process.GetCurrentProcess().Modules)
+            {
+                if (mod.ModuleName != FileIgniteJniDll)
+                {
+                    continue;
+                }
+
+                while (NativeMethods.FreeLibrary(mod.BaseAddress))
+                {
+                    // No-op.
+                    // FreeLibrary needs to be called multiple times, because each DllImport increases reference count.
+                }
+
+                var dir = Path.GetDirectoryName(mod.FileName);
+
+                if (dir == null || !dir.StartsWith(tempPath))
+                {
+                    continue;
+                }
+
+                // Retry 3 times: FreeLibrary might have a delay.
+                for (int i = 0; i < 3; i++)
+                {
+                    try
+                    {
+                        Directory.Delete(dir, true);
+                        break;
+                    }
+                    catch (IOException)
+                    {
+                        // Expected
+                    }
+                    catch (UnauthorizedAccessException)
+                    {
+                        // Expected
+                    }
                 }
             }
         }
