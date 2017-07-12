@@ -79,7 +79,11 @@ namespace Apache.Ignite.Core.Impl.Unmanaged
                     continue;
                 }
 
-                NativeMethods.FreeLibrary(mod.BaseAddress);
+                while (NativeMethods.FreeLibrary(mod.BaseAddress))
+                {
+                    // No-op.
+                    // FreeLibrary needs to be called multiple times, because each DllImport increases reference count.
+                }
 
                 var dir = Path.GetDirectoryName(mod.FileName);
 
