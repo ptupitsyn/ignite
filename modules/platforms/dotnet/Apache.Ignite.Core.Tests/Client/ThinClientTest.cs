@@ -31,10 +31,10 @@ namespace Apache.Ignite.Core.Tests.Client
     public class ThinClientTest
     {
         /// <summary>
-        /// Tests the ODBC connection.
+        /// Tests the socket handshake connection.
         /// </summary>
         [Test]
-        public void TestOdbc()
+        public void TestHandshake()
         {
             var cfg = new IgniteConfiguration(TestUtils.GetTestConfiguration())
             {
@@ -62,13 +62,8 @@ namespace Apache.Ignite.Core.Tests.Client
                     stream.WriteShort(1);
                     stream.WriteShort(0);
 
-                    // Client type.
-                    stream.WriteByte(0);
-
-                    stream.WriteBool(false);
-                    stream.WriteBool(false);
-                    stream.WriteBool(false);
-                    stream.WriteBool(false);
+                    // Client type: platform.
+                    stream.WriteByte(2);
                 });
 
                 // ACK.
@@ -81,9 +76,6 @@ namespace Apache.Ignite.Core.Tests.Client
 
                     Assert.IsTrue(ack);
                 }
-
-                // SQL query.
-
             }
         }
 
