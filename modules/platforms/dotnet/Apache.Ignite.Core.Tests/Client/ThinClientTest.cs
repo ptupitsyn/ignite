@@ -17,6 +17,12 @@
 
 namespace Apache.Ignite.Core.Tests.Client
 {
+    using System.Net;
+    using System.Net.Sockets;
+    using Apache.Ignite.Core.Cache.Configuration;
+    using Apache.Ignite.Core.Configuration;
+    using NUnit.Framework;
+
     /// <summary>
     /// Tests the thin client mode (no JVM in process).
     /// </summary>
@@ -25,9 +31,40 @@ namespace Apache.Ignite.Core.Tests.Client
         /// <summary>
         /// Tests the ODBC connection.
         /// </summary>
+        [Test]
         public void TestOdbc()
         {
-            
+            var cfg = new IgniteConfiguration(TestUtils.GetTestConfiguration())
+            {
+                SqlConnectorConfiguration = new SqlConnectorConfiguration()
+            };
+
+            using (var ignite = Ignition.Start(cfg))
+            {
+                // Create cache.
+                var cacheCfg = new CacheConfiguration("foo", new QueryEntity(typeof(int), typeof(string)));
+                var cache = ignite.CreateCache<int, string>(cacheCfg);
+                cache[1] = "bar";
+
+                // Connect socket.
+                var sock = GetSocket(SqlConnectorConfiguration.DefaultPort);
+                Assert.IsTrue(sock.Connected);
+
+                // Handshake.
+
+                // SQL query.
+            }
+        }
+
+        /// <summary>
+        /// Gets the socket.
+        /// </summary>
+        private static Socket GetSocket(int port)
+        {
+            var endPoint = new IPEndPoint(IPAddress.Loopback, port);
+            var sock = new Socket(endPoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
+            sock.Connect(endPoint);
+            return sock;
         }
     }
 }
