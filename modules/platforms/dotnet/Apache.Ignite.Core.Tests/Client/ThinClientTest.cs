@@ -83,7 +83,7 @@ namespace Apache.Ignite.Core.Tests.Client
 
         private static int SendRequest(Socket sock, Action<BinaryHeapStream> writeAction)
         {
-            // TODO: Use SocketStream instead
+            // TODO: Use NetworkStream instead? But there is no message size in it..
             using (var stream = new BinaryHeapStream(128))
             {
                 stream.WriteInt(0);  // Reserve message size.
