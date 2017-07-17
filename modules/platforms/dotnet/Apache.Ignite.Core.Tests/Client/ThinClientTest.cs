@@ -61,11 +61,16 @@ namespace Apache.Ignite.Core.Tests.Client
                     stream.WriteShort(1);
                     stream.WriteShort(0);
 
-                    sock.Send(stream.GetArrayCopy());
+                    // Client type.
+                    stream.WriteByte(0);
+
+                    var request = stream.GetArrayCopy();
+                    var sent = sock.Send(request);
+                    Assert.AreEqual(request.Length, sent);
                 }
 
                 // ACK.
-                var buf = new byte[256];
+                var buf = new byte[1];
                 sock.Receive(buf);
 
                 using (var stream = new BinaryHeapStream(buf))
