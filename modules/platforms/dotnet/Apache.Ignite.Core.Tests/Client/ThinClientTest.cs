@@ -52,7 +52,7 @@ namespace Apache.Ignite.Core.Tests.Client
                 var sock = GetSocket(SqlConnectorConfiguration.DefaultPort);
                 Assert.IsTrue(sock.Connected);
 
-                SendRequest(sock, stream =>
+                var sentBytes = SendRequest(sock, stream =>
                 {
                     // Handshake.
                     stream.WriteByte(1);
@@ -65,6 +65,8 @@ namespace Apache.Ignite.Core.Tests.Client
                     // Client type: platform.
                     stream.WriteByte(2);
                 });
+
+                Assert.AreEqual(12, sentBytes);
 
                 // ACK.
                 var buf = new byte[1];
@@ -79,7 +81,7 @@ namespace Apache.Ignite.Core.Tests.Client
             }
         }
 
-        private static void SendRequest(Socket sock, Action<BinaryHeapStream> writeAction)
+        private static int SendRequest(Socket sock, Action<BinaryHeapStream> writeAction)
         {
             using (var stream = new BinaryHeapStream(128))
             {
@@ -89,9 +91,7 @@ namespace Apache.Ignite.Core.Tests.Client
 
                 stream.WriteInt(0, stream.Position - 4);  // Write message size.
 
-                var request = stream.GetArrayCopy();
-                var sent = sock.Send(request);
-                Assert.AreEqual(request.Length, sent);
+                return sock.Send(stream.GetArray(), stream.Position, SocketFlags.None);
             }
         }
 
