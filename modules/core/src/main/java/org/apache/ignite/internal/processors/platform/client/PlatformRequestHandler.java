@@ -42,6 +42,8 @@ public class PlatformRequestHandler implements SqlListenerRequestHandler {
 
     /** {@inheritDoc} */
     @Override public SqlListenerResponse handle(SqlListenerRequest req) {
+        // TODO: here we should delegate everything to PlatformProcessor somehow.
+
         return null;
     }
 
