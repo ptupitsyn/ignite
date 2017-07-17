@@ -89,6 +89,7 @@
     <Compile Include="Cache\Query\Linq\CacheLinqTest.Misc.cs" />
     <Compile Include="Cache\Query\Linq\CacheLinqTest.Custom.cs" />
     <Compile Include="Cache\Query\Linq\CacheLinqTest.Contains.cs" />
+    <Compile Include="Client\ThinClientTest.cs" />
     <Compile Include="Deployment\CacheGetFunc.cs" />
     <Compile Include="Deployment\GetAddressFunc.cs" />
     <Compile Include="Deployment\PeerAssemblyLoadingAllApisTest.cs" />
