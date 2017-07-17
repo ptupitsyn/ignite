@@ -21,6 +21,7 @@ namespace Apache.Ignite.Core.Tests.Client
     using System.Net.Sockets;
     using Apache.Ignite.Core.Cache.Configuration;
     using Apache.Ignite.Core.Configuration;
+    using Apache.Ignite.Core.Impl.Binary.IO;
     using NUnit.Framework;
 
     /// <summary>
@@ -50,9 +51,32 @@ namespace Apache.Ignite.Core.Tests.Client
                 var sock = GetSocket(SqlConnectorConfiguration.DefaultPort);
                 Assert.IsTrue(sock.Connected);
 
-                // Handshake.
+                using (var stream = new BinaryHeapStream(128))
+                {
+                    // Handshake.
+                    stream.WriteByte(1);
+                    
+                    // Protocol version.
+                    stream.WriteShort(2);
+                    stream.WriteShort(1);
+                    stream.WriteShort(0);
+
+                    sock.Send(stream.GetArrayCopy());
+                }
+
+                // ACK.
+                var buf = new byte[256];
+                sock.Receive(buf);
+
+                using (var stream = new BinaryHeapStream(buf))
+                {
+                    var ack = stream.ReadBool();
+
+                    Assert.IsTrue(ack);
+                }
 
                 // SQL query.
+
             }
         }
 
