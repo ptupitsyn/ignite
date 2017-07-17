@@ -53,6 +53,9 @@ namespace Apache.Ignite.Core.Tests.Client
 
                 using (var stream = new BinaryHeapStream(128))
                 {
+                    // Message size.
+                    stream.WriteInt(12);
+
                     // Handshake.
                     stream.WriteByte(1);
                     
@@ -63,6 +66,11 @@ namespace Apache.Ignite.Core.Tests.Client
 
                     // Client type.
                     stream.WriteByte(0);
+
+                    stream.WriteBool(false);
+                    stream.WriteBool(false);
+                    stream.WriteBool(false);
+                    stream.WriteBool(false);
 
                     var request = stream.GetArrayCopy();
                     var sent = sock.Send(request);
