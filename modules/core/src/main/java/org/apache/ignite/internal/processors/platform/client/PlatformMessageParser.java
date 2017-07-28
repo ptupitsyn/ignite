@@ -32,20 +32,6 @@ import org.apache.ignite.internal.processors.platform.PlatformContext;
  * Thin platform client message parser.
  */
 public class PlatformMessageParser implements SqlListenerMessageParser {
-    /** Platform context. */
-    private final PlatformContext ctx;
-
-    /**
-     * Ctor.
-     *
-     * @param ctx Kernal context.
-     */
-    public PlatformMessageParser(GridKernalContext ctx) {
-        assert ctx != null;
-
-        this.ctx = ctx.platform().context();
-    }
-
     /** {@inheritDoc} */
     @Override public SqlListenerRequest decode(byte[] msg) {
         assert msg != null;
