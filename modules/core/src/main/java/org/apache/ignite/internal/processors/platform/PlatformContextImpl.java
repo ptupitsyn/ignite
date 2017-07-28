@@ -43,6 +43,7 @@ import org.apache.ignite.internal.binary.BinarySchema;
 import org.apache.ignite.internal.binary.BinarySchemaRegistry;
 import org.apache.ignite.internal.binary.BinaryTypeImpl;
 import org.apache.ignite.internal.binary.GridBinaryMarshaller;
+import org.apache.ignite.internal.binary.streams.BinaryInputStream;
 import org.apache.ignite.internal.processors.cache.binary.CacheObjectBinaryProcessorImpl;
 import org.apache.ignite.internal.processors.platform.cache.PlatformCacheEntryFilter;
 import org.apache.ignite.internal.processors.platform.cache.PlatformCacheEntryFilterImpl;
@@ -62,7 +63,6 @@ import org.apache.ignite.internal.processors.platform.compute.PlatformJob;
 import org.apache.ignite.internal.processors.platform.datastreamer.PlatformStreamReceiver;
 import org.apache.ignite.internal.processors.platform.datastreamer.PlatformStreamReceiverImpl;
 import org.apache.ignite.internal.processors.platform.events.PlatformEventFilterListenerImpl;
-import org.apache.ignite.internal.processors.platform.memory.PlatformInputStream;
 import org.apache.ignite.internal.processors.platform.memory.PlatformMemory;
 import org.apache.ignite.internal.processors.platform.memory.PlatformMemoryManager;
 import org.apache.ignite.internal.processors.platform.memory.PlatformMemoryManagerImpl;
@@ -183,7 +183,7 @@ public class PlatformContextImpl implements PlatformContext {
     }
 
     /** {@inheritDoc} */
-    @Override public BinaryRawReaderEx reader(PlatformInputStream in) {
+    @Override public BinaryRawReaderEx reader(BinaryInputStream in) {
         return new BinaryReaderExImpl(marsh.context(),
             in,
             ctx.config().getClassLoader(),

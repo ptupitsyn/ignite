@@ -23,6 +23,7 @@ import org.apache.ignite.events.Event;
 import org.apache.ignite.internal.GridKernalContext;
 import org.apache.ignite.internal.binary.BinaryRawReaderEx;
 import org.apache.ignite.internal.binary.BinaryRawWriterEx;
+import org.apache.ignite.internal.binary.streams.BinaryInputStream;
 import org.apache.ignite.internal.processors.platform.cache.PlatformCacheEntryFilter;
 import org.apache.ignite.internal.processors.platform.cache.PlatformCacheEntryProcessor;
 import org.apache.ignite.internal.processors.platform.cache.query.PlatformContinuousQuery;
@@ -31,7 +32,6 @@ import org.apache.ignite.internal.processors.platform.callback.PlatformCallbackG
 import org.apache.ignite.internal.processors.platform.cluster.PlatformClusterNodeFilter;
 import org.apache.ignite.internal.processors.platform.compute.PlatformJob;
 import org.apache.ignite.internal.processors.platform.datastreamer.PlatformStreamReceiver;
-import org.apache.ignite.internal.processors.platform.memory.PlatformInputStream;
 import org.apache.ignite.internal.processors.platform.memory.PlatformMemory;
 import org.apache.ignite.internal.processors.platform.memory.PlatformMemoryManager;
 import org.apache.ignite.internal.processors.platform.memory.PlatformOutputStream;
@@ -79,7 +79,7 @@ public interface PlatformContext {
      * @param in Input.
      * @return Reader.
      */
-    public BinaryRawReaderEx reader(PlatformInputStream in);
+    public BinaryRawReaderEx reader(BinaryInputStream in);
 
     /**
      * Get memory writer.
