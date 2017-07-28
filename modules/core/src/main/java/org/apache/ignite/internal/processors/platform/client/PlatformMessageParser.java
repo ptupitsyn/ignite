@@ -50,17 +50,12 @@ public class PlatformMessageParser implements SqlListenerMessageParser {
     @Override public SqlListenerRequest decode(byte[] msg) {
         assert msg != null;
 
-        BinaryInputStream stream = new BinaryHeapInputStream(msg);
-
-        BinaryRawReaderEx reader = ctx.reader(stream);
-
-        byte cmd = reader.readByte();
-
-        return null;
+        return new PlatformRequest(msg);
     }
 
     /** {@inheritDoc} */
     @Override public byte[] encode(SqlListenerResponse resp) {
+        // TODO
         return new byte[0];
     }
 }

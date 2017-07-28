@@ -18,23 +18,27 @@
 package org.apache.ignite.internal.processors.platform.client;
 
 import org.apache.ignite.internal.GridKernalContext;
+import org.apache.ignite.internal.binary.BinaryRawReaderEx;
+import org.apache.ignite.internal.binary.streams.BinaryHeapInputStream;
+import org.apache.ignite.internal.binary.streams.BinaryInputStream;
 import org.apache.ignite.internal.processors.odbc.SqlListenerRequest;
 import org.apache.ignite.internal.processors.odbc.SqlListenerRequestHandler;
 import org.apache.ignite.internal.processors.odbc.SqlListenerResponse;
+import org.apache.ignite.internal.processors.platform.PlatformContext;
 
 /**
  * Platform thin client request handler.
  */
 public class PlatformRequestHandler implements SqlListenerRequestHandler {
-    /** Kernal context. */
-    private final GridKernalContext ctx;
+    /** Platform context. */
+    private final PlatformContext ctx;
 
     /**
      * Ctor.
      *
      * @param ctx Kernal context.
      */
-    public PlatformRequestHandler(GridKernalContext ctx) {
+    public PlatformRequestHandler(PlatformContext ctx) {
         assert ctx != null;
 
         this.ctx = ctx;
@@ -43,6 +47,14 @@ public class PlatformRequestHandler implements SqlListenerRequestHandler {
     /** {@inheritDoc} */
     @Override public SqlListenerResponse handle(SqlListenerRequest req) {
         // TODO: here we should delegate everything to PlatformProcessor somehow.
+        PlatformRequest req0 = (PlatformRequest)req;
+
+        BinaryInputStream stream = new BinaryHeapInputStream(req0.getData());
+
+        BinaryRawReaderEx reader = ctx.reader(stream);
+
+        byte cmd = reader.readByte();
+
 
         return null;
     }
