@@ -25,35 +25,39 @@ import org.apache.ignite.internal.processors.odbc.SqlListenerRequest;
 import org.apache.ignite.internal.processors.odbc.SqlListenerRequestHandler;
 import org.apache.ignite.internal.processors.odbc.SqlListenerResponse;
 import org.apache.ignite.internal.processors.platform.PlatformContext;
+import org.apache.ignite.internal.processors.platform.PlatformProcessor;
 
 /**
  * Platform thin client request handler.
  */
 public class PlatformRequestHandler implements SqlListenerRequestHandler {
-    /** Platform context. */
-    private final PlatformContext ctx;
+    /** Platform processor. */
+    private final PlatformProcessor proc;
 
     /**
      * Ctor.
      *
-     * @param ctx Kernal context.
+     * @param proc Platform processor.
      */
-    public PlatformRequestHandler(PlatformContext ctx) {
-        assert ctx != null;
+    public PlatformRequestHandler(PlatformProcessor proc) {
+        assert proc != null;
 
-        this.ctx = ctx;
+        this.proc = proc;
     }
 
     /** {@inheritDoc} */
     @Override public SqlListenerResponse handle(SqlListenerRequest req) {
-        // TODO: here we should delegate everything to PlatformProcessor somehow.
         PlatformRequest req0 = (PlatformRequest)req;
 
         BinaryInputStream stream = new BinaryHeapInputStream(req0.getData());
 
-        BinaryRawReaderEx reader = ctx.reader(stream);
+        BinaryRawReaderEx reader = proc.context().reader(stream);
 
         byte cmd = reader.readByte();
+
+        // TODO: PlatformProcessor is PlatformTarget
+        // cmd is like InLongOutLong
+        // response is a byte[]
 
 
         return null;
