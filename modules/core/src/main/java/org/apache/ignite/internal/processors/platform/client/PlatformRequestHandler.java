@@ -17,6 +17,7 @@
 
 package org.apache.ignite.internal.processors.platform.client;
 
+import org.apache.ignite.IgniteCheckedException;
 import org.apache.ignite.internal.binary.BinaryRawReaderEx;
 import org.apache.ignite.internal.binary.streams.BinaryHeapInputStream;
 import org.apache.ignite.internal.binary.streams.BinaryInputStream;
@@ -24,6 +25,8 @@ import org.apache.ignite.internal.processors.odbc.SqlListenerRequest;
 import org.apache.ignite.internal.processors.odbc.SqlListenerRequestHandler;
 import org.apache.ignite.internal.processors.odbc.SqlListenerResponse;
 import org.apache.ignite.internal.processors.platform.PlatformProcessor;
+import org.apache.ignite.internal.processors.platform.PlatformTarget;
+import org.apache.ignite.internal.util.typedef.X;
 
 /**
  * Platform thin client request handler.
@@ -70,17 +73,22 @@ public class PlatformRequestHandler implements SqlListenerRequestHandler {
     /** {@inheritDoc} */
     @Override public SqlListenerResponse handle(SqlListenerRequest req) {
         PlatformRequest req0 = (PlatformRequest)req;
+        PlatformTarget target = (PlatformTarget)proc;
 
         BinaryInputStream stream = new BinaryHeapInputStream(req0.getData());
-
         BinaryRawReaderEx reader = proc.context().reader(stream);
 
         byte cmd = reader.readByte();
 
-        // TODO: PlatformProcessor is PlatformTarget
-        // cmd is like InLongOutLong
-        // response is a byte[]
-
+        try {
+            switch (cmd) {
+                case OP_IN_LONG_OUT_LONG: {
+                    long res = target.processInLongOutLong(reader.readInt(), reader.readLong());
+                }
+            }
+        } catch (IgniteCheckedException e) {
+            return new PlatformResponse(SqlListenerResponse.STATUS_FAILED, X.getFullStackTrace(e), null);
+        }
 
         return new PlatformResponse(SqlListenerResponse.STATUS_SUCCESS, null, null);
     }
