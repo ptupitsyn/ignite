@@ -18,8 +18,11 @@
 package org.apache.ignite.internal.processors.platform.client;
 
 import org.apache.ignite.IgniteCheckedException;
-import org.apache.ignite.internal.binary.BinaryRawReaderEx;
+import org.apache.ignite.binary.BinaryRawReader;
+import org.apache.ignite.binary.BinaryRawWriter;
+import org.apache.ignite.internal.binary.BinaryWriterExImpl;
 import org.apache.ignite.internal.binary.streams.BinaryHeapInputStream;
+import org.apache.ignite.internal.binary.streams.BinaryHeapOutputStream;
 import org.apache.ignite.internal.binary.streams.BinaryInputStream;
 import org.apache.ignite.internal.processors.odbc.SqlListenerRequest;
 import org.apache.ignite.internal.processors.odbc.SqlListenerRequestHandler;
@@ -73,24 +76,41 @@ public class PlatformRequestHandler implements SqlListenerRequestHandler {
     /** {@inheritDoc} */
     @Override public SqlListenerResponse handle(SqlListenerRequest req) {
         PlatformRequest req0 = (PlatformRequest)req;
-        PlatformTarget target = (PlatformTarget)proc;
 
-        BinaryInputStream stream = new BinaryHeapInputStream(req0.getData());
-        BinaryRawReaderEx reader = proc.context().reader(stream);
+        BinaryInputStream inStream = new BinaryHeapInputStream(req0.getData());
+        BinaryRawReader reader = proc.context().reader(inStream);
 
-        byte cmd = reader.readByte();
+        BinaryHeapOutputStream outStream = new BinaryHeapOutputStream(32);
+        BinaryRawWriter writer = new BinaryWriterExImpl(null, outStream,
+                null, null);
 
         try {
-            switch (cmd) {
-                case OP_IN_LONG_OUT_LONG: {
-                    long res = target.processInLongOutLong(reader.readInt(), reader.readLong());
-                }
-            }
+            processCommand(reader, writer);
         } catch (IgniteCheckedException e) {
             return new PlatformResponse(SqlListenerResponse.STATUS_FAILED, X.getFullStackTrace(e), null);
         }
 
-        return new PlatformResponse(SqlListenerResponse.STATUS_SUCCESS, null, null);
+        return new PlatformResponse(SqlListenerResponse.STATUS_SUCCESS, null, outStream.array());
+    }
+
+    /**
+     * Processes the command.
+     *
+     * @param reader Reader.
+     * @param writer Writer.
+     * @throws IgniteCheckedException On error.
+     */
+    private void processCommand(BinaryRawReader reader, BinaryRawWriter writer) throws IgniteCheckedException {
+        PlatformTarget target = (PlatformTarget)proc;
+
+        byte cmd = reader.readByte();
+
+        switch (cmd) {
+            case OP_IN_LONG_OUT_LONG: {
+                long res = target.processInLongOutLong(reader.readInt(), reader.readLong());
+                writer.writeLong(res);
+            }
+        }
     }
 
     /** {@inheritDoc} */
