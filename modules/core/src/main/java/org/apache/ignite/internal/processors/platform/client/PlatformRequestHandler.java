@@ -18,8 +18,9 @@
 package org.apache.ignite.internal.processors.platform.client;
 
 import org.apache.ignite.IgniteCheckedException;
-import org.apache.ignite.binary.BinaryRawReader;
+import org.apache.ignite.IgniteException;
 import org.apache.ignite.binary.BinaryRawWriter;
+import org.apache.ignite.internal.binary.BinaryRawReaderEx;
 import org.apache.ignite.internal.binary.BinaryWriterExImpl;
 import org.apache.ignite.internal.binary.streams.BinaryHeapInputStream;
 import org.apache.ignite.internal.binary.streams.BinaryHeapOutputStream;
@@ -31,12 +32,25 @@ import org.apache.ignite.internal.processors.platform.PlatformProcessor;
 import org.apache.ignite.internal.processors.platform.PlatformTarget;
 import org.apache.ignite.internal.util.typedef.X;
 
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicLong;
+
 /**
  * Platform thin client request handler.
  */
 public class PlatformRequestHandler implements SqlListenerRequestHandler {
     /** Platform processor. */
     private final PlatformProcessor proc;
+
+    /**
+     * Target registry.
+     */
+    private final Map<Long, PlatformTarget> targets = new ConcurrentHashMap<>();
+
+    /** */
+    // TODO: How do we release targets?
+    private final AtomicLong targetIdGen = new AtomicLong();
 
     /** */
     private static final byte OP_IN_LONG_OUT_LONG = 1;
@@ -71,6 +85,8 @@ public class PlatformRequestHandler implements SqlListenerRequestHandler {
         assert proc != null;
 
         this.proc = proc;
+
+        registerTarget((PlatformTarget) proc);
     }
 
     /** {@inheritDoc} */
@@ -78,7 +94,7 @@ public class PlatformRequestHandler implements SqlListenerRequestHandler {
         PlatformRequest req0 = (PlatformRequest)req;
 
         BinaryInputStream inStream = new BinaryHeapInputStream(req0.getData());
-        BinaryRawReader reader = proc.context().reader(inStream);
+        BinaryRawReaderEx reader = proc.context().reader(inStream);
 
         BinaryHeapOutputStream outStream = new BinaryHeapOutputStream(32);
         BinaryRawWriter writer = new BinaryWriterExImpl(null, outStream,
@@ -100,21 +116,58 @@ public class PlatformRequestHandler implements SqlListenerRequestHandler {
      * @param writer Writer.
      * @throws IgniteCheckedException On error.
      */
-    private void processCommand(BinaryRawReader reader, BinaryRawWriter writer) throws IgniteCheckedException {
-        PlatformTarget target = (PlatformTarget)proc;
-
+    private void processCommand(BinaryRawReaderEx reader, BinaryRawWriter writer) throws IgniteCheckedException {
         byte cmd = reader.readByte();
+        long targetId = reader.readLong();
+        int opCode = reader.readInt();
 
         switch (cmd) {
             case OP_IN_LONG_OUT_LONG: {
-                long res = target.processInLongOutLong(reader.readInt(), reader.readLong());
+                long res = target.processInLongOutLong(opCode, reader.readLong());
                 writer.writeLong(res);
+            }
+
+            case OP_IN_STREAM_OUT_OBJECT: {
+                PlatformTarget res = target.processInStreamOutObject(opCode, reader);
             }
         }
     }
 
+    /**
+     * Registers the target for future access from platform side.
+     *
+     * @param target Target.
+     * @return Unique id.
+     */
+    private long registerTarget(PlatformTarget target) {
+        assert target != null;
+
+        long id = targetIdGen.incrementAndGet();
+
+        targets.put(id, target);
+
+        return id;
+    }
+
+    /**
+     * Gets the target by id.
+     *
+     * @param id Target id.
+     * @return Target.
+     */
+    private PlatformTarget getTarget(long id) {
+        PlatformTarget target = targets.get(id);
+
+        if (target == null) {
+            throw new IgniteException("Resource handle does not exist: " + id);
+        }
+
+        return target;
+    }
+
     /** {@inheritDoc} */
     @Override public SqlListenerResponse handleException(Exception e) {
+        // TODO: ??
         return null;
     }
 }
