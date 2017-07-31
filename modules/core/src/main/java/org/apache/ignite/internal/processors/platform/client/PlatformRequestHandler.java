@@ -118,19 +118,25 @@ public class PlatformRequestHandler implements SqlListenerRequestHandler {
      */
     private void processCommand(BinaryRawReaderEx reader, BinaryRawWriter writer) throws IgniteCheckedException {
         byte cmd = reader.readByte();
-        long targetId = reader.readLong();
+        PlatformTarget target = getTarget(reader.readLong());
         int opCode = reader.readInt();
 
         switch (cmd) {
             case OP_IN_LONG_OUT_LONG: {
                 long res = target.processInLongOutLong(opCode, reader.readLong());
                 writer.writeLong(res);
+                return;
             }
 
             case OP_IN_STREAM_OUT_OBJECT: {
                 PlatformTarget res = target.processInStreamOutObject(opCode, reader);
+                long resId = registerTarget(res);
+                writer.writeLong(resId);
+                return;
             }
         }
+
+        throw new IgniteException("Invalid command: " + cmd);
     }
 
     /**
