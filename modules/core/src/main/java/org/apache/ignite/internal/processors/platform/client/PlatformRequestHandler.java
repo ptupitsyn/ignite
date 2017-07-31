@@ -17,14 +17,12 @@
 
 package org.apache.ignite.internal.processors.platform.client;
 
-import org.apache.ignite.internal.GridKernalContext;
 import org.apache.ignite.internal.binary.BinaryRawReaderEx;
 import org.apache.ignite.internal.binary.streams.BinaryHeapInputStream;
 import org.apache.ignite.internal.binary.streams.BinaryInputStream;
 import org.apache.ignite.internal.processors.odbc.SqlListenerRequest;
 import org.apache.ignite.internal.processors.odbc.SqlListenerRequestHandler;
 import org.apache.ignite.internal.processors.odbc.SqlListenerResponse;
-import org.apache.ignite.internal.processors.platform.PlatformContext;
 import org.apache.ignite.internal.processors.platform.PlatformProcessor;
 
 /**
@@ -33,6 +31,30 @@ import org.apache.ignite.internal.processors.platform.PlatformProcessor;
 public class PlatformRequestHandler implements SqlListenerRequestHandler {
     /** Platform processor. */
     private final PlatformProcessor proc;
+
+    /** */
+    private static final byte OP_IN_LONG_OUT_LONG = 1;
+
+    /** */
+    private static final byte OP_IN_STREAM_OUT_LONG = 2;
+
+    /** */
+    private static final byte OP_IN_STREAM_OUT_STREAM = 3;
+
+    /** */
+    private static final byte OP_IN_STREAM_OUT_OBJECT = 4;
+
+    /** */
+    private static final byte OP_IN_OBJECT_STREAM_OUT_OBJECT_STREAM = 5;
+
+    /** */
+    private static final byte OP_OUT_STREAM = 6;
+
+    /** */
+    private static final byte OP_OUT_OBJECT = 7;
+
+    /** */
+    private static final byte OP_IN_STREAM_ASYNC = 8;
 
     /**
      * Ctor.
@@ -60,7 +82,7 @@ public class PlatformRequestHandler implements SqlListenerRequestHandler {
         // response is a byte[]
 
 
-        return null;
+        return new PlatformResponse(SqlListenerResponse.STATUS_SUCCESS, null, null);
     }
 
     /** {@inheritDoc} */
