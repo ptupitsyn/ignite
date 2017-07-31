@@ -96,6 +96,7 @@ public class PlatformRequestHandler implements SqlListenerRequestHandler {
         BinaryInputStream inStream = new BinaryHeapInputStream(req0.getData());
         BinaryRawReaderEx reader = proc.context().reader(inStream);
 
+        // TODO: Use PlatformPooledMemory instead!
         BinaryHeapOutputStream outStream = new BinaryHeapOutputStream(32);
         BinaryRawWriter writer = new BinaryWriterExImpl(null, outStream,
                 null, null);
@@ -126,6 +127,11 @@ public class PlatformRequestHandler implements SqlListenerRequestHandler {
                 long res = target.processInLongOutLong(opCode, reader.readLong());
                 writer.writeLong(res);
                 return;
+            }
+
+            case OP_IN_STREAM_OUT_LONG: {
+                // TODO: Pass memory!
+                long res = target.processInStreamOutLong(opCode, reader, null);
             }
 
             case OP_IN_STREAM_OUT_OBJECT: {
