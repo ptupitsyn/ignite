@@ -20,6 +20,7 @@ namespace Apache.Ignite.Core.Tests.Client
     using System;
     using System.Net;
     using System.Net.Sockets;
+    using Apache.Ignite.Core.Binary;
     using Apache.Ignite.Core.Cache.Configuration;
     using Apache.Ignite.Core.Configuration;
     using Apache.Ignite.Core.Impl;
@@ -90,8 +91,16 @@ namespace Apache.Ignite.Core.Tests.Client
                     // TODO: FinishMarshal
                 });
 
-                var buf = new byte[100];
-                sock.Receive(buf); // TODO: ??
+                var msg = ReceiveMessage(sock);
+
+                using (var stream = new BinaryHeapStream(msg))
+                {
+                    var reader = marsh.StartUnmarshal(stream);
+
+                    var res = reader.ReadObject<string>();
+
+                    Assert.AreEqual(cache[1], res);
+                }
             }
         }
 
@@ -105,6 +114,21 @@ namespace Apache.Ignite.Core.Tests.Client
                 var ack = stream.ReadBool();
 
                 Assert.IsTrue(ack);
+            }
+        }
+
+        private static byte[] ReceiveMessage(Socket sock)
+        {
+            var buf = new byte[4];
+            sock.Receive(buf);
+
+            using (var stream = new BinaryHeapStream(buf))
+            {
+                var size = stream.ReadInt();
+
+                buf = new byte[size];
+                sock.Receive(buf);
+                return buf;
             }
         }
 
