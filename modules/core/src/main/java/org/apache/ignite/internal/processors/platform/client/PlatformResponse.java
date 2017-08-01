@@ -40,4 +40,13 @@ public class PlatformResponse extends SqlListenerResponse {
 
         this.data = data;
     }
+
+    /**
+     * Gets the data.
+     *
+     * @return Response data.
+     */
+    public byte[] getData() {
+        return data;
+    }
 }

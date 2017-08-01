@@ -17,16 +17,9 @@
 
 package org.apache.ignite.internal.processors.platform.client;
 
-import org.apache.ignite.internal.GridKernalContext;
-import org.apache.ignite.internal.binary.BinaryRawReaderEx;
-import org.apache.ignite.internal.binary.BinaryReaderExImpl;
-import org.apache.ignite.internal.binary.GridBinaryMarshaller;
-import org.apache.ignite.internal.binary.streams.BinaryHeapInputStream;
-import org.apache.ignite.internal.binary.streams.BinaryInputStream;
 import org.apache.ignite.internal.processors.odbc.SqlListenerMessageParser;
 import org.apache.ignite.internal.processors.odbc.SqlListenerRequest;
 import org.apache.ignite.internal.processors.odbc.SqlListenerResponse;
-import org.apache.ignite.internal.processors.platform.PlatformContext;
 
 /**
  * Thin platform client message parser.
@@ -41,7 +34,6 @@ public class PlatformMessageParser implements SqlListenerMessageParser {
 
     /** {@inheritDoc} */
     @Override public byte[] encode(SqlListenerResponse resp) {
-        // TODO
-        return new byte[0];
+        return ((PlatformResponse)resp).getData();
     }
 }
