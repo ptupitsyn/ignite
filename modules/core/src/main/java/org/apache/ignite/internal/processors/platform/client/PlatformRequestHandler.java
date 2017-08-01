@@ -30,6 +30,9 @@ import org.apache.ignite.internal.processors.odbc.SqlListenerRequestHandler;
 import org.apache.ignite.internal.processors.odbc.SqlListenerResponse;
 import org.apache.ignite.internal.processors.platform.PlatformProcessor;
 import org.apache.ignite.internal.processors.platform.PlatformTarget;
+import org.apache.ignite.internal.processors.platform.memory.PlatformInputStream;
+import org.apache.ignite.internal.processors.platform.memory.PlatformMemory;
+import org.apache.ignite.internal.processors.platform.memory.PlatformOutputStream;
 import org.apache.ignite.internal.util.typedef.X;
 
 import java.util.Map;
@@ -96,13 +99,12 @@ public class PlatformRequestHandler implements SqlListenerRequestHandler {
         BinaryInputStream inStream = new BinaryHeapInputStream(req0.getData());
         BinaryRawReaderEx reader = proc.context().reader(inStream);
 
-        // TODO: Use PlatformPooledMemory instead!
         BinaryHeapOutputStream outStream = new BinaryHeapOutputStream(32);
         BinaryRawWriter writer = new BinaryWriterExImpl(null, outStream,
                 null, null);
 
         try {
-            processCommand(reader, writer);
+            processCommand(reader, writer, outStream);
         } catch (IgniteCheckedException e) {
             return new PlatformResponse(SqlListenerResponse.STATUS_FAILED, X.getFullStackTrace(e), null);
         }
@@ -117,7 +119,8 @@ public class PlatformRequestHandler implements SqlListenerRequestHandler {
      * @param writer Writer.
      * @throws IgniteCheckedException On error.
      */
-    private void processCommand(BinaryRawReaderEx reader, BinaryRawWriter writer) throws IgniteCheckedException {
+    private void processCommand(BinaryRawReaderEx reader, BinaryRawWriter writer, BinaryHeapOutputStream outStream)
+            throws IgniteCheckedException {
         byte cmd = reader.readByte();
         PlatformTarget target = getTarget(reader.readLong());
         int opCode = reader.readInt();
@@ -130,8 +133,40 @@ public class PlatformRequestHandler implements SqlListenerRequestHandler {
             }
 
             case OP_IN_STREAM_OUT_LONG: {
-                // TODO: Pass memory!
-                long res = target.processInStreamOutLong(opCode, reader, null);
+                long res = target.processInStreamOutLong(opCode, reader, new PlatformMemory() {
+                    @Override public PlatformInputStream input() {
+                        throw new UnsupportedOperationException();
+                    }
+
+                    @Override public PlatformOutputStream output() {
+                        return outStream;
+                    }
+
+                    @Override public long pointer() {
+                        throw new UnsupportedOperationException();
+                    }
+
+                    @Override public long data() {
+                        throw new UnsupportedOperationException();
+                    }
+
+                    @Override public int capacity() {
+                        throw new UnsupportedOperationException();
+                    }
+
+                    @Override public int length() {
+                        throw new UnsupportedOperationException();
+                    }
+
+                    @Override public void reallocate(int cap) {
+                        throw new UnsupportedOperationException();
+                    }
+
+                    @Override public void close() {
+                        // No-op.
+                    }
+                });
+                writer.writeLong(res);
             }
 
             case OP_IN_STREAM_OUT_OBJECT: {

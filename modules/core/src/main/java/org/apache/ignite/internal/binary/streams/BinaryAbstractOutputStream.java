@@ -17,6 +17,7 @@
 
 package org.apache.ignite.internal.binary.streams;
 
+import org.apache.ignite.internal.processors.platform.memory.PlatformOutputStream;
 import org.apache.ignite.internal.util.GridUnsafe;
 
 import static org.apache.ignite.internal.util.GridUnsafe.BIG_ENDIAN;
@@ -25,7 +26,7 @@ import static org.apache.ignite.internal.util.GridUnsafe.BIG_ENDIAN;
  * Base binary output stream.
  */
 public abstract class BinaryAbstractOutputStream extends BinaryAbstractStream
-    implements BinaryOutputStream {
+    implements PlatformOutputStream {
     /** Minimal capacity when it is reasonable to start doubling resize. */
     private static final int MIN_CAP = 256;
 
@@ -271,6 +272,11 @@ public abstract class BinaryAbstractOutputStream extends BinaryAbstractStream
     /** {@inheritDoc} */
     @Override public void unsafeWriteDouble(double val) {
         unsafeWriteLong(Double.doubleToLongBits(val));
+    }
+
+    /** {@inheritDoc} */
+    @Override public void synchronize() {
+        // No-op.
     }
 
     /**
