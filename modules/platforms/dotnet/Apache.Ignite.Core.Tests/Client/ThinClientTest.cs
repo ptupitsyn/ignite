@@ -20,7 +20,6 @@ namespace Apache.Ignite.Core.Tests.Client
     using System;
     using System.Net;
     using System.Net.Sockets;
-    using Apache.Ignite.Core.Binary;
     using Apache.Ignite.Core.Cache.Configuration;
     using Apache.Ignite.Core.Configuration;
     using Apache.Ignite.Core.Impl;
@@ -80,6 +79,7 @@ namespace Apache.Ignite.Core.Tests.Client
                 // Cache get.
                 SendRequest(sock, stream =>
                 {
+                    stream.WriteByte(0); // Flags
                     stream.WriteShort(1);  // OP_GET
                     var cacheId = BinaryUtils.GetStringHashCode(cache.Name);
                     stream.WriteInt(cacheId);
@@ -97,6 +97,8 @@ namespace Apache.Ignite.Core.Tests.Client
                 using (var stream = new BinaryHeapStream(msg))
                 {
                     var reader = marsh.StartUnmarshal(stream);
+
+                    reader.ReadByte(); // Flags
 
                     var res = reader.ReadObject<string>();
 
