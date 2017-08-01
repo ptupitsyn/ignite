@@ -18,14 +18,10 @@
 package org.apache.ignite.internal.processors.platform.client;
 
 import org.apache.ignite.IgniteCache;
-import org.apache.ignite.IgniteCheckedException;
 import org.apache.ignite.IgniteException;
-import org.apache.ignite.binary.BinaryRawReader;
 import org.apache.ignite.binary.BinaryRawWriter;
 import org.apache.ignite.internal.GridKernalContext;
 import org.apache.ignite.internal.binary.BinaryRawReaderEx;
-import org.apache.ignite.internal.binary.BinaryReaderExImpl;
-import org.apache.ignite.internal.binary.BinaryWriterExImpl;
 import org.apache.ignite.internal.binary.GridBinaryMarshaller;
 import org.apache.ignite.internal.binary.streams.BinaryHeapInputStream;
 import org.apache.ignite.internal.binary.streams.BinaryHeapOutputStream;
@@ -35,12 +31,6 @@ import org.apache.ignite.internal.processors.cache.binary.CacheObjectBinaryProce
 import org.apache.ignite.internal.processors.odbc.SqlListenerRequest;
 import org.apache.ignite.internal.processors.odbc.SqlListenerRequestHandler;
 import org.apache.ignite.internal.processors.odbc.SqlListenerResponse;
-import org.apache.ignite.internal.processors.platform.PlatformProcessor;
-import org.apache.ignite.internal.processors.platform.PlatformTarget;
-import org.apache.ignite.internal.processors.platform.memory.PlatformInputStream;
-import org.apache.ignite.internal.processors.platform.memory.PlatformMemory;
-import org.apache.ignite.internal.processors.platform.memory.PlatformOutputStream;
-import org.apache.ignite.internal.util.typedef.X;
 
 /**
  * Platform thin client request handler.
@@ -84,11 +74,7 @@ public class PlatformRequestHandler implements SqlListenerRequestHandler {
         BinaryHeapOutputStream outStream = new BinaryHeapOutputStream(32);
         BinaryRawWriter writer = marsh.writer(outStream);
 
-        try {
-            processCommand(reader, writer);
-        } catch (IgniteCheckedException e) {
-            return new PlatformResponse(SqlListenerResponse.STATUS_FAILED, X.getFullStackTrace(e), null);
-        }
+        processCommand(reader, writer);
 
         return new PlatformResponse(SqlListenerResponse.STATUS_SUCCESS, null, outStream.array());
     }
@@ -98,34 +84,37 @@ public class PlatformRequestHandler implements SqlListenerRequestHandler {
      *
      * @param reader Reader.
      * @param writer Writer.
-     * @throws IgniteCheckedException On error.
      */
     @SuppressWarnings("unchecked")
-    private void processCommand(BinaryRawReaderEx reader, BinaryRawWriter writer)
-            throws IgniteCheckedException {
+    private void processCommand(BinaryRawReaderEx reader, BinaryRawWriter writer) {
         short opCode = reader.readShort();
 
         switch (opCode) {
             case OP_CACHE_GET: {
-                int cacheId = reader.readInt();
-                byte flags = reader.readByte();  // TODO: withSkipStore, etc
+                IgniteCache cache = getIgniteCache(reader);
 
                 Object key = reader.readObjectDetached();
-
-                // TODO: Not optimal.
-                String cacheName = cacheSharedCtx.cacheContext(cacheId).cache().name();
-                IgniteCache cache = ctx.grid().cache(cacheName).withKeepBinary();
-
                 Object val = cache.get(key);
 
                 writer.writeObject(val);
-
-
                 return;
             }
         }
 
         throw new IgniteException("Invalid operation: " + opCode);
+    }
+
+    /**
+     * Gets the cache.
+     *
+     * @param reader Reader
+     * @return Cache.
+     */
+    private IgniteCache getIgniteCache(BinaryRawReaderEx reader) {
+        int cacheId = reader.readInt();
+        byte flags = reader.readByte();  // TODO: withSkipStore, etc
+        String cacheName = cacheSharedCtx.cacheContext(cacheId).cache().name();
+        return ctx.grid().cache(cacheName).withKeepBinary();
     }
 
     /** {@inheritDoc} */
