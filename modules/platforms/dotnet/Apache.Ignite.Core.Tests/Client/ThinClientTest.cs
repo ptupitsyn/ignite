@@ -106,15 +106,10 @@ namespace Apache.Ignite.Core.Tests.Client
 
         private static void Ack(Socket sock)
         {
-            var buf = new byte[1];
-            sock.Receive(buf);
+            var msg = ReceiveMessage(sock);
 
-            using (var stream = new BinaryHeapStream(buf))
-            {
-                var ack = stream.ReadBool();
-
-                Assert.IsTrue(ack);
-            }
+            Assert.AreEqual(1, msg.Length);
+            Assert.AreEqual(1, msg[0]);
         }
 
         private static byte[] ReceiveMessage(Socket sock)
