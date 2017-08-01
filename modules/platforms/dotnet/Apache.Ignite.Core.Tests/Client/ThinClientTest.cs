@@ -22,6 +22,8 @@ namespace Apache.Ignite.Core.Tests.Client
     using System.Net.Sockets;
     using Apache.Ignite.Core.Cache.Configuration;
     using Apache.Ignite.Core.Configuration;
+    using Apache.Ignite.Core.Impl;
+    using Apache.Ignite.Core.Impl.Binary;
     using Apache.Ignite.Core.Impl.Binary.IO;
     using NUnit.Framework;
 
@@ -43,6 +45,8 @@ namespace Apache.Ignite.Core.Tests.Client
 
             using (var ignite = Ignition.Start(cfg))
             {
+                var marsh = ((Ignite) ignite).Marshaller;
+
                 // Create cache.
                 var cacheCfg = new CacheConfiguration("foo", new QueryEntity(typeof(int), typeof(string)));
                 var cache = ignite.CreateCache<int, string>(cacheCfg);
@@ -70,6 +74,24 @@ namespace Apache.Ignite.Core.Tests.Client
 
                 // ACK.
                 Ack(sock);
+
+                // Cache get.
+                SendRequest(sock, stream =>
+                {
+                    stream.WriteShort(1);  // OP_GET
+                    var cacheId = BinaryUtils.GetStringHashCode(cache.Name);
+                    stream.WriteInt(cacheId);
+                    stream.WriteByte(0);  // Flags (withSkipStore, etc)
+
+                    var writer = marsh.StartMarshal(stream);
+
+                    writer.WriteObject(1);  // Key
+
+                    // TODO: FinishMarshal
+                });
+
+                var buf = new byte[100];
+                sock.Receive(buf); // TODO: ??
             }
         }
 
