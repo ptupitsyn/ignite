@@ -270,7 +270,7 @@ public class SqlListenerNioListener extends GridNioServerListenerAdapter<byte[]>
         }
         else if (clientType == PLATFORM_CLIENT) {
             PlatformMessageParser parser = new PlatformMessageParser();
-            PlatformRequestHandler handler = new PlatformRequestHandler(ctx.platform());
+            PlatformRequestHandler handler = new PlatformRequestHandler(ctx);
 
             return new SqlListenerConnectionContext(handler, parser);
         }

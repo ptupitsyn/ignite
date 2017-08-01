@@ -17,14 +17,21 @@
 
 package org.apache.ignite.internal.processors.platform.client;
 
+import org.apache.ignite.IgniteCache;
 import org.apache.ignite.IgniteCheckedException;
 import org.apache.ignite.IgniteException;
+import org.apache.ignite.binary.BinaryRawReader;
 import org.apache.ignite.binary.BinaryRawWriter;
+import org.apache.ignite.internal.GridKernalContext;
 import org.apache.ignite.internal.binary.BinaryRawReaderEx;
+import org.apache.ignite.internal.binary.BinaryReaderExImpl;
 import org.apache.ignite.internal.binary.BinaryWriterExImpl;
+import org.apache.ignite.internal.binary.GridBinaryMarshaller;
 import org.apache.ignite.internal.binary.streams.BinaryHeapInputStream;
 import org.apache.ignite.internal.binary.streams.BinaryHeapOutputStream;
 import org.apache.ignite.internal.binary.streams.BinaryInputStream;
+import org.apache.ignite.internal.processors.cache.GridCacheSharedContext;
+import org.apache.ignite.internal.processors.cache.binary.CacheObjectBinaryProcessorImpl;
 import org.apache.ignite.internal.processors.odbc.SqlListenerRequest;
 import org.apache.ignite.internal.processors.odbc.SqlListenerRequestHandler;
 import org.apache.ignite.internal.processors.odbc.SqlListenerResponse;
@@ -35,61 +42,36 @@ import org.apache.ignite.internal.processors.platform.memory.PlatformMemory;
 import org.apache.ignite.internal.processors.platform.memory.PlatformOutputStream;
 import org.apache.ignite.internal.util.typedef.X;
 
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicLong;
-
 /**
  * Platform thin client request handler.
  */
 public class PlatformRequestHandler implements SqlListenerRequestHandler {
-    /** Platform processor. */
-    private final PlatformProcessor proc;
-
-    /**
-     * Target registry.
-     */
-    private final Map<Long, PlatformTarget> targets = new ConcurrentHashMap<>();
-
     /** */
-    // TODO: How do we release targets?
-    private final AtomicLong targetIdGen = new AtomicLong();
+    private static final short OP_CACHE_GET = 1;
 
-    /** */
-    private static final byte OP_IN_LONG_OUT_LONG = 1;
+    /** Kernal context. */
+    private final GridKernalContext ctx;
 
-    /** */
-    private static final byte OP_IN_STREAM_OUT_LONG = 2;
+    /** Marshaller. */
+    private final GridBinaryMarshaller marsh;
 
-    /** */
-    private static final byte OP_IN_STREAM_OUT_STREAM = 3;
-
-    /** */
-    private static final byte OP_IN_STREAM_OUT_OBJECT = 4;
-
-    /** */
-    private static final byte OP_IN_OBJECT_STREAM_OUT_OBJECT_STREAM = 5;
-
-    /** */
-    private static final byte OP_OUT_STREAM = 6;
-
-    /** */
-    private static final byte OP_OUT_OBJECT = 7;
-
-    /** */
-    private static final byte OP_IN_STREAM_ASYNC = 8;
+    /** Cache context. */
+    private final GridCacheSharedContext cacheSharedCtx;
 
     /**
      * Ctor.
      *
-     * @param proc Platform processor.
+     * @param ctx Kernal context.
      */
-    public PlatformRequestHandler(PlatformProcessor proc) {
-        assert proc != null;
+    public PlatformRequestHandler(GridKernalContext ctx) {
+        assert ctx != null;
 
-        this.proc = proc;
+        this.ctx = ctx;
 
-        registerTarget((PlatformTarget) proc);
+        CacheObjectBinaryProcessorImpl cacheObjProc = (CacheObjectBinaryProcessorImpl)ctx.cacheObjects();
+        marsh = cacheObjProc.marshaller();
+
+        cacheSharedCtx = ctx.cache().context();
     }
 
     /** {@inheritDoc} */
@@ -97,14 +79,13 @@ public class PlatformRequestHandler implements SqlListenerRequestHandler {
         PlatformRequest req0 = (PlatformRequest)req;
 
         BinaryInputStream inStream = new BinaryHeapInputStream(req0.getData());
-        BinaryRawReaderEx reader = proc.context().reader(inStream);
+        BinaryRawReaderEx reader = marsh.reader(inStream);
 
         BinaryHeapOutputStream outStream = new BinaryHeapOutputStream(32);
-        BinaryRawWriter writer = new BinaryWriterExImpl(null, outStream,
-                null, null);
+        BinaryRawWriter writer = marsh.writer(outStream);
 
         try {
-            processCommand(reader, writer, outStream);
+            processCommand(reader, writer);
         } catch (IgniteCheckedException e) {
             return new PlatformResponse(SqlListenerResponse.STATUS_FAILED, X.getFullStackTrace(e), null);
         }
@@ -119,102 +100,37 @@ public class PlatformRequestHandler implements SqlListenerRequestHandler {
      * @param writer Writer.
      * @throws IgniteCheckedException On error.
      */
-    private void processCommand(BinaryRawReaderEx reader, BinaryRawWriter writer, BinaryHeapOutputStream outStream)
+    @SuppressWarnings("unchecked")
+    private void processCommand(BinaryRawReaderEx reader, BinaryRawWriter writer)
             throws IgniteCheckedException {
-        byte cmd = reader.readByte();
-        PlatformTarget target = getTarget(reader.readLong());
-        int opCode = reader.readInt();
+        short opCode = reader.readShort();
 
-        switch (cmd) {
-            case OP_IN_LONG_OUT_LONG: {
-                long res = target.processInLongOutLong(opCode, reader.readLong());
-                writer.writeLong(res);
-                return;
-            }
+        switch (opCode) {
+            case OP_CACHE_GET: {
+                int cacheId = reader.readInt();
+                byte flags = reader.readByte();  // TODO: withSkipStore, etc
 
-            case OP_IN_STREAM_OUT_LONG: {
-                long res = target.processInStreamOutLong(opCode, reader, new PlatformMemory() {
-                    @Override public PlatformInputStream input() {
-                        throw new UnsupportedOperationException();
-                    }
+                Object key = reader.readObjectDetached();
 
-                    @Override public PlatformOutputStream output() {
-                        return outStream;
-                    }
+                // TODO: Not optimal.
+                String cacheName = cacheSharedCtx.cacheContext(cacheId).cache().name();
+                IgniteCache cache = ctx.grid().cache(cacheName).withKeepBinary();
 
-                    @Override public long pointer() {
-                        throw new UnsupportedOperationException();
-                    }
+                Object val = cache.get(key);
 
-                    @Override public long data() {
-                        throw new UnsupportedOperationException();
-                    }
+                writer.writeObject(val);
 
-                    @Override public int capacity() {
-                        throw new UnsupportedOperationException();
-                    }
 
-                    @Override public int length() {
-                        throw new UnsupportedOperationException();
-                    }
-
-                    @Override public void reallocate(int cap) {
-                        throw new UnsupportedOperationException();
-                    }
-
-                    @Override public void close() {
-                        // No-op.
-                    }
-                });
-                writer.writeLong(res);
-            }
-
-            case OP_IN_STREAM_OUT_OBJECT: {
-                PlatformTarget res = target.processInStreamOutObject(opCode, reader);
-                long resId = registerTarget(res);
-                writer.writeLong(resId);
                 return;
             }
         }
 
-        throw new IgniteException("Invalid command: " + cmd);
-    }
-
-    /**
-     * Registers the target for future access from platform side.
-     *
-     * @param target Target.
-     * @return Unique id.
-     */
-    private long registerTarget(PlatformTarget target) {
-        assert target != null;
-
-        long id = targetIdGen.incrementAndGet();
-
-        targets.put(id, target);
-
-        return id;
-    }
-
-    /**
-     * Gets the target by id.
-     *
-     * @param id Target id.
-     * @return Target.
-     */
-    private PlatformTarget getTarget(long id) {
-        PlatformTarget target = targets.get(id);
-
-        if (target == null) {
-            throw new IgniteException("Resource handle does not exist: " + id);
-        }
-
-        return target;
+        throw new IgniteException("Invalid operation: " + opCode);
     }
 
     /** {@inheritDoc} */
     @Override public SqlListenerResponse handleException(Exception e) {
-        // TODO: ??
+        // TODO: write full exception details.
         return null;
     }
 }
