@@ -74,6 +74,7 @@ namespace Apache.Ignite.Core.Tests.Client
                 Assert.AreEqual(12, sentBytes);
 
                 // ACK.
+                // TODO: Test incorrect version.
                 Ack(sock);
 
                 // Cache get.
