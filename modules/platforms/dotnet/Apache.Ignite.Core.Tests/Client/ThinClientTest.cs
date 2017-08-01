@@ -69,15 +69,20 @@ namespace Apache.Ignite.Core.Tests.Client
                 Assert.AreEqual(12, sentBytes);
 
                 // ACK.
-                var buf = new byte[1];
-                sock.Receive(buf);
+                Ack(sock);
+            }
+        }
 
-                using (var stream = new BinaryHeapStream(buf))
-                {
-                    var ack = stream.ReadBool();
+        private static void Ack(Socket sock)
+        {
+            var buf = new byte[1];
+            sock.Receive(buf);
 
-                    Assert.IsTrue(ack);
-                }
+            using (var stream = new BinaryHeapStream(buf))
+            {
+                var ack = stream.ReadBool();
+
+                Assert.IsTrue(ack);
             }
         }
 
