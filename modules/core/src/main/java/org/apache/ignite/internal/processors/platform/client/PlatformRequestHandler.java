@@ -87,6 +87,9 @@ public class PlatformRequestHandler implements SqlListenerRequestHandler {
      */
     @SuppressWarnings("unchecked")
     private void processCommand(BinaryRawReaderEx reader, BinaryRawWriter writer) {
+        byte flags = reader.readByte();  // TODO: Compression, etc.
+        writer.writeBoolean(true);  // Success (may include additional flags)
+
         short opCode = reader.readShort();
 
         switch (opCode) {
