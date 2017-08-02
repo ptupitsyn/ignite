@@ -45,7 +45,7 @@ namespace Apache.Ignite.Core.Impl
         /// Initializes a new instance of the <see cref="IgniteClient"/> class.
         /// </summary>
         /// <param name="clientConfiguration">The client configuration.</param>
-        public IgniteClient(ClientConfiguration clientConfiguration)
+        public IgniteClient(IgniteClientConfiguration clientConfiguration)
         {
             Debug.Assert(clientConfiguration != null);
 

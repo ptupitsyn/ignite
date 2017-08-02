@@ -88,7 +88,7 @@ namespace Apache.Ignite.Core.Tests
             CheckDefaultValueAttributes(new MemoryPolicyConfiguration());
             CheckDefaultValueAttributes(new SqlConnectorConfiguration());
             CheckDefaultValueAttributes(new PersistentStoreConfiguration());
-            CheckDefaultValueAttributes(new ClientConfiguration());
+            CheckDefaultValueAttributes(new IgniteClientConfiguration());
         }
 
         /// <summary>

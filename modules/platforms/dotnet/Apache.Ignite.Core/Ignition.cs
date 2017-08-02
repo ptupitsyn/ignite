@@ -737,7 +737,7 @@ namespace Apache.Ignite.Core
         /// </summary>
         /// <param name="clientConfiguration">The client configuration.</param>
         /// <returns>Ignite instance.</returns>
-        public static IIgnite GetClient(ClientConfiguration clientConfiguration)
+        public static IIgnite GetClient(IgniteClientConfiguration clientConfiguration)
         {
             return new IgniteClient(clientConfiguration);
         }

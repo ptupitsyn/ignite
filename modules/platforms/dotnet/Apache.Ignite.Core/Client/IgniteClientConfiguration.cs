@@ -26,7 +26,7 @@ namespace Apache.Ignite.Core.Client
     /// This configuration should correspond to <see cref="IgniteConfiguration.SqlConnectorConfiguration"/>
     /// on a target node.
     /// </summary>
-    public class ClientConfiguration
+    public class IgniteClientConfiguration
     {
         /// <summary>
         /// Default host.
@@ -54,9 +54,9 @@ namespace Apache.Ignite.Core.Client
         public const bool DefaultTcpNoDelay = true;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="ClientConfiguration"/> class.
+        /// Initializes a new instance of the <see cref="IgniteClientConfiguration"/> class.
         /// </summary>
-        public ClientConfiguration()
+        public IgniteClientConfiguration()
         {
             Host = DefaultHost;
             Port = DefaultPort;
