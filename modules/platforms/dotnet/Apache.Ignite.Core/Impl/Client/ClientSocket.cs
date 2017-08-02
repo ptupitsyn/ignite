@@ -56,19 +56,25 @@ namespace Apache.Ignite.Core.Impl.Client
             {
                 _socket = new Socket(ipAddress.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
 
-                try
+                for (var port = clientConfiguration.Port;
+                    port < clientConfiguration.Port + clientConfiguration.PortRange;
+                    port++)
                 {
-                    _socket.Connect(ipAddress, clientConfiguration.Port);
-                    return;
-                }
-                catch (SocketException e)
-                {
-                    if (errors == null)
+                    try
                     {
-                        errors = new List<Exception>();
-                    }
 
-                    errors.Add(e);
+                        _socket.Connect(ipAddress, port);
+                        return;
+                    }
+                    catch (SocketException e)
+                    {
+                        if (errors == null)
+                        {
+                            errors = new List<Exception>();
+                        }
+
+                        errors.Add(e);
+                    }
                 }
             }
 
