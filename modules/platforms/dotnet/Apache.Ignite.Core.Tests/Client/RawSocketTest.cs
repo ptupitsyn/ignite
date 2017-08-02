@@ -105,12 +105,12 @@ namespace Apache.Ignite.Core.Tests.Client
 
                 // Client type: platform.
                 stream.WriteByte(2);
-            }, 0);
+            });
 
             Assert.AreEqual(12, sentBytes);
 
             // ACK.
-            var ack = ReceiveMessage(sock, 0);
+            var ack = ReceiveMessage(sock);
 
             Assert.AreEqual(1, ack.Length);
             Assert.AreEqual(1, ack[0]);
@@ -119,19 +119,23 @@ namespace Apache.Ignite.Core.Tests.Client
         /// <summary>
         /// Receives the message.
         /// </summary>
-        private static byte[] ReceiveMessage(Socket sock, int requestId)
+        private static byte[] ReceiveMessage(Socket sock, int? requestId = null)
         {
-            var buf = new byte[8];
+            var buf = new byte[requestId == null ? 4 : 8];
             sock.Receive(buf);
 
             using (var stream = new BinaryHeapStream(buf))
             {
                 var size = stream.ReadInt();
-                var id = stream.ReadInt();
 
-                Assert.AreEqual(requestId, id);
+                if (requestId != null)
+                {
+                    var id = stream.ReadInt();
+                    Assert.AreEqual(requestId, id);
+                    size -= 4;
+                }
 
-                buf = new byte[size - 4];
+                buf = new byte[size];
                 sock.Receive(buf);
                 return buf;
             }
@@ -140,12 +144,16 @@ namespace Apache.Ignite.Core.Tests.Client
         /// <summary>
         /// Sends the request.
         /// </summary>
-        private static int SendRequest(Socket sock, Action<BinaryHeapStream> writeAction, int requestId)
+        private static int SendRequest(Socket sock, Action<BinaryHeapStream> writeAction, int? requestId = null)
         {
             using (var stream = new BinaryHeapStream(128))
             {
                 stream.WriteInt(0);  // Reserve message size.
-                stream.WriteInt(requestId);
+
+                if (requestId != null)
+                {
+                    stream.WriteInt(requestId.Value);
+                }
 
                 writeAction(stream);
 
