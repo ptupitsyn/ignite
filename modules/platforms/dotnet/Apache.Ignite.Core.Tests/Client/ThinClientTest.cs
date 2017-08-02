@@ -56,25 +56,7 @@ namespace Apache.Ignite.Core.Tests.Client
                 var sock = GetSocket(SqlConnectorConfiguration.DefaultPort);
                 Assert.IsTrue(sock.Connected);
 
-                var sentBytes = SendRequest(sock, stream =>
-                {
-                    // Handshake.
-                    stream.WriteByte(1);
-
-                    // Protocol version.
-                    stream.WriteShort(2);
-                    stream.WriteShort(1);
-                    stream.WriteShort(0);
-
-                    // Client type: platform.
-                    stream.WriteByte(2);
-                });
-
-                Assert.AreEqual(12, sentBytes);
-
-                // ACK.
-                // TODO: Test incorrect version.
-                Ack(sock);
+                DoHandshake(sock);
 
                 // Cache get.
                 SendRequest(sock, stream =>
@@ -88,12 +70,10 @@ namespace Apache.Ignite.Core.Tests.Client
                     var writer = marsh.StartMarshal(stream);
 
                     writer.WriteObject(1);  // Key
+                }, 1);
 
-                    // TODO: FinishMarshal
-                });
-
-                var msg = ReceiveMessage(sock);
-
+                var msg = ReceiveMessage(sock, 1);
+                
                 using (var stream = new BinaryHeapStream(msg))
                 {
                     var reader = marsh.StartUnmarshal(stream);
@@ -107,35 +87,65 @@ namespace Apache.Ignite.Core.Tests.Client
             }
         }
 
-        private static void Ack(Socket sock)
+        /// <summary>
+        /// Does the handshake.
+        /// </summary>
+        /// <param name="sock">The sock.</param>
+        private static void DoHandshake(Socket sock)
         {
-            var msg = ReceiveMessage(sock);
+            var sentBytes = SendRequest(sock, stream =>
+            {
+                // Handshake.
+                stream.WriteByte(1);
 
-            Assert.AreEqual(1, msg.Length);
-            Assert.AreEqual(1, msg[0]);
+                // Protocol version.
+                stream.WriteShort(2);
+                stream.WriteShort(1);
+                stream.WriteShort(0);
+
+                // Client type: platform.
+                stream.WriteByte(2);
+            }, 0);
+
+            Assert.AreEqual(12, sentBytes);
+
+            // ACK.
+            var ack = ReceiveMessage(sock, 0);
+
+            Assert.AreEqual(1, ack.Length);
+            Assert.AreEqual(1, ack[0]);
         }
 
-        private static byte[] ReceiveMessage(Socket sock)
+        /// <summary>
+        /// Receives the message.
+        /// </summary>
+        private static byte[] ReceiveMessage(Socket sock, int requestId)
         {
-            var buf = new byte[4];
+            var buf = new byte[8];
             sock.Receive(buf);
 
             using (var stream = new BinaryHeapStream(buf))
             {
                 var size = stream.ReadInt();
+                var id = stream.ReadInt();
 
-                buf = new byte[size];
+                Assert.AreEqual(requestId, id);
+
+                buf = new byte[size - 4];
                 sock.Receive(buf);
                 return buf;
             }
         }
 
-        private static int SendRequest(Socket sock, Action<BinaryHeapStream> writeAction)
+        /// <summary>
+        /// Sends the request.
+        /// </summary>
+        private static int SendRequest(Socket sock, Action<BinaryHeapStream> writeAction, int requestId)
         {
-            // TODO: Use NetworkStream instead? But there is no message size in it..
             using (var stream = new BinaryHeapStream(128))
             {
                 stream.WriteInt(0);  // Reserve message size.
+                stream.WriteInt(requestId);
 
                 writeAction(stream);
 
