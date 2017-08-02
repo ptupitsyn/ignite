@@ -17,36 +17,33 @@
 
 package org.apache.ignite.internal.processors.platform.client;
 
+import org.apache.ignite.binary.BinaryRawWriter;
 import org.apache.ignite.internal.processors.odbc.SqlListenerResponse;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Platform thin client response.
+ * Thin client response.
  */
-public class PlatformResponse extends SqlListenerResponse {
-    /** Response data. */
-    private final byte[] data;
+class ClientResponse extends SqlListenerResponse {
+    /** Request id. */
+    private final int requestId;
 
     /**
-     * Constructs failed rest response.
+     * Ctor.
      *
-     * @param status Response status.
-     * @param err    Error, {@code null} if success is {@code true}.
+     * @param requestId Request id.
      */
-    PlatformResponse(int status, @Nullable String err, byte[] data) {
-        super(status, err);
+    ClientResponse(int requestId) {
+        super(STATUS_SUCCESS, null);
 
-        assert data != null;
-
-        this.data = data;
+        this.requestId = requestId;
     }
 
     /**
-     * Gets the data.
-     *
-     * @return Response data.
+     * Encodes the response data.
      */
-    public byte[] getData() {
-        return data;
+    public void encode(BinaryRawWriter writer) {
+        writer.writeInt(requestId);
+        writer.writeByte((byte)0);  // Flags (compression, etc);
     }
 }

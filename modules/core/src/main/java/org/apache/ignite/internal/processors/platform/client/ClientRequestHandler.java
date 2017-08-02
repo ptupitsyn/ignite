@@ -17,32 +17,36 @@
 
 package org.apache.ignite.internal.processors.platform.client;
 
+import org.apache.ignite.internal.GridKernalContext;
 import org.apache.ignite.internal.processors.odbc.SqlListenerRequest;
+import org.apache.ignite.internal.processors.odbc.SqlListenerRequestHandler;
+import org.apache.ignite.internal.processors.odbc.SqlListenerResponse;
 
 /**
- * Platform client request.
+ * Thin client request handler.
  */
-public class PlatformRequest extends SqlListenerRequest {
-    /** */
-    private final byte[] data;
+public class ClientRequestHandler implements SqlListenerRequestHandler {
+    /** Kernal context. */
+    private final GridKernalContext ctx;
 
     /**
      * Ctor.
      *
-     * @param data Request raw data.
+     * @param ctx Kernal context.
      */
-    PlatformRequest(byte[] data) {
-        assert data != null;
+    public ClientRequestHandler(GridKernalContext ctx) {
+        assert ctx != null;
 
-        this.data = data;
+        this.ctx = ctx;
     }
 
-    /**
-     * Gets the request data.
-     *
-     * @return Data.
-     */
-    public byte[] getData() {
-        return data;
+    /** {@inheritDoc} */
+    @Override public SqlListenerResponse handle(SqlListenerRequest req) {
+        return ((ClientRequest)req).process(ctx);
+    }
+
+    /** {@inheritDoc} */
+    @Override public SqlListenerResponse handleException(Exception e) {
+        return null;
     }
 }
