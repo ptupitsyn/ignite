@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-namespace Apache.Ignite.Core.Impl
+namespace Apache.Ignite.Core.Impl.Client
 {
     using System;
     using System.Collections.Generic;
