@@ -17,10 +17,25 @@
 
 namespace Apache.Ignite.Core.Tests.Client
 {
+    using NUnit.Framework;
+
     /// <summary>
     /// Thin client cache test.
     /// </summary>
     public class CacheTest
     {
+        /// <summary>
+        /// Tests the cache put / get with primitive data types.
+        /// </summary>
+        [Test]
+        public void TestPutGetPrimitives()
+        {
+            using (var client = Ignition.GetClient())
+            {
+                var cache = client.GetCache<int, string>("cache");
+
+                Assert.AreEqual("foo", cache[1]);
+            }
+        }
     }
 }
