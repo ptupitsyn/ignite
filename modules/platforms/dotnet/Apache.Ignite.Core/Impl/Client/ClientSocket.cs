@@ -55,7 +55,12 @@ namespace Apache.Ignite.Core.Impl.Client
             {
                 try
                 {
-                    var socket = new Socket(ipEndPoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
+                    var socket = new Socket(ipEndPoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp)
+                    {
+                        SendBufferSize = cfg.SocketSendBufferSize,
+                        ReceiveBufferSize = cfg.SocketReceiveBufferSize,
+                        NoDelay = cfg.TcpNoDelay
+                    };
                     
                     socket.Connect(ipEndPoint);
 
