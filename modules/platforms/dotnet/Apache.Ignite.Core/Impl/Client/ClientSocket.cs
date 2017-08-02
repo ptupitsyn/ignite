@@ -18,10 +18,12 @@
 namespace Apache.Ignite.Core.Impl.Client
 {
     using System;
+    using System.Collections.Generic;
     using System.Diagnostics;
     using System.Net;
     using System.Net.Sockets;
     using Apache.Ignite.Core.Client;
+    using Apache.Ignite.Core.Common;
 
     /// <summary>
     /// Wrapper over framework socket for Ignite thin client operations.
@@ -39,14 +41,39 @@ namespace Apache.Ignite.Core.Impl.Client
         {
             Debug.Assert(clientConfiguration != null);
 
-            var host = Dns.GetHostEntry(clientConfiguration.Host);
+            var addressList = clientConfiguration.Host != null
+                ? Dns.GetHostEntry(clientConfiguration.Host).AddressList
+                : new[] {IPAddress.Loopback};
 
-            foreach (var ipAddress in host.AddressList)
+            if (addressList.Length == 0)
+            {
+                throw new IgniteException("Failed to resolve client host: " + clientConfiguration.Host);
+            }
+
+            List<Exception> errors = null;
+
+            foreach (var ipAddress in addressList)
             {
                 _socket = new Socket(ipAddress.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
 
-                _socket.Connect(ipAddress, clientConfiguration.Port);
+                try
+                {
+                    _socket.Connect(ipAddress, clientConfiguration.Port);
+                    return;
+                }
+                catch (SocketException e)
+                {
+                    if (errors == null)
+                    {
+                        errors = new List<Exception>();
+                    }
+
+                    errors.Add(e);
+                }
             }
+
+            throw new AggregateException("Failed to establish Ignite thin client connection, " +
+                                         "examine inner exceptions for details.", errors);
         }
 
         /// <summary>

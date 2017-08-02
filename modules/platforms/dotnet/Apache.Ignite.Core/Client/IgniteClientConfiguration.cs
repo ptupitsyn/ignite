@@ -18,6 +18,7 @@
 namespace Apache.Ignite.Core.Client
 {
     using System.ComponentModel;
+    using System.Net;
 
     /// <summary>
     /// Ignite thin client configuration.
@@ -28,11 +29,6 @@ namespace Apache.Ignite.Core.Client
     /// </summary>
     public class IgniteClientConfiguration
     {
-        /// <summary>
-        /// Default host.
-        /// </summary>
-        public const string DefaultHost = ".";
-
         /// <summary>
         /// Default port.
         /// </summary>
@@ -58,7 +54,6 @@ namespace Apache.Ignite.Core.Client
         /// </summary>
         public IgniteClientConfiguration()
         {
-            Host = DefaultHost;
             Port = DefaultPort;
             PortRange = DefaultPortRange;
             SocketSendBufferSize = DefaultSocketBufferSize;
@@ -67,9 +62,8 @@ namespace Apache.Ignite.Core.Client
         }
 
         /// <summary>
-        /// Gets or sets the host.
+        /// Gets or sets the host. Null for loopback.
         /// </summary>
-        [DefaultValue(DefaultHost)]
         public string Host { get; set; }
 
         /// <summary>
