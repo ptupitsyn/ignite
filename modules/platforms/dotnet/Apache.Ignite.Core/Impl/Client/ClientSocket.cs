@@ -41,45 +41,62 @@ namespace Apache.Ignite.Core.Impl.Client
         {
             Debug.Assert(clientConfiguration != null);
 
-            var addressList = clientConfiguration.Host != null
-                ? Dns.GetHostEntry(clientConfiguration.Host).AddressList
-                : new[] {IPAddress.Loopback};
+            _socket = Connect(clientConfiguration);
+        }
 
-            if (addressList.Length == 0)
-            {
-                throw new IgniteException("Failed to resolve client host: " + clientConfiguration.Host);
-            }
-
+        /// <summary>
+        /// Connects the socket.
+        /// </summary>
+        private static Socket Connect(IgniteClientConfiguration cfg)
+        {
             List<Exception> errors = null;
 
-            foreach (var ipAddress in addressList)
+            foreach (var ipEndPoint in GetEndPoints(cfg))
             {
-                _socket = new Socket(ipAddress.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
-
-                for (var port = clientConfiguration.Port;
-                    port < clientConfiguration.Port + clientConfiguration.PortRange;
-                    port++)
+                try
                 {
-                    try
-                    {
+                    var socket = new Socket(ipEndPoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
+                    
+                    socket.Connect(ipEndPoint);
 
-                        _socket.Connect(ipAddress, port);
-                        return;
-                    }
-                    catch (SocketException e)
-                    {
-                        if (errors == null)
-                        {
-                            errors = new List<Exception>();
-                        }
-
-                        errors.Add(e);
-                    }
+                    return socket;
                 }
+                catch (SocketException e)
+                {
+                    if (errors == null)
+                    {
+                        errors = new List<Exception>();
+                    }
+
+                    errors.Add(e);
+                }
+            }
+
+            if (errors == null)
+            {
+                throw new IgniteException("Failed to resolve client host: " + cfg.Host);
             }
 
             throw new AggregateException("Failed to establish Ignite thin client connection, " +
                                          "examine inner exceptions for details.", errors);
+        }
+
+        /// <summary>
+        /// Gets the endpoints: all combinations of IP addresses and ports according to configuration.
+        /// </summary>
+        private static IEnumerable<IPEndPoint> GetEndPoints(IgniteClientConfiguration cfg)
+        {
+            var addressList = cfg.Host != null
+                ? Dns.GetHostEntry(cfg.Host).AddressList
+                : new[] { IPAddress.Loopback };
+
+            foreach (var ipAddress in addressList)
+            {
+                for (var port = cfg.Port; port < cfg.Port + cfg.PortRange; port++)
+                {
+                    yield return new IPEndPoint(ipAddress, port);
+                }
+            }
         }
 
         /// <summary>
