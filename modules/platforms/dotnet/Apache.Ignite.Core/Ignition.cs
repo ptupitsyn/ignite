@@ -28,6 +28,7 @@ namespace Apache.Ignite.Core
     using System.Threading;
     using Apache.Ignite.Core.Binary;
     using Apache.Ignite.Core.Cache.Affinity;
+    using Apache.Ignite.Core.Client;
     using Apache.Ignite.Core.Common;
     using Apache.Ignite.Core.Impl;
     using Apache.Ignite.Core.Impl.Binary;
@@ -727,6 +728,19 @@ namespace Apache.Ignite.Core
             }
 
             GC.Collect();
+        }
+
+        /// <summary>
+        /// Connects Ignite lightweight (thin) client to an Ignite node.
+        /// <para />
+        /// Thin client connects to an existing Ignite node with a socket and does not start JVM in process.
+        /// </summary>
+        /// <param name="clientConfiguration">The client configuration.</param>
+        /// <returns>Ignite instance.</returns>
+        public static IIgnite GetClient(ClientConfiguration clientConfiguration)
+        {
+            // TODO
+            return null;
         }
 
         /// <summary>
