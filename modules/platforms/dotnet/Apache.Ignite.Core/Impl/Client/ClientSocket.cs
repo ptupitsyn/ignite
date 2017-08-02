@@ -109,10 +109,7 @@ namespace Apache.Ignite.Core.Impl.Client
         /// </summary>
         public void Dispose()
         {
-            if (_socket != null)
-            {
-                _socket.Dispose();
-            }
+            _socket.Dispose();
         }
     }
 }
