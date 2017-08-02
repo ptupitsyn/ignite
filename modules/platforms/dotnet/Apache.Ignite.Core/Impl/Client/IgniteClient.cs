@@ -41,6 +41,9 @@ namespace Apache.Ignite.Core.Impl.Client
     /// </summary>
     internal class IgniteClient : IIgnite
     {
+        /** Socket. */
+        private readonly ClientSocket _socket;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="IgniteClient"/> class.
         /// </summary>
@@ -49,13 +52,13 @@ namespace Apache.Ignite.Core.Impl.Client
         {
             Debug.Assert(clientConfiguration != null);
 
-            // TODO: Connect a socket.
+            _socket = new ClientSocket(clientConfiguration);
         }
 
         /** <inheritDoc /> */
         public void Dispose()
         {
-            throw new NotImplementedException();
+            _socket.Dispose();
         }
 
         /** <inheritDoc /> */
