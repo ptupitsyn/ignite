@@ -215,16 +215,32 @@ namespace Apache.Ignite.Core.Impl
         }
 
         /** <inheritDoc /> */
-        public event EventHandler Stopping;
+        public event EventHandler Stopping
+        {
+            add { throw new NotImplementedException(); }
+            remove { throw new NotImplementedException(); }
+        }
 
         /** <inheritDoc /> */
-        public event EventHandler Stopped;
+        public event EventHandler Stopped
+        {
+            add { throw new NotImplementedException(); }
+            remove { throw new NotImplementedException(); }
+        }
 
         /** <inheritDoc /> */
-        public event EventHandler ClientDisconnected;
+        public event EventHandler ClientDisconnected
+        {
+            add { throw new NotImplementedException(); }
+            remove { throw new NotImplementedException(); }
+        }
 
         /** <inheritDoc /> */
-        public event EventHandler<ClientReconnectEventArgs> ClientReconnected;
+        public event EventHandler<ClientReconnectEventArgs> ClientReconnected
+        {
+            add { throw new NotImplementedException(); }
+            remove { throw new NotImplementedException(); }
+        }
 
         /** <inheritDoc /> */
         public T GetPlugin<T>(string name) where T : class
