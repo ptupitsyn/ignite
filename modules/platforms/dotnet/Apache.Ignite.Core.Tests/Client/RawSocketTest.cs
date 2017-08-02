@@ -28,9 +28,9 @@ namespace Apache.Ignite.Core.Tests.Client
     using NUnit.Framework;
 
     /// <summary>
-    /// Tests the thin client mode (no JVM in process).
+    /// Tests the thin client mode with a raw socket.
     /// </summary>
-    public class ThinClientTest
+    public class RawSocketTest
     {
         /// <summary>
         /// Tests the socket handshake connection.
