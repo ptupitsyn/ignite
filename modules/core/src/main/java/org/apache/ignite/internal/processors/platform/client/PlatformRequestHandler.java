@@ -71,8 +71,12 @@ public class PlatformRequestHandler implements SqlListenerRequestHandler {
         BinaryInputStream inStream = new BinaryHeapInputStream(req0.getData());
         BinaryRawReaderEx reader = marsh.reader(inStream);
 
+        int requestId = reader.readInt();
+
         BinaryHeapOutputStream outStream = new BinaryHeapOutputStream(32);
         BinaryRawWriter writer = marsh.writer(outStream);
+
+        writer.writeInt(requestId);
 
         processCommand(reader, writer);
 
