@@ -739,8 +739,7 @@ namespace Apache.Ignite.Core
         /// <returns>Ignite instance.</returns>
         public static IIgnite GetClient(ClientConfiguration clientConfiguration)
         {
-            // TODO
-            return null;
+            return new IgniteClient(clientConfiguration);
         }
 
         /// <summary>
