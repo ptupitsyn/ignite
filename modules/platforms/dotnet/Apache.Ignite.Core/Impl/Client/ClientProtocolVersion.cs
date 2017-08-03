@@ -66,8 +66,37 @@ namespace Apache.Ignite.Core.Impl.Client
         }
 
         /// <summary>
-        /// Returns a <see cref="string" /> that represents this instance.
+        /// Returns a value indicating whether specified instance equals to current.
         /// </summary>
+        private bool Equals(ClientProtocolVersion other)
+        {
+            return _major == other._major && _minor == other._minor && _maintenance == other._maintenance;
+        }
+
+        /** <inheritdoc /> */
+        public override bool Equals(object obj)
+        {
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            return obj is ClientProtocolVersion && Equals((ClientProtocolVersion) obj);
+        }
+
+        /** <inheritdoc /> */
+        public override int GetHashCode()
+        {
+            unchecked
+            {
+                var hashCode = _major.GetHashCode();
+                hashCode = (hashCode * 397) ^ _minor.GetHashCode();
+                hashCode = (hashCode * 397) ^ _maintenance.GetHashCode();
+                return hashCode;
+            }
+        }
+
+        /** <inheritdoc /> */
         public override string ToString()
         {
             return string.Format("{0} [Major={1}, Minor={2}, Maintenance={3}]", 
