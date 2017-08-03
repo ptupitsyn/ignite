@@ -194,8 +194,14 @@ namespace Apache.Ignite.Core.Impl.Cache
         /** <inheritDoc /> */
         public TV this[TK key]
         {
-            get { throw new System.NotImplementedException(); }
-            set { throw new System.NotImplementedException(); }
+            get
+            {
+                return Get(key);
+            }
+            set
+            {
+                Put(key, value);
+            }
         }
 
         /** <inheritDoc /> */
