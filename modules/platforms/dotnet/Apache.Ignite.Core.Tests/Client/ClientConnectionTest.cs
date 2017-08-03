@@ -22,6 +22,7 @@ namespace Apache.Ignite.Core.Tests.Client
     using System.Net.Sockets;
     using Apache.Ignite.Core.Client;
     using Apache.Ignite.Core.Common;
+    using Apache.Ignite.Core.Configuration;
     using Apache.Ignite.Core.Impl.Client;
     using NUnit.Framework;
 
@@ -75,7 +76,27 @@ namespace Apache.Ignite.Core.Tests.Client
         [Category(TestUtils.CategoryIntensive)]
         public void TestCustomConfig()
         {
-            
+            var servCfg = new IgniteConfiguration(TestUtils.GetTestConfiguration())
+            {
+                SqlConnectorConfiguration = new SqlConnectorConfiguration
+                {
+                    Host = "localhost",
+                    Port = 2000,
+                    PortRange = 1
+                }
+            };
+
+            var clientCfg = new IgniteClientConfiguration
+            {
+                Host = "localhost",
+                Port = 2000
+            };
+
+            using (Ignition.Start(servCfg))
+            using (Ignition.GetClient(clientCfg))
+            {
+                // No-op.
+            }
         }
 
         /// <summary>
