@@ -34,7 +34,6 @@ namespace Apache.Ignite.Core.Tests.Client
             var cfg = new IgniteClientConfiguration();
 
             Assert.AreEqual(IgniteClientConfiguration.DefaultPort, cfg.Port);
-            Assert.AreEqual(IgniteClientConfiguration.DefaultPortRange, cfg.PortRange);
             Assert.AreEqual(IgniteClientConfiguration.DefaultSocketBufferSize, cfg.SocketReceiveBufferSize);
             Assert.AreEqual(IgniteClientConfiguration.DefaultSocketBufferSize, cfg.SocketSendBufferSize);
             Assert.AreEqual(IgniteClientConfiguration.DefaultTcpNoDelay, cfg.TcpNoDelay);

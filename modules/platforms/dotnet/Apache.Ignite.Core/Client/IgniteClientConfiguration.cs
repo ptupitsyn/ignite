@@ -18,7 +18,6 @@
 namespace Apache.Ignite.Core.Client
 {
     using System.ComponentModel;
-    using System.Net;
 
     /// <summary>
     /// Ignite thin client configuration.
@@ -33,11 +32,6 @@ namespace Apache.Ignite.Core.Client
         /// Default port.
         /// </summary>
         public const int DefaultPort = 10800;
-
-        /// <summary>
-        /// Default port range.
-        /// </summary>
-        public const int DefaultPortRange = 100;
 
         /// <summary>
         /// Default socket buffer size.
@@ -55,7 +49,6 @@ namespace Apache.Ignite.Core.Client
         public IgniteClientConfiguration()
         {
             Port = DefaultPort;
-            PortRange = DefaultPortRange;
             SocketSendBufferSize = DefaultSocketBufferSize;
             SocketReceiveBufferSize = DefaultSocketBufferSize;
             TcpNoDelay = DefaultTcpNoDelay;
@@ -71,12 +64,6 @@ namespace Apache.Ignite.Core.Client
         /// </summary>
         [DefaultValue(DefaultPort)]
         public int Port { get; set; }
-
-        /// <summary>
-        /// Gets or sets the port range.
-        /// </summary>
-        [DefaultValue(DefaultPortRange)]
-        public int PortRange { get; set; }
 
         /// <summary>
         /// Gets or sets the size of the socket send buffer. When set to 0, operating system default is used.

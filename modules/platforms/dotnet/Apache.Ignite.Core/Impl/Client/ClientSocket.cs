@@ -160,6 +160,8 @@ namespace Apache.Ignite.Core.Impl.Client
                         ReceiveBufferSize = cfg.SocketReceiveBufferSize,
                         NoDelay = cfg.TcpNoDelay
                     };
+
+                    Debug.WriteLine("Connect attempt: " + ipEndPoint.Port);
                     
                     socket.Connect(ipEndPoint);
 
@@ -171,6 +173,8 @@ namespace Apache.Ignite.Core.Impl.Client
                     {
                         errors = new List<Exception>();
                     }
+
+                    Debug.WriteLine(e);
 
                     errors.Add(e);
                 }
@@ -196,10 +200,7 @@ namespace Apache.Ignite.Core.Impl.Client
 
             foreach (var ipAddress in addressList)
             {
-                for (var port = cfg.Port; port < cfg.Port + cfg.PortRange; port++)
-                {
-                    yield return new IPEndPoint(ipAddress, port);
-                }
+                yield return new IPEndPoint(ipAddress, cfg.Port);
             }
         }
 
