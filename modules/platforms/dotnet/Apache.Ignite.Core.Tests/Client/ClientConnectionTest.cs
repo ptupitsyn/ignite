@@ -21,6 +21,8 @@ namespace Apache.Ignite.Core.Tests.Client
     using System.Linq;
     using System.Net.Sockets;
     using Apache.Ignite.Core.Client;
+    using Apache.Ignite.Core.Common;
+    using Apache.Ignite.Core.Impl.Client;
     using NUnit.Framework;
 
     /// <summary>
@@ -28,15 +30,6 @@ namespace Apache.Ignite.Core.Tests.Client
     /// </summary>
     public class ClientConnectionTest
     {
-        /// <summary>
-        /// Fixture set up.
-        /// </summary>
-        [TestFixtureSetUp]
-        public void FixtureSetUp()
-        {
-            Ignition.Start(TestUtils.GetTestConfiguration());
-        }
-
         /// <summary>
         /// Fixture tear down.
         /// </summary>
@@ -47,15 +40,12 @@ namespace Apache.Ignite.Core.Tests.Client
         }
 
         /// <summary>
-        /// Tests that incorrect port yields connection refused error.
+        /// Tests that missing server yields connection refused error.
         /// </summary>
         [Test]
-        public void TestIncorrectPortConnectionRefused()
+        public void TestNoServerConnectionRefused()
         {
-            // Try incorrect port.
-            var cfg = new IgniteClientConfiguration {Port = 65000};
-
-            var ex = Assert.Throws<AggregateException>(() => Ignition.GetClient(cfg));
+            var ex = Assert.Throws<AggregateException>(() => Ignition.GetClient());
             var socketEx = ex.InnerExceptions.OfType<SocketException>().First();
             Assert.AreEqual(SocketError.ConnectionRefused, socketEx.SocketErrorCode);
         }
@@ -66,16 +56,43 @@ namespace Apache.Ignite.Core.Tests.Client
         [Test]
         public void TestMultipleClients()
         {
-            
+            using (Ignition.Start(TestUtils.GetTestConfiguration()))
+            {
+                var client1 = Ignition.GetClient();
+                var client2 = Ignition.GetClient();
+                var client3 = Ignition.GetClient();
+
+                client1.Dispose();
+                client2.Dispose();
+                client3.Dispose();
+            }
         }
 
         /// <summary>
         /// Tests custom connector and client configuration.
         /// </summary>
         [Test]
+        [Category(TestUtils.CategoryIntensive)]
         public void TestCustomConfig()
         {
             
+        }
+
+        /// <summary>
+        /// Tests the incorrect protocol version error.
+        /// </summary>
+        [Test]
+        [Category(TestUtils.CategoryIntensive)]
+        public void TestIncorrectProtocolVersionError()
+        {
+            using (Ignition.Start(TestUtils.GetTestConfiguration()))
+            {
+                // ReSharper disable once ObjectCreationAsStatement
+                var ex = Assert.Throws<IgniteException>(() => new ClientSocket(new IgniteClientConfiguration(),
+                    new ClientProtocolVersion(-1, -1, -1)));
+
+                Assert.AreEqual("", ex.Message);
+            }
         }
     }
 }
