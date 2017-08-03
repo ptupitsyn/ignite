@@ -17,6 +17,7 @@
 
 namespace Apache.Ignite.Core.Tests.Client
 {
+    using System.Collections.Generic;
     using NUnit.Framework;
 
     /// <summary>
@@ -37,7 +38,13 @@ namespace Apache.Ignite.Core.Tests.Client
                 servCache[1] = "foo";
 
                 var clientCache = client.GetCache<int, string>("cache");
+
+                // Existing key.
+                Assert.AreEqual("foo", clientCache.Get(1));
                 Assert.AreEqual("foo", clientCache[1]);
+
+                // Missing key.
+                Assert.Throws<KeyNotFoundException>(() => clientCache.Get(2));
             }
         }
     }

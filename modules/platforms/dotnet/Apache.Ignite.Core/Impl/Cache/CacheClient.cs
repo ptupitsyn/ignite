@@ -31,6 +31,7 @@ namespace Apache.Ignite.Core.Impl.Cache
     using Apache.Ignite.Core.Cluster;
     using Apache.Ignite.Core.Impl.Binary;
     using Apache.Ignite.Core.Impl.Client;
+    using Apache.Ignite.Core.Impl.Common;
 
     /// <summary>
     /// Client cache implementation.
@@ -248,6 +249,9 @@ namespace Apache.Ignite.Core.Impl.Cache
         /** <inheritDoc /> */
         public void Put(TK key, TV val)
         {
+            IgniteArgumentCheck.NotNull(key, "key");
+            IgniteArgumentCheck.NotNull(val, "val");
+
             throw new NotImplementedException();
         }
 
