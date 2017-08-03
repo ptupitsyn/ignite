@@ -44,6 +44,9 @@ namespace Apache.Ignite.Core.Impl.Cache
         /** Cache id. */
         private readonly int _id;
 
+        /** Marshaller */
+        private readonly Marshaller _marsh = BinaryUtils.Marshaller;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="CacheClient{TK, TV}" /> class.
         /// </summary>

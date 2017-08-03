@@ -22,6 +22,7 @@ namespace Apache.Ignite.Core.Impl.Client
     using System.Diagnostics;
     using System.Net;
     using System.Net.Sockets;
+    using System.Threading;
     using Apache.Ignite.Core.Binary;
     using Apache.Ignite.Core.Client;
     using Apache.Ignite.Core.Common;
@@ -49,7 +50,7 @@ namespace Apache.Ignite.Core.Impl.Client
         private readonly object _syncRoot = new object();
 
         /** */
-        private long _requestId = 0;
+        private long _requestId;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ClientSocket" /> class.
@@ -70,7 +71,13 @@ namespace Apache.Ignite.Core.Impl.Client
         /// </summary>
         public T DoOutInOp<T>(short opId, Action<IBinaryRawWriter> writeAction, Func<IBinaryRawReader, T> readAction)
         {
-            return default(T);
+            var requestId = Interlocked.Increment(ref _requestId);
+
+            lock (_syncRoot)
+            {
+
+                return default(T);
+            }
         }
 
         /// <summary>
@@ -115,7 +122,7 @@ namespace Apache.Ignite.Core.Impl.Client
         /// <summary>
         /// Sends the request and receives a response.
         /// </summary>
-        private static byte[] SendReceive(Socket sock, Action<BinaryHeapStream> writeAction, int bufSize = 128)
+        private static byte[] SendReceive(Socket sock, Action<IBinaryStream> writeAction, int bufSize = 128)
         {
             Send(sock, writeAction, bufSize);
 
