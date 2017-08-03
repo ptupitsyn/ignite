@@ -91,7 +91,8 @@ namespace Apache.Ignite.Core.Tests.Client
                 var ex = Assert.Throws<IgniteException>(() => new ClientSocket(new IgniteClientConfiguration(),
                     new ClientProtocolVersion(-1, -1, -1)));
 
-                Assert.AreEqual("", ex.Message);
+                Assert.AreEqual("Client handhsake failed: 'Unsupported version.'. " +
+                                "Client version: -1.-1.-1. Server version: 2.1.0", ex.Message);
             }
         }
     }

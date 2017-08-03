@@ -99,8 +99,7 @@ namespace Apache.Ignite.Core.Impl.Client
         /** <inheritdoc /> */
         public override string ToString()
         {
-            return string.Format("{0} [Major={1}, Minor={2}, Maintenance={3}]", 
-                GetType().Name, _major, _minor, _maintenance);
+            return string.Format("{0}.{1}.{2}", Major, Minor, Maintenance);
         }
     }
 }
