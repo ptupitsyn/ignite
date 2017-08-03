@@ -50,7 +50,7 @@ namespace Apache.Ignite.Core.Impl.Client
         private readonly object _syncRoot = new object();
 
         /** */
-        private long _requestId;
+        private int _requestId;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ClientSocket" /> class.
@@ -76,6 +76,30 @@ namespace Apache.Ignite.Core.Impl.Client
 
             lock (_syncRoot)
             {
+                var resBytes = SendReceive(_socket, stream =>
+                {
+                    stream.WriteShort((short) opId);
+                    stream.WriteByte(0); // Flags (compression, etc)
+                    stream.WriteInt(requestId);
+
+                    if (writeAction != null)
+                    {
+                        writeAction(marsh.StartMarshal(stream));
+                    }
+                });
+
+                using (var stream = new BinaryHeapStream(resBytes))
+                {
+                    var resRequestId = stream.ReadInt();
+                    Debug.Assert(requestId == resRequestId);
+
+                    stream.ReadByte(); // Flags
+
+                    if (readAction != null)
+                    {
+                        return readAction(marsh.StartUnmarshal(stream));
+                    }
+                }
 
                 return default(T);
             }
