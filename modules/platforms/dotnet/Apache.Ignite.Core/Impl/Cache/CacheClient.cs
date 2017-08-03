@@ -597,19 +597,6 @@ namespace Apache.Ignite.Core.Impl.Cache
         /// Does the out in op.
         /// </summary>
         private T DoOutInOp<T>(ClientOp opId, Action<IBinaryRawWriter> writeAction,
-            Func<IBinaryRawReader, T> readFunc)
-        {
-            var reader = readFunc != null
-                ? stream => readFunc(_marsh.StartUnmarshal(stream))
-                : (Func<IBinaryStream, T>) null;
-
-            return DoOutInOp(opId, writeAction, reader);
-        }
-
-        /// <summary>
-        /// Does the out in op.
-        /// </summary>
-        private T DoOutInOp<T>(ClientOp opId, Action<IBinaryRawWriter> writeAction,
             Func<IBinaryStream, T> readFunc)
         {
             return _socket.DoOutInOp(opId, stream =>
