@@ -27,6 +27,7 @@ namespace Apache.Ignite.Core.Impl.Cache
     using Apache.Ignite.Core.Cache.Query;
     using Apache.Ignite.Core.Cache.Query.Continuous;
     using Apache.Ignite.Core.Cluster;
+    using Apache.Ignite.Core.Impl.Binary;
     using Apache.Ignite.Core.Impl.Client;
 
     /// <summary>
@@ -38,7 +39,10 @@ namespace Apache.Ignite.Core.Impl.Cache
         private readonly ClientSocket _socket;
 
         /** Cache name. */
-        private string _name;
+        private readonly string _name;
+
+        /** Cache id. */
+        private readonly int _id;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="CacheClient{TK, TV}" /> class.
@@ -52,6 +56,7 @@ namespace Apache.Ignite.Core.Impl.Cache
 
             _socket = socket;
             _name = name;
+            _id = BinaryUtils.GetCacheId(name);
         }
 
         /** <inheritDoc /> */
@@ -69,7 +74,7 @@ namespace Apache.Ignite.Core.Impl.Cache
         /** <inheritDoc /> */
         public string Name
         {
-            get { throw new System.NotImplementedException(); }
+            get { return _name; }
         }
 
         /** <inheritDoc /> */
