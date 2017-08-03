@@ -22,6 +22,7 @@ namespace Apache.Ignite.Core.Impl.Client
     using System.Diagnostics;
     using System.Net;
     using System.Net.Sockets;
+    using Apache.Ignite.Core.Binary;
     using Apache.Ignite.Core.Client;
     using Apache.Ignite.Core.Common;
     using Apache.Ignite.Core.Impl.Binary;
@@ -44,6 +45,12 @@ namespace Apache.Ignite.Core.Impl.Client
         /** Unerlying socket. */
         private readonly Socket _socket;
 
+        /** */
+        private readonly object _syncRoot = new object();
+
+        /** */
+        private long _requestId = 0;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="ClientSocket" /> class.
         /// </summary>
@@ -56,6 +63,14 @@ namespace Apache.Ignite.Core.Impl.Client
             _socket = Connect(clientConfiguration);
 
             Handshake(_socket, version ?? CurrentProtocolVersion);
+        }
+
+        /// <summary>
+        /// Performs a send-receive operation.
+        /// </summary>
+        public T DoOutInOp<T>(short opId, Action<IBinaryRawWriter> writeAction, Func<IBinaryRawReader, T> readAction)
+        {
+            return default(T);
         }
 
         /// <summary>
