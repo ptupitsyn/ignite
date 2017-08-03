@@ -69,7 +69,8 @@ namespace Apache.Ignite.Core.Impl.Client
         /// <summary>
         /// Performs a send-receive operation.
         /// </summary>
-        public T DoOutInOp<T>(short opId, Action<IBinaryRawWriter> writeAction, Func<IBinaryRawReader, T> readAction)
+        public T DoOutInOp<T>(ClientOp opId, Marshaller marsh, Action<IBinaryRawWriter> writeAction, 
+            Func<IBinaryRawReader, T> readAction)
         {
             var requestId = Interlocked.Increment(ref _requestId);
 

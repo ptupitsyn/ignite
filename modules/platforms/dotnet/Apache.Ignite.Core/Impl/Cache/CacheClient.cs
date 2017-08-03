@@ -17,10 +17,12 @@
 
 namespace Apache.Ignite.Core.Impl.Cache
 {
+    using System;
     using System.Collections;
     using System.Collections.Generic;
     using System.Diagnostics;
     using System.Threading.Tasks;
+    using Apache.Ignite.Core.Binary;
     using Apache.Ignite.Core.Cache;
     using Apache.Ignite.Core.Cache.Configuration;
     using Apache.Ignite.Core.Cache.Expiry;
@@ -583,6 +585,15 @@ namespace Apache.Ignite.Core.Impl.Cache
         public ICollection<int> GetLostPartitions()
         {
             throw new System.NotImplementedException();
+        }
+
+        /// <summary>
+        /// Does the out in op.
+        /// </summary>
+        private T DoOutInOp<T>(ClientOp opId, Action<IBinaryRawWriter> writeAction,
+            Func<IBinaryRawReader, T> readAction)
+        {
+            return _socket.DoOutInOp(opId, _marsh, writeAction, readAction);
         }
     }
 }
