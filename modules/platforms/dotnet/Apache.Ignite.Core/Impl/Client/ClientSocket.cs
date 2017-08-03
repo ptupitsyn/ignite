@@ -45,32 +45,33 @@ namespace Apache.Ignite.Core.Impl.Client
         private readonly Socket _socket;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="ClientSocket"/> class.
+        /// Initializes a new instance of the <see cref="ClientSocket" /> class.
         /// </summary>
         /// <param name="clientConfiguration">The client configuration.</param>
-        public ClientSocket(IgniteClientConfiguration clientConfiguration)
+        /// <param name="version">Protocol version.</param>
+        public ClientSocket(IgniteClientConfiguration clientConfiguration, ClientProtocolVersion? version = null)
         {
             Debug.Assert(clientConfiguration != null);
 
             _socket = Connect(clientConfiguration);
 
-            Handshake();
+            Handshake(_socket, version ?? CurrentProtocolVersion);
         }
 
         /// <summary>
         /// Performs client protocol handshake.
         /// </summary>
-        private void Handshake()
+        private static void Handshake(Socket sock, ClientProtocolVersion version)
         {
-            var res = SendReceive(_socket, stream =>
+            var res = SendReceive(sock, stream =>
             {
                 // Handshake.
                 stream.WriteByte(OpHandshake);
 
                 // Protocol version.
-                stream.WriteShort(CurrentProtocolVersion.Major);
-                stream.WriteShort(CurrentProtocolVersion.Major);
-                stream.WriteShort(CurrentProtocolVersion.Major);
+                stream.WriteShort(version.Major);
+                stream.WriteShort(version.Minor);
+                stream.WriteShort(version.Maintenance);
 
                 // Client type: platform.
                 stream.WriteByte(ClientType);
