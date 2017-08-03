@@ -24,6 +24,7 @@ namespace Apache.Ignite.Core.Impl.Client
     using System.Net.Sockets;
     using Apache.Ignite.Core.Client;
     using Apache.Ignite.Core.Common;
+    using Apache.Ignite.Core.Impl.Binary.IO;
 
     /// <summary>
     /// Wrapper over framework socket for Ignite thin client operations.
@@ -42,6 +43,52 @@ namespace Apache.Ignite.Core.Impl.Client
             Debug.Assert(clientConfiguration != null);
 
             _socket = Connect(clientConfiguration);
+
+            Handshake();
+        }
+
+        /// <summary>
+        /// Performs client protocol handshake.
+        /// </summary>
+        private void Handshake()
+        {
+            
+        }
+
+        /// <summary>
+        /// Receives the message with 4-byte length header.
+        /// </summary>
+        private static byte[] Receive(Socket sock)
+        {
+            var buf = new byte[4];
+            sock.Receive(buf);
+
+            using (var stream = new BinaryHeapStream(buf))
+            {
+                var size = stream.ReadInt();
+                buf = new byte[size];
+                sock.Receive(buf);
+                return buf;
+            }
+        }
+
+        /// <summary>
+        /// Sends the request.
+        /// </summary>
+        private static void Send(Socket sock, Action<BinaryHeapStream> writeAction, int bufSize = 128)
+        {
+            using (var stream = new BinaryHeapStream(bufSize))
+            {
+                stream.WriteInt(0);  // Reserve message size.
+
+                writeAction(stream);
+
+                stream.WriteInt(0, stream.Position - 4);  // Write message size.
+
+                var sent = sock.Send(stream.GetArray(), stream.Position, SocketFlags.None);
+
+                Debug.Assert(sent == stream.Position);
+            }
         }
 
         /// <summary>
