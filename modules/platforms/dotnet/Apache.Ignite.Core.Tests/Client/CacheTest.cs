@@ -30,11 +30,14 @@ namespace Apache.Ignite.Core.Tests.Client
         [Test]
         public void TestPutGetPrimitives()
         {
+            using (var server = Ignition.Start(TestUtils.GetTestConfiguration()))
             using (var client = Ignition.GetClient())
             {
-                var cache = client.GetCache<int, string>("cache");
+                var servCache = server.CreateCache<int, string>("cache");
+                servCache[1] = "foo";
 
-                Assert.AreEqual("foo", cache[1]);
+                var clientCache = client.GetCache<int, string>("cache");
+                Assert.AreEqual("foo", clientCache[1]);
             }
         }
     }
