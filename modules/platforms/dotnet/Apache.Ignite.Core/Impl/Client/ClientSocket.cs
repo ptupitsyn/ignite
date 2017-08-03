@@ -24,6 +24,7 @@ namespace Apache.Ignite.Core.Impl.Client
     using System.Net.Sockets;
     using Apache.Ignite.Core.Client;
     using Apache.Ignite.Core.Common;
+    using Apache.Ignite.Core.Impl.Binary;
     using Apache.Ignite.Core.Impl.Binary.IO;
 
     /// <summary>
@@ -31,6 +32,15 @@ namespace Apache.Ignite.Core.Impl.Client
     /// </summary>
     internal class ClientSocket : IDisposable
     {
+        /** Current version. */
+        private static readonly ClientProtocolVersion CurrentProtocolVersion = new ClientProtocolVersion(2, 1, 0);
+
+        /** Handshake opcode. */
+        private const byte OpHandshake = 1;
+
+        /** Client type code. */
+        private const byte ClientType = 2;
+
         /** Unerlying socket. */
         private readonly Socket _socket;
 
@@ -52,7 +62,48 @@ namespace Apache.Ignite.Core.Impl.Client
         /// </summary>
         private void Handshake()
         {
-            
+            var res = SendReceive(_socket, stream =>
+            {
+                // Handshake.
+                stream.WriteByte(OpHandshake);
+
+                // Protocol version.
+                stream.WriteShort(CurrentProtocolVersion.Major);
+                stream.WriteShort(CurrentProtocolVersion.Major);
+                stream.WriteShort(CurrentProtocolVersion.Major);
+
+                // Client type: platform.
+                stream.WriteByte(ClientType);
+            }, 20);
+
+            using (var stream = new BinaryHeapStream(res))
+            {
+                var success = stream.ReadBool();
+
+                if (success)
+                {
+                    return;
+                }
+
+                var serverVersion =
+                    new ClientProtocolVersion(stream.ReadShort(), stream.ReadShort(), stream.ReadShort());
+
+                var errMsg = BinaryUtils.Marshaller.Unmarshal<string>(stream);
+
+                throw new IgniteException(string.Format(
+                    "Client handhsake failed: {0}. Client version: {1}. Server version: {2}",
+                    errMsg, CurrentProtocolVersion, serverVersion));
+            }
+        }
+
+        /// <summary>
+        /// Sends the request and receives a response.
+        /// </summary>
+        private static byte[] SendReceive(Socket sock, Action<BinaryHeapStream> writeAction, int bufSize = 128)
+        {
+            Send(sock, writeAction, bufSize);
+
+            return Receive(sock);
         }
 
         /// <summary>
