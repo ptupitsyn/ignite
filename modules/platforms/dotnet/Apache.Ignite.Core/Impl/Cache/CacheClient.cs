@@ -21,6 +21,7 @@ namespace Apache.Ignite.Core.Impl.Cache
     using System.Collections;
     using System.Collections.Generic;
     using System.Diagnostics;
+    using System.IO;
     using System.Threading.Tasks;
     using Apache.Ignite.Core.Binary;
     using Apache.Ignite.Core.Cache;
@@ -30,6 +31,7 @@ namespace Apache.Ignite.Core.Impl.Cache
     using Apache.Ignite.Core.Cache.Query.Continuous;
     using Apache.Ignite.Core.Cluster;
     using Apache.Ignite.Core.Impl.Binary;
+    using Apache.Ignite.Core.Impl.Binary.IO;
     using Apache.Ignite.Core.Impl.Client;
     using Apache.Ignite.Core.Impl.Common;
 
@@ -213,7 +215,7 @@ namespace Apache.Ignite.Core.Impl.Cache
         /** <inheritDoc /> */
         public TV Get(TK key)
         {
-            return DoOutInOp(ClientOp.CacheGet, w => w.WriteObject(key), r => r.ReadObject<TV>());
+            return DoOutInOp(ClientOp.CacheGet, w => w.WriteObject(key), UnmarshalNotNull<TV>);
         }
 
         /** <inheritDoc /> */
@@ -595,18 +597,56 @@ namespace Apache.Ignite.Core.Impl.Cache
         /// Does the out in op.
         /// </summary>
         private T DoOutInOp<T>(ClientOp opId, Action<IBinaryRawWriter> writeAction,
-            Func<IBinaryRawReader, T> readAction)
+            Func<IBinaryRawReader, T> readFunc)
         {
-            return _socket.DoOutInOp(opId, _marsh, w =>
+            var reader = readFunc != null
+                ? stream => readFunc(_marsh.StartUnmarshal(stream))
+                : (Func<IBinaryStream, T>) null;
+
+            return DoOutInOp(opId, writeAction, reader);
+        }
+
+        /// <summary>
+        /// Does the out in op.
+        /// </summary>
+        private T DoOutInOp<T>(ClientOp opId, Action<IBinaryRawWriter> writeAction,
+            Func<IBinaryStream, T> readFunc)
+        {
+            return _socket.DoOutInOp(opId, stream =>
             {
-                w.WriteInt(_id);
-                w.WriteByte(0);  // Flags (skipStore, etc).
+                stream.WriteInt(_id);
+                stream.WriteByte(0);  // Flags (skipStore, etc).
 
                 if (writeAction != null)
                 {
-                    writeAction(w);
+                    writeAction(_marsh.StartMarshal(stream));
                 }
-            }, readAction);
+            }, readFunc);
+        }
+
+        /// <summary>
+        /// Unmarshals the value, throwing an exception for nulls.
+        /// </summary>
+        private T UnmarshalNotNull<T>(IBinaryStream stream)
+        {
+            var hdr = stream.ReadByte();
+
+            if (hdr == BinaryUtils.HdrNull)
+            {
+                throw GetKeyNotFoundException();
+            }
+
+            stream.Seek(-1, SeekOrigin.Current);
+
+            return _marsh.Unmarshal<T>(stream);
+        }
+
+        /// <summary>
+        /// Gets the key not found exception.
+        /// </summary>
+        private static KeyNotFoundException GetKeyNotFoundException()
+        {
+            return new KeyNotFoundException("The given key was not present in the cache.");
         }
     }
 }

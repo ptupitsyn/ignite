@@ -23,7 +23,6 @@ namespace Apache.Ignite.Core.Impl.Client
     using System.Net;
     using System.Net.Sockets;
     using System.Threading;
-    using Apache.Ignite.Core.Binary;
     using Apache.Ignite.Core.Client;
     using Apache.Ignite.Core.Common;
     using Apache.Ignite.Core.Impl.Binary;
@@ -69,8 +68,8 @@ namespace Apache.Ignite.Core.Impl.Client
         /// <summary>
         /// Performs a send-receive operation.
         /// </summary>
-        public T DoOutInOp<T>(ClientOp opId, Marshaller marsh, Action<IBinaryRawWriter> writeAction, 
-            Func<IBinaryRawReader, T> readAction)
+        public T DoOutInOp<T>(ClientOp opId, Action<IBinaryStream> writeAction, 
+            Func<IBinaryStream, T> readFunc)
         {
             var requestId = Interlocked.Increment(ref _requestId);
 
@@ -84,7 +83,7 @@ namespace Apache.Ignite.Core.Impl.Client
 
                     if (writeAction != null)
                     {
-                        writeAction(marsh.StartMarshal(stream));
+                        writeAction(stream);
                     }
                 });
 
@@ -95,9 +94,9 @@ namespace Apache.Ignite.Core.Impl.Client
 
                     stream.ReadByte(); // Flags
 
-                    if (readAction != null)
+                    if (readFunc != null)
                     {
-                        return readAction(marsh.StartUnmarshal(stream));
+                        return readFunc(stream);
                     }
                 }
 
