@@ -19,6 +19,7 @@ namespace Apache.Ignite.Core.Impl.Cache
 {
     using System.Collections;
     using System.Collections.Generic;
+    using System.Diagnostics;
     using System.Threading.Tasks;
     using Apache.Ignite.Core.Cache;
     using Apache.Ignite.Core.Cache.Configuration;
@@ -26,12 +27,34 @@ namespace Apache.Ignite.Core.Impl.Cache
     using Apache.Ignite.Core.Cache.Query;
     using Apache.Ignite.Core.Cache.Query.Continuous;
     using Apache.Ignite.Core.Cluster;
+    using Apache.Ignite.Core.Impl.Client;
 
     /// <summary>
     /// Client cache implementation.
     /// </summary>
     internal class CacheClient<TK, TV> : ICache<TK, TV>
     {
+        /** Socket. */
+        private readonly ClientSocket _socket;
+
+        /** Cache name. */
+        private string _name;
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="CacheClient{TK, TV}" /> class.
+        /// </summary>
+        /// <param name="socket">The socket.</param>
+        /// <param name="name">Cache name.</param>
+        public CacheClient(ClientSocket socket, string name)
+        {
+            Debug.Assert(socket != null);
+            Debug.Assert(name != null);
+
+            _socket = socket;
+            _name = name;
+        }
+
+        /** <inheritDoc /> */
         public IEnumerator<ICacheEntry<TK, TV>> GetEnumerator()
         {
             throw new System.NotImplementedException();

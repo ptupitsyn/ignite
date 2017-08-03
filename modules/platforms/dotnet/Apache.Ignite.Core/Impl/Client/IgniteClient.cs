@@ -29,6 +29,8 @@ namespace Apache.Ignite.Core.Impl.Client
     using Apache.Ignite.Core.Datastream;
     using Apache.Ignite.Core.DataStructures;
     using Apache.Ignite.Core.Events;
+    using Apache.Ignite.Core.Impl.Cache;
+    using Apache.Ignite.Core.Impl.Common;
     using Apache.Ignite.Core.Lifecycle;
     using Apache.Ignite.Core.Log;
     using Apache.Ignite.Core.Messaging;
@@ -82,7 +84,9 @@ namespace Apache.Ignite.Core.Impl.Client
         /** <inheritDoc /> */
         public ICache<TK, TV> GetCache<TK, TV>(string name)
         {
-            throw new NotImplementedException();
+            IgniteArgumentCheck.NotNull(name, "name");
+
+            return new CacheClient<TK, TV>(_socket, name);
         }
 
         /** <inheritDoc /> */
