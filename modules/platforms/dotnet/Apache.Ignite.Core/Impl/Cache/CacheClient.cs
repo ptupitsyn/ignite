@@ -593,7 +593,16 @@ namespace Apache.Ignite.Core.Impl.Cache
         private T DoOutInOp<T>(ClientOp opId, Action<IBinaryRawWriter> writeAction,
             Func<IBinaryRawReader, T> readAction)
         {
-            return _socket.DoOutInOp(opId, _marsh, writeAction, readAction);
+            return _socket.DoOutInOp(opId, _marsh, w =>
+            {
+                w.WriteInt(_id);
+                w.WriteByte(0);  // Flags (skipStore, etc).
+
+                if (writeAction != null)
+                {
+                    writeAction(w);
+                }
+            }, readAction);
         }
     }
 }
