@@ -161,8 +161,6 @@ namespace Apache.Ignite.Core.Impl.Client
                         NoDelay = cfg.TcpNoDelay
                     };
 
-                    Debug.WriteLine("Connect attempt: " + ipEndPoint.Port);
-                    
                     socket.Connect(ipEndPoint);
 
                     return socket;
@@ -173,8 +171,6 @@ namespace Apache.Ignite.Core.Impl.Client
                     {
                         errors = new List<Exception>();
                     }
-
-                    Debug.WriteLine(e);
 
                     errors.Add(e);
                 }

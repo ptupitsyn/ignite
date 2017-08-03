@@ -18,6 +18,8 @@
 namespace Apache.Ignite.Core.Tests.Client
 {
     using System;
+    using System.Linq;
+    using System.Net.Sockets;
     using Apache.Ignite.Core.Client;
     using NUnit.Framework;
 
@@ -45,32 +47,24 @@ namespace Apache.Ignite.Core.Tests.Client
         }
 
         /// <summary>
-        /// Tests the server not found error.
+        /// Tests that incorrect port yields connection refused error.
         /// </summary>
         [Test]
-        public void TestServerNotFoundError()
+        public void TestIncorrectPortConnectionRefused()
         {
             // Try incorrect port.
             var cfg = new IgniteClientConfiguration {Port = 65000};
 
             var ex = Assert.Throws<AggregateException>(() => Ignition.GetClient(cfg));
-            Assert.AreEqual(1, ex.InnerExceptions);
+            var socketEx = ex.InnerExceptions.OfType<SocketException>().First();
+            Assert.AreEqual(SocketError.ConnectionRefused, socketEx.SocketErrorCode);
         }
 
         /// <summary>
-        /// Tests that multiple clients can connect to one server while port range allows that.
+        /// Tests that multiple clients can connect to one server.
         /// </summary>
         [Test]
-        public void TestMultipleClientsPortRange()
-        {
-            
-        }
-
-        /// <summary>
-        /// Tests multiple clients on same port.
-        /// </summary>
-        [Test]
-        public void TestMultipleClientsSamePort()
+        public void TestMultipleClients()
         {
             
         }
