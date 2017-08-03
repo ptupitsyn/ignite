@@ -17,10 +17,71 @@
 
 namespace Apache.Ignite.Core.Tests.Client
 {
+    using System;
+    using Apache.Ignite.Core.Client;
+    using NUnit.Framework;
+
     /// <summary>
     /// Tests client connection: port ranges, version checks, etc.
     /// </summary>
     public class ClientConnectionTest
     {
+        /// <summary>
+        /// Fixture set up.
+        /// </summary>
+        [TestFixtureSetUp]
+        public void FixtureSetUp()
+        {
+            Ignition.Start(TestUtils.GetTestConfiguration());
+        }
+
+        /// <summary>
+        /// Fixture tear down.
+        /// </summary>
+        [TestFixtureTearDown]
+        public void FixtureTearDown()
+        {
+            Ignition.StopAll(true);
+        }
+
+        /// <summary>
+        /// Tests the server not found error.
+        /// </summary>
+        [Test]
+        public void TestServerNotFoundError()
+        {
+            // Try incorrect port.
+            var cfg = new IgniteClientConfiguration {Port = 65000};
+
+            var ex = Assert.Throws<AggregateException>(() => Ignition.GetClient(cfg));
+            Assert.AreEqual(1, ex.InnerExceptions);
+        }
+
+        /// <summary>
+        /// Tests that multiple clients can connect to one server while port range allows that.
+        /// </summary>
+        [Test]
+        public void TestMultipleClientsPortRange()
+        {
+            
+        }
+
+        /// <summary>
+        /// Tests multiple clients on same port.
+        /// </summary>
+        [Test]
+        public void TestMultipleClientsSamePort()
+        {
+            
+        }
+
+        /// <summary>
+        /// Tests custom connector and client configuration.
+        /// </summary>
+        [Test]
+        public void TestCustomConfig()
+        {
+            
+        }
     }
 }
