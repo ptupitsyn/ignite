@@ -76,6 +76,7 @@ namespace Apache.Ignite.Core.Tests.Client
         /// Tests client get in multiple threads with a single client.
         /// </summary>
         [Test]
+        [Category(TestUtils.CategoryIntensive)]
         public void TestGetMultithreadedSingleClient()
         {
             GetCache().Put(1, "foo");
@@ -93,6 +94,7 @@ namespace Apache.Ignite.Core.Tests.Client
         /// Tests client get in multiple threads with multiple clients.
         /// </summary>
         [Test]
+        [Category(TestUtils.CategoryIntensive)]
         public void TestGetMultithreadedMultiClient()
         {
             GetCache().Put(1, "foo");
