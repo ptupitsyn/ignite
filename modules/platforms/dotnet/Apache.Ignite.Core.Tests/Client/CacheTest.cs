@@ -18,7 +18,10 @@
 namespace Apache.Ignite.Core.Tests.Client
 {
     using System;
+    using System.Collections.Concurrent;
     using System.Collections.Generic;
+    using System.Linq;
+    using System.Threading;
     using Apache.Ignite.Core.Cache;
     using NUnit.Framework;
 
@@ -70,10 +73,10 @@ namespace Apache.Ignite.Core.Tests.Client
         }
 
         /// <summary>
-        /// Tests client get in multiple threads.
+        /// Tests client get in multiple threads with a single client.
         /// </summary>
         [Test]
-        public void TestGetMultithreaded()
+        public void TestGetMultithreadedSingleClient()
         {
             GetCache().Put(1, "foo");
 
@@ -84,6 +87,30 @@ namespace Apache.Ignite.Core.Tests.Client
                 TestUtils.RunMultiThreaded(() => Assert.AreEqual("foo", clientCache.Get(1)),
                     Environment.ProcessorCount, 5);
             }
+        }
+
+        /// <summary>
+        /// Tests client get in multiple threads with multiple clients.
+        /// </summary>
+        [Test]
+        public void TestGetMultithreadedMultiClient()
+        {
+            GetCache().Put(1, "foo");
+
+            // One client per thread.
+            ConcurrentDictionary<int, IIgnite> clients = new ConcurrentDictionary<int, IIgnite>();
+
+            TestUtils.RunMultiThreaded(() =>
+                {
+                    var client = clients.GetOrAdd(Thread.CurrentThread.ManagedThreadId, _ => Ignition.GetClient());
+
+                    var clientCache = client.GetCache<int, string>(CacheName);
+
+                    Assert.AreEqual("foo", clientCache.Get(1));
+                },
+                Environment.ProcessorCount, 5);
+
+            clients.ToList().ForEach(x => x.Value.Dispose());
         }
 
         /// <summary>
