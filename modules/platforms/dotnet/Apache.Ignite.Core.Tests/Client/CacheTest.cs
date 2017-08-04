@@ -17,7 +17,9 @@
 
 namespace Apache.Ignite.Core.Tests.Client
 {
+    using System;
     using System.Collections.Generic;
+    using Apache.Ignite.Core.Cache;
     using NUnit.Framework;
 
     /// <summary>
@@ -25,19 +27,38 @@ namespace Apache.Ignite.Core.Tests.Client
     /// </summary>
     public class CacheTest
     {
+        /** Cache name. */
+        private const string CacheName = "cache";
+
+        /// <summary>
+        /// Fixture tear down.
+        /// </summary>
+        [TestFixtureSetUp]
+        public void FixtureSetUp()
+        {
+            Ignition.Start(TestUtils.GetTestConfiguration());
+        }
+
+        /// <summary>
+        /// Fixture tear down.
+        /// </summary>
+        [TestFixtureTearDown]
+        public void FixtureTearDown()
+        {
+            Ignition.StopAll(true);
+        }
+
         /// <summary>
         /// Tests the cache put / get with primitive data types.
         /// </summary>
         [Test]
         public void TestPutGetPrimitives()
         {
-            using (var server = Ignition.Start(TestUtils.GetTestConfiguration()))
             using (var client = Ignition.GetClient())
             {
-                var servCache = server.CreateCache<int, string>("cache");
-                servCache[1] = "foo";
+                GetCache().Put(1, "foo");
 
-                var clientCache = client.GetCache<int, string>("cache");
+                var clientCache = client.GetCache<int, string>(CacheName);
 
                 // Existing key.
                 Assert.AreEqual("foo", clientCache.Get(1));
@@ -46,6 +67,31 @@ namespace Apache.Ignite.Core.Tests.Client
                 // Missing key.
                 Assert.Throws<KeyNotFoundException>(() => clientCache.Get(2));
             }
+        }
+
+        /// <summary>
+        /// Tests client get in multiple threads.
+        /// </summary>
+        [Test]
+        public void TestGetMultithreaded()
+        {
+            GetCache().Put(1, "foo");
+
+            using (var client = Ignition.GetClient())
+            {
+                var clientCache = client.GetCache<int, string>(CacheName);
+
+                TestUtils.RunMultiThreaded(() => Assert.AreEqual("foo", clientCache.Get(1)),
+                    Environment.ProcessorCount, 5);
+            }
+        }
+
+        /// <summary>
+        /// Gets the cache.
+        /// </summary>
+        private static ICache<int, string> GetCache()
+        {
+            return Ignition.GetIgnite().GetOrCreateCache<int, string>(CacheName);
         }
     }
 }
