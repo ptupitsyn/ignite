@@ -46,9 +46,6 @@ namespace Apache.Ignite.Core.Impl.Client
         private readonly Socket _socket;
 
         /** */
-        private readonly object _syncRoot = new object();
-
-        /** */
         private int _requestId;
 
         /// <summary>
@@ -68,40 +65,37 @@ namespace Apache.Ignite.Core.Impl.Client
         /// <summary>
         /// Performs a send-receive operation.
         /// </summary>
-        public T DoOutInOp<T>(ClientOp opId, Action<IBinaryStream> writeAction, 
+        public T DoOutInOp<T>(ClientOp opId, Action<IBinaryStream> writeAction,
             Func<IBinaryStream, T> readFunc)
         {
             var requestId = Interlocked.Increment(ref _requestId);
 
-            lock (_syncRoot)
+            var resBytes = SendReceive(_socket, stream =>
             {
-                var resBytes = SendReceive(_socket, stream =>
+                stream.WriteShort((short) opId);
+                stream.WriteByte(0); // Flags (compression, etc)
+                stream.WriteInt(requestId);
+
+                if (writeAction != null)
                 {
-                    stream.WriteShort((short) opId);
-                    stream.WriteByte(0); // Flags (compression, etc)
-                    stream.WriteInt(requestId);
-
-                    if (writeAction != null)
-                    {
-                        writeAction(stream);
-                    }
-                });
-
-                using (var stream = new BinaryHeapStream(resBytes))
-                {
-                    var resRequestId = stream.ReadInt();
-                    Debug.Assert(requestId == resRequestId);
-
-                    stream.ReadByte(); // Flags
-
-                    if (readFunc != null)
-                    {
-                        return readFunc(stream);
-                    }
+                    writeAction(stream);
                 }
+            });
 
-                return default(T);
+            using (var stream = new BinaryHeapStream(resBytes))
+            {
+                var resRequestId = stream.ReadInt();
+                Debug.Assert(requestId == resRequestId);
+
+                stream.ReadByte(); // Flags
+
+                if (readFunc != null)
+                {
+                    return readFunc(stream);
+                }
             }
+
+            return default(T);
         }
 
         /// <summary>
@@ -148,45 +142,44 @@ namespace Apache.Ignite.Core.Impl.Client
         /// </summary>
         private static byte[] SendReceive(Socket sock, Action<IBinaryStream> writeAction, int bufSize = 128)
         {
-            Send(sock, writeAction, bufSize);
+            var buf = WriteMessage(writeAction, bufSize);
 
-            return Receive(sock);
-        }
-
-        /// <summary>
-        /// Receives the message with 4-byte length header.
-        /// </summary>
-        private static byte[] Receive(Socket sock)
-        {
-            var buf = new byte[4];
-            sock.Receive(buf);
-
-            using (var stream = new BinaryHeapStream(buf))
+            lock (sock)
             {
-                var size = stream.ReadInt();
-                buf = new byte[size];
+                var sent = sock.Send(buf, buf.Length, SocketFlags.None);
+
+                Debug.Assert(sent == buf.Length);
+
+                buf = new byte[4];
                 sock.Receive(buf);
-                return buf;
+
+                using (var stream = new BinaryHeapStream(buf))
+                {
+                    var size = stream.ReadInt();
+                    buf = new byte[size];
+                    sock.Receive(buf);
+                    return buf;
+                }
             }
         }
 
         /// <summary>
-        /// Sends the request.
+        /// Writes the message to a byte array.
         /// </summary>
-        private static void Send(Socket sock, Action<BinaryHeapStream> writeAction, int bufSize = 128)
+        private static byte[] WriteMessage(Action<IBinaryStream> writeAction, int bufSize)
         {
+            byte[] outBuf;
             using (var stream = new BinaryHeapStream(bufSize))
             {
-                stream.WriteInt(0);  // Reserve message size.
+                stream.WriteInt(0); // Reserve message size.
 
                 writeAction(stream);
 
-                stream.WriteInt(0, stream.Position - 4);  // Write message size.
+                stream.WriteInt(0, stream.Position - 4); // Write message size.
 
-                var sent = sock.Send(stream.GetArray(), stream.Position, SocketFlags.None);
-
-                Debug.Assert(sent == stream.Position);
+                outBuf = stream.GetArray();
             }
+            return outBuf;
         }
 
         /// <summary>
