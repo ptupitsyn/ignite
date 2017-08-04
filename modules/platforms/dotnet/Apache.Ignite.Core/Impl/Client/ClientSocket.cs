@@ -142,22 +142,26 @@ namespace Apache.Ignite.Core.Impl.Client
         /// </summary>
         private static byte[] SendReceive(Socket sock, Action<IBinaryStream> writeAction, int bufSize = 128)
         {
-            var buf = WriteMessage(writeAction, bufSize);
+            int messageLen;
+            var buf = WriteMessage(writeAction, bufSize, out messageLen);
 
             lock (sock)
             {
-                var sent = sock.Send(buf, buf.Length, SocketFlags.None);
-
-                Debug.Assert(sent == buf.Length);
+                var sent = sock.Send(buf, messageLen, SocketFlags.None);
+                Debug.Assert(sent == messageLen);
 
                 buf = new byte[4];
-                sock.Receive(buf);
+                var received = sock.Receive(buf);
+                Debug.Assert(received == buf.Length);
 
                 using (var stream = new BinaryHeapStream(buf))
                 {
                     var size = stream.ReadInt();
+                    
                     buf = new byte[size];
-                    sock.Receive(buf);
+                    received = sock.Receive(buf);
+                    Debug.Assert(received == buf.Length);
+
                     return buf;
                 }
             }
@@ -166,9 +170,8 @@ namespace Apache.Ignite.Core.Impl.Client
         /// <summary>
         /// Writes the message to a byte array.
         /// </summary>
-        private static byte[] WriteMessage(Action<IBinaryStream> writeAction, int bufSize)
+        private static byte[] WriteMessage(Action<IBinaryStream> writeAction, int bufSize, out int messageLen)
         {
-            byte[] outBuf;
             using (var stream = new BinaryHeapStream(bufSize))
             {
                 stream.WriteInt(0); // Reserve message size.
@@ -177,9 +180,10 @@ namespace Apache.Ignite.Core.Impl.Client
 
                 stream.WriteInt(0, stream.Position - 4); // Write message size.
 
-                outBuf = stream.GetArray();
+                messageLen = stream.Position;
+
+                return stream.GetArray();
             }
-            return outBuf;
         }
 
         /// <summary>
