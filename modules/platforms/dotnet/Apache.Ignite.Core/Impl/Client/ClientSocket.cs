@@ -34,7 +34,7 @@ namespace Apache.Ignite.Core.Impl.Client
     internal class ClientSocket : IDisposable
     {
         /** Current version. */
-        private static readonly ClientProtocolVersion CurrentProtocolVersion = new ClientProtocolVersion(2, 1, 0);
+        private static readonly ClientProtocolVersion CurrentProtocolVersion = new ClientProtocolVersion(2, 1, 5);
 
         /** Handshake opcode. */
         private const byte OpHandshake = 1;
