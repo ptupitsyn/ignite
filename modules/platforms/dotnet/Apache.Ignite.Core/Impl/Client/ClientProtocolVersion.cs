@@ -17,10 +17,12 @@
 
 namespace Apache.Ignite.Core.Impl.Client
 {
+    using System;
+
     /// <summary>
     /// Client protocol version.
     /// </summary>
-    internal struct ClientProtocolVersion
+    internal struct ClientProtocolVersion : IEquatable<ClientProtocolVersion>
     {
         /** */
         private readonly short _major;
@@ -68,7 +70,7 @@ namespace Apache.Ignite.Core.Impl.Client
         /// <summary>
         /// Returns a value indicating whether specified instance equals to current.
         /// </summary>
-        private bool Equals(ClientProtocolVersion other)
+        public bool Equals(ClientProtocolVersion other)
         {
             return _major == other._major && _minor == other._minor && _maintenance == other._maintenance;
         }
