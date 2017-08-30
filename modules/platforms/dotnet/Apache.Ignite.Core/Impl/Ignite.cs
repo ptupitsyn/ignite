@@ -155,13 +155,12 @@ namespace Apache.Ignite.Core.Impl
             _lifecycleHandlers = lifecycleHandlers;
             _cbs = cbs;
 
-            marsh.Ignite = this;
-
             _prj = new ClusterGroupImpl(Target.OutObjectInternal((int) Op.GetClusterGroup), null);
 
             _binary = new Binary.Binary(marsh);
 
             _binaryProc = new BinaryProcessor(DoOutOpObject((int) Op.GetBinaryProcessor));
+            marsh.BinaryProcessor = _binaryProc;
 
             cbs.Initialize(this);
 

@@ -61,7 +61,7 @@ namespace Apache.Ignite.Core.Impl.Binary
         private volatile IDictionary<int, BinaryTypeHolder> _metas = new Dictionary<int, BinaryTypeHolder>();
 
         /** */
-        private volatile Ignite _ignite;
+        private volatile BinaryProcessor _binaryProcessor;
 
         /** */
         private readonly ILogger _log;
@@ -110,14 +110,14 @@ namespace Apache.Ignite.Core.Impl.Binary
         /// <summary>
         /// Gets or sets the backing grid.
         /// </summary>
-        public Ignite Ignite
+        public BinaryProcessor BinaryProcessor
         {
-            get { return _ignite; }
+            get { return _binaryProcessor; }
             set
             {
                 Debug.Assert(value != null);
 
-                _ignite = value;
+                _binaryProcessor = value;
             }
         }
 
@@ -180,11 +180,11 @@ namespace Apache.Ignite.Core.Impl.Binary
         {
             var metas = writer.GetBinaryTypes();
 
-            var ignite = Ignite;
+            var bin = BinaryProcessor;
 
-            if (ignite != null && metas != null && metas.Count > 0)
+            if (bin != null && metas != null && metas.Count > 0)
             {
-                ignite.BinaryProcessor.PutBinaryTypes(metas);
+                bin.PutBinaryTypes(metas);
             }
         }
 
@@ -275,9 +275,9 @@ namespace Apache.Ignite.Core.Impl.Binary
         /// <returns>Metadata or null.</returns>
         public BinaryType GetBinaryType(int typeId)
         {
-            if (Ignite != null)
+            if (BinaryProcessor != null)
             {
-                var meta = Ignite.BinaryProcessor.GetBinaryType(typeId);
+                var meta = BinaryProcessor.GetBinaryType(typeId);
 
                 if (meta != null)
                 {
@@ -298,10 +298,10 @@ namespace Apache.Ignite.Core.Impl.Binary
 
             GetBinaryTypeHandler(desc);  // ensure that handler exists
 
-            if (Ignite != null)
+            if (BinaryProcessor != null)
             {
                 ICollection<BinaryType> metas = new[] {new BinaryType(desc, this)};
-                Ignite.BinaryProcessor.PutBinaryTypes(metas);
+                BinaryProcessor.PutBinaryTypes(metas);
             }
         }
 
@@ -424,14 +424,14 @@ namespace Apache.Ignite.Core.Impl.Binary
             if (!userType)
                 return null;
 
-            if (requiresType && _ignite != null)
+            if (requiresType && BinaryProcessor != null)
             {
                 // Check marshaller context for dynamically registered type.
                 var type = knownType;
 
-                if (type == null && _ignite != null)
+                if (type == null)
                 {
-                    typeName = typeName ?? _ignite.BinaryProcessor.GetTypeName(typeId);
+                    typeName = typeName ?? BinaryProcessor.GetTypeName(typeId);
 
                     if (typeName != null)
                     {
@@ -479,7 +479,7 @@ namespace Apache.Ignite.Core.Impl.Binary
             var typeName = GetTypeName(type);
             var typeId = GetTypeId(typeName, _cfg.IdMapper);
 
-            var registered = _ignite != null && _ignite.BinaryProcessor.RegisterType(typeId, typeName);
+            var registered = BinaryProcessor != null && BinaryProcessor.RegisterType(typeId, typeName);
 
             return AddUserType(type, typeId, typeName, registered, desc);
         }
