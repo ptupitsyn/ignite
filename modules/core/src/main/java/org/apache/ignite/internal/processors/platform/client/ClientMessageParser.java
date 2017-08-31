@@ -68,6 +68,10 @@ public class ClientMessageParser implements SqlListenerMessageParser {
             case OP_CACHE_GET: {
                 return new ClientGetRequest(reader);
             }
+
+            case OP_BINARY_PROCESSOR_GET_TYPE_NAME: {
+
+            }
         }
 
         throw new IgniteException("Invalid operation: " + opCode);
