@@ -84,7 +84,7 @@ namespace Apache.Ignite.Core.Impl.Binary
         /** <inheritdoc /> */
         public string GetTypeName(int id)
         {
-            return _socket.DoOutInOp(ClientOp.BinaryProcessorGetTypeName, w => w.WriteInt(id),
+            return _socket.DoOutInOp(ClientOp.GetBinaryTypeName, w => w.WriteInt(id),
                 s => _marsh.StartUnmarshal(s).ReadString());
         }
     }
