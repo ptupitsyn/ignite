@@ -75,6 +75,10 @@ public class ClientMessageParser implements SqlListenerMessageParser {
             case OP_GET_BINARY_TYPE_NAME: {
                 return new ClientGetBinaryTypeNameRequest(reader);
             }
+
+            case OP_GET_BINARY_TYPE_SCHEMA: {
+                return new ClientGetBinaryTypeSchemaRequest(reader);
+            }
         }
 
         throw new IgniteException("Invalid operation: " + opCode);
