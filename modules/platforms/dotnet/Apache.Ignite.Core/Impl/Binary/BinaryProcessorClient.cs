@@ -31,6 +31,9 @@ namespace Apache.Ignite.Core.Impl.Binary
         /** Socket. */
         private readonly ClientSocket _socket;
 
+        /** Marshaller. */
+        private readonly Marshaller _marsh = BinaryUtils.Marshaller;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="BinaryProcessorClient"/> class.
         /// </summary>
@@ -81,7 +84,8 @@ namespace Apache.Ignite.Core.Impl.Binary
         /** <inheritdoc /> */
         public string GetTypeName(int id)
         {
-            throw new System.NotImplementedException();
+            return _socket.DoOutInOp(ClientOp.BinaryProcessorGetTypeName, w => w.WriteInt(id),
+                s => _marsh.StartUnmarshal(s).ReadString());
         }
     }
 }

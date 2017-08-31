@@ -22,6 +22,7 @@ namespace Apache.Ignite.Core.Impl.Client
     /// </summary>
     internal enum ClientOp : short
     {
-        CacheGet = 1
+        CacheGet = 1,
+        BinaryProcessorGetTypeName
     }
 }
