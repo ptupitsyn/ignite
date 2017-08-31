@@ -59,7 +59,7 @@ namespace Apache.Ignite.Core.Tests.Client
         {
             using (var client = Ignition.GetClient())
             {
-                GetCache().Put(1, "foo");
+                GetCache<string>().Put(1, "foo");
 
                 var clientCache = client.GetCache<int, string>(CacheName);
 
@@ -73,13 +73,32 @@ namespace Apache.Ignite.Core.Tests.Client
         }
 
         /// <summary>
+        /// Tests the cache put / get with user data types.
+        /// </summary>
+        [Test]
+        public void TestPutGetUserObjects()
+        {
+            using (var client = Ignition.GetClient())
+            {
+                var person = new Person {Id = 100, Name = "foo"};
+
+                GetCache<Person>().Put(1, person);
+
+                var clientCache = client.GetCache<int, Person>(CacheName);
+
+                Assert.AreEqual("foo", clientCache.Get(1).Name);
+                Assert.AreEqual(100, clientCache[1].Id);
+            }
+        }
+
+        /// <summary>
         /// Tests client get in multiple threads with a single client.
         /// </summary>
         [Test]
         [Category(TestUtils.CategoryIntensive)]
         public void TestGetMultithreadedSingleClient()
         {
-            GetCache().Put(1, "foo");
+            GetCache<string>().Put(1, "foo");
 
             using (var client = Ignition.GetClient())
             {
@@ -97,7 +116,7 @@ namespace Apache.Ignite.Core.Tests.Client
         [Category(TestUtils.CategoryIntensive)]
         public void TestGetMultithreadedMultiClient()
         {
-            GetCache().Put(1, "foo");
+            GetCache<string>().Put(1, "foo");
 
             // One client per thread.
             ConcurrentDictionary<int, IIgnite> clients = new ConcurrentDictionary<int, IIgnite>();
@@ -118,9 +137,9 @@ namespace Apache.Ignite.Core.Tests.Client
         /// <summary>
         /// Gets the cache.
         /// </summary>
-        private static ICache<int, string> GetCache()
+        private static ICache<int, T> GetCache<T>()
         {
-            return Ignition.GetIgnite().GetOrCreateCache<int, string>(CacheName);
+            return Ignition.GetIgnite().GetOrCreateCache<int, T>(CacheName);
         }
     }
 }
