@@ -49,21 +49,23 @@ namespace Apache.Ignite.Core.Impl.Cache
         /** Cache id. */
         private readonly int _id;
 
-        /** Marshaller */
-        private readonly Marshaller _marsh = BinaryUtils.Marshaller;
+        /** Ignite. */
+        private readonly IIgniteInternal _ignite;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="CacheClient{TK, TV}" /> class.
         /// </summary>
         /// <param name="socket">The socket.</param>
         /// <param name="name">Cache name.</param>
-        public CacheClient(ClientSocket socket, string name)
+        /// <param name="ignite">Ignite.</param>
+        public CacheClient(ClientSocket socket, string name, IIgniteInternal ignite)
         {
             Debug.Assert(socket != null);
             Debug.Assert(name != null);
 
             _socket = socket;
             _name = name;
+            _ignite = ignite;
             _id = BinaryUtils.GetCacheId(name);
         }
 
@@ -606,7 +608,7 @@ namespace Apache.Ignite.Core.Impl.Cache
 
                 if (writeAction != null)
                 {
-                    writeAction(_marsh.StartMarshal(stream));
+                    writeAction(_ignite.Marshaller.StartMarshal(stream));
                 }
             }, readFunc);
         }
@@ -625,7 +627,7 @@ namespace Apache.Ignite.Core.Impl.Cache
 
             stream.Seek(-1, SeekOrigin.Current);
 
-            return _marsh.Unmarshal<T>(stream);
+            return _ignite.Marshaller.Unmarshal<T>(stream);
         }
 
         /// <summary>
