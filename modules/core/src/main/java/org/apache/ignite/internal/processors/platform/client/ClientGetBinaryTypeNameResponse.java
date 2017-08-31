@@ -22,7 +22,7 @@ import org.apache.ignite.binary.BinaryRawWriter;
 /**
  * Type name response.
  */
-public class ClientBinaryProcessorGetTypeNameResponse extends ClientResponse {
+public class ClientGetBinaryTypeNameResponse extends ClientResponse {
     /** Type name. */
     private final String typeName;
 
@@ -31,7 +31,7 @@ public class ClientBinaryProcessorGetTypeNameResponse extends ClientResponse {
      *
      * @param requestId Request id.
      */
-    ClientBinaryProcessorGetTypeNameResponse(int requestId, String typeName) {
+    ClientGetBinaryTypeNameResponse(int requestId, String typeName) {
         super(requestId);
 
         this.typeName = typeName;

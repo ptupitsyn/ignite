@@ -26,7 +26,7 @@ import org.apache.ignite.internal.MarshallerPlatformIds;
 /**
  * Gets binary type name by id.
  */
-public class ClientBinaryProcessorGetTypeNameRequest extends ClientRequest {
+public class ClientGetBinaryTypeNameRequest extends ClientRequest {
     /** */
     private final int typeId;
 
@@ -35,7 +35,7 @@ public class ClientBinaryProcessorGetTypeNameRequest extends ClientRequest {
      *
      * @param reader Reader.
      */
-    ClientBinaryProcessorGetTypeNameRequest(BinaryRawReader reader) {
+    ClientGetBinaryTypeNameRequest(BinaryRawReader reader) {
         super(reader);
 
         typeId = reader.readInt();
@@ -47,7 +47,7 @@ public class ClientBinaryProcessorGetTypeNameRequest extends ClientRequest {
         try {
             String typeName = ctx.marshallerContext().getClassName(MarshallerPlatformIds.DOTNET_ID, typeId);
 
-            return new ClientBinaryProcessorGetTypeNameResponse(getRequestId(), typeName);
+            return new ClientGetBinaryTypeNameResponse(getRequestId(), typeName);
         } catch (ClassNotFoundException | IgniteCheckedException e) {
             throw new BinaryObjectException(e);
         }
