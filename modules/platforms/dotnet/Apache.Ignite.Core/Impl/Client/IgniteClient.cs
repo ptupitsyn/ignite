@@ -318,7 +318,7 @@ namespace Apache.Ignite.Core.Impl.Client
         }
 
         /** <inheritDoc /> */
-        public BinaryProcessor BinaryProcessor
+        public IBinaryProcessor BinaryProcessor
         {
             get { throw GetClientNotSupportedException(); }
         }

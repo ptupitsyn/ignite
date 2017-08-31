@@ -37,6 +37,9 @@ public class ClientMessageParser implements SqlListenerMessageParser {
     /** */
     private static final short OP_CACHE_GET = 1;
 
+    /** */
+    private static final short OP_BINARY_PROCESSOR_GET_TYPE_NAME = 2;
+
     /** Marshaller. */
     private final GridBinaryMarshaller marsh;
 
