@@ -53,6 +53,9 @@ namespace Apache.Ignite.Core.Impl.Client
         /** Marshaller. */
         private readonly Marshaller _marsh;
 
+        /** Binary processor. */
+        private readonly BinaryProcessorClient _binProc;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="IgniteClient"/> class.
         /// </summary>
@@ -67,6 +70,8 @@ namespace Apache.Ignite.Core.Impl.Client
             {
                 Ignite = this
             };
+
+            _binProc = new BinaryProcessorClient(_socket);
         }
 
         /// <summary>
@@ -320,7 +325,7 @@ namespace Apache.Ignite.Core.Impl.Client
         /** <inheritDoc /> */
         public IBinaryProcessor BinaryProcessor
         {
-            get { throw GetClientNotSupportedException(); }
+            get { return _binProc; }
         }
 
         /** <inheritDoc /> */
