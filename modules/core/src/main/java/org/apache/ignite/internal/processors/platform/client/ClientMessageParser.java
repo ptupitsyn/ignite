@@ -70,7 +70,7 @@ public class ClientMessageParser implements SqlListenerMessageParser {
             }
 
             case OP_BINARY_PROCESSOR_GET_TYPE_NAME: {
-
+                return new ClientGetBinaryTypeNameRequest(reader);
             }
         }
 
