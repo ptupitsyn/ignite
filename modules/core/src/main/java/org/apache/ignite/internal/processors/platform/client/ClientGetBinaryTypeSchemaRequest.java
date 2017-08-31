@@ -17,38 +17,35 @@
 
 package org.apache.ignite.internal.processors.platform.client;
 
-import org.apache.ignite.IgniteCheckedException;
-import org.apache.ignite.binary.BinaryObjectException;
 import org.apache.ignite.binary.BinaryRawReader;
 import org.apache.ignite.internal.GridKernalContext;
-import org.apache.ignite.internal.MarshallerPlatformIds;
 
 /**
- * Gets binary type name by id.
+ * Get the binary type schema.
  */
-public class ClientGetBinaryTypeNameRequest extends ClientRequest {
-    /** */
+public class ClientGetBinaryTypeSchemaRequest extends ClientRequest {
+    /** Type id. */
     private final int typeId;
+
+    /** Schema id. */
+    private final int schemaId;
 
     /**
      * Ctor.
      *
      * @param reader Reader.
      */
-    ClientGetBinaryTypeNameRequest(BinaryRawReader reader) {
+    ClientGetBinaryTypeSchemaRequest(BinaryRawReader reader) {
         super(reader);
 
         typeId = reader.readInt();
+        schemaId = reader.readInt();
     }
 
     /** {@inheritDoc} */
     @Override public ClientResponse process(GridKernalContext ctx) {
-        try {
-            String typeName = ctx.marshallerContext().getClassName(MarshallerPlatformIds.DOTNET_ID, typeId);
+        // TODO: PlatformContextImpl.writeSchema
 
-            return new ClientGetBinaryTypeNameResponse(getRequestId(), typeName);
-        } catch (ClassNotFoundException | IgniteCheckedException e) {
-            throw new BinaryObjectException(e);
-        }
+        return new ClientGetBinaryTypeSchemaResponse(getRequestId(), null);
     }
 }
