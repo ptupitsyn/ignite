@@ -69,6 +69,14 @@ namespace Apache.Ignite.Core.Impl.Client
             };
         }
 
+        /// <summary>
+        /// Gets the socket.
+        /// </summary>
+        public ClientSocket Socket
+        {
+            get { return _socket; }
+        }
+
         /** <inheritDoc /> */
         public void Dispose()
         {
@@ -98,7 +106,7 @@ namespace Apache.Ignite.Core.Impl.Client
         {
             IgniteArgumentCheck.NotNull(name, "name");
 
-            return new CacheClient<TK, TV>(_socket, name);
+            return new CacheClient<TK, TV>(this, name);
         }
 
         /** <inheritDoc /> */

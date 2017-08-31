@@ -40,9 +40,6 @@ namespace Apache.Ignite.Core.Impl.Cache
     /// </summary>
     internal class CacheClient<TK, TV> : ICache<TK, TV>
     {
-        /** Socket. */
-        private readonly ClientSocket _socket;
-
         /** Cache name. */
         private readonly string _name;
 
@@ -50,20 +47,18 @@ namespace Apache.Ignite.Core.Impl.Cache
         private readonly int _id;
 
         /** Ignite. */
-        private readonly IIgniteInternal _ignite;
+        private readonly IgniteClient _ignite;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="CacheClient{TK, TV}" /> class.
         /// </summary>
-        /// <param name="socket">The socket.</param>
-        /// <param name="name">Cache name.</param>
         /// <param name="ignite">Ignite.</param>
-        public CacheClient(ClientSocket socket, string name, IIgniteInternal ignite)
+        /// <param name="name">Cache name.</param>
+        public CacheClient(IgniteClient ignite, string name)
         {
-            Debug.Assert(socket != null);
+            Debug.Assert(ignite != null);
             Debug.Assert(name != null);
 
-            _socket = socket;
             _name = name;
             _ignite = ignite;
             _id = BinaryUtils.GetCacheId(name);
@@ -601,7 +596,7 @@ namespace Apache.Ignite.Core.Impl.Cache
         private T DoOutInOp<T>(ClientOp opId, Action<IBinaryRawWriter> writeAction,
             Func<IBinaryStream, T> readFunc)
         {
-            return _socket.DoOutInOp(opId, stream =>
+            return _ignite.Socket.DoOutInOp(opId, stream =>
             {
                 stream.WriteInt(_id);
                 stream.WriteByte(0);  // Flags (skipStore, etc).
