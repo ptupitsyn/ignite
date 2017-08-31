@@ -50,6 +50,9 @@ namespace Apache.Ignite.Core.Impl.Client
         /** Socket. */
         private readonly ClientSocket _socket;
 
+        /** Marshaller. */
+        private readonly Marshaller _marsh;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="IgniteClient"/> class.
         /// </summary>
@@ -59,6 +62,11 @@ namespace Apache.Ignite.Core.Impl.Client
             Debug.Assert(clientConfiguration != null);
 
             _socket = new ClientSocket(clientConfiguration);
+
+            _marsh = new Marshaller(clientConfiguration.BinaryConfiguration)
+            {
+                Ignite = this
+            };
         }
 
         /** <inheritDoc /> */
@@ -328,7 +336,7 @@ namespace Apache.Ignite.Core.Impl.Client
         /** <inheritDoc /> */
         public Marshaller Marshaller
         {
-            get { throw GetClientNotSupportedException(); }
+            get { return _marsh; }
         }
 
         /** <inheritDoc /> */
