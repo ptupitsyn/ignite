@@ -81,7 +81,7 @@ namespace Apache.Ignite.Core.Impl.Binary
         /** <inheritdoc /> */
         public bool RegisterType(int id, string typeName)
         {
-            return _socket.DoOutInOp(ClientOp.RegisterBinaryType, s =>
+            return _socket.DoOutInOp(ClientOp.RegisterBinaryTypeName, s =>
             {
                 s.WriteByte(DotNetPlatformId);
                 s.WriteInt(id);
