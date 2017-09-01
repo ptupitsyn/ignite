@@ -63,15 +63,20 @@ namespace Apache.Ignite.Core.Tests.Client
 
                 var clientCache = client.GetCache<int?, string>(CacheName);
 
+                clientCache.Put(2, "bar");
+                clientCache[3] = "baz";
+
                 // Existing key.
                 Assert.AreEqual("foo", clientCache.Get(1));
                 Assert.AreEqual("foo", clientCache[1]);
+                Assert.AreEqual("bar", clientCache[2]);
+                Assert.AreEqual("baz", clientCache[3]);
 
                 // Missing key.
-                Assert.Throws<KeyNotFoundException>(() => clientCache.Get(2));
+                Assert.Throws<KeyNotFoundException>(() => clientCache.Get(-1));
 
                 // Null key.
-                Assert.Throws<ArgumentException>(() => clientCache.Get(null));
+                Assert.Throws<ArgumentNullException>(() => clientCache.Get(null));
             }
         }
 
@@ -87,7 +92,7 @@ namespace Apache.Ignite.Core.Tests.Client
                 var person2 = new Person2 {Id = 200, Name = "bar"};
                 
                 var serverCache = GetCache<Person>();
-                var clientCache = client.GetCache<int, Person>(CacheName);
+                var clientCache = client.GetCache<int?, Person>(CacheName);
 
                 // Put through server cache.
                 serverCache.Put(1, person);
@@ -107,6 +112,10 @@ namespace Apache.Ignite.Core.Tests.Client
                 Assert.AreEqual(100, serverCache[1].Id);
                 Assert.AreEqual(200, serverCache[2].Id);
                 Assert.AreEqual(200, serverCache[3].Id);
+
+                // Null key or value.
+                Assert.Throws<ArgumentNullException>(() => clientCache.Put(10, null));
+                Assert.Throws<ArgumentNullException>(() => clientCache.Put(null, person));
             }
         }
 
