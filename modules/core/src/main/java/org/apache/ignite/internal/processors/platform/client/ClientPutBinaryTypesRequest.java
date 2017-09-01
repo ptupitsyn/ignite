@@ -29,7 +29,7 @@ import java.util.Collection;
 /**
  * Bin ary types update request.
  */
-class ClientPutBinaryTypesRequest extends ClientCacheRequest {
+class ClientPutBinaryTypesRequest extends ClientRequest {
     /** Metas. */
     private final Collection<BinaryMetadata> metas;
 
