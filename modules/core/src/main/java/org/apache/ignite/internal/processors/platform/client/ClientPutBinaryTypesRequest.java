@@ -27,7 +27,7 @@ import org.apache.ignite.internal.processors.platform.utils.PlatformUtils;
 import java.util.Collection;
 
 /**
- * Bin ary types update request.
+ * Binary types update request.
  */
 class ClientPutBinaryTypesRequest extends ClientRequest {
     /** Metas. */

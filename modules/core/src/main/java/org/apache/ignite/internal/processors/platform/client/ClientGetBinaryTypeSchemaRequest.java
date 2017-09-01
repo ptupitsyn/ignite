@@ -23,7 +23,7 @@ import org.apache.ignite.internal.processors.cache.binary.CacheObjectBinaryProce
 import org.apache.ignite.internal.processors.platform.utils.PlatformUtils;
 
 /**
- * Get the binary type schema.
+ * Binary type schema request.
  */
 public class ClientGetBinaryTypeSchemaRequest extends ClientRequest {
     /** Type id. */

@@ -21,7 +21,7 @@ import org.apache.ignite.internal.GridKernalContext;
 import org.apache.ignite.internal.binary.BinaryRawReaderEx;
 
 /**
- * Cache get request.
+ * Cache put request.
  */
 class ClientCachePutRequest extends ClientCacheRequest {
     /** */
