@@ -43,6 +43,9 @@ public class ClientMessageParser implements SqlListenerMessageParser {
     /** */
     private static final short OP_GET_BINARY_TYPE_SCHEMA = 3;
 
+    /** */
+    private static final short OP_CACHE_PUT = 4;
+
     /** Marshaller. */
     private final GridBinaryMarshaller marsh;
 
@@ -69,7 +72,7 @@ public class ClientMessageParser implements SqlListenerMessageParser {
 
         switch (opCode) {
             case OP_CACHE_GET: {
-                return new ClientGetRequest(reader);
+                return new ClientCacheGetRequest(reader);
             }
 
             case OP_GET_BINARY_TYPE_NAME: {
@@ -78,6 +81,10 @@ public class ClientMessageParser implements SqlListenerMessageParser {
 
             case OP_GET_BINARY_TYPE_SCHEMA: {
                 return new ClientGetBinaryTypeSchemaRequest(reader);
+            }
+
+            case OP_CACHE_PUT: {
+                return new ClientCachePutRequest(reader);
             }
         }
 
