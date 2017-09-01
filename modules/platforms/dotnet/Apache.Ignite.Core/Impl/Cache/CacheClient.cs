@@ -199,19 +199,15 @@ namespace Apache.Ignite.Core.Impl.Cache
         /** <inheritDoc /> */
         public TV this[TK key]
         {
-            get
-            {
-                return Get(key);
-            }
-            set
-            {
-                Put(key, value);
-            }
+            get { return Get(key); }
+            set { Put(key, value); }
         }
 
         /** <inheritDoc /> */
         public TV Get(TK key)
         {
+            IgniteArgumentCheck.NotNull(key, "key");
+
             return DoOutInOp(ClientOp.CacheGet, w => w.WriteObject(key), UnmarshalNotNull<TV>);
         }
 

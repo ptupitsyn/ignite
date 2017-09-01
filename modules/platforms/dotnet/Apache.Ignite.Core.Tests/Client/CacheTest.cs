@@ -61,7 +61,7 @@ namespace Apache.Ignite.Core.Tests.Client
             {
                 GetCache<string>().Put(1, "foo");
 
-                var clientCache = client.GetCache<int, string>(CacheName);
+                var clientCache = client.GetCache<int?, string>(CacheName);
 
                 // Existing key.
                 Assert.AreEqual("foo", clientCache.Get(1));
@@ -69,6 +69,9 @@ namespace Apache.Ignite.Core.Tests.Client
 
                 // Missing key.
                 Assert.Throws<KeyNotFoundException>(() => clientCache.Get(2));
+
+                // Null key.
+                Assert.Throws<ArgumentException>(() => clientCache.Get(null));
             }
         }
 
