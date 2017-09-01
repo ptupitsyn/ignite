@@ -40,7 +40,6 @@ import org.apache.ignite.internal.binary.BinaryRawReaderEx;
 import org.apache.ignite.internal.binary.BinaryRawWriterEx;
 import org.apache.ignite.internal.binary.BinaryReaderExImpl;
 import org.apache.ignite.internal.binary.BinarySchema;
-import org.apache.ignite.internal.binary.BinarySchemaRegistry;
 import org.apache.ignite.internal.binary.BinaryTypeImpl;
 import org.apache.ignite.internal.binary.GridBinaryMarshaller;
 import org.apache.ignite.internal.processors.cache.binary.CacheObjectBinaryProcessorImpl;
@@ -433,28 +432,7 @@ public class PlatformContextImpl implements PlatformContext {
 
     /** {@inheritDoc} */
     @Override public void writeSchema(BinaryRawWriterEx writer, int typeId, int schemaId) {
-        BinarySchemaRegistry schemaReg = cacheObjProc.binaryContext().schemaRegistry(typeId);
-        BinarySchema schema = schemaReg.schema(schemaId);
-
-        if (schema == null) {
-            BinaryTypeImpl meta = (BinaryTypeImpl)cacheObjProc.metadata(typeId);
-
-            if (meta != null) {
-                for (BinarySchema typeSchema : meta.metadata().schemas()) {
-                    if (schemaId == typeSchema.schemaId()) {
-                        schema = typeSchema;
-                        break;
-                    }
-                }
-            }
-
-            if (schema != null)
-                schemaReg.addSchema(schemaId, schema);
-        }
-
-        int[] fieldIds = schema == null ? null : schema.fieldIds();
-
-        writer.writeIntArray(fieldIds);
+        writer.writeIntArray(PlatformUtils.getSchema(cacheObjProc, typeId, schemaId));
     }
 
     /**
