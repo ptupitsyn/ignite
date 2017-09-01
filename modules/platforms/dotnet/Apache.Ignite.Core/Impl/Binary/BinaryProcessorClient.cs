@@ -75,7 +75,8 @@ namespace Apache.Ignite.Core.Impl.Binary
         /** <inheritdoc /> */
         public void PutBinaryTypes(ICollection<BinaryType> types)
         {
-            throw new NotImplementedException();
+            _socket.DoOutInOp<object>(ClientOp.PutBinaryTypes,
+                s => BinaryProcessor.WriteBinaryTypes(types, _marsh.StartMarshal(s)), null);
         }
 
         /** <inheritdoc /> */
