@@ -49,6 +49,9 @@ public class ClientMessageParser implements SqlListenerMessageParser {
     /** */
     private static final short OP_REGISTER_BINARY_TYPE_NAME = 5;
 
+    /** */
+    private static final short OP_PUT_BINARY_TYPES = 6;
+
     /** Marshaller. */
     private final GridBinaryMarshaller marsh;
 
@@ -88,6 +91,9 @@ public class ClientMessageParser implements SqlListenerMessageParser {
 
             case OP_REGISTER_BINARY_TYPE_NAME:
                 return new ClientRegisterBinaryTypeNameRequest(reader);
+
+            case OP_PUT_BINARY_TYPES:
+                return new ClientPutBinaryTypesRequest(reader);
         }
 
         throw new IgniteException("Invalid operation: " + opCode);
