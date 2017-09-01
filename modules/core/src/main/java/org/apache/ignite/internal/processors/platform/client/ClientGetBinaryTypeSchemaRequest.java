@@ -19,6 +19,8 @@ package org.apache.ignite.internal.processors.platform.client;
 
 import org.apache.ignite.binary.BinaryRawReader;
 import org.apache.ignite.internal.GridKernalContext;
+import org.apache.ignite.internal.processors.cache.binary.CacheObjectBinaryProcessorImpl;
+import org.apache.ignite.internal.processors.platform.utils.PlatformUtils;
 
 /**
  * Get the binary type schema.
@@ -44,8 +46,8 @@ public class ClientGetBinaryTypeSchemaRequest extends ClientRequest {
 
     /** {@inheritDoc} */
     @Override public ClientResponse process(GridKernalContext ctx) {
-        // TODO: PlatformContextImpl.writeSchema
+        int[] schema = PlatformUtils.getSchema((CacheObjectBinaryProcessorImpl)ctx.cacheObjects(), typeId, schemaId);
 
-        return new ClientGetBinaryTypeSchemaResponse(getRequestId(), null);
+        return new ClientGetBinaryTypeSchemaResponse(getRequestId(), schema);
     }
 }
