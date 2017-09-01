@@ -17,6 +17,7 @@
 
 namespace Apache.Ignite.Core.Impl.Binary
 {
+    using System;
     using System.Collections.Generic;
     using System.Diagnostics;
     using Apache.Ignite.Core.Binary;
@@ -48,13 +49,13 @@ namespace Apache.Ignite.Core.Impl.Binary
         /** <inheritdoc /> */
         public BinaryType GetBinaryType(int typeId)
         {
-            throw new System.NotImplementedException();
+            throw new NotImplementedException();
         }
 
         /** <inheritdoc /> */
         public List<IBinaryType> GetBinaryTypes()
         {
-            throw new System.NotImplementedException();
+            throw new NotImplementedException();
         }
 
         /** <inheritdoc /> */
@@ -71,19 +72,19 @@ namespace Apache.Ignite.Core.Impl.Binary
         /** <inheritdoc /> */
         public void PutBinaryTypes(ICollection<BinaryType> types)
         {
-            throw new System.NotImplementedException();
+            throw new NotImplementedException();
         }
 
         /** <inheritdoc /> */
         public bool RegisterType(int id, string typeName)
         {
-            throw new System.NotImplementedException();
+            throw new NotImplementedException();
         }
 
         /** <inheritdoc /> */
         public BinaryType RegisterEnum(string typeName, IEnumerable<KeyValuePair<string, int>> values)
         {
-            throw new System.NotImplementedException();
+            throw new NotImplementedException();
         }
 
         /** <inheritdoc /> */
