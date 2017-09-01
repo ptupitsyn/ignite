@@ -352,62 +352,7 @@ public class PlatformContextImpl implements PlatformContext {
     /** {@inheritDoc} */
     @SuppressWarnings("ConstantConditions")
     @Override public void processMetadata(BinaryRawReaderEx reader) {
-        Collection<BinaryMetadata> metas = PlatformUtils.readCollection(reader,
-            new PlatformReaderClosure<BinaryMetadata>() {
-                @Override public BinaryMetadata read(BinaryRawReaderEx reader) {
-                    int typeId = reader.readInt();
-                    String typeName = reader.readString();
-                    String affKey = reader.readString();
-
-                    Map<String, BinaryFieldMetadata> fields = PlatformUtils.readLinkedMap(reader,
-                        new PlatformReaderBiClosure<String, BinaryFieldMetadata>() {
-                            @Override public IgniteBiTuple<String, BinaryFieldMetadata> read(BinaryRawReaderEx reader) {
-                                String name = reader.readString();
-                                int typeId = reader.readInt();
-                                int fieldId = reader.readInt();
-
-                                return new IgniteBiTuple<String, BinaryFieldMetadata>(name,
-                                        new BinaryFieldMetadata(typeId, fieldId));
-                            }
-                        });
-
-                    Map<String, Integer> enumMap = null;
-
-                    boolean isEnum = reader.readBoolean();
-
-                    if (isEnum) {
-                        int size = reader.readInt();
-
-                        enumMap = new LinkedHashMap<>(size);
-
-                        for (int idx = 0; idx < size; idx++)
-                            enumMap.put(reader.readString(), reader.readInt());
-                    }
-
-                    // Read schemas
-                    int schemaCnt = reader.readInt();
-
-                    List<BinarySchema> schemas = null;
-
-                    if (schemaCnt > 0) {
-                        schemas = new ArrayList<>(schemaCnt);
-
-                        for (int i = 0; i < schemaCnt; i++) {
-                            int id = reader.readInt();
-                            int fieldCnt = reader.readInt();
-                            List<Integer> fieldIds = new ArrayList<>(fieldCnt);
-
-                            for (int j = 0; j < fieldCnt; j++)
-                                fieldIds.add(reader.readInt());
-
-                            schemas.add(new BinarySchema(id, fieldIds));
-                        }
-                    }
-
-                    return new BinaryMetadata(typeId, typeName, fields, affKey, schemas, isEnum, enumMap);
-                }
-            }
-        );
+        Collection<BinaryMetadata> metas = PlatformUtils.readBinaryMetadata(reader);
 
         BinaryContext binCtx = cacheObjProc.binaryContext();
 
