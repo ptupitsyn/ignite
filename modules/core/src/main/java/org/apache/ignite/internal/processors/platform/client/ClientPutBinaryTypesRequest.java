@@ -18,12 +18,21 @@
 package org.apache.ignite.internal.processors.platform.client;
 
 import org.apache.ignite.internal.GridKernalContext;
+import org.apache.ignite.internal.binary.BinaryContext;
+import org.apache.ignite.internal.binary.BinaryMetadata;
 import org.apache.ignite.internal.binary.BinaryRawReaderEx;
+import org.apache.ignite.internal.processors.cache.binary.CacheObjectBinaryProcessorImpl;
+import org.apache.ignite.internal.processors.platform.utils.PlatformUtils;
+
+import java.util.Collection;
 
 /**
  * Bin ary types update request.
  */
 class ClientPutBinaryTypesRequest extends ClientCacheRequest {
+    /** Metas. */
+    private final Collection<BinaryMetadata> metas;
+
     /**
      * Ctor.
      *
@@ -31,12 +40,17 @@ class ClientPutBinaryTypesRequest extends ClientCacheRequest {
      */
     ClientPutBinaryTypesRequest(BinaryRawReaderEx reader) {
         super(reader);
+
+        metas = PlatformUtils.readBinaryMetadata(reader);
     }
 
     /** {@inheritDoc} */
     @SuppressWarnings("unchecked")
     @Override public ClientResponse process(GridKernalContext ctx) {
-        // TODO
+        BinaryContext binCtx = ((CacheObjectBinaryProcessorImpl) ctx.cacheObjects()).binaryContext();
+
+        for (BinaryMetadata meta : metas)
+            binCtx.updateMetadata(meta.typeId(), meta);
 
         return super.process(ctx);
     }
