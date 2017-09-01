@@ -37,4 +37,12 @@ namespace Apache.Ignite.Core.Tests.Client
         /// </summary>
         public Person Parent { get;set; }
     }
+
+    /// <summary>
+    /// Test person 2.
+    /// </summary>
+    public class Person2 : Person
+    {
+        // No-op.
+    }
 }

@@ -81,13 +81,29 @@ namespace Apache.Ignite.Core.Tests.Client
             using (var client = Ignition.GetClient())
             {
                 var person = new Person {Id = 100, Name = "foo"};
-
-                GetCache<Person>().Put(1, person);
-
+                var person2 = new Person2 {Id = 200, Name = "bar"};
+                
+                var serverCache = GetCache<Person>();
                 var clientCache = client.GetCache<int, Person>(CacheName);
 
+                // Put through server cache.
+                serverCache.Put(1, person);
+
+                // Put through client cache.
+                clientCache.Put(2, person2);
+                clientCache[3] = person2;
+
+                // Read from client cache.
                 Assert.AreEqual("foo", clientCache.Get(1).Name);
                 Assert.AreEqual(100, clientCache[1].Id);
+                Assert.AreEqual(200, clientCache[2].Id);
+                Assert.AreEqual(200, clientCache[3].Id);
+
+                // Read from server cache.
+                Assert.AreEqual("foo", serverCache.Get(1).Name);
+                Assert.AreEqual(100, serverCache[1].Id);
+                Assert.AreEqual(200, serverCache[2].Id);
+                Assert.AreEqual(200, serverCache[3].Id);
             }
         }
 
