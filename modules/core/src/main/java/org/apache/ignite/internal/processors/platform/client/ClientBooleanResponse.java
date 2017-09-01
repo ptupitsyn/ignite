@@ -20,18 +20,18 @@ package org.apache.ignite.internal.processors.platform.client;
 import org.apache.ignite.binary.BinaryRawWriter;
 
 /**
- * Cache get response.
+ * Boolean response.
  */
-class ClientCacheGetResponse extends ClientResponse {
+class ClientBooleanResponse extends ClientResponse {
     /** */
-    private final Object val;
+    private final boolean val;
 
     /**
      * Ctor.
      *
      * @param requestId Request id.
      */
-    ClientCacheGetResponse(int requestId, Object val) {
+    ClientBooleanResponse(int requestId, boolean val) {
         super(requestId);
 
         this.val = val;
@@ -41,6 +41,6 @@ class ClientCacheGetResponse extends ClientResponse {
     @Override public void encode(BinaryRawWriter writer) {
         super.encode(writer);
 
-        writer.writeObject(val);
+        writer.writeBoolean(val);
     }
 }

@@ -21,13 +21,15 @@ import org.apache.ignite.IgniteCheckedException;
 import org.apache.ignite.binary.BinaryObjectException;
 import org.apache.ignite.binary.BinaryRawReader;
 import org.apache.ignite.internal.GridKernalContext;
-import org.apache.ignite.internal.MarshallerPlatformIds;
 
 /**
  * Gets binary type name by id.
  */
 public class ClientGetBinaryTypeNameRequest extends ClientRequest {
-    /** */
+    /** Platform ID, see org.apache.ignite.internal.MarshallerPlatformIds. */
+    private final byte platformId;
+
+    /** Type id. */
     private final int typeId;
 
     /**
@@ -38,13 +40,14 @@ public class ClientGetBinaryTypeNameRequest extends ClientRequest {
     ClientGetBinaryTypeNameRequest(BinaryRawReader reader) {
         super(reader);
 
+        platformId = reader.readByte();
         typeId = reader.readInt();
     }
 
     /** {@inheritDoc} */
     @Override public ClientResponse process(GridKernalContext ctx) {
         try {
-            String typeName = ctx.marshallerContext().getClassName(MarshallerPlatformIds.DOTNET_ID, typeId);
+            String typeName = ctx.marshallerContext().getClassName(platformId, typeId);
 
             return new ClientGetBinaryTypeNameResponse(getRequestId(), typeName);
         } catch (ClassNotFoundException | IgniteCheckedException e) {
