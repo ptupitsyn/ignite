@@ -60,7 +60,7 @@ namespace Apache.Ignite.Core.Impl.Binary
         /** <inheritdoc /> */
         public int[] GetSchema(int typeId, int schemaId)
         {
-            return _socket.DoOutInOp(ClientOp.GetBinaryTypeName, w =>
+            return _socket.DoOutInOp(ClientOp.GetBinaryTypeSchema, w =>
                 {
                     w.WriteInt(typeId);
                     w.WriteInt(schemaId);
