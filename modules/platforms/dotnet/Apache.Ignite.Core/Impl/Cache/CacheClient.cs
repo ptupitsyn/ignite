@@ -23,7 +23,6 @@ namespace Apache.Ignite.Core.Impl.Cache
     using System.Diagnostics;
     using System.IO;
     using System.Threading.Tasks;
-    using Apache.Ignite.Core.Binary;
     using Apache.Ignite.Core.Cache;
     using Apache.Ignite.Core.Cache.Configuration;
     using Apache.Ignite.Core.Cache.Expiry;
@@ -34,6 +33,7 @@ namespace Apache.Ignite.Core.Impl.Cache
     using Apache.Ignite.Core.Impl.Binary.IO;
     using Apache.Ignite.Core.Impl.Client;
     using Apache.Ignite.Core.Impl.Common;
+    using BinaryWriter = Apache.Ignite.Core.Impl.Binary.BinaryWriter;
 
     /// <summary>
     /// Client cache implementation.
@@ -247,7 +247,11 @@ namespace Apache.Ignite.Core.Impl.Cache
             IgniteArgumentCheck.NotNull(key, "key");
             IgniteArgumentCheck.NotNull(val, "val");
 
-            throw new NotImplementedException();
+            DoOutOp(ClientOp.CachePut, w =>
+            {
+                w.WriteObjectDetached(key);
+                w.WriteObjectDetached(val);
+            });
         }
 
         /** <inheritDoc /> */
@@ -589,7 +593,7 @@ namespace Apache.Ignite.Core.Impl.Cache
         /// <summary>
         /// Does the out in op.
         /// </summary>
-        private T DoOutInOp<T>(ClientOp opId, Action<IBinaryRawWriter> writeAction,
+        private T DoOutInOp<T>(ClientOp opId, Action<BinaryWriter> writeAction,
             Func<IBinaryStream, T> readFunc)
         {
             return _ignite.Socket.DoOutInOp(opId, stream =>
@@ -602,6 +606,14 @@ namespace Apache.Ignite.Core.Impl.Cache
                     writeAction(_ignite.Marshaller.StartMarshal(stream));
                 }
             }, readFunc);
+        }
+
+        /// <summary>
+        /// Does the out op.
+        /// </summary>
+        private void DoOutOp(ClientOp opId, Action<BinaryWriter> writeAction)
+        {
+            DoOutInOp<object>(opId, writeAction, null);
         }
 
         /// <summary>
