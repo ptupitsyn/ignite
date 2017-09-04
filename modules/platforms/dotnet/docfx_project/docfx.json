@@ -3,16 +3,9 @@
     {
       "src": [
         {
-		  "src": "..",
+		  "src": "../",
           "files": [
-			"Apache.Ignite.sln", 
-			"**/Apache.Ignite.Core.csproj",
-			"**/Apache.Ignite.AspNet.csproj",
-			"**/Apache.Ignite.EntityFramework.csproj",
-			"**/Apache.Ignite.EntityFramework.csproj",
-			"**/Apache.Ignite.Linq.csproj",
-			"**/Apache.Ignite.NLog.csproj",
-			"**/Apache.Ignite.Log4Net.csproj",
+            "**/Apache.Ignite.Core.csproj"
           ],
           "exclude": [
             "**/obj/**",
