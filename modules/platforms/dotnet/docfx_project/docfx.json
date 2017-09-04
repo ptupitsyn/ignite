@@ -69,6 +69,12 @@
     "postProcessors": [],
     "noLangKeyword": false,
     "keepFileLink": false,
-    "cleanupCacheHistory": false
+    "cleanupCacheHistory": false,
+	"globalMetadata": {
+      "_gitContribute": {
+        "repo": "https://github.com/apache/ignite",
+        "branch": "master"
+      }
+    },
   }
 }
