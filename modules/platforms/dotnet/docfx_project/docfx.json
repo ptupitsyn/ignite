@@ -5,11 +5,11 @@
         {
 		  "src": "../",
           "files": [
-            "**/Apache.Ignite.Core.csproj"
-            "**/Apache.Ignite.Linq.csproj"
-            "**/Apache.Ignite.AspNet.csproj"
-            "**/Apache.Ignite.EntityFramework.csproj"
-            "**/Apache.Ignite.NLog.csproj"
+            "**/Apache.Ignite.Core.csproj",
+            "**/Apache.Ignite.Linq.csproj",
+            "**/Apache.Ignite.AspNet.csproj",
+            "**/Apache.Ignite.EntityFramework.csproj",
+            "**/Apache.Ignite.NLog.csproj",
             "**/Apache.Ignite.Log4Net.csproj"
           ],
           "exclude": [
