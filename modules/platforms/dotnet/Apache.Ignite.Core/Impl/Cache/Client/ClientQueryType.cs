@@ -15,19 +15,29 @@
  * limitations under the License.
  */
 
-namespace Apache.Ignite.Core.Impl.Client
+using System.Collections.Generic;
+
+namespace Apache.Ignite.Core.Impl.Cache.Client
 {
+    using Apache.Ignite.Core.Impl.Client;
+
     /// <summary>
-    /// Client op code.
+    /// Client query type mapper.
     /// </summary>
-    internal enum ClientOp : short
+    internal class ClientQueryType
     {
-        CacheGet = 1,
-        GetBinaryTypeName = 2,
-        GetBinaryTypeSchema = 3,
-        CachePut = 4,
-        RegisterBinaryTypeName = 5,
-        PutBinaryTypes = 6,
-        QueryScan = 7
+        private static readonly Dictionary<CacheOp, ClientOp> QueryTypes = new Dictionary<CacheOp, ClientOp>
+        {
+            {CacheOp.QryScan, ClientOp.QueryScan}
+        };
+
+        /// <summary>
+        /// Gets the client op.
+        /// </summary>
+        public static ClientOp? GetClientOp(CacheOp cacheOp)
+        {
+            ClientOp res;
+            return QueryTypes.TryGetValue(cacheOp, out res) ? (ClientOp?) res : null;
+        }
     }
 }

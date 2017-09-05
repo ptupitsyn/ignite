@@ -26,7 +26,7 @@ namespace Apache.Ignite.Core.Cache.Query
     public class ScanQuery<TK, TV> : QueryBase
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="ScanQuery{K, V}"/> class.
+        /// Initializes a new instance of the <see cref="QueryScan{K, V}"/> class.
         /// </summary>
         /// <param name="filter">The filter.</param>
         public ScanQuery(ICacheEntryFilter<TK, TV> filter = null)
