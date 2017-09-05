@@ -492,7 +492,9 @@ namespace Apache.Ignite.Core.Impl.Cache.Client
                 throw IgniteClient.GetClientNotSupportedException();
             }
 
-            return null; // TODO:
+            var cursorId = DoOutInOp(opId.Value, w => qry.Write(w, false), s => s.ReadInt());
+
+            return null; // TODO: Client cursor.
         }
 
         /** <inheritDoc /> */
