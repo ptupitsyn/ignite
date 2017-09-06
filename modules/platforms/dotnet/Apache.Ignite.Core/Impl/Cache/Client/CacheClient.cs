@@ -502,6 +502,7 @@ namespace Apache.Ignite.Core.Impl.Cache.Client
             // Referencing Apache.Ignite.Core is not really necessary with FullName type resolver.
             var cursorId = DoOutInOp(opId.Value, w =>
             {
+                // TODO: Filter type code is only needed when filter is present. Move this to Query impl.
                 w.WriteByte(FilterPlatformDotnet);
                 qry.Write(w, false);
             }, s => s.ReadInt());
