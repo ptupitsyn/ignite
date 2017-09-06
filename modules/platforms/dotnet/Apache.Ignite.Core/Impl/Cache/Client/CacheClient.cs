@@ -31,6 +31,7 @@ namespace Apache.Ignite.Core.Impl.Cache.Client
     using Apache.Ignite.Core.Cluster;
     using Apache.Ignite.Core.Impl.Binary;
     using Apache.Ignite.Core.Impl.Binary.IO;
+    using Apache.Ignite.Core.Impl.Cache.Client.Query;
     using Apache.Ignite.Core.Impl.Client;
     using Apache.Ignite.Core.Impl.Common;
     using BinaryWriter = Apache.Ignite.Core.Impl.Binary.BinaryWriter;
@@ -492,9 +493,10 @@ namespace Apache.Ignite.Core.Impl.Cache.Client
                 throw IgniteClient.GetClientNotSupportedException();
             }
 
+            // TODO: Do we need our own write routine? What do we do with that holder object?
             var cursorId = DoOutInOp(opId.Value, w => qry.Write(w, false), s => s.ReadInt());
 
-            return null; // TODO: Client cursor.
+            return new ClientQueryCursor<ICacheEntry<TK, TV>>(_ignite, cursorId, false);
         }
 
         /** <inheritDoc /> */

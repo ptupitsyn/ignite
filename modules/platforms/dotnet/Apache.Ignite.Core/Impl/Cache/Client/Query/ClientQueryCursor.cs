@@ -28,8 +28,8 @@ namespace Apache.Ignite.Core.Impl.Cache.Client.Query
     /// </summary>
     internal class ClientQueryCursor<T> : QueryCursorBase<T>
     {
-        /** Client. */
-        private readonly IgniteClient _client;
+        /** Ignite. */
+        private readonly IgniteClient _ignite;
 
         /** Cursor ID. */
         private int _cursorId;
@@ -37,20 +37,20 @@ namespace Apache.Ignite.Core.Impl.Cache.Client.Query
         /// <summary>
         /// Initializes a new instance of the <see cref="ClientQueryCursor{T}" /> class.
         /// </summary>
-        /// <param name="client">The client.</param>
+        /// <param name="ignite">The ignite.</param>
         /// <param name="cursorId">The cursor identifier.</param>
         /// <param name="keepBinary">Keep binary flag.</param>
-        public ClientQueryCursor(IgniteClient client, int cursorId, bool keepBinary) 
-            : base(client.Marshaller, keepBinary)
+        public ClientQueryCursor(IgniteClient ignite, int cursorId, bool keepBinary) 
+            : base(ignite.Marshaller, keepBinary)
         {
-            _client = client;
+            _ignite = ignite;
             _cursorId = cursorId;
         }
 
         /** <inheritdoc /> */
         protected override void InitIterator()
         {
-            //_client.Socket.
+            //_ignite.Socket.
         }
 
         /** <inheritdoc /> */
