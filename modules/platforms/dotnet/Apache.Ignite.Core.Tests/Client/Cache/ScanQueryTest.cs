@@ -17,38 +17,13 @@
 
 namespace Apache.Ignite.Core.Tests.Client.Cache
 {
+    using Apache.Ignite.Core.Cache;
+    using NUnit.Framework;
+
     /// <summary>
     /// Tests scan queries.
     /// </summary>
-    public class ScanQueryTest
+    public class ScanQueryTest : ClientTestBase
     {
-        /** Cache name. */
-        private const string CacheName = "cache";
-
-        /// <summary>
-        /// Fixture tear down.
-        /// </summary>
-        [TestFixtureSetUp]
-        public void FixtureSetUp()
-        {
-            Ignition.Start(TestUtils.GetTestConfiguration());
-        }
-
-        /// <summary>
-        /// Fixture tear down.
-        /// </summary>
-        [TestFixtureTearDown]
-        public void FixtureTearDown()
-        {
-            Ignition.StopAll(true);
-        }
-
-        /// <summary>
-        /// Gets the cache.
-        /// </summary>
-        private static ICache<int, T> GetCache<T>()
-        {
-            return Ignition.GetIgnite().GetOrCreateCache<int, T>(CacheName);
-        }
     }
 }
