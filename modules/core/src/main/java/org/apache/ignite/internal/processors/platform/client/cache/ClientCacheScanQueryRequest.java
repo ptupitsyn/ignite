@@ -21,6 +21,7 @@ import org.apache.ignite.cache.query.QueryCursor;
 import org.apache.ignite.cache.query.ScanQuery;
 import org.apache.ignite.internal.binary.BinaryRawReaderEx;
 import org.apache.ignite.internal.processors.platform.client.ClientConnectionContext;
+import org.apache.ignite.internal.processors.platform.client.ClientLongResponse;
 import org.apache.ignite.internal.processors.platform.client.ClientResponse;
 import org.apache.ignite.lang.IgniteBiPredicate;
 
@@ -89,7 +90,7 @@ public class ClientCacheScanQueryRequest extends ClientCacheRequest {
 
         long cursorId = ctx.handleRegistry().allocate(cur);
 
-        return new ClientCacheScanQueryResponse(getRequestId(), cursorId);
+        return new ClientLongResponse(getRequestId(), cursorId);
     }
 
     /**

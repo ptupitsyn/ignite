@@ -15,33 +15,33 @@
  * limitations under the License.
  */
 
-package org.apache.ignite.internal.processors.platform.client.cache;
+package org.apache.ignite.internal.processors.platform.client;
 
 import org.apache.ignite.binary.BinaryRawWriter;
 import org.apache.ignite.internal.processors.platform.client.ClientResponse;
 
 /**
- * Scan query response.
+ * Single long value response.
  */
-public class ClientCacheScanQueryResponse extends ClientResponse {
-    /** Cursor id. */
-    private final long cursorId;
+public class ClientLongResponse extends ClientResponse {
+    /** Value. */
+    private final long val;
 
     /**
      * Ctor.
      *
      * @param requestId Request id.
      */
-    ClientCacheScanQueryResponse(int requestId, long cursorId) {
+    public ClientLongResponse(int requestId, long val) {
         super(requestId);
 
-        this.cursorId = cursorId;
+        this.val = val;
     }
 
     /** {@inheritDoc} */
     @Override public void encode(BinaryRawWriter writer) {
         super.encode(writer);
 
-        writer.writeLong(cursorId);
+        writer.writeLong(val);
     }
 }
