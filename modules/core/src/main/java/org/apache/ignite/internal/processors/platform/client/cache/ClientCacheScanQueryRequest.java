@@ -19,8 +19,10 @@ package org.apache.ignite.internal.processors.platform.client.cache;
 
 import org.apache.ignite.binary.BinaryRawReader;
 import org.apache.ignite.cache.query.ScanQuery;
+import org.apache.ignite.internal.GridKernalContext;
 import org.apache.ignite.internal.processors.platform.PlatformContext;
 import org.apache.ignite.internal.processors.platform.cache.PlatformCacheEntryFilterImpl;
+import org.apache.ignite.internal.processors.platform.client.ClientResponse;
 import org.apache.ignite.lang.IgniteBiPredicate;
 
 /**
@@ -67,5 +69,11 @@ public class ClientCacheScanQueryRequest extends ClientCacheRequest {
         else if (filterPlatform != FILTER_PLATFORM_NONE) {
             throw new UnsupportedOperationException("Invalid client ScanQuery filter code: " + filterPlatform);
         }
+    }
+
+    /** {@inheritDoc} */
+    @Override public ClientResponse process(GridKernalContext ctx) {
+        // TODO: Execute query and return id.
+        return new ClientCacheScanQueryResponse(getRequestId(),0L);
     }
 }
