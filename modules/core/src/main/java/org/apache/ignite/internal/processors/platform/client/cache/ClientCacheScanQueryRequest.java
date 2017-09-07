@@ -87,7 +87,9 @@ public class ClientCacheScanQueryRequest extends ClientCacheRequest {
 
         QueryCursor cur = getCache(ctx).query(qry);
 
-        return new ClientCacheScanQueryResponse(getRequestId(),0L);
+        long cursorId = ctx.handleRegistry().allocate(cur);
+
+        return new ClientCacheScanQueryResponse(getRequestId(),cursorId);
     }
 
     /**
