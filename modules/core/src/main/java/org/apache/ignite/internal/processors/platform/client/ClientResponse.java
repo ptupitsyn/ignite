@@ -17,9 +17,8 @@
 
 package org.apache.ignite.internal.processors.platform.client;
 
-import org.apache.ignite.binary.BinaryRawWriter;
+import org.apache.ignite.internal.binary.BinaryRawWriterEx;
 import org.apache.ignite.internal.processors.odbc.SqlListenerResponse;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * Thin client response.
@@ -42,7 +41,7 @@ public class ClientResponse extends SqlListenerResponse {
     /**
      * Encodes the response data.
      */
-    public void encode(BinaryRawWriter writer) {
+    public void encode(BinaryRawWriterEx writer) {
         writer.writeInt(requestId);
     }
 }

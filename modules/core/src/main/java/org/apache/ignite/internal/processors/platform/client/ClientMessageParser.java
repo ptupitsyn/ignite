@@ -21,6 +21,7 @@ import org.apache.ignite.IgniteException;
 import org.apache.ignite.binary.BinaryRawWriter;
 import org.apache.ignite.internal.GridKernalContext;
 import org.apache.ignite.internal.binary.BinaryRawReaderEx;
+import org.apache.ignite.internal.binary.BinaryRawWriterEx;
 import org.apache.ignite.internal.binary.GridBinaryMarshaller;
 import org.apache.ignite.internal.binary.streams.BinaryHeapInputStream;
 import org.apache.ignite.internal.binary.streams.BinaryHeapOutputStream;
@@ -116,7 +117,7 @@ public class ClientMessageParser implements SqlListenerMessageParser {
     @Override public byte[] encode(SqlListenerResponse resp) {
         BinaryHeapOutputStream outStream = new BinaryHeapOutputStream(32);
 
-        BinaryRawWriter writer = marsh.writer(outStream);
+        BinaryRawWriterEx writer = marsh.writer(outStream);
 
         ((ClientResponse)resp).encode(writer);
 

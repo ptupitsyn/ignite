@@ -15,33 +15,38 @@
  * limitations under the License.
  */
 
-package org.apache.ignite.internal.processors.platform.client.binary;
+package org.apache.ignite.internal.processors.platform.client.cache;
 
-import org.apache.ignite.internal.binary.BinaryRawWriterEx;
+import org.apache.ignite.binary.BinaryRawReader;
+import org.apache.ignite.internal.processors.cache.query.QueryCursorEx;
+import org.apache.ignite.internal.processors.platform.client.ClientConnectionContext;
+import org.apache.ignite.internal.processors.platform.client.ClientRequest;
 import org.apache.ignite.internal.processors.platform.client.ClientResponse;
 
+import javax.cache.Cache;
+
 /**
- * Type name response.
+ * QueryCursor.getAll request.
  */
-public class ClientGetBinaryTypeNameResponse extends ClientResponse {
-    /** Type name. */
-    private final String typeName;
+public class ClientCacheQueryCursorGetAllRequest extends ClientRequest {
+    /** Cursor id. */
+    private final long cursorId;
 
     /**
      * Ctor.
      *
-     * @param requestId Request id.
+     * @param reader Reader.
      */
-    ClientGetBinaryTypeNameResponse(int requestId, String typeName) {
-        super(requestId);
+    public ClientCacheQueryCursorGetAllRequest(BinaryRawReader reader) {
+        super(reader);
 
-        this.typeName = typeName;
+        cursorId = reader.readLong();
     }
 
     /** {@inheritDoc} */
-    @Override public void encode(BinaryRawWriterEx writer) {
-        super.encode(writer);
+    @Override public ClientResponse process(ClientConnectionContext ctx) {
+        QueryCursorEx<Cache.Entry> cur = ctx.handleRegistry().get(cursorId);
 
-        writer.writeString(typeName);
+        return new ClientCacheQueryCursorGetAllResponse(getRequestId(), cur);
     }
 }

@@ -17,8 +17,7 @@
 
 package org.apache.ignite.internal.processors.platform.client;
 
-import org.apache.ignite.binary.BinaryRawWriter;
-import org.apache.ignite.internal.processors.platform.client.ClientResponse;
+import org.apache.ignite.internal.binary.BinaryRawWriterEx;
 
 /**
  * Single long value response.
@@ -39,7 +38,7 @@ public class ClientLongResponse extends ClientResponse {
     }
 
     /** {@inheritDoc} */
-    @Override public void encode(BinaryRawWriter writer) {
+    @Override public void encode(BinaryRawWriterEx writer) {
         super.encode(writer);
 
         writer.writeLong(val);
