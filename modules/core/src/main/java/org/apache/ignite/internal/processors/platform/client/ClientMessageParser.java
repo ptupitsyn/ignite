@@ -35,6 +35,7 @@ import org.apache.ignite.internal.processors.platform.client.binary.ClientPutBin
 import org.apache.ignite.internal.processors.platform.client.binary.ClientRegisterBinaryTypeNameRequest;
 import org.apache.ignite.internal.processors.platform.client.cache.ClientCacheGetRequest;
 import org.apache.ignite.internal.processors.platform.client.cache.ClientCachePutRequest;
+import org.apache.ignite.internal.processors.platform.client.cache.ClientCacheScanQueryRequest;
 
 /**
  * Thin client message parser.
@@ -57,6 +58,9 @@ public class ClientMessageParser implements SqlListenerMessageParser {
 
     /** */
     private static final short OP_PUT_BINARY_TYPES = 6;
+
+    /** */
+    private static final short OP_QUERY_SCAN = 7;
 
     /** Marshaller. */
     private final GridBinaryMarshaller marsh;
@@ -100,6 +104,9 @@ public class ClientMessageParser implements SqlListenerMessageParser {
 
             case OP_PUT_BINARY_TYPES:
                 return new ClientPutBinaryTypesRequest(reader);
+
+            case OP_QUERY_SCAN:
+                return new ClientCacheScanQueryRequest(reader);
         }
 
         throw new IgniteException("Invalid operation: " + opCode);
