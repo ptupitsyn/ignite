@@ -32,7 +32,7 @@ namespace Apache.Ignite.Core.Impl.Cache.Client.Query
         private readonly IgniteClient _ignite;
 
         /** Cursor ID. */
-        private int _cursorId;
+        private long _cursorId;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ClientQueryCursor{T}" /> class.
