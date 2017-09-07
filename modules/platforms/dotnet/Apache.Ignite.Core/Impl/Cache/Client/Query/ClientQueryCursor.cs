@@ -19,6 +19,7 @@ namespace Apache.Ignite.Core.Impl.Cache.Client.Query
 {
     using System;
     using System.Collections.Generic;
+    using Apache.Ignite.Core.Cache;
     using Apache.Ignite.Core.Impl.Binary;
     using Apache.Ignite.Core.Impl.Cache.Query;
     using Apache.Ignite.Core.Impl.Client;
@@ -26,7 +27,7 @@ namespace Apache.Ignite.Core.Impl.Cache.Client.Query
     /// <summary>
     /// Client query cursor.
     /// </summary>
-    internal class ClientQueryCursor<T> : QueryCursorBase<T>
+    internal class ClientQueryCursor<TK, TV> : QueryCursorBase<ICacheEntry<TK, TV>>
     {
         /** Ignite. */
         private readonly IgniteClient _ignite;
@@ -35,7 +36,7 @@ namespace Apache.Ignite.Core.Impl.Cache.Client.Query
         private readonly long _cursorId;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="ClientQueryCursor{T}" /> class.
+        /// Initializes a new instance of the <see cref="ClientQueryCursor{TK, TV}" /> class.
         /// </summary>
         /// <param name="ignite">The ignite.</param>
         /// <param name="cursorId">The cursor identifier.</param>
@@ -54,7 +55,7 @@ namespace Apache.Ignite.Core.Impl.Cache.Client.Query
         }
 
         /** <inheritdoc /> */
-        protected override IList<T> GetAllInternal()
+        protected override IList<ICacheEntry<TK, TV>> GetAllInternal()
         {
             return _ignite.Socket.DoOutInOp(ClientOp.QueryCursorGetAll, 
                 w => w.WriteLong(_cursorId), 
@@ -62,13 +63,13 @@ namespace Apache.Ignite.Core.Impl.Cache.Client.Query
         }
 
         /** <inheritdoc /> */
-        protected override T Read(BinaryReader reader)
+        protected override ICacheEntry<TK, TV> Read(BinaryReader reader)
         {
-            throw new NotImplementedException();
+            return new CacheEntry<TK, TV>(reader.ReadObject<TK>(), reader.ReadObject<TV>());
         }
 
         /** <inheritdoc /> */
-        protected override T[] GetBatch()
+        protected override ICacheEntry<TK, TV>[] GetBatch()
         {
             throw new NotImplementedException();
         }

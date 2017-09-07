@@ -499,7 +499,7 @@ namespace Apache.Ignite.Core.Impl.Cache.Client
             // Referencing Apache.Ignite.Core is not really necessary with FullName type resolver.
             var cursorId = DoOutInOp(opId.Value, w => qry.Write(w, false), s => s.ReadLong());
 
-            return new ClientQueryCursor<ICacheEntry<TK, TV>>(_ignite, cursorId, false);
+            return new ClientQueryCursor<TK, TV>(_ignite, cursorId, false);
         }
 
         /** <inheritDoc /> */
