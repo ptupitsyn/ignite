@@ -17,13 +17,17 @@
 
 package org.apache.ignite.internal.processors.platform.client.cache;
 
+import org.apache.ignite.cache.query.QueryCursor;
+import org.apache.ignite.cache.query.ScanQuery;
 import org.apache.ignite.internal.GridKernalContext;
 import org.apache.ignite.internal.binary.BinaryRawReaderEx;
 import org.apache.ignite.internal.processors.platform.client.ClientResponse;
+import org.apache.ignite.lang.IgniteBiPredicate;
 
 /**
  * Scan query request.
  */
+@SuppressWarnings("unchecked")
 public class ClientCacheScanQueryRequest extends ClientCacheRequest {
     /** No filter. */
     private static final byte FILTER_PLATFORM_NONE = 0;
@@ -51,7 +55,6 @@ public class ClientCacheScanQueryRequest extends ClientCacheRequest {
      *
      * @param reader Reader.
      */
-    @SuppressWarnings("unchecked")
     public ClientCacheScanQueryRequest(BinaryRawReaderEx reader) {
         super(reader);
 
@@ -76,7 +79,24 @@ public class ClientCacheScanQueryRequest extends ClientCacheRequest {
 
     /** {@inheritDoc} */
     @Override public ClientResponse process(GridKernalContext ctx) {
-        // TODO: Execute query and return id.
+        ScanQuery qry = new ScanQuery()
+                .setLocal(local)
+                .setPageSize(pageSize)
+                .setPartition(partition)
+                .setFilter(createFilter());
+
+        QueryCursor cur = getCache(ctx).query(qry);
+
         return new ClientCacheScanQueryResponse(getRequestId(),0L);
+    }
+
+    /**
+     * Creates the filter.
+     *
+     * @return Filter.
+     */
+    private IgniteBiPredicate createFilter() {
+        // TODO
+        return null;
     }
 }
