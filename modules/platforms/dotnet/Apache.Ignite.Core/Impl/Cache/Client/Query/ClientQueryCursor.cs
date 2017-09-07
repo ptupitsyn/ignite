@@ -40,7 +40,7 @@ namespace Apache.Ignite.Core.Impl.Cache.Client.Query
         /// <param name="ignite">The ignite.</param>
         /// <param name="cursorId">The cursor identifier.</param>
         /// <param name="keepBinary">Keep binary flag.</param>
-        public ClientQueryCursor(IgniteClient ignite, int cursorId, bool keepBinary) 
+        public ClientQueryCursor(IgniteClient ignite, long cursorId, bool keepBinary) 
             : base(ignite.Marshaller, keepBinary)
         {
             _ignite = ignite;
