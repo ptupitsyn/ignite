@@ -17,13 +17,9 @@
 
 package org.apache.ignite.internal.processors.platform.client.cache;
 
-import org.apache.ignite.binary.BinaryRawReader;
-import org.apache.ignite.cache.query.ScanQuery;
 import org.apache.ignite.internal.GridKernalContext;
-import org.apache.ignite.internal.processors.platform.PlatformContext;
-import org.apache.ignite.internal.processors.platform.cache.PlatformCacheEntryFilterImpl;
+import org.apache.ignite.internal.binary.BinaryRawReaderEx;
 import org.apache.ignite.internal.processors.platform.client.ClientResponse;
-import org.apache.ignite.lang.IgniteBiPredicate;
 
 /**
  * Scan query request.
@@ -35,8 +31,20 @@ public class ClientCacheScanQueryRequest extends ClientCacheRequest {
     /** .NET filter. */
     private static final byte FILTER_PLATFORM_DOTNET = 1;
 
-    /** Query. */
-    private final ScanQuery qry;
+    /** Local flag. */
+    private final boolean local;
+
+    /** Page size. */
+    private final int pageSize;
+
+    /** Partition. */
+    private final Integer partition;
+
+    /** Filter platform. */
+    private final byte filterPlatform;
+
+    /** Filter object. */
+    private final Object filterObject;
 
     /**
      * Ctor.
@@ -44,30 +52,25 @@ public class ClientCacheScanQueryRequest extends ClientCacheRequest {
      * @param reader Reader.
      */
     @SuppressWarnings("unchecked")
-    public ClientCacheScanQueryRequest(BinaryRawReader reader) {
+    public ClientCacheScanQueryRequest(BinaryRawReaderEx reader) {
         super(reader);
 
-        qry = new ScanQuery();
+        local = reader.readBoolean();
+        pageSize = reader.readInt();
+        partition = reader.readBoolean() ? reader.readInt() : null;
+        filterPlatform = reader.readByte();
 
-        qry.setLocal(reader.readBoolean());
-        qry.setPageSize(reader.readInt());
+        switch (filterPlatform) {
+            case FILTER_PLATFORM_NONE:
+                filterObject = null;
+                break;
 
-        if (reader.readBoolean()) {
-            qry.setPartition(reader.readInt());
-        }
+            case FILTER_PLATFORM_DOTNET:
+                filterObject = reader.readObjectDetached();
+                break;
 
-        byte filterPlatform = reader.readByte();
-
-        if (filterPlatform == FILTER_PLATFORM_DOTNET) {
-            Object dotNetFilter = reader.readObject();  // TODO: Detached
-            PlatformContext ctx = null; // TODO
-
-            IgniteBiPredicate filter = new PlatformCacheEntryFilterImpl(dotNetFilter, 0, ctx);
-
-            qry.setFilter(filter);
-        }
-        else if (filterPlatform != FILTER_PLATFORM_NONE) {
-            throw new UnsupportedOperationException("Invalid client ScanQuery filter code: " + filterPlatform);
+            default:
+                throw new UnsupportedOperationException("Invalid client ScanQuery filter code: " + filterPlatform);
         }
     }
 
