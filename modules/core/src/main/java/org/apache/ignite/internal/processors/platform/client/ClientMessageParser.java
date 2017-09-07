@@ -120,6 +120,6 @@ public class ClientMessageParser implements SqlListenerMessageParser {
 
         ((ClientResponse)resp).encode(writer);
 
-        return outStream.array();
+        return outStream.arrayCopy();
     }
 }
