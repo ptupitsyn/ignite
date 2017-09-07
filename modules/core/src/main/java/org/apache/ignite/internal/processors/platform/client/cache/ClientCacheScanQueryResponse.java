@@ -32,7 +32,7 @@ public class ClientCacheScanQueryResponse extends ClientResponse {
      *
      * @param requestId Request id.
      */
-    public ClientCacheScanQueryResponse(int requestId, long cursorId) {
+    ClientCacheScanQueryResponse(int requestId, long cursorId) {
         super(requestId);
 
         this.cursorId = cursorId;
