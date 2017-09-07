@@ -17,7 +17,8 @@
 
 namespace Apache.Ignite.Core.Tests.Client.Cache
 {
-    using Apache.Ignite.Core.Cache;
+    using System.Linq;
+    using Apache.Ignite.Core.Cache.Query;
     using NUnit.Framework;
 
     /// <summary>
@@ -25,5 +26,25 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
     /// </summary>
     public class ScanQueryTest : ClientTestBase
     {
+        /// <summary>
+        /// Tests scan query without filter on primitive types.
+        /// </summary>
+        [Test]
+        public void TestNoFilterPrimitives()
+        {
+            var cache = GetCache<string>();
+
+            cache.PutAll(Enumerable.Range(1, 1000).ToDictionary(x => x, x => x.ToString()));
+
+            using (var client = GetClient())
+            {
+                var clientCache = client.GetCache<int, string>(CacheName);
+
+                var query = new ScanQuery<int, string>();
+
+                var res = clientCache.Query(query).GetAll().OrderBy(x => x.Key).ToArray();
+                Assert.AreEqual(cache.OrderBy(x => x.Key).ToArray(), res);
+            }
+        }
     }
 }
