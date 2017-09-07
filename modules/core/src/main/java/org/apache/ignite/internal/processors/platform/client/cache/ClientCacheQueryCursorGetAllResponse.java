@@ -38,7 +38,7 @@ public class ClientCacheQueryCursorGetAllResponse extends ClientResponse {
      * @param requestId Request id.
      * @param cursor Cursor.
      */
-    public ClientCacheQueryCursorGetAllResponse(int requestId, QueryCursorEx<Cache.Entry> cursor) {
+    ClientCacheQueryCursorGetAllResponse(int requestId, QueryCursorEx<Cache.Entry> cursor) {
         super(requestId);
 
         assert cursor != null;
@@ -48,6 +48,8 @@ public class ClientCacheQueryCursorGetAllResponse extends ClientResponse {
 
     /** {@inheritDoc} */
     @Override public void encode(BinaryRawWriterEx writer) {
+        super.encode(writer);
+
         EntryConsumer consumer = new EntryConsumer(writer);
 
         int pos = writer.reserveInt();
@@ -58,7 +60,7 @@ public class ClientCacheQueryCursorGetAllResponse extends ClientResponse {
             throw new IgniteException(e);
         }
 
-        super.encode(writer);
+        writer.writeInt(pos, consumer.cnt);
     }
 
     /**
