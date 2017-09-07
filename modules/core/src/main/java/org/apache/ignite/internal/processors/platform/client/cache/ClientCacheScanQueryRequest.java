@@ -89,7 +89,7 @@ public class ClientCacheScanQueryRequest extends ClientCacheRequest {
 
         long cursorId = ctx.handleRegistry().allocate(cur);
 
-        return new ClientCacheScanQueryResponse(getRequestId(),cursorId);
+        return new ClientCacheScanQueryResponse(getRequestId(), cursorId);
     }
 
     /**
