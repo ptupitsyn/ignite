@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-namespace Apache.Ignite.Core.Tests.Client
+namespace Apache.Ignite.Core.Tests.Client.Cache
 {
     using System.Collections.Generic;
     using System.Linq;

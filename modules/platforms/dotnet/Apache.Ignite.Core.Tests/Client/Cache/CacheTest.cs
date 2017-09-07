@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-namespace Apache.Ignite.Core.Tests.Client
+namespace Apache.Ignite.Core.Tests.Client.Cache
 {
     using System;
     using System.Collections.Concurrent;

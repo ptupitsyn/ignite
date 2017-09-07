@@ -15,34 +15,40 @@
  * limitations under the License.
  */
 
-namespace Apache.Ignite.Core.Tests.Client
+namespace Apache.Ignite.Core.Tests.Client.Cache
 {
     /// <summary>
-    /// Test person.
+    /// Tests scan queries.
     /// </summary>
-    public class Person
+    public class ScanQueryTest
     {
-        /// <summary>
-        /// Gets or sets the identifier.
-        /// </summary>
-        public int Id { get; set; }
+        /** Cache name. */
+        private const string CacheName = "cache";
 
         /// <summary>
-        /// Gets or sets the name.
+        /// Fixture tear down.
         /// </summary>
-        public string Name { get; set; }
+        [TestFixtureSetUp]
+        public void FixtureSetUp()
+        {
+            Ignition.Start(TestUtils.GetTestConfiguration());
+        }
 
         /// <summary>
-        /// Gets or sets the parent.
+        /// Fixture tear down.
         /// </summary>
-        public Person Parent { get;set; }
-    }
+        [TestFixtureTearDown]
+        public void FixtureTearDown()
+        {
+            Ignition.StopAll(true);
+        }
 
-    /// <summary>
-    /// Test person 2.
-    /// </summary>
-    public class Person2 : Person
-    {
-        // No-op.
+        /// <summary>
+        /// Gets the cache.
+        /// </summary>
+        private static ICache<int, T> GetCache<T>()
+        {
+            return Ignition.GetIgnite().GetOrCreateCache<int, T>(CacheName);
+        }
     }
 }
