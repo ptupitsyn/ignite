@@ -32,7 +32,7 @@ namespace Apache.Ignite.Core.Impl.Cache.Client.Query
         private readonly IgniteClient _ignite;
 
         /** Cursor ID. */
-        private long _cursorId;
+        private readonly long _cursorId;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ClientQueryCursor{T}" /> class.
@@ -56,7 +56,9 @@ namespace Apache.Ignite.Core.Impl.Cache.Client.Query
         /** <inheritdoc /> */
         protected override IList<T> GetAllInternal()
         {
-            throw new NotImplementedException();
+            return _ignite.Socket.DoOutInOp(ClientOp.QueryCursorGetAll, 
+                w => w.WriteLong(_cursorId), 
+                s => ConvertGetAll(s));
         }
 
         /** <inheritdoc /> */

@@ -28,6 +28,7 @@ namespace Apache.Ignite.Core.Impl.Client
         CachePut = 4,
         RegisterBinaryTypeName = 5,
         PutBinaryTypes = 6,
-        QueryScan = 7
+        QueryScan = 7,
+        QueryCursorGetAll = 8
     }
 }
