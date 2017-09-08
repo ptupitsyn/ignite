@@ -17,6 +17,7 @@
 
 namespace Apache.Ignite.Core.Tests.Client.Cache
 {
+    using System;
     using System.Linq;
     using Apache.Ignite.Core.Cache;
     using Apache.Ignite.Core.Cache.Query;
@@ -39,7 +40,7 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
         /// Tests scan query without filter.
         /// </summary>
         [Test]
-        public void TestNoFilterGetAll()
+        public void TestNoFilter()
         {
             var cache = GetPersonCache();
 
@@ -49,9 +50,21 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
 
                 var query = new ScanQuery<int, Person>();
 
+                // GetAll.
                 var res = clientCache.Query(query).GetAll().Select(x => x.Value.Name).OrderBy(x => x).ToArray();
                 Assert.AreEqual(cache.Select(x => x.Value.Name).OrderBy(x => x).ToArray(), res);
 
+                // Iterator.
+                using (var cursor = clientCache.Query(query))
+                {
+                    res = cursor.Select(x => x.Value.Name).OrderBy(x => x).ToArray();
+                    Assert.AreEqual(cache.Select(x => x.Value.Name).OrderBy(x => x).ToArray(), res);
+
+                    // Can't use GetAll after using iterator.
+                    Assert.Throws<InvalidOperationException>(() => cursor.GetAll());
+                }
+
+                // Local.
                 query.Local = true;
                 var localRes = clientCache.Query(query).GetAll();
                 Assert.Less(localRes.Count, cache.GetSize());
