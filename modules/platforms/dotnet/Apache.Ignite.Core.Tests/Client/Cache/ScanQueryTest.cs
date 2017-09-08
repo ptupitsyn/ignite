@@ -68,6 +68,13 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
                     Assert.Throws<InvalidOperationException>(() => cursor.GetAll());
                 }
 
+                // Partial iterator.
+                using (cursor = clientCache.Query(query))
+                {
+                    var item = cursor.First();
+                    Assert.AreEqual(item.Key.ToString(), item.Value.Name);
+                }
+
                 // Local.
                 query.Local = true;
                 var localRes = clientCache.Query(query).GetAll();
