@@ -23,6 +23,7 @@ import org.apache.ignite.internal.binary.BinaryRawWriterEx;
 import org.apache.ignite.internal.processors.platform.client.ClientResponse;
 
 import javax.cache.Cache;
+import java.util.Iterator;
 
 /**
  * Query cursor next page response.
@@ -49,16 +50,21 @@ class ClientCacheQueryCursorGetNextPageResponse extends ClientResponse {
     @Override public void encode(BinaryRawWriterEx writer) {
         super.encode(writer);
 
-        ClientCacheQueryCursorGetAllResponse.EntryConsumer consumer = new ClientCacheQueryCursorGetAllResponse.EntryConsumer(writer);
+        Iterator<Cache.Entry> iter = cursor.iterator();
 
-        int pos = writer.reserveInt();
+        int pageSize = cursor.pageSize();
+        int cntPos = writer.reserveInt();
+        int cnt = 0;
 
-        try {
-            cursor.cursor().getAll(consumer);
-        } catch (IgniteCheckedException e) {
-            throw new IgniteException(e);
+        while (cnt < pageSize && iter.hasNext()) {
+            Cache.Entry e = iter.next();
+
+            writer.writeObjectDetached(e.getKey());
+            writer.writeObjectDetached(e.getValue());
+
+            cnt++;
         }
 
-        writer.writeInt(pos, consumer.cnt);
+        writer.writeInt(cntPos, cnt);
     }
 }
