@@ -76,7 +76,7 @@ namespace Apache.Ignite.Core.Impl.Cache.Query
             var res = GetAllInternal();
 
             // GetAll renders cursor unusable, dispose it.
-            Dispose(true);
+            Dispose();
 
             return res;
         }
