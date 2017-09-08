@@ -74,11 +74,11 @@ namespace Apache.Ignite.Core.Impl.Cache.Query
                 throw new InvalidOperationException("Failed to get all entries because GetAll() " +
                                                     "method has already been called.");
 
-            ThrowIfDisposed();
-
             if (_iterCalled)
-                throw new InvalidOperationException("Failed to get all entries because GetEnumerator() " + 
-                    "method has already been called.");
+                throw new InvalidOperationException("Failed to get all entries because GetEnumerator() " +
+                                                    "method has already been called.");
+
+            ThrowIfDisposed();
 
             var res = GetAllInternal();
 
@@ -101,13 +101,13 @@ namespace Apache.Ignite.Core.Impl.Cache.Query
                                                     "GetAll() method has already been called.");
             }
 
-            ThrowIfDisposed();
-
             if (_iterCalled)
             {
                 throw new InvalidOperationException("Failed to get enumerator entries because " +
                                                     "GetEnumerator() method has already been called.");
             }
+
+            ThrowIfDisposed();
 
             InitIterator();
 
