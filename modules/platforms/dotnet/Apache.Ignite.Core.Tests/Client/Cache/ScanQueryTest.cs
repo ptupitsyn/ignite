@@ -39,7 +39,7 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
         /// Tests scan query without filter.
         /// </summary>
         [Test]
-        public void TestNoFilter()
+        public void TestNoFilterGetAll()
         {
             var cache = GetPersonCache();
 
@@ -51,6 +51,11 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
 
                 var res = clientCache.Query(query).GetAll().Select(x => x.Value.Name).OrderBy(x => x).ToArray();
                 Assert.AreEqual(cache.Select(x => x.Value.Name).OrderBy(x => x).ToArray(), res);
+
+                query.Local = true;
+                var localRes = clientCache.Query(query).GetAll();
+                Assert.Less(localRes.Count, cache.GetSize());
+                Assert.AreEqual(localRes.Count, cache.GetSize(CachePeekMode.Primary));
             }
         }
 
