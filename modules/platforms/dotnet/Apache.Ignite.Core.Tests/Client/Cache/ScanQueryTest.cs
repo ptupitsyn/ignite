@@ -103,7 +103,7 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
                 // Multiple results.
                 var res = clientCache.Query(new ScanQuery<int, Person>(new PersonFilter(x => x.Name.Length == 1)))
                     .GetAll();
-                Assert.AreEqual(10, res.Count);
+                Assert.AreEqual(9, res.Count);
 
                 // No results.
                 res = clientCache.Query(new ScanQuery<int, Person>(new PersonFilter(x => x == null))).GetAll();
