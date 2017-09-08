@@ -18,6 +18,7 @@
 namespace Apache.Ignite.Core.Tests.Client.Cache
 {
     using System.Linq;
+    using Apache.Ignite.Core.Cache;
     using Apache.Ignite.Core.Cache.Query;
     using NUnit.Framework;
 
@@ -27,24 +28,39 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
     public class ScanQueryTest : ClientTestBase
     {
         /// <summary>
-        /// Tests scan query without filter on primitive types.
+        /// Tests scan query without filter.
         /// </summary>
         [Test]
-        public void TestNoFilterPrimitives()
+        public void TestNoFilter()
         {
-            var cache = GetCache<string>();
-
-            cache.PutAll(Enumerable.Range(1, 1000).ToDictionary(x => x, x => x.ToString()));
+            var cache = GetPersonCache();
 
             using (var client = GetClient())
             {
-                var clientCache = client.GetCache<int, string>(CacheName);
+                var clientCache = client.GetCache<int, Person>(CacheName);
 
-                var query = new ScanQuery<int, string>();
+                var query = new ScanQuery<int, Person>();
 
-                var res = clientCache.Query(query).GetAll().OrderBy(x => x.Key).ToArray();
-                Assert.AreEqual(cache.OrderBy(x => x.Key).ToArray(), res);
+                var res = clientCache.Query(query).GetAll().Select(x => x.Value.Name).OrderBy(x => x).ToArray();
+                Assert.AreEqual(cache.Select(x => x.Value.Name).OrderBy(x => x).ToArray(), res);
             }
+        }
+
+        /// <summary>
+        /// Gets the string cache.
+        /// </summary>
+        private static ICache<int, Person> GetPersonCache()
+        {
+            var cache = GetCache<Person>();
+
+            cache.RemoveAll();
+            cache.PutAll(Enumerable.Range(1, 1000).ToDictionary(x => x, x => new Person
+            {
+                Id = x,
+                Name = x.ToString()
+            }));
+
+            return cache;
         }
     }
 }
