@@ -17,7 +17,6 @@
 
 namespace Apache.Ignite.Core.Impl.Cache.Client.Query
 {
-    using System;
     using System.Collections.Generic;
     using Apache.Ignite.Core.Cache;
     using Apache.Ignite.Core.Impl.Binary;
@@ -71,7 +70,9 @@ namespace Apache.Ignite.Core.Impl.Cache.Client.Query
         /** <inheritdoc /> */
         protected override ICacheEntry<TK, TV>[] GetBatch()
         {
-            throw new NotImplementedException();
+            return _ignite.Socket.DoOutInOp(ClientOp.QueryCursorGetAll,
+                w => w.WriteLong(_cursorId),
+                s => ConvertGetBatch(s));
         }
 
         /** <inheritdoc /> */
