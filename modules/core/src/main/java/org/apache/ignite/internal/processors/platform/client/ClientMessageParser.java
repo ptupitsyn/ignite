@@ -35,6 +35,7 @@ import org.apache.ignite.internal.processors.platform.client.binary.ClientPutBin
 import org.apache.ignite.internal.processors.platform.client.binary.ClientRegisterBinaryTypeNameRequest;
 import org.apache.ignite.internal.processors.platform.client.cache.ClientCacheGetRequest;
 import org.apache.ignite.internal.processors.platform.client.cache.ClientCachePutRequest;
+import org.apache.ignite.internal.processors.platform.client.cache.ClientCacheQueryCursorCloseRequest;
 import org.apache.ignite.internal.processors.platform.client.cache.ClientCacheQueryCursorGetAllRequest;
 import org.apache.ignite.internal.processors.platform.client.cache.ClientCacheQueryCursorGetNextPageRequest;
 import org.apache.ignite.internal.processors.platform.client.cache.ClientCacheScanQueryRequest;
@@ -69,6 +70,9 @@ public class ClientMessageParser implements SqlListenerMessageParser {
 
     /** */
     private static final short OP_QUERY_CURSOR_GET_PAGE = 9;
+
+    /** */
+    private static final short OP_QUERY_CURSOR_CLOSE = 10;
 
     /** Marshaller. */
     private final GridBinaryMarshaller marsh;
@@ -121,6 +125,9 @@ public class ClientMessageParser implements SqlListenerMessageParser {
 
             case OP_QUERY_CURSOR_GET_PAGE:
                 return new ClientCacheQueryCursorGetNextPageRequest(reader);
+
+            case OP_QUERY_CURSOR_CLOSE:
+                return new ClientCacheQueryCursorCloseRequest(reader);
         }
 
         throw new IgniteException("Invalid operation: " + opCode);
