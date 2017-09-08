@@ -21,6 +21,8 @@ import org.apache.ignite.cache.query.QueryCursor;
 import org.apache.ignite.cache.query.ScanQuery;
 import org.apache.ignite.internal.binary.BinaryRawReaderEx;
 import org.apache.ignite.internal.processors.cache.query.QueryCursorEx;
+import org.apache.ignite.internal.processors.platform.PlatformContext;
+import org.apache.ignite.internal.processors.platform.cache.PlatformCacheEntryFilter;
 import org.apache.ignite.internal.processors.platform.client.ClientConnectionContext;
 import org.apache.ignite.internal.processors.platform.client.ClientLongResponse;
 import org.apache.ignite.internal.processors.platform.client.ClientResponse;
@@ -85,7 +87,7 @@ public class ClientCacheScanQueryRequest extends ClientCacheRequest {
                 .setLocal(local)
                 .setPageSize(pageSize)
                 .setPartition(partition)
-                .setFilter(createFilter());
+                .setFilter(createFilter(ctx));
 
         QueryCursor cur = getCache(ctx).query(qry);
 
@@ -100,9 +102,20 @@ public class ClientCacheScanQueryRequest extends ClientCacheRequest {
      * Creates the filter.
      *
      * @return Filter.
+     * @param ctx Context.
      */
-    private IgniteBiPredicate createFilter() {
-        // TODO
-        return null;
+    private IgniteBiPredicate createFilter(ClientConnectionContext ctx) {
+        if (filterObject == null) {
+            return null;
+        }
+
+        if (filterPlatform != FILTER_PLATFORM_DOTNET) {
+            throw new UnsupportedOperationException("Invalid client ScanQuery filter code: " + filterPlatform);
+        }
+
+        PlatformContext platformCtx = ctx.kernalContext().platform().context();
+
+        // TODO: Necessary to init?
+        return platformCtx.createCacheEntryFilter(false, 0);
     }
 }
