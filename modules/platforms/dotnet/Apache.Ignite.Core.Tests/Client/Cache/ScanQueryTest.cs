@@ -18,6 +18,7 @@
 namespace Apache.Ignite.Core.Tests.Client.Cache
 {
     using System;
+    using System.Diagnostics;
     using System.Linq;
     using Apache.Ignite.Core.Cache;
     using Apache.Ignite.Core.Cache.Query;
@@ -83,6 +84,26 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
         }
 
         /// <summary>
+        /// Tests scan query with .NET filter.
+        /// </summary>
+        [Test]
+        public void TestWithFilter()
+        {
+            GetPersonCache();
+
+            using (var client = GetClient())
+            {
+                var clientCache = client.GetCache<int, Person>(CacheName);
+
+                var query = new ScanQuery<int, Person>(new PersonFilter(x => x.Id == 3));
+
+                var single = clientCache.Query(query).GetAll().Single();
+
+                Assert.AreEqual(3, single.Key);
+            }
+        }
+
+        /// <summary>
         /// Gets the string cache.
         /// </summary>
         private static ICache<int, Person> GetPersonCache()
@@ -97,6 +118,32 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
             }));
 
             return cache;
+        }
+
+        /// <summary>
+        /// Person filter.
+        /// </summary>
+        private class PersonFilter : ICacheEntryFilter<int, Person>
+        {
+            /** Filter predicate. */
+            private readonly Func<Person, bool> _filter;
+
+            /// <summary>
+            /// Initializes a new instance of the <see cref="PersonFilter"/> class.
+            /// </summary>
+            /// <param name="filter">The filter.</param>
+            public PersonFilter(Func<Person, bool> filter)
+            {
+                Debug.Assert(filter != null);
+
+                _filter = filter;
+            }
+
+            /** <inheritdoc /> */
+            public bool Invoke(ICacheEntry<int, Person> entry)
+            {
+                return _filter(entry.Value);
+            }
         }
     }
 }
