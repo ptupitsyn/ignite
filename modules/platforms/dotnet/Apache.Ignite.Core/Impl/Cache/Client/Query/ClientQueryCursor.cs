@@ -70,7 +70,7 @@ namespace Apache.Ignite.Core.Impl.Cache.Client.Query
         /** <inheritdoc /> */
         protected override ICacheEntry<TK, TV>[] GetBatch()
         {
-            return _ignite.Socket.DoOutInOp(ClientOp.QueryCursorGetAll,
+            return _ignite.Socket.DoOutInOp(ClientOp.QueryCursorGetPage,
                 w => w.WriteLong(_cursorId),
                 s => ConvertGetBatch(s));
         }
