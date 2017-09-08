@@ -493,10 +493,8 @@ namespace Apache.Ignite.Core.Impl.Cache.Client
                 throw IgniteClient.GetClientNotSupportedException();
             }
 
-            // TODO: Do we need our own write routine? What do we do with that holder object?
-            // Yes, we do need a holder: it has a pre-defined type id (see CacheEntryPredicateHolder)
-            // and underlying object must implement interface named Apache.Ignite.Core.Cache.ICacheEntryFilter.
-            // Referencing Apache.Ignite.Core is not really necessary with FullName type resolver.
+            // Filter is a binary object for all platforms.
+            // For .NET it is a CacheEntryFilterHolder with a predefined id (BinaryTypeId.CacheEntryPredicateHolder).
             var cursorId = DoOutInOp(opId.Value, w => qry.Write(w, false), s => s.ReadLong());
 
             return new ClientQueryCursor<TK, TV>(_ignite, cursorId, false);
