@@ -51,11 +51,15 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
                 var query = new ScanQuery<int, Person>();
 
                 // GetAll.
-                var res = clientCache.Query(query).GetAll().Select(x => x.Value.Name).OrderBy(x => x).ToArray();
+                var cursor = clientCache.Query(query);
+                var res = cursor.GetAll().Select(x => x.Value.Name).OrderBy(x => x).ToArray();
                 Assert.AreEqual(cache.Select(x => x.Value.Name).OrderBy(x => x).ToArray(), res);
 
+                // Calling GetAll twice is not allowed.
+                Assert.Throws<InvalidOperationException>(() => cursor.GetAll());
+
                 // Iterator.
-                using (var cursor = clientCache.Query(query))
+                using (cursor = clientCache.Query(query))
                 {
                     res = cursor.Select(x => x.Value.Name).OrderBy(x => x).ToArray();
                     Assert.AreEqual(cache.Select(x => x.Value.Name).OrderBy(x => x).ToArray(), res);
