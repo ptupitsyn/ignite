@@ -47,6 +47,9 @@ public class ClientCacheQueryCursorGetAllRequest extends ClientRequest {
     @Override public ClientResponse process(ClientConnectionContext ctx) {
         QueryCursorEx<Cache.Entry> cur = ctx.handleRegistry().get(cursorId);
 
+        // getAll renders cursor unusable, release it.
+        ctx.handleRegistry().release(cursorId);
+
         return new ClientCacheQueryCursorGetAllResponse(getRequestId(), cur);
     }
 }
