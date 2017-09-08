@@ -30,7 +30,7 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
         /// <summary>
         /// Initializes a new instance of the <see cref="ScanQueryTest"/> class.
         /// </summary>
-        public ScanQueryTest(int gridCount) : base(2)
+        public ScanQueryTest() : base(2)
         {
             // No-op.
         }
