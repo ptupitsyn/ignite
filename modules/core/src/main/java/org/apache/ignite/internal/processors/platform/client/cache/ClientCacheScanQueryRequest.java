@@ -115,7 +115,6 @@ public class ClientCacheScanQueryRequest extends ClientCacheRequest {
 
         PlatformContext platformCtx = ctx.kernalContext().platform().context();
 
-        // TODO: Necessary to init?
-        return platformCtx.createCacheEntryFilter(false, 0);
+        return platformCtx.createCacheEntryFilter(filterObject, 0);
     }
 }
