@@ -73,5 +73,18 @@ namespace Apache.Ignite.Core.Impl.Cache.Client.Query
         {
             throw new NotImplementedException();
         }
+
+        /** <inheritdoc /> */
+        protected override void Dispose(bool disposing)
+        {
+            try
+            {
+                _ignite.Socket.DoOutInOp<object>(ClientOp.QueryCursorClose, w => w.WriteLong(_cursorId), null);
+            }
+            finally
+            {
+                base.Dispose(disposing);
+            }
+        }
     }
 }
