@@ -39,6 +39,9 @@ namespace Apache.Ignite.Core.Impl.Cache.Query
         /** Marshaller. */
         private readonly Marshaller _marsh;
 
+        /** Wherther "GetAll" was called. */
+        private bool _getAllCalled;
+
         /** Whether "GetEnumerator" was called. */
         private bool _iterCalled;
 
@@ -67,6 +70,10 @@ namespace Apache.Ignite.Core.Impl.Cache.Query
         /** <inheritdoc /> */
         public IList<T> GetAll()
         {
+            if (_getAllCalled)
+                throw new InvalidOperationException("Failed to get all entries because GetAll() " +
+                                                    "method has already been called.");
+
             ThrowIfDisposed();
 
             if (_iterCalled)
@@ -74,6 +81,8 @@ namespace Apache.Ignite.Core.Impl.Cache.Query
                     "method has already been called.");
 
             var res = GetAllInternal();
+
+            _getAllCalled = true;
 
             // GetAll renders cursor unusable, dispose it.
             Dispose();
@@ -86,6 +95,12 @@ namespace Apache.Ignite.Core.Impl.Cache.Query
         /** <inheritdoc /> */
         public IEnumerator<T> GetEnumerator()
         {
+            if (_getAllCalled)
+            {
+                throw new InvalidOperationException("Failed to get enumerator entries because " +
+                                                    "GetAll() method has already been called.");
+            }
+
             ThrowIfDisposed();
 
             if (_iterCalled)
