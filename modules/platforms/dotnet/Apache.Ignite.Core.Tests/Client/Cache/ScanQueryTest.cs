@@ -55,7 +55,6 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
                 query.Local = true;
                 var localRes = clientCache.Query(query).GetAll();
                 Assert.Less(localRes.Count, cache.GetSize());
-                Assert.AreEqual(localRes.Count, cache.GetSize(CachePeekMode.Primary));
             }
         }
 
@@ -67,7 +66,7 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
             var cache = GetCache<Person>();
 
             cache.RemoveAll();
-            cache.PutAll(Enumerable.Range(1, 1000).ToDictionary(x => x, x => new Person
+            cache.PutAll(Enumerable.Range(1, 10000).ToDictionary(x => x, x => new Person
             {
                 Id = x,
                 Name = x.ToString()
