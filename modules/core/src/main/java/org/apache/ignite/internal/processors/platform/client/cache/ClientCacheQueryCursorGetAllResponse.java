@@ -30,7 +30,7 @@ import javax.cache.Cache;
  */
 public class ClientCacheQueryCursorGetAllResponse extends ClientResponse {
     /** Cursor. */
-    private final QueryCursorEx<Cache.Entry> cursor;
+    private final ClientCacheQueryCursor<Cache.Entry> cursor;
 
     /**
      * Ctor.
@@ -38,7 +38,7 @@ public class ClientCacheQueryCursorGetAllResponse extends ClientResponse {
      * @param requestId Request id.
      * @param cursor Cursor.
      */
-    ClientCacheQueryCursorGetAllResponse(int requestId, QueryCursorEx<Cache.Entry> cursor) {
+    ClientCacheQueryCursorGetAllResponse(int requestId, ClientCacheQueryCursor<Cache.Entry> cursor) {
         super(requestId);
 
         assert cursor != null;
@@ -55,7 +55,7 @@ public class ClientCacheQueryCursorGetAllResponse extends ClientResponse {
         int pos = writer.reserveInt();
 
         try {
-            cursor.getAll(consumer);
+            cursor.cursor().getAll(consumer);
         } catch (IgniteCheckedException e) {
             throw new IgniteException(e);
         }

@@ -20,6 +20,7 @@ package org.apache.ignite.internal.processors.platform.client.cache;
 import org.apache.ignite.cache.query.QueryCursor;
 import org.apache.ignite.cache.query.ScanQuery;
 import org.apache.ignite.internal.binary.BinaryRawReaderEx;
+import org.apache.ignite.internal.processors.cache.query.QueryCursorEx;
 import org.apache.ignite.internal.processors.platform.client.ClientConnectionContext;
 import org.apache.ignite.internal.processors.platform.client.ClientLongResponse;
 import org.apache.ignite.internal.processors.platform.client.ClientResponse;
@@ -88,7 +89,9 @@ public class ClientCacheScanQueryRequest extends ClientCacheRequest {
 
         QueryCursor cur = getCache(ctx).query(qry);
 
-        long cursorId = ctx.handleRegistry().allocate(cur);
+        ClientCacheQueryCursor clientCur = new ClientCacheQueryCursor((QueryCursorEx) cur, pageSize);
+
+        long cursorId = ctx.handleRegistry().allocate(clientCur);
 
         return new ClientLongResponse(getRequestId(), cursorId);
     }

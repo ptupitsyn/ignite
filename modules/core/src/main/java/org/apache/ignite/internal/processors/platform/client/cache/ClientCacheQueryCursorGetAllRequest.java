@@ -18,7 +18,6 @@
 package org.apache.ignite.internal.processors.platform.client.cache;
 
 import org.apache.ignite.binary.BinaryRawReader;
-import org.apache.ignite.internal.processors.cache.query.QueryCursorEx;
 import org.apache.ignite.internal.processors.platform.client.ClientConnectionContext;
 import org.apache.ignite.internal.processors.platform.client.ClientRequest;
 import org.apache.ignite.internal.processors.platform.client.ClientResponse;
@@ -45,7 +44,7 @@ public class ClientCacheQueryCursorGetAllRequest extends ClientRequest {
 
     /** {@inheritDoc} */
     @Override public ClientResponse process(ClientConnectionContext ctx) {
-        QueryCursorEx<Cache.Entry> cur = ctx.handleRegistry().get(cursorId);
+        ClientCacheQueryCursor<Cache.Entry> cur = ctx.handleRegistry().get(cursorId);
 
         // getAll renders cursor unusable, release it.
         ctx.handleRegistry().release(cursorId);

@@ -40,7 +40,7 @@ public class ClientCacheQueryCursor<T> {
      * @param cursor Cursor.
      * @param pageSize Page size.
      */
-    public ClientCacheQueryCursor(QueryCursorEx<T> cursor, int pageSize) {
+    ClientCacheQueryCursor(QueryCursorEx<T> cursor, int pageSize) {
         assert cursor != null;
         assert pageSize > 0;
 
