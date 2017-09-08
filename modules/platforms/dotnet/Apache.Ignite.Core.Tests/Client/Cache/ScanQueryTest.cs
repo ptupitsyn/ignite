@@ -28,6 +28,14 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
     public class ScanQueryTest : ClientTestBase
     {
         /// <summary>
+        /// Initializes a new instance of the <see cref="ScanQueryTest"/> class.
+        /// </summary>
+        public ScanQueryTest(int gridCount) : base(2)
+        {
+            // No-op.
+        }
+
+        /// <summary>
         /// Tests scan query without filter.
         /// </summary>
         [Test]

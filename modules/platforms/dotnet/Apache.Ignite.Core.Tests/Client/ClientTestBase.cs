@@ -29,13 +29,40 @@ namespace Apache.Ignite.Core.Tests.Client
         /** Cache name. */
         protected const string CacheName = "cache";
 
+        /** Grid count. */
+        private readonly int _gridCount = 1;
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ClientTestBase"/> class.
+        /// </summary>
+        public ClientTestBase()
+        {
+            // No-op.
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ClientTestBase"/> class.
+        /// </summary>
+        public ClientTestBase(int gridCount)
+        {
+            _gridCount = gridCount;
+        }
+
         /// <summary>
         /// Fixture tear down.
         /// </summary>
         [TestFixtureSetUp]
         public void FixtureSetUp()
         {
-            Ignition.Start(TestUtils.GetTestConfiguration());
+            var cfg = TestUtils.GetTestConfiguration();
+            Ignition.Start(cfg);
+
+            cfg.AutoGenerateIgniteInstanceName = true;
+
+            for (var i = 1; i < _gridCount; i++)
+            {
+                Ignition.Start(cfg);
+            }
         }
 
         /// <summary>
