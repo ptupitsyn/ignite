@@ -95,11 +95,19 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
             {
                 var clientCache = client.GetCache<int, Person>(CacheName);
 
-                var query = new ScanQuery<int, Person>(new PersonFilter(x => x.Id == 3));
-
-                var single = clientCache.Query(query).GetAll().Single();
-
+                // One result.
+                var single = clientCache.Query(new ScanQuery<int, Person>(new PersonFilter(x => x.Id == 3)))
+                    .GetAll().Single();
                 Assert.AreEqual(3, single.Key);
+
+                // Multiple results.
+                var res = clientCache.Query(new ScanQuery<int, Person>(new PersonFilter(x => x.Name.Length == 1)))
+                    .GetAll();
+                Assert.AreEqual(10, res.Count);
+
+                // No results.
+                res = clientCache.Query(new ScanQuery<int, Person>(new PersonFilter(x => x == null))).GetAll();
+                Assert.AreEqual(0, res.Count);
             }
         }
 
