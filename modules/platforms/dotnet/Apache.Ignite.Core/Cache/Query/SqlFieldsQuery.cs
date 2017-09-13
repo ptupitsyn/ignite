@@ -160,9 +160,9 @@ namespace Apache.Ignite.Core.Cache.Query
 
             return string.Format("SqlFieldsQuery [Sql={0}, Arguments=[{1}], Local={2}, PageSize={3}, " +
                                  "EnableDistributedJoins={4}, EnforceJoinOrder={5}, Timeout={6}, ReplicatedOnly={7}" +
-                                 ", Colocated={8}, Schema={9}]", Sql, args, Local,
+                                 ", Colocated={8}, Schema={9}, Lazy={10}]", Sql, args, Local,
                                  PageSize, EnableDistributedJoins, EnforceJoinOrder, Timeout, ReplicatedOnly,
-                                 Colocated, Schema);
+                                 Colocated, Schema, Lazy);
         }
     }
 }
