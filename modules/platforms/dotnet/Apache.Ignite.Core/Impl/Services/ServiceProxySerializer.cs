@@ -56,9 +56,7 @@ namespace Apache.Ignite.Core.Impl.Services
                 {
                     // Write as is
                     foreach (var arg in arguments)
-                    {
-                        writer.WriteObjectDetached(arg);
-                    }
+                        writer.WriteObject(arg);
                 }
                 else
                 {
@@ -166,13 +164,9 @@ namespace Apache.Ignite.Core.Impl.Services
             var hnd = GetPlatformArgWriter(param, arg);
 
             if (hnd != null)
-            {
                 hnd(writer, arg);
-            }
             else
-            {
-                writer.WriteObjectDetached(arg);
-            }
+                writer.WriteObject(arg);
         }
 
         /// <summary>

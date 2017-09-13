@@ -592,7 +592,7 @@ namespace Apache.Ignite.Core.Impl.Compute
 
             try
             {
-                writer.WriteObjectDetached(jobHolder);
+                writer.WriteObject(jobHolder);
             }
             catch (Exception)
             {

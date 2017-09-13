@@ -221,8 +221,8 @@ namespace Apache.Ignite.Core.Impl.Datastream
                 {
                     foreach (KeyValuePair<TK, TV> item in entries)
                     {
-                        writer.WriteObjectDetached(item.Key);
-                        writer.WriteObjectDetached(item.Value);
+                        writer.Write(item.Key);
+                        writer.Write(item.Value);
                     }
 
                     continue;
@@ -232,8 +232,8 @@ namespace Apache.Ignite.Core.Impl.Datastream
                 DataStreamerEntry<TK, TV> entry = val as DataStreamerEntry<TK, TV>;
 
                 if (entry != null) {
-                    writer.WriteObjectDetached(entry.Key);
-                    writer.WriteObjectDetached(entry.Value);
+                    writer.Write(entry.Key);
+                    writer.Write(entry.Value);
 
                     continue;
                 }
@@ -243,7 +243,7 @@ namespace Apache.Ignite.Core.Impl.Datastream
 
                 if (rmvEntry != null)
                 {
-                    writer.WriteObjectDetached(rmvEntry.Key);
+                    writer.Write(rmvEntry.Key);
                     writer.Write<object>(null);
                 }
             }
