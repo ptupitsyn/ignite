@@ -115,7 +115,7 @@ namespace Apache.Ignite.Core.Tests.Cache.Query.Linq
                 ? "CacheQueryable [CacheName=person_org, TableName=Person, Query=SqlFieldsQuery " +
                   "[Sql=select _T0.\"Name\" from \"person_org\".\"Person\" as _T0, Arguments=[], Local=False, " +
                   "PageSize=1024, EnableDistributedJoins=False, EnforceJoinOrder=False, " +
-                  "Timeout=00:00:00, ReplicatedOnly=False, Colocated=False, Schema=]]"
+                  "Timeout=00:00:00, ReplicatedOnly=False, Colocated=False, Schema=, Lazy=False]]"
                 : "CacheQueryable [CacheName=person_org, TableName=Person, Query=SqlFieldsQuery " +
                   "[Sql=select _T0.NAME from \"person_org\".Person as _T0, Arguments=[], Local=False, " +
                   "PageSize=1024, EnableDistributedJoins=False, EnforceJoinOrder=False, " +
@@ -136,7 +136,7 @@ namespace Apache.Ignite.Core.Tests.Cache.Query.Linq
                   "(((_T0.\"_KEY\" > ?) and (_T0.\"age1\" > ?)) " +
                   "and (_T0.\"Name\" like \'%\' || ? || \'%\') ), Arguments=[10, 20, x], Local=False, " +
                   "PageSize=1024, EnableDistributedJoins=True, EnforceJoinOrder=False, " +
-                  "Timeout=00:00:00, ReplicatedOnly=False, Colocated=False, Schema=]]"
+                  "Timeout=00:00:00, ReplicatedOnly=False, Colocated=False, Schema=, Lazy=False]]"
                 : "CacheQueryable [CacheName=person_org, TableName=Person, Query=SqlFieldsQuery " +
                   "[Sql=select _T0._KEY, _T0._VAL from \"person_org\".Person as _T0 where " +
                   "(((_T0._KEY > ?) and (_T0.AGE1 > ?)) " +
