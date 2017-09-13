@@ -85,7 +85,7 @@ namespace Apache.Ignite.Core.Tests.Cache.Query.Linq
                   "[Sql=select _T0._KEY, _T0._VAL from \"person_org\".\"Person\" as _T0 where " +
                   "(_T0.\"_KEY\" > ?), Arguments=[10], " +
                   "Local=True, PageSize=999, EnableDistributedJoins=False, EnforceJoinOrder=True, " +
-                  "Timeout=00:00:02.5000000, ReplicatedOnly=True, Colocated=True, Schema=]]"
+                  "Timeout=00:00:02.5000000, ReplicatedOnly=True, Colocated=True, Schema=, Lazy=True]]"
                 : "CacheQueryable [CacheName=person_org, TableName=Person, Query=SqlFieldsQuery " +
                   "[Sql=select _T0._KEY, _T0._VAL from \"person_org\".Person as _T0 where " +
                   "(_T0._KEY > ?), Arguments=[10], " +
