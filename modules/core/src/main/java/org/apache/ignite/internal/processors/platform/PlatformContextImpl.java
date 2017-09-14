@@ -355,7 +355,7 @@ public class PlatformContextImpl implements PlatformContext {
 
     /** {@inheritDoc} */
     @Override public void writeMetadata(BinaryRawWriterEx writer, int typeId) {
-        writeMetadata0(writer, typeId, cacheObjProc.metadata(typeId));
+        writeMetadata0(writer, cacheObjProc.metadata(typeId));
     }
 
     /** {@inheritDoc} */
@@ -365,7 +365,7 @@ public class PlatformContextImpl implements PlatformContext {
         writer.writeInt(metas.size());
 
         for (BinaryType m : metas)
-            writeMetadata0(writer, cacheObjProc.typeId(m.typeName()), m);
+            writeMetadata0(writer, m);
     }
 
     /** {@inheritDoc} */
@@ -377,10 +377,9 @@ public class PlatformContextImpl implements PlatformContext {
      * Write binary metadata.
      *
      * @param writer Writer.
-     * @param typeId Type id.
      * @param meta Metadata.
      */
-    private void writeMetadata0(BinaryRawWriterEx writer, int typeId, BinaryType meta) {
+    private void writeMetadata0(BinaryRawWriterEx writer, BinaryType meta) {
         if (meta == null)
             writer.writeBoolean(false);
         else {
@@ -389,7 +388,7 @@ public class PlatformContextImpl implements PlatformContext {
             BinaryMetadata meta0 = ((BinaryTypeImpl) meta).metadata();
             Map<String, BinaryFieldMetadata> fields = meta0.fieldsMap();
 
-            writer.writeInt(typeId);
+            writer.writeInt(meta.typeId());
             writer.writeString(meta.typeName());
             writer.writeString(meta.affinityKeyFieldName());
 
