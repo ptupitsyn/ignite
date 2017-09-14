@@ -17,31 +17,37 @@
 
 package org.apache.ignite.internal.processors.platform.client.binary;
 
-import org.apache.ignite.binary.BinaryRawWriter;
+import org.apache.ignite.binary.BinaryRawReader;
+import org.apache.ignite.binary.BinaryType;
+import org.apache.ignite.internal.GridKernalContext;
+import org.apache.ignite.internal.binary.BinaryTypeImpl;
+import org.apache.ignite.internal.processors.cache.binary.CacheObjectBinaryProcessorImpl;
+import org.apache.ignite.internal.processors.platform.client.ClientRequest;
 import org.apache.ignite.internal.processors.platform.client.ClientResponse;
+import org.apache.ignite.internal.processors.platform.utils.PlatformUtils;
 
 /**
- * Schema response.
+ * Binary type schema request.
  */
-public class ClientGetBinaryTypeSchemaResponse extends ClientResponse {
-    /** Schema. */
-    private final int[] schema;
+public class ClientGetBinaryTypeRequest extends ClientRequest {
+    /** Type id. */
+    private final int typeId;
 
     /**
      * Ctor.
      *
-     * @param requestId Request id.
+     * @param reader Reader.
      */
-    ClientGetBinaryTypeSchemaResponse(long requestId, int[] schema) {
-        super(requestId);
+    public ClientGetBinaryTypeRequest(BinaryRawReader reader) {
+        super(reader);
 
-        this.schema = schema;
+        typeId = reader.readInt();
     }
 
     /** {@inheritDoc} */
-    @Override public void encode(BinaryRawWriter writer) {
-        super.encode(writer);
+    @Override public ClientResponse process(GridKernalContext ctx) {
+        BinaryTypeImpl type = (BinaryTypeImpl) ctx.cacheObjects().binary().type(typeId);
 
-        writer.writeIntArray(schema);
+        return new ClientGetBinaryTypeResponse(requestId(), type.metadata());
     }
 }

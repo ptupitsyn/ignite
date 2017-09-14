@@ -64,12 +64,13 @@ namespace Apache.Ignite.Core.Impl.Binary
         /** <inheritdoc /> */
         public int[] GetSchema(int typeId, int schemaId)
         {
-            return _socket.DoOutInOp(ClientOp.GetBinaryTypeSchema, s =>
+            return _socket.DoOutInOp(ClientOp.GetBinaryType, s => s.WriteInt(typeId),
+                s =>
                 {
-                    s.WriteInt(typeId);
-                    s.WriteInt(schemaId);
-                },
-                s => _marsh.StartUnmarshal(s).ReadIntArray());
+                    // TODO:
+                    //new BinaryType()
+                    return _marsh.StartUnmarshal(s).ReadIntArray();
+                });
         }
 
         /** <inheritdoc /> */
