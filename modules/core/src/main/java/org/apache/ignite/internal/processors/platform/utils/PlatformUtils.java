@@ -22,6 +22,7 @@ import org.apache.ignite.IgniteCheckedException;
 import org.apache.ignite.IgniteException;
 import org.apache.ignite.IgniteLogger;
 import org.apache.ignite.binary.BinaryObject;
+import org.apache.ignite.binary.BinaryRawWriter;
 import org.apache.ignite.cache.CachePeekMode;
 import org.apache.ignite.configuration.IgniteConfiguration;
 import org.apache.ignite.internal.GridKernalContext;
@@ -1090,6 +1091,56 @@ public class PlatformUtils {
         }
 
         return schema == null ? null : schema.fieldIds();
+    }
+
+    /**
+     * Writes the binary metadata to a writer.
+     *
+     * @param writer Writer.
+     * @param meta Meta.
+     */
+    public static void writeBinaryMetadata(BinaryRawWriter writer, BinaryMetadata meta) {
+        assert meta != null;
+
+        Map<String, BinaryFieldMetadata> fields = meta.fieldsMap();
+
+        writer.writeInt(meta.typeId());
+        writer.writeString(meta.typeName());
+        writer.writeString(meta.affinityKeyFieldName());
+
+        writer.writeInt(fields.size());
+
+        for (Map.Entry<String, BinaryFieldMetadata> e : fields.entrySet()) {
+            writer.writeString(e.getKey());
+
+            writer.writeInt(e.getValue().typeId());
+            writer.writeInt(e.getValue().fieldId());
+        }
+
+        if (meta.isEnum()) {
+            writer.writeBoolean(true);
+
+            Map<String, Integer> enumMap = meta.enumMap();
+
+            writer.writeInt(enumMap.size());
+
+            for (Map.Entry<String, Integer> e: enumMap.entrySet()) {
+                writer.writeString(e.getKey());
+                writer.writeInt(e.getValue());
+            }
+        }
+        else
+            writer.writeBoolean(false);
+
+        // Schemas.
+        Collection<BinarySchema> schemas = meta.schemas();
+
+        writer.writeInt(schemas.size());
+
+        for (BinarySchema schema : schemas) {
+            writer.writeInt(schema.schemaId());
+            writer.writeIntArray(schema.fieldIds());
+        }
     }
 
     /**
