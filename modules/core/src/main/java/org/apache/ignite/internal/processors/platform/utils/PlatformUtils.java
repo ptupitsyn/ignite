@@ -1099,7 +1099,7 @@ public class PlatformUtils {
      * @param writer Writer.
      * @param meta Meta.
      */
-    public static void writeBinaryMetadata(BinaryRawWriter writer, BinaryMetadata meta) {
+    public static void writeBinaryMetadata(BinaryRawWriter writer, BinaryMetadata meta, boolean includeSchemas) {
         assert meta != null;
 
         Map<String, BinaryFieldMetadata> fields = meta.fieldsMap();
@@ -1129,8 +1129,13 @@ public class PlatformUtils {
                 writer.writeInt(e.getValue());
             }
         }
-        else
+        else {
             writer.writeBoolean(false);
+        }
+
+        if (!includeSchemas) {
+            return;
+        }
 
         // Schemas.
         Collection<BinarySchema> schemas = meta.schemas();

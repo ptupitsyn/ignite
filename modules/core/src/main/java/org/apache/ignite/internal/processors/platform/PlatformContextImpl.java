@@ -34,7 +34,6 @@ import org.apache.ignite.events.JobEvent;
 import org.apache.ignite.events.TaskEvent;
 import org.apache.ignite.internal.GridKernalContext;
 import org.apache.ignite.internal.binary.BinaryContext;
-import org.apache.ignite.internal.binary.BinaryFieldMetadata;
 import org.apache.ignite.internal.binary.BinaryMetadata;
 import org.apache.ignite.internal.binary.BinaryRawReaderEx;
 import org.apache.ignite.internal.binary.BinaryRawWriterEx;
@@ -386,35 +385,8 @@ public class PlatformContextImpl implements PlatformContext {
             writer.writeBoolean(true);
 
             BinaryMetadata meta0 = ((BinaryTypeImpl) meta).metadata();
-            Map<String, BinaryFieldMetadata> fields = meta0.fieldsMap();
 
-            writer.writeInt(meta.typeId());
-            writer.writeString(meta.typeName());
-            writer.writeString(meta.affinityKeyFieldName());
-
-            writer.writeInt(fields.size());
-
-            for (Map.Entry<String, BinaryFieldMetadata> e : fields.entrySet()) {
-                writer.writeString(e.getKey());
-
-                writer.writeInt(e.getValue().typeId());
-                writer.writeInt(e.getValue().fieldId());
-            }
-
-            if (meta.isEnum()) {
-                writer.writeBoolean(true);
-
-                Map<String, Integer> enumMap = meta0.enumMap();
-
-                writer.writeInt(enumMap.size());
-
-                for (Map.Entry<String, Integer> e: enumMap.entrySet()) {
-                    writer.writeString(e.getKey());
-                    writer.writeInt(e.getValue());
-                }
-            }
-            else
-                writer.writeBoolean(false);
+            PlatformUtils.writeBinaryMetadata(writer, meta0, false);
         }
     }
 
