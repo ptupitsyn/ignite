@@ -1114,7 +1114,7 @@ public class PlatformUtils {
      * @param reader Reader.
      * @return Binary type metadata.
      */
-    private static BinaryMetadata readBinaryMetadata(BinaryRawReaderEx reader) {
+    public static BinaryMetadata readBinaryMetadata(BinaryRawReaderEx reader) {
         int typeId = reader.readInt();
         String typeName = reader.readString();
         String affKey = reader.readString();

@@ -27,6 +27,6 @@ namespace Apache.Ignite.Core.Impl.Client
         GetBinaryTypeSchema = 3,
         CachePut = 4,
         RegisterBinaryTypeName = 5,
-        PutBinaryTypes = 6
+        PutBinaryType = 6
     }
 }

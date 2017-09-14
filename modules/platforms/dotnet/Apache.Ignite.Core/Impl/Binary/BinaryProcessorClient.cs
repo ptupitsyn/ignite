@@ -75,8 +75,15 @@ namespace Apache.Ignite.Core.Impl.Binary
         /** <inheritdoc /> */
         public void PutBinaryTypes(ICollection<BinaryType> types)
         {
-            _socket.DoOutInOp<object>(ClientOp.PutBinaryTypes,
-                s => BinaryProcessor.WriteBinaryTypes(types, _marsh.StartMarshal(s)), null);
+            Debug.Assert(types != null);
+
+            foreach (var binaryType in types)
+            {
+                var type = binaryType;  // Access to modified closure.
+
+                _socket.DoOutInOp<object>(ClientOp.PutBinaryType,
+                    s => BinaryProcessor.WriteBinaryType(_marsh.StartMarshal(s), type), null);
+            }
         }
 
         /** <inheritdoc /> */
