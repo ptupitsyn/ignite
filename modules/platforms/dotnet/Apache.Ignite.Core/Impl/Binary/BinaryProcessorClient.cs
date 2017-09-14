@@ -67,9 +67,9 @@ namespace Apache.Ignite.Core.Impl.Binary
             return _socket.DoOutInOp(ClientOp.GetBinaryType, s => s.WriteInt(typeId),
                 s =>
                 {
-                    // TODO:
-                    //new BinaryType()
-                    return _marsh.StartUnmarshal(s).ReadIntArray();
+                    var binType = new BinaryType(_marsh.StartUnmarshal(s), true);
+
+                    return binType.Schema.Get(schemaId);
                 });
         }
 
