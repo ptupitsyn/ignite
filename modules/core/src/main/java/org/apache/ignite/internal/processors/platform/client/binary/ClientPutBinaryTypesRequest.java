@@ -43,7 +43,7 @@ public class ClientPutBinaryTypesRequest extends ClientRequest {
     public ClientPutBinaryTypesRequest(BinaryRawReaderEx reader) {
         super(reader);
 
-        metas = PlatformUtils.readBinaryMetadata(reader);
+        metas = PlatformUtils.readBinaryMetadataCollection(reader);
     }
 
     /** {@inheritDoc} */
