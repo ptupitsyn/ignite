@@ -25,6 +25,7 @@ namespace Apache.Ignite.Core.Impl.Client
     using Apache.Ignite.Core.Cache;
     using Apache.Ignite.Core.Cache.Configuration;
     using Apache.Ignite.Core.Client;
+    using Apache.Ignite.Core.Client.Cache;
     using Apache.Ignite.Core.Cluster;
     using Apache.Ignite.Core.Compute;
     using Apache.Ignite.Core.Datastream;
@@ -46,7 +47,7 @@ namespace Apache.Ignite.Core.Impl.Client
     /// <summary>
     /// Thin client implementation
     /// </summary>
-    internal class IgniteClient : IIgniteInternal
+    internal class IgniteClient : IIgniteInternal, IIgniteClient
     {
         /** Socket. */
         private readonly ClientSocket _socket;
@@ -110,7 +111,7 @@ namespace Apache.Ignite.Core.Impl.Client
         }
 
         /** <inheritDoc /> */
-        public ICache<TK, TV> GetCache<TK, TV>(string name)
+        public ICacheClient<TK, TV> GetCache<TK, TV>(string name)
         {
             IgniteArgumentCheck.NotNull(name, "name");
 
@@ -166,6 +167,11 @@ namespace Apache.Ignite.Core.Impl.Client
         }
 
         /** <inheritDoc /> */
+        public IIgnite GetIgnite()
+        {
+            throw GetClientNotSupportedException();
+        }
+
         public IBinary GetBinary()
         {
             throw GetClientNotSupportedException();

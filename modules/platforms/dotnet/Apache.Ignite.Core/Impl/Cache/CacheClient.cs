@@ -28,6 +28,8 @@ namespace Apache.Ignite.Core.Impl.Cache
     using Apache.Ignite.Core.Cache.Expiry;
     using Apache.Ignite.Core.Cache.Query;
     using Apache.Ignite.Core.Cache.Query.Continuous;
+    using Apache.Ignite.Core.Client;
+    using Apache.Ignite.Core.Client.Cache;
     using Apache.Ignite.Core.Cluster;
     using Apache.Ignite.Core.Impl.Binary;
     using Apache.Ignite.Core.Impl.Binary.IO;
@@ -38,7 +40,7 @@ namespace Apache.Ignite.Core.Impl.Cache
     /// <summary>
     /// Client cache implementation.
     /// </summary>
-    internal class CacheClient<TK, TV> : ICache<TK, TV>
+    internal class CacheClient<TK, TV> : ICacheClient<TK, TV>
     {
         /** Cache name. */
         private readonly string _name;
@@ -75,21 +77,15 @@ namespace Apache.Ignite.Core.Impl.Cache
         }
 
         /** <inheritDoc /> */
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return GetEnumerator();
-        }
-
-        /** <inheritDoc /> */
         public string Name
         {
             get { return _name; }
         }
 
         /** <inheritDoc /> */
-        public IIgnite Ignite
+        public IIgniteClient Ignite
         {
-            get { throw new NotImplementedException(); }
+            get { return _ignite; }
         }
 
         /** <inheritDoc /> */
