@@ -68,9 +68,8 @@ namespace Apache.Ignite.Core.Impl
         IDataStreamer<TK, TV> GetDataStreamer<TK, TV>(string cacheName, bool keepBinary);
 
         /// <summary>
-        /// Gets the ignite.
+        /// Gets the public Ignite API.
         /// </summary>
-        /// <returns></returns>
         IIgnite GetIgnite();
 
         /// <summary>
