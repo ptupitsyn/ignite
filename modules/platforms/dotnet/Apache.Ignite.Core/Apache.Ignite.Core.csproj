@@ -107,7 +107,7 @@
     <Compile Include="Impl\Binary\BinaryProcessorClient.cs" />
     <Compile Include="Impl\Binary\IBinaryProcessor.cs" />
     <Compile Include="Impl\IIgniteInternal.cs" />
-    <Compile Include="Impl\Cache\CacheClient.cs" />
+    <Compile Include="Impl\Client\Cache\CacheClient.cs" />
     <Compile Include="Impl\Client\ClientOp.cs" />
     <Compile Include="Impl\Client\ClientProtocolVersion.cs" />
     <Compile Include="Impl\Client\ClientSocket.cs" />
