@@ -22,14 +22,15 @@ namespace Apache.Ignite.Core.Client
 
     /// <summary>
     /// Main entry point for Ignite Thin Client APIs.
-    /// You can obtain an instance of <see cref="IIgnite"/> through <see cref="Ignition.GetClient()"/>.
+    /// You can obtain an instance of <see cref="IIgniteClient"/> through <see cref="Ignition.GetClient()"/>.
     /// </summary>
     public interface IIgniteClient : IDisposable
     {
         /// <summary>
         /// Gets the cache instance for the given name to work with keys and values of specified types.
         /// <para/>
-        /// You can get instances of ICache of the same name, but with different key/value types.
+        /// You can get instances of <see cref="ICacheClient{TK,TV}"/> of the same name,
+        /// but with different key/value types.
         /// These will use the same named cache, but only allow working with entries of specified types.
         /// Attempt to retrieve an entry of incompatible type will result in <see cref="InvalidCastException"/>.
         /// Use <see cref="GetCache{TK,TV}"/> in order to work with entries of arbitrary types.

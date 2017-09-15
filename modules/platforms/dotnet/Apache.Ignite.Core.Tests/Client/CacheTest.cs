@@ -103,6 +103,9 @@ namespace Apache.Ignite.Core.Tests.Client
                 var serverCache = GetCache<Person>();
                 var clientCache = client.GetCache<int?, Person>(CacheName);
 
+                Assert.AreEqual(client, clientCache.Ignite);
+                Assert.AreEqual(CacheName, clientCache.Name);
+
                 // Put through server cache.
                 serverCache.Put(1, person);
 
