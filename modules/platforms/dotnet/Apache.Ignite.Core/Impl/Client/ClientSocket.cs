@@ -102,8 +102,7 @@ namespace Apache.Ignite.Core.Impl.Client
                     return errorFunc(statusCode, msg);
                 }
 
-                // TODO: ClientException with code.
-                throw new IgniteException(msg);
+                throw new IgniteClientException(msg, null, (int) statusCode);
             }
         }
 
