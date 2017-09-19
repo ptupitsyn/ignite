@@ -99,6 +99,7 @@
     <Compile Include="Cache\IMemoryMetrics.cs" />
     <Compile Include="Client\Cache\ICacheClient.cs" />
     <Compile Include="Client\IgniteClientConfiguration.cs" />
+    <Compile Include="Client\IgniteClientException.cs" />
     <Compile Include="Client\IIgniteClient.cs" />
     <Compile Include="Common\ExceptionFactory.cs" />
     <Compile Include="Configuration\Package-Info.cs" />
