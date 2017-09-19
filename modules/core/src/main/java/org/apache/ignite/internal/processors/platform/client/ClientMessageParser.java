@@ -135,13 +135,26 @@ public class ClientMessageParser implements ClientListenerMessageParser {
     @Override public byte[] encode(ClientListenerResponse resp) {
         assert resp != null;
 
-        // TODO: Error handling.
-
         BinaryHeapOutputStream outStream = new BinaryHeapOutputStream(32);
 
         BinaryRawWriterEx writer = marsh.writer(outStream);
 
-        ((ClientResponse)resp).encode(writer);
+        try {
+            ((ClientResponse)resp).encode(writer);
+        }
+        catch (Throwable e) {
+            long reqId = 0;
+
+            if (resp instanceof ClientResponse) {
+                reqId = ((ClientResponse)resp).requestId();
+            }
+
+            //  Reset stream and writer.
+            outStream = new BinaryHeapOutputStream(32);
+            writer = marsh.writer(outStream);
+
+            new ClientResponse(reqId, ClientStatus.FAILED, e.getMessage()).encode(writer);
+        }
 
         return outStream.arrayCopy();
     }

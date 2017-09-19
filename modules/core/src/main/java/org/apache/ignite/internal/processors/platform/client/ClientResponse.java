@@ -74,4 +74,13 @@ public class ClientResponse extends ClientListenerResponse {
             writer.writeString(error());
         }
     }
+
+    /**
+     * Gets the request id.
+     *
+     * @return Request id.
+     */
+    public long requestId() {
+        return reqId;
+    }
 }
