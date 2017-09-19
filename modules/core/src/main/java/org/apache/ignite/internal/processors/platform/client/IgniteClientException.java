@@ -24,7 +24,7 @@ import java.sql.SQLException;
 /**
  * Client exception.
  */
-public class ClientException extends IgniteException {
+public class IgniteClientException extends IgniteException {
     /** */
     private static final long serialVersionUID = 0L;
 
@@ -38,7 +38,7 @@ public class ClientException extends IgniteException {
      * @param msg Message.
      * @param cause Cause.
      */
-    public ClientException(int statusCode, String msg, Exception cause) {
+    public IgniteClientException(int statusCode, String msg, Exception cause) {
         super(msg, cause);
         this.statusCode = statusCode;
     }

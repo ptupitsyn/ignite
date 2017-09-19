@@ -36,4 +36,7 @@ public final class ClientStatus {
 
     /** Cache does not exist. */
     public static final int CACHE_DOES_NOT_EXIST = 1000;
+
+    /** Too many cursors. */
+    public static final int TOO_MANY_CURSORS = 1010;
 }

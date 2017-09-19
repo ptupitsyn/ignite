@@ -24,6 +24,7 @@ namespace Apache.Ignite.Core.Impl.Client
     {
         Success = 0,
         Fail = 1,
-        CacheDoesNotExist = 1000
+        CacheDoesNotExist = 1000,
+        TooManyCursors = 1010
     }
 }

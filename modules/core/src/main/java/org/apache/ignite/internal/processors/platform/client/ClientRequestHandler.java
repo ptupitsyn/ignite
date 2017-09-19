@@ -45,7 +45,7 @@ public class ClientRequestHandler implements ClientListenerRequestHandler {
         try {
             return ((ClientRequest)req).process(ctx);
         }
-        catch (ClientException e) {
+        catch (IgniteClientException e) {
             return new ClientResponse(req.requestId(), e.statusCode(), e.getMessage());
         }
         catch (Throwable e) {
