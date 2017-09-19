@@ -81,8 +81,8 @@ namespace Apache.Ignite.Core.Tests.Client
                     var requestId = reader.ReadLong();
                     Assert.AreEqual(1, requestId);
 
-                    var success = reader.ReadBoolean();
-                    Assert.IsTrue(success);
+                    var status = reader.ReadInt();
+                    Assert.AreEqual(0, status);  // Success.
 
                     var res = reader.ReadObject<string>();
                     Assert.AreEqual(cache[1], res);
