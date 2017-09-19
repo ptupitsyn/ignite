@@ -122,12 +122,15 @@ public class ClientMessageParser implements ClientListenerMessageParser {
                 return new ClientResourceCloseRequest(reader);
         }
 
+        // TODO: Proper error handling
         throw new IgniteException("Invalid operation: " + opCode);
     }
 
     /** {@inheritDoc} */
     @Override public byte[] encode(ClientListenerResponse resp) {
         assert resp != null;
+
+        // TODO: Error handling.
 
         BinaryHeapOutputStream outStream = new BinaryHeapOutputStream(32);
 
