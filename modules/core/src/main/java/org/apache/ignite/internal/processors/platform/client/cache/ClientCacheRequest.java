@@ -21,7 +21,9 @@ import org.apache.ignite.IgniteCache;
 import org.apache.ignite.binary.BinaryRawReader;
 import org.apache.ignite.internal.processors.cache.GridCacheContext;
 import org.apache.ignite.internal.processors.platform.client.ClientConnectionContext;
+import org.apache.ignite.internal.processors.platform.client.ClientException;
 import org.apache.ignite.internal.processors.platform.client.ClientRequest;
+import org.apache.ignite.internal.processors.platform.client.ClientStatus;
 
 /**
  * Cache get request.
@@ -56,9 +58,7 @@ class ClientCacheRequest extends ClientRequest {
      * @return Cache.
      */
     protected IgniteCache cache(ClientConnectionContext ctx) {
-        IgniteCache cache = rawCache(ctx);
-
-        return cache == null ? null : cache.withKeepBinary();
+        return rawCache(ctx).withKeepBinary();
     }
 
     /**
@@ -80,7 +80,7 @@ class ClientCacheRequest extends ClientRequest {
         GridCacheContext<Object, Object> cacheCtx = ctx.kernalContext().cache().context().cacheContext(cacheId);
 
         if (cacheCtx == null) {
-            return null;
+            throw new ClientException(ClientStatus.CACHE_DOES_NOT_EXIST, "Cache does not exist: " + cacheId, null);
         }
 
         String cacheName = cacheCtx.cache().name();
