@@ -69,6 +69,9 @@ public class ClientResponse extends ClientListenerResponse {
     public void encode(BinaryRawWriterEx writer) {
         writer.writeLong(reqId);
         writer.writeInt(status());
-        writer.writeString(error());
+
+        if (status() != ClientStatus.SUCCESS) {
+            writer.writeString(error());
+        }
     }
 }
