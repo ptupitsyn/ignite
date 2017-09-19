@@ -24,7 +24,6 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
     using System.Threading;
     using Apache.Ignite.Core.Binary;
     using Apache.Ignite.Core.Client;
-    using Apache.Ignite.Core.Common;
     using Apache.Ignite.Core.Impl.Client;
     using NUnit.Framework;
 

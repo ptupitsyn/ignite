@@ -25,7 +25,6 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
     using Apache.Ignite.Core.Cache;
     using Apache.Ignite.Core.Cache.Query;
     using Apache.Ignite.Core.Client;
-    using Apache.Ignite.Core.Common;
     using Apache.Ignite.Core.Configuration;
     using Apache.Ignite.Core.Impl.Client;
     using NUnit.Framework;
@@ -180,17 +179,17 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
                 var c2 = clientCache.Query(qry);
                 var c3 = clientCache.Query(qry);
 
-                Assert.Throws<IgniteException>(() => clientCache.Query(qry));
+                Assert.Throws<IgniteClientException>(() => clientCache.Query(qry));
 
                 // Close one of the cursors.
                 c1.Dispose();
                 c1 = clientCache.Query(qry);
-                Assert.Throws<IgniteException>(() => clientCache.Query(qry));
+                Assert.Throws<IgniteClientException>(() => clientCache.Query(qry));
 
                 // Close cursor via GetAll.
                 c1.GetAll();
                 c1 = clientCache.Query(qry);
-                Assert.Throws<IgniteException>(() => clientCache.Query(qry));
+                Assert.Throws<IgniteClientException>(() => clientCache.Query(qry));
 
                 c1.Dispose();
                 c2.Dispose();
