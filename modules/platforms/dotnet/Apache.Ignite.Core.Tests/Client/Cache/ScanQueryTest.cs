@@ -136,6 +136,28 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
         }
 
         /// <summary>
+        /// Tests the exception in filter.
+        /// </summary>
+        [Test]
+        public void TestExceptionInFilter()
+        {
+            GetPersonCache();
+
+            using (var client = GetClient())
+            {
+                var clientCache = client.GetCache<int, Person>(CacheName);
+
+                var qry = new ScanQuery<int, Person>(new PersonFilter(x =>
+                {
+                    throw new ArithmeticException("foo");
+                }));
+
+                var ex = Assert.Throws<IgniteClientException>(() => clientCache.Query(qry));
+                Assert.AreEqual("", ex.Message);
+            }
+        }
+
+        /// <summary>
         /// Tests multiple cursors with the same client.
         /// </summary>
         [Test]
