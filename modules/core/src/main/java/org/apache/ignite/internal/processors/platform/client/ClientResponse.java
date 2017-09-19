@@ -33,7 +33,7 @@ public class ClientResponse extends ClientListenerResponse {
      * @param reqId Request id.
      */
     public ClientResponse(long reqId) {
-        super(STATUS_SUCCESS, null);
+        super(ClientStatus.SUCCESS, null);
 
         this.reqId = reqId;
     }
@@ -45,7 +45,7 @@ public class ClientResponse extends ClientListenerResponse {
      * @param err Error message.
      */
     public ClientResponse(long reqId, String err) {
-        super(STATUS_FAILED, err);
+        super(ClientStatus.FAILED, err);
 
         this.reqId = reqId;
     }
