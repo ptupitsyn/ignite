@@ -24,6 +24,7 @@ namespace Apache.Ignite.Core.Tests.Client
     using Apache.Ignite.Core.Impl;
     using Apache.Ignite.Core.Impl.Binary;
     using Apache.Ignite.Core.Impl.Binary.IO;
+    using Apache.Ignite.Core.Impl.Client;
     using NUnit.Framework;
 
     /// <summary>
@@ -76,6 +77,68 @@ namespace Apache.Ignite.Core.Tests.Client
 
                 var res = reader.ReadObject<string>();
                 Assert.AreEqual(cache[1], res);
+            }
+        }
+
+        /// <summary>
+        /// Tests invalid operation code.
+        /// </summary>
+        [Test]
+        public void TestInvalidOpCode()
+        {
+            // Connect socket.
+            var sock = GetSocket();
+
+            // Request invalid operation.
+            SendRequest(sock, stream =>
+            {
+                stream.WriteShort(-1);
+                stream.WriteLong(11);  // Request id.
+            });
+
+            var msg = ReceiveMessage(sock);
+
+            using (var stream = new BinaryHeapStream(msg))
+            {
+                var reader = BinaryUtils.Marshaller.StartUnmarshal(stream);
+
+                var requestId = reader.ReadLong();
+                Assert.AreEqual(11, requestId);
+
+                var status = reader.ReadInt();
+                Assert.AreEqual((int) ClientStatus.InvalidOpCode, status);
+
+                var err = reader.ReadObject<string>();
+                Assert.AreEqual("Invalid request op code: -1", err);
+            }
+        }
+
+        /// <summary>
+        /// Tests invalid operation code.
+        /// </summary>
+        [Test]
+        public void TestInvalidMessage()
+        {
+            // Connect socket.
+            var sock = GetSocket();
+
+            // Request invalid operation.
+            SendRequest(sock, stream => stream.WriteShort(-1));
+
+            var msg = ReceiveMessage(sock);
+
+            using (var stream = new BinaryHeapStream(msg))
+            {
+                var reader = BinaryUtils.Marshaller.StartUnmarshal(stream);
+
+                var requestId = reader.ReadLong();
+                Assert.AreEqual(0, requestId);
+
+                var status = reader.ReadInt();
+                Assert.AreEqual((int) ClientStatus.ParsingFailed, status);
+
+                var err = reader.ReadObject<string>();
+                Assert.AreEqual("Invalid request op code: -1", err);
             }
         }
 
