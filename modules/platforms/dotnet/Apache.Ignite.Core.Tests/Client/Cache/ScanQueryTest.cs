@@ -152,7 +152,7 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
                     throw new ArithmeticException("foo");
                 }));
 
-                var ex = Assert.Throws<IgniteClientException>(() => clientCache.Query(qry));
+                var ex = Assert.Throws<IgniteClientException>(() => clientCache.Query(qry).GetAll());
                 Assert.AreEqual("", ex.Message);
             }
         }

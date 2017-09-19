@@ -127,6 +127,8 @@ public class ClientMessageParser implements ClientListenerMessageParser {
 
     /** {@inheritDoc} */
     @Override public byte[] encode(ClientListenerResponse resp) {
+        assert resp != null;
+
         BinaryHeapOutputStream outStream = new BinaryHeapOutputStream(32);
 
         BinaryRawWriterEx writer = marsh.writer(outStream);
