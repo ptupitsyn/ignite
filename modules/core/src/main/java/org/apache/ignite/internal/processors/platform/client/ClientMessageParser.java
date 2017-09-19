@@ -91,44 +91,55 @@ public class ClientMessageParser implements ClientListenerMessageParser {
             BinaryInputStream inStream = new BinaryHeapInputStream(msg);
             BinaryRawReaderEx reader = marsh.reader(inStream);
 
-            short opCode = reader.readShort();
-
-            switch (opCode) {
-                case OP_CACHE_GET:
-                    return new ClientCacheGetRequest(reader);
-
-                case OP_GET_BINARY_TYPE_NAME:
-                    return new ClientBinaryTypeNameGetRequest(reader);
-
-                case OP_GET_BINARY_TYPE:
-                    return new ClientBinaryTypeGetRequest(reader);
-
-                case OP_CACHE_PUT:
-                    return new ClientCachePutRequest(reader);
-
-                case OP_REGISTER_BINARY_TYPE_NAME:
-                    return new ClientBinaryTypeNamePutRequest(reader);
-
-                case OP_PUT_BINARY_TYPE:
-                    return new ClientBinaryTypePutRequest(reader);
-
-                case OP_QUERY_SCAN:
-                    return new ClientCacheScanQueryRequest(reader);
-
-                case OP_QUERY_SCAN_CURSOR_GET_PAGE:
-                    return new ClientCacheScanQueryNextPageRequest(reader);
-
-                case OP_RESOURCE_CLOSE:
-                    return new ClientResourceCloseRequest(reader);
-            }
-
-            return new ClientRawRequest(reader.readLong(), ClientStatus.INVALID_OP_CODE,
-                    "Invalid request op code: " + opCode);
+            return decode(reader);
         }
         catch (Throwable e) {
             return new ClientRawRequest(0, ClientStatus.PARSING_FAILED,
                     "Failed to parse request: " + e.getMessage());
         }
+    }
+
+
+    /**
+     * Decodes the request.
+     *
+     * @param reader Reader.
+     * @return Request.
+     */
+    public ClientListenerRequest decode(BinaryRawReaderEx reader) {
+        short opCode = reader.readShort();
+
+        switch (opCode) {
+            case OP_CACHE_GET:
+                return new ClientCacheGetRequest(reader);
+
+            case OP_GET_BINARY_TYPE_NAME:
+                return new ClientBinaryTypeNameGetRequest(reader);
+
+            case OP_GET_BINARY_TYPE:
+                return new ClientBinaryTypeGetRequest(reader);
+
+            case OP_CACHE_PUT:
+                return new ClientCachePutRequest(reader);
+
+            case OP_REGISTER_BINARY_TYPE_NAME:
+                return new ClientBinaryTypeNamePutRequest(reader);
+
+            case OP_PUT_BINARY_TYPE:
+                return new ClientBinaryTypePutRequest(reader);
+
+            case OP_QUERY_SCAN:
+                return new ClientCacheScanQueryRequest(reader);
+
+            case OP_QUERY_SCAN_CURSOR_GET_PAGE:
+                return new ClientCacheScanQueryNextPageRequest(reader);
+
+            case OP_RESOURCE_CLOSE:
+                return new ClientResourceCloseRequest(reader);
+        }
+
+        return new ClientRawRequest(reader.readLong(), ClientStatus.INVALID_OP_CODE,
+                "Invalid request op code: " + opCode);
     }
 
     /** {@inheritDoc} */
