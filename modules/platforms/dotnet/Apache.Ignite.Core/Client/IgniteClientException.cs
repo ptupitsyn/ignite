@@ -33,6 +33,14 @@ namespace Apache.Ignite.Core.Client
         private readonly int _errorCode;
 
         /// <summary>
+        /// Gets the error code.
+        /// </summary>
+        public int ErrorCode
+        {
+            get { return _errorCode; }
+        }
+
+        /// <summary>
         /// Initializes a new instance of the <see cref="IgniteClientException"/> class.
         /// </summary>
         public IgniteClientException()

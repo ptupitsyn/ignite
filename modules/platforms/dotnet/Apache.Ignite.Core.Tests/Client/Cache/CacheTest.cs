@@ -25,6 +25,7 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
     using Apache.Ignite.Core.Binary;
     using Apache.Ignite.Core.Client;
     using Apache.Ignite.Core.Common;
+    using Apache.Ignite.Core.Impl.Client;
     using NUnit.Framework;
 
     /// <summary>
@@ -164,9 +165,10 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
                 var cache = client.GetCache<int, int>("foobar");
 
                 // Accessing non-existent cache throws.
-                var ex = Assert.Throws<IgniteException>(() => cache.Put(1, 1));
+                var ex = Assert.Throws<IgniteClientException>(() => cache.Put(1, 1));
 
-                Assert.AreEqual("", ex.Message);
+                Assert.AreEqual("Cache doesn't exist: foobar", ex.Message);
+                Assert.AreEqual((int) ClientStatus.CacheDoesNotExist, ex.ErrorCode);
             }
         }
     }
