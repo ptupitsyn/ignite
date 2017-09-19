@@ -47,7 +47,7 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
         {
             var cfg = base.GetIgniteConfiguration();
 
-            cfg.SqlConnectorConfiguration = new SqlConnectorConfiguration
+            cfg.ClientConnectorConfiguration = new ClientConnectorConfiguration
             {
                 MaxOpenCursorsPerConnection = 3
             };
