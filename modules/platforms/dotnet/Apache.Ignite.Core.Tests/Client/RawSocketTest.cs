@@ -138,7 +138,8 @@ namespace Apache.Ignite.Core.Tests.Client
                 Assert.AreEqual((int) ClientStatus.ParsingFailed, status);
 
                 var err = reader.ReadObject<string>();
-                Assert.AreEqual("Invalid request op code: -1", err);
+                Assert.AreEqual("Failed to parse request: Not enough data to read the value " +
+                                "[position=2, requiredBytes=8, remainingBytes=0]", err);
             }
         }
 
