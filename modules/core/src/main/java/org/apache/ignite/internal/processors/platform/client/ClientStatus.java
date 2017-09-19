@@ -34,6 +34,12 @@ public final class ClientStatus {
     /** Command failed. */
     public static final int FAILED = 1;
 
+    /** Invalid op code. */
+    public static final int INVALID_OP_CODE = 2;
+
+    /** Request parsing failed. */
+    public static final int PARSING_FAILED = 3;
+
     /** Cache does not exist. */
     public static final int CACHE_DOES_NOT_EXIST = 1000;
 

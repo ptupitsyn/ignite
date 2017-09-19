@@ -17,7 +17,6 @@
 
 package org.apache.ignite.internal.processors.platform.client;
 
-import org.apache.ignite.IgniteException;
 import org.apache.ignite.internal.GridKernalContext;
 import org.apache.ignite.internal.binary.BinaryRawReaderEx;
 import org.apache.ignite.internal.binary.BinaryRawWriterEx;
@@ -29,10 +28,10 @@ import org.apache.ignite.internal.processors.cache.binary.CacheObjectBinaryProce
 import org.apache.ignite.internal.processors.odbc.ClientListenerMessageParser;
 import org.apache.ignite.internal.processors.odbc.ClientListenerRequest;
 import org.apache.ignite.internal.processors.odbc.ClientListenerResponse;
-import org.apache.ignite.internal.processors.platform.client.binary.ClientBinaryTypeNameGetRequest;
 import org.apache.ignite.internal.processors.platform.client.binary.ClientBinaryTypeGetRequest;
-import org.apache.ignite.internal.processors.platform.client.binary.ClientBinaryTypePutRequest;
+import org.apache.ignite.internal.processors.platform.client.binary.ClientBinaryTypeNameGetRequest;
 import org.apache.ignite.internal.processors.platform.client.binary.ClientBinaryTypeNamePutRequest;
+import org.apache.ignite.internal.processors.platform.client.binary.ClientBinaryTypePutRequest;
 import org.apache.ignite.internal.processors.platform.client.cache.ClientCacheGetRequest;
 import org.apache.ignite.internal.processors.platform.client.cache.ClientCachePutRequest;
 import org.apache.ignite.internal.processors.platform.client.cache.ClientCacheScanQueryNextPageRequest;
@@ -88,42 +87,48 @@ public class ClientMessageParser implements ClientListenerMessageParser {
     @Override public ClientListenerRequest decode(byte[] msg) {
         assert msg != null;
 
-        BinaryInputStream inStream = new BinaryHeapInputStream(msg);
-        BinaryRawReaderEx reader = marsh.reader(inStream);
+        try {
+            BinaryInputStream inStream = new BinaryHeapInputStream(msg);
+            BinaryRawReaderEx reader = marsh.reader(inStream);
 
-        short opCode = reader.readShort();
+            short opCode = reader.readShort();
 
-        switch (opCode) {
-            case OP_CACHE_GET:
-                return new ClientCacheGetRequest(reader);
+            switch (opCode) {
+                case OP_CACHE_GET:
+                    return new ClientCacheGetRequest(reader);
 
-            case OP_GET_BINARY_TYPE_NAME:
-                return new ClientBinaryTypeNameGetRequest(reader);
+                case OP_GET_BINARY_TYPE_NAME:
+                    return new ClientBinaryTypeNameGetRequest(reader);
 
-            case OP_GET_BINARY_TYPE:
-                return new ClientBinaryTypeGetRequest(reader);
+                case OP_GET_BINARY_TYPE:
+                    return new ClientBinaryTypeGetRequest(reader);
 
-            case OP_CACHE_PUT:
-                return new ClientCachePutRequest(reader);
+                case OP_CACHE_PUT:
+                    return new ClientCachePutRequest(reader);
 
-            case OP_REGISTER_BINARY_TYPE_NAME:
-                return new ClientBinaryTypeNamePutRequest(reader);
+                case OP_REGISTER_BINARY_TYPE_NAME:
+                    return new ClientBinaryTypeNamePutRequest(reader);
 
-            case OP_PUT_BINARY_TYPE:
-                return new ClientBinaryTypePutRequest(reader);
+                case OP_PUT_BINARY_TYPE:
+                    return new ClientBinaryTypePutRequest(reader);
 
-            case OP_QUERY_SCAN:
-                return new ClientCacheScanQueryRequest(reader);
+                case OP_QUERY_SCAN:
+                    return new ClientCacheScanQueryRequest(reader);
 
-            case OP_QUERY_SCAN_CURSOR_GET_PAGE:
-                return new ClientCacheScanQueryNextPageRequest(reader);
+                case OP_QUERY_SCAN_CURSOR_GET_PAGE:
+                    return new ClientCacheScanQueryNextPageRequest(reader);
 
-            case OP_RESOURCE_CLOSE:
-                return new ClientResourceCloseRequest(reader);
+                case OP_RESOURCE_CLOSE:
+                    return new ClientResourceCloseRequest(reader);
+            }
+
+            return new ClientRawRequest(reader.readLong(), ClientStatus.INVALID_OP_CODE,
+                    "Invalid request op code: " + opCode);
         }
-
-        // TODO: Proper error handling
-        throw new IgniteException("Invalid operation: " + opCode);
+        catch (Throwable e) {
+            return new ClientRawRequest(0, ClientStatus.PARSING_FAILED,
+                    "Failed to parse request: " + e.getMessage());
+        }
     }
 
     /** {@inheritDoc} */
