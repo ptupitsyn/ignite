@@ -149,7 +149,7 @@ namespace Apache.Ignite.Core.Tests.Client
         /// <returns>Connected socket after handshake.</returns>
         private static Socket GetSocket()
         {
-            var sock = GetSocket(SqlConnectorConfiguration.DefaultPort);
+            var sock = GetSocket(ClientConnectorConfiguration.DefaultPort);
             Assert.IsTrue(sock.Connected);
 
             DoHandshake(sock);
