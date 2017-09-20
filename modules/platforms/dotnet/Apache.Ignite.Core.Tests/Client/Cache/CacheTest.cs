@@ -183,7 +183,6 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
             }
         }
 
-
         /// <summary>
         /// Tests the ContainsKey method.
         /// </summary>
