@@ -171,6 +171,35 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
         }
 
         /// <summary>
+        /// Tests the ContainsKeys method.
+        /// </summary>
+        [Test]
+        public void TestContainsKeys()
+        {
+            using (var client = GetClient())
+            {
+                var cache = client.GetCache<int, int>(CacheName);
+
+                cache[1] = 1;
+                cache[2] = 2;
+                cache[3] = 3;
+
+                Assert.IsTrue(cache.ContainsKeys(new[] {1}));
+                Assert.IsTrue(cache.ContainsKeys(new[] {1, 2}));
+                Assert.IsTrue(cache.ContainsKeys(new[] {2, 1}));
+                Assert.IsTrue(cache.ContainsKeys(new[] {1, 2, 3}));
+                Assert.IsTrue(cache.ContainsKeys(new[] {1, 3, 2}));
+
+                Assert.IsFalse(cache.ContainsKeys(new[] {0}));
+                Assert.IsFalse(cache.ContainsKeys(new[] {0, 1}));
+                Assert.IsFalse(cache.ContainsKeys(new[] {1, 0}));
+                Assert.IsFalse(cache.ContainsKeys(new[] {1, 2, 3, 0}));
+
+                Assert.Throws<ArgumentNullException>(() => cache.ContainsKeys(null));
+            }
+        }
+
+        /// <summary>
         /// Tests client get in multiple threads with a single client.
         /// </summary>
         [Test]

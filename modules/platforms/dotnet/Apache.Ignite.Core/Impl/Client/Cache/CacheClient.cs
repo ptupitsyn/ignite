@@ -127,6 +127,14 @@ namespace Apache.Ignite.Core.Impl.Client.Cache
         }
 
         /** <inheritDoc /> */
+        public bool ContainsKeys(IEnumerable<TK> keys)
+        {
+            IgniteArgumentCheck.NotNull(keys, "keys");
+
+            return DoOutInOp(ClientOp.CacheContainsKeys, w => w.WriteEnumerable(keys), r => r.ReadBool());
+        }
+
+        /** <inheritDoc /> */
         public IQueryCursor<ICacheEntry<TK, TV>> Query(ScanQuery<TK, TV> scanQuery)
         {
             IgniteArgumentCheck.NotNull(scanQuery, "query");

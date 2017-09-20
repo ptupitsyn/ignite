@@ -79,6 +79,13 @@ namespace Apache.Ignite.Core.Client.Cache
         bool ContainsKey(TK key);
 
         /// <summary>
+        /// Check if cache contains mapping for these keys.
+        /// </summary>
+        /// <param name="keys">Keys.</param>
+        /// <returns>True if cache contains mapping for all these keys.</returns>
+        bool ContainsKeys(IEnumerable<TK> keys);
+
+        /// <summary>
         /// Executes a Scan query.
         /// </summary>
         /// <param name="scanQuery">Scan query.</param>
