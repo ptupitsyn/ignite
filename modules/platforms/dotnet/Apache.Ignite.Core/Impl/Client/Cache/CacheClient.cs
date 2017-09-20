@@ -84,7 +84,6 @@ namespace Apache.Ignite.Core.Impl.Client.Cache
             get { return _ignite; }
         }
 
-        /** <inheritDoc /> */
         public TV this[TK key]
         {
             get { return Get(key); }
@@ -97,6 +96,12 @@ namespace Apache.Ignite.Core.Impl.Client.Cache
             IgniteArgumentCheck.NotNull(key, "key");
 
             return DoOutInOp(ClientOp.CacheGet, w => w.WriteObject(key), UnmarshalNotNull<TV>);
+        }
+
+        /** <inheritDoc /> */
+        public bool TryGet(TK key, out TV value)
+        {
+            throw new NotImplementedException();
         }
 
         /** <inheritDoc /> */

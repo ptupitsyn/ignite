@@ -51,6 +51,18 @@ namespace Apache.Ignite.Core.Client.Cache
         TV Get(TK key);
 
         /// <summary>
+        /// Retrieves value mapped to the specified key from cache.
+        /// </summary>
+        /// <param name="key">Key.</param>
+        /// <param name="value">When this method returns, the value associated with the specified key,
+        /// if the key is found; otherwise, the default value for the type of the value parameter.
+        /// This parameter is passed uninitialized.</param>
+        /// <returns>
+        /// true if the cache contains an element with the specified key; otherwise, false.
+        /// </returns>
+        bool TryGet(TK key, out TV value);
+
+        /// <summary>
         /// Gets or sets a cache value with the specified key.
         /// Shortcut to <see cref="Get"/> and <see cref="Put"/>
         /// </summary>
