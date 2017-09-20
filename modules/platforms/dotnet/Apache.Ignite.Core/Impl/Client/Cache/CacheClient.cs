@@ -79,11 +79,6 @@ namespace Apache.Ignite.Core.Impl.Client.Cache
         }
 
         /** <inheritDoc /> */
-        public IIgniteClient Ignite
-        {
-            get { return _ignite; }
-        }
-
         public TV this[TK key]
         {
             get { return Get(key); }
@@ -151,7 +146,7 @@ namespace Apache.Ignite.Core.Impl.Client.Cache
 
                     _marsh.FinishMarshal(writer);
                 }
-            }, readFunc);
+            }, readFunc, HandleError<T>);
         }
 
         /// <summary>
@@ -222,6 +217,21 @@ namespace Apache.Ignite.Core.Impl.Client.Cache
             writer.WriteInt(qry.Partition ?? -1);
 
             writer.WriteBoolean(qry.Local);
+        }
+
+        /// <summary>
+        /// Handles the error.
+        /// </summary>
+        private T HandleError<T>(ClientStatus status, string msg)
+        {
+            switch (status)
+            {
+                case ClientStatus.CacheDoesNotExist:
+                    throw new IgniteClientException("Cache doesn't exist: " + Name, null, (int) status);
+
+                default:
+                    throw new IgniteClientException(msg, null, (int) status);
+            }
         }
 
         /// <summary>
