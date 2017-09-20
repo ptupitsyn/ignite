@@ -191,11 +191,20 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
         {
             using (var client = GetClient())
             {
-                var cache = client.GetCache<int?, int>(CacheName);
+                var cache = client.GetCache<int?, int?>(CacheName);
 
-                cache[1] = 1;
-                cache[2] = 2;
-                cache[3] = 3;
+                Assert.IsFalse(cache.ContainsKey(1));
+
+                var res = cache.GetAndPut(1, 1);
+                Assert.IsFalse(res.Success);
+                Assert.IsNull(res.Value);
+
+                res = cache.GetAndPut(1, 2);
+                Assert.IsTrue(res.Success);
+                Assert.AreEqual(1, res.Value);
+
+                Assert.Throws<ArgumentNullException>(() => cache.GetAndPut(1, null));
+                Assert.Throws<ArgumentNullException>(() => cache.GetAndPut(null, 1));
             }
         }
 

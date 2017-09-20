@@ -64,9 +64,6 @@ namespace Apache.Ignite.Core.Tests.Client
             {
                 Ignition.Start(cfg);
             }
-
-            // Make sure cache exists.
-            GetCache<int>();
         }
 
         /// <summary>
@@ -76,6 +73,15 @@ namespace Apache.Ignite.Core.Tests.Client
         public void FixtureTearDown()
         {
             Ignition.StopAll(true);
+        }
+
+        /// <summary>
+        /// Sets up the test.
+        /// </summary>
+        [SetUp]
+        public void TestSetUp()
+        {
+            GetCache<int>().RemoveAll();
         }
 
         /// <summary>
