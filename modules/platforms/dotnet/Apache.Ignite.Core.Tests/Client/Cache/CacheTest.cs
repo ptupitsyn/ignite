@@ -57,6 +57,11 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
 
                 // Null key.
                 Assert.Throws<ArgumentNullException>(() => clientCache.Get(null));
+
+                // Null vs 0.
+                var intCache = client.GetCache<int?, int?>(CacheName);
+                intCache.Put(1, 0);
+                Assert.AreEqual(0, intCache.Get(1));
             }
         }
 
