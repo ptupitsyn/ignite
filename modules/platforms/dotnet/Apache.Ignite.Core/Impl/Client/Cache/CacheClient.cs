@@ -117,6 +117,12 @@ namespace Apache.Ignite.Core.Impl.Client.Cache
         }
 
         /** <inheritDoc /> */
+        public bool ContainsKey(TK key)
+        {
+
+        }
+
+        /** <inheritDoc /> */
         public IQueryCursor<ICacheEntry<TK, TV>> Query(ScanQuery<TK, TV> scanQuery)
         {
             IgniteArgumentCheck.NotNull(scanQuery, "query");

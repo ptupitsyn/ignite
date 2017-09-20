@@ -30,6 +30,7 @@ namespace Apache.Ignite.Core.Impl.Client
         BinaryTypePut = 6,
         QueryScan = 7,
         QueryScanCursorGetPage = 8,
-        ResourceClose = 9
+        ResourceClose = 9,
+        CacheContainsKey = 10
     }
 }

@@ -72,6 +72,13 @@ namespace Apache.Ignite.Core.Client.Cache
         TV this[TK key] { get; set; }
 
         /// <summary>
+        /// Check if cache contains mapping for this key.
+        /// </summary>
+        /// <param name="key">Key.</param>
+        /// <returns>True if cache contains mapping for this key.</returns>
+        bool ContainsKey(TK key);
+
+        /// <summary>
         /// Executes a Scan query.
         /// </summary>
         /// <param name="scanQuery">Scan query.</param>

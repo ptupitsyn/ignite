@@ -32,6 +32,7 @@ import org.apache.ignite.internal.processors.platform.client.binary.ClientBinary
 import org.apache.ignite.internal.processors.platform.client.binary.ClientBinaryTypeNameGetRequest;
 import org.apache.ignite.internal.processors.platform.client.binary.ClientBinaryTypeNamePutRequest;
 import org.apache.ignite.internal.processors.platform.client.binary.ClientBinaryTypePutRequest;
+import org.apache.ignite.internal.processors.platform.client.cache.ClientCacheContainsKeyRequest;
 import org.apache.ignite.internal.processors.platform.client.cache.ClientCacheGetRequest;
 import org.apache.ignite.internal.processors.platform.client.cache.ClientCachePutRequest;
 import org.apache.ignite.internal.processors.platform.client.cache.ClientCacheScanQueryNextPageRequest;
@@ -67,6 +68,9 @@ public class ClientMessageParser implements ClientListenerMessageParser {
 
     /** */
     private static final short OP_RESOURCE_CLOSE = 9;
+
+    /** */
+    private static final short OP_CACHE_CONTAINS_KEY = 10;
 
     /** Marshaller. */
     private final GridBinaryMarshaller marsh;
@@ -129,6 +133,9 @@ public class ClientMessageParser implements ClientListenerMessageParser {
 
             case OP_RESOURCE_CLOSE:
                 return new ClientResourceCloseRequest(reader);
+
+            case OP_CACHE_CONTAINS_KEY:
+                return new ClientCacheContainsKeyRequest(reader);
         }
 
         return new ClientRawRequest(reader.readLong(), ClientStatus.INVALID_OP_CODE,
