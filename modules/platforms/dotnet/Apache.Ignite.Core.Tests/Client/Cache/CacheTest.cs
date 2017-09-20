@@ -114,6 +114,40 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
         }
 
         /// <summary>
+        /// Tests the TryGet method.
+        /// </summary>
+        [Test]
+        public void TestTryGet()
+        {
+            using (var client = GetClient())
+            {
+                var cache = client.GetCache<int, int>(CacheName);
+
+                cache[1] = 0;
+                cache[2] = 2;
+
+                // Non-existent key.
+                int res;
+                var success = cache.TryGet(0, out res);
+
+                Assert.AreEqual(0, res);
+                Assert.IsFalse(success);
+
+                // Key with default value.
+                success = cache.TryGet(1, out res);
+
+                Assert.AreEqual(0, res);
+                Assert.IsTrue(success);
+
+                // Key with custom value.
+                success = cache.TryGet(2, out res);
+
+                Assert.AreEqual(2, res);
+                Assert.IsTrue(success);
+            }
+        }
+
+        /// <summary>
         /// Tests client get in multiple threads with a single client.
         /// </summary>
         [Test]

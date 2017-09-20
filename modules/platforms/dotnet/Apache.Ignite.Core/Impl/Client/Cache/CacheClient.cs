@@ -101,7 +101,11 @@ namespace Apache.Ignite.Core.Impl.Client.Cache
         /** <inheritDoc /> */
         public bool TryGet(TK key, out TV value)
         {
-            throw new NotImplementedException();
+            var res = DoOutInOp(ClientOp.CacheGet, w => w.WriteObject(key), UnmarshalCacheResult<TV>);
+
+            value = res.Value;
+
+            return res.Success;
         }
 
         /** <inheritDoc /> */
@@ -173,6 +177,23 @@ namespace Apache.Ignite.Core.Impl.Client.Cache
             stream.Seek(-1, SeekOrigin.Current);
 
             return _marsh.Unmarshal<T>(stream);
+        }
+
+        /// <summary>
+        /// Unmarshals the value, wrapping in a cache result.
+        /// </summary>
+        private CacheResult<T> UnmarshalCacheResult<T>(IBinaryStream stream)
+        {
+            var hdr = stream.ReadByte();
+
+            if (hdr == BinaryUtils.HdrNull)
+            {
+                return new CacheResult<T>();
+            }
+
+            stream.Seek(-1, SeekOrigin.Current);
+
+            return new CacheResult<T>(_marsh.Unmarshal<T>(stream));
         }
 
         /// <summary>
