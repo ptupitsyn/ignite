@@ -163,7 +163,7 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
 
                 cache[1] = 1;
                 cache[2] = 2;
-                cache[3] = 2;
+                cache[3] = 3;
 
                 var res = cache.GetAll(new int?[] {1}).Single();
                 Assert.AreEqual(1, res.Key);
