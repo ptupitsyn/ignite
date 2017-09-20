@@ -152,6 +152,39 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
         }
 
         /// <summary>
+        /// Tests the GetAll method.
+        /// </summary>
+        [Test]
+        public void TestGetAll()
+        {
+            using (var client = GetClient())
+            {
+                var cache = client.GetCache<int?, int>(CacheName);
+
+                cache[1] = 1;
+                cache[2] = 2;
+                cache[3] = 2;
+
+                var res = cache.GetAll(new int?[] {1}).Single();
+                Assert.AreEqual(1, res.Key);
+                Assert.AreEqual(1, res.Value);
+
+                res = cache.GetAll(new int?[] {1, -1}).Single();
+                Assert.AreEqual(1, res.Key);
+                Assert.AreEqual(1, res.Value);
+
+                CollectionAssert.AreEquivalent(new[] {1, 2, 3},
+                    cache.GetAll(new int?[] {1, 2, 3}).Select(x => x.Value));
+
+                Assert.Throws<ArgumentNullException>(() => cache.GetAll(null));
+
+                Assert.Throws<IgniteClientException>(() => cache.GetAll(new int?[] {1, null}));
+                Assert.Throws<IgniteClientException>(() => cache.GetAll(new int?[] {null}));
+            }
+        }
+
+
+        /// <summary>
         /// Tests the ContainsKey method.
         /// </summary>
         [Test]
@@ -165,7 +198,7 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
 
                 Assert.IsTrue(cache.ContainsKey(1));
                 Assert.IsFalse(cache.ContainsKey(2));
-                
+
                 Assert.Throws<ArgumentNullException>(() => cache.ContainsKey(null));
             }
         }
