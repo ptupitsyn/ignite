@@ -96,6 +96,8 @@ namespace Apache.Ignite.Core.Impl.Client.Cache
         /** <inheritDoc /> */
         public bool TryGet(TK key, out TV value)
         {
+            IgniteArgumentCheck.NotNull(key, "key");
+
             var res = DoOutInOp(ClientOp.CacheGet, w => w.WriteObject(key), UnmarshalCacheResult<TV>);
 
             value = res.Value;
@@ -119,7 +121,9 @@ namespace Apache.Ignite.Core.Impl.Client.Cache
         /** <inheritDoc /> */
         public bool ContainsKey(TK key)
         {
+            IgniteArgumentCheck.NotNull(key, "key");
 
+            return DoOutInOp(ClientOp.CacheContainsKey, w => w.WriteObjectDetached(key), r => r.ReadBool());
         }
 
         /** <inheritDoc /> */

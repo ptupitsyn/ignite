@@ -122,7 +122,7 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
         {
             using (var client = GetClient())
             {
-                var cache = client.GetCache<int, int>(CacheName);
+                var cache = client.GetCache<int?, int>(CacheName);
 
                 cache[1] = 0;
                 cache[2] = 2;
@@ -145,6 +145,9 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
 
                 Assert.AreEqual(2, res);
                 Assert.IsTrue(success);
+
+                // Null key.
+                Assert.Throws<ArgumentException>(() => cache.TryGet(null, out res));
             }
         }
 
