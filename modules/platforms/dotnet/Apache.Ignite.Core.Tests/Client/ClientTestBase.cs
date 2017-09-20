@@ -64,6 +64,9 @@ namespace Apache.Ignite.Core.Tests.Client
             {
                 Ignition.Start(cfg);
             }
+
+            // Make sure cache exists.
+            GetCache<int>();
         }
 
         /// <summary>

@@ -147,7 +147,26 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
                 Assert.IsTrue(success);
 
                 // Null key.
-                Assert.Throws<ArgumentException>(() => cache.TryGet(null, out res));
+                Assert.Throws<ArgumentNullException>(() => cache.TryGet(null, out res));
+            }
+        }
+
+        /// <summary>
+        /// Tests the ContainsKey method.
+        /// </summary>
+        [Test]
+        public void TestContainsKey()
+        {
+            using (var client = GetClient())
+            {
+                var cache = client.GetCache<int?, int>(CacheName);
+
+                cache[1] = 1;
+
+                Assert.IsTrue(cache.ContainsKey(1));
+                Assert.IsFalse(cache.ContainsKey(2));
+                
+                Assert.Throws<ArgumentNullException>(() => cache.ContainsKey(null));
             }
         }
 
