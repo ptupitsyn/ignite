@@ -63,6 +63,13 @@ namespace Apache.Ignite.Core.Client.Cache
         bool TryGet(TK key, out TV value);
 
         /// <summary>
+        /// Retrieves values mapped to the specified keys from cache.
+        /// </summary>
+        /// <param name="keys">Keys.</param>
+        /// <returns>Map of key-value pairs.</returns>
+        ICollection<ICacheEntry<TK, TV>> GetAll(IEnumerable<TK> keys);
+
+        /// <summary>
         /// Gets or sets a cache value with the specified key.
         /// Shortcut to <see cref="Get"/> and <see cref="Put"/>
         /// </summary>

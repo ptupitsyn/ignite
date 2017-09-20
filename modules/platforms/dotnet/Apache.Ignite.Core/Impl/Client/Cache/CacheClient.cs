@@ -106,6 +106,27 @@ namespace Apache.Ignite.Core.Impl.Client.Cache
         }
 
         /** <inheritDoc /> */
+        public ICollection<ICacheEntry<TK, TV>> GetAll(IEnumerable<TK> keys)
+        {
+            IgniteArgumentCheck.NotNull(keys, "keys");
+
+            return DoOutInOp(ClientOp.CacheGetAll, w => w.WriteEnumerable(keys), stream =>
+            {
+                var reader = _marsh.StartUnmarshal(stream, _keepBinary);
+
+                var cnt = reader.ReadInt();
+                var res = new List<ICacheEntry<TK, TV>>(cnt);
+
+                for (var i = 0; i < cnt; i++)
+                {
+                    res.Add(new CacheEntry<TK, TV>(reader.ReadObject<TK>(), reader.ReadObject<TV>()));
+                }
+
+                return res;
+            });
+        }
+
+        /** <inheritDoc /> */
         public void Put(TK key, TV val)
         {
             IgniteArgumentCheck.NotNull(key, "key");
