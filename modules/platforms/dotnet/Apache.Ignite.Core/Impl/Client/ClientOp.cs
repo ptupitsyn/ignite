@@ -33,6 +33,7 @@ namespace Apache.Ignite.Core.Impl.Client
         ResourceClose = 9,
         CacheContainsKey = 10,
         CacheContainsKeys = 11,
-        CacheGetAll = 12
+        CacheGetAll = 12,
+        CacheGetAndPut = 13
     }
 }

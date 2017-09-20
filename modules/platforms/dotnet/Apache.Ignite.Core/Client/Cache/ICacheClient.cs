@@ -98,5 +98,16 @@ namespace Apache.Ignite.Core.Client.Cache
         /// <param name="scanQuery">Scan query.</param>
         /// <returns>Query cursor.</returns>
         IQueryCursor<ICacheEntry<TK, TV>> Query(ScanQuery<TK, TV> scanQuery);
+
+        /// <summary>
+        /// Associates the specified value with the specified key in this cache,
+        /// returning an existing value if one existed.
+        /// </summary>
+        /// <param name="key">Key with which the specified value is to be associated.</param>
+        /// <param name="val">Value to be associated with the specified key.</param>
+        /// <returns>
+        /// The value associated with the key at the start of the operation.
+        /// </returns>
+        CacheResult<TV> GetAndPut(TK key, TV val);
     }
 }

@@ -165,6 +165,12 @@ namespace Apache.Ignite.Core.Impl.Client.Cache
             return DoOutInOp(ClientOp.QueryScan, w => WriteScanQuery(w, scanQuery),
                 s => new ClientQueryCursor<TK, TV>(_ignite, s.ReadLong(), _keepBinary, s));
         }
+        
+        /** <inheritDoc /> */
+        public CacheResult<TV> GetAndPut(TK key, TV val)
+        {
+            return DoOutInOp(ClientOp.CacheGetAndPut, w => w.WriteObject(key), UnmarshalCacheResult<TV>);
+        }
 
         /// <summary>
         /// Does the out in op.
