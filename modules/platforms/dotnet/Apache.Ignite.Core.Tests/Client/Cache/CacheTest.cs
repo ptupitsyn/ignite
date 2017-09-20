@@ -184,6 +184,22 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
         }
 
         /// <summary>
+        /// Tests the GetAndPut method.
+        /// </summary>
+        [Test]
+        public void TestGetAndPut()
+        {
+            using (var client = GetClient())
+            {
+                var cache = client.GetCache<int?, int>(CacheName);
+
+                cache[1] = 1;
+                cache[2] = 2;
+                cache[3] = 3;
+            }
+        }
+
+        /// <summary>
         /// Tests the ContainsKey method.
         /// </summary>
         [Test]

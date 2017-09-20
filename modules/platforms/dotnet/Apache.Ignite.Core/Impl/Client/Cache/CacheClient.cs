@@ -169,6 +169,9 @@ namespace Apache.Ignite.Core.Impl.Client.Cache
         /** <inheritDoc /> */
         public CacheResult<TV> GetAndPut(TK key, TV val)
         {
+            IgniteArgumentCheck.NotNull(key, "key");
+            IgniteArgumentCheck.NotNull(val, "val");
+
             return DoOutInOp(ClientOp.CacheGetAndPut, w => w.WriteObject(key), UnmarshalCacheResult<TV>);
         }
 
