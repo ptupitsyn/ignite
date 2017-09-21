@@ -190,7 +190,15 @@ namespace Apache.Ignite.Core.Client.Cache
         /// Removes given key mapping from cache, notifying listeners and cache writers.
         /// </summary>
         /// <param name="key">Key to remove.</param>
-        /// <returns>False if there was no matching key.</returns>
+        /// <returns>True if entry was removed, false otherwise.</returns>
         bool Remove(TK key);
+
+        /// <summary>
+        /// Removes given key mapping from cache if one exists and value is equal to the passed in value.
+        /// </summary>
+        /// <param name="key">Key whose mapping is to be removed from cache.</param>
+        /// <param name="val">Value to match against currently cached value.</param>
+        /// <returns>True if entry was removed, false otherwise.</returns>
+        bool Remove(TK key, TV val);
     }
 }

@@ -570,13 +570,18 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
                 cache[1] = 1;
                 cache[2] = 2;
 
-                cache.Remove(1);
+                var res = cache.Remove(1);
+                Assert.IsTrue(res);
                 Assert.IsFalse(cache.ContainsKey(1));
                 Assert.IsTrue(cache.ContainsKey(2));
 
-                cache.Remove(2);
+                res = cache.Remove(2);
+                Assert.IsTrue(res);
                 Assert.IsFalse(cache.ContainsKey(1));
                 Assert.IsFalse(cache.ContainsKey(2));
+
+                res = cache.Remove(-1);
+                Assert.IsFalse(res);
 
                 Assert.Throws<ArgumentNullException>(() => cache.Remove(null));
             }

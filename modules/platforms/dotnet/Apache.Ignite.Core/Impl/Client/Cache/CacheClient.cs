@@ -293,6 +293,19 @@ namespace Apache.Ignite.Core.Impl.Client.Cache
             return DoOutInOp(ClientOp.CacheRemove, w => w.WriteObjectDetached(key), r => r.ReadBool());
         }
 
+        /** <inheritDoc /> */
+        public bool Remove(TK key, TV val)
+        {
+            IgniteArgumentCheck.NotNull(key, "key");
+            IgniteArgumentCheck.NotNull(val, "val");
+
+            return DoOutInOp(ClientOp.CacheRemove2, w =>
+            {
+                w.WriteObjectDetached(key);
+                w.WriteObjectDetached(val);
+            }, r => r.ReadBool());
+        }
+
         /// <summary>
         /// Does the out in op.
         /// </summary>
