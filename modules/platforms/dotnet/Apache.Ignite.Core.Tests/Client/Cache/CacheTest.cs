@@ -372,6 +372,33 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
         }
 
         /// <summary>
+        /// Tests the Replace method.
+        /// </summary>
+        [Test]
+        public void TestReplace()
+        {
+            using (var client = GetClient())
+            {
+                var cache = client.GetCache<int?, int?>(CacheName);
+
+                Assert.IsFalse(cache.ContainsKey(1));
+
+                var res = cache.Replace(1, 1);
+                Assert.IsFalse(res);
+                Assert.IsFalse(cache.ContainsKey(1));
+
+                cache[1] = 1;
+
+                res = cache.Replace(1, 2);
+                Assert.IsTrue(res);
+                Assert.AreEqual(2, cache[1]);
+
+                Assert.Throws<ArgumentNullException>(() => cache.Replace(null, 1));
+                Assert.Throws<ArgumentNullException>(() => cache.Replace(1, null));
+            }
+        }
+
+        /// <summary>
         /// Tests client get in multiple threads with a single client.
         /// </summary>
         [Test]
