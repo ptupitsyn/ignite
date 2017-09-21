@@ -475,11 +475,13 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
 
                 // Nulls.
                 Assert.Throws<ArgumentNullException>(() => cache.PutAll(null));
-                Assert.Throws<ArgumentNullException>(() => cache.PutAll(new[]
+                
+                Assert.Throws<IgniteClientException>(() => cache.PutAll(new[]
                 {
                     new KeyValuePair<int?, int?>(null, 1)
                 }));
-                Assert.Throws<ArgumentNullException>(() => cache.PutAll(new[]
+
+                Assert.Throws<IgniteClientException>(() => cache.PutAll(new[]
                 {
                     new KeyValuePair<int?, int?>(1, null)
                 }));
@@ -550,8 +552,6 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
 
         private class Container
         {
-            public int Id;
-
             public Container Inner;
         }
     }
