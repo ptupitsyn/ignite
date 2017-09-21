@@ -199,9 +199,13 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
                 Assert.IsFalse(res.Success);
                 Assert.IsNull(res.Value);
 
+                Assert.IsTrue(cache.ContainsKey(1));
+
                 res = cache.GetAndPut(1, 2);
                 Assert.IsTrue(res.Success);
                 Assert.AreEqual(1, res.Value);
+
+                Assert.AreEqual(2, cache[1]);
 
                 Assert.Throws<ArgumentNullException>(() => cache.GetAndPut(1, null));
                 Assert.Throws<ArgumentNullException>(() => cache.GetAndPut(null, 1));
@@ -214,7 +218,6 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
         [Test]
         public void TestGetAndReplace()
         {
-            // TODO: What's the difference with GetAndPut?
             using (var client = GetClient())
             {
                 var cache = client.GetCache<int?, int?>(CacheName);
@@ -225,9 +228,14 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
                 Assert.IsFalse(res.Success);
                 Assert.IsNull(res.Value);
 
+                Assert.IsFalse(cache.ContainsKey(1));
+                cache[1] = 1;
+
                 res = cache.GetAndReplace(1, 2);
                 Assert.IsTrue(res.Success);
                 Assert.AreEqual(1, res.Value);
+
+                Assert.AreEqual(2, cache[1]);
 
                 Assert.Throws<ArgumentNullException>(() => cache.GetAndReplace(1, null));
                 Assert.Throws<ArgumentNullException>(() => cache.GetAndReplace(null, 1));
