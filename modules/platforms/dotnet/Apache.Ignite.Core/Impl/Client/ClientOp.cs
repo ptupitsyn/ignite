@@ -34,6 +34,7 @@ namespace Apache.Ignite.Core.Impl.Client
         CacheContainsKey = 10,
         CacheContainsKeys = 11,
         CacheGetAll = 12,
-        CacheGetAndPut = 13
+        CacheGetAndPut = 13,
+        CacheGetAndReplace = 14
     }
 }

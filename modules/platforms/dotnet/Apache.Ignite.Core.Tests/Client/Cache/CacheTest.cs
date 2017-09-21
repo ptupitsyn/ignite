@@ -209,6 +209,32 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
         }
 
         /// <summary>
+        /// Tests the GetAndReplace method.
+        /// </summary>
+        [Test]
+        public void TestGetAndReplace()
+        {
+            // TODO: What's the difference with GetAndPut?
+            using (var client = GetClient())
+            {
+                var cache = client.GetCache<int?, int?>(CacheName);
+
+                Assert.IsFalse(cache.ContainsKey(1));
+
+                var res = cache.GetAndReplace(1, 1);
+                Assert.IsFalse(res.Success);
+                Assert.IsNull(res.Value);
+
+                res = cache.GetAndReplace(1, 2);
+                Assert.IsTrue(res.Success);
+                Assert.AreEqual(1, res.Value);
+
+                Assert.Throws<ArgumentNullException>(() => cache.GetAndReplace(1, null));
+                Assert.Throws<ArgumentNullException>(() => cache.GetAndReplace(null, 1));
+            }
+        }
+
+        /// <summary>
         /// Tests the ContainsKey method.
         /// </summary>
         [Test]

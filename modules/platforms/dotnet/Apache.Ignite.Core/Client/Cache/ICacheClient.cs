@@ -109,5 +109,16 @@ namespace Apache.Ignite.Core.Client.Cache
         /// The value associated with the key at the start of the operation.
         /// </returns>
         CacheResult<TV> GetAndPut(TK key, TV val);
+
+        /// <summary>
+        /// Atomically replaces the value for a given key if and only if there is a value currently mapped by the key.
+        /// </summary>
+        /// <param name="key">Key with which the specified value is to be associated.</param>
+        /// <param name="val">Value to be associated with the specified key.</param>
+        /// <returns>
+        /// The previous value associated with the specified key.
+        /// </returns>
+        CacheResult<TV> GetAndReplace(TK key, TV val);
+
     }
 }
