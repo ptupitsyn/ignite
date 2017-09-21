@@ -255,6 +255,14 @@ namespace Apache.Ignite.Core.Impl.Client.Cache
             }, s => s.ReadBool());
         }
 
+        /** <inheritDoc /> */
+        public void PutAll(IEnumerable<KeyValuePair<TK, TV>> vals)
+        {
+            IgniteArgumentCheck.NotNull(vals, "vals");
+
+            DoOutOp(ClientOp.CacheGetAll, w => w.WriteDictionary(vals));
+        }
+
         /// <summary>
         /// Does the out in op.
         /// </summary>
