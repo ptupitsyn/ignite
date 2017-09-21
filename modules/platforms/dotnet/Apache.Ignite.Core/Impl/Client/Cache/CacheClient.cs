@@ -260,7 +260,7 @@ namespace Apache.Ignite.Core.Impl.Client.Cache
         {
             IgniteArgumentCheck.NotNull(vals, "vals");
 
-            DoOutOp(ClientOp.CacheGetAll, w => w.WriteDictionary(vals));
+            DoOutOp(ClientOp.CachePutAll, w => w.WriteDictionary(vals));
         }
 
         /// <summary>

@@ -40,6 +40,7 @@ namespace Apache.Ignite.Core.Impl.Client
         CachePutIfAbsent = 16,
         CacheGetAndPutIfAbsent = 17,
         CacheReplace = 18,
-        CacheReplace2 = 19
+        CacheReplace2 = 19,
+        CachePutAll = 20
     }
 }
