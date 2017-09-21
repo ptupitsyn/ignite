@@ -306,6 +306,13 @@ namespace Apache.Ignite.Core.Impl.Client.Cache
             }, r => r.ReadBool());
         }
 
+        /** <inheritDoc /> */
+        public int GetSize(params CachePeekMode[] modes)
+        {
+            return DoOutInOp(ClientOp.CacheGetSize, w => w.WriteInt(IgniteUtils.EncodePeekModes(modes)),
+                s => s.ReadInt());
+        }
+
         /// <summary>
         /// Does the out in op.
         /// </summary>

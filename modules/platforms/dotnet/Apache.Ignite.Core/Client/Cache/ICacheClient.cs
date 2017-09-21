@@ -200,5 +200,14 @@ namespace Apache.Ignite.Core.Client.Cache
         /// <param name="val">Value to match against currently cached value.</param>
         /// <returns>True if entry was removed, false otherwise.</returns>
         bool Remove(TK key, TV val);
+
+        /// <summary>
+        /// Gets the number of all entries cached across all nodes.
+        /// <para />
+        /// NOTE: this operation is distributed and will query all participating nodes for their cache sizes.
+        /// </summary>
+        /// <param name="modes">Optional peek modes. If not provided, then total cache size is returned.</param>
+        /// <returns>Cache size across all nodes.</returns>
+        int GetSize(params CachePeekMode[] modes);
     }
 }
