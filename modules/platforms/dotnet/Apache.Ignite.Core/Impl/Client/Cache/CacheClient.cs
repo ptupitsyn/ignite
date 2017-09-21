@@ -277,6 +277,12 @@ namespace Apache.Ignite.Core.Impl.Client.Cache
             DoOutOp(ClientOp.CacheClearKey, w => w.WriteObjectDetached(key));
         }
 
+        /** <inheritDoc /> */
+        public void ClearAll(IEnumerable<TK> keys)
+        {
+            DoOutOp(ClientOp.CacheClearAll, w => w.WriteEnumerable(keys));
+        }
+
         /// <summary>
         /// Does the out in op.
         /// </summary>

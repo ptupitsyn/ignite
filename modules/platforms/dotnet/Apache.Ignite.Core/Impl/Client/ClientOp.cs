@@ -43,6 +43,7 @@ namespace Apache.Ignite.Core.Impl.Client
         CacheReplace2 = 19,
         CachePutAll = 20,
         CacheClear = 21,
-        CacheClearKey = 22
+        CacheClearKey = 22,
+        CacheClearAll = 23
     }
 }
