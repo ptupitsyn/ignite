@@ -288,7 +288,9 @@ namespace Apache.Ignite.Core.Impl.Client.Cache
         /** <inheritDoc /> */
         public bool Remove(TK key)
         {
-            throw new NotImplementedException();
+            IgniteArgumentCheck.NotNull(key, "key");
+
+            return DoOutInOp(ClientOp.CacheRemove, w => w.WriteObjectDetached(key), r => r.ReadBool());
         }
 
         /// <summary>

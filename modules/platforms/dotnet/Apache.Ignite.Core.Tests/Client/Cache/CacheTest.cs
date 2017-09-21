@@ -558,6 +558,31 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
         }
 
         /// <summary>
+        /// Tests the Remove method.
+        /// </summary>
+        [Test]
+        public void TestRemove()
+        {
+            using (var client = GetClient())
+            {
+                var cache = client.GetCache<int?, int?>(CacheName);
+
+                cache[1] = 1;
+                cache[2] = 2;
+
+                cache.Remove(1);
+                Assert.IsFalse(cache.ContainsKey(1));
+                Assert.IsTrue(cache.ContainsKey(2));
+
+                cache.Remove(2);
+                Assert.IsFalse(cache.ContainsKey(1));
+                Assert.IsFalse(cache.ContainsKey(2));
+
+                Assert.Throws<ArgumentNullException>(() => cache.Remove(null));
+            }
+        }
+
+        /// <summary>
         /// Tests client get in multiple threads with a single client.
         /// </summary>
         [Test]
