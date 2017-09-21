@@ -172,7 +172,11 @@ namespace Apache.Ignite.Core.Impl.Client.Cache
             IgniteArgumentCheck.NotNull(key, "key");
             IgniteArgumentCheck.NotNull(val, "val");
 
-            return DoOutInOp(ClientOp.CacheGetAndPut, w => w.WriteObject(key), UnmarshalCacheResult<TV>);
+            return DoOutInOp(ClientOp.CacheGetAndPut, w =>
+            {
+                w.WriteObjectDetached(key);
+                w.WriteObjectDetached(val);
+            }, UnmarshalCacheResult<TV>);
         }
 
         /// <summary>
