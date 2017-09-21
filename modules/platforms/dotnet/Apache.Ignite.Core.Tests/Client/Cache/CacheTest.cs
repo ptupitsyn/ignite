@@ -320,6 +320,31 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
         }
 
         /// <summary>
+        /// Tests the PutIfAbsent method.
+        /// </summary>
+        [Test]
+        public void TestPutIfAbsent()
+        {
+            using (var client = GetClient())
+            {
+                var cache = client.GetCache<int?, int?>(CacheName);
+
+                Assert.IsFalse(cache.ContainsKey(1));
+
+                var res = cache.PutIfAbsent(1, 1);
+                Assert.IsTrue(res);
+                Assert.AreEqual(1, cache[1]);
+
+                res = cache.PutIfAbsent(1, 2);
+                Assert.IsFalse(res);
+                Assert.AreEqual(1, cache[1]);
+
+                Assert.Throws<ArgumentNullException>(() => cache.PutIfAbsent(null, 1));
+                Assert.Throws<ArgumentNullException>(() => cache.PutIfAbsent(1, null));
+            }
+        }
+
+        /// <summary>
         /// Tests client get in multiple threads with a single client.
         /// </summary>
         [Test]
