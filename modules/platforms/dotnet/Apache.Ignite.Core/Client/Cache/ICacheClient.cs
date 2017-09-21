@@ -126,5 +126,13 @@ namespace Apache.Ignite.Core.Client.Cache
         /// <param name="key">Key with which the specified value is associated.</param>
         /// <returns>The value if one existed.</returns>
         CacheResult<TV> GetAndRemove(TK key);
+
+        /// <summary>
+        /// Atomically associates the specified key with the given value if it is not already associated with a value.
+        /// </summary>
+        /// <param name="key">Key with which the specified value is to be associated.</param>
+        /// <param name="val">Value to be associated with the specified key.</param>
+        /// <returns>True if a value was set.</returns>
+        bool PutIfAbsent(TK key, TV val);
     }
 }

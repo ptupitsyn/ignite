@@ -201,6 +201,19 @@ namespace Apache.Ignite.Core.Impl.Client.Cache
                 UnmarshalCacheResult<TV>);
         }
 
+        /** <inheritDoc /> */
+        public bool PutIfAbsent(TK key, TV val)
+        {
+            IgniteArgumentCheck.NotNull(key, "key");
+            IgniteArgumentCheck.NotNull(val, "val");
+
+            return DoOutInOp(ClientOp.CachePutIfAbsent, w =>
+            {
+                w.WriteObjectDetached(key);
+                w.WriteObjectDetached(val);
+            }, s => s.ReadBool());
+        }
+
         /// <summary>
         /// Does the out in op.
         /// </summary>
