@@ -144,5 +144,13 @@ namespace Apache.Ignite.Core.Client.Cache
         /// Previously contained value regardless of whether put happened or not.
         /// </returns>
         CacheResult<TV> GetAndPutIfAbsent(TK key, TV val);
+
+        /// <summary>
+        /// Stores given key-value pair in cache only if there is a previous mapping for it.
+        /// </summary>
+        /// <param name="key">Key to store in cache.</param>
+        /// <param name="val">Value to be associated with the given key.</param>
+        /// <returns>True if the value was replaced.</returns>
+        bool Replace(TK key, TV val);
     }
 }

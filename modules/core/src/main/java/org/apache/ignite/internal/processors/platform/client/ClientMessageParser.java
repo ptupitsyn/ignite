@@ -42,6 +42,7 @@ import org.apache.ignite.internal.processors.platform.client.cache.ClientCacheGe
 import org.apache.ignite.internal.processors.platform.client.cache.ClientCacheGetRequest;
 import org.apache.ignite.internal.processors.platform.client.cache.ClientCachePutIfAbsentRequest;
 import org.apache.ignite.internal.processors.platform.client.cache.ClientCachePutRequest;
+import org.apache.ignite.internal.processors.platform.client.cache.ClientCacheReplaceRequest;
 import org.apache.ignite.internal.processors.platform.client.cache.ClientCacheScanQueryNextPageRequest;
 import org.apache.ignite.internal.processors.platform.client.cache.ClientCacheScanQueryRequest;
 
@@ -99,6 +100,9 @@ public class ClientMessageParser implements ClientListenerMessageParser {
 
     /** */
     private static final short OP_CACHE_GET_AND_PUT_IF_ABSENT = 17;
+
+    /** */
+    private static final short OP_CACHE_REPLACE = 18;
 
     /** Marshaller. */
     private final GridBinaryMarshaller marsh;
@@ -185,6 +189,9 @@ public class ClientMessageParser implements ClientListenerMessageParser {
 
             case OP_CACHE_GET_AND_PUT_IF_ABSENT:
                 return new ClientCacheGetAndPutIfAbsentRequest(reader);
+
+            case OP_CACHE_REPLACE:
+                return new ClientCacheReplaceRequest(reader);
         }
 
         return new ClientRawRequest(reader.readLong(), ClientStatus.INVALID_OP_CODE,
