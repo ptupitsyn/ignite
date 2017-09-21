@@ -173,5 +173,11 @@ namespace Apache.Ignite.Core.Client.Cache
         /// Clears the contents of the cache, without notifying listeners or CacheWriters.
         /// </summary>
         void Clear();
+
+        /// <summary>
+        /// Clear entry from the cache, without notifying listeners or CacheWriters.
+        /// </summary>
+        /// <param name="key">Key to clear.</param>
+        void Clear(TK key);
     }
 }

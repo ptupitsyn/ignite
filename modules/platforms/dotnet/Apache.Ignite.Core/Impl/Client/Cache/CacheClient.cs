@@ -269,6 +269,14 @@ namespace Apache.Ignite.Core.Impl.Client.Cache
             DoOutOp(ClientOp.CacheClear);
         }
 
+        /** <inheritDoc /> */
+        public void Clear(TK key)
+        {
+            IgniteArgumentCheck.NotNull(key, "key");
+
+            DoOutOp(ClientOp.CacheClearKey, w => w.WriteObjectDetached(key));
+        }
+
         /// <summary>
         /// Does the out in op.
         /// </summary>
