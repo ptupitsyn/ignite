@@ -267,7 +267,7 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
 
                 Assert.IsFalse(cache.ContainsKey(1));
 
-                Assert.Throws<ArgumentNullException>(() => cache.GetAndRemove(1));
+                Assert.Throws<ArgumentNullException>(() => cache.GetAndRemove(null));
             }
         }
 
