@@ -54,7 +54,7 @@ namespace Apache.Ignite.Core.Impl.Client.Cache
         private readonly Marshaller _marsh;
 
         /** Keep binary flag. */
-        private bool _keepBinary = false;
+        private readonly bool _keepBinary = false;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="CacheClient{TK, TV}" /> class.
@@ -212,6 +212,19 @@ namespace Apache.Ignite.Core.Impl.Client.Cache
                 w.WriteObjectDetached(key);
                 w.WriteObjectDetached(val);
             }, s => s.ReadBool());
+        }
+
+        /** <inheritDoc /> */
+        public CacheResult<TV> GetAndPutIfAbsent(TK key, TV val)
+        {
+            IgniteArgumentCheck.NotNull(key, "key");
+            IgniteArgumentCheck.NotNull(val, "val");
+
+            return DoOutInOp(ClientOp.CacheGetAndPutIfAbsent, w =>
+            {
+                w.WriteObjectDetached(key);
+                w.WriteObjectDetached(val);
+            }, UnmarshalCacheResult<TV>);
         }
 
         /// <summary>

@@ -134,5 +134,15 @@ namespace Apache.Ignite.Core.Client.Cache
         /// <param name="val">Value to be associated with the specified key.</param>
         /// <returns>True if a value was set.</returns>
         bool PutIfAbsent(TK key, TV val);
+
+        /// <summary>
+        /// Stores given key-value pair in cache only if cache had no previous mapping for it.
+        /// </summary>
+        /// <param name="key">Key to store in cache.</param>
+        /// <param name="val">Value to be associated with the given key.</param>
+        /// <returns>
+        /// Previously contained value regardless of whether put happened or not.
+        /// </returns>
+        CacheResult<TV> GetAndPutIfAbsent(TK key, TV val);
     }
 }
