@@ -120,5 +120,11 @@ namespace Apache.Ignite.Core.Client.Cache
         /// </returns>
         CacheResult<TV> GetAndReplace(TK key, TV val);
 
+        /// <summary>
+        /// Atomically removes the entry for a key only if currently mapped to some value.
+        /// </summary>
+        /// <param name="key">Key with which the specified value is associated.</param>
+        /// <returns>The value if one existed.</returns>
+        CacheResult<TV> GetAndRemove(TK key);
     }
 }

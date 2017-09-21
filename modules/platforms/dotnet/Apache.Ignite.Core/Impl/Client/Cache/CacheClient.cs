@@ -192,6 +192,13 @@ namespace Apache.Ignite.Core.Impl.Client.Cache
             }, UnmarshalCacheResult<TV>);
         }
 
+        /** <inheritDoc /> */
+        public CacheResult<TV> GetAndRemove(TK key)
+        {
+            return DoOutInOp(ClientOp.CacheGetAndRemove, w => w.WriteObjectDetached(key), 
+                UnmarshalCacheResult<TV>);
+        }
+
         /// <summary>
         /// Does the out in op.
         /// </summary>
