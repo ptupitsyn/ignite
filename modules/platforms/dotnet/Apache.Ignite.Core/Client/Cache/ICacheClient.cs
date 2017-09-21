@@ -18,6 +18,7 @@
 namespace Apache.Ignite.Core.Client.Cache
 {
     using System.Collections.Generic;
+    using System.Threading.Tasks;
     using Apache.Ignite.Core.Cache;
     using Apache.Ignite.Core.Cache.Query;
 
@@ -152,5 +153,15 @@ namespace Apache.Ignite.Core.Client.Cache
         /// <param name="val">Value to be associated with the given key.</param>
         /// <returns>True if the value was replaced.</returns>
         bool Replace(TK key, TV val);
+
+        /// <summary>
+        /// Stores given key-value pair in cache only if only if the previous value is equal to the
+        /// old value passed as argument.
+        /// </summary>
+        /// <param name="key">Key to store in cache.</param>
+        /// <param name="oldVal">Old value to match.</param>
+        /// <param name="newVal">Value to be associated with the given key.</param>
+        /// <returns>True if replace happened, false otherwise.</returns>
+        bool Replace(TK key, TV oldVal, TV newVal);
     }
 }

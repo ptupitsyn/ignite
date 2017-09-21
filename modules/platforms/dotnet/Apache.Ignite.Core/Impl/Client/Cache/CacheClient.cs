@@ -240,6 +240,21 @@ namespace Apache.Ignite.Core.Impl.Client.Cache
             }, s => s.ReadBool());
         }
 
+        /** <inheritDoc /> */
+        public bool Replace(TK key, TV oldVal, TV newVal)
+        {
+            IgniteArgumentCheck.NotNull(key, "key");
+            IgniteArgumentCheck.NotNull(oldVal, "oldVal");
+            IgniteArgumentCheck.NotNull(newVal, "newVal");
+
+            return DoOutInOp(ClientOp.CacheReplace, w =>
+            {
+                w.WriteObjectDetached(key);
+                w.WriteObjectDetached(oldVal);
+                w.WriteObjectDetached(newVal);
+            }, s => s.ReadBool());
+        }
+
         /// <summary>
         /// Does the out in op.
         /// </summary>
