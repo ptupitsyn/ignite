@@ -83,7 +83,7 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
             {
                 var person = new Person {Id = 100, Name = "foo"};
                 var person2 = new Person2 {Id = 200, Name = "bar"};
-                
+
                 var serverCache = GetCache<Person>();
                 var clientCache = client.GetCache<int?, Person>(CacheName);
 
@@ -475,7 +475,7 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
 
                 // Nulls.
                 Assert.Throws<ArgumentNullException>(() => cache.PutAll(null));
-                
+
                 Assert.Throws<IgniteClientException>(() => cache.PutAll(new[]
                 {
                     new KeyValuePair<int?, int?>(null, 1)
@@ -485,6 +485,26 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
                 {
                     new KeyValuePair<int?, int?>(1, null)
                 }));
+            }
+        }
+
+        /// <summary>
+        /// Tests the Clear method.
+        /// </summary>
+        [Test]
+        public void TestClear()
+        {
+            using (var client = GetClient())
+            {
+                var cache = client.GetCache<int?, int?>(CacheName);
+
+                cache[1] = 1;
+                cache[2] = 2;
+
+                cache.Clear();
+
+                Assert.IsFalse(cache.ContainsKey(1));
+                Assert.IsFalse(cache.ContainsKey(2));
             }
         }
 
