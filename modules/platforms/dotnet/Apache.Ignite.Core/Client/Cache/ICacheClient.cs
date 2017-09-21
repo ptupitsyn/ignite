@@ -168,5 +168,10 @@ namespace Apache.Ignite.Core.Client.Cache
         /// </summary>
         /// <param name="vals">Key-value pairs to store in cache.</param>
         void PutAll(IEnumerable<KeyValuePair<TK, TV>> vals);
+
+        /// <summary>
+        /// Clears the contents of the cache, without notifying listeners or CacheWriters.
+        /// </summary>
+        void Clear();
     }
 }

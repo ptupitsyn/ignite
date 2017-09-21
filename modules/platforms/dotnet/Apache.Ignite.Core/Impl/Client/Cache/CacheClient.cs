@@ -263,6 +263,12 @@ namespace Apache.Ignite.Core.Impl.Client.Cache
             DoOutOp(ClientOp.CachePutAll, w => w.WriteDictionary(vals));
         }
 
+        /** <inheritDoc /> */
+        public void Clear()
+        {
+            DoOutOp(ClientOp.CacheClear);
+        }
+
         /// <summary>
         /// Does the out in op.
         /// </summary>
@@ -288,7 +294,7 @@ namespace Apache.Ignite.Core.Impl.Client.Cache
         /// <summary>
         /// Does the out op.
         /// </summary>
-        private void DoOutOp(ClientOp opId, Action<BinaryWriter> writeAction)
+        private void DoOutOp(ClientOp opId, Action<BinaryWriter> writeAction = null)
         {
             DoOutInOp<object>(opId, writeAction, null);
         }
