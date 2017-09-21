@@ -534,6 +534,30 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
         }
 
         /// <summary>
+        /// Tests the ClearAll method.
+        /// </summary>
+        [Test]
+        public void TestClearAll()
+        {
+            using (var client = GetClient())
+            {
+                var cache = client.GetCache<int?, int?>(CacheName);
+
+                cache[1] = 1;
+                cache[2] = 2;
+                cache[3] = 3;
+
+                cache.ClearAll(new int?[] {1, 3});
+                Assert.IsFalse(cache.ContainsKey(1));
+                Assert.IsTrue(cache.ContainsKey(2));
+                Assert.IsFalse(cache.ContainsKey(3));
+
+                Assert.Throws<ArgumentNullException>(() => cache.ClearAll(null));
+                Assert.Throws<ArgumentNullException>(() => cache.ClearAll(new int?[] {null, 1}));
+            }
+        }
+
+        /// <summary>
         /// Tests client get in multiple threads with a single client.
         /// </summary>
         [Test]
