@@ -34,7 +34,7 @@ public class ClientCacheKeyValRequest extends ClientCacheRequest {
      *
      * @param reader Reader.
      */
-    public ClientCacheKeyValRequest(BinaryRawReaderEx reader) {
+    ClientCacheKeyValRequest(BinaryRawReaderEx reader) {
         super(reader);
 
         key = reader.readObjectDetached();
