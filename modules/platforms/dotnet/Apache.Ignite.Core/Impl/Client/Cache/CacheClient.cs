@@ -280,6 +280,8 @@ namespace Apache.Ignite.Core.Impl.Client.Cache
         /** <inheritDoc /> */
         public void ClearAll(IEnumerable<TK> keys)
         {
+            IgniteArgumentCheck.NotNull(keys, "keys");
+
             DoOutOp(ClientOp.CacheClearAll, w => w.WriteEnumerable(keys));
         }
 

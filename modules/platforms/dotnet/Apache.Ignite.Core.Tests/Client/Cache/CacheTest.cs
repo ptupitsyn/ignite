@@ -553,7 +553,7 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
                 Assert.IsFalse(cache.ContainsKey(3));
 
                 Assert.Throws<ArgumentNullException>(() => cache.ClearAll(null));
-                Assert.Throws<ArgumentNullException>(() => cache.ClearAll(new int?[] {null, 1}));
+                Assert.Throws<IgniteClientException>(() => cache.ClearAll(new int?[] {null, 1}));
             }
         }
 
