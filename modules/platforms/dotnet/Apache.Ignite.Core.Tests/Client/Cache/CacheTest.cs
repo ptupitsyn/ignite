@@ -23,6 +23,7 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
     using System.Linq;
     using System.Threading;
     using Apache.Ignite.Core.Binary;
+    using Apache.Ignite.Core.Cache;
     using Apache.Ignite.Core.Client;
     using Apache.Ignite.Core.Impl.Client;
     using NUnit.Framework;
@@ -621,6 +622,36 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
 
                 Assert.Throws<ArgumentNullException>(() => cache.Remove(1, null));
                 Assert.Throws<ArgumentNullException>(() => cache.Remove(null, 1));
+            }
+        }
+
+        /// <summary>
+        /// Tests the GetSize method.
+        /// </summary>
+        [Test]
+        public void TestGetSize()
+        {
+            using (var client = GetClient())
+            {
+                var cache = client.GetCache<int, int>(CacheName);
+
+                Assert.AreEqual(0, cache.GetSize());
+                Assert.AreEqual(0, cache.GetSize(CachePeekMode.All));
+                Assert.AreEqual(0, cache.GetSize(CachePeekMode.Backup));
+                Assert.AreEqual(0, cache.GetSize(CachePeekMode.Near));
+                Assert.AreEqual(0, cache.GetSize(CachePeekMode.Offheap));
+                Assert.AreEqual(0, cache.GetSize(CachePeekMode.Onheap));
+                Assert.AreEqual(0, cache.GetSize(CachePeekMode.Primary));
+
+                cache[1] = 1;
+                
+                Assert.AreEqual(1, cache.GetSize());
+                Assert.AreEqual(1, cache.GetSize(CachePeekMode.All));
+                Assert.AreEqual(1, cache.GetSize(CachePeekMode.Backup));
+                Assert.AreEqual(1, cache.GetSize(CachePeekMode.Near));
+                Assert.AreEqual(1, cache.GetSize(CachePeekMode.Offheap));
+                Assert.AreEqual(1, cache.GetSize(CachePeekMode.Onheap));
+                Assert.AreEqual(1, cache.GetSize(CachePeekMode.Primary));
             }
         }
 
