@@ -431,6 +431,62 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
         }
 
         /// <summary>
+        /// Tests the PutAll method.
+        /// </summary>
+        [Test]
+        public void TestPutAll()
+        {
+            using (var client = GetClient())
+            {
+                // Primitives.
+                var cache = client.GetCache<int?, int?>(CacheName);
+
+                cache.PutAll(Enumerable.Range(1, 3).ToDictionary(x => (int?) x, x => (int?) x + 1));
+
+                Assert.AreEqual(2, cache[1]);
+                Assert.AreEqual(3, cache[2]);
+                Assert.AreEqual(4, cache[3]);
+
+                // Objects.
+                var cache2 = client.GetCache<int, Container>(CacheName);
+
+                var obj1 = new Container();
+                var obj2 = new Container();
+                var obj3 = new Container();
+
+                obj1.Inner = obj2;
+                obj2.Inner = obj1;
+                obj3.Inner = obj2;
+
+                cache2.PutAll(new Dictionary<int, Container>
+                {
+                    {1, obj1},
+                    {2, obj2},
+                    {3, obj3}
+                });
+
+                var res1 = cache2[1];
+                var res2 = cache2[2];
+                var res3 = cache2[3];
+
+                Assert.AreEqual(res1, res1.Inner.Inner);
+                Assert.AreEqual(res2, res2.Inner.Inner);
+                Assert.IsNotNull(res3.Inner.Inner.Inner);
+
+                // Nulls.
+                Assert.Throws<ArgumentNullException>(() => cache.PutAll(null));
+                Assert.Throws<ArgumentNullException>(() => cache.PutAll(new[]
+                {
+                    new KeyValuePair<int?, int?>(null, 1)
+                }));
+                Assert.Throws<ArgumentNullException>(() => cache.PutAll(new[]
+                {
+                    new KeyValuePair<int?, int?>(1, null)
+                }));
+            }
+        }
+
+        /// <summary>
         /// Tests client get in multiple threads with a single client.
         /// </summary>
         [Test]
@@ -490,6 +546,13 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
                 Assert.AreEqual("Cache doesn't exist: foobar", ex.Message);
                 Assert.AreEqual((int) ClientStatus.CacheDoesNotExist, ex.ErrorCode);
             }
+        }
+
+        private class Container
+        {
+            public int Id;
+
+            public Container Inner;
         }
     }
 }
