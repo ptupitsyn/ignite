@@ -25,10 +25,7 @@ import org.apache.ignite.internal.processors.platform.client.ClientResponse;
 /**
  * ContainsKey request.
  */
-public class ClientCacheContainsKeyRequest extends ClientCacheRequest {
-    /** Key. */
-    private final Object key;
-
+public class ClientCacheContainsKeyRequest extends ClientCacheKeyRequest {
     /**
      * Constructor.
      *
@@ -36,14 +33,12 @@ public class ClientCacheContainsKeyRequest extends ClientCacheRequest {
      */
     public ClientCacheContainsKeyRequest(BinaryRawReaderEx reader) {
         super(reader);
-
-        key = reader.readObjectDetached();
     }
 
     /** {@inheritDoc} */
     @SuppressWarnings("unchecked")
     @Override public ClientResponse process(ClientConnectionContext ctx) {
-        boolean val = cache(ctx).containsKey(key);
+        boolean val = cache(ctx).containsKey(key());
 
         return new ClientBooleanResponse(requestId(), val);
     }
