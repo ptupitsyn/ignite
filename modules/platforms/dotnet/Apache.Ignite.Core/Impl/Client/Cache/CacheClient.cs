@@ -285,6 +285,12 @@ namespace Apache.Ignite.Core.Impl.Client.Cache
             DoOutOp(ClientOp.CacheClearAll, w => w.WriteEnumerable(keys));
         }
 
+        /** <inheritDoc /> */
+        public bool Remove(TK key)
+        {
+            throw new NotImplementedException();
+        }
+
         /// <summary>
         /// Does the out in op.
         /// </summary>

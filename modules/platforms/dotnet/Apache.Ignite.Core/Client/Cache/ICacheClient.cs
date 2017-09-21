@@ -185,5 +185,12 @@ namespace Apache.Ignite.Core.Client.Cache
         /// </summary>
         /// <param name="keys">Keys to clear.</param>
         void ClearAll(IEnumerable<TK> keys);
+
+        /// <summary>
+        /// Removes given key mapping from cache, notifying listeners and cache writers.
+        /// </summary>
+        /// <param name="key">Key to remove.</param>
+        /// <returns>False if there was no matching key.</returns>
+        bool Remove(TK key);
     }
 }
