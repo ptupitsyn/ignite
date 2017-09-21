@@ -195,6 +195,8 @@ namespace Apache.Ignite.Core.Impl.Client.Cache
         /** <inheritDoc /> */
         public CacheResult<TV> GetAndRemove(TK key)
         {
+            IgniteArgumentCheck.NotNull(key, "key");
+
             return DoOutInOp(ClientOp.CacheGetAndRemove, w => w.WriteObjectDetached(key), 
                 UnmarshalCacheResult<TV>);
         }

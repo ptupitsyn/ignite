@@ -243,6 +243,35 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
         }
 
         /// <summary>
+        /// Tests the GetAndRemove method.
+        /// </summary>
+        [Test]
+        public void TestGetAndRemove()
+        {
+            using (var client = GetClient())
+            {
+                var cache = client.GetCache<int?, int?>(CacheName);
+
+                Assert.IsFalse(cache.ContainsKey(1));
+
+                var res = cache.GetAndRemove(1);
+                Assert.IsFalse(res.Success);
+                Assert.IsNull(res.Value);
+
+                Assert.IsFalse(cache.ContainsKey(1));
+                cache[1] = 1;
+
+                res = cache.GetAndRemove(1);
+                Assert.IsTrue(res.Success);
+                Assert.AreEqual(1, res.Value);
+
+                Assert.IsFalse(cache.ContainsKey(1));
+
+                Assert.Throws<ArgumentNullException>(() => cache.GetAndRemove(1));
+            }
+        }
+
+        /// <summary>
         /// Tests the ContainsKey method.
         /// </summary>
         [Test]
