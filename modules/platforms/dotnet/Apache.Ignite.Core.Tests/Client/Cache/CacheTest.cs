@@ -655,6 +655,25 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
         }
 
         /// <summary>
+        /// Tests the RemoveAll method without argument.
+        /// </summary>
+        [Test]
+        public void TestRemoveAll()
+        {
+            using (var client = GetClient())
+            {
+                var cache = client.GetCache<int, int>(CacheName);
+
+                cache[1] = 1;
+                cache[2] = 2;
+
+                cache.RemoveAll();
+
+                Assert.AreEqual(0, cache.GetSize());
+            }
+        }
+
+        /// <summary>
         /// Tests the GetSize method.
         /// </summary>
         [Test]
