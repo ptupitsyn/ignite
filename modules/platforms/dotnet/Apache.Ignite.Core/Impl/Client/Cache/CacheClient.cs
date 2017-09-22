@@ -307,6 +307,14 @@ namespace Apache.Ignite.Core.Impl.Client.Cache
         }
 
         /** <inheritDoc /> */
+        public void RemoveAll(IEnumerable<TK> keys)
+        {
+            IgniteArgumentCheck.NotNull(keys, "keys");
+
+            DoOutOp(ClientOp.CacheRemoveKeys, w => w.WriteEnumerable(keys));
+        }
+
+        /** <inheritDoc /> */
         public int GetSize(params CachePeekMode[] modes)
         {
             return DoOutInOp(ClientOp.CacheGetSize, w => w.WriteInt(IgniteUtils.EncodePeekModes(modes)),

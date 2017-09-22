@@ -202,6 +202,12 @@ namespace Apache.Ignite.Core.Client.Cache
         bool Remove(TK key, TV val);
 
         /// <summary>
+        /// Removes given key mappings from cache, notifying listeners and cache writers.
+        /// </summary>
+        /// <param name="keys">Keys to be removed from cache.</param>
+        void RemoveAll(IEnumerable<TK> keys);
+
+        /// <summary>
         /// Gets the number of all entries cached across all nodes.
         /// <para />
         /// NOTE: this operation is distributed and will query all participating nodes for their cache sizes.

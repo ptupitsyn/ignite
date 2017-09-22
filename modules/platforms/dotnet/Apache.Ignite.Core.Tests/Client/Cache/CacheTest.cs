@@ -626,6 +626,35 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
         }
 
         /// <summary>
+        /// Tests the RemoveAll with a set of keys.
+        /// </summary>
+        [Test]
+        public void TestRemoveReys()
+        {
+            using (var client = GetClient())
+            {
+                var cache = client.GetCache<int?, int?>(CacheName);
+                var keys = Enumerable.Range(1, 10).Cast<int?>().ToArray();
+
+                cache.PutAll(keys.ToDictionary(x => x, x => x));
+
+                cache.RemoveAll(keys.Skip(2));
+                CollectionAssert.AreEquivalent(keys.Take(2), cache.GetAll(keys).Select(x => x.Key));
+
+                cache.RemoveAll(new int?[] {1});
+                Assert.AreEqual(2, cache.GetAll(keys).Single().Value);
+
+                cache.RemoveAll(keys);
+                cache.RemoveAll(keys);
+
+                Assert.AreEqual(0, cache.GetSize());
+
+                Assert.Throws<ArgumentNullException>(() => cache.RemoveAll(null));
+                Assert.Throws<IgniteClientException>(() => cache.RemoveAll(new int?[] {1, null}));
+            }
+        }
+
+        /// <summary>
         /// Tests the GetSize method.
         /// </summary>
         [Test]
