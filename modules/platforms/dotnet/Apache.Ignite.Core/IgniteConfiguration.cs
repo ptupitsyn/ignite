@@ -854,6 +854,15 @@ namespace Apache.Ignite.Core
         public ICollection<int> IncludedEventTypes { get; set; }
 
         /// <summary>
+        /// Gets or sets pre-configured local event listeners.
+        /// Each listener is mapped to an array of event types (see <see cref="EventType"/>).
+        /// <para />
+        /// This is similar to calling <see cref="IEvents.LocalListen{T}(IEventListener{T},int[])"/>,
+        /// but important difference is that some events occur during startup and can be only received this way.
+        /// </summary>
+        public IDictionary<IEventListener<IEvent>, int[]> LocalEventListeners { get; set; }
+
+        /// <summary>
         /// Gets or sets the time after which a certain metric value is considered expired.
         /// </summary>
         [DefaultValue(typeof(TimeSpan), "10675199.02:48:05.4775807")]
