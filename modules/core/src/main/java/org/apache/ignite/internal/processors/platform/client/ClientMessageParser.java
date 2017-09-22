@@ -32,8 +32,8 @@ import org.apache.ignite.internal.processors.platform.client.binary.ClientBinary
 import org.apache.ignite.internal.processors.platform.client.binary.ClientBinaryTypeNameGetRequest;
 import org.apache.ignite.internal.processors.platform.client.binary.ClientBinaryTypeNamePutRequest;
 import org.apache.ignite.internal.processors.platform.client.binary.ClientBinaryTypePutRequest;
-import org.apache.ignite.internal.processors.platform.client.cache.ClientCacheClearAllRequest;
 import org.apache.ignite.internal.processors.platform.client.cache.ClientCacheClearKeyRequest;
+import org.apache.ignite.internal.processors.platform.client.cache.ClientCacheClearKeysRequest;
 import org.apache.ignite.internal.processors.platform.client.cache.ClientCacheClearRequest;
 import org.apache.ignite.internal.processors.platform.client.cache.ClientCacheContainsKeyRequest;
 import org.apache.ignite.internal.processors.platform.client.cache.ClientCacheContainsKeysRequest;
@@ -48,6 +48,7 @@ import org.apache.ignite.internal.processors.platform.client.cache.ClientCachePu
 import org.apache.ignite.internal.processors.platform.client.cache.ClientCachePutIfAbsentRequest;
 import org.apache.ignite.internal.processors.platform.client.cache.ClientCachePutRequest;
 import org.apache.ignite.internal.processors.platform.client.cache.ClientCacheRemove2Request;
+import org.apache.ignite.internal.processors.platform.client.cache.ClientCacheRemoveKeysRequest;
 import org.apache.ignite.internal.processors.platform.client.cache.ClientCacheRemoveRequest;
 import org.apache.ignite.internal.processors.platform.client.cache.ClientCacheReplace2Request;
 import org.apache.ignite.internal.processors.platform.client.cache.ClientCacheReplaceRequest;
@@ -125,7 +126,7 @@ public class ClientMessageParser implements ClientListenerMessageParser {
     private static final short OP_CACHE_CLEAR_KEY = 22;
 
     /** */
-    private static final short OP_CACHE_CLEAR_ALL = 23;
+    private static final short OP_CACHE_CLEAR_KEYS = 23;
 
     /** */
     private static final short OP_CACHE_REMOVE = 24;
@@ -135,6 +136,9 @@ public class ClientMessageParser implements ClientListenerMessageParser {
 
     /** */
     private static final short OP_CACHE_GET_SIZE = 26;
+
+    /** */
+    private static final short OP_CACHE_REMOVE_KEYS = 27;
 
     /** Marshaller. */
     private final GridBinaryMarshaller marsh;
@@ -237,8 +241,8 @@ public class ClientMessageParser implements ClientListenerMessageParser {
             case OP_CACHE_CLEAR_KEY:
                 return new ClientCacheClearKeyRequest(reader);
 
-            case OP_CACHE_CLEAR_ALL:
-                return new ClientCacheClearAllRequest(reader);
+            case OP_CACHE_CLEAR_KEYS:
+                return new ClientCacheClearKeysRequest(reader);
 
             case OP_CACHE_REMOVE:
                 return new ClientCacheRemoveRequest(reader);
@@ -248,6 +252,9 @@ public class ClientMessageParser implements ClientListenerMessageParser {
 
             case OP_CACHE_GET_SIZE:
                 return new ClientCacheGetSizeRequest(reader);
+
+            case OP_CACHE_REMOVE_KEYS:
+                return new ClientCacheRemoveKeysRequest(reader);
         }
 
         return new ClientRawRequest(reader.readLong(), ClientStatus.INVALID_OP_CODE,

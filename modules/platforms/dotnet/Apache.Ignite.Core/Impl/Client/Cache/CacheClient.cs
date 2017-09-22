@@ -282,7 +282,7 @@ namespace Apache.Ignite.Core.Impl.Client.Cache
         {
             IgniteArgumentCheck.NotNull(keys, "keys");
 
-            DoOutOp(ClientOp.CacheClearAll, w => w.WriteEnumerable(keys));
+            DoOutOp(ClientOp.CacheClearKeys, w => w.WriteEnumerable(keys));
         }
 
         /** <inheritDoc /> */

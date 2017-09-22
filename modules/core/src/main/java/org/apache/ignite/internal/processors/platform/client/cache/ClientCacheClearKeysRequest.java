@@ -22,15 +22,15 @@ import org.apache.ignite.internal.processors.platform.client.ClientConnectionCon
 import org.apache.ignite.internal.processors.platform.client.ClientResponse;
 
 /**
- * GetAll request.
+ * Clear keys request.
  */
-public class ClientCacheClearAllRequest extends ClientCacheKeySetRequest {
+public class ClientCacheClearKeysRequest extends ClientCacheKeySetRequest {
     /**
      * Constructor.
      *
      * @param reader Reader.
      */
-    public ClientCacheClearAllRequest(BinaryRawReaderEx reader) {
+    public ClientCacheClearKeysRequest(BinaryRawReaderEx reader) {
         super(reader);
     }
 
