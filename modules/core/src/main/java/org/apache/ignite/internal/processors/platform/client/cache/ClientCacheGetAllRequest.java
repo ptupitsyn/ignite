@@ -21,17 +21,12 @@ import org.apache.ignite.internal.binary.BinaryRawReaderEx;
 import org.apache.ignite.internal.processors.platform.client.ClientConnectionContext;
 import org.apache.ignite.internal.processors.platform.client.ClientResponse;
 
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * GetAll request.
  */
-public class ClientCacheGetAllRequest extends ClientCacheRequest {
-    /** Keys. */
-    private final Set<Object> keys;
-
+public class ClientCacheGetAllRequest extends ClientCacheKeySetRequest {
     /**
      * Constructor.
      *
@@ -39,19 +34,12 @@ public class ClientCacheGetAllRequest extends ClientCacheRequest {
      */
     public ClientCacheGetAllRequest(BinaryRawReaderEx reader) {
         super(reader);
-
-        int cnt = reader.readInt();
-        keys = new HashSet<>(cnt);
-
-        for (int i = 0; i < cnt; i++) {
-            keys.add(reader.readObjectDetached());
-        }
     }
 
     /** {@inheritDoc} */
     @SuppressWarnings("unchecked")
     @Override public ClientResponse process(ClientConnectionContext ctx) {
-        Map val = cache(ctx).getAll(keys);
+        Map val = cache(ctx).getAll(keys());
 
         return new ClientCacheGetAllResponse(requestId(), val);
     }
