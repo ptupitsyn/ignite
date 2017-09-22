@@ -48,6 +48,7 @@ namespace Apache.Ignite.Core.Impl.Client
         CacheRemove = 24,
         CacheRemove2 = 25,
         CacheGetSize = 26,
-        CacheRemoveKeys = 27
+        CacheRemoveKeys = 27,
+        CacheRemoveAll = 28
     }
 }

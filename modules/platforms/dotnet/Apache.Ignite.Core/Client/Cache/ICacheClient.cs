@@ -208,6 +208,11 @@ namespace Apache.Ignite.Core.Client.Cache
         void RemoveAll(IEnumerable<TK> keys);
 
         /// <summary>
+        /// Removes all mappings from cache, notifying listeners and cache writers.
+        /// </summary>
+        void RemoveAll();
+
+        /// <summary>
         /// Gets the number of all entries cached across all nodes.
         /// <para />
         /// NOTE: this operation is distributed and will query all participating nodes for their cache sizes.
