@@ -19,10 +19,10 @@ namespace Apache.Ignite.Core.Tests
 {
     using System;
     using System.Collections.Concurrent;
-    using System.Collections.Generic;
     using System.Diagnostics;
     using Apache.Ignite.Core.Cache.Configuration;
     using Apache.Ignite.Core.Events;
+    using Apache.Ignite.Core.Impl.Events;
     using NUnit.Framework;
 
     /// <summary>
@@ -37,16 +37,17 @@ namespace Apache.Ignite.Core.Tests
 
             var cfg = new IgniteConfiguration(TestUtils.GetTestConfiguration())
             {
-                LocalEventListeners = new Dictionary<IEventListener<IEvent>, ICollection<int>>
+                LocalEventListeners = new[]
                 {
+                    new LocalEventListener
                     {
-                        new Listener<IEvent>(e =>
+                        Listener = new Listener<IEvent>(e =>
                         {
                             events.Add(e);
                             return true;
                         }),
-                        EventType.CacheAll
-                    }
+                        EventTypes = EventType.CacheAll
+                    },
                 },
                 CacheConfiguration = new[] {new CacheConfiguration("foo")}
             };
