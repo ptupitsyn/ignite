@@ -43,6 +43,7 @@ namespace Apache.Ignite.Core
     using Apache.Ignite.Core.Impl;
     using Apache.Ignite.Core.Impl.Binary;
     using Apache.Ignite.Core.Impl.Common;
+    using Apache.Ignite.Core.Impl.Events;
     using Apache.Ignite.Core.Lifecycle;
     using Apache.Ignite.Core.Log;
     using Apache.Ignite.Core.PersistentStore;
@@ -191,6 +192,9 @@ namespace Apache.Ignite.Core
 
         /** */
         private bool? _isActiveOnStart;
+
+        /** Local event listeners. Stored as array to ensure index access. */
+        private LocalEventListener[] _localEventListeners;
 
         /// <summary>
         /// Default network retry count.
@@ -857,13 +861,15 @@ namespace Apache.Ignite.Core
 
         /// <summary>
         /// Gets or sets pre-configured local event listeners.
-        /// Each listener is mapped to an array of event types (see <see cref="EventType"/>).
         /// <para />
         /// This is similar to calling <see cref="IEvents.LocalListen{T}(IEventListener{T},int[])"/>,
         /// but important difference is that some events occur during startup and can be only received this way.
         /// </summary>
-        public ICollection<KeyValuePair<IEventListener<IEvent>, ICollection<int>>> LocalEventListeners { get; set; }
-        // TODO: This definition sucks.. should we introduce a class?
+        public ICollection<LocalEventListener> LocalEventListeners
+        {
+            get { return _localEventListeners; }
+            set { _localEventListeners = value == null ? null : value.ToArray(); }
+        }
 
         /// <summary>
         /// Gets or sets the time after which a certain metric value is considered expired.
