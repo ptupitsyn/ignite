@@ -484,7 +484,10 @@ namespace Apache.Ignite.Core
                 writer.WriteBoolean(false);
             }
 
-            // Plugins (should be last)
+            // Local event listeners (should be last).
+            //  TODO
+
+            // Plugins (should be last).
             if (PluginConfigurations != null)
             {
                 var pos = writer.Stream.Position;
