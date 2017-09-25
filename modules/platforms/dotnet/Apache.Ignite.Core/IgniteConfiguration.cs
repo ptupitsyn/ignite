@@ -863,7 +863,7 @@ namespace Apache.Ignite.Core
         /// but important difference is that some events occur during startup and can be only received this way.
         /// </summary>
         public ICollection<KeyValuePair<IEventListener<IEvent>, ICollection<int>>> LocalEventListeners { get; set; }
-        // TODO: This definition sucks..
+        // TODO: This definition sucks.. should we introduce a class?
 
         /// <summary>
         /// Gets or sets the time after which a certain metric value is considered expired.
