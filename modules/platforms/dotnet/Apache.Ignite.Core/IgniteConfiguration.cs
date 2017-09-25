@@ -862,7 +862,7 @@ namespace Apache.Ignite.Core
         /// This is similar to calling <see cref="IEvents.LocalListen{T}(IEventListener{T},int[])"/>,
         /// but important difference is that some events occur during startup and can be only received this way.
         /// </summary>
-        public IDictionary<IEventListener<IEvent>, int[]> LocalEventListeners { get; set; }
+        public IDictionary<IEventListener<IEvent>, ICollection<int>> LocalEventListeners { get; set; }
 
         /// <summary>
         /// Gets or sets the time after which a certain metric value is considered expired.
