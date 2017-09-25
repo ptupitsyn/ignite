@@ -47,6 +47,7 @@ namespace Apache.Ignite.Core.Tests
     using Apache.Ignite.Core.Discovery.Tcp.Multicast;
     using Apache.Ignite.Core.Events;
     using Apache.Ignite.Core.Impl.Common;
+    using Apache.Ignite.Core.Impl.Events;
     using Apache.Ignite.Core.Lifecycle;
     using Apache.Ignite.Core.Log;
     using Apache.Ignite.Core.PersistentStore;
@@ -930,7 +931,15 @@ namespace Apache.Ignite.Core.Tests
                     RateTimeInterval = TimeSpan.FromDays(1)
                 },
                 IsActiveOnStart = false,
-                ConsistentId = "myId123"
+                ConsistentId = "myId123",
+                LocalEventListeners = new[]
+                {
+                    new LocalEventListener
+                    {
+                        EventTypes = new[] {1, 2},
+                        Listener = new MyEventListener()
+                    }
+                }
             };
         }
 
@@ -1131,6 +1140,14 @@ namespace Apache.Ignite.Core.Tests
             }
 
             void ICachePluginConfiguration.WriteBinary(IBinaryRawWriter writer)
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+        public class MyEventListener : IEventListener<IEvent>
+        {
+            public bool Invoke(IEvent evt)
             {
                 throw new NotImplementedException();
             }
