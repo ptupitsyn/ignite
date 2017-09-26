@@ -18,8 +18,9 @@
 namespace Apache.Ignite.Core.Tests
 {
     using System;
-    using System.Collections.Concurrent;
+    using System.Collections.Generic;
     using System.Diagnostics;
+    using System.Linq;
     using Apache.Ignite.Core.Cache.Configuration;
     using Apache.Ignite.Core.Events;
     using Apache.Ignite.Core.Impl.Events;
@@ -39,7 +40,7 @@ namespace Apache.Ignite.Core.Tests
         [Test]
         public void TestRebalanceEvents()
         {
-            var events = new ConcurrentBag<CacheRebalancingEvent>();
+            var events = new List<CacheRebalancingEvent>();
 
             var cfg = new IgniteConfiguration(TestUtils.GetTestConfiguration())
             {
@@ -59,9 +60,19 @@ namespace Apache.Ignite.Core.Tests
                 CacheConfiguration = new[] { new CacheConfiguration(CacheName) }
             };
 
-            using (var ignite = Ignition.Start(cfg))
+            using (Ignition.Start(cfg))
             {
-                Assert.Greater(events.Count, 0);
+                Assert.AreEqual(2, events.Count);
+
+                var rebalanceStart = events.First();
+
+                Assert.AreEqual(CacheName, rebalanceStart.CacheName);
+                Assert.AreEqual(EventType.CacheRebalanceStarted, rebalanceStart.Type);
+
+                var rebalanceStop = events.Last();
+
+                Assert.AreEqual(CacheName, rebalanceStop.CacheName);
+                Assert.AreEqual(EventType.CacheRebalanceStopped, rebalanceStart.Type);
             }
         }
 
