@@ -72,7 +72,7 @@ namespace Apache.Ignite.Core.Tests
                 var rebalanceStop = events.Last();
 
                 Assert.AreEqual(CacheName, rebalanceStop.CacheName);
-                Assert.AreEqual(EventType.CacheRebalanceStopped, rebalanceStart.Type);
+                Assert.AreEqual(EventType.CacheRebalanceStopped, rebalanceStop.Type);
             }
         }
 
