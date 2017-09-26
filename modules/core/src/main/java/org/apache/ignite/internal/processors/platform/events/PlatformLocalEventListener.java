@@ -33,7 +33,7 @@ import java.util.UUID;
  */
 public class PlatformLocalEventListener implements PlatformEventFilterListener {
     /** Listener id. */
-    private final long id;
+    private final int id;
 
     /** Platform context. */
     private PlatformContext ctx;
@@ -43,7 +43,7 @@ public class PlatformLocalEventListener implements PlatformEventFilterListener {
      *
      * @param id Listener id.
      */
-    public PlatformLocalEventListener(long id) {
+    public PlatformLocalEventListener(int id) {
         this.id = id;
     }
 
@@ -72,12 +72,13 @@ public class PlatformLocalEventListener implements PlatformEventFilterListener {
 
             BinaryRawWriterEx writer = ctx.writer(out);
 
+            writer.writeInt(id);
+
             ctx.writeEvent(writer, evt);
 
             out.synchronize();
 
-            // TODO: Different call.
-            int res = ctx.gateway().eventFilterApply(id, mem.pointer());
+            long res = ctx.gateway().eventLocalListenerApply(mem.pointer());
 
             return res != 0;
         }
