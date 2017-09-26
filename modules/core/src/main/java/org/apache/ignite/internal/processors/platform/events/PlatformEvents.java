@@ -231,6 +231,8 @@ public class PlatformEvents extends PlatformAbstractTarget {
                 boolean res = events.stopLocalListen(lsnr, types);
 
                 writer.writeBoolean(res);
+
+                break;
             }
 
             default:
