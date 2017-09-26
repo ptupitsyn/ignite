@@ -37,7 +37,7 @@ public class PlatformLocalEventListener implements IgnitePredicate<Event> {
     /** Ignite. */
     @SuppressWarnings("unused")
     @IgniteInstanceResource
-    private Ignite ignite;
+    private transient Ignite ignite;
 
     /**
      * Constructor.
@@ -71,5 +71,15 @@ public class PlatformLocalEventListener implements IgnitePredicate<Event> {
 
             return res != 0;
         }
+    }
+
+    /** {@inheritDoc} */
+    @Override public boolean equals(Object o) {
+        return this == o || o != null && getClass() == o.getClass() && id == ((PlatformLocalEventListener) o).id;
+    }
+
+    /** {@inheritDoc} */
+    @Override public int hashCode() {
+        return id;
     }
 }
