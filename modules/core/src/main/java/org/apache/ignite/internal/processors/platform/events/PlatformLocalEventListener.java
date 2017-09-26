@@ -34,8 +34,10 @@ public class PlatformLocalEventListener implements IgnitePredicate<Event> {
     /** Listener id. */
     private final int id;
 
-    /** Platform context. */
-    private PlatformContext ctx;
+    /** Ignite. */
+    @SuppressWarnings("unused")
+    @IgniteInstanceResource
+    private Ignite ignite;
 
     /**
      * Constructor.
@@ -46,18 +48,12 @@ public class PlatformLocalEventListener implements IgnitePredicate<Event> {
         this.id = id;
     }
 
-    /**
-     * Sets the Ignite instance.
-     *
-     * @param ignite Ignite.
-     */
-    @IgniteInstanceResource
-    public void setIgnite(Ignite ignite) {
-        ctx = PlatformUtils.platformContext(ignite);
-    }
-
     /** {@inheritDoc} */
     @Override public boolean apply(Event evt) {
+        assert ignite != null;
+
+        PlatformContext ctx = PlatformUtils.platformContext(ignite);
+
         assert ctx != null;
 
         try (PlatformMemory mem = ctx.memory().allocate()) {
