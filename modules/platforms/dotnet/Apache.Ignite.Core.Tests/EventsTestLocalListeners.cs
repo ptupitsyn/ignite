@@ -39,15 +39,15 @@ namespace Apache.Ignite.Core.Tests
         [Test]
         public void TestRebalanceEvents()
         {
-            var events = new ConcurrentBag<IEvent>();
+            var events = new ConcurrentBag<CacheRebalancingEvent>();
 
             var cfg = new IgniteConfiguration(TestUtils.GetTestConfiguration())
             {
                 LocalEventListeners = new[]
                 {
-                    new LocalEventListener
+                    new LocalEventListener<CacheRebalancingEvent>
                     {
-                        Listener = new Listener<IEvent>(e =>
+                        Listener = new Listener<CacheRebalancingEvent>(e =>
                         {
                             events.Add(e);
                             return true;

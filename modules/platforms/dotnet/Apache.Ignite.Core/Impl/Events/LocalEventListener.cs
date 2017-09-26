@@ -35,4 +35,50 @@ namespace Apache.Ignite.Core.Impl.Events
         /// </summary>
         public ICollection<int> EventTypes { get; set; }
     }
+
+    /// <summary>
+    /// Generic local event listener holder, see <see cref="IgniteConfiguration.LocalEventListeners"/>.
+    /// </summary>
+    public class LocalEventListener<T> : LocalEventListener where T : IEvent
+    {
+        /// <summary>
+        /// Gets or sets the listener.
+        /// </summary>
+        public new IEventListener<T> Listener
+        {
+            get { return ((ListenerWrapper<T>) base.Listener).Listener; }
+            set { base.Listener = new ListenerWrapper<T>(value); }
+        }
+
+        /// <summary>
+        /// Generic listener wrapper.
+        /// </summary>
+        private class ListenerWrapper<TEvent> : IEventListener<IEvent> where TEvent : IEvent
+        {
+            /** Listener. */
+            private readonly IEventListener<TEvent> _listener;
+
+            /// <summary>
+            /// Initializes a new instance of the class.
+            /// </summary>
+            public ListenerWrapper(IEventListener<TEvent> listener)
+            {
+                _listener = listener;
+            }
+
+            /// <summary>
+            /// Gets the listener.
+            /// </summary>
+            public IEventListener<TEvent> Listener
+            {
+                get { return _listener; }
+            }
+
+            /** <inheritdoc /> */
+            public bool Invoke(IEvent evt)
+            {
+                return _listener.Invoke((TEvent) evt);
+            }
+        }
+    }
 }
