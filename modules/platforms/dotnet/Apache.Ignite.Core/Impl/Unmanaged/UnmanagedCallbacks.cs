@@ -28,6 +28,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged
     using Apache.Ignite.Core.Cache.Affinity;
     using Apache.Ignite.Core.Cluster;
     using Apache.Ignite.Core.Common;
+    using Apache.Ignite.Core.Events;
     using Apache.Ignite.Core.Impl.Binary;
     using Apache.Ignite.Core.Impl.Binary.IO;
     using Apache.Ignite.Core.Impl.Cache;
@@ -896,6 +897,29 @@ namespace Apache.Ignite.Core.Impl.Unmanaged
             _ignite.HandleRegistry.Release(ptr);
 
             return 0;
+        }
+
+        private long EventLocalListenerApply(long id, long memPtr, long unused, void* arg)
+        {
+            var listeners = _ignite.Configuration.LocalEventListenersInternal;
+
+            if (listeners == null || id >= listeners.Length)
+            {
+                return 0;
+            }
+
+            var listener = listeners[id];
+
+            using (var stream = IgniteManager.Memory.Get(memPtr).GetStream())
+            {
+                var reader = _ignite.Marshaller.StartUnmarshal(stream);
+
+                var evt = EventReader.Read<IEvent>(reader);
+
+                var res = listener.Listener.Invoke(evt);
+
+                return res ? 1 : 0;
+            }
         }
 
         #endregion
