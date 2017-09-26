@@ -77,7 +77,8 @@ namespace Apache.Ignite.Core.Tests
                 Assert.AreEqual(3, listener.GetEvents().Count);
 
                 // Remove listener from one of the event types.
-                ignite.GetEvents().StopLocalListen(listener, EventType.CacheEntryCreated);
+                var res = ignite.GetEvents().StopLocalListen(listener, EventType.CacheEntryCreated);
+                Assert.IsTrue(res);
 
                 cache.Put(2, 2);
                 Assert.AreEqual(2, listener.GetEvents().Count);
