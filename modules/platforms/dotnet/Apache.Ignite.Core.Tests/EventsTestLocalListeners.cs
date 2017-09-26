@@ -17,9 +17,7 @@
 
 namespace Apache.Ignite.Core.Tests
 {
-    using System;
     using System.Collections.Generic;
-    using System.Diagnostics;
     using System.Linq;
     using Apache.Ignite.Core.Cache.Configuration;
     using Apache.Ignite.Core.Events;
@@ -40,7 +38,7 @@ namespace Apache.Ignite.Core.Tests
         [Test]
         public void TestRebalanceEvents()
         {
-            var events = new List<CacheRebalancingEvent>();
+            var listener = new Listener<CacheRebalancingEvent>();
 
             var cfg = new IgniteConfiguration(TestUtils.GetTestConfiguration())
             {
@@ -48,11 +46,7 @@ namespace Apache.Ignite.Core.Tests
                 {
                     new LocalEventListener<CacheRebalancingEvent>
                     {
-                        Listener = new Listener<CacheRebalancingEvent>(e =>
-                        {
-                            events.Add(e);
-                            return true;
-                        }),
+                        Listener = listener,
                         EventTypes = EventType.CacheRebalanceAll
                     }
                 },
@@ -62,6 +56,8 @@ namespace Apache.Ignite.Core.Tests
 
             using (Ignition.Start(cfg))
             {
+                var events = listener.Events;
+
                 Assert.AreEqual(2, events.Count);
 
                 var rebalanceStart = events.First();
@@ -82,22 +78,31 @@ namespace Apache.Ignite.Core.Tests
         private class Listener<T> : IEventListener<T> where T : IEvent
         {
             /** Listen action. */
-            private readonly Func<T, bool> _listener;
+            private readonly List<T> _events = new List<T>();
 
             /// <summary>
-            /// Initializes a new instance of the <see cref="Listener{T}"/> class.
+            /// Gets the events.
             /// </summary>
-            public Listener(Func<T, bool> listener)
+            public ICollection<T> Events
             {
-                Debug.Assert(listener != null);
-
-                _listener = listener;
+                get
+                {
+                    lock (_events)
+                    {
+                        return _events.ToArray();
+                    }
+                }
             }
 
             /** <inheritdoc /> */
             public bool Invoke(T evt)
             {
-                return _listener(evt);
+                lock (_events)
+                {
+                    _events.Add(evt);
+                }
+
+                return true;
             }
         }
     }
