@@ -55,6 +55,7 @@ namespace Apache.Ignite.Core.Tests
 
             using (var ignite = Ignition.Start(cfg))
             {
+                ignite.GetCache<int, int>("foo").Put(1, 2);
                 Assert.Greater(events.Count, 0);
             }
         }

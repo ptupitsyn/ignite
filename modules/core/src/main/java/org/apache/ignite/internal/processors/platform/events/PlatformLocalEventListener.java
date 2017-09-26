@@ -17,21 +17,20 @@
 
 package org.apache.ignite.internal.processors.platform.events;
 
+import org.apache.ignite.Ignite;
 import org.apache.ignite.events.Event;
-import org.apache.ignite.internal.GridKernalContext;
 import org.apache.ignite.internal.binary.BinaryRawWriterEx;
 import org.apache.ignite.internal.processors.platform.PlatformContext;
-import org.apache.ignite.internal.processors.platform.PlatformEventFilterListener;
 import org.apache.ignite.internal.processors.platform.memory.PlatformMemory;
 import org.apache.ignite.internal.processors.platform.memory.PlatformOutputStream;
 import org.apache.ignite.internal.processors.platform.utils.PlatformUtils;
-
-import java.util.UUID;
+import org.apache.ignite.lang.IgnitePredicate;
+import org.apache.ignite.resources.IgniteInstanceResource;
 
 /**
  * Platform local event filter. Delegates apply to native platform.
  */
-public class PlatformLocalEventListener implements PlatformEventFilterListener {
+public class PlatformLocalEventListener implements IgnitePredicate<Event> {
     /** Listener id. */
     private final int id;
 
@@ -47,20 +46,14 @@ public class PlatformLocalEventListener implements PlatformEventFilterListener {
         this.id = id;
     }
 
-    /** {@inheritDoc} */
-    @Override public void initialize(GridKernalContext kernalCtx) {
-        ctx = PlatformUtils.platformContext(kernalCtx.grid());
-    }
-
-    /** {@inheritDoc} */
-    @Override public void onClose() {
-        // No-op: predefined listeners do not need to be released.
-    }
-
-    /** {@inheritDoc} */
-    @Override public boolean apply(UUID uuid, Event event) {
-        // Remote filter - no-op.
-        return false;
+    /**
+     * Sets the Ignite instance.
+     *
+     * @param ignite Ignite.
+     */
+    @IgniteInstanceResource
+    public void setIgnite(Ignite ignite) {
+        ctx = PlatformUtils.platformContext(ignite);
     }
 
     /** {@inheritDoc} */
