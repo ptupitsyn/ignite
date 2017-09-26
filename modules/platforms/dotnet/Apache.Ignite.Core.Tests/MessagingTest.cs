@@ -99,6 +99,35 @@ namespace Apache.Ignite.Core.Tests
         }
 
         /// <summary>
+        /// Tests that any data type can be used as a message.
+        /// </summary>
+        [Test]
+        public void TestMessageDataTypes()
+        {
+            var topic = "dataTypes";
+            object lastMsg = null;
+            var evt = new AutoResetEvent(false);
+
+            var messaging1 = _grid1.GetMessaging();
+            var messaging2 = _grid2.GetMessaging();
+
+            var listener = new MessageListener<object>((nodeId, msg) =>
+            {
+                lastMsg = msg;
+                evt.Set();
+                return true;
+            });
+
+            messaging1.LocalListen(listener, topic);
+
+            messaging2.Send(1, topic);
+
+            evt.WaitOne(500);
+
+            Assert.AreEqual(1, lastMsg);
+        }
+
+        /// <summary>
         /// Tests LocalListen.
         /// </summary>
         [Test]
