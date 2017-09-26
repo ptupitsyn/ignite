@@ -42,7 +42,7 @@ namespace Apache.Ignite.Core.Tests
 
             using (Ignition.Start(GetConfig(listener, EventType.CacheRebalanceAll)))
             {
-                var events = listener.Events;
+                var events = listener.GetEvents();
 
                 Assert.AreEqual(2, events.Count);
 
@@ -66,16 +66,21 @@ namespace Apache.Ignite.Core.Tests
         {
             var listener = new Listener<CacheEvent>();
 
-            using (var ignite = Ignition.Start(GetConfig(listener, new[] { EventType.CacheObjectPut })))
+            using (var ignite = Ignition.Start(GetConfig(listener, EventType.CacheAll)))
             {
-                var events = listener.Events;
-                Assert.AreEqual(0, events.Count);
+                Assert.AreEqual(0, listener.GetEvents().Count);
 
                 var cache = ignite.GetCache<int, int>(CacheName);
+                
+                // Put causes 3 events: EntryCreated, ObjectPut, EntryDestroyed.
                 cache.Put(1, 1);
+                Assert.AreEqual(3, listener.GetEvents().Count);
 
-                events = listener.Events;
-                Assert.AreEqual(EventType.CacheObjectPut, events.Single().Type);
+                // Remove listener from one of the event types.
+                ignite.GetEvents().StopLocalListen(listener, EventType.CacheEntryCreated);
+
+                cache.Put(2, 2);
+                Assert.AreEqual(2, listener.GetEvents().Count);
             }
         }
 
@@ -111,14 +116,15 @@ namespace Apache.Ignite.Core.Tests
             /// <summary>
             /// Gets the events.
             /// </summary>
-            public ICollection<T> Events
+            public ICollection<T> GetEvents()
             {
-                get
+                lock (_events)
                 {
-                    lock (_events)
-                    {
-                        return _events.ToArray();
-                    }
+                    var res = _events.ToArray();
+
+                    _events.Clear();
+
+                    return res;
                 }
             }
 
