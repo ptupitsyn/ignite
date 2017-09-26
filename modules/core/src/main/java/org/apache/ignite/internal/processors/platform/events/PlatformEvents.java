@@ -228,7 +228,9 @@ public class PlatformEvents extends PlatformAbstractTarget {
 
                 IgnitePredicate lsnr = new PlatformLocalEventListener(id);
 
-                events.stopLocalListen(lsnr, types);
+                boolean res = events.stopLocalListen(lsnr, types);
+
+                writer.writeBoolean(res);
             }
 
             default:
