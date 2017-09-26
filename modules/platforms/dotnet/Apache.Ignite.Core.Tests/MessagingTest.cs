@@ -56,6 +56,8 @@ namespace Apache.Ignite.Core.Tests
             "string topic",
             Guid.NewGuid(),
             DateTime.Now,
+            byte.MinValue,
+            ushort.MaxValue,
             
             // Enums.
             CacheMode.Local,
