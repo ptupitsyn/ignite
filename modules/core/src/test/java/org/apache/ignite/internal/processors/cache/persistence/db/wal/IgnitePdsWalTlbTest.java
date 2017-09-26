@@ -31,7 +31,7 @@ import org.apache.ignite.spi.discovery.tcp.ipfinder.TcpDiscoveryIpFinder;
 import org.apache.ignite.spi.discovery.tcp.ipfinder.vm.TcpDiscoveryVmIpFinder;
 import org.apache.ignite.testframework.junits.common.GridCommonAbstractTest;
 
-import static org.apache.ignite.configuration.PersistentStoreConfiguration.DFLT_CHECKPOINTING_PAGE_BUFFER_SIZE;
+import static org.apache.ignite.internal.processors.cache.persistence.GridCacheDatabaseSharedManager.DFLT_CHECKPOINTING_PAGE_BUFFER_SIZE;
 
 /**
  *
@@ -113,9 +113,7 @@ public class IgnitePdsWalTlbTest extends GridCommonAbstractTest {
 
         boolean locked = true;
 
-        try {
-            IgniteDataStreamer<Integer, Integer> streamer = ig.dataStreamer(CACHE_NAME);
-
+        try (IgniteDataStreamer<Integer, Integer> streamer = ig.dataStreamer(CACHE_NAME)) {
             for (int i = 0; i < 100_000; i++) {
                 streamer.addData(i, 1);
 
