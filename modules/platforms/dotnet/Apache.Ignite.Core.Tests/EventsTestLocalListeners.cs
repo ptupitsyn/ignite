@@ -82,6 +82,17 @@ namespace Apache.Ignite.Core.Tests
 
                 cache.Put(2, 2);
                 Assert.AreEqual(2, listener.GetEvents().Count);
+
+                // Remove from all event types.
+                res = ignite.GetEvents().StopLocalListen(listener);
+                Assert.IsTrue(res);
+
+                cache.Put(3, 3);
+                Assert.AreEqual(0, listener.GetEvents().Count);
+
+                // Remove when not subscribed.
+                res = ignite.GetEvents().StopLocalListen(listener);
+                Assert.IsFalse(res);
             }
         }
 
