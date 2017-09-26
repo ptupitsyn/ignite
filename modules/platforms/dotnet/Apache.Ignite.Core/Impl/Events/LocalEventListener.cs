@@ -54,7 +54,7 @@ namespace Apache.Ignite.Core.Impl.Events
         /// </summary>
         public new IEventListener<T> Listener
         {
-            get { return ((ListenerWrapper<T>) base.Listener).Listener; }
+            get { return base.Listener == null ? null : ((ListenerWrapper<T>) base.Listener).Listener; }
             set { base.Listener = new ListenerWrapper<T>(value); }
         }
 
