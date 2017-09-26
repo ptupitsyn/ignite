@@ -21,7 +21,6 @@ namespace Apache.Ignite.Core.Tests
     using System.Linq;
     using Apache.Ignite.Core.Cache.Configuration;
     using Apache.Ignite.Core.Events;
-    using Apache.Ignite.Core.Impl.Events;
     using NUnit.Framework;
 
     /// <summary>
