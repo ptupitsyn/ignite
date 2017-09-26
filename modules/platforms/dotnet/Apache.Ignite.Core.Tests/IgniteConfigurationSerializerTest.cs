@@ -154,6 +154,13 @@ namespace Apache.Ignite.Core.Tests
                                 </eventTypes>
                                 <listener type='Apache.Ignite.Core.Tests.EventsTestLocalListeners+Listener`1[[CacheRebalancingEvent]]' />
                             </localEventListener>
+                              <localEventListener>
+                                <eventTypes>
+                                  <int>CacheObjectPut</int>
+                                  <int>81</int>
+                                </eventTypes>
+                                <listener type='Apache.Ignite.Core.Tests.IgniteConfigurationSerializerTest+MyEventListener' />
+                            </localEventListener>
                           </localEventListeners>
                         </igniteConfig>";
 
