@@ -29,7 +29,7 @@ namespace Apache.Ignite.Core.Tests
     using Apache.Ignite.Core.Common;
     using Apache.Ignite.Core.Messaging;
     using Apache.Ignite.Core.Resource;
-    using Apache.Ignite.Core.Tests.Client.Cache;
+    using Apache.Ignite.Core.Tests.Cache;
     using NUnit.Framework;
 
     /// <summary>
@@ -49,9 +49,8 @@ namespace Apache.Ignite.Core.Tests
         /** */
         private static int _messageId;
 
-        /** Topics to test against. */
-        private static readonly object[] Topics = new object[]
-        {
+        /** Objects to test against. */
+        private static readonly object[] Objects = {
             // Primitives.
             null,
             "string topic",
@@ -63,7 +62,8 @@ namespace Apache.Ignite.Core.Tests
             GCCollectionMode.Forced,
 
             // Objects.
-            new Person()
+            new CacheTestKey(25),
+            new IgniteGuid(Guid.NewGuid(), 123),
         };
 
         /// <summary>
@@ -120,7 +120,7 @@ namespace Apache.Ignite.Core.Tests
 
             messaging1.LocalListen(listener, topic);
 
-            foreach (var msg in Topics.Where(x => x != null))
+            foreach (var msg in Objects.Where(x => x != null))
             {
                 messaging2.Send(msg, topic);
                 evt.WaitOne(500);
@@ -138,7 +138,7 @@ namespace Apache.Ignite.Core.Tests
         {
             TestLocalListen(NextId());
 
-            foreach (var topic in Topics)
+            foreach (var topic in Objects)
             {
                 TestLocalListen(topic);
             }
@@ -202,7 +202,7 @@ namespace Apache.Ignite.Core.Tests
             TestLocalListenProjection(NextId());
             TestLocalListenProjection("prj");
 
-            foreach (var topic in Topics)
+            foreach (var topic in Objects)
             {
                 TestLocalListenProjection(topic);
             }
@@ -328,7 +328,7 @@ namespace Apache.Ignite.Core.Tests
         {
             TestRemoteListen(NextId(), async);
 
-            foreach (var topic in Topics)
+            foreach (var topic in Objects)
             {
                 TestRemoteListen(topic, async);
             }
@@ -387,7 +387,7 @@ namespace Apache.Ignite.Core.Tests
         {
             TestRemoteListenProjection(NextId());
 
-            foreach (var topic in Topics)
+            foreach (var topic in Objects)
             {
                 TestRemoteListenProjection(topic);
             }
