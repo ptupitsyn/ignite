@@ -24,10 +24,12 @@ namespace Apache.Ignite.Core.Tests
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
+    using Apache.Ignite.Core.Cache.Configuration;
     using Apache.Ignite.Core.Cluster;
     using Apache.Ignite.Core.Common;
     using Apache.Ignite.Core.Messaging;
     using Apache.Ignite.Core.Resource;
+    using Apache.Ignite.Core.Tests.Client.Cache;
     using NUnit.Framework;
 
     /// <summary>
@@ -46,6 +48,23 @@ namespace Apache.Ignite.Core.Tests
 
         /** */
         private static int _messageId;
+
+        /** Topics to test against. */
+        private static readonly object[] Topics = new object[]
+        {
+            // Primitives.
+            null,
+            "string topic",
+            Guid.NewGuid(),
+            DateTime.Now,
+            
+            // Enums.
+            CacheMode.Local,
+            GCCollectionMode.Forced,
+
+            // Objects.
+            new Person()
+        };
 
         /// <summary>
         /// Executes before each test.
@@ -85,9 +104,12 @@ namespace Apache.Ignite.Core.Tests
         [Test]
         public void TestLocalListen()
         {
-            TestLocalListen(null);
-            TestLocalListen("string topic");
             TestLocalListen(NextId());
+
+            foreach (var topic in Topics)
+            {
+                TestLocalListen(topic);
+            }
         }
 
         /// <summary>
@@ -145,9 +167,13 @@ namespace Apache.Ignite.Core.Tests
         [Test]
         public void TestLocalListenProjection()
         {
-            TestLocalListenProjection(null);
-            TestLocalListenProjection("prj");
             TestLocalListenProjection(NextId());
+            TestLocalListenProjection("prj");
+
+            foreach (var topic in Topics)
+            {
+                TestLocalListenProjection(topic);
+            }
         }
 
         /// <summary>
@@ -266,22 +292,14 @@ namespace Apache.Ignite.Core.Tests
         /// Tests RemoteListen.
         /// </summary>
         [Test]
-        public void TestRemoteListen()
+        public void TestRemoteListen([Values(true, false)] bool async)
         {
-            TestRemoteListen(null);
-            TestRemoteListen("string topic");
-            TestRemoteListen(NextId());
-        }
+            TestRemoteListen(NextId(), async);
 
-        /// <summary>
-        /// Tests RemoteListen with async mode enabled.
-        /// </summary>
-        [Test]
-        public void TestRemoteListenAsync()
-        {
-            TestRemoteListen(null, true);
-            TestRemoteListen("string topic", true);
-            TestRemoteListen(NextId(), true);
+            foreach (var topic in Topics)
+            {
+                TestRemoteListen(topic, async);
+            }
         }
 
         /// <summary>
@@ -335,9 +353,12 @@ namespace Apache.Ignite.Core.Tests
         [Test]
         public void TestRemoteListenProjection()
         {
-            TestRemoteListenProjection(null);
-            TestRemoteListenProjection("string topic");
             TestRemoteListenProjection(NextId());
+
+            foreach (var topic in Topics)
+            {
+                TestRemoteListenProjection(topic);
+            }
         }
 
         /// <summary>
