@@ -40,21 +40,7 @@ namespace Apache.Ignite.Core.Tests
         {
             var listener = new Listener<CacheRebalancingEvent>();
 
-            var cfg = new IgniteConfiguration(TestUtils.GetTestConfiguration())
-            {
-                LocalEventListeners = new[]
-                {
-                    new LocalEventListener<CacheRebalancingEvent>
-                    {
-                        Listener = listener,
-                        EventTypes = EventType.CacheRebalanceAll
-                    }
-                },
-                IncludedEventTypes = EventType.CacheRebalanceAll,
-                CacheConfiguration = new[] { new CacheConfiguration(CacheName) }
-            };
-
-            using (Ignition.Start(cfg))
+            using (Ignition.Start(GetConfig(listener, EventType.CacheRebalanceAll)))
             {
                 var events = listener.Events;
 
@@ -70,6 +56,48 @@ namespace Apache.Ignite.Core.Tests
                 Assert.AreEqual(CacheName, rebalanceStop.CacheName);
                 Assert.AreEqual(EventType.CacheRebalanceStopped, rebalanceStop.Type);
             }
+        }
+
+        /// <summary>
+        /// Tests the unsubscription.
+        /// </summary>
+        [Test]
+        public void TestUnsubscribe()
+        {
+            var listener = new Listener<CacheEvent>();
+
+            using (var ignite = Ignition.Start(GetConfig(listener, EventType.CacheAll)))
+            {
+                var events = listener.Events;
+                Assert.AreEqual(0, events.Count);
+
+                var cache = ignite.GetCache<int, int>(CacheName);
+                cache.Put(1, 1);
+
+                events = listener.Events;
+                Assert.AreEqual(5, events.Count);
+            }
+        }
+
+        /// <summary>
+        /// Gets the configuration.
+        /// </summary>
+        private static IgniteConfiguration GetConfig<T>(IEventListener<T> listener, ICollection<int> eventTypes) 
+            where T : IEvent
+        {
+            return new IgniteConfiguration(TestUtils.GetTestConfiguration())
+            {
+                LocalEventListeners = new[]
+                {
+                    new LocalEventListener<T>
+                    {
+                        Listener = listener,
+                        EventTypes = eventTypes
+                    }
+                },
+                IncludedEventTypes = eventTypes,
+                CacheConfiguration = new[] { new CacheConfiguration(CacheName) }
+            };
         }
 
         /// <summary>
