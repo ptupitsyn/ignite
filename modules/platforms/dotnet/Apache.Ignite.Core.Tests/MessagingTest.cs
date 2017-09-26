@@ -120,11 +120,14 @@ namespace Apache.Ignite.Core.Tests
 
             messaging1.LocalListen(listener, topic);
 
-            messaging2.Send(1, topic);
+            foreach (var msg in Topics)
+            {
+                messaging2.Send(msg, topic);
+                evt.WaitOne(500);
+                Assert.AreEqual(msg, lastMsg);
+            }
 
-            evt.WaitOne(500);
-
-            Assert.AreEqual(1, lastMsg);
+            messaging1.StopLocalListen(listener, topic);
         }
 
         /// <summary>
