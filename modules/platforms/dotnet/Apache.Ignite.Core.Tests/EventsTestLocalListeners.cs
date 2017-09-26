@@ -30,8 +30,14 @@ namespace Apache.Ignite.Core.Tests
     /// </summary>
     public class EventsTestLocalListeners
     {
+        /** Cache name. */
+        private const string CacheName = "cache";
+
+        /// <summary>
+        /// Tests the rebalance events which occur during node startup.
+        /// </summary>
         [Test]
-        public void Test()
+        public void TestRebalanceEvents()
         {
             var events = new ConcurrentBag<IEvent>();
 
@@ -46,25 +52,30 @@ namespace Apache.Ignite.Core.Tests
                             events.Add(e);
                             return true;
                         }),
-                        EventTypes = EventType.CacheAll
-                    },
+                        EventTypes = EventType.CacheRebalanceAll
+                    }
                 },
-                CacheConfiguration = new[] {new CacheConfiguration("foo")},
-                IncludedEventTypes = EventType.CacheAll
+                IncludedEventTypes = EventType.CacheRebalanceAll,
+                CacheConfiguration = new[] { new CacheConfiguration(CacheName) }
             };
 
             using (var ignite = Ignition.Start(cfg))
             {
-                ignite.GetCache<int, int>("foo").Put(1, 2);
                 Assert.Greater(events.Count, 0);
             }
         }
 
+        /// <summary>
+        /// Listener.
+        /// </summary>
         private class Listener<T> : IEventListener<T> where T : IEvent
         {
             /** Listen action. */
             private readonly Func<T, bool> _listener;
 
+            /// <summary>
+            /// Initializes a new instance of the <see cref="Listener{T}"/> class.
+            /// </summary>
             public Listener(Func<T, bool> listener)
             {
                 Debug.Assert(listener != null);
@@ -72,6 +83,7 @@ namespace Apache.Ignite.Core.Tests
                 _listener = listener;
             }
 
+            /** <inheritdoc /> */
             public bool Invoke(T evt)
             {
                 return _listener(evt);
