@@ -146,14 +146,14 @@ namespace Apache.Ignite.Core.Tests
                             <persistentStoreConfiguration alwaysWriteFullPages='true' checkpointingFrequency='00:00:1' checkpointingPageBufferSize='2' checkpointingThreads='3' lockWaitTime='00:00:04' persistentStorePath='foo' tlbSize='5' walArchivePath='bar' walFlushFrequency='00:00:06' walFsyncDelayNanos='7' walHistorySize='8' walMode='None' walRecordIteratorBufferSize='9' walSegments='10' walSegmentSize='11' walStorePath='baz' metricsEnabled='true' rateTimeInterval='0:0:6' subIntervals='3' />
                             <consistentId type='System.String'>someId012</consistentId>
                             <localEventListeners>
-                              <localEventListener type='Apache.Ignite.Core.Events.LocalEventListener`1[[CacheRebalancingEvent]]'>
+                              <localEventListener type='Apache.Ignite.Core.Events.LocalEventListener`1[[Apache.Ignite.Core.Events.CacheRebalancingEvent]]'>
                                 <eventTypes>
                                   <int>CacheObjectPut</int>
                                   <int>81</int>
                                 </eventTypes>
-                                <listener type='Apache.Ignite.Core.Tests.EventsTestLocalListeners+Listener`1[[CacheRebalancingEvent]]' />
+                                <listener type='Apache.Ignite.Core.Tests.EventsTestLocalListeners+Listener`1[[Apache.Ignite.Core.Events.CacheRebalancingEvent]]' />
                             </localEventListener>
-                              <localEventListener>
+                              <localEventListener type='Apache.Ignite.Core.Events.LocalEventListener`1[[Apache.Ignite.Core.Events.IEvent]]'>
                                 <eventTypes>
                                   <int>CacheObjectPut</int>
                                   <int>81</int>
