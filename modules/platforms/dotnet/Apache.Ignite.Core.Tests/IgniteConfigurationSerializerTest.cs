@@ -348,6 +348,15 @@ namespace Apache.Ignite.Core.Tests
             Assert.IsTrue(pers.MetricsEnabled);
             Assert.AreEqual(3, pers.SubIntervals);
             Assert.AreEqual(TimeSpan.FromSeconds(6), pers.RateTimeInterval);
+
+            var listeners = cfg.LocalEventListeners;
+            Assert.AreEqual(2, listeners.Count);
+
+            var rebalListener = (LocalEventListener<CacheRebalancingEvent>) listeners.First();
+            Assert.AreEqual(new[] {EventType.CacheObjectPut, 81}, rebalListener.EventTypes);
+            Assert.AreEqual("Apache.Ignite.Core.Tests.EventsTestLocalListeners+Listener`1" +
+                            "[Apache.Ignite.Core.Events.CacheRebalancingEvent]",
+                rebalListener.Listener.GetType().ToString());
         }
 
         /// <summary>
