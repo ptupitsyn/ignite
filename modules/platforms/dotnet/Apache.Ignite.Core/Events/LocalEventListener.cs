@@ -21,7 +21,8 @@ namespace Apache.Ignite.Core.Events
     using Apache.Ignite.Core.Impl.Binary;
 
     /// <summary>
-    /// Local event listener holder, see <see cref="IgniteConfiguration.LocalEventListeners"/>.
+    /// Abstract local event listener holder for <see cref="IgniteConfiguration.LocalEventListeners"/>.
+    /// Use <see cref="LocalEventListener{T}"/> derived class.
     /// </summary>
     public abstract class LocalEventListener
     {
