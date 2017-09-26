@@ -120,7 +120,7 @@ namespace Apache.Ignite.Core.Tests
 
             messaging1.LocalListen(listener, topic);
 
-            foreach (var msg in Topics)
+            foreach (var msg in Topics.Where(x => x != null))
             {
                 messaging2.Send(msg, topic);
                 evt.WaitOne(500);
