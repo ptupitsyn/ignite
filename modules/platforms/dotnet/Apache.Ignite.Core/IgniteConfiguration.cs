@@ -196,6 +196,9 @@ namespace Apache.Ignite.Core
         /** Local event listeners. Stored as array to ensure index access. */
         private LocalEventListener[] _localEventListeners;
 
+        /** Map from user-defined listener to it's id. */
+        private Dictionary<object, int> _localEventListenerIds;
+
         /// <summary>
         /// Default network retry count.
         /// </summary>
@@ -899,7 +902,25 @@ namespace Apache.Ignite.Core
         public ICollection<LocalEventListener> LocalEventListeners
         {
             get { return _localEventListeners; }
-            set { _localEventListeners = value == null ? null : value.ToArray(); }
+            set
+            {
+                if (value != null)
+                {
+                    _localEventListeners = value.ToArray();
+                    
+                    _localEventListenerIds = new Dictionary<object, int>();
+
+                    for (var i = 0; i < _localEventListeners.Length; i++)
+                    {
+                        _localEventListenerIds[_localEventListeners[i].Listener] = i;
+                    }
+                }
+                else
+                {
+                    _localEventListeners = null;
+                    _localEventListenerIds = null;
+                }
+            }
         }
 
         /// <summary>
@@ -908,6 +929,14 @@ namespace Apache.Ignite.Core
         internal LocalEventListener[] LocalEventListenersInternal
         {
             get { return _localEventListeners; }
+        }
+
+        /// <summary>
+        /// Gets the local event listener ids.
+        /// </summary>
+        internal Dictionary<object, int> LocalEventListenerIds
+        {
+            get { return _localEventListenerIds; }
         }
 
         /// <summary>
