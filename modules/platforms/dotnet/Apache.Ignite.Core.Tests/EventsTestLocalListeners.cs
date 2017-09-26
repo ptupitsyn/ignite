@@ -66,7 +66,7 @@ namespace Apache.Ignite.Core.Tests
         {
             var listener = new Listener<CacheEvent>();
 
-            using (var ignite = Ignition.Start(GetConfig(listener, EventType.CacheAll)))
+            using (var ignite = Ignition.Start(GetConfig(listener, new[] { EventType.CacheObjectPut })))
             {
                 var events = listener.Events;
                 Assert.AreEqual(0, events.Count);
@@ -75,7 +75,7 @@ namespace Apache.Ignite.Core.Tests
                 cache.Put(1, 1);
 
                 events = listener.Events;
-                Assert.AreEqual(5, events.Count);
+                Assert.AreEqual(EventType.CacheObjectPut, events.Single().Type);
             }
         }
 
