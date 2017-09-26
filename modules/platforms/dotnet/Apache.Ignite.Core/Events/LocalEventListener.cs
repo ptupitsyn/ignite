@@ -15,10 +15,9 @@
  * limitations under the License.
  */
 
-namespace Apache.Ignite.Core.Impl.Events
+namespace Apache.Ignite.Core.Events
 {
     using System.Collections.Generic;
-    using Apache.Ignite.Core.Events;
 
     /// <summary>
     /// Local event listener holder, see <see cref="IgniteConfiguration.LocalEventListeners"/>.
