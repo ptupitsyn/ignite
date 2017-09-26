@@ -484,9 +484,6 @@ namespace Apache.Ignite.Core
                 writer.WriteBoolean(false);
             }
 
-            // Local event listeners (should be last).
-            //  TODO
-
             // Plugins (should be last).
             if (PluginConfigurations != null)
             {
@@ -509,6 +506,36 @@ namespace Apache.Ignite.Core
                 }
 
                 writer.Stream.WriteInt(pos, cnt);
+            }
+            else
+            {
+                writer.WriteInt(0);
+            }
+
+            // Local event listeners (should be last).
+            if (_localEventListeners != null)
+            {
+                writer.WriteInt(_localEventListeners.Length);
+
+                foreach (var listener in _localEventListeners)
+                {
+                    if (listener == null)
+                    {
+                        throw new IgniteException("LocalEventListeners can't be null.");
+                    }
+
+                    if (listener.Listener == null)
+                    {
+                        throw new IgniteException("LocalEventListener.Listener can't be null.");
+                    }
+
+                    if (listener.EventTypes == null || listener.EventTypes.Count == 0)
+                    {
+                        throw new IgniteException("LocalEventListener.EventTypes can't be null or empty.");
+                    }
+
+                    writer.WriteIntArray(listener.EventTypes.ToArray());
+                }
             }
             else
             {
