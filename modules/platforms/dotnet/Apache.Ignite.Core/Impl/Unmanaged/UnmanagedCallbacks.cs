@@ -917,9 +917,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged
 
                 var reader = _ignite.Marshaller.StartUnmarshal(stream);
 
-                var evt = EventReader.Read<IEvent>(reader);
-
-                var res = listener.Listener.Invoke(evt);
+                var res = listener.Invoke(reader);
 
                 return res ? 1 : 0;
             }

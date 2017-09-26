@@ -526,7 +526,7 @@ namespace Apache.Ignite.Core
                         throw new IgniteException("LocalEventListeners can't be null.");
                     }
 
-                    if (listener.Listener == null)
+                    if (listener.ListenerObject == null)
                     {
                         throw new IgniteException("LocalEventListener.Listener can't be null.");
                     }
@@ -911,7 +911,7 @@ namespace Apache.Ignite.Core
 
                     for (var i = 0; i < _localEventListeners.Length; i++)
                     {
-                        _localEventListenerIds[_localEventListeners[i].GetUserListener()] = i;
+                        _localEventListenerIds[_localEventListeners[i].ListenerObject] = i;
                     }
                 }
                 else

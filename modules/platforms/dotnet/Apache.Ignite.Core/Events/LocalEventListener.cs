@@ -18,16 +18,20 @@
 namespace Apache.Ignite.Core.Events
 {
     using System.Collections.Generic;
+    using Apache.Ignite.Core.Impl.Binary;
 
     /// <summary>
     /// Local event listener holder, see <see cref="IgniteConfiguration.LocalEventListeners"/>.
     /// </summary>
-    public class LocalEventListener
+    public abstract class LocalEventListener
     {
         /// <summary>
-        /// Gets or sets the listener.
+        /// Initializes a new instance of the <see cref="LocalEventListener"/> class.
         /// </summary>
-        public IEventListener<IEvent> Listener { get; set; }
+        protected internal LocalEventListener()
+        {
+            // No-op.
+        }
 
         /// <summary>
         /// Gets or sets the event types.
@@ -37,10 +41,12 @@ namespace Apache.Ignite.Core.Events
         /// <summary>
         /// Gets the original user listener object.
         /// </summary>
-        internal virtual object GetUserListener()
-        {
-            return Listener;
-        }
+        internal abstract object ListenerObject { get; }
+
+        /// <summary>
+        /// Invokes the specified reader.
+        /// </summary>
+        internal abstract bool Invoke(BinaryReader reader);
     }
 
     /// <summary>
@@ -51,49 +57,20 @@ namespace Apache.Ignite.Core.Events
         /// <summary>
         /// Gets or sets the listener.
         /// </summary>
-        public new IEventListener<T> Listener
+        public IEventListener<T> Listener { get; set; }
+
+        /** <inheritdoc /> */
+        internal override object ListenerObject
         {
-            get { return base.Listener == null ? null : ((ListenerWrapper<T>) base.Listener).Listener; }
-            set { base.Listener = new ListenerWrapper<T>(value); }
+            get { return Listener; }
         }
 
-        /// <summary>
-        /// Gets the user listener object.
-        /// </summary>
-        internal override object GetUserListener()
+        /** <inheritdoc /> */
+        internal override bool Invoke(BinaryReader reader)
         {
-            return Listener;
-        }
+            var evt = EventReader.Read<T>(reader);
 
-        /// <summary>
-        /// Generic listener wrapper.
-        /// </summary>
-        private class ListenerWrapper<TEvent> : IEventListener<IEvent> where TEvent : IEvent
-        {
-            /** Listener. */
-            private readonly IEventListener<TEvent> _listener;
-
-            /// <summary>
-            /// Initializes a new instance of the class.
-            /// </summary>
-            public ListenerWrapper(IEventListener<TEvent> listener)
-            {
-                _listener = listener;
-            }
-
-            /// <summary>
-            /// Gets the listener.
-            /// </summary>
-            public IEventListener<TEvent> Listener
-            {
-                get { return _listener; }
-            }
-
-            /** <inheritdoc /> */
-            public bool Invoke(IEvent evt)
-            {
-                return _listener.Invoke((TEvent) evt);
-            }
+            return Listener.Invoke(evt);
         }
     }
 }

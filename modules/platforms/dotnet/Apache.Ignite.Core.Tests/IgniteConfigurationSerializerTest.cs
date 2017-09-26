@@ -46,7 +46,6 @@ namespace Apache.Ignite.Core.Tests
     using Apache.Ignite.Core.Discovery.Tcp.Multicast;
     using Apache.Ignite.Core.Events;
     using Apache.Ignite.Core.Impl.Common;
-    using Apache.Ignite.Core.Impl.Events;
     using Apache.Ignite.Core.Lifecycle;
     using Apache.Ignite.Core.Log;
     using Apache.Ignite.Core.PersistentStore;
@@ -902,7 +901,7 @@ namespace Apache.Ignite.Core.Tests
                 ConsistentId = "myId123",
                 LocalEventListeners = new[]
                 {
-                    new LocalEventListener
+                    new LocalEventListener<IEvent>
                     {
                         EventTypes = new[] {1, 2},
                         Listener = new MyEventListener()
