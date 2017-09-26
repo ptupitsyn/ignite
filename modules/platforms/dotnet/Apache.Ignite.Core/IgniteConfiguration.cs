@@ -912,7 +912,7 @@ namespace Apache.Ignite.Core
 
                     for (var i = 0; i < _localEventListeners.Length; i++)
                     {
-                        _localEventListenerIds[_localEventListeners[i].Listener] = i;
+                        _localEventListenerIds[_localEventListeners[i].GetUserListener()] = i;
                     }
                 }
                 else

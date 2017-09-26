@@ -34,6 +34,14 @@ namespace Apache.Ignite.Core.Impl.Events
         /// Gets or sets the event types.
         /// </summary>
         public ICollection<int> EventTypes { get; set; }
+
+        /// <summary>
+        /// Gets the original user listener object.
+        /// </summary>
+        internal virtual object GetUserListener()
+        {
+            return Listener;
+        }
     }
 
     /// <summary>
@@ -48,6 +56,14 @@ namespace Apache.Ignite.Core.Impl.Events
         {
             get { return ((ListenerWrapper<T>) base.Listener).Listener; }
             set { base.Listener = new ListenerWrapper<T>(value); }
+        }
+
+        /// <summary>
+        /// Gets the user listener object.
+        /// </summary>
+        internal override object GetUserListener()
+        {
+            return Listener;
         }
 
         /// <summary>
