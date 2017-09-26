@@ -49,7 +49,8 @@ namespace Apache.Ignite.Core.Tests
                         EventTypes = EventType.CacheAll
                     },
                 },
-                CacheConfiguration = new[] {new CacheConfiguration("foo")}
+                CacheConfiguration = new[] {new CacheConfiguration("foo")},
+                IncludedEventTypes = EventType.CacheAll
             };
 
             using (var ignite = Ignition.Start(cfg))
