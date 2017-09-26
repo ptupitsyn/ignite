@@ -902,6 +902,14 @@ namespace Apache.Ignite.Core
         }
 
         /// <summary>
+        /// Gets the local event listeners.
+        /// </summary>
+        internal LocalEventListener[] LocalEventListenersInternal
+        {
+            get { return _localEventListeners; }
+        }
+
+        /// <summary>
         /// Gets or sets the time after which a certain metric value is considered expired.
         /// </summary>
         [DefaultValue(typeof(TimeSpan), "10675199.02:48:05.4775807")]
