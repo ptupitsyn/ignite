@@ -825,7 +825,8 @@ namespace Apache.Ignite.Core.Tests
                     WalStorePath = Path.GetTempPath(),
                     MetricsEnabled = true,
                     SubIntervals = 7,
-                    RateTimeInterval = TimeSpan.FromSeconds(9)
+                    RateTimeInterval = TimeSpan.FromSeconds(9),
+                    CheckpointWriteOrder = CheckpointWriteOrder.Random
                 },
                 ConsistentId = new MyConsistentId {Data = "abc"}
             };
