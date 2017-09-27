@@ -155,6 +155,7 @@ namespace Apache.Ignite.Core.PersistentStore
             MetricsEnabled = reader.ReadBoolean();
             SubIntervals = reader.ReadInt();
             RateTimeInterval = reader.ReadLongAsTimespan();
+            CheckpointWriteOrder = (CheckpointWriteOrder) reader.ReadInt();
         }
 
         /// <summary>
@@ -184,6 +185,7 @@ namespace Apache.Ignite.Core.PersistentStore
             writer.WriteBoolean(MetricsEnabled);
             writer.WriteInt(SubIntervals);
             writer.WriteTimeSpanAsLong(RateTimeInterval);
+            writer.WriteInt((int) CheckpointWriteOrder);
         }
 
         /// <summary>
