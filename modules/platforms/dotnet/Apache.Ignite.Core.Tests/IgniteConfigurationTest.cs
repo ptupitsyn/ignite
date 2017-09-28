@@ -277,6 +277,8 @@ namespace Apache.Ignite.Core.Tests
                 Assert.AreEqual(pers.MetricsEnabled, resPers.MetricsEnabled);
                 Assert.AreEqual(pers.RateTimeInterval, resPers.RateTimeInterval);
                 Assert.AreEqual(pers.SubIntervals, resPers.SubIntervals);
+                Assert.AreEqual(pers.CheckpointWriteOrder, resPers.CheckpointWriteOrder);
+                Assert.AreEqual(pers.WriteThrottlingEnabled, resPers.WriteThrottlingEnabled);
             }
         }
 
