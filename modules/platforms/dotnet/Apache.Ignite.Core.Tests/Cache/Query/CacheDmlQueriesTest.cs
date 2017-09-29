@@ -103,6 +103,24 @@ namespace Apache.Ignite.Core.Tests.Cache.Query
         }
 
         /// <summary>
+        /// Tests the NotNull constraint.
+        /// </summary>
+        [Test]
+        public void TestNotNull()
+        {
+            // TODO
+        }
+
+        /// <summary>
+        /// Tests the NotNull constraint.
+        /// </summary>
+        [Test]
+        public void TestNotNullAttribute()
+        {
+            // TODO
+        }
+
+        /// <summary>
         /// Tests all primitive key types.
         /// </summary>
         [Test]
@@ -388,7 +406,7 @@ namespace Apache.Ignite.Core.Tests.Cache.Query
         private class Foo
         {
             [QuerySqlField] public int Id { get; set; }
-            [QuerySqlField] public string Name { get; set; }
+            [QuerySqlField(NotNull = true)] public string Name { get; set; }
         }
 
         /// <summary>
