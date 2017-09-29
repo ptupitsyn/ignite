@@ -453,11 +453,15 @@ namespace Apache.Ignite.Core.Cache.Configuration
                         indexes.Add(new QueryIndexEx(columnName, attr.IsDescending, QueryIndexType.Sorted,
                             attr.IndexGroups)
                         {
-                            InlineSize = attr.IndexInlineSize
+                            InlineSize = attr.IndexInlineSize,
                         });
                     }
 
-                    fields.Add(new QueryField(columnName, memberInfo.Value) {IsKeyField = isKey});
+                    fields.Add(new QueryField(columnName, memberInfo.Value)
+                    {
+                        IsKeyField = isKey,
+                        NotNull = attr.NotNull
+                    });
 
                     ScanAttributes(memberInfo.Value, fields, indexes, columnName, visitedTypes, isKey);
                 }
