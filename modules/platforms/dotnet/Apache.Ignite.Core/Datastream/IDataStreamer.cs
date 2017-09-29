@@ -19,6 +19,7 @@ namespace Apache.Ignite.Core.Datastream
 {
     using System;
     using System.Collections.Generic;
+    using System.ComponentModel;
     using System.Threading.Tasks;
     using Apache.Ignite.Core.Cache.Store;
 
@@ -110,8 +111,9 @@ namespace Apache.Ignite.Core.Datastream
         /// <para />
         /// Setter must be called before any add/remove operation.
         /// <para />
-        /// Default is <c>1024</c>.
+        /// Default is <see cref="DataStreamerConfiguration.DefaultPerNodeBufferSize"/>.
         /// </summary>
+        [DefaultValue(DataStreamerConfiguration.DefaultPerNodeBufferSize)]
         int PerNodeBufferSize { get; set; }
 
         /// <summary>
