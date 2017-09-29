@@ -115,8 +115,11 @@ namespace Apache.Ignite.Core.Tests.Dataload
                 ldr.PerNodeBufferSize = 2;
                 Assert.AreEqual(2, ldr.PerNodeBufferSize);
 
-                ldr.PerNodeParallelOperations = 1;
-                Assert.AreEqual(1, ldr.PerNodeParallelOperations);
+                Assert.AreEqual(0, ldr.PerNodeParallelOperations);
+                var ops = DataStreamerConfiguration.DefaultParallelOperationsMultiplier *
+                          IgniteConfiguration.DefaultThreadPoolSize;
+                ldr.PerNodeParallelOperations = ops;
+                Assert.AreEqual(ops, ldr.PerNodeParallelOperations);
                 ldr.PerNodeParallelOperations = 2;
                 Assert.AreEqual(2, ldr.PerNodeParallelOperations);
             }

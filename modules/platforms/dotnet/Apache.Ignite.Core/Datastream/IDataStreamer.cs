@@ -121,7 +121,9 @@ namespace Apache.Ignite.Core.Datastream
         /// <para />
         /// Setter must be called before any add/remove operation.
         /// <para />
-        /// Default is <c>16</c>.
+        /// Default is 0, which means Ignite calculates this automatically as 
+        /// <see cref="IgniteConfiguration.DataStreamerThreadPoolSize"/> * 
+        /// <see cref="DataStreamerConfiguration.DefaultParallelOperationsMultiplier"/>.
         /// </summary>
         int PerNodeParallelOperations { get; set; }
 
