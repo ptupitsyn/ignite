@@ -95,16 +95,21 @@ namespace Apache.Ignite.Core.Tests.Dataload
         {
             using (IDataStreamer<int, int> ldr = _grid.GetDataStreamer<int, int>(CacheName))
             {
+                Assert.AreEqual(CacheName, ldr.CacheName);
+
+                Assert.IsFalse(ldr.AllowOverwrite);
                 ldr.AllowOverwrite = true;
                 Assert.IsTrue(ldr.AllowOverwrite);
                 ldr.AllowOverwrite = false;
                 Assert.IsFalse(ldr.AllowOverwrite);
 
+                Assert.IsFalse(ldr.SkipStore);
                 ldr.SkipStore = true;
                 Assert.IsTrue(ldr.SkipStore);
                 ldr.SkipStore = false;
                 Assert.IsFalse(ldr.SkipStore);
 
+                Assert.AreEqual(DataStreamerConfiguration.DefaultPerNodeBufferSize, ldr.PerNodeBufferSize);
                 ldr.PerNodeBufferSize = 1;
                 Assert.AreEqual(1, ldr.PerNodeBufferSize);
                 ldr.PerNodeBufferSize = 2;
