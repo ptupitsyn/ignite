@@ -600,7 +600,11 @@ namespace Apache.Ignite.Core.Tests
                             {
                                 Fields = new[]
                                 {
-                                    new QueryField("field", typeof (int)) { IsKeyField = true }
+                                    new QueryField("field", typeof (int))
+                                    {
+                                        IsKeyField = true,
+                                        NotNull = true
+                                    }
                                 },
                                 Indexes = new[]
                                 {
