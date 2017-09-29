@@ -356,8 +356,6 @@ namespace Apache.Ignite.Core.Impl.Datastream
         {
             get
             {
-                ThrowIfDisposed();
-
                 return _closeFut.Task;
             }
         }
