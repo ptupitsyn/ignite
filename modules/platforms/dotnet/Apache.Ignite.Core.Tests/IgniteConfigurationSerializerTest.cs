@@ -115,6 +115,7 @@ namespace Apache.Ignite.Core.Tests
             Assert.AreEqual("length", queryEntity.Fields.Single().Name);
             Assert.AreEqual(typeof(int), queryEntity.Fields.Single().FieldType);
             Assert.IsTrue(queryEntity.Fields.Single().IsKeyField);
+            Assert.IsTrue(queryEntity.Fields.Single().NotNull);
             Assert.AreEqual("somefield.field", queryEntity.Aliases.Single().FullName);
             Assert.AreEqual("shortField", queryEntity.Aliases.Single().Alias);
 
