@@ -17,6 +17,8 @@
 
 namespace Apache.Ignite.Core.Datastream
 {
+    using System;
+
     /// <summary>
     /// Data streamer configuration.
     /// </summary>
@@ -34,5 +36,11 @@ namespace Apache.Ignite.Core.Datastream
         /// <see cref="DefaultParallelOperationsMultiplier"/>.
         /// </summary>
         public const int DefaultParallelOperationsMultiplier = 8;
+
+        /// <summary>
+        /// The default timeout (see <see cref="IDataStreamer{TK,TV}.Timeout"/>).
+        /// Negative value means no timeout.
+        /// </summary>
+        public static readonly TimeSpan DefaultTimeout = TimeSpan.FromMilliseconds(-1);
     }
 }

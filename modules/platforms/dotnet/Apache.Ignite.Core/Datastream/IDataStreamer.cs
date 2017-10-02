@@ -214,7 +214,8 @@ namespace Apache.Ignite.Core.Datastream
         IDataStreamer<TK1, TV1> WithKeepBinary<TK1, TV1>();
 
         /// <summary>
-        /// Gets or sets the timeout.
+        /// Gets or sets the timeout. Negative values mean no timeout.
+        /// Default is <see cref="DataStreamerConfiguration.DefaultTimeout"/>.
         /// <para />
         /// Timeout is used in the following cases:
         /// <li>Any data addition method can be blocked when all per node parallel operations are exhausted.
