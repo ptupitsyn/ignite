@@ -121,7 +121,7 @@
     <Compile Include="Impl\Client\IgniteClient.cs" />
     <Compile Include="Impl\IPlatformTargetInternal.cs" />
     <Compile Include="Impl\PersistentStore\PersistentStoreMetrics.cs" />
-    <Compile Include="Impl\Unmanaged\IgniteJniNativeMethods2.cs" />
+    <Compile Include="Impl\Unmanaged\Jni\IgniteJniNativeMethods2.cs" />
     <Compile Include="Impl\PlatformDisposableTargetAdapter.cs" />
     <Compile Include="Impl\PlatformJniTarget.cs" />
     <Compile Include="PersistentStore\CheckpointWriteOrder.cs" />
