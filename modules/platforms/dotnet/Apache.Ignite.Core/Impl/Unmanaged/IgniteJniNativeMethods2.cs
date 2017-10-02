@@ -24,9 +24,14 @@ namespace Apache.Ignite.Core.Impl.Unmanaged
     internal static unsafe class IgniteJniNativeMethods2
     {
         // See https://github.com/srisatish/openjdk/blob/master/jdk/src/share/sample/vm/clr-jvm/invoker.cs
+        // See https://github.com/jni4net/jni4net
 
         [DllImport(IgniteUtils.FileJvmDll, EntryPoint = "JNI_CreateJavaVM")]
         public unsafe static extern long JNI_CreateJavaVM(void** ppVm, void** ppEnv, void* pArgs);
+
+        [DllImport(IgniteUtils.FileJvmDll, EntryPoint = "IgniteTargetInLongOutLong")]
+        public static extern long TargetInLongOutLong(void* ctx, void* target, int opType, long val);
+
 
     }
 }
