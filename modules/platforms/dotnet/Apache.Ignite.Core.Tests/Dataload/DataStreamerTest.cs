@@ -123,6 +123,12 @@ namespace Apache.Ignite.Core.Tests.Dataload
                 Assert.AreEqual(ops, ldr.PerNodeParallelOperations);
                 ldr.PerNodeParallelOperations = 2;
                 Assert.AreEqual(2, ldr.PerNodeParallelOperations);
+
+                Assert.AreEqual(TimeSpan.Zero, ldr.Timeout);
+                ldr.Timeout = TimeSpan.MaxValue;
+                Assert.AreEqual(TimeSpan.MaxValue, ldr.Timeout);
+                ldr.Timeout = TimeSpan.FromSeconds(1.5);
+                Assert.AreEqual(1.5, ldr.Timeout.TotalSeconds);
             }
         }
 
