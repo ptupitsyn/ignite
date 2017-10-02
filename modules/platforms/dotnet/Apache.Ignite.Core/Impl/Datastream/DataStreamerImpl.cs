@@ -94,7 +94,7 @@ namespace Apache.Ignite.Core.Impl.Datastream
         private const int OpListenTopology = 11;
 
         /** */
-        private const int OpTimeout = 12;
+        private const int OpGetTimeout = 12;
 
         /** */
         private const int OpSetTimeout = 13;
@@ -563,7 +563,7 @@ namespace Apache.Ignite.Core.Impl.Datastream
                 {
                     ThrowIfDisposed();
 
-                    return BinaryUtils.LongToTimeSpan(DoOutInOp(OpTimeout));
+                    return BinaryUtils.LongToTimeSpan(DoOutInOp(OpGetTimeout));
                 }
                 finally
                 {
