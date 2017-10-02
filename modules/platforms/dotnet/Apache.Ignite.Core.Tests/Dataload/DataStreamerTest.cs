@@ -24,7 +24,6 @@ namespace Apache.Ignite.Core.Tests.Dataload
     using System.Threading;
     using Apache.Ignite.Core.Binary;
     using Apache.Ignite.Core.Cache;
-    using Apache.Ignite.Core.Common;
     using Apache.Ignite.Core.Datastream;
     using NUnit.Framework;
 

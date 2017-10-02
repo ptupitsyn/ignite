@@ -212,5 +212,17 @@ namespace Apache.Ignite.Core.Datastream
         /// <typeparam name="TV1">Value type in binary mode.</typeparam>
         /// <returns>Streamer instance with binary mode enabled.</returns>
         IDataStreamer<TK1, TV1> WithKeepBinary<TK1, TV1>();
+
+        /// <summary>
+        /// Gets or sets the timeout.
+        /// <para />
+        /// Timeout is used in the following cases:
+        /// <li>Any data addition method can be blocked when all per node parallel operations are exhausted.
+        /// The timeout defines the max time you will be blocked waiting for a permit to add a chunk of data
+        /// into the streamer;</li> 
+        /// <li>Total timeout time for <see cref="Flush"/> operation;</li>
+        /// <li>Total timeout time for <see cref="Close"/> operation.</li>
+        /// </summary>
+        TimeSpan Timeout { get; set; }
     }
 }
