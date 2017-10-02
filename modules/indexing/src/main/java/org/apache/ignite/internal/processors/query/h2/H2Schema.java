@@ -17,7 +17,6 @@
 
 package org.apache.ignite.internal.processors.query.h2;
 
-import org.apache.ignite.internal.util.offheap.unsafe.GridUnsafeMemory;
 import org.jsr166.ConcurrentHashMap8;
 
 import java.util.Collection;
@@ -29,9 +28,6 @@ import java.util.concurrent.ConcurrentMap;
 public class H2Schema {
     /** */
     private final String schemaName;
-
-    /** */
-    private final GridUnsafeMemory offheap = null;
 
     /** */
     private final ConcurrentMap<String, H2TableDescriptor> tbls = new ConcurrentHashMap8<>();
@@ -53,13 +49,6 @@ public class H2Schema {
      */
     public String schemaName() {
         return schemaName;
-    }
-
-    /**
-     * @return Unsafe memory.
-     */
-    public GridUnsafeMemory offheap() {
-        return offheap;
     }
 
     /**
@@ -114,6 +103,7 @@ public class H2Schema {
         tbl.onDrop();
 
         tbls.remove(tbl.tableName());
+
         typeToTbl.remove(tbl.typeName());
     }
 
@@ -125,6 +115,7 @@ public class H2Schema {
             tbl.onDrop();
 
         tbls.clear();
+
         typeToTbl.clear();
     }
 }
