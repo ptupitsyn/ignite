@@ -124,7 +124,7 @@ namespace Apache.Ignite.Core.Tests.Dataload
                 ldr.PerNodeParallelOperations = 2;
                 Assert.AreEqual(2, ldr.PerNodeParallelOperations);
 
-                Assert.AreEqual(TimeSpan.Zero, DataStreamerConfiguration.DefaultTimeout);
+                Assert.AreEqual(DataStreamerConfiguration.DefaultTimeout, ldr.Timeout);
                 ldr.Timeout = TimeSpan.MaxValue;
                 Assert.AreEqual(TimeSpan.MaxValue, ldr.Timeout);
                 ldr.Timeout = TimeSpan.FromSeconds(1.5);
