@@ -187,8 +187,8 @@ namespace Apache.Ignite.Core.Impl.Client.Cache
             IgniteArgumentCheck.NotNull(sqlFieldsQuery, "sqlFieldsQuery");
             IgniteArgumentCheck.NotNull(sqlFieldsQuery.Sql, "sqlFieldsQuery.Sql");
 
-            return DoOutInOp(ClientOp.QuerySqlFields, w => WriteSqlFieldsQuery(w, sqlQuery),
-                s => new ClientQueryCursor<TK, TV>(
+            return DoOutInOp(ClientOp.QuerySqlFields, w => WriteSqlFieldsQuery(w, sqlFieldsQuery),
+                s => new ClientFieldsQueryCursor(
                     _ignite, s.ReadLong(), _keepBinary, s, ClientOp.QuerySqlFieldsCursorGetPage));
         }
 
@@ -468,6 +468,18 @@ namespace Apache.Ignite.Core.Impl.Client.Cache
         private static void WriteSqlFieldsQuery(IBinaryRawWriter writer, SqlFieldsQuery qry)
         {
             Debug.Assert(qry != null);
+
+            writer.WriteString(qry.Sql);
+            QueryBase.WriteQueryArgs(writer, qry.Arguments);
+            writer.WriteString(qry.Schema);
+            writer.WriteBoolean(qry.EnableDistributedJoins);
+            writer.WriteBoolean(qry.Local);
+            writer.WriteBoolean(qry.ReplicatedOnly);
+            writer.WriteBoolean(qry.EnforceJoinOrder);
+            writer.WriteBoolean(qry.Colocated);
+            writer.WriteBoolean(qry.Lazy);
+            writer.WriteInt(qry.PageSize);
+            writer.WriteTimeSpanAsLong(qry.Timeout);
         }
 
         /// <summary>

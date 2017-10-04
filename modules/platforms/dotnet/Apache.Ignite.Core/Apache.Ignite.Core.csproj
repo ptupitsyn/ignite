@@ -107,10 +107,12 @@
     <Compile Include="Datastream\DataStreamerDefaults.cs" />
     <Compile Include="Impl\Binary\BinaryTypeId.cs" />
     <Compile Include="Impl\Client\Cache\CacheFlags.cs" />
+    <Compile Include="Impl\Client\Cache\Query\ClientFieldsQueryCursor.cs" />
     <Compile Include="Impl\Client\Cache\Query\ClientQueryCursor.cs" />
     <Compile Include="Impl\Cache\Query\PlatformQueryQursorBase.cs" />
     <Compile Include="Impl\Binary\BinaryProcessorClient.cs" />
     <Compile Include="Impl\Binary\IBinaryProcessor.cs" />
+    <Compile Include="Impl\Client\Cache\Query\ClientQueryCursorBase.cs" />
     <Compile Include="Impl\Client\ClientStatus.cs" />
     <Compile Include="Events\LocalEventListener.cs" />
     <Compile Include="Impl\IIgniteInternal.cs" />

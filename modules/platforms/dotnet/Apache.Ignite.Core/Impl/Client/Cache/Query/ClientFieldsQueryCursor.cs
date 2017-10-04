@@ -17,17 +17,15 @@
 
 namespace Apache.Ignite.Core.Impl.Client.Cache.Query
 {
+    using System.Collections;
     using System.Diagnostics.CodeAnalysis;
-    using Apache.Ignite.Core.Cache;
     using Apache.Ignite.Core.Impl.Binary;
     using Apache.Ignite.Core.Impl.Binary.IO;
-    using Apache.Ignite.Core.Impl.Cache;
-    using Apache.Ignite.Core.Impl.Client;
 
     /// <summary>
-    /// Client query cursor.
+    /// Client fields cursor.
     /// </summary>
-    internal sealed class ClientQueryCursor<TK, TV> : ClientQueryCursorBase<ICacheEntry<TK, TV>>
+    internal class ClientFieldsQueryCursor : ClientQueryCursorBase<IList>
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="ClientQueryCursor{TK, TV}" /> class.
@@ -37,8 +35,8 @@ namespace Apache.Ignite.Core.Impl.Client.Cache.Query
         /// <param name="keepBinary">Keep binary flag.</param>
         /// <param name="initialBatchStream">Optional stream with initial batch.</param>
         /// <param name="getPageOp">The get page op.</param>
-        public ClientQueryCursor(IgniteClient ignite, long cursorId, bool keepBinary,
-            IBinaryStream initialBatchStream, ClientOp getPageOp)
+        public ClientFieldsQueryCursor(IgniteClient ignite, long cursorId, bool keepBinary, 
+            IBinaryStream initialBatchStream, ClientOp getPageOp) 
             : base(ignite, cursorId, keepBinary, initialBatchStream, getPageOp)
         {
             // No-op.
@@ -46,9 +44,18 @@ namespace Apache.Ignite.Core.Impl.Client.Cache.Query
 
         /** <inheritdoc /> */
         [SuppressMessage("Microsoft.Design", "CA1062:Validate arguments of public methods")]
-        protected override ICacheEntry<TK, TV> Read(BinaryReader reader)
+        protected override IList Read(BinaryReader reader)
         {
-            return new CacheEntry<TK, TV>(reader.ReadObject<TK>(), reader.ReadObject<TV>());
+            var count = reader.ReadInt();
+
+            var res = new ArrayList(count);
+
+            for (var i = 0; i < count; i++)
+            {
+                res.Add(reader.ReadObject<object>());
+            }
+
+            return res;
         }
     }
 }
