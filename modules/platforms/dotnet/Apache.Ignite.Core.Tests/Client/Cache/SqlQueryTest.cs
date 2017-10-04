@@ -18,6 +18,7 @@
 namespace Apache.Ignite.Core.Tests.Client.Cache
 {
     using System.Linq;
+    using Apache.Ignite.Core.Cache.Query;
     using NUnit.Framework;
 
     /// <summary>
@@ -56,7 +57,11 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
         {
             var cache = GetClientCache<Person>();
 
-            Assert.AreEqual(Count, cache.GetSize());
+            // All items.
+            var qry = new SqlQuery(typeof(Person), "where 1 = 1");
+            Assert.AreEqual(Count, cache.Query(qry).Count());
+
+            // Filter.
         }
 
         /// <summary>
