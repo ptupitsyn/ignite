@@ -17,6 +17,8 @@
 
 namespace Apache.Ignite.Core.Tests.Client.Cache
 {
+    using Apache.Ignite.Core.Cache.Configuration;
+
     /// <summary>
     /// Test person.
     /// </summary>
@@ -42,11 +44,13 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
         /// <summary>
         /// Gets or sets the identifier.
         /// </summary>
+        [QuerySqlField]
         public int Id { get; set; }
 
         /// <summary>
         /// Gets or sets the name.
         /// </summary>
+        [QuerySqlField]
         public string Name { get; set; }
 
         /// <summary>

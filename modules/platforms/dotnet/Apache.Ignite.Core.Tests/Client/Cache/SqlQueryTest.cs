@@ -18,6 +18,7 @@
 namespace Apache.Ignite.Core.Tests.Client.Cache
 {
     using System.Linq;
+    using Apache.Ignite.Core.Cache.Configuration;
     using Apache.Ignite.Core.Cache.Query;
     using NUnit.Framework;
 
@@ -44,9 +45,12 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
         /// </summary>
         public override void TestSetUp()
         {
-            base.TestSetUp();
+            var cache = Ignition.GetIgnite().GetOrCreateCache<int, Person>(
+                new CacheConfiguration(CacheName, typeof(Person)));
 
-            GetCache<Person>().PutAll(Enumerable.Range(1, Count).ToDictionary(x => x, x => new Person(x)));
+            cache.RemoveAll();
+
+            cache.PutAll(Enumerable.Range(1, Count).ToDictionary(x => x, x => new Person(x)));
         }
 
         /// <summary>
