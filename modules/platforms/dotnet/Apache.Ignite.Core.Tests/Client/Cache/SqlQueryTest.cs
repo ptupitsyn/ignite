@@ -46,12 +46,7 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
         /// </summary>
         public override void TestSetUp()
         {
-            var cache = Ignition.GetIgnite().GetOrCreateCache<int, Person>(
-                new CacheConfiguration(CacheName, typeof(Person)));
-
-            cache.RemoveAll();
-
-            cache.PutAll(Enumerable.Range(1, Count).ToDictionary(x => x, x => new Person(x)));
+            InitCache(CacheName);
         }
 
         /// <summary>
@@ -97,7 +92,21 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
         [Test]
         public void TestSqlQueryDistributedJoins()
         {
-            // TODO
+            var cacheName2 = CacheName + "2";
+            InitCache(cacheName2);
+
+            var cache = GetClientCache<Person>();
+
+            // Non-distributed join returns incomplete results.
+            var qry = new SqlQuery(typeof(Person),
+                string.Format("from \"{0}\".Person, \"{1}\".Person as p2 where Person.Id = 11 - p2.Id",
+                    CacheName, cacheName2));
+            
+            Assert.Greater(Count, cache.Query(qry).Count());
+
+            // Distributed join fixes the problem.
+            qry.EnableDistributedJoins = true;
+            Assert.AreEqual(Count, cache.Query(qry).Count());
         }
 
         /// <summary>
@@ -106,6 +115,19 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
         [Test]
         public void TestFieldsQuery()
         {
+        }
+
+        /// <summary>
+        /// Initializes the cache.
+        /// </summary>
+        private static void InitCache(string cacheName)
+        {
+            var cache = Ignition.GetIgnite().GetOrCreateCache<int, Person>(
+                new CacheConfiguration(cacheName, typeof(Person)));
+
+            cache.RemoveAll();
+
+            cache.PutAll(Enumerable.Range(1, Count).ToDictionary(x => x, x => new Person(x)));
         }
     }
 }

@@ -46,7 +46,7 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
         /// <summary>
         /// Gets or sets the identifier.
         /// </summary>
-        [QuerySqlField]
+        [QuerySqlField(IsIndexed = true)]
         public int Id { get; set; }
 
         /// <summary>
