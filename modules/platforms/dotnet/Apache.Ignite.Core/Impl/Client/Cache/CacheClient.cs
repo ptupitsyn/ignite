@@ -21,6 +21,7 @@ namespace Apache.Ignite.Core.Impl.Client.Cache
     using System.Collections.Generic;
     using System.Diagnostics;
     using System.IO;
+    using Apache.Ignite.Core.Binary;
     using Apache.Ignite.Core.Cache;
     using Apache.Ignite.Core.Cache.Query;
     using Apache.Ignite.Core.Client;
@@ -158,14 +159,23 @@ namespace Apache.Ignite.Core.Impl.Client.Cache
         /** <inheritDoc /> */
         public IQueryCursor<ICacheEntry<TK, TV>> Query(ScanQuery<TK, TV> scanQuery)
         {
-            IgniteArgumentCheck.NotNull(scanQuery, "query");
+            IgniteArgumentCheck.NotNull(scanQuery, "scanQuery");
 
             // Filter is a binary object for all platforms.
             // For .NET it is a CacheEntryFilterHolder with a predefined id (BinaryTypeId.CacheEntryPredicateHolder).
             return DoOutInOp(ClientOp.QueryScan, w => WriteScanQuery(w, scanQuery),
                 s => new ClientQueryCursor<TK, TV>(_ignite, s.ReadLong(), _keepBinary, s));
         }
-        
+
+        /** <inheritDoc /> */
+        public IQueryCursor<ICacheEntry<TK, TV>> Query(SqlQuery sqlQuery)
+        {
+            IgniteArgumentCheck.NotNull(sqlQuery, "sqlQuery");
+
+            return DoOutInOp(ClientOp.QuerySql, w => WriteSqlQuery(w, sqlQuery),
+                s => new ClientQueryCursor<TK, TV>(_ignite, s.ReadLong(), _keepBinary, s));
+        }
+
         /** <inheritDoc /> */
         public CacheResult<TV> GetAndPut(TK key, TV val)
         {
@@ -417,6 +427,23 @@ namespace Apache.Ignite.Core.Impl.Client.Cache
             writer.WriteInt(qry.Partition ?? -1);
 
             writer.WriteBoolean(qry.Local);
+        }
+
+        /// <summary>
+        /// Writes the scan query.
+        /// </summary>
+        private static void WriteSqlQuery(IBinaryRawWriter writer, SqlQuery qry)
+        {
+            Debug.Assert(qry != null);
+
+            writer.WriteString(qry.Sql);
+            QueryBase.WriteQueryArgs(writer, qry.Arguments);
+            writer.WriteString(qry.QueryType);
+            writer.WriteBoolean(qry.EnableDistributedJoins);
+            writer.WriteBoolean(qry.Local);
+            writer.WriteBoolean(qry.ReplicatedOnly);
+            writer.WriteInt(qry.PageSize);
+            writer.WriteTimeSpanAsLong(qry.Timeout);
         }
 
         /// <summary>
