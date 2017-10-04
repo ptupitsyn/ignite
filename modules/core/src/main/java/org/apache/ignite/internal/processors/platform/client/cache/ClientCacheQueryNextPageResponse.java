@@ -23,7 +23,7 @@ import org.apache.ignite.internal.processors.platform.client.ClientResponse;
 /**
  * Query cursor next page response.
  */
-class ClientCacheScanQueryNextPageResponse extends ClientResponse {
+class ClientCacheQueryNextPageResponse extends ClientResponse {
     /** Cursor. */
     private final ClientCacheQueryCursor cursor;
 
@@ -33,7 +33,7 @@ class ClientCacheScanQueryNextPageResponse extends ClientResponse {
      * @param requestId Request id.
      * @param cursor Cursor.
      */
-    ClientCacheScanQueryNextPageResponse(long requestId, ClientCacheQueryCursor cursor) {
+    ClientCacheQueryNextPageResponse(long requestId, ClientCacheQueryCursor cursor) {
         super(requestId);
 
         assert cursor != null;

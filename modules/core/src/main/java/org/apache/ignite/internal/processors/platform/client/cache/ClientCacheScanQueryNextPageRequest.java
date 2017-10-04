@@ -44,6 +44,6 @@ public class ClientCacheScanQueryNextPageRequest extends ClientRequest {
     @Override public ClientResponse process(ClientConnectionContext ctx) {
         ClientCacheQueryCursor cur = ctx.resources().get(cursorId);
 
-        return new ClientCacheScanQueryNextPageResponse(requestId(), cur);
+        return new ClientCacheQueryNextPageResponse(requestId(), cur);
     }
 }
