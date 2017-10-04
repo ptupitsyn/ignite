@@ -25,7 +25,7 @@ import org.apache.ignite.internal.processors.platform.client.ClientResponse;
 /**
  * Query cursor next page request.
  */
-public class ClientCacheScanQueryNextPageRequest extends ClientRequest {
+public class ClientCacheQueryNextPageRequest extends ClientRequest {
     /** Cursor id. */
     private final long cursorId;
 
@@ -34,7 +34,7 @@ public class ClientCacheScanQueryNextPageRequest extends ClientRequest {
      *
      * @param reader Reader.
      */
-    public ClientCacheScanQueryNextPageRequest(BinaryRawReader reader) {
+    public ClientCacheQueryNextPageRequest(BinaryRawReader reader) {
         super(reader);
 
         cursorId = reader.readLong();

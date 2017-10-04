@@ -53,7 +53,7 @@ import org.apache.ignite.internal.processors.platform.client.cache.ClientCacheRe
 import org.apache.ignite.internal.processors.platform.client.cache.ClientCacheRemoveRequest;
 import org.apache.ignite.internal.processors.platform.client.cache.ClientCacheReplace2Request;
 import org.apache.ignite.internal.processors.platform.client.cache.ClientCacheReplaceRequest;
-import org.apache.ignite.internal.processors.platform.client.cache.ClientCacheScanQueryNextPageRequest;
+import org.apache.ignite.internal.processors.platform.client.cache.ClientCacheQueryNextPageRequest;
 import org.apache.ignite.internal.processors.platform.client.cache.ClientCacheScanQueryRequest;
 
 /**
@@ -201,7 +201,7 @@ public class ClientMessageParser implements ClientListenerMessageParser {
                 return new ClientCacheScanQueryRequest(reader);
 
             case OP_QUERY_SCAN_CURSOR_GET_PAGE:
-                return new ClientCacheScanQueryNextPageRequest(reader);
+                return new ClientCacheQueryNextPageRequest(reader);
 
             case OP_RESOURCE_CLOSE:
                 return new ClientResourceCloseRequest(reader);
