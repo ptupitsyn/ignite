@@ -18,6 +18,7 @@
 namespace Apache.Ignite.Core.Impl.Client.Cache
 {
     using System;
+    using System.Collections;
     using System.Collections.Generic;
     using System.Diagnostics;
     using System.IO;
@@ -178,6 +179,17 @@ namespace Apache.Ignite.Core.Impl.Client.Cache
             return DoOutInOp(ClientOp.QuerySql, w => WriteSqlQuery(w, sqlQuery),
                 s => new ClientQueryCursor<TK, TV>(
                     _ignite, s.ReadLong(), _keepBinary, s, ClientOp.QuerySqlCursorGetPage));
+        }
+
+        /** <inheritDoc /> */
+        public IQueryCursor<IList> Query(SqlFieldsQuery sqlFieldsQuery)
+        {
+            IgniteArgumentCheck.NotNull(sqlFieldsQuery, "sqlFieldsQuery");
+            IgniteArgumentCheck.NotNull(sqlFieldsQuery.Sql, "sqlFieldsQuery.Sql");
+
+            return DoOutInOp(ClientOp.QuerySqlFields, w => WriteSqlFieldsQuery(w, sqlQuery),
+                s => new ClientQueryCursor<TK, TV>(
+                    _ignite, s.ReadLong(), _keepBinary, s, ClientOp.QuerySqlFieldsCursorGetPage));
         }
 
         /** <inheritDoc /> */
@@ -434,7 +446,7 @@ namespace Apache.Ignite.Core.Impl.Client.Cache
         }
 
         /// <summary>
-        /// Writes the scan query.
+        /// Writes the SQL query.
         /// </summary>
         private static void WriteSqlQuery(IBinaryRawWriter writer, SqlQuery qry)
         {
@@ -448,6 +460,14 @@ namespace Apache.Ignite.Core.Impl.Client.Cache
             writer.WriteBoolean(qry.ReplicatedOnly);
             writer.WriteInt(qry.PageSize);
             writer.WriteTimeSpanAsLong(qry.Timeout);
+        }
+
+        /// <summary>
+        /// Writes the SQL fields query.
+        /// </summary>
+        private static void WriteSqlFieldsQuery(IBinaryRawWriter writer, SqlFieldsQuery qry)
+        {
+            Debug.Assert(qry != null);
         }
 
         /// <summary>

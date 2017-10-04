@@ -17,6 +17,7 @@
 
 namespace Apache.Ignite.Core.Client.Cache
 {
+    using System.Collections;
     using System.Collections.Generic;
     using Apache.Ignite.Core.Cache;
     using Apache.Ignite.Core.Cache.Query;
@@ -105,6 +106,13 @@ namespace Apache.Ignite.Core.Client.Cache
         /// <param name="sqlQuery">SQL query.</param>
         /// <returns>Query cursor.</returns>
         IQueryCursor<ICacheEntry<TK, TV>> Query(SqlQuery sqlQuery);
+
+        /// <summary>
+        /// Executes an SQL Fields query.
+        /// </summary>
+        /// <param name="sqlFieldsQuery">SQL query.</param>
+        /// <returns>Query cursor.</returns>
+        IQueryCursor<IList> Query(SqlFieldsQuery sqlFieldsQuery);
 
         /// <summary>
         /// Associates the specified value with the specified key in this cache,
