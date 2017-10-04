@@ -19,117 +19,28 @@ package org.apache.ignite.internal.processors.platform.client.cache;
 
 import org.apache.ignite.internal.binary.BinaryRawWriterEx;
 import org.apache.ignite.internal.processors.cache.query.QueryCursorEx;
-import org.apache.ignite.internal.processors.platform.client.ClientCloseableResource;
 import org.apache.ignite.internal.processors.platform.client.ClientConnectionContext;
 
 import javax.cache.Cache;
-import java.util.Iterator;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Query cursor holder.
   */
-class ClientCacheScanQueryCursor implements ClientCloseableResource {
-    /** Cursor. */
-    private final QueryCursorEx<Cache.Entry> cursor;
-
-    /** Page size. */
-    private final int pageSize;
-
-    /** Context. */
-    private final ClientConnectionContext ctx;
-
-    /** Id. */
-    private long id;
-
-    /** Iterator. */
-    private Iterator<Cache.Entry> iterator;
-
-    /** Close guard. */
-    private final AtomicBoolean closeGuard = new AtomicBoolean();
-
+class ClientCacheScanQueryCursor extends ClientCacheQueryCursor<Cache.Entry> {
     /**
      * Ctor.
-     *  @param cursor Cursor.
+     *
+     * @param cursor   Cursor.
      * @param pageSize Page size.
-     * @param ctx Context.
+     * @param ctx      Context.
      */
     ClientCacheScanQueryCursor(QueryCursorEx<Cache.Entry> cursor, int pageSize, ClientConnectionContext ctx) {
-        assert cursor != null;
-        assert pageSize > 0;
-        assert ctx != null;
-
-        this.cursor = cursor;
-        this.pageSize = pageSize;
-        this.ctx = ctx;
+        super(cursor, pageSize, ctx);
     }
 
-    /**
-     * Writes next page to the writer.
-     *
-     * @param writer Writer.
-     */
-    void writePage(BinaryRawWriterEx writer) {
-        Iterator<Cache.Entry> iter = iterator();
-
-        int cntPos = writer.reserveInt();
-        int cnt = 0;
-
-        while (cnt < pageSize && iter.hasNext()) {
-            Cache.Entry e = iter.next();
-
-            writer.writeObjectDetached(e.getKey());
-            writer.writeObjectDetached(e.getValue());
-
-            cnt++;
-        }
-
-        writer.writeInt(cntPos, cnt);
-
-        writer.writeBoolean(iter.hasNext());
-
-        if (!iter.hasNext())
-            ctx.resources().release(id);
-    }
-
-    /**
-     * Closes the cursor.
-     */
-    @Override public void close() {
-        if (closeGuard.compareAndSet(false, true)) {
-            cursor.close();
-
-            ctx.decrementCursors();
-        }
-    }
-
-    /**
-     * Sets the cursor id.
-     *
-     * @param id Id.
-     */
-    public void id(long id) {
-        this.id = id;
-    }
-
-    /**
-     * Gets the cursor id.
-     *
-     * @return Id.
-     */
-    public long id() {
-        return id;
-    }
-
-    /**
-     * Gets the iterator.
-     *
-     * @return Iterator.
-     */
-    private Iterator<Cache.Entry> iterator() {
-        if (iterator == null)
-            iterator = cursor.iterator();
-
-        return iterator;
+    /** {@inheritDoc} */
+    @Override void writeEntry(BinaryRawWriterEx writer, Cache.Entry e) {
+        writer.writeObjectDetached(e.getKey());
+        writer.writeObjectDetached(e.getValue());
     }
 }
