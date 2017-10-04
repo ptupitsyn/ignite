@@ -26,7 +26,7 @@ import javax.cache.Cache;
 /**
  * Query cursor holder.
   */
-class ClientCacheScanQueryCursor extends ClientCacheQueryCursor<Cache.Entry> {
+class ClientCacheEntryQueryCursor extends ClientCacheQueryCursor<Cache.Entry> {
     /**
      * Ctor.
      *
@@ -34,7 +34,7 @@ class ClientCacheScanQueryCursor extends ClientCacheQueryCursor<Cache.Entry> {
      * @param pageSize Page size.
      * @param ctx      Context.
      */
-    ClientCacheScanQueryCursor(QueryCursorEx<Cache.Entry> cursor, int pageSize, ClientConnectionContext ctx) {
+    ClientCacheEntryQueryCursor(QueryCursorEx<Cache.Entry> cursor, int pageSize, ClientConnectionContext ctx) {
         super(cursor, pageSize, ctx);
     }
 

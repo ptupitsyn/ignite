@@ -42,7 +42,7 @@ public class ClientCacheScanQueryNextPageRequest extends ClientRequest {
 
     /** {@inheritDoc} */
     @Override public ClientResponse process(ClientConnectionContext ctx) {
-        ClientCacheScanQueryCursor cur = ctx.resources().get(cursorId);
+        ClientCacheEntryQueryCursor cur = ctx.resources().get(cursorId);
 
         return new ClientCacheScanQueryNextPageResponse(requestId(), cur);
     }
