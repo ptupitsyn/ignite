@@ -17,6 +17,7 @@
 
 namespace Apache.Ignite.Core.Tests.Client.Cache
 {
+    using System;
     using Apache.Ignite.Core.Cache.Configuration;
 
     /// <summary>
@@ -39,6 +40,7 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
         {
             Id = id;
             Name = "Person " + id;
+            DateTime = DateTime.UtcNow.AddDays(id);
         }
 
         /// <summary>
@@ -52,6 +54,12 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
         /// </summary>
         [QuerySqlField]
         public string Name { get; set; }
+
+        /// <summary>
+        /// Gets or sets the date time.
+        /// </summary>
+        [QuerySqlField]
+        public DateTime DateTime { get; set; }
 
         /// <summary>
         /// Gets or sets the parent.

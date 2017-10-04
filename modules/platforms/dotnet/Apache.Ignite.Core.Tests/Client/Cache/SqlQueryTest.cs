@@ -17,6 +17,7 @@
 
 namespace Apache.Ignite.Core.Tests.Client.Cache
 {
+    using System;
     using System.Linq;
     using Apache.Ignite.Core.Cache.Configuration;
     using Apache.Ignite.Core.Cache.Query;
@@ -72,6 +73,10 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
             // Args.
             qry = new SqlQuery(typeof(Person), "where Id = ?", 3);
             Assert.AreEqual(3, cache.Query(qry).Single().Value.Id);
+
+            // DateTime.
+            qry = new SqlQuery(typeof(Person), "where DateTime > ?", DateTime.UtcNow.AddDays(Count - 1));
+            Assert.AreEqual(Count, cache.Query(qry).Single().Key);
         }
 
         /// <summary>
