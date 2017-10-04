@@ -164,7 +164,8 @@ namespace Apache.Ignite.Core.Impl.Client.Cache
             // Filter is a binary object for all platforms.
             // For .NET it is a CacheEntryFilterHolder with a predefined id (BinaryTypeId.CacheEntryPredicateHolder).
             return DoOutInOp(ClientOp.QueryScan, w => WriteScanQuery(w, scanQuery),
-                s => new ClientQueryCursor<TK, TV>(_ignite, s.ReadLong(), _keepBinary, s));
+                s => new ClientQueryCursor<TK, TV>(
+                    _ignite, s.ReadLong(), _keepBinary, s, ClientOp.QueryScanCursorGetPage));
         }
 
         /** <inheritDoc /> */
@@ -173,7 +174,8 @@ namespace Apache.Ignite.Core.Impl.Client.Cache
             IgniteArgumentCheck.NotNull(sqlQuery, "sqlQuery");
 
             return DoOutInOp(ClientOp.QuerySql, w => WriteSqlQuery(w, sqlQuery),
-                s => new ClientQueryCursor<TK, TV>(_ignite, s.ReadLong(), _keepBinary, s));
+                s => new ClientQueryCursor<TK, TV>(
+                    _ignite, s.ReadLong(), _keepBinary, s, ClientOp.QuerySqlCursorGetPage));
         }
 
         /** <inheritDoc /> */

@@ -38,6 +38,9 @@ namespace Apache.Ignite.Core.Impl.Client.Cache.Query
         /** Cursor ID. */
         private readonly long _cursorId;
 
+        /** Page op code. */
+        private readonly ClientOp _getPageOp;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="ClientQueryCursor{TK, TV}" /> class.
         /// </summary>
@@ -45,12 +48,14 @@ namespace Apache.Ignite.Core.Impl.Client.Cache.Query
         /// <param name="cursorId">The cursor identifier.</param>
         /// <param name="keepBinary">Keep binary flag.</param>
         /// <param name="initialBatchStream">Optional stream with initial batch.</param>
+        /// <param name="getPageOp">The get page op.</param>
         public ClientQueryCursor(IgniteClient ignite, long cursorId, bool keepBinary, 
-            IBinaryStream initialBatchStream) 
+            IBinaryStream initialBatchStream, ClientOp getPageOp) 
             : base(ignite.Marshaller, keepBinary, initialBatchStream)
         {
             _ignite = ignite;
             _cursorId = cursorId;
+            _getPageOp = getPageOp;
         }
 
         /** <inheritdoc /> */
@@ -75,9 +80,7 @@ namespace Apache.Ignite.Core.Impl.Client.Cache.Query
         /** <inheritdoc /> */
         protected override ICacheEntry<TK, TV>[] GetBatch()
         {
-            return _ignite.Socket.DoOutInOp(ClientOp.QueryScanCursorGetPage,
-                w => w.WriteLong(_cursorId),
-                s => ConvertGetBatch(s));
+            return _ignite.Socket.DoOutInOp(_getPageOp, w => w.WriteLong(_cursorId), s => ConvertGetBatch(s));
         }
 
         /** <inheritdoc /> */

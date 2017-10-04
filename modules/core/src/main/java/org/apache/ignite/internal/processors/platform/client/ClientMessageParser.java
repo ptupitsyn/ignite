@@ -55,6 +55,7 @@ import org.apache.ignite.internal.processors.platform.client.cache.ClientCacheRe
 import org.apache.ignite.internal.processors.platform.client.cache.ClientCacheReplaceRequest;
 import org.apache.ignite.internal.processors.platform.client.cache.ClientCacheQueryNextPageRequest;
 import org.apache.ignite.internal.processors.platform.client.cache.ClientCacheScanQueryRequest;
+import org.apache.ignite.internal.processors.platform.client.cache.ClientCacheSqlQueryRequest;
 
 /**
  * Thin client message parser.
@@ -143,6 +144,12 @@ public class ClientMessageParser implements ClientListenerMessageParser {
 
     /** */
     private static final short OP_CACHE_REMOVE_ALL = 28;
+
+    /** */
+    private static final short OP_QUERY_SQL = 29;
+
+    /** */
+    private static final short OP_QUERY_SQL_CURSOR_GET_PAGE = 30;
 
     /** Marshaller. */
     private final GridBinaryMarshaller marsh;
@@ -262,6 +269,13 @@ public class ClientMessageParser implements ClientListenerMessageParser {
 
             case OP_CACHE_REMOVE_ALL:
                 return new ClientCacheRemoveAllRequest(reader);
+
+            case OP_QUERY_SQL:
+                return new ClientCacheSqlQueryRequest(reader);
+
+            case OP_QUERY_SQL_CURSOR_GET_PAGE:
+                return new ClientCacheQueryNextPageRequest(reader);
+
         }
 
         return new ClientRawRequest(reader.readLong(), ClientStatus.INVALID_OP_CODE,
