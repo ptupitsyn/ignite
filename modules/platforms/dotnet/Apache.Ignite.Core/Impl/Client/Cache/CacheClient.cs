@@ -172,6 +172,8 @@ namespace Apache.Ignite.Core.Impl.Client.Cache
         public IQueryCursor<ICacheEntry<TK, TV>> Query(SqlQuery sqlQuery)
         {
             IgniteArgumentCheck.NotNull(sqlQuery, "sqlQuery");
+            IgniteArgumentCheck.NotNull(sqlQuery.Sql, "sqlQuery.Sql");
+            IgniteArgumentCheck.NotNull(sqlQuery.QueryType, "sqlQuery.QueryType");
 
             return DoOutInOp(ClientOp.QuerySql, w => WriteSqlQuery(w, sqlQuery),
                 s => new ClientQueryCursor<TK, TV>(

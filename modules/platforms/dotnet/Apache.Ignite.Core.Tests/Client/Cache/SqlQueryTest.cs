@@ -77,6 +77,14 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
             // DateTime.
             qry = new SqlQuery(typeof(Person), "where DateTime > ?", DateTime.UtcNow.AddDays(Count - 1));
             Assert.AreEqual(Count, cache.Query(qry).Single().Key);
+
+            // Invalid args.
+            qry.Sql = null;
+            Assert.Throws<ArgumentNullException>(() => cache.Query(qry));
+
+            qry.Sql = "abc";
+            qry.QueryType = null;
+            Assert.Throws<ArgumentNullException>(() => cache.Query(qry));
         }
 
         /// <summary>
