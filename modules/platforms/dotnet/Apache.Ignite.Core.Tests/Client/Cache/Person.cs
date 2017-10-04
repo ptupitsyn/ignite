@@ -23,6 +23,23 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
     public class Person
     {
         /// <summary>
+        /// Initializes a new instance of the <see cref="Person"/> class.
+        /// </summary>
+        public Person()
+        {
+            // No-op.
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="Person"/> class.
+        /// </summary>
+        public Person(int id)
+        {
+            Id = id;
+            Name = "Person " + id;
+        }
+
+        /// <summary>
         /// Gets or sets the identifier.
         /// </summary>
         public int Id { get; set; }

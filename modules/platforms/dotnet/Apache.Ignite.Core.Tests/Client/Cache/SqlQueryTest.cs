@@ -17,6 +17,7 @@
 
 namespace Apache.Ignite.Core.Tests.Client.Cache
 {
+    using System.Linq;
     using NUnit.Framework;
 
     /// <summary>
@@ -24,6 +25,11 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
     /// </summary>
     public class SqlQueryTest : ClientTestBase
     {
+        /// <summary>
+        /// Cache item count.
+        /// </summary>
+        private const int Count = 10;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="ScanQueryTest"/> class.
         /// </summary>
@@ -33,11 +39,24 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
         }
 
         /// <summary>
+        /// Sets up the test.
+        /// </summary>
+        public override void TestSetUp()
+        {
+            base.TestSetUp();
+
+            GetCache<Person>().PutAll(Enumerable.Range(1, Count).ToDictionary(x => x, x => new Person(x)));
+        }
+
+        /// <summary>
         /// Tests the SQL query.
         /// </summary>
         [Test]
         public void TestSqlQuery()
         {
+            var cache = GetClientCache<Person>();
+
+            Assert.AreEqual(Count, cache.GetSize());
         }
 
         /// <summary>
