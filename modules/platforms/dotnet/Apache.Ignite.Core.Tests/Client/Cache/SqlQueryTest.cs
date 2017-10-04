@@ -66,8 +66,12 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
             var qry = new SqlQuery(typeof(Person), "where 1 = 1");
             Assert.AreEqual(Count, cache.Query(qry).Count());
 
+            // All items local.
+            qry.Local = true;
+            Assert.Greater(Count, cache.Query(qry).Count());
+
             // Filter.
-            qry.Sql = "where Name like '%7'";
+            qry = new SqlQuery(typeof(Person), "where Name like '%7'");
             Assert.AreEqual(7, cache.Query(qry).Single().Key);
 
             // Args.
