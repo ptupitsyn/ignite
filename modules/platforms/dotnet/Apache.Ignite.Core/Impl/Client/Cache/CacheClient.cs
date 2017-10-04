@@ -436,9 +436,9 @@ namespace Apache.Ignite.Core.Impl.Client.Cache
         {
             Debug.Assert(qry != null);
 
+            writer.WriteString(qry.QueryType);
             writer.WriteString(qry.Sql);
             QueryBase.WriteQueryArgs(writer, qry.Arguments);
-            writer.WriteString(qry.QueryType);
             writer.WriteBoolean(qry.EnableDistributedJoins);
             writer.WriteBoolean(qry.Local);
             writer.WriteBoolean(qry.ReplicatedOnly);
