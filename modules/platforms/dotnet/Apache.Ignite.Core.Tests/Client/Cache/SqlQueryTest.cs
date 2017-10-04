@@ -92,6 +92,15 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
         }
 
         /// <summary>
+        /// Tests the SQL query with distributed joins.
+        /// </summary>
+        [Test]
+        public void TestSqlQueryDistributedJoins()
+        {
+            // TODO
+        }
+
+        /// <summary>
         /// Tests the fields query.
         /// </summary>
         [Test]
