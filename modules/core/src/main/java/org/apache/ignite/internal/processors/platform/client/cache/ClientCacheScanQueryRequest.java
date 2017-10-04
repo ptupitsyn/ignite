@@ -100,7 +100,7 @@ public class ClientCacheScanQueryRequest extends ClientCacheRequest {
 
             cliCur.id(cursorId);
 
-            return new ClientCacheScanQueryResponse(requestId(), cliCur);
+            return new ClientCacheQueryResponse(requestId(), cliCur);
         }
         catch (Exception e) {
             ctx.decrementCursors();
