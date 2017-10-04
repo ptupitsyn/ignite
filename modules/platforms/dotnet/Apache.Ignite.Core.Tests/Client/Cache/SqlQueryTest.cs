@@ -66,6 +66,12 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
             Assert.AreEqual(Count, cache.Query(qry).Count());
 
             // Filter.
+            qry.Sql = "where Name like '%7'";
+            Assert.AreEqual(7, cache.Query(qry).Single().Key);
+
+            // Args.
+            qry = new SqlQuery(typeof(Person), "where Id = ?", 3);
+            Assert.AreEqual(3, cache.Query(qry).Single().Value.Id);
         }
 
         /// <summary>
