@@ -120,6 +120,8 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
             // All items.
             var qry = new SqlFieldsQuery("select Id from Person");
             CollectionAssert.AreEquivalent(Enumerable.Range(1, Count), cache.Query(qry).Select(x => (int) x[0]));
+
+            // TODO: fields metadata (count, names) - do that ticket first?
         }
 
         /// <summary>
