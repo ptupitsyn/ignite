@@ -30,7 +30,7 @@ namespace Apache.Ignite.Core.Impl.Client.Cache.Query
     internal class ClientFieldsQueryCursor : ClientQueryCursorBase<IList>
     {
         /** Columns. */
-        private string[] _columns;
+        private readonly string[] _columns;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ClientQueryCursor{TK, TV}" /> class.
@@ -54,11 +54,9 @@ namespace Apache.Ignite.Core.Impl.Client.Cache.Query
         [SuppressMessage("Microsoft.Design", "CA1062:Validate arguments of public methods")]
         protected override IList Read(BinaryReader reader)
         {
-            var count = reader.ReadInt();
+            var res = new ArrayList(_columns.Length);
 
-            var res = new ArrayList(count);
-
-            for (var i = 0; i < count; i++)
+            for (var i = 0; i < _columns.Length; i++)
             {
                 res.Add(reader.ReadObject<object>());
             }
