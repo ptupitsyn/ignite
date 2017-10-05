@@ -133,6 +133,23 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
         }
 
         /// <summary>
+        /// Tests the fields query timeout.
+        /// </summary>
+        [Test]
+        public void TestFieldsQueryTimeout()
+        {
+            var cache = GetClientCache<Person>();
+
+            cache.PutAll(Enumerable.Range(1, 30000).ToDictionary(x => x, x => new Person(x)));
+
+            var qry = new SqlFieldsQuery("select * from Person where Name like '%ers%'")
+            {
+                Timeout = TimeSpan.FromMilliseconds(1)
+            };
+            cache.Query(qry).GetAll();
+        }
+
+        /// <summary>
         /// Initializes the cache.
         /// </summary>
         private static void InitCache(string cacheName)
