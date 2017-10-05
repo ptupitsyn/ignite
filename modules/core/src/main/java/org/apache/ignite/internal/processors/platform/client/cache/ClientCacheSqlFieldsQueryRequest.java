@@ -72,6 +72,7 @@ public class ClientCacheSqlFieldsQueryRequest extends ClientCacheRequest {
 
             cliCur.id(cursorId);
 
+            // TODO: Include meta in response
             return new ClientCacheQueryResponse(requestId(), cliCur);
         }
         catch (Exception e) {
