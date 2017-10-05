@@ -27,6 +27,9 @@ import java.util.List;
  * Query cursor holder.
   */
 class ClientCacheFieldsQueryCursor extends ClientCacheQueryCursor<List> {
+    /** Field count. */
+    private final int columnCount;
+
     /**
      * Ctor.
      *
@@ -36,12 +39,13 @@ class ClientCacheFieldsQueryCursor extends ClientCacheQueryCursor<List> {
      */
     ClientCacheFieldsQueryCursor(FieldsQueryCursor<List> cursor, int pageSize, ClientConnectionContext ctx) {
         super(cursor, pageSize, ctx);
+
+        columnCount = cursor.getColumnsCount();
     }
 
     /** {@inheritDoc} */
     @Override void writeEntry(BinaryRawWriterEx writer, List e) {
-        // TODO: no need to write count with every entry
-        writer.writeInt(e.size());
+        assert e.size() == columnCount;
 
         for (Object o : e) {
             writer.writeObjectDetached(o);

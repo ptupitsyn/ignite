@@ -72,8 +72,7 @@ public class ClientCacheSqlFieldsQueryRequest extends ClientCacheRequest {
 
             cliCur.id(cursorId);
 
-            // TODO: Include meta in response
-            return new ClientCacheQueryResponse(requestId(), cliCur);
+            return new ClientCacheSqlFieldsQueryResponse(requestId(), cliCur, cur);
         }
         catch (Exception e) {
             ctx.decrementCursors();
