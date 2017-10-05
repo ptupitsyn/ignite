@@ -55,6 +55,7 @@ import org.apache.ignite.internal.processors.platform.client.cache.ClientCacheRe
 import org.apache.ignite.internal.processors.platform.client.cache.ClientCacheReplaceRequest;
 import org.apache.ignite.internal.processors.platform.client.cache.ClientCacheQueryNextPageRequest;
 import org.apache.ignite.internal.processors.platform.client.cache.ClientCacheScanQueryRequest;
+import org.apache.ignite.internal.processors.platform.client.cache.ClientCacheSqlFieldsQueryRequest;
 import org.apache.ignite.internal.processors.platform.client.cache.ClientCacheSqlQueryRequest;
 
 /**
@@ -150,6 +151,12 @@ public class ClientMessageParser implements ClientListenerMessageParser {
 
     /** */
     private static final short OP_QUERY_SQL_CURSOR_GET_PAGE = 30;
+
+    /** */
+    private static final short OP_QUERY_SQL_FIELDS = 31;
+
+    /** */
+    private static final short OP_QUERY_SQL_FIELDS_CURSOR_GET_PAGE = 32;
 
     /** Marshaller. */
     private final GridBinaryMarshaller marsh;
@@ -276,6 +283,11 @@ public class ClientMessageParser implements ClientListenerMessageParser {
             case OP_QUERY_SQL_CURSOR_GET_PAGE:
                 return new ClientCacheQueryNextPageRequest(reader);
 
+            case OP_QUERY_SQL_FIELDS:
+                return new ClientCacheSqlFieldsQueryRequest(reader);
+
+            case OP_QUERY_SQL_FIELDS_CURSOR_GET_PAGE:
+                return new ClientCacheQueryNextPageRequest(reader);
         }
 
         return new ClientRawRequest(reader.readLong(), ClientStatus.INVALID_OP_CODE,
