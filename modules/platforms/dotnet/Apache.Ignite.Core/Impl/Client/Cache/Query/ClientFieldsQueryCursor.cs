@@ -71,7 +71,7 @@ namespace Apache.Ignite.Core.Impl.Client.Cache.Query
         {
             var res = new string[reader.ReadInt()];
 
-            for (int i = 0; i < res.Length; i++)
+            for (var i = 0; i < res.Length; i++)
             {
                 res[i] = reader.ReadString();
             }
