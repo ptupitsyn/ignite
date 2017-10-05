@@ -46,6 +46,7 @@ public class ClientCacheSqlFieldsQueryRequest extends ClientCacheRequest {
 
         qry = new SqlFieldsQuery(reader.readString())
                 .setArgs(PlatformCache.readQueryArgs(reader))
+                .setSchema(reader.readString())
                 .setDistributedJoins(reader.readBoolean())
                 .setLocal(reader.readBoolean())
                 .setReplicatedOnly(reader.readBoolean())

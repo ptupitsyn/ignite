@@ -119,9 +119,17 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
 
             // All items.
             var qry = new SqlFieldsQuery("select Id from Person");
-            CollectionAssert.AreEquivalent(Enumerable.Range(1, Count), cache.Query(qry).Select(x => (int) x[0]));
+            var cursor = cache.Query(qry);
+            CollectionAssert.AreEquivalent(Enumerable.Range(1, Count), cursor.Select(x => (int) x[0]));
+            Assert.AreEqual("ID", cursor.FieldNames.Single());
 
-            // TODO: fields metadata (count, names) - do that ticket first?
+            // All items local.
+            qry.Local = true;
+            Assert.Greater(Count, cache.Query(qry).Count());
+
+            // Filter.
+            qry = new SqlFieldsQuery("select Name from Person where Id = ?", 1);
+            Assert.AreEqual("Person 1", cache.Query(qry).Single().Single());
         }
 
         /// <summary>
