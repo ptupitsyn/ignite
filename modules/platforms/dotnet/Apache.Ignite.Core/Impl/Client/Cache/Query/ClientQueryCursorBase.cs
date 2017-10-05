@@ -16,8 +16,10 @@
  */
 namespace Apache.Ignite.Core.Impl.Client.Cache.Query
 {
+    using System;
     using System.Collections.Generic;
     using System.Linq;
+    using Apache.Ignite.Core.Impl.Binary;
     using Apache.Ignite.Core.Impl.Binary.IO;
     using Apache.Ignite.Core.Impl.Cache.Query;
 
@@ -43,9 +45,10 @@ namespace Apache.Ignite.Core.Impl.Client.Cache.Query
         /// <param name="keepBinary">Keep binary flag.</param>
         /// <param name="initialBatchStream">Optional stream with initial batch.</param>
         /// <param name="getPageOp">The get page op.</param>
+        /// <param name="readFunc">Read func.</param>
         protected ClientQueryCursorBase(IgniteClient ignite, long cursorId, bool keepBinary, 
-            IBinaryStream initialBatchStream, ClientOp getPageOp) 
-            : base(ignite.Marshaller, keepBinary, initialBatchStream)
+            IBinaryStream initialBatchStream, ClientOp getPageOp, Func<BinaryReader, T> readFunc) 
+            : base(ignite.Marshaller, keepBinary, readFunc, initialBatchStream)
         {
             _ignite = ignite;
             _cursorId = cursorId;

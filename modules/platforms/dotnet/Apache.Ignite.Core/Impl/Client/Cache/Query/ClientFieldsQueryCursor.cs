@@ -19,9 +19,7 @@ namespace Apache.Ignite.Core.Impl.Client.Cache.Query
 {
     using System.Collections;
     using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
     using Apache.Ignite.Core.Binary;
-    using Apache.Ignite.Core.Impl.Binary;
     using Apache.Ignite.Core.Impl.Binary.IO;
 
     /// <summary>
@@ -41,27 +39,24 @@ namespace Apache.Ignite.Core.Impl.Client.Cache.Query
         /// <param name="initialBatchStream">Optional stream with initial batch.</param>
         /// <param name="getPageOp">The get page op.</param>
         /// <param name="columns">The columns.</param>
-        public ClientFieldsQueryCursor(IgniteClient ignite, long cursorId, bool keepBinary, 
+        public ClientFieldsQueryCursor(IgniteClient ignite, long cursorId, bool keepBinary,
             IBinaryStream initialBatchStream, ClientOp getPageOp, string[] columns)
-            : base(ignite, cursorId, keepBinary, initialBatchStream, getPageOp)
+            : base(ignite, cursorId, keepBinary, initialBatchStream, getPageOp,
+                r =>
+                {
+                    var res = new ArrayList(columns.Length);
+
+                    for (var i = 0; i < columns.Length; i++)
+                    {
+                        res.Add(r.ReadObject<object>());
+                    }
+
+                    return res;
+                })
         {
             Debug.Assert(columns != null);
 
             _columns = columns;
-        }
-
-        /** <inheritdoc /> */
-        [SuppressMessage("Microsoft.Design", "CA1062:Validate arguments of public methods")]
-        protected override IList Read(BinaryReader reader)
-        {
-            var res = new ArrayList(_columns.Length);
-
-            for (var i = 0; i < _columns.Length; i++)
-            {
-                res.Add(reader.ReadObject<object>());
-            }
-
-            return res;
         }
 
         /// <summary>
