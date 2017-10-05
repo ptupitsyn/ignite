@@ -19,7 +19,7 @@ package org.apache.ignite.internal.processors.platform.client.cache;
 
 import org.apache.ignite.IgniteCache;
 import org.apache.ignite.cache.query.QueryCursor;
-import org.apache.ignite.cache.query.SqlQuery;
+import org.apache.ignite.cache.query.SqlFieldsQuery;
 import org.apache.ignite.internal.binary.BinaryRawReaderEx;
 import org.apache.ignite.internal.processors.platform.cache.PlatformCache;
 import org.apache.ignite.internal.processors.platform.client.ClientConnectionContext;
@@ -31,19 +31,19 @@ import java.util.concurrent.TimeUnit;
  * Sql query request.
  */
 @SuppressWarnings("unchecked")
-public class ClientCacheSqlQueryRequest extends ClientCacheRequest {
+public class ClientCacheSqlFieldsQueryRequest extends ClientCacheRequest {
     /** Query. */
-    private final SqlQuery qry;
+    private final SqlFieldsQuery qry;
 
     /**
      * Ctor.
      *
      * @param reader Reader.
      */
-    public ClientCacheSqlQueryRequest(BinaryRawReaderEx reader) {
+    public ClientCacheSqlFieldsQueryRequest(BinaryRawReaderEx reader) {
         super(reader);
 
-        qry = new SqlQuery(reader.readString(), reader.readString())
+        qry = new SqlFieldsQuery(reader.readString())
                 .setArgs(PlatformCache.readQueryArgs(reader))
                 .setDistributedJoins(reader.readBoolean())
                 .setLocal(reader.readBoolean())
