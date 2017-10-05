@@ -18,6 +18,7 @@
 namespace Apache.Ignite.Core.Impl.Client.Cache.Query
 {
     using System.Collections.Generic;
+    using System.Collections.ObjectModel;
     using System.Diagnostics;
     using Apache.Ignite.Core.Binary;
     using Apache.Ignite.Core.Cache.Query;
@@ -28,9 +29,6 @@ namespace Apache.Ignite.Core.Impl.Client.Cache.Query
     /// </summary>
     internal class ClientFieldsQueryCursor : ClientQueryCursorBase<IList<object>>, IFieldsQueryCursor
     {
-        /** Columns. */
-        private readonly string[] _columns;
-
         /// <summary>
         /// Initializes a new instance of the <see cref="ClientQueryCursor{TK, TV}" /> class.
         /// </summary>
@@ -41,13 +39,13 @@ namespace Apache.Ignite.Core.Impl.Client.Cache.Query
         /// <param name="getPageOp">The get page op.</param>
         /// <param name="columns">The columns.</param>
         public ClientFieldsQueryCursor(IgniteClient ignite, long cursorId, bool keepBinary,
-            IBinaryStream initialBatchStream, ClientOp getPageOp, string[] columns)
+            IBinaryStream initialBatchStream, ClientOp getPageOp, IList<string> columns)
             : base(ignite, cursorId, keepBinary, initialBatchStream, getPageOp,
                 r =>
                 {
-                    var res = new List<object>(columns.Length);
+                    var res = new List<object>(columns.Count);
 
-                    for (var i = 0; i < columns.Length; i++)
+                    for (var i = 0; i < columns.Count; i++)
                     {
                         res.Add(r.ReadObject<object>());
                     }
@@ -57,8 +55,11 @@ namespace Apache.Ignite.Core.Impl.Client.Cache.Query
         {
             Debug.Assert(columns != null);
 
-            _columns = columns;
+            FieldNames = new ReadOnlyCollection<string>(columns);
         }
+
+        /** <inheritdoc /> */
+        public IList<string> FieldNames { get; private set; }
 
         /// <summary>
         /// Reads the columns.

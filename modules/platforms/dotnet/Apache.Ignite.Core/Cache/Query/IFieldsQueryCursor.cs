@@ -24,5 +24,9 @@ namespace Apache.Ignite.Core.Cache.Query
     /// </summary>
     public interface IFieldsQueryCursor : IQueryCursor<IList<object>>
     {
+        /// <summary>
+        /// Gets the field names.
+        /// </summary>
+        IList<string> FieldNames { get; }
     }
 }
