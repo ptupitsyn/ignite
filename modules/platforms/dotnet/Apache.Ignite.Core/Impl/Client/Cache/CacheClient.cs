@@ -182,7 +182,7 @@ namespace Apache.Ignite.Core.Impl.Client.Cache
         }
 
         /** <inheritDoc /> */
-        public IQueryCursor<IList> Query(SqlFieldsQuery sqlFieldsQuery)
+        public IFieldsQueryCursor Query(SqlFieldsQuery sqlFieldsQuery)
         {
             IgniteArgumentCheck.NotNull(sqlFieldsQuery, "sqlFieldsQuery");
             IgniteArgumentCheck.NotNull(sqlFieldsQuery.Sql, "sqlFieldsQuery.Sql");

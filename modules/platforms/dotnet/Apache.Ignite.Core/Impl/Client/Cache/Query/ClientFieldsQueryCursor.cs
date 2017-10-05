@@ -17,15 +17,16 @@
 
 namespace Apache.Ignite.Core.Impl.Client.Cache.Query
 {
-    using System.Collections;
+    using System.Collections.Generic;
     using System.Diagnostics;
     using Apache.Ignite.Core.Binary;
+    using Apache.Ignite.Core.Cache.Query;
     using Apache.Ignite.Core.Impl.Binary.IO;
 
     /// <summary>
     /// Client fields cursor.
     /// </summary>
-    internal class ClientFieldsQueryCursor : ClientQueryCursorBase<IList>
+    internal class ClientFieldsQueryCursor : ClientQueryCursorBase<IList<object>>, IFieldsQueryCursor
     {
         /** Columns. */
         private readonly string[] _columns;
@@ -44,7 +45,7 @@ namespace Apache.Ignite.Core.Impl.Client.Cache.Query
             : base(ignite, cursorId, keepBinary, initialBatchStream, getPageOp,
                 r =>
                 {
-                    var res = new ArrayList(columns.Length);
+                    var res = new List<object>(columns.Length);
 
                     for (var i = 0; i < columns.Length; i++)
                     {
