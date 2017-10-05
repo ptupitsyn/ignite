@@ -18,13 +18,14 @@
 package org.apache.ignite.internal.processors.platform.client.cache;
 
 import org.apache.ignite.IgniteCache;
-import org.apache.ignite.cache.query.QueryCursor;
+import org.apache.ignite.cache.query.FieldsQueryCursor;
 import org.apache.ignite.cache.query.SqlFieldsQuery;
 import org.apache.ignite.internal.binary.BinaryRawReaderEx;
 import org.apache.ignite.internal.processors.platform.cache.PlatformCache;
 import org.apache.ignite.internal.processors.platform.client.ClientConnectionContext;
 import org.apache.ignite.internal.processors.platform.client.ClientResponse;
 
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -48,6 +49,9 @@ public class ClientCacheSqlFieldsQueryRequest extends ClientCacheRequest {
                 .setDistributedJoins(reader.readBoolean())
                 .setLocal(reader.readBoolean())
                 .setReplicatedOnly(reader.readBoolean())
+                .setEnforceJoinOrder(reader.readBoolean())
+                .setCollocated(reader.readBoolean())
+                .setLazy(reader.readBoolean())
                 .setPageSize(reader.readInt())
                 .setTimeout((int) reader.readLong(), TimeUnit.MILLISECONDS);
     }
@@ -59,9 +63,9 @@ public class ClientCacheSqlFieldsQueryRequest extends ClientCacheRequest {
         ctx.incrementCursors();
 
         try {
-            QueryCursor cur = cache.query(qry);
+            FieldsQueryCursor<List> cur = cache.query(qry);
 
-            ClientCacheEntryQueryCursor cliCur = new ClientCacheEntryQueryCursor(
+            ClientCacheFieldsQueryCursor cliCur = new ClientCacheFieldsQueryCursor(
                     cur, qry.getPageSize(), ctx);
 
             long cursorId = ctx.resources().put(cliCur);

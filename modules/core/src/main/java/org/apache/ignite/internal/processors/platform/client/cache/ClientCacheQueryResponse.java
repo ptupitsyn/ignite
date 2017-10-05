@@ -25,7 +25,7 @@ import org.apache.ignite.internal.processors.platform.client.ClientResponse;
  */
 class ClientCacheQueryResponse extends ClientResponse {
     /** Cursor. */
-    private final ClientCacheEntryQueryCursor cursor;
+    private final ClientCacheQueryCursor cursor;
 
     /**
      * Ctor.
@@ -33,7 +33,7 @@ class ClientCacheQueryResponse extends ClientResponse {
      * @param requestId Request id.
      * @param cursor Cursor.
      */
-    ClientCacheQueryResponse(long requestId, ClientCacheEntryQueryCursor cursor) {
+    ClientCacheQueryResponse(long requestId, ClientCacheQueryCursor cursor) {
         super(requestId);
 
         assert cursor != null;
