@@ -21,6 +21,7 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
     using System.Linq;
     using Apache.Ignite.Core.Cache.Configuration;
     using Apache.Ignite.Core.Cache.Query;
+    using Apache.Ignite.Core.Client;
     using NUnit.Framework;
 
     /// <summary>
@@ -32,6 +33,11 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
         /// Cache item count.
         /// </summary>
         private const int Count = 10;
+
+        /// <summary>
+        /// Second cache name.
+        /// </summary>
+        private const string CacheName2 = CacheName + "2";
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ScanQueryTest"/> class.
@@ -47,6 +53,7 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
         public override void TestSetUp()
         {
             InitCache(CacheName);
+            InitCache(CacheName2);
         }
 
         /// <summary>
@@ -92,15 +99,12 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
         [Test]
         public void TestSqlQueryDistributedJoins()
         {
-            var cacheName2 = CacheName + "2";
-            InitCache(cacheName2);
-
             var cache = GetClientCache<Person>();
 
             // Non-distributed join returns incomplete results.
             var qry = new SqlQuery(typeof(Person),
                 string.Format("from \"{0}\".Person, \"{1}\".Person as p2 where Person.Id = 11 - p2.Id",
-                    CacheName, cacheName2));
+                    CacheName, CacheName2));
             
             Assert.Greater(Count, cache.Query(qry).Count());
 
@@ -128,8 +132,36 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
             Assert.Greater(Count, cache.Query(qry).Count());
 
             // Filter.
-            qry = new SqlFieldsQuery("select Name from Person where Id = ?", 1);
+            qry = new SqlFieldsQuery("select Name from Person where Id = ?", 1)
+            {
+                Lazy = true,
+                PageSize = 5,
+            };
             Assert.AreEqual("Person 1", cache.Query(qry).Single().Single());
+
+            // Invalid args.
+            qry.Sql = null;
+            Assert.Throws<ArgumentNullException>(() => cache.Query(qry));
+        }
+
+        /// <summary>
+        /// Tests the SQL fields query with distributed joins.
+        /// </summary>
+        [Test]
+        public void TestFieldsQueryDistributedJoins()
+        {
+            var cache = GetClientCache<Person>();
+
+            // Non-distributed join returns incomplete results.
+            var qry = new SqlFieldsQuery(string.Format(
+                "select p2.Name from \"{0}\".Person, \"{1}\".Person as p2 where Person.Id = 11 - p2.Id", 
+                CacheName, CacheName2));
+
+            Assert.Greater(Count, cache.Query(qry).Count());
+
+            // Distributed join fixes the problem.
+            qry.EnableDistributedJoins = true;
+            Assert.AreEqual(Count, cache.Query(qry).Count());
         }
 
         /// <summary>
@@ -146,7 +178,8 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
             {
                 Timeout = TimeSpan.FromMilliseconds(1)
             };
-            cache.Query(qry).GetAll();
+
+            Assert.Throws<IgniteClientException>(() => cache.Query(qry).GetAll());
         }
 
         /// <summary>
