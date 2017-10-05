@@ -41,5 +41,10 @@ class ClientCacheFieldsQueryCursor extends ClientCacheQueryCursor<List> {
     /** {@inheritDoc} */
     @Override void writeEntry(BinaryRawWriterEx writer, List e) {
         // TODO: no need to write count with every entry
+        writer.writeInt(e.size());
+
+        for (Object o : e) {
+            writer.writeObjectDetached(o);
+        }
     }
 }
