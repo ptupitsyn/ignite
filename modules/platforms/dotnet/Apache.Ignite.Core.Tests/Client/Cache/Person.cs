@@ -30,7 +30,7 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
         /// </summary>
         public Person()
         {
-            // No-op.
+            DateTime = DateTime.UtcNow;
         }
 
         /// <summary>
