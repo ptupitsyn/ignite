@@ -17,8 +17,8 @@
 
 package org.apache.ignite.internal.processors.platform.client.cache;
 
+import org.apache.ignite.cache.query.QueryCursor;
 import org.apache.ignite.internal.binary.BinaryRawWriterEx;
-import org.apache.ignite.internal.processors.cache.query.QueryCursorEx;
 import org.apache.ignite.internal.processors.platform.client.ClientConnectionContext;
 
 import javax.cache.Cache;
@@ -34,7 +34,7 @@ class ClientCacheEntryQueryCursor extends ClientCacheQueryCursor<Cache.Entry> {
      * @param pageSize Page size.
      * @param ctx      Context.
      */
-    ClientCacheEntryQueryCursor(QueryCursorEx<Cache.Entry> cursor, int pageSize, ClientConnectionContext ctx) {
+    ClientCacheEntryQueryCursor(QueryCursor<Cache.Entry> cursor, int pageSize, ClientConnectionContext ctx) {
         super(cursor, pageSize, ctx);
     }
 

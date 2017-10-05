@@ -17,8 +17,8 @@
 
 package org.apache.ignite.internal.processors.platform.client.cache;
 
+import org.apache.ignite.cache.query.QueryCursor;
 import org.apache.ignite.internal.binary.BinaryRawWriterEx;
-import org.apache.ignite.internal.processors.cache.query.QueryCursorEx;
 import org.apache.ignite.internal.processors.platform.client.ClientCloseableResource;
 import org.apache.ignite.internal.processors.platform.client.ClientConnectionContext;
 
@@ -30,7 +30,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
   */
 abstract class ClientCacheQueryCursor<T> implements ClientCloseableResource {
     /** Cursor. */
-    private final QueryCursorEx<T> cursor;
+    private final QueryCursor<T> cursor;
 
     /** Page size. */
     private final int pageSize;
@@ -53,7 +53,7 @@ abstract class ClientCacheQueryCursor<T> implements ClientCloseableResource {
      * @param pageSize Page size.
      * @param ctx Context.
      */
-    ClientCacheQueryCursor(QueryCursorEx<T> cursor, int pageSize, ClientConnectionContext ctx) {
+    ClientCacheQueryCursor(QueryCursor<T> cursor, int pageSize, ClientConnectionContext ctx) {
         assert cursor != null;
         assert pageSize > 0;
         assert ctx != null;

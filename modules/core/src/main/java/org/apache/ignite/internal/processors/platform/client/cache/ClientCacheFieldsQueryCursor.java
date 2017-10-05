@@ -17,8 +17,8 @@
 
 package org.apache.ignite.internal.processors.platform.client.cache;
 
+import org.apache.ignite.cache.query.FieldsQueryCursor;
 import org.apache.ignite.internal.binary.BinaryRawWriterEx;
-import org.apache.ignite.internal.processors.cache.query.QueryCursorEx;
 import org.apache.ignite.internal.processors.platform.client.ClientConnectionContext;
 
 import java.util.List;
@@ -34,12 +34,12 @@ class ClientCacheFieldsQueryCursor extends ClientCacheQueryCursor<List> {
      * @param pageSize Page size.
      * @param ctx      Context.
      */
-    ClientCacheFieldsQueryCursor(QueryCursorEx<List> cursor, int pageSize, ClientConnectionContext ctx) {
+    ClientCacheFieldsQueryCursor(FieldsQueryCursor<List> cursor, int pageSize, ClientConnectionContext ctx) {
         super(cursor, pageSize, ctx);
     }
 
     /** {@inheritDoc} */
     @Override void writeEntry(BinaryRawWriterEx writer, List e) {
-        // TODO
+        // TODO: no need to write count with every entry
     }
 }
