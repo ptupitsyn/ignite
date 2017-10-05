@@ -18,7 +18,9 @@
 namespace Apache.Ignite.Core.Impl.Client.Cache.Query
 {
     using System.Collections;
+    using System.Diagnostics;
     using System.Diagnostics.CodeAnalysis;
+    using Apache.Ignite.Core.Binary;
     using Apache.Ignite.Core.Impl.Binary;
     using Apache.Ignite.Core.Impl.Binary.IO;
 
@@ -27,6 +29,9 @@ namespace Apache.Ignite.Core.Impl.Client.Cache.Query
     /// </summary>
     internal class ClientFieldsQueryCursor : ClientQueryCursorBase<IList>
     {
+        /** Columns. */
+        private string[] _columns;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="ClientQueryCursor{TK, TV}" /> class.
         /// </summary>
@@ -35,11 +40,14 @@ namespace Apache.Ignite.Core.Impl.Client.Cache.Query
         /// <param name="keepBinary">Keep binary flag.</param>
         /// <param name="initialBatchStream">Optional stream with initial batch.</param>
         /// <param name="getPageOp">The get page op.</param>
+        /// <param name="columns">The columns.</param>
         public ClientFieldsQueryCursor(IgniteClient ignite, long cursorId, bool keepBinary, 
-            IBinaryStream initialBatchStream, ClientOp getPageOp) 
+            IBinaryStream initialBatchStream, ClientOp getPageOp, string[] columns)
             : base(ignite, cursorId, keepBinary, initialBatchStream, getPageOp)
         {
-            // No-op.
+            Debug.Assert(columns != null);
+
+            _columns = columns;
         }
 
         /** <inheritdoc /> */
@@ -53,6 +61,21 @@ namespace Apache.Ignite.Core.Impl.Client.Cache.Query
             for (var i = 0; i < count; i++)
             {
                 res.Add(reader.ReadObject<object>());
+            }
+
+            return res;
+        }
+
+        /// <summary>
+        /// Reads the columns.
+        /// </summary>
+        internal static string[] ReadColumns(IBinaryRawReader reader)
+        {
+            var res = new string[reader.ReadInt()];
+
+            for (int i = 0; i < res.Length; i++)
+            {
+                res[i] = reader.ReadString();
             }
 
             return res;

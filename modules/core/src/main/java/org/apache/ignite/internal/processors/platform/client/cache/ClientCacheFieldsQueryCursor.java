@@ -27,7 +27,7 @@ import java.util.List;
  * Query cursor holder.
   */
 class ClientCacheFieldsQueryCursor extends ClientCacheQueryCursor<List> {
-    /** Field count. */
+    /** Column count. */
     private final int columnCount;
 
     /**
