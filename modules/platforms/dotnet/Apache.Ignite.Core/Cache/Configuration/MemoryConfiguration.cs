@@ -17,6 +17,7 @@
 
 namespace Apache.Ignite.Core.Cache.Configuration
 {
+    using System;
     using System.Collections.Generic;
     using System.ComponentModel;
     using System.Diagnostics;
@@ -42,7 +43,10 @@ namespace Apache.Ignite.Core.Cache.Configuration
     /// eviction policies, swapping options, etc. Once you define a new memory region you can bind
     /// particular Ignite caches to it. <para />
     /// To learn more about memory policies refer to <see cref="MemoryPolicyConfiguration" /> documentation.
+    /// <para />
+    /// Obsolete, use <see cref="DataStorageConfiguration"/>.
     /// </summary>
+    [Obsolete("Use DataStorageConfiguration.")]
     public class MemoryConfiguration
     {
         /// <summary>

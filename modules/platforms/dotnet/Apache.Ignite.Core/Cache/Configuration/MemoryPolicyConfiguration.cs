@@ -26,7 +26,9 @@ namespace Apache.Ignite.Core.Cache.Configuration
 
     /// <summary>
     /// Defines page memory policy configuration. See <see cref="MemoryConfiguration.MemoryPolicies"/>.
+    /// Obsolete, use <see cref="DataRegionConfiguration"/>.
     /// </summary>
+    [Obsolete("Use DataRegionConfiguration.")]
     public class MemoryPolicyConfiguration
     {
         /// <summary>
