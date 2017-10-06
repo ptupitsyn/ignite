@@ -22,8 +22,7 @@ namespace Apache.Ignite.Core.Data
     /// <summary>
     /// Persistent store metrics.
     /// </summary>
-    [Obsolete("TODO")]  // TODO
-    public interface IPersistentStoreMetrics
+    public interface IDataStorageMetrics
     {
         /// <summary>
         /// Gets the average number of WAL records per second written during the last time interval. 
