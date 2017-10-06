@@ -75,14 +75,14 @@ namespace Apache.Ignite.Core.Configuration
         public static readonly TimeSpan DefaultRateTimeInterval = TimeSpan.FromSeconds(60);
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="MemoryPolicyConfiguration"/> class.
+        /// Initializes a new instance of the <see cref="DataRegionConfiguration"/> class.
         /// </summary>
         public DataRegionConfiguration()
         {
             PersistenceEnabled = DefaultPersistenceEnabled;
             EvictionThreshold = DefaultEvictionThreshold;
             EmptyPagesPoolSize = DefaultEmptyPagesPoolSize;
-            Name = MemoryConfiguration.DefaultDefaultMemoryPolicyName;
+            Name = DataStorageConfiguration.DefaultDefaultDataRegionName;
             InitialSize = DefaultInitialSize;
             MaxSize = DefaultMaxSize;
             SubIntervals = DefaultSubIntervals;
@@ -90,7 +90,7 @@ namespace Apache.Ignite.Core.Configuration
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="MemoryPolicyConfiguration"/> class.
+        /// Initializes a new instance of the <see cref="DataRegionConfiguration"/> class.
         /// </summary>
         /// <param name="reader">The reader.</param>
         internal DataRegionConfiguration(IBinaryRawReader reader)
@@ -128,9 +128,9 @@ namespace Apache.Ignite.Core.Configuration
 
         /// <summary>
         /// Gets or sets the memory policy name.
-        /// Defaults to <see cref="MemoryConfiguration.DefaultDefaultMemoryPolicyName"/>.
+        /// Defaults to <see cref="DataStorageConfiguration.DefaultDefaultDataRegionName"/>.
         /// </summary>
-        [DefaultValue(MemoryConfiguration.DefaultDefaultMemoryPolicyName)]
+        [DefaultValue(DataStorageConfiguration.DefaultDefaultDataRegionName)]
         public string Name { get; set; }
 
         /// <summary>
