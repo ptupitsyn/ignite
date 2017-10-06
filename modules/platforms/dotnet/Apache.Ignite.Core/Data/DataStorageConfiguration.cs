@@ -374,8 +374,8 @@ namespace Apache.Ignite.Core.Data
         public bool AlwaysWriteFullPages { get; set; }
 
         /// <summary>
-        /// Gets or sets a value indicating whether to enable persistent store metrics.
-        /// See <see cref="IIgnite.GetPersistentStoreMetrics"/>.
+        /// Gets or sets a value indicating whether to enable data storage metrics.
+        /// See <see cref="IIgnite.GetDataStorageMetrics"/>.
         /// </summary>
         public bool MetricsEnabled { get; set; }
 
@@ -434,7 +434,7 @@ namespace Apache.Ignite.Core.Data
         /// Gets or sets the name of the default memory policy in <see cref="DataRegions"/>.
         /// </summary>
         [DefaultValue(DefaultDefaultDataRegionName)]
-        public string DefaultDataRegionName { get; set; }
+        public string DefaultDataRegionName { get; set; }  // TODO: Remove, replace with DefaultDataRegion embedded config
 
         /// <summary>
         /// Gets or sets the data region configurations.
