@@ -440,6 +440,7 @@ namespace Apache.Ignite.Core
                 memEventStorage.Write(writer);
             }
 
+#pragma warning disable 618  // Obsolete
             if (MemoryConfiguration != null)
             {
                 writer.WriteBoolean(true);
@@ -449,6 +450,7 @@ namespace Apache.Ignite.Core
             {
                 writer.WriteBoolean(false);
             }
+#pragma warning restore 618
 
             // SQL connector.
 #pragma warning disable 618  // Obsolete
@@ -477,10 +479,23 @@ namespace Apache.Ignite.Core
             writer.WriteBoolean(ClientConnectorConfigurationEnabled);
 
             // Persistence.
+#pragma warning disable 618  // Obsolete
             if (PersistentStoreConfiguration != null)
             {
                 writer.WriteBoolean(true);
                 PersistentStoreConfiguration.Write(writer);
+            }
+            else
+            {
+                writer.WriteBoolean(false);
+            }
+#pragma warning restore 618
+
+            // Data storage.
+            if (DataStorageConfiguration != null)
+            {
+                writer.WriteBoolean(true);
+                DataStorageConfiguration.Write(writer);
             }
             else
             {
@@ -676,7 +691,9 @@ namespace Apache.Ignite.Core
 
             if (r.ReadBoolean())
             {
+#pragma warning disable 618  // Obsolete
                 MemoryConfiguration = new MemoryConfiguration(r);
+#pragma warning enable 618  // Obsolete
             }
 
             // SQL.
@@ -698,7 +715,15 @@ namespace Apache.Ignite.Core
             // Persistence.
             if (r.ReadBoolean())
             {
+#pragma warning disable CS0618 // Obsolete
                 PersistentStoreConfiguration = new PersistentStoreConfiguration(r);
+#pragma warning restore CS0618
+            }
+
+            // Data storage.
+            if (r.ReadBoolean())
+            {
+                DataStorageConfiguration = new DataStorageConfiguration(r);
             }
         }
 
