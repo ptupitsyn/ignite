@@ -23,6 +23,7 @@ namespace Apache.Ignite.Core.PersistentStore
     using System.Diagnostics.CodeAnalysis;
     using Apache.Ignite.Core.Binary;
     using Apache.Ignite.Core.Configuration;
+    using Apache.Ignite.Core.Data;
     using Apache.Ignite.Core.Impl.Binary;
 
     /// <summary>

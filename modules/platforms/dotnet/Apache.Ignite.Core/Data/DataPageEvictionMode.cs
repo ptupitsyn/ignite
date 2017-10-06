@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-namespace Apache.Ignite.Core.Configuration
+namespace Apache.Ignite.Core.Data
 {
     /// <summary>
     /// Memory page eviction mode.
