@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-namespace Apache.Ignite.Core.Cache.Configuration
+namespace Apache.Ignite.Core.Configuration
 {
     /// <summary>
     /// Data storage configuration for Ignite page memory.

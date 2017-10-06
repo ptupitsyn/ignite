@@ -15,12 +15,14 @@
  * limitations under the License.
  */
 
-namespace Apache.Ignite.Core.Cache.Configuration
+namespace Apache.Ignite.Core.Configuration
 {
     using System;
     using System.ComponentModel;
     using System.Diagnostics.CodeAnalysis;
     using Apache.Ignite.Core.Binary;
+    using Apache.Ignite.Core.Cache;
+    using Apache.Ignite.Core.Cache.Configuration;
     using Apache.Ignite.Core.Impl;
     using Apache.Ignite.Core.Impl.Binary;
 
