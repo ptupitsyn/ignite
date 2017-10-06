@@ -26,6 +26,7 @@ namespace Apache.Ignite.Core
     using Apache.Ignite.Core.Cluster;
     using Apache.Ignite.Core.Common;
     using Apache.Ignite.Core.Compute;
+    using Apache.Ignite.Core.Data;
     using Apache.Ignite.Core.Datastream;
     using Apache.Ignite.Core.DataStructures;
     using Apache.Ignite.Core.Events;
@@ -337,6 +338,7 @@ namespace Apache.Ignite.Core
         /// <para />
         /// Memory metrics should be enabled with <see cref="MemoryPolicyConfiguration.MetricsEnabled"/>.
         /// </summary>
+        [Obsolete("Use GetDataRegionMetrics.")]
         ICollection<IMemoryMetrics> GetMemoryMetrics();
 
         /// <summary>
@@ -346,6 +348,7 @@ namespace Apache.Ignite.Core
         /// use <see cref="MemoryConfiguration.DefaultMemoryPolicyName"/>.
         /// </summary>
         /// <param name="memoryPolicyName">Name of the memory policy.</param>
+        [Obsolete("Use GetDataRegionMetrics.")]
         IMemoryMetrics GetMemoryMetrics(string memoryPolicyName);
 
         /// <summary>
@@ -367,6 +370,31 @@ namespace Apache.Ignite.Core
         /// To enable metrics set <see cref="PersistentStoreConfiguration.MetricsEnabled"/> property
         /// in <see cref="IgniteConfiguration.PersistentStoreConfiguration"/>.
         /// </summary>
+        [Obsolete("Use GetDataStorageMetrics.")]
         IPersistentStoreMetrics GetPersistentStoreMetrics();
+
+        /// <summary>
+        /// Gets a collection of memory metrics, one for each <see cref="DataStorageConfiguration.DataRegions"/>.
+        /// <para />
+        /// Memory metrics should be enabled with <see cref="DataStorageConfiguration.MetricsEnabled"/>.
+        /// </summary>
+        ICollection<IDataRegionMetrics> GetDataRegionMetrics();
+
+        /// <summary>
+        /// Gets the memory metrics for the specified memory policy.
+        /// <para />
+        /// To get metrics for the default memory region,
+        /// use <see cref="DataStorageConfiguration.DefaultDataRegionName"/>.
+        /// </summary>
+        /// <param name="memoryPolicyName">Name of the memory policy.</param>
+        IDataRegionMetrics GetDataRegionMetrics(string memoryPolicyName);
+
+        /// <summary>
+        /// Gets the persistent store metrics.
+        /// <para />
+        /// To enable metrics set <see cref="DataStorageConfiguration.MetricsEnabled"/> property
+        /// in <see cref="IgniteConfiguration.DataStorageConfiguration"/>.
+        /// </summary>
+        IDataStorageMetrics GetDataStorageMetrics();
     }
 }

@@ -35,6 +35,7 @@ namespace Apache.Ignite.Core
     using Apache.Ignite.Core.Communication.Tcp;
     using Apache.Ignite.Core.Compute;
     using Apache.Ignite.Core.Configuration;
+    using Apache.Ignite.Core.Data;
     using Apache.Ignite.Core.DataStructures.Configuration;
     using Apache.Ignite.Core.Deployment;
     using Apache.Ignite.Core.Discovery;
@@ -1242,8 +1243,16 @@ namespace Apache.Ignite.Core
         /// <summary>
         /// Gets or sets the page memory configuration.
         /// <see cref="MemoryConfiguration"/> for more details.
+        /// <para />
+        /// Obsolete, use <see cref="DataStorageConfiguration"/>.
         /// </summary>
+        [Obsolete("Use DataStorageConfiguration.")]
         public MemoryConfiguration MemoryConfiguration { get; set; }
+
+        /// <summary>
+        /// Gets or sets the data storage configuration.
+        /// </summary>
+        public DataStorageConfiguration DataStorageConfiguration { get; set; }
 
         /// <summary>
         /// Gets or sets a value indicating how user assemblies should be loaded on remote nodes.
@@ -1373,14 +1382,17 @@ namespace Apache.Ignite.Core
 
         /// <summary>
         /// Gets or sets the persistent store configuration.
+        /// <para />
+        /// Obsolete, use <see cref="DataStorageConfiguration"/>.
         /// </summary>
+        [Obsolete("Use DataStorageConfiguration.")]
         public PersistentStoreConfiguration PersistentStoreConfiguration { get; set; }
 
         /// <summary>
         /// Gets or sets a value indicating whether grid should be active on start.
         /// See also <see cref="IIgnite.IsActive"/> and <see cref="IIgnite.SetActive"/>.
         /// <para />
-        /// This property is ignored when <see cref="PersistentStoreConfiguration"/> is present:
+        /// This property is ignored when <see cref="DataStorageConfiguration"/> is present:
         /// cluster is always inactive on start when Ignite Persistence is enabled.
         /// </summary>
         [DefaultValue(DefaultIsActiveOnStart)]
