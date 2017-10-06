@@ -34,6 +34,7 @@ namespace Apache.Ignite.Core.Cache.Configuration
     using Apache.Ignite.Core.Cache.Expiry;
     using Apache.Ignite.Core.Cache.Store;
     using Apache.Ignite.Core.Common;
+    using Apache.Ignite.Core.Data;
     using Apache.Ignite.Core.Impl;
     using Apache.Ignite.Core.Impl.Binary;
     using Apache.Ignite.Core.Impl.Cache.Affinity;
@@ -286,9 +287,7 @@ namespace Apache.Ignite.Core.Cache.Configuration
             ReadThrough = reader.ReadBoolean();
             WriteThrough = reader.ReadBoolean();
             EnableStatistics = reader.ReadBoolean();
-#pragma warning disable 618
-            MemoryPolicyName = reader.ReadString();
-#pragma warning restore 618
+            DataRegionName = reader.ReadString();
             PartitionLossPolicy = (PartitionLossPolicy) reader.ReadInt();
             GroupName = reader.ReadString();
             CacheStoreFactory = reader.ReadObject<IFactory<ICacheStore>>();
@@ -368,9 +367,7 @@ namespace Apache.Ignite.Core.Cache.Configuration
             writer.WriteBoolean(ReadThrough);
             writer.WriteBoolean(WriteThrough);
             writer.WriteBoolean(EnableStatistics);
-#pragma warning disable 618
-            writer.WriteString(MemoryPolicyName);
-#pragma warning restore 618
+            writer.WriteString(DataRegionName);
             writer.WriteInt((int) PartitionLossPolicy);
             writer.WriteString(GroupName);
             writer.WriteObject(CacheStoreFactory);
@@ -751,11 +748,15 @@ namespace Apache.Ignite.Core.Cache.Configuration
         /// Gets or sets the name of the <see cref="MemoryPolicyConfiguration"/> for this cache.
         /// See <see cref="IgniteConfiguration.MemoryConfiguration"/>.
         /// </summary>
-        [Obsolete("Use DataReqionName.")]
-        public string MemoryPolicyName { get; set; }
+        [Obsolete("Use DataRegionName.")]
+        public string MemoryPolicyName
+        {
+            get { return DataRegionName; }
+            set { DataRegionName = value; }
+        }
 
         /// <summary>
-        /// TODO
+        /// Gets or sets the name of the data region, see <see cref="DataRegionConfiguration"/>.
         /// </summary>
         public string DataRegionName { get; set; }
 
@@ -780,7 +781,7 @@ namespace Apache.Ignite.Core.Cache.Configuration
         /// <para />
         /// Since underlying cache is shared, the following configuration properties should be the same within group:
         /// <see cref="AffinityFunction"/>, <see cref="CacheMode"/>, <see cref="PartitionLossPolicy"/>,
-        /// <see cref="MemoryPolicyName"/>
+        /// <see cref="DataRegionName"/>
         /// <para />
         /// Grouping caches reduces overall overhead, since internal data structures are shared.
         /// </summary>

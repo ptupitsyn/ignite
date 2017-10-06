@@ -184,10 +184,10 @@ public class PlatformConfigurationUtils {
         ccfg.setWriteThrough(in.readBoolean());
         ccfg.setStatisticsEnabled(in.readBoolean());
 
-        String memoryPolicyName = in.readString();
+        String dataRegionName = in.readString();
 
-        if (memoryPolicyName != null)
-            ccfg.setMemoryPolicyName(memoryPolicyName);
+        if (dataRegionName != null)
+            ccfg.setDataRegionName(dataRegionName);
 
         ccfg.setPartitionLossPolicy(PartitionLossPolicy.fromOrdinal((byte)in.readInt()));
         ccfg.setGroupName(in.readString());
@@ -873,7 +873,7 @@ public class PlatformConfigurationUtils {
         writer.writeBoolean(ccfg.isReadThrough());
         writer.writeBoolean(ccfg.isWriteThrough());
         writer.writeBoolean(ccfg.isStatisticsEnabled());
-        writer.writeString(ccfg.getMemoryPolicyName());
+        writer.writeString(ccfg.getDataRegionName());
         writer.writeInt(ccfg.getPartitionLossPolicy().ordinal());
         writer.writeString(ccfg.getGroupName());
 
