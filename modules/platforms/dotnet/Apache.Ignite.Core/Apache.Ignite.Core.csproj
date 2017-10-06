@@ -94,6 +94,7 @@
     <Compile Include="Binary\BinaryBasicNameMapper.cs" />
     <Compile Include="Binary\TimestampAttribute.cs" />
     <Compile Include="Cache\Configuration\DataPageEvictionMode.cs" />
+    <Compile Include="Data\CheckpointWriteOrder.cs" />
     <Compile Include="Data\DataPageEvictionMode.cs" />
     <Compile Include="Data\DataRegionConfiguration.cs" />
     <Compile Include="Data\DataStorageConfiguration.cs" />
@@ -108,6 +109,7 @@
     <Compile Include="Configuration\Package-Info.cs" />
     <Compile Include="Configuration\ClientConnectorConfiguration.cs" />
     <Compile Include="Datastream\DataStreamerDefaults.cs" />
+    <Compile Include="Data\WalMode.cs" />
     <Compile Include="Impl\Binary\BinaryTypeId.cs" />
     <Compile Include="Impl\Client\Cache\CacheFlags.cs" />
     <Compile Include="Impl\Client\Cache\Query\ClientQueryCursor.cs" />

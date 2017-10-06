@@ -15,14 +15,11 @@
  * limitations under the License.
  */
 
-namespace Apache.Ignite.Core.PersistentStore
+namespace Apache.Ignite.Core.Data
 {
-    using System;
-
     /// <summary>
     /// Defines checkpoint pages order on disk.
     /// </summary>
-    [Obsolete("Use Apache.Ignite.Core.Data.CheckpointWriteOrder")]
     public enum CheckpointWriteOrder
     {
         /// <summary>
