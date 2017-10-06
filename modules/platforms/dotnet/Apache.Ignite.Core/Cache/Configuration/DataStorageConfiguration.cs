@@ -18,7 +18,15 @@
 namespace Apache.Ignite.Core.Cache.Configuration
 {
     /// <summary>
-    /// 
+    /// Data storage configuration for Ignite page memory.
+    /// <para />
+    /// The page memory is a manageable off-heap based memory architecture that divides all expandable data
+    /// regions into pages of fixed size. An individual page can store one or many cache key-value entries
+    /// that allows reusing the memory in the most efficient way and avoid memory fragmentation issues.
+    /// <para />
+    /// By default, the page memory allocates a single expandable data region. All the caches that will be
+    /// configured in an application will be mapped to this data region by default, thus, all the cache data
+    /// will reside in that data region.
     /// </summary>
     public class DataStorageConfiguration
     {
