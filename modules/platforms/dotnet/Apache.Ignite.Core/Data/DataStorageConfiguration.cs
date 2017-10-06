@@ -40,6 +40,8 @@ namespace Apache.Ignite.Core.Data
     /// </summary>
     public class DataStorageConfiguration
     {
+        // TODO: Rename *systemCache* -> *systemRegion*, see Java, merge from base branch.
+
         /// <summary>
         /// Default value for <see cref="CheckpointingThreads"/>.
         /// </summary>
