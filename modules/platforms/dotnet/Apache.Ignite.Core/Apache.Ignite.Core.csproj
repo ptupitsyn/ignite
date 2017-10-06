@@ -109,7 +109,7 @@
     <Compile Include="Configuration\Package-Info.cs" />
     <Compile Include="Configuration\ClientConnectorConfiguration.cs" />
     <Compile Include="Datastream\DataStreamerDefaults.cs" />
-    <Compile Include="Data\IMemoryMetrics.cs" />
+    <Compile Include="Data\IDataRegionMetrics.cs" />
     <Compile Include="Data\IPersistentStoreMetrics.cs" />
     <Compile Include="Data\WalMode.cs" />
     <Compile Include="Impl\Binary\BinaryTypeId.cs" />

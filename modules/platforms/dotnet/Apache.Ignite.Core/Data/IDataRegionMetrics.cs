@@ -17,13 +17,10 @@
 
 namespace Apache.Ignite.Core.Data
 {
-    using System;
-
     /// <summary>
     /// Memory usage metrics.
     /// </summary>
-    [Obsolete("TODO")]  // TODO
-    public interface IMemoryMetrics
+    public interface IDataRegionMetrics
     {
         /// <summary>
         /// Gets the memory policy name.

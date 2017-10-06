@@ -21,7 +21,6 @@ namespace Apache.Ignite.Core.Data
     using System.ComponentModel;
     using System.Diagnostics.CodeAnalysis;
     using Apache.Ignite.Core.Binary;
-    using Apache.Ignite.Core.Cache;
     using Apache.Ignite.Core.Cache.Configuration;
     using Apache.Ignite.Core.Impl;
     using Apache.Ignite.Core.Impl.Binary;
@@ -195,11 +194,11 @@ namespace Apache.Ignite.Core.Data
         public bool MetricsEnabled { get; set; }
 
         /// <summary>
-        /// Gets or sets the rate time interval for <see cref="IMemoryMetrics.AllocationRate"/>
-        /// and <see cref="IMemoryMetrics.EvictionRate"/> monitoring purposes.
+        /// Gets or sets the rate time interval for <see cref="IDataRegionMetrics.AllocationRate"/>
+        /// and <see cref="IDataRegionMetrics.EvictionRate"/> monitoring purposes.
         /// <para />
         /// For instance, after setting the interval to 60 seconds, subsequent calls
-        /// to <see cref="IMemoryMetrics.AllocationRate"/> will return average allocation
+        /// to <see cref="IDataRegionMetrics.AllocationRate"/> will return average allocation
         /// rate (pages per second) for the last minute.
         /// </summary>
         [DefaultValue(typeof(TimeSpan), "00:01:00")]
@@ -207,7 +206,7 @@ namespace Apache.Ignite.Core.Data
 
         /// <summary>
         /// Gets or sets the number of sub intervals to split <see cref="RateTimeInterval"/> into to calculate 
-        /// <see cref="IMemoryMetrics.AllocationRate"/> and <see cref="IMemoryMetrics.EvictionRate"/>.
+        /// <see cref="IDataRegionMetrics.AllocationRate"/> and <see cref="IDataRegionMetrics.EvictionRate"/>.
         /// <para />
         /// Bigger value results in more accurate metrics.
         /// </summary>
