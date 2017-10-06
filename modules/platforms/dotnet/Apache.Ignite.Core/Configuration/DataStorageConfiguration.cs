@@ -18,10 +18,12 @@
 namespace Apache.Ignite.Core.Configuration
 {
     using System;
+    using System.Collections.Generic;
     using System.ComponentModel;
     using System.Diagnostics;
     using System.Diagnostics.CodeAnalysis;
     using Apache.Ignite.Core.Binary;
+    using Apache.Ignite.Core.Cache.Configuration;
     using Apache.Ignite.Core.Impl.Binary;
     using Apache.Ignite.Core.PersistentStore;
 
@@ -119,6 +121,27 @@ namespace Apache.Ignite.Core.Configuration
         /// Default value for <see cref="WriteThrottlingEnabled"/>.
         /// </summary>
         public const bool DefaultWriteThrottlingEnabled = false;
+
+        /// <summary>
+        /// Default size of a memory chunk reserved for system cache initially.
+        /// </summary>
+        public const long DefaultSystemCacheInitialSize = 40 * 1024 * 1024;
+
+        /// <summary>
+        /// Default max size of a memory chunk for the system cache.
+        /// </summary>
+        public const long DefaultSystemCacheMaxSize = 100 * 1024 * 1024;
+
+        /// <summary>
+        /// The default page size.
+        /// </summary>
+        public const int DefaultPageSize = 4 * 1024;
+
+        /// <summary>
+        /// The default value for <see cref="DefaultDataRegionName"/>.
+        /// </summary>
+        public const string DefaultDefaultDataRegionName = "default";
+
 
         /// <summary>
         /// Initializes a new instance of the <see cref="DataStorageConfiguration"/> class.
@@ -336,5 +359,40 @@ namespace Apache.Ignite.Core.Configuration
         /// </summary>
         [DefaultValue(DefaultWriteThrottlingEnabled)]
         public bool WriteThrottlingEnabled { get; set; }
+
+        /// <summary>
+        /// Gets or sets the size of a memory chunk reserved for system cache needs.
+        /// </summary>
+        [DefaultValue(DefaultSystemCacheInitialSize)]
+        public long SystemCacheInitialSize { get; set; }
+
+        /// <summary>
+        /// Gets or sets the maximum memory region size reserved for system cache.
+        /// </summary>
+        [DefaultValue(DefaultSystemCacheMaxSize)]
+        public long SystemCacheMaxSize { get; set; }
+
+        /// <summary>
+        /// Gets or sets the size of the memory page.
+        /// </summary>
+        [DefaultValue(DefaultPageSize)]
+        public int PageSize { get; set; }
+
+        /// <summary>
+        /// Gets or sets the number of concurrent segments in Ignite internal page mapping tables.
+        /// </summary>
+        public int ConcurrencyLevel { get; set; }
+
+        /// <summary>
+        /// Gets or sets the name of the default memory policy in <see cref="DataRegions"/>.
+        /// </summary>
+        [DefaultValue(DefaultDefaultDataRegionName)]
+        public string DefaultDataRegionName { get; set; }
+
+        /// <summary>
+        /// Gets or sets the data region configurations.
+        /// </summary>
+        [SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public ICollection<DataRegionConfiguration> DataRegions { get; set; }
     }
 }
