@@ -22,7 +22,9 @@ namespace Apache.Ignite.Core.Configuration
     using System.ComponentModel;
     using System.Diagnostics;
     using System.Diagnostics.CodeAnalysis;
+    using System.Linq;
     using Apache.Ignite.Core.Binary;
+    using Apache.Ignite.Core.Common;
     using Apache.Ignite.Core.Impl.Binary;
     using Apache.Ignite.Core.PersistentStore;
 
@@ -163,6 +165,10 @@ namespace Apache.Ignite.Core.Configuration
             WalStorePath = DefaultWalStorePath;
             CheckpointWriteOrder = DefaultCheckpointWriteOrder;
             WriteThrottlingEnabled = DefaultWriteThrottlingEnabled;
+            SystemCacheInitialSize = DefaultSystemCacheInitialSize;
+            SystemCacheMaxSize = DefaultSystemCacheMaxSize;
+            PageSize = DefaultPageSize;
+            DefaultDataRegionName = DefaultDefaultDataRegionName;
         }
 
         /// <summary>
@@ -194,6 +200,21 @@ namespace Apache.Ignite.Core.Configuration
             RateTimeInterval = reader.ReadLongAsTimespan();
             CheckpointWriteOrder = (CheckpointWriteOrder)reader.ReadInt();
             WriteThrottlingEnabled = reader.ReadBoolean();
+
+            SystemCacheInitialSize = reader.ReadLong();
+            SystemCacheMaxSize = reader.ReadLong();
+            PageSize = reader.ReadInt();
+            ConcurrencyLevel = reader.ReadInt();
+            DefaultDataRegionName = reader.ReadString();
+
+            var count = reader.ReadInt();
+
+            if (count > 0)
+            {
+                DataRegions = Enumerable.Range(0, count)
+                    .Select(x => new DataRegionConfiguration(reader))
+                    .ToArray();
+            }
         }
 
         /// <summary>
@@ -225,6 +246,32 @@ namespace Apache.Ignite.Core.Configuration
             writer.WriteTimeSpanAsLong(RateTimeInterval);
             writer.WriteInt((int)CheckpointWriteOrder);
             writer.WriteBoolean(WriteThrottlingEnabled);
+
+            writer.WriteLong(SystemCacheInitialSize);
+            writer.WriteLong(SystemCacheMaxSize);
+            writer.WriteInt(PageSize);
+            writer.WriteInt(ConcurrencyLevel);
+            writer.WriteString(DefaultDataRegionName);
+
+            if (DataRegions != null)
+            {
+                writer.WriteInt(DataRegions.Count);
+
+                foreach (var region in DataRegions)
+                {
+                    if (region == null)
+                    {
+                        throw new IgniteException(
+                            "DataStorageConfiguration.DataRegions must not contain null items.");
+                    }
+
+                    region.Write(writer);
+                }
+            }
+            else
+            {
+                writer.WriteInt(0);
+            }
         }
 
         /// <summary>
