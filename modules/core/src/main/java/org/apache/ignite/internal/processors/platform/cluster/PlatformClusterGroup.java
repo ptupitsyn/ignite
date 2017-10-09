@@ -205,6 +205,18 @@ public class PlatformClusterGroup extends PlatformAbstractTarget {
                 break;
             }
 
+            case OP_DATA_REGION_METRICS: {
+                Collection<DataRegionMetrics> metrics = prj.ignite().dataRegionMetrics();
+
+                writer.writeInt(metrics.size());
+
+                for (DataRegionMetrics m : metrics) {
+                    writeDataRegionMetrics(writer, m);
+                }
+
+                break;
+            }
+
             default:
                 super.processOutStream(type, writer);
         }
