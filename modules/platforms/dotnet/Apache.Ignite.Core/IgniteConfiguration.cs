@@ -693,7 +693,7 @@ namespace Apache.Ignite.Core
             {
 #pragma warning disable 618  // Obsolete
                 MemoryConfiguration = new MemoryConfiguration(r);
-#pragma warning enable 618  // Obsolete
+#pragma warning restore 618  // Obsolete
             }
 
             // SQL.
