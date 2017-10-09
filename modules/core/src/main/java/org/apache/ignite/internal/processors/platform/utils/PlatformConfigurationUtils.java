@@ -57,6 +57,7 @@ import org.apache.ignite.configuration.CacheConfiguration;
 import org.apache.ignite.configuration.CheckpointWriteOrder;
 import org.apache.ignite.configuration.ClientConnectorConfiguration;
 import org.apache.ignite.configuration.DataPageEvictionMode;
+import org.apache.ignite.configuration.DataRegionConfiguration;
 import org.apache.ignite.configuration.DataStorageConfiguration;
 import org.apache.ignite.configuration.IgniteConfiguration;
 import org.apache.ignite.configuration.MemoryConfiguration;
@@ -1681,6 +1682,7 @@ public class PlatformConfigurationUtils {
             w.writeBoolean(false);
         }
     }
+
     /**
      * Writes the data storage configuration.
      *
@@ -1724,6 +1726,50 @@ public class PlatformConfigurationUtils {
         } else {
             w.writeBoolean(false);
         }
+    }
+
+    /**
+     * Writes the data region configuration.
+     *
+     * @param w Writer.
+     */
+    private static void writeDataRegionConfiguration(BinaryRawWriter w, DataRegionConfiguration cfg) {
+        assert w != null;
+        assert cfg != null;
+
+        w.writeString(cfg.getName());
+        w.writeBoolean(cfg.isPersistenceEnabled());
+        w.writeLong(cfg.getInitialSize());
+        w.writeLong(cfg.getMaxSize());
+        w.writeString(cfg.getSwapFilePath());
+        w.writeInt(cfg.getPageEvictionMode().ordinal());
+        w.writeDouble(cfg.getEvictionThreshold());
+        w.writeInt(cfg.getEmptyPagesPoolSize());
+        w.writeBoolean(cfg.isMetricsEnabled());
+        w.writeInt(cfg.getSubIntervals());
+        w.writeLong(cfg.getRateTimeInterval());
+    }
+
+    /**
+     * Reads the data region configuration.
+     *
+     * @param r Reader.
+     */
+    private static DataRegionConfiguration readDataRegionConfiguration(BinaryRawReader r) {
+        assert r != null;
+
+        return new DataRegionConfiguration()
+                .setName(r.readString())
+                .setPersistenceEnabled(r.readBoolean())
+                .setInitialSize(r.readLong())
+                .setMaxSize(r.readLong())
+                .setSwapFilePath(r.readString())
+                .setPageEvictionMode(DataPageEvictionMode.fromOrdinal(r.readInt()))
+                .setEvictionThreshold(r.readDouble())
+                .setEmptyPagesPoolSize(r.readInt())
+                .setMetricsEnabled(r.readBoolean())
+                .setSubIntervals(r.readInt())
+                .setRateTimeInterval(r.readLong());
     }
 
     /**
