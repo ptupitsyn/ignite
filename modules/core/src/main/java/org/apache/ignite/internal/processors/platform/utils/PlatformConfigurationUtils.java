@@ -1655,11 +1655,11 @@ public class PlatformConfigurationUtils {
                 regs[i] = readDataRegionConfiguration(in);
             }
 
-            res.setDataRegions(regs);
+            res.setDataRegionConfigurations(regs);
         }
 
         if (in.readBoolean()) {
-            res.setDefaultRegionConfiguration(readDataRegionConfiguration(in));
+            res.setDefaultDataRegionConfiguration(readDataRegionConfiguration(in));
         }
 
         return res;
@@ -1741,19 +1741,19 @@ public class PlatformConfigurationUtils {
             w.writeInt(cfg.getPageSize());
             w.writeInt(cfg.getConcurrencyLevel());
 
-            if (cfg.getDataRegions() != null) {
-                w.writeInt(cfg.getDataRegions().length);
+            if (cfg.getDataRegionConfigurations() != null) {
+                w.writeInt(cfg.getDataRegionConfigurations().length);
 
-                for (DataRegionConfiguration d : cfg.getDataRegions()) {
+                for (DataRegionConfiguration d : cfg.getDataRegionConfigurations()) {
                     writeDataRegionConfiguration(w, d);
                 }
             } else {
                 w.writeInt(0);
             }
 
-            if (cfg.getDefaultRegionConfiguration() != null) {
+            if (cfg.getDefaultDataRegionConfiguration() != null) {
                 w.writeBoolean(true);
-                writeDataRegionConfiguration(w, cfg.getDefaultRegionConfiguration());
+                writeDataRegionConfiguration(w, cfg.getDefaultDataRegionConfiguration());
             } else {
                 w.writeBoolean(false);
             }
