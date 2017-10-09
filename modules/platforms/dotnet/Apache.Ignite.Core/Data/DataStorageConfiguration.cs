@@ -40,8 +40,6 @@ namespace Apache.Ignite.Core.Data
     /// </summary>
     public class DataStorageConfiguration
     {
-        // TODO: Rename *systemCache* -> *systemRegion*, see Java, merge from base branch.
-
         /// <summary>
         /// Default value for <see cref="CheckpointingThreads"/>.
         /// </summary>
@@ -127,12 +125,12 @@ namespace Apache.Ignite.Core.Data
         /// <summary>
         /// Default size of a memory chunk reserved for system cache initially.
         /// </summary>
-        public const long DefaultSystemCacheInitialSize = 40 * 1024 * 1024;
+        public const long DefaultSystemRegionInitialSize = 40 * 1024 * 1024;
 
         /// <summary>
         /// Default max size of a memory chunk for the system cache.
         /// </summary>
-        public const long DefaultSystemCacheMaxSize = 100 * 1024 * 1024;
+        public const long DefaultSystemRegionMaxSize = 100 * 1024 * 1024;
 
         /// <summary>
         /// The default page size.
@@ -166,8 +164,8 @@ namespace Apache.Ignite.Core.Data
             WalStorePath = DefaultWalStorePath;
             CheckpointWriteOrder = DefaultCheckpointWriteOrder;
             WriteThrottlingEnabled = DefaultWriteThrottlingEnabled;
-            SystemCacheInitialSize = DefaultSystemCacheInitialSize;
-            SystemCacheMaxSize = DefaultSystemCacheMaxSize;
+            SystemRegionInitialSize = DefaultSystemRegionInitialSize;
+            SystemRegionMaxSize = DefaultSystemRegionMaxSize;
             PageSize = DefaultPageSize;
             DefaultDataRegionName = DefaultDefaultDataRegionName;
         }
@@ -202,8 +200,8 @@ namespace Apache.Ignite.Core.Data
             CheckpointWriteOrder = (CheckpointWriteOrder)reader.ReadInt();
             WriteThrottlingEnabled = reader.ReadBoolean();
 
-            SystemCacheInitialSize = reader.ReadLong();
-            SystemCacheMaxSize = reader.ReadLong();
+            SystemRegionInitialSize = reader.ReadLong();
+            SystemRegionMaxSize = reader.ReadLong();
             PageSize = reader.ReadInt();
             ConcurrencyLevel = reader.ReadInt();
             DefaultDataRegionName = reader.ReadString();
@@ -248,8 +246,8 @@ namespace Apache.Ignite.Core.Data
             writer.WriteInt((int)CheckpointWriteOrder);
             writer.WriteBoolean(WriteThrottlingEnabled);
 
-            writer.WriteLong(SystemCacheInitialSize);
-            writer.WriteLong(SystemCacheMaxSize);
+            writer.WriteLong(SystemRegionInitialSize);
+            writer.WriteLong(SystemRegionMaxSize);
             writer.WriteInt(PageSize);
             writer.WriteInt(ConcurrencyLevel);
             writer.WriteString(DefaultDataRegionName);
@@ -408,16 +406,16 @@ namespace Apache.Ignite.Core.Data
         public bool WriteThrottlingEnabled { get; set; }
 
         /// <summary>
-        /// Gets or sets the size of a memory chunk reserved for system cache needs.
+        /// Gets or sets the size of a memory chunk reserved for system needs.
         /// </summary>
-        [DefaultValue(DefaultSystemCacheInitialSize)]
-        public long SystemCacheInitialSize { get; set; }
+        [DefaultValue(DefaultSystemRegionInitialSize)]
+        public long SystemRegionInitialSize { get; set; }
 
         /// <summary>
-        /// Gets or sets the maximum memory region size reserved for system cache.
+        /// Gets or sets the maximum memory region size reserved for system needs.
         /// </summary>
-        [DefaultValue(DefaultSystemCacheMaxSize)]
-        public long SystemCacheMaxSize { get; set; }
+        [DefaultValue(DefaultSystemRegionMaxSize)]
+        public long SystemRegionMaxSize { get; set; }
 
         /// <summary>
         /// Gets or sets the size of the memory page.
