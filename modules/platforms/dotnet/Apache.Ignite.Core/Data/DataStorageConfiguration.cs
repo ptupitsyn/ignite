@@ -46,6 +46,12 @@ namespace Apache.Ignite.Core.Data
         public const int DefaultCheckpointingThreads = 4;
 
         /// <summary>
+        /// Default name is assigned to default data region if no user-defined
+        /// <see cref="DefaultRegionConfiguration"/> is specified.
+        /// </summary>
+        public const string DefaultDataRegionName = "default";
+
+        /// <summary>
         /// Default value for <see cref="CheckpointingFrequency"/>.
         /// </summary>
         public static readonly TimeSpan DefaultCheckpointingFrequency = TimeSpan.FromSeconds(180);

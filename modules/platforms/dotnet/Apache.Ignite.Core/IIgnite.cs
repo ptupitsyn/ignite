@@ -386,7 +386,7 @@ namespace Apache.Ignite.Core
         /// To get metrics for the default memory region,
         /// use <see cref="DataStorageConfiguration.DefaultDataRegionName"/>.
         /// </summary>
-        /// <param name="memoryPolicyName">Name of the memory policy.</param>
+        /// <param name="memoryPolicyName">Name of the data region.</param>
         IDataRegionMetrics GetDataRegionMetrics(string memoryPolicyName);
 
         /// <summary>
