@@ -443,6 +443,6 @@ namespace Apache.Ignite.Core.Data
         /// <summary>
         /// Gets or sets the default region configuration.
         /// </summary>
-        public DataRegionConfiguration DefaultRegionConfiguration { get; set; }
+        public DataRegionConfiguration DefaultRegionConfiguration { get; set; }  // TODO: Inconsistent name
     }
 }

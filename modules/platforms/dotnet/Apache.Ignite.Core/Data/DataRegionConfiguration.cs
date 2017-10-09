@@ -81,7 +81,6 @@ namespace Apache.Ignite.Core.Data
             PersistenceEnabled = DefaultPersistenceEnabled;
             EvictionThreshold = DefaultEvictionThreshold;
             EmptyPagesPoolSize = DefaultEmptyPagesPoolSize;
-            Name = DataStorageConfiguration.DefaultDefaultDataRegionName;
             InitialSize = DefaultInitialSize;
             MaxSize = DefaultMaxSize;
             SubIntervals = DefaultSubIntervals;
@@ -127,9 +126,7 @@ namespace Apache.Ignite.Core.Data
 
         /// <summary>
         /// Gets or sets the memory policy name.
-        /// Defaults to <see cref="DataStorageConfiguration.DefaultDefaultDataRegionName"/>.
         /// </summary>
-        [DefaultValue(DataStorageConfiguration.DefaultDefaultDataRegionName)]
         public string Name { get; set; }
 
         /// <summary>
@@ -189,7 +186,7 @@ namespace Apache.Ignite.Core.Data
         /// <summary>
         /// Gets or sets a value indicating whether memory metrics should be enabled.
         /// <para />
-        /// Metrics can be retrieved with <see cref="IIgnite.GetMemoryMetrics()"/> method.
+        /// Metrics can be retrieved with <see cref="IIgnite.GetDataRegionMetrics()"/> method.
         /// </summary>
         public bool MetricsEnabled { get; set; }
 
