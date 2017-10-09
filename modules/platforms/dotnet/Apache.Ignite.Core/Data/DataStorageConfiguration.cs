@@ -138,12 +138,6 @@ namespace Apache.Ignite.Core.Data
         public const int DefaultPageSize = 4 * 1024;
 
         /// <summary>
-        /// The default value for <see cref="DefaultDataRegionName"/>.
-        /// </summary>
-        public const string DefaultDefaultDataRegionName = "default";
-
-
-        /// <summary>
         /// Initializes a new instance of the <see cref="DataStorageConfiguration"/> class.
         /// </summary>
         public DataStorageConfiguration()
@@ -167,7 +161,6 @@ namespace Apache.Ignite.Core.Data
             SystemRegionInitialSize = DefaultSystemRegionInitialSize;
             SystemRegionMaxSize = DefaultSystemRegionMaxSize;
             PageSize = DefaultPageSize;
-            DefaultDataRegionName = DefaultDefaultDataRegionName;
         }
 
         /// <summary>
@@ -204,7 +197,6 @@ namespace Apache.Ignite.Core.Data
             SystemRegionMaxSize = reader.ReadLong();
             PageSize = reader.ReadInt();
             ConcurrencyLevel = reader.ReadInt();
-            DefaultDataRegionName = reader.ReadString();
 
             var count = reader.ReadInt();
 
@@ -213,6 +205,11 @@ namespace Apache.Ignite.Core.Data
                 DataRegions = Enumerable.Range(0, count)
                     .Select(x => new DataRegionConfiguration(reader))
                     .ToArray();
+            }
+
+            if (reader.ReadBoolean())
+            {
+                DefaultRegionConfiguration = new DataRegionConfiguration(reader);
             }
         }
 
@@ -250,7 +247,6 @@ namespace Apache.Ignite.Core.Data
             writer.WriteLong(SystemRegionMaxSize);
             writer.WriteInt(PageSize);
             writer.WriteInt(ConcurrencyLevel);
-            writer.WriteString(DefaultDataRegionName);
 
             if (DataRegions != null)
             {
@@ -270,6 +266,16 @@ namespace Apache.Ignite.Core.Data
             else
             {
                 writer.WriteInt(0);
+            }
+
+            if (DefaultRegionConfiguration != null)
+            {
+                writer.WriteBoolean(true);
+                DefaultRegionConfiguration.Write(writer);
+            }
+            else
+            {
+                writer.WriteBoolean(false);
             }
         }
 
@@ -429,15 +435,14 @@ namespace Apache.Ignite.Core.Data
         public int ConcurrencyLevel { get; set; }
 
         /// <summary>
-        /// Gets or sets the name of the default memory policy in <see cref="DataRegions"/>.
-        /// </summary>
-        [DefaultValue(DefaultDefaultDataRegionName)]
-        public string DefaultDataRegionName { get; set; }  // TODO: Remove, replace with DefaultDataRegion embedded config
-
-        /// <summary>
         /// Gets or sets the data region configurations.
         /// </summary>
         [SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public ICollection<DataRegionConfiguration> DataRegions { get; set; }
+
+        /// <summary>
+        /// Gets or sets the default region configuration.
+        /// </summary>
+        public DataRegionConfiguration DefaultRegionConfiguration { get; set; }
     }
 }
