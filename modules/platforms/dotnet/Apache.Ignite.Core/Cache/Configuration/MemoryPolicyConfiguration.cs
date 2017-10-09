@@ -21,6 +21,7 @@ namespace Apache.Ignite.Core.Cache.Configuration
     using System.ComponentModel;
     using System.Diagnostics.CodeAnalysis;
     using Apache.Ignite.Core.Binary;
+    using Apache.Ignite.Core.Configuration;
     using Apache.Ignite.Core.Impl;
     using Apache.Ignite.Core.Impl.Binary;
 
