@@ -189,6 +189,7 @@ public class PlatformConfigurationUtils {
         String dataRegionName = in.readString();
 
         if (dataRegionName != null)
+            //noinspection deprecation
             ccfg.setMemoryPolicyName(dataRegionName);
 
         ccfg.setPartitionLossPolicy(PartitionLossPolicy.fromOrdinal((byte)in.readInt()));
@@ -878,6 +879,7 @@ public class PlatformConfigurationUtils {
         writer.writeBoolean(ccfg.isReadThrough());
         writer.writeBoolean(ccfg.isWriteThrough());
         writer.writeBoolean(ccfg.isStatisticsEnabled());
+        //noinspection deprecation
         writer.writeString(ccfg.getMemoryPolicyName());
         writer.writeInt(ccfg.getPartitionLossPolicy().ordinal());
         writer.writeString(ccfg.getGroupName());
@@ -1410,6 +1412,7 @@ public class PlatformConfigurationUtils {
      * @param in Reader
      * @return Config.
      */
+    @SuppressWarnings("deprecation")
     private static MemoryConfiguration readMemoryConfiguration(BinaryRawReader in) {
         MemoryConfiguration res = new MemoryConfiguration();
 
@@ -1453,6 +1456,7 @@ public class PlatformConfigurationUtils {
      * @param w Writer.
      * @param cfg Config.
      */
+    @SuppressWarnings("deprecation")
     private static void writeMemoryConfiguration(BinaryRawWriter w, MemoryConfiguration cfg) {
         if (cfg == null) {
             w.writeBoolean(false);
@@ -1582,6 +1586,7 @@ public class PlatformConfigurationUtils {
      * @param in Reader.
      * @return Config.
      */
+    @SuppressWarnings("deprecation")
     private static PersistentStoreConfiguration readPersistentStoreConfiguration(BinaryRawReader in) {
         return new PersistentStoreConfiguration()
                 .setPersistentStorePath(in.readString())
@@ -1665,6 +1670,7 @@ public class PlatformConfigurationUtils {
      *
      * @param w Writer.
      */
+    @SuppressWarnings("deprecation")
     private static void writePersistentStoreConfiguration(BinaryRawWriter w, PersistentStoreConfiguration cfg) {
         assert w != null;
 
