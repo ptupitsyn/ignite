@@ -19,8 +19,8 @@ namespace Apache.Ignite.Core.Tests.Cache
 {
     using System.IO;
     using Apache.Ignite.Core.Common;
+    using Apache.Ignite.Core.Configuration;
     using Apache.Ignite.Core.Impl;
-    using Apache.Ignite.Core.PersistentStore;
     using NUnit.Framework;
 
     /// <summary>
@@ -53,7 +53,7 @@ namespace Apache.Ignite.Core.Tests.Cache
         {
             var cfg = new IgniteConfiguration(TestUtils.GetTestConfiguration())
             {
-                PersistentStoreConfiguration = new PersistentStoreConfiguration
+                DataStorageConfiguration = new DataStorageConfiguration
                 {
                     PersistentStorePath = Path.Combine(_tempDir, "Store"),
                     WalStorePath = Path.Combine(_tempDir, "WalStore"),
@@ -74,16 +74,16 @@ namespace Apache.Ignite.Core.Tests.Cache
                 cache[1] = 1;
 
                 // Check some metrics.
-                var metrics = ignite.GetPersistentStoreMetrics();
+                var metrics = ignite.GetDataStorageMetrics();
                 Assert.Greater(metrics.WalLoggingRate, 0);
                 Assert.Greater(metrics.WalWritingRate, 0);
                 Assert.Greater(metrics.WalFsyncTimeAverage, 0);
             }
 
             // Verify directories.
-            Assert.IsTrue(Directory.Exists(cfg.PersistentStoreConfiguration.PersistentStorePath));
-            Assert.IsTrue(Directory.Exists(cfg.PersistentStoreConfiguration.WalStorePath));
-            Assert.IsTrue(Directory.Exists(cfg.PersistentStoreConfiguration.WalArchivePath));
+            Assert.IsTrue(Directory.Exists(cfg.DataStorageConfiguration.PersistentStorePath));
+            Assert.IsTrue(Directory.Exists(cfg.DataStorageConfiguration.WalStorePath));
+            Assert.IsTrue(Directory.Exists(cfg.DataStorageConfiguration.WalArchivePath));
 
             // Start Ignite, verify data survival.
             using (var ignite = Ignition.Start(cfg))
@@ -115,7 +115,7 @@ namespace Apache.Ignite.Core.Tests.Cache
         {
             var cfg = new IgniteConfiguration(TestUtils.GetTestConfiguration())
             {
-                PersistentStoreConfiguration = new PersistentStoreConfiguration()
+                DataStorageConfiguration = new DataStorageConfiguration()
             };
 
             // Default config, inactive by default (IsActiveOnStart is ignored when persistence is enabled).
