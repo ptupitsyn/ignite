@@ -1720,9 +1720,22 @@ public class PlatformConfigurationUtils {
             w.writeInt(cfg.getPageSize());
             w.writeInt(cfg.getConcurrencyLevel());
 
-            // TODO: Remove this, replace with defaultDataRegion
-            //w.writeString(cfg.getDefaultDataRegionName());
+            if (cfg.getDataRegions() != null) {
+                w.writeInt(cfg.getDataRegions().length);
 
+                for (DataRegionConfiguration d : cfg.getDataRegions()) {
+                    writeDataRegionConfiguration(w, d);
+                }
+            } else {
+                w.writeInt(0);
+            }
+
+            if (cfg.getDefaultRegionConfiguration() != null) {
+                w.writeBoolean(true);
+                writeDataRegionConfiguration(w, cfg.getDefaultRegionConfiguration());
+            } else {
+                w.writeBoolean(false);
+            }
         } else {
             w.writeBoolean(false);
         }
