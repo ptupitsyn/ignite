@@ -33,7 +33,8 @@ namespace Apache.Ignite.Core.Configuration
         /// Random-LRU algorithm.
         /// <para />
         /// Once a memory region defined by a memory policy is configured, an off-heap array is allocated to track
-        /// last usage timestamp for every individual data page.
+        /// last usage timestamp for every individual data page. The size of the array equals to
+        /// <see cref="DataRegionConfiguration.MaxSize"/> / <see cref="DataStorageConfiguration.PageSize"/>.
         /// <para />
         /// When a data page is accessed, its timestamp gets updated in the tracking array. The page index in the
         /// tracking array equals to pageAddress / <see cref="DataRegionConfiguration.MaxSize"/>.
