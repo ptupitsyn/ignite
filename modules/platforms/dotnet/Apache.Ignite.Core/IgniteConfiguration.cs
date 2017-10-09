@@ -35,7 +35,6 @@ namespace Apache.Ignite.Core
     using Apache.Ignite.Core.Communication.Tcp;
     using Apache.Ignite.Core.Compute;
     using Apache.Ignite.Core.Configuration;
-    using Apache.Ignite.Core.Data;
     using Apache.Ignite.Core.DataStructures.Configuration;
     using Apache.Ignite.Core.Deployment;
     using Apache.Ignite.Core.Discovery;

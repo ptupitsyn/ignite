@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-namespace Apache.Ignite.Core.Data
+namespace Apache.Ignite.Core
 {
     /// <summary>
     /// Memory usage metrics.

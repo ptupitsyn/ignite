@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
@@ -15,23 +15,31 @@
  * limitations under the License.
  */
 
-namespace Apache.Ignite.Core.Data
+namespace Apache.Ignite.Core.Configuration
 {
     /// <summary>
-    /// Defines checkpoint pages order on disk.
+    /// Write Ahead Log mode.
     /// </summary>
-    public enum CheckpointWriteOrder
+    public enum WalMode
     {
         /// <summary>
-        /// Pages are written in order provided by checkpoint pages collection iterator
-        /// (which is basically a hashtable).
+        /// Default mode: full-sync disk writes. These writes survive power loss scenarios.
         /// </summary>
-        Random,
+        Default,
 
         /// <summary>
-        /// All checkpoint pages are collected into single list and sorted by page index.
-        /// Provides almost sequential disk writes, which can be much faster on some SSD models.
+        /// Log only mode: flushes application buffers. These writes survive process crash.
         /// </summary>
-        Sequential
+        LogOnly,
+
+        /// <summary>
+        /// Background mode. Does not force application buffer flush. Data may be lost in case of process crash.
+        /// </summary>
+        Background,
+
+        /// <summary>
+        /// WAL disabled.
+        /// </summary>
+        None
     }
 }

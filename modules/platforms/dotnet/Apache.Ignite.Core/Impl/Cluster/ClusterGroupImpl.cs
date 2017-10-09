@@ -647,11 +647,13 @@ namespace Apache.Ignite.Core.Impl.Cluster
         /// <summary>
         /// Gets the persistent store metrics.
         /// </summary>
+#pragma warning disable 618
         public IPersistentStoreMetrics GetPersistentStoreMetrics()
         {
             return DoInOp(OpGetPersistentStoreMetrics, stream =>
                 new PersistentStoreMetrics(Marshaller.StartUnmarshal(stream, false)));
         }
+#pragma warning restore 618
 
         /// <summary>
         /// Creates new Cluster Group from given native projection.

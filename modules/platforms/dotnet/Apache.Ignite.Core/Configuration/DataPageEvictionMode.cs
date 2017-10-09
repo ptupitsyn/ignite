@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-namespace Apache.Ignite.Core.Data
+namespace Apache.Ignite.Core.Configuration
 {
     /// <summary>
     /// Memory page eviction mode.
@@ -33,11 +33,10 @@ namespace Apache.Ignite.Core.Data
         /// Random-LRU algorithm.
         /// <para />
         /// Once a memory region defined by a memory policy is configured, an off-heap array is allocated to track
-        /// last usage timestamp for every individual data page. The size of the array equals to
-        /// <see cref="DataRegionConfiguration.MaxSize"/> / <see cref="DataRegionConfiguration.PageSize"/>.
+        /// last usage timestamp for every individual data page.
         /// <para />
         /// When a data page is accessed, its timestamp gets updated in the tracking array. The page index in the
-        /// tracking array equals to pageAddress / <see cref="MemoryPolicyConfiguration.MaxSize"/>.
+        /// tracking array equals to pageAddress / <see cref="DataRegionConfiguration.MaxSize"/>.
         /// <para />
         /// When some pages need to be evicted, the algorithm randomly chooses 5 indexes from the tracking array and
         /// evicts a page with the latest timestamp. If some of the indexes point to non-data pages

@@ -778,9 +778,29 @@ namespace Apache.Ignite.Core.Impl
         }
 
         /** <inheritdoc /> */
+#pragma warning disable 618
         public IPersistentStoreMetrics GetPersistentStoreMetrics()
         {
             return _prj.GetPersistentStoreMetrics();
+        }
+#pragma warning restore 618
+
+        /** <inheritdoc /> */
+        public ICollection<IDataRegionMetrics> GetDataRegionMetrics()
+        {
+            throw new NotImplementedException();
+        }
+
+        /** <inheritdoc /> */
+        public IDataRegionMetrics GetDataRegionMetrics(string memoryPolicyName)
+        {
+            throw new NotImplementedException();
+        }
+
+        /** <inheritdoc /> */
+        public IDataStorageMetrics GetDataStorageMetrics()
+        {
+            throw new NotImplementedException();
         }
 
         /// <summary>
