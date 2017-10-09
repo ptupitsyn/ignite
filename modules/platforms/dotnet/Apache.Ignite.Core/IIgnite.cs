@@ -374,7 +374,7 @@ namespace Apache.Ignite.Core
         IPersistentStoreMetrics GetPersistentStoreMetrics();
 
         /// <summary>
-        /// Gets a collection of memory metrics, one for each <see cref="DataStorageConfiguration.DataRegions"/>.
+        /// Gets a collection of memory metrics, one for each <see cref="DataStorageConfiguration.DataRegionConfigurations"/>.
         /// <para />
         /// Memory metrics should be enabled with <see cref="DataStorageConfiguration.MetricsEnabled"/>.
         /// </summary>

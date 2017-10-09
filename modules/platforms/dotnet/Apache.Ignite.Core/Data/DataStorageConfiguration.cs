@@ -47,7 +47,7 @@ namespace Apache.Ignite.Core.Data
 
         /// <summary>
         /// Default name is assigned to default data region if no user-defined
-        /// <see cref="DefaultRegionConfiguration"/> is specified.
+        /// <see cref="DefaultDataRegionConfiguration"/> is specified.
         /// </summary>
         public const string DefaultDataRegionName = "default";
 
@@ -208,14 +208,14 @@ namespace Apache.Ignite.Core.Data
 
             if (count > 0)
             {
-                DataRegions = Enumerable.Range(0, count)
+                DataRegionConfigurations = Enumerable.Range(0, count)
                     .Select(x => new DataRegionConfiguration(reader))
                     .ToArray();
             }
 
             if (reader.ReadBoolean())
             {
-                DefaultRegionConfiguration = new DataRegionConfiguration(reader);
+                DefaultDataRegionConfiguration = new DataRegionConfiguration(reader);
             }
         }
 
@@ -254,16 +254,16 @@ namespace Apache.Ignite.Core.Data
             writer.WriteInt(PageSize);
             writer.WriteInt(ConcurrencyLevel);
 
-            if (DataRegions != null)
+            if (DataRegionConfigurations != null)
             {
-                writer.WriteInt(DataRegions.Count);
+                writer.WriteInt(DataRegionConfigurations.Count);
 
-                foreach (var region in DataRegions)
+                foreach (var region in DataRegionConfigurations)
                 {
                     if (region == null)
                     {
                         throw new IgniteException(
-                            "DataStorageConfiguration.DataRegions must not contain null items.");
+                            "DataStorageConfiguration.DataRegionConfigurations must not contain null items.");
                     }
 
                     region.Write(writer);
@@ -274,10 +274,10 @@ namespace Apache.Ignite.Core.Data
                 writer.WriteInt(0);
             }
 
-            if (DefaultRegionConfiguration != null)
+            if (DefaultDataRegionConfiguration != null)
             {
                 writer.WriteBoolean(true);
-                DefaultRegionConfiguration.Write(writer);
+                DefaultDataRegionConfiguration.Write(writer);
             }
             else
             {
@@ -444,11 +444,11 @@ namespace Apache.Ignite.Core.Data
         /// Gets or sets the data region configurations.
         /// </summary>
         [SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public ICollection<DataRegionConfiguration> DataRegions { get; set; }
+        public ICollection<DataRegionConfiguration> DataRegionConfigurations { get; set; }
 
         /// <summary>
         /// Gets or sets the default region configuration.
         /// </summary>
-        public DataRegionConfiguration DefaultRegionConfiguration { get; set; }  // TODO: Inconsistent name
+        public DataRegionConfiguration DefaultDataRegionConfiguration { get; set; }
     }
 }
