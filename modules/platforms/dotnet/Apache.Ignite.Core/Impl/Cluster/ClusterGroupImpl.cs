@@ -597,6 +597,7 @@ namespace Apache.Ignite.Core.Impl.Cluster
         /// <summary>
         /// Gets the memory metrics.
         /// </summary>
+#pragma warning disable 618
         public ICollection<IMemoryMetrics> GetMemoryMetrics()
         {
             return DoInOp(OpMemoryMetrics, stream =>
@@ -624,6 +625,7 @@ namespace Apache.Ignite.Core.Impl.Cluster
             return DoOutInOp(OpMemoryMetricsByName, w => w.WriteString(memoryPolicyName),
                 stream => stream.ReadBool() ? new MemoryMetrics(Marshaller.StartUnmarshal(stream, false)) : null);
         }
+#pragma warning restore 618
 
         /// <summary>
         /// Changes Ignite grid state to active or inactive.
