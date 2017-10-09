@@ -1614,7 +1614,7 @@ public class PlatformConfigurationUtils {
      * @return Config.
      */
     private static DataStorageConfiguration readDataStorageConfiguration(BinaryRawReader in) {
-        return new DataStorageConfiguration()
+        DataStorageConfiguration res = new DataStorageConfiguration()
                 .setPersistentStorePath(in.readString())
                 .setCheckpointingFrequency(in.readLong())
                 .setCheckpointingPageBufferSize(in.readLong())
@@ -1639,10 +1639,25 @@ public class PlatformConfigurationUtils {
                 .setSystemRegionInitialSize(in.readLong())
                 .setSystemRegionMaxSize(in.readLong())
                 .setPageSize(in.readInt())
-                .setConcurrencyLevel(in.readInt())
-                .setDefaultDataRegionName(in.readString());  // TODO: Replace with defaultDataRegionConfig
+                .setConcurrencyLevel(in.readInt());
 
-        // TODO: Read regions and default region
+        int cnt = in.readInt();
+
+        if (cnt > 0) {
+            DataRegionConfiguration[] regs = new DataRegionConfiguration[cnt];
+
+            for (int i = 0; i < cnt; i++) {
+                regs[i] = readDataRegionConfiguration(in);
+            }
+
+            res.setDataRegions(regs);
+        }
+
+        if (in.readBoolean()) {
+            res.setDefaultRegionConfiguration(readDataRegionConfiguration(in));
+        }
+
+        return res;
     }
 
     /**
