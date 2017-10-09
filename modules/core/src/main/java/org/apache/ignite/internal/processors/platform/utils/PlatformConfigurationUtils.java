@@ -1635,8 +1635,8 @@ public class PlatformConfigurationUtils {
                 .setRateTimeInterval(in.readLong())
                 .setCheckpointWriteOrder(CheckpointWriteOrder.fromOrdinal(in.readInt()))
                 .setWriteThrottlingEnabled(in.readBoolean())
-                .setSystemCacheInitialSize(in.readLong())
-                .setSystemCacheMaxSize(in.readLong())
+                .setSystemRegionInitialSize(in.readLong())
+                .setSystemRegionMaxSize(in.readLong())
                 .setPageSize(in.readInt())
                 .setConcurrencyLevel(in.readInt())
                 .setDefaultDataRegionName(in.readString());  // TODO: Replace with defaultDataRegionConfig
@@ -1713,13 +1713,13 @@ public class PlatformConfigurationUtils {
             w.writeLong(cfg.getRateTimeInterval());
             w.writeInt(cfg.getCheckpointWriteOrder().ordinal());
             w.writeBoolean(cfg.isWriteThrottlingEnabled());
-            w.writeLong(cfg.getSystemCacheInitialSize());
-            w.writeLong(cfg.getSystemCacheMaxSize());
+            w.writeLong(cfg.getSystemRegionInitialSize());
+            w.writeLong(cfg.getSystemRegionMaxSize());
             w.writeInt(cfg.getPageSize());
             w.writeInt(cfg.getConcurrencyLevel());
 
             // TODO: Remove this, replace with defaultDataRegion
-            w.writeString(cfg.getDefaultDataRegionName());
+            //w.writeString(cfg.getDefaultDataRegionName());
 
         } else {
             w.writeBoolean(false);
