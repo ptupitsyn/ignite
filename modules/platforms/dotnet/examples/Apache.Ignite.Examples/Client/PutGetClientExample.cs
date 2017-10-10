@@ -18,6 +18,7 @@
 namespace Apache.Ignite.Examples.Client
 {
     using System;
+    using System.Net.Sockets;
     using Apache.Ignite.Core;
     using Apache.Ignite.Core.Client;
     using Apache.Ignite.Core.Client.Cache;
@@ -49,11 +50,27 @@ namespace Apache.Ignite.Examples.Client
                 Host = "127.0.0.1"
             };
 
-            using (IIgniteClient igniteClient = Ignition.StartClient(cfg))
+            try
             {
-                ICacheClient<int, Organization> cache = igniteClient.GetCache<int, Organization>(CacheName);
+                using (IIgniteClient igniteClient = Ignition.StartClient(cfg))
+                {
+                    ICacheClient<int, Organization> cache = igniteClient.GetCache<int, Organization>(CacheName);
 
-                PutGet(cache);
+                    PutGet(cache);
+                }
+            }
+            catch (AggregateException ex)
+            {
+                var socketEx = ex.GetBaseException() as SocketException;
+
+                if (socketEx != null)
+                {
+                    Console.WriteLine("Can not establish thin client connection. " +
+                                      "Make sure that standalone node is started with Apache.Ignite.exe, " +
+                                      "see details in the example description.");
+                }
+
+                throw;
             }
         }
 
