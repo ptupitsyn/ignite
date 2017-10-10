@@ -908,7 +908,7 @@ namespace Apache.Ignite.Core.Tests
                     WalFlushFrequency = TimeSpan.FromSeconds(3),
                     WalFsyncDelayNanos = 3,
                     WalHistorySize = 10,
-                    WalMode = Core.Configuration.WalMode.Background,
+                    WalMode = Core.Configuration.WalMode.None,
                     WalRecordIteratorBufferSize = 32 * 1024 * 1024,
                     WalSegments = 6,
                     WalSegmentSize = 5 * 1024 * 1024,
