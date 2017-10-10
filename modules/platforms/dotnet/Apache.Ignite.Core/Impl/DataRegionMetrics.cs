@@ -19,7 +19,7 @@ namespace Apache.Ignite.Core.Impl
 {
     using System.Diagnostics;
     using Apache.Ignite.Core.Binary;
-    
+
     /// <summary>
     /// Data region metrics.
     /// </summary>

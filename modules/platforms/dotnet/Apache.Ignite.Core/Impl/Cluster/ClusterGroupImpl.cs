@@ -667,6 +667,14 @@ namespace Apache.Ignite.Core.Impl.Cluster
                 stream => stream.ReadBool() ? new DataRegionMetrics(Marshaller.StartUnmarshal(stream, false)) : null);
         }
 
+        /// <summary>
+        /// Gets the data storage metrics.
+        /// </summary>
+        public IDataStorageMetrics GetDataStorageMetrics()
+        {
+            return DoInOp(OpDataStorageMetrics, stream =>
+                new DataStorageMetrics(Marshaller.StartUnmarshal(stream, false)));
+        }
 
         /// <summary>
         /// Changes Ignite grid state to active or inactive.

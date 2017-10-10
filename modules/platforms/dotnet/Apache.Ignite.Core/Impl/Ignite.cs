@@ -790,19 +790,19 @@ namespace Apache.Ignite.Core.Impl
         /** <inheritdoc /> */
         public ICollection<IDataRegionMetrics> GetDataRegionMetrics()
         {
-            throw new NotImplementedException();
+            return _prj.GetDataRegionMetrics();
         }
 
         /** <inheritdoc /> */
         public IDataRegionMetrics GetDataRegionMetrics(string memoryPolicyName)
         {
-            throw new NotImplementedException();
+            return _prj.GetDataRegionMetrics(memoryPolicyName);
         }
 
         /** <inheritdoc /> */
         public IDataStorageMetrics GetDataStorageMetrics()
         {
-            throw new NotImplementedException();
+            return _prj.GetDataStorageMetrics();
         }
 
         /// <summary>

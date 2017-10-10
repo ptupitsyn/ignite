@@ -374,20 +374,21 @@ namespace Apache.Ignite.Core
         IPersistentStoreMetrics GetPersistentStoreMetrics();
 
         /// <summary>
-        /// Gets a collection of memory metrics, one for each <see cref="DataStorageConfiguration.DataRegionConfigurations"/>.
+        /// Gets a collection of memory metrics, one for each 
+        /// <see cref="DataStorageConfiguration.DataRegionConfigurations"/>.
         /// <para />
-        /// Memory metrics should be enabled with <see cref="DataStorageConfiguration.MetricsEnabled"/>.
+        /// Metrics should be enabled with <see cref="DataStorageConfiguration.MetricsEnabled"/>.
         /// </summary>
         ICollection<IDataRegionMetrics> GetDataRegionMetrics();
 
         /// <summary>
-        /// Gets the memory metrics for the specified memory policy.
+        /// Gets the memory metrics for the specified data region.
         /// <para />
         /// To get metrics for the default memory region,
         /// use <see cref="DataStorageConfiguration.DefaultDataRegionName"/>.
         /// </summary>
-        /// <param name="memoryPolicyName">Name of the data region.</param>
-        IDataRegionMetrics GetDataRegionMetrics(string memoryPolicyName);
+        /// <param name="dataRegionName">Name of the data region.</param>
+        IDataRegionMetrics GetDataRegionMetrics(string dataRegionName);
 
         /// <summary>
         /// Gets the persistent store metrics.

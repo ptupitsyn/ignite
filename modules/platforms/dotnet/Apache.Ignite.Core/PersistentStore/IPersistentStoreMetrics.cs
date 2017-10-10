@@ -21,8 +21,9 @@ namespace Apache.Ignite.Core.PersistentStore
 
     /// <summary>
     /// Persistent store metrics.
+    /// Obsolete, see <see cref="IDataStorageMetrics"/>.
     /// </summary>
-    [Obsolete("TODO")]  // TODO
+    [Obsolete("Use IDataStorageMetrics")]
     public interface IPersistentStoreMetrics
     {
         /// <summary>
