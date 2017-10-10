@@ -148,7 +148,8 @@ namespace Apache.Ignite.Core.Tests.Examples
             // Disable client connector so that temporary node does not occupy the port.
             var cfg = new IgniteConfiguration(section.IgniteConfiguration)
             {
-                ClientConnectorConfigurationEnabled = false
+                ClientConnectorConfigurationEnabled = false,
+                CacheConfiguration = null
             };
 
             using (var ignite = Ignition.Start(cfg))
