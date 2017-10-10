@@ -271,6 +271,32 @@ namespace Apache.Ignite.Core.Tests
             Assert.AreEqual("Apache.Ignite.Core.Tests.EventsTestLocalListeners+Listener`1" +
                             "[Apache.Ignite.Core.Events.CacheRebalancingEvent]",
                 rebalListener.Listener.GetType().ToString());
+
+            var ds = cfg.DataStorageConfiguration;
+            Assert.IsFalse(ds.AlwaysWriteFullPages);
+            Assert.AreEqual(TimeSpan.FromSeconds(1), ds.CheckpointingFrequency);
+            Assert.AreEqual(2, ds.CheckpointingPageBufferSize);
+            Assert.AreEqual(3, ds.CheckpointingThreads);
+            Assert.AreEqual(4, ds.ConcurrencyLevel);
+            Assert.AreEqual(TimeSpan.FromSeconds(5), ds.LockWaitTime);
+            Assert.IsTrue(ds.MetricsEnabled);
+            Assert.AreEqual(6, ds.PageSize);
+            Assert.AreEqual("cde", ds.PersistentStorePath);
+            Assert.AreEqual(TimeSpan.FromSeconds(7), ds.RateTimeInterval);
+            Assert.AreEqual(8, ds.SubIntervals);
+            Assert.AreEqual(9, ds.SystemRegionInitialSize);
+            Assert.AreEqual(10, ds.SystemRegionMaxSize);
+            Assert.AreEqual(11, ds.TlbSize);
+            Assert.AreEqual("abc", ds.WalArchivePath);
+            Assert.AreEqual(TimeSpan.FromSeconds(12), ds.WalFlushFrequency);
+            Assert.AreEqual(13, ds.WalFsyncDelayNanos);
+            Assert.AreEqual(14, ds.WalHistorySize);
+            Assert.AreEqual(Core.Configuration.WalMode.Background, ds.WalMode);
+            Assert.AreEqual(15, ds.WalRecordIteratorBufferSize);
+            Assert.AreEqual(16, ds.WalSegments);
+            Assert.AreEqual(17, ds.WalSegmentSize);
+            Assert.AreEqual("wal-store", ds.WalStorePath);
+            Assert.IsTrue(ds.WriteThrottlingEnabled);
         }
 
         /// <summary>
