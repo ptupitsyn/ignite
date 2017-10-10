@@ -18,10 +18,12 @@
 namespace Apache.Ignite.Core.Tests.Cache
 {
     using System.IO;
+    using Apache.Ignite.Core.Cache.Configuration;
     using Apache.Ignite.Core.Common;
     using Apache.Ignite.Core.Configuration;
     using Apache.Ignite.Core.Impl;
     using NUnit.Framework;
+    using DataPageEvictionMode = Apache.Ignite.Core.Configuration.DataPageEvictionMode;
 
     /// <summary>
     /// Tests disk persistence.
@@ -58,19 +60,33 @@ namespace Apache.Ignite.Core.Tests.Cache
                     PersistentStorePath = Path.Combine(_tempDir, "Store"),
                     WalStorePath = Path.Combine(_tempDir, "WalStore"),
                     WalArchivePath = Path.Combine(_tempDir, "WalArchive"),
-                    MetricsEnabled = true
+                    MetricsEnabled = true,
+                    DefaultDataRegionConfiguration = new DataRegionConfiguration
+                    {
+                        PageEvictionMode = DataPageEvictionMode.Disabled,
+                        Name = DataStorageConfiguration.DefaultDataRegionName,
+                        PersistenceEnabled = true
+                    },
+                    DataRegionConfigurations = new[]
+                    {
+                        new DataRegionConfiguration
+                        {
+                            Name = "volatileRegion"
+                        } 
+                    }
                 }
             };
 
             const string cacheName = "persistentCache";
+            const string volatileCacheName = "volatileCache";
 
             // Start Ignite, put data, stop.
             using (var ignite = Ignition.Start(cfg))
             {
                 ignite.SetActive(true);
 
+                // Create cache with default region (persistence enabled), add data.
                 var cache = ignite.CreateCache<int, int>(cacheName);
-
                 cache[1] = 1;
 
                 // Check some metrics.
@@ -78,6 +94,14 @@ namespace Apache.Ignite.Core.Tests.Cache
                 Assert.Greater(metrics.WalLoggingRate, 0);
                 Assert.Greater(metrics.WalWritingRate, 0);
                 Assert.Greater(metrics.WalFsyncTimeAverage, 0);
+
+                // Create cache with non-persistent region.
+                var volatileCache = ignite.CreateCache<int, int>(new CacheConfiguration
+                {
+                    Name = volatileCacheName,
+                    DataRegionName = "volatileRegion"
+                });
+                volatileCache[2] = 2;
             }
 
             // Verify directories.
@@ -90,9 +114,12 @@ namespace Apache.Ignite.Core.Tests.Cache
             {
                 ignite.SetActive(true);
 
+                // Persistent cache already exists and contains data.
                 var cache = ignite.GetCache<int, int>(cacheName);
-
                 Assert.AreEqual(1, cache[1]);
+
+                // Non-persistent cache does not exist.
+                Assert.Throws<IgniteException>(() => ignite.GetCache<int, int>(volatileCacheName));
             }
 
             // Delete store directory.
