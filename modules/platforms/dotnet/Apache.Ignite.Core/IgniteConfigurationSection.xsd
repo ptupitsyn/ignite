@@ -1615,6 +1615,11 @@
                                 <xs:documentation>Maximum size of a memory region reserved for system needs.</xs:documentation>
                             </xs:annotation>
                         </xs:attribute>
+                        <xs:attribute name="concurrencyLevel" type="xs:int">
+                            <xs:annotation>
+                                <xs:documentation>Number of concurrent segments in Ignite internal page mapping tables.</xs:documentation>
+                            </xs:annotation>
+                        </xs:attribute>
                     </xs:complexType>
                 </xs:element>
                 <xs:element name="pluginConfigurations" minOccurs="0">
