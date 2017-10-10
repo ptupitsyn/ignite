@@ -576,7 +576,7 @@ namespace Apache.Ignite.Core.Tests
                             Serializer = new BinaryReflectiveSerializer()
                         }
                     },
-                    Types = new[] {typeof (string).FullName},
+                    Types = new[] {typeof(string).FullName},
                     IdMapper = new IdMapper(),
                     KeepDeserialized = true,
                     NameMapper = new NameMapper(),
@@ -603,7 +603,7 @@ namespace Apache.Ignite.Core.Tests
                             {
                                 Fields = new[]
                                 {
-                                    new QueryField("field", typeof (int))
+                                    new QueryField("field", typeof(int))
                                     {
                                         IsKeyField = true,
                                         NotNull = true
@@ -621,8 +621,8 @@ namespace Apache.Ignite.Core.Tests
                                 {
                                     new QueryAlias("field.field", "fld")
                                 },
-                                KeyType = typeof (string),
-                                ValueType = typeof (long),
+                                KeyType = typeof(string),
+                                ValueType = typeof(long),
                                 TableName = "table-1",
                                 KeyFieldName = "k",
                                 ValueFieldName = "v"
@@ -647,12 +647,16 @@ namespace Apache.Ignite.Core.Tests
                             NearStartSize = 5,
                             EvictionPolicy = new FifoEvictionPolicy
                             {
-                                BatchSize = 19, MaxMemorySize = 1024, MaxSize = 555
+                                BatchSize = 19,
+                                MaxMemorySize = 1024,
+                                MaxSize = 555
                             }
                         },
                         EvictionPolicy = new LruEvictionPolicy
                         {
-                            BatchSize = 18, MaxMemorySize = 1023, MaxSize = 554
+                            BatchSize = 18,
+                            MaxMemorySize = 1023,
+                            MaxSize = 554
                         },
                         AffinityFunction = new RendezvousAffinityFunction
                         {
@@ -717,7 +721,7 @@ namespace Apache.Ignite.Core.Tests
                 WorkDirectory = @"c:\work",
                 IsDaemon = true,
                 UserAttributes = Enumerable.Range(1, 10).ToDictionary(x => x.ToString(),
-                    x => x%2 == 0 ? (object) x : new FooClass {Bar = x.ToString()}),
+                    x => x % 2 == 0 ? (object) x : new FooClass {Bar = x.ToString()}),
                 AtomicConfiguration = new AtomicConfiguration
                 {
                     CacheMode = CacheMode.Replicated,
@@ -757,7 +761,7 @@ namespace Apache.Ignite.Core.Tests
                 FailureDetectionTimeout = TimeSpan.FromMinutes(2),
                 ClientFailureDetectionTimeout = TimeSpan.FromMinutes(3),
                 LongQueryWarningTimeout = TimeSpan.FromDays(4),
-                PluginConfigurations = new[] {new TestIgnitePluginConfiguration() },
+                PluginConfigurations = new[] {new TestIgnitePluginConfiguration()},
                 EventStorageSpi = new MemoryEventStorageSpi
                 {
                     ExpirationTimeout = TimeSpan.FromMilliseconds(12345),
@@ -839,6 +843,65 @@ namespace Apache.Ignite.Core.Tests
                     {
                         EventTypes = new[] {1, 2},
                         Listener = new MyEventListener()
+                    }
+                },
+                DataStorageConfiguration = new DataStorageConfiguration
+                {
+                    AlwaysWriteFullPages = true,
+                    CheckpointingFrequency = TimeSpan.FromSeconds(25),
+                    CheckpointingPageBufferSize = 28 * 1024 * 1024,
+                    CheckpointingThreads = 2,
+                    LockWaitTime = TimeSpan.FromSeconds(5),
+                    PersistentStorePath = Path.GetTempPath(),
+                    TlbSize = 64 * 1024,
+                    WalArchivePath = Path.GetTempPath(),
+                    WalFlushFrequency = TimeSpan.FromSeconds(3),
+                    WalFsyncDelayNanos = 3,
+                    WalHistorySize = 10,
+                    WalMode = Core.Configuration.WalMode.Background,
+                    WalRecordIteratorBufferSize = 32 * 1024 * 1024,
+                    WalSegments = 6,
+                    WalSegmentSize = 5 * 1024 * 1024,
+                    WalStorePath = Path.GetTempPath(),
+                    MetricsEnabled = true,
+                    SubIntervals = 7,
+                    RateTimeInterval = TimeSpan.FromSeconds(9),
+                    CheckpointWriteOrder = Core.Configuration.CheckpointWriteOrder.Sequential,
+                    WriteThrottlingEnabled = true,
+                    SystemRegionInitialSize = 64 * 1024 * 1024,
+                    SystemRegionMaxSize = 128 * 1024 * 1024,
+                    ConcurrencyLevel = 1,
+                    PageSize = 5 * 1024,
+                    DefaultDataRegionConfiguration = new DataRegionConfiguration
+                    {
+                        Name = "reg1",
+                        EmptyPagesPoolSize = 50,
+                        EvictionThreshold = 0.8,
+                        InitialSize = 100 * 1024 * 1024,
+                        MaxSize = 150 * 1024 * 1024,
+                        MetricsEnabled = true,
+                        PageEvictionMode = Core.Configuration.DataPageEvictionMode.RandomLru,
+                        PersistenceEnabled = false,
+                        RateTimeInterval = TimeSpan.FromMinutes(2),
+                        SubIntervals = 6,
+                        SwapFilePath = Path.GetTempPath()
+                    },
+                    DataRegionConfigurations = new[]
+                    {
+                        new DataRegionConfiguration
+                        {
+                            Name = "reg2",
+                            EmptyPagesPoolSize = 51,
+                            EvictionThreshold = 0.7,
+                            InitialSize = 101 * 1024 * 1024,
+                            MaxSize = 151 * 1024 * 1024,
+                            MetricsEnabled = false,
+                            PageEvictionMode = Core.Configuration.DataPageEvictionMode.RandomLru,
+                            PersistenceEnabled = false,
+                            RateTimeInterval = TimeSpan.FromMinutes(3),
+                            SubIntervals = 7,
+                            SwapFilePath = Path.GetTempPath()
+                        }
                     }
                 }
             };
