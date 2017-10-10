@@ -67,6 +67,7 @@ namespace Apache.Ignite.Core.Tests
             CheckDefaultProperties(new IgniteConfiguration());
             CheckDefaultProperties(new PersistentStoreConfiguration());
             CheckDefaultProperties(new DataStorageConfiguration());
+            CheckDefaultProperties(new DataRegionConfiguration());
             CheckDefaultProperties(new ClientConnectorConfiguration());
             CheckDefaultProperties(new SqlConnectorConfiguration());
         }
@@ -338,6 +339,7 @@ namespace Apache.Ignite.Core.Tests
 
                 // DataStorage defaults.
                 CheckDefaultProperties(resCfg.DataStorageConfiguration);
+                CheckDefaultProperties(resCfg.DataStorageConfiguration.DefaultDataRegionConfiguration);
 
                 // Connector defaults.
                 CheckDefaultProperties(resCfg.ClientConnectorConfiguration);
@@ -634,6 +636,21 @@ namespace Apache.Ignite.Core.Tests
             Assert.AreEqual(DataStorageConfiguration.DefaultSystemRegionMaxSize, cfg.SystemRegionMaxSize);
             Assert.AreEqual(DataStorageConfiguration.DefaultPageSize, cfg.PageSize);
             Assert.AreEqual(DataStorageConfiguration.DefaultConcurrencyLevel, cfg.ConcurrencyLevel);
+        }
+
+        /// <summary>
+        /// Checks the default properties.
+        /// </summary>
+        /// <param name="cfg">Config.</param>
+        private static void CheckDefaultProperties(DataRegionConfiguration cfg)
+        {
+            Assert.AreEqual(DataRegionConfiguration.DefaultEmptyPagesPoolSize, cfg.EmptyPagesPoolSize);
+            Assert.AreEqual(DataRegionConfiguration.DefaultEvictionThreshold, cfg.EvictionThreshold);
+            Assert.AreEqual(DataRegionConfiguration.DefaultInitialSize, cfg.InitialSize);
+            Assert.AreEqual(DataRegionConfiguration.DefaultMaxSize, cfg.MaxSize);
+            Assert.AreEqual(DataRegionConfiguration.DefaultPersistenceEnabled, cfg.PersistenceEnabled);
+            Assert.AreEqual(DataRegionConfiguration.DefaultRateTimeInterval, cfg.RateTimeInterval);
+            Assert.AreEqual(DataRegionConfiguration.DefaultSubIntervals, cfg.SubIntervals);
         }
 
         /// <summary>
