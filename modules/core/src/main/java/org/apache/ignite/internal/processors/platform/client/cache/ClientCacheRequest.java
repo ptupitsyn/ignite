@@ -79,7 +79,6 @@ class ClientCacheRequest extends ClientRequest {
      * @return Cache.
      */
     protected IgniteCache rawCache(ClientConnectionContext ctx) {
-        // TODO: This may incorrectly return null right after the node startup.
         GridCacheProcessor cacheProc = ctx.kernalContext().cache();
         DynamicCacheDescriptor cacheCtx = cacheProc.cacheDescriptor(cacheId);
 
