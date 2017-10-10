@@ -119,6 +119,11 @@ namespace Apache.Ignite.Core.Configuration
         public const string DefaultWalArchivePath = "db/wal/archive";
 
         /// <summary>
+        /// Default value for <see cref="WalMode"/>.
+        /// </summary>
+        public const WalMode DefaultWalMode = WalMode.Default;
+
+        /// <summary>
         /// Default value for <see cref="CheckpointWriteOrder"/>.
         /// </summary>
         public const CheckpointWriteOrder DefaultCheckpointWriteOrder = CheckpointWriteOrder.Sequential;
@@ -357,6 +362,7 @@ namespace Apache.Ignite.Core.Configuration
         /// <summary>
         /// Gets or sets the WAL (Write Ahead Log) mode.
         /// </summary>
+        [DefaultValue(DefaultWalMode)]
         public WalMode WalMode { get; set; }
 
         /// <summary>

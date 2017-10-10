@@ -621,7 +621,7 @@ namespace Apache.Ignite.Core.Tests
                 cfg.WalRecordIteratorBufferSize);
             Assert.AreEqual(DataStorageConfiguration.DefaultWalSegmentSize, cfg.WalSegmentSize);
             Assert.AreEqual(DataStorageConfiguration.DefaultWalSegments, cfg.WalSegments);
-            Assert.AreEqual(WalMode.Default, cfg.WalMode);
+            Assert.AreEqual(DataStorageConfiguration.DefaultWalMode, cfg.WalMode);
             Assert.IsFalse(cfg.MetricsEnabled);
             Assert.AreEqual(DataStorageConfiguration.DefaultSubIntervals, cfg.SubIntervals);
             Assert.AreEqual(DataStorageConfiguration.DefaultRateTimeInterval, cfg.RateTimeInterval);
@@ -678,8 +678,7 @@ namespace Apache.Ignite.Core.Tests
 
             foreach (var prop in props.Where(p => p.Name != "SelectorsCount" && p.Name != "ReadStripesNumber" &&
                                                   !p.Name.Contains("ThreadPoolSize") &&
-                                                  !(p.Name == "MaxSize" &&
-                                                    p.DeclaringType == typeof(MemoryPolicyConfiguration))))
+                                                  p.Name != "MaxSize"))
             {
                 var attr = prop.GetCustomAttributes(true).OfType<DefaultValueAttribute>().FirstOrDefault();
                 var propValue = prop.GetValue(obj, null);
