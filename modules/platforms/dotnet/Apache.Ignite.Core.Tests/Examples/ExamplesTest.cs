@@ -20,6 +20,7 @@ namespace Apache.Ignite.Core.Tests.Examples
     extern alias ExamplesDll;
     using System;
     using System.Collections.Generic;
+    using System.Configuration;
     using System.IO;
     using System.Linq;
     using Apache.Ignite.Core.Tests.Process;
@@ -140,8 +141,17 @@ namespace Apache.Ignite.Core.Tests.Examples
             // Stop it after topology check so we don't interfere with example.
             Ignition.ClientMode = false;
 
-            using (var ignite = Ignition.StartFromApplicationConfiguration(
-                "igniteConfiguration", _configPath))
+            var fileMap = new ExeConfigurationFileMap { ExeConfigFilename = _configPath };
+            var config = ConfigurationManager.OpenMappedExeConfiguration(fileMap, ConfigurationUserLevel.None);
+            var section = (IgniteConfigurationSection) config.GetSection("igniteConfiguration");
+
+            // Disable client connector so that temporary node does not occupy the port.
+            var cfg = new IgniteConfiguration(section.IgniteConfiguration)
+            {
+                ClientConnectorConfigurationEnabled = false
+            };
+
+            using (var ignite = Ignition.Start(cfg))
             {
                 var args = new List<string>
                 {
