@@ -125,7 +125,7 @@ namespace Apache.Ignite.Core.Configuration
         }
 
         /// <summary>
-        /// Gets or sets the memory policy name.
+        /// Gets or sets the data region name.
         /// </summary>
         public string Name { get; set; }
 
@@ -137,20 +137,20 @@ namespace Apache.Ignite.Core.Configuration
         public bool PersistenceEnabled { get; set; }
 
         /// <summary>
-        /// Gets or sets initial memory region size defined by this memory policy.
+        /// Gets or sets initial memory region size.
         /// When the used memory size exceeds this value, new chunks of memory will be allocated.
         /// </summary>
         [DefaultValue(DefaultInitialSize)]
         public long InitialSize { get; set; }
 
         /// <summary>
-        /// Sets maximum memory region size defined by this memory policy. The total size should not be less
+        /// Sets maximum memory region size. The total size should not be less
         /// than 10 MB due to internal data structures overhead.
         /// </summary>
         public long MaxSize { get; set; }
 
         /// <summary>
-        /// Gets or sets the the path to the memory-mapped file the memory region defined by this memory policy
+        /// Gets or sets the the path to the memory-mapped file this data region
         /// will be mapped to. Having the path set, allows relying on swapping capabilities of an underlying
         /// operating system for the memory region.
         /// <para />
@@ -160,21 +160,20 @@ namespace Apache.Ignite.Core.Configuration
 
         /// <summary>
         /// Gets or sets the page eviction mode. If <see cref="DataPageEvictionMode.Disabled"/> is used (default)
-        /// then an out of memory exception will be thrown if the memory region usage,
-        /// defined by this memory policy, goes beyond <see cref="MaxSize"/>.
+        /// then an out of memory exception will be thrown if the memory region usage 
+        /// goes beyond <see cref="MaxSize"/>.
         /// </summary>
         public DataPageEvictionMode PageEvictionMode { get; set; }
 
         /// <summary>
         /// Gets or sets the threshold for memory pages eviction initiation. For instance, if the threshold is 0.9
-        /// it means that the page memory will start the eviction only after 90% of the memory region
-        /// (defined by this policy) is occupied.
+        /// it means that the page memory will start the eviction only after 90% of the memory region is occupied.
         /// </summary>
         [DefaultValue(DefaultEvictionThreshold)]
         public double EvictionThreshold { get; set; }
 
         /// <summary>
-        /// Gets or sets the minimal number of empty pages to be present in reuse lists for this memory policy.
+        /// Gets or sets the minimal number of empty pages to be present in reuse lists for this data region.
         /// This parameter ensures that Ignite will be able to successfully evict old data entries when the size of
         /// (key, value) pair is slightly larger than page size / 2.
         /// Increase this parameter if cache can contain very big entries (total size of pages in this pool
