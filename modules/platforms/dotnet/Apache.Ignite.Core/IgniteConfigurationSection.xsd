@@ -1551,6 +1551,11 @@
                                             <xs:documentation>Rate time interval for AllocationRate and EvictionRate monitoring.</xs:documentation>
                                         </xs:annotation>
                                     </xs:attribute>
+                                    <xs:attribute name="persistenceEnabled" type="xs:boolean">
+                                        <xs:annotation>
+                                            <xs:documentation>Enable disk persistence for this region.</xs:documentation>
+                                        </xs:annotation>
+                                    </xs:attribute>
                                 </xs:complexType>
                             </xs:element>
                             <xs:element name="dataRegionConfigurations">
@@ -1612,6 +1617,11 @@
                                                 <xs:attribute name="rateTimeInterval" type="xs:string">
                                                     <xs:annotation>
                                                         <xs:documentation>Rate time interval for AllocationRate and EvictionRate monitoring.</xs:documentation>
+                                                    </xs:annotation>
+                                                </xs:attribute>
+                                                <xs:attribute name="persistenceEnabled" type="xs:boolean">
+                                                    <xs:annotation>
+                                                        <xs:documentation>Enable disk persistence for this region.</xs:documentation>
                                                     </xs:annotation>
                                                 </xs:attribute>
                                             </xs:complexType>                                            
