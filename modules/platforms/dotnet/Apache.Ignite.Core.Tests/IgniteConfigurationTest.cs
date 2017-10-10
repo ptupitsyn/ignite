@@ -66,6 +66,7 @@ namespace Apache.Ignite.Core.Tests
         {
             CheckDefaultProperties(new IgniteConfiguration());
             CheckDefaultProperties(new PersistentStoreConfiguration());
+            CheckDefaultProperties(new DataStorageConfiguration());
             CheckDefaultProperties(new ClientConnectorConfiguration());
             CheckDefaultProperties(new SqlConnectorConfiguration());
         }
@@ -335,6 +336,9 @@ namespace Apache.Ignite.Core.Tests
                 // Check PersistentStoreConfiguration defaults.
                 CheckDefaultProperties(resCfg.PersistentStoreConfiguration);
 
+                // DataStorage defaults.
+                CheckDefaultProperties(resCfg.DataStorageConfiguration);
+
                 // Connector defaults.
                 CheckDefaultProperties(resCfg.ClientConnectorConfiguration);
             }
@@ -603,6 +607,39 @@ namespace Apache.Ignite.Core.Tests
         /// Checks the default properties.
         /// </summary>
         /// <param name="cfg">Config.</param>
+        private static void CheckDefaultProperties(DataStorageConfiguration cfg)
+        {
+            Assert.AreEqual(DataStorageConfiguration.DefaultTlbSize, cfg.TlbSize);
+            Assert.AreEqual(DataStorageConfiguration.DefaultCheckpointingFrequency, cfg.CheckpointingFrequency);
+            Assert.AreEqual(DataStorageConfiguration.DefaultCheckpointingThreads, cfg.CheckpointingThreads);
+            Assert.AreEqual(default(long), cfg.CheckpointingPageBufferSize);
+            Assert.AreEqual(DataStorageConfiguration.DefaultLockWaitTime, cfg.LockWaitTime);
+            Assert.AreEqual(DataStorageConfiguration.DefaultWalFlushFrequency, cfg.WalFlushFrequency);
+            Assert.AreEqual(DataStorageConfiguration.DefaultWalFsyncDelayNanos, cfg.WalFsyncDelayNanos);
+            Assert.AreEqual(DataStorageConfiguration.DefaultWalHistorySize, cfg.WalHistorySize);
+            Assert.AreEqual(DataStorageConfiguration.DefaultWalRecordIteratorBufferSize,
+                cfg.WalRecordIteratorBufferSize);
+            Assert.AreEqual(DataStorageConfiguration.DefaultWalSegmentSize, cfg.WalSegmentSize);
+            Assert.AreEqual(DataStorageConfiguration.DefaultWalSegments, cfg.WalSegments);
+            Assert.AreEqual(WalMode.Default, cfg.WalMode);
+            Assert.IsFalse(cfg.MetricsEnabled);
+            Assert.AreEqual(DataStorageConfiguration.DefaultSubIntervals, cfg.SubIntervals);
+            Assert.AreEqual(DataStorageConfiguration.DefaultRateTimeInterval, cfg.RateTimeInterval);
+            Assert.AreEqual(DataStorageConfiguration.DefaultWalStorePath, cfg.WalStorePath);
+            Assert.AreEqual(DataStorageConfiguration.DefaultWalArchivePath, cfg.WalArchivePath);
+            Assert.AreEqual(DataStorageConfiguration.DefaultCheckpointWriteOrder, cfg.CheckpointWriteOrder);
+            Assert.AreEqual(DataStorageConfiguration.DefaultWriteThrottlingEnabled, cfg.WriteThrottlingEnabled);
+
+            Assert.AreEqual(DataStorageConfiguration.DefaultSystemRegionInitialSize, cfg.SystemRegionInitialSize);
+            Assert.AreEqual(DataStorageConfiguration.DefaultSystemRegionMaxSize, cfg.SystemRegionMaxSize);
+            Assert.AreEqual(DataStorageConfiguration.DefaultPageSize, cfg.PageSize);
+            Assert.AreEqual(DataStorageConfiguration.DefaultConcurrencyLevel, cfg.ConcurrencyLevel);
+        }
+
+        /// <summary>
+        /// Checks the default properties.
+        /// </summary>
+        /// <param name="cfg">Config.</param>
         private static void CheckDefaultProperties(ClientConnectorConfiguration cfg)
         {
             Assert.AreEqual(ClientConnectorConfiguration.DefaultPort, cfg.Port);
@@ -650,7 +687,7 @@ namespace Apache.Ignite.Core.Tests
                 if (attr != null)
                     Assert.AreEqual(attr.Value, propValue, string.Format("{0}.{1}", obj.GetType(), prop.Name));
                 else if (prop.PropertyType.IsValueType)
-                    Assert.AreEqual(Activator.CreateInstance(prop.PropertyType), propValue);
+                    Assert.AreEqual(Activator.CreateInstance(prop.PropertyType), propValue, prop.Name);
                 else
                     Assert.IsNull(propValue);
             }

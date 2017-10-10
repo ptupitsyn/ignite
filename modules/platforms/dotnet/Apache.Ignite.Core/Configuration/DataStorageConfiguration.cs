@@ -144,6 +144,11 @@ namespace Apache.Ignite.Core.Configuration
         public const int DefaultPageSize = 4 * 1024;
 
         /// <summary>
+        /// The default concurrency level.
+        /// </summary>
+        public const int DefaultConcurrencyLevel = 0;
+
+        /// <summary>
         /// Initializes a new instance of the <see cref="DataStorageConfiguration"/> class.
         /// </summary>
         public DataStorageConfiguration()
@@ -438,6 +443,7 @@ namespace Apache.Ignite.Core.Configuration
         /// <summary>
         /// Gets or sets the number of concurrent segments in Ignite internal page mapping tables.
         /// </summary>
+        [DefaultValue(DefaultConcurrencyLevel)]
         public int ConcurrencyLevel { get; set; }
 
         /// <summary>
