@@ -297,6 +297,30 @@ namespace Apache.Ignite.Core.Tests
             Assert.AreEqual(17, ds.WalSegmentSize);
             Assert.AreEqual("wal-store", ds.WalStorePath);
             Assert.IsTrue(ds.WriteThrottlingEnabled);
+
+            var dr = ds.DataRegionConfigurations.Single();
+            Assert.AreEqual(1, dr.EmptyPagesPoolSize);
+            Assert.AreEqual(2, dr.EvictionThreshold);
+            Assert.AreEqual(3, dr.InitialSize);
+            Assert.AreEqual(4, dr.MaxSize);
+            Assert.AreEqual("reg2", dr.Name);
+            Assert.AreEqual(Core.Configuration.DataPageEvictionMode.RandomLru, dr.PageEvictionMode);
+            Assert.AreEqual(TimeSpan.FromSeconds(1), dr.RateTimeInterval);
+            Assert.AreEqual(5, dr.SubIntervals);
+            Assert.AreEqual("swap", dr.SwapFilePath);
+            Assert.IsTrue(dr.MetricsEnabled);
+
+            dr = ds.DefaultDataRegionConfiguration;
+            Assert.AreEqual(2, dr.EmptyPagesPoolSize);
+            Assert.AreEqual(3, dr.EvictionThreshold);
+            Assert.AreEqual(4, dr.InitialSize);
+            Assert.AreEqual(5, dr.MaxSize);
+            Assert.AreEqual("reg1", dr.Name);
+            Assert.AreEqual(Core.Configuration.DataPageEvictionMode.Disabled, dr.PageEvictionMode);
+            Assert.AreEqual(TimeSpan.FromSeconds(3), dr.RateTimeInterval);
+            Assert.AreEqual(6, dr.SubIntervals);
+            Assert.AreEqual("swap2", dr.SwapFilePath);
+            Assert.IsFalse(dr.MetricsEnabled);
         }
 
         /// <summary>
