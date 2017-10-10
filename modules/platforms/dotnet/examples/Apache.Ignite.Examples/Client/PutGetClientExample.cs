@@ -54,6 +54,9 @@ namespace Apache.Ignite.Examples.Client
             {
                 using (IIgniteClient igniteClient = Ignition.StartClient(cfg))
                 {
+                    Console.WriteLine();
+                    Console.WriteLine(">>> Cache put-get client example started.");
+
                     ICacheClient<int, Organization> cache = igniteClient.GetCache<int, Organization>(CacheName);
 
                     PutGet(cache);
@@ -72,6 +75,10 @@ namespace Apache.Ignite.Examples.Client
 
                 throw;
             }
+
+            Console.WriteLine();
+            Console.WriteLine(">>> Example finished, press any key to exit ...");
+            Console.ReadKey();
         }
 
         /// <summary>
@@ -97,6 +104,5 @@ namespace Apache.Ignite.Examples.Client
             Console.WriteLine();
             Console.WriteLine(">>> Retrieved organization instance from cache: " + orgFromCache);
         }
-
     }
 }
