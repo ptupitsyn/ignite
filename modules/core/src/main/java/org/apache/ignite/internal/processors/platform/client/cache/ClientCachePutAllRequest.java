@@ -21,7 +21,7 @@ import org.apache.ignite.internal.binary.BinaryRawReaderEx;
 import org.apache.ignite.internal.processors.platform.client.ClientConnectionContext;
 import org.apache.ignite.internal.processors.platform.client.ClientResponse;
 
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
@@ -40,11 +40,11 @@ public class ClientCachePutAllRequest extends ClientCacheRequest {
         super(reader);
 
         int cnt = reader.readInt();
-        map = new HashMap<>(cnt);
 
-        for (int i = 0; i < cnt; i++) {
+        map = new LinkedHashMap<>(cnt);
+
+        for (int i = 0; i < cnt; i++)
             map.put(reader.readObjectDetached(), reader.readObjectDetached());
-        }
     }
 
     /** {@inheritDoc} */

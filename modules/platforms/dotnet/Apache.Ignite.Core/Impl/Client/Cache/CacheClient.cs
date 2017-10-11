@@ -353,6 +353,166 @@ namespace Apache.Ignite.Core.Impl.Client.Cache
             return DoOutInOp(ClientOp.CacheGetSize, w => w.WriteInt(IgniteUtils.EncodePeekModes(modes)),
                 s => s.ReadInt());
         }
+        
+        /** <inheritDoc /> */
+        public CacheResult<TV> GetAndPut(TK key, TV val)
+        {
+            IgniteArgumentCheck.NotNull(key, "key");
+            IgniteArgumentCheck.NotNull(val, "val");
+
+            return DoOutInOp(ClientOp.CacheGetAndPut, w =>
+            {
+                w.WriteObjectDetached(key);
+                w.WriteObjectDetached(val);
+            }, UnmarshalCacheResult<TV>);
+        }
+
+        /** <inheritDoc /> */
+        public CacheResult<TV> GetAndReplace(TK key, TV val)
+        {
+            IgniteArgumentCheck.NotNull(key, "key");
+            IgniteArgumentCheck.NotNull(val, "val");
+
+            return DoOutInOp(ClientOp.CacheGetAndReplace, w =>
+            {
+                w.WriteObjectDetached(key);
+                w.WriteObjectDetached(val);
+            }, UnmarshalCacheResult<TV>);
+        }
+
+        /** <inheritDoc /> */
+        public CacheResult<TV> GetAndRemove(TK key)
+        {
+            IgniteArgumentCheck.NotNull(key, "key");
+
+            return DoOutInOp(ClientOp.CacheGetAndRemove, w => w.WriteObjectDetached(key), 
+                UnmarshalCacheResult<TV>);
+        }
+
+        /** <inheritDoc /> */
+        public bool PutIfAbsent(TK key, TV val)
+        {
+            IgniteArgumentCheck.NotNull(key, "key");
+            IgniteArgumentCheck.NotNull(val, "val");
+
+            return DoOutInOp(ClientOp.CachePutIfAbsent, w =>
+            {
+                w.WriteObjectDetached(key);
+                w.WriteObjectDetached(val);
+            }, s => s.ReadBool());
+        }
+
+        /** <inheritDoc /> */
+        public CacheResult<TV> GetAndPutIfAbsent(TK key, TV val)
+        {
+            IgniteArgumentCheck.NotNull(key, "key");
+            IgniteArgumentCheck.NotNull(val, "val");
+
+            return DoOutInOp(ClientOp.CacheGetAndPutIfAbsent, w =>
+            {
+                w.WriteObjectDetached(key);
+                w.WriteObjectDetached(val);
+            }, UnmarshalCacheResult<TV>);
+        }
+
+        /** <inheritDoc /> */
+        public bool Replace(TK key, TV val)
+        {
+            IgniteArgumentCheck.NotNull(key, "key");
+            IgniteArgumentCheck.NotNull(val, "val");
+
+            return DoOutInOp(ClientOp.CacheReplace, w =>
+            {
+                w.WriteObjectDetached(key);
+                w.WriteObjectDetached(val);
+            }, s => s.ReadBool());
+        }
+
+        /** <inheritDoc /> */
+        public bool Replace(TK key, TV oldVal, TV newVal)
+        {
+            IgniteArgumentCheck.NotNull(key, "key");
+            IgniteArgumentCheck.NotNull(oldVal, "oldVal");
+            IgniteArgumentCheck.NotNull(newVal, "newVal");
+
+            return DoOutInOp(ClientOp.CacheReplaceIfEquals, w =>
+            {
+                w.WriteObjectDetached(key);
+                w.WriteObjectDetached(oldVal);
+                w.WriteObjectDetached(newVal);
+            }, s => s.ReadBool());
+        }
+
+        /** <inheritDoc /> */
+        public void PutAll(IEnumerable<KeyValuePair<TK, TV>> vals)
+        {
+            IgniteArgumentCheck.NotNull(vals, "vals");
+
+            DoOutOp(ClientOp.CachePutAll, w => w.WriteDictionary(vals));
+        }
+
+        /** <inheritDoc /> */
+        public void Clear()
+        {
+            DoOutOp(ClientOp.CacheClear);
+        }
+
+        /** <inheritDoc /> */
+        public void Clear(TK key)
+        {
+            IgniteArgumentCheck.NotNull(key, "key");
+
+            DoOutOp(ClientOp.CacheClearKey, w => w.WriteObjectDetached(key));
+        }
+
+        /** <inheritDoc /> */
+        public void ClearAll(IEnumerable<TK> keys)
+        {
+            IgniteArgumentCheck.NotNull(keys, "keys");
+
+            DoOutOp(ClientOp.CacheClearKeys, w => w.WriteEnumerable(keys));
+        }
+
+        /** <inheritDoc /> */
+        public bool Remove(TK key)
+        {
+            IgniteArgumentCheck.NotNull(key, "key");
+
+            return DoOutInOp(ClientOp.CacheRemoveKey, w => w.WriteObjectDetached(key), r => r.ReadBool());
+        }
+
+        /** <inheritDoc /> */
+        public bool Remove(TK key, TV val)
+        {
+            IgniteArgumentCheck.NotNull(key, "key");
+            IgniteArgumentCheck.NotNull(val, "val");
+
+            return DoOutInOp(ClientOp.CacheRemoveIfEquals, w =>
+            {
+                w.WriteObjectDetached(key);
+                w.WriteObjectDetached(val);
+            }, r => r.ReadBool());
+        }
+
+        /** <inheritDoc /> */
+        public void RemoveAll(IEnumerable<TK> keys)
+        {
+            IgniteArgumentCheck.NotNull(keys, "keys");
+
+            DoOutOp(ClientOp.CacheRemoveKeys, w => w.WriteEnumerable(keys));
+        }
+
+        /** <inheritDoc /> */
+        public void RemoveAll()
+        {
+            DoOutOp(ClientOp.CacheRemoveAll);
+        }
+
+        /** <inheritDoc /> */
+        public long GetSize(params CachePeekMode[] modes)
+        {
+            return DoOutInOp(ClientOp.CacheGetSize, w => WritePeekModes(modes, w), s => s.ReadLong());
+        }
 
         /// <summary>
         /// Does the out in op.
@@ -504,6 +664,35 @@ namespace Apache.Ignite.Core.Impl.Client.Cache
         private static KeyNotFoundException GetKeyNotFoundException()
         {
             return new KeyNotFoundException("The given key was not present in the cache.");
+        }
+
+        /// <summary>
+        /// Writes the peek modes.
+        /// </summary>
+        private static void WritePeekModes(ICollection<CachePeekMode> modes, IBinaryRawWriter w)
+        {
+            if (modes == null)
+            {
+                w.WriteInt(0);
+            }
+            else
+            {
+                w.WriteInt(modes.Count);
+
+                foreach (var m in modes)
+                {
+                    // Convert bit flag to ordinal.
+                    byte val = 0;
+                    var flagVal = (int)m;
+
+                    while ((flagVal = flagVal >> 1) > 0)
+                    {
+                        val++;
+                    }
+
+                    w.WriteByte(val);
+                }
+            }
         }
     }
 }

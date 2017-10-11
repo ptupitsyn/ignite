@@ -108,13 +108,6 @@ namespace Apache.Ignite.Core.Client.Cache
         IQueryCursor<ICacheEntry<TK, TV>> Query(SqlQuery sqlQuery);
 
         /// <summary>
-        /// Executes an SQL Fields query.
-        /// </summary>
-        /// <param name="sqlFieldsQuery">SQL query.</param>
-        /// <returns>Query cursor.</returns>
-        IFieldsQueryCursor Query(SqlFieldsQuery sqlFieldsQuery);
-
-        /// <summary>
         /// Associates the specified value with the specified key in this cache,
         /// returning an existing value if one existed.
         /// </summary>
@@ -234,6 +227,6 @@ namespace Apache.Ignite.Core.Client.Cache
         /// </summary>
         /// <param name="modes">Optional peek modes. If not provided, then total cache size is returned.</param>
         /// <returns>Cache size across all nodes.</returns>
-        int GetSize(params CachePeekMode[] modes);
+        long GetSize(params CachePeekMode[] modes);
     }
 }

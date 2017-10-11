@@ -15,30 +15,32 @@
  * limitations under the License.
  */
 
-package org.apache.ignite.internal.processors.platform.client.cache;
+package org.apache.ignite.internal.processors.platform.client;
 
-import org.apache.ignite.internal.binary.BinaryRawReaderEx;
-import org.apache.ignite.internal.processors.platform.client.ClientConnectionContext;
-import org.apache.ignite.internal.processors.platform.client.ClientResponse;
+import org.apache.ignite.internal.binary.BinaryRawWriterEx;
 
 /**
- * Remove keys request.
+ * Long response.
  */
-public class ClientCacheRemoveKeysRequest extends ClientCacheKeysRequest {
+public class ClientLongResponse extends ClientResponse {
+    /** */
+    private final long val;
+
     /**
      * Constructor.
      *
-     * @param reader Reader.
+     * @param reqId Request id.
      */
-    public ClientCacheRemoveKeysRequest(BinaryRawReaderEx reader) {
-        super(reader);
+    public ClientLongResponse(long reqId, long val) {
+        super(reqId);
+
+        this.val = val;
     }
 
     /** {@inheritDoc} */
-    @SuppressWarnings("unchecked")
-    @Override public ClientResponse process(ClientConnectionContext ctx) {
-        cache(ctx).removeAll(keys());
+    @Override public void encode(BinaryRawWriterEx writer) {
+        super.encode(writer);
 
-        return super.process(ctx);
+        writer.writeLong(val);
     }
 }

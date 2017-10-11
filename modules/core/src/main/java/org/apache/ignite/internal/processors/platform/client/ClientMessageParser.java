@@ -47,6 +47,12 @@ import org.apache.ignite.internal.processors.platform.client.cache.ClientCacheGe
 import org.apache.ignite.internal.processors.platform.client.cache.ClientCachePutAllRequest;
 import org.apache.ignite.internal.processors.platform.client.cache.ClientCachePutIfAbsentRequest;
 import org.apache.ignite.internal.processors.platform.client.cache.ClientCachePutRequest;
+import org.apache.ignite.internal.processors.platform.client.cache.ClientCacheRemoveIfEqualsRequest;
+import org.apache.ignite.internal.processors.platform.client.cache.ClientCacheRemoveAllRequest;
+import org.apache.ignite.internal.processors.platform.client.cache.ClientCacheRemoveKeysRequest;
+import org.apache.ignite.internal.processors.platform.client.cache.ClientCacheRemoveKeyRequest;
+import org.apache.ignite.internal.processors.platform.client.cache.ClientCacheReplaceIfEqualsRequest;
+import org.apache.ignite.internal.processors.platform.client.cache.ClientCacheReplaceRequest;
 import org.apache.ignite.internal.processors.platform.client.cache.ClientCacheRemove2Request;
 import org.apache.ignite.internal.processors.platform.client.cache.ClientCacheRemoveAllRequest;
 import org.apache.ignite.internal.processors.platform.client.cache.ClientCacheRemoveKeysRequest;
@@ -117,7 +123,7 @@ public class ClientMessageParser implements ClientListenerMessageParser {
     private static final short OP_CACHE_REPLACE = 18;
 
     /** */
-    private static final short OP_CACHE_REPLACE2 = 19;
+    private static final short OP_CACHE_REPLACE_IF_EQUALS = 19;
 
     /** */
     private static final short OP_CACHE_PUT_ALL = 20;
@@ -132,10 +138,10 @@ public class ClientMessageParser implements ClientListenerMessageParser {
     private static final short OP_CACHE_CLEAR_KEYS = 23;
 
     /** */
-    private static final short OP_CACHE_REMOVE = 24;
+    private static final short OP_CACHE_REMOVE_KEY = 24;
 
     /** */
-    private static final short OP_CACHE_REMOVE2 = 25;
+    private static final short OP_CACHE_REMOVE_IF_EQUALS = 25;
 
     /** */
     private static final short OP_CACHE_GET_SIZE = 26;
@@ -247,8 +253,8 @@ public class ClientMessageParser implements ClientListenerMessageParser {
             case OP_CACHE_REPLACE:
                 return new ClientCacheReplaceRequest(reader);
 
-            case OP_CACHE_REPLACE2:
-                return new ClientCacheReplace2Request(reader);
+            case OP_CACHE_REPLACE_IF_EQUALS:
+                return new ClientCacheReplaceIfEqualsRequest(reader);
 
             case OP_CACHE_PUT_ALL:
                 return new ClientCachePutAllRequest(reader);
@@ -262,11 +268,11 @@ public class ClientMessageParser implements ClientListenerMessageParser {
             case OP_CACHE_CLEAR_KEYS:
                 return new ClientCacheClearKeysRequest(reader);
 
-            case OP_CACHE_REMOVE:
-                return new ClientCacheRemoveRequest(reader);
+            case OP_CACHE_REMOVE_KEY:
+                return new ClientCacheRemoveKeyRequest(reader);
 
-            case OP_CACHE_REMOVE2:
-                return new ClientCacheRemove2Request(reader);
+            case OP_CACHE_REMOVE_IF_EQUALS:
+                return new ClientCacheRemoveIfEqualsRequest(reader);
 
             case OP_CACHE_GET_SIZE:
                 return new ClientCacheGetSizeRequest(reader);

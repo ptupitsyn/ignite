@@ -19,50 +19,30 @@ package org.apache.ignite.internal.processors.platform.client.cache;
 
 import org.apache.ignite.internal.binary.BinaryRawReaderEx;
 
-import java.util.HashSet;
-import java.util.Set;
-
 /**
- * Key set request.
+ * Cache request involving key and value.
  */
-public class ClientCacheKeySetRequest extends ClientCacheRequest {
-    /** Keys. */
-    private final Set<Object> keys;
+public class ClientCacheKeyValueRequest extends ClientCacheKeyRequest {
+    /** Value. */
+    private final Object val;
 
     /**
-     * Constructor.
+     * Ctor.
      *
      * @param reader Reader.
      */
-    ClientCacheKeySetRequest(BinaryRawReaderEx reader) {
+    ClientCacheKeyValueRequest(BinaryRawReaderEx reader) {
         super(reader);
 
-        keys = readSet(reader);
+        val = reader.readObjectDetached();
     }
 
     /**
-     * Gets the set of keys.
+     * Gets the value.
      *
-     * @return Keys.
+     * @return Value.
      */
-    public Set<Object> keys() {
-        return keys;
-    }
-
-    /**
-     * Reads a set of objects.
-     *
-     * @param reader Reader.
-     * @return Set of objects.
-     */
-    private static Set<Object> readSet(BinaryRawReaderEx reader) {
-        int cnt = reader.readInt();
-        Set<Object> keys = new HashSet<>(cnt);
-
-        for (int i = 0; i < cnt; i++) {
-            keys.add(reader.readObjectDetached());
-        }
-
-        return keys;
+    public Object val() {
+        return val;
     }
 }

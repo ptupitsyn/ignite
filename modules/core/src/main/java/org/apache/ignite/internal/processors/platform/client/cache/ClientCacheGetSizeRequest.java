@@ -20,9 +20,8 @@ package org.apache.ignite.internal.processors.platform.client.cache;
 import org.apache.ignite.binary.BinaryRawReader;
 import org.apache.ignite.cache.CachePeekMode;
 import org.apache.ignite.internal.processors.platform.client.ClientConnectionContext;
-import org.apache.ignite.internal.processors.platform.client.ClientIntResponse;
+import org.apache.ignite.internal.processors.platform.client.ClientLongResponse;
 import org.apache.ignite.internal.processors.platform.client.ClientResponse;
-import org.apache.ignite.internal.processors.platform.utils.PlatformUtils;
 
 /**
  * Cache size request.
@@ -39,15 +38,20 @@ public class ClientCacheGetSizeRequest extends ClientCacheRequest {
     public ClientCacheGetSizeRequest(BinaryRawReader reader) {
         super(reader);
 
-        modes = PlatformUtils.decodeCachePeekModes(reader.readInt());
+        int cnt = reader.readInt();
+
+        modes = new CachePeekMode[cnt];
+
+        for (int i = 0; i < cnt; i++) {
+            modes[i] = CachePeekMode.fromOrdinal(reader.readByte());
+        }
     }
 
     /** {@inheritDoc} */
     @SuppressWarnings("unchecked")
     @Override public ClientResponse process(ClientConnectionContext ctx) {
-        int res = cache(ctx).size(modes);
+        long res = cache(ctx).sizeLong(modes);
 
-        return new ClientIntResponse(requestId(), res);
+        return new ClientLongResponse(requestId(), res);
     }
-
 }

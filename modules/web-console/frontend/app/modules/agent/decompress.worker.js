@@ -15,30 +15,20 @@
  * limitations under the License.
  */
 
-package org.apache.ignite.internal.processors.platform.client.cache;
+import _ from 'lodash';
+import pako from 'pako';
+import bigIntJSON from 'json-bigint';
 
-import org.apache.ignite.internal.binary.BinaryRawReaderEx;
-import org.apache.ignite.internal.processors.platform.client.ClientConnectionContext;
-import org.apache.ignite.internal.processors.platform.client.ClientResponse;
+/** This worker decode & decompress BASE64/Zipped data and parse to JSON. */
+// eslint-disable-next-line no-undef
+onmessage = function(e) {
+    const data = e.data;
 
-/**
- * Remove keys request.
- */
-public class ClientCacheRemoveKeysRequest extends ClientCacheKeysRequest {
-    /**
-     * Constructor.
-     *
-     * @param reader Reader.
-     */
-    public ClientCacheRemoveKeysRequest(BinaryRawReaderEx reader) {
-        super(reader);
-    }
+    const binaryString = atob(data); // Decode from BASE64
 
-    /** {@inheritDoc} */
-    @SuppressWarnings("unchecked")
-    @Override public ClientResponse process(ClientConnectionContext ctx) {
-        cache(ctx).removeAll(keys());
+    const unzipped = pako.inflate(binaryString, {to: 'string'});
 
-        return super.process(ctx);
-    }
-}
+    const res = bigIntJSON({storeAsString: true}).parse(unzipped);
+
+    postMessage(_.get(res, 'result', res));
+};
