@@ -108,6 +108,13 @@ namespace Apache.Ignite.Core.Client.Cache
         IQueryCursor<ICacheEntry<TK, TV>> Query(SqlQuery sqlQuery);
 
         /// <summary>
+        /// Executes an SQL Fields query.
+        /// </summary>
+        /// <param name="sqlFieldsQuery">SQL query.</param>
+        /// <returns>Query cursor.</returns>
+        IFieldsQueryCursor Query(SqlFieldsQuery sqlFieldsQuery);
+
+        /// <summary>
         /// Associates the specified value with the specified key in this cache,
         /// returning an existing value if one existed.
         /// </summary>
