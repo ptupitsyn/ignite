@@ -71,7 +71,8 @@ namespace Apache.Ignite.Core.Tests.Cache
                     {
                         new DataRegionConfiguration
                         {
-                            Name = "volatileRegion"
+                            Name = "volatileRegion",
+                            PersistenceEnabled = false
                         } 
                     }
                 }
@@ -142,7 +143,14 @@ namespace Apache.Ignite.Core.Tests.Cache
         {
             var cfg = new IgniteConfiguration(TestUtils.GetTestConfiguration())
             {
-                DataStorageConfiguration = new DataStorageConfiguration()
+                DataStorageConfiguration = new DataStorageConfiguration
+                {
+                    DefaultDataRegionConfiguration = new DataRegionConfiguration
+                    {
+                        PersistenceEnabled = true,
+                        Name = "foo"
+                    }
+                }
             };
 
             // Default config, inactive by default (IsActiveOnStart is ignored when persistence is enabled).
