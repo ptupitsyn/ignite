@@ -116,23 +116,19 @@ public abstract class IgnitePdsCacheRebalancingAbstractTest extends GridCommonAb
 
         memCfg.setConcurrencyLevel(Runtime.getRuntime().availableProcessors() * 4);
         memCfg.setPageSize(1024);
+        memCfg.setWalMode(WALMode.LOG_ONLY);
 
         DataRegionConfiguration memPlcCfg = new DataRegionConfiguration();
 
-        memPlcCfg.setName("dfltMemPlc");
+        memPlcCfg.setName("dfltDataRegion");
         memPlcCfg.setMaxSize(150 * 1024 * 1024);
         memPlcCfg.setInitialSize(100 * 1024 * 1024);
         memPlcCfg.setSwapFilePath("work/swap");
+        memPlcCfg.setPersistenceEnabled(true);
 
-        memCfg.setDataRegionConfigurations(memPlcCfg);
-        memCfg.setDefaultDataRegionName("dfltMemPlc");
+        memCfg.setDefaultDataRegionConfiguration(memPlcCfg);
 
         cfg.setDataStorageConfiguration(memCfg);
-
-        cfg.setDataStorageConfiguration(
-            new DataStorageConfiguration()
-                .setWalMode(WALMode.LOG_ONLY)
-        );
 
         cfg.setDiscoverySpi(
             new TcpDiscoverySpi()

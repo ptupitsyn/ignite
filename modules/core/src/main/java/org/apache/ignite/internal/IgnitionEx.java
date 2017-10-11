@@ -33,6 +33,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentMap;
@@ -127,6 +128,8 @@ import static org.apache.ignite.cache.CacheMode.REPLICATED;
 import static org.apache.ignite.cache.CacheRebalanceMode.SYNC;
 import static org.apache.ignite.cache.CacheWriteSynchronizationMode.FULL_SYNC;
 import static org.apache.ignite.configuration.IgniteConfiguration.DFLT_THREAD_KEEP_ALIVE_TIME;
+import static org.apache.ignite.configuration.MemoryConfiguration.DFLT_MEMORY_POLICY_MAX_SIZE;
+import static org.apache.ignite.configuration.MemoryConfiguration.DFLT_MEM_PLC_DEFAULT_NAME;
 import static org.apache.ignite.internal.IgniteComponentType.SPRING;
 import static org.apache.ignite.plugin.segmentation.SegmentationPolicy.RESTART_JVM;
 
@@ -2205,7 +2208,8 @@ public class IgnitionEx {
 
             if (cfg.getMemoryConfiguration() != null || cfg.getPersistentStoreConfiguration() != null)
                 convertLegacyDataStorageConfigurationToNew(cfg);
-            else
+
+            if (!cfg.isClientMode() && cfg.getDataStorageConfiguration() == null)
                 cfg.setDataStorageConfiguration(new DataStorageConfiguration());
         }
 
@@ -2774,7 +2778,8 @@ public class IgnitionEx {
     /**
      * @param cfg Ignite Configuration with legacy data storage configuration.
      */
-    private static void convertLegacyDataStorageConfigurationToNew(IgniteConfiguration cfg) {
+    private static void convertLegacyDataStorageConfigurationToNew(
+        IgniteConfiguration cfg) throws IgniteCheckedException {
         boolean persistenceEnabled = cfg.getPersistentStoreConfiguration() != null;
 
         DataStorageConfiguration dsCfg = new DataStorageConfiguration();
@@ -2793,27 +2798,32 @@ public class IgnitionEx {
 
         if (memCfg.getMemoryPolicies() != null) {
             for (MemoryPolicyConfiguration mpc : memCfg.getMemoryPolicies()) {
-                DataRegionConfiguration dfltRegion = new DataRegionConfiguration();
+                DataRegionConfiguration region = new DataRegionConfiguration();
 
-                dfltRegion.setPersistenceEnabled(persistenceEnabled);
+                region.setPersistenceEnabled(persistenceEnabled);
 
-                dfltRegion.setEmptyPagesPoolSize(mpc.getEmptyPagesPoolSize());
-                dfltRegion.setEvictionThreshold(mpc.getEvictionThreshold());
-                dfltRegion.setInitialSize(mpc.getInitialSize());
-                dfltRegion.setMaxSize(mpc.getMaxSize());
-                dfltRegion.setName(mpc.getName());
-                dfltRegion.setPageEvictionMode(mpc.getPageEvictionMode());
-                dfltRegion.setRateTimeInterval(mpc.getRateTimeInterval());
-                dfltRegion.setSubIntervals(mpc.getSubIntervals());
-                dfltRegion.setSwapFilePath(mpc.getSwapFilePath());
-                dfltRegion.setMetricsEnabled(mpc.isMetricsEnabled());
+                region.setEmptyPagesPoolSize(mpc.getEmptyPagesPoolSize());
+                region.setEvictionThreshold(mpc.getEvictionThreshold());
+                region.setInitialSize(mpc.getInitialSize());
+                region.setMaxSize(mpc.getMaxSize());
+                region.setName(mpc.getName());
+                region.setPageEvictionMode(mpc.getPageEvictionMode());
+                region.setRateTimeInterval(mpc.getRateTimeInterval());
+                region.setSubIntervals(mpc.getSubIntervals());
+                region.setSwapFilePath(mpc.getSwapFilePath());
+                region.setMetricsEnabled(mpc.isMetricsEnabled());
+
+                if (mpc.getName() == null) {
+                    throw new IgniteCheckedException(new IllegalArgumentException(
+                        "User-defined MemoryPolicyConfiguration must have non-null and non-empty name."));
+                }
 
                 if (mpc.getName().equals(memCfg.getDefaultMemoryPolicyName())) {
                     customDfltPlc = true;
 
-                    dsCfg.setDefaultDataRegionConfiguration(dfltRegion);
+                    dsCfg.setDefaultDataRegionConfiguration(region);
                 } else
-                    optionalDataRegions.add(dfltRegion);
+                    optionalDataRegions.add(region);
             }
         }
 
@@ -2821,10 +2831,19 @@ public class IgnitionEx {
             dsCfg.setDataRegionConfigurations(optionalDataRegions.toArray(new DataRegionConfiguration[optionalDataRegions.size()]));
 
         if (!customDfltPlc) {
+            if (!DFLT_MEM_PLC_DEFAULT_NAME.equals(memCfg.getDefaultMemoryPolicyName())) {
+                throw new IgniteCheckedException(new IllegalArgumentException("User-defined default MemoryPolicy " +
+                    "name must be presented among configured MemoryPolices: " + memCfg.getDefaultMemoryPolicyName()));
+            }
+
             dsCfg.setDefaultDataRegionConfiguration(new DataRegionConfiguration()
                 .setMaxSize(memCfg.getDefaultMemoryPolicySize())
                 .setName(memCfg.getDefaultMemoryPolicyName())
                 .setPersistenceEnabled(persistenceEnabled));
+        } else {
+            if (memCfg.getDefaultMemoryPolicySize() != DFLT_MEMORY_POLICY_MAX_SIZE)
+                throw new IgniteCheckedException(new IllegalArgumentException("User-defined MemoryPolicy " +
+                    "configuration and defaultMemoryPolicySize properties are set at the same time."));
         }
 
         if (persistenceEnabled) {
@@ -2854,5 +2873,7 @@ public class IgnitionEx {
             dsCfg.setMetricsEnabled(psCfg.isMetricsEnabled());
             dsCfg.setWriteThrottlingEnabled(psCfg.isWriteThrottlingEnabled());
         }
+
+        cfg.setDataStorageConfiguration(dsCfg);
     }
 }

@@ -141,28 +141,24 @@ public class IgniteWalRecoveryTest extends GridCommonAbstractTest {
 
         DataRegionConfiguration memPlcCfg = new DataRegionConfiguration();
 
-        memPlcCfg.setName("dfltMemPlc");
+        memPlcCfg.setName("dfltDataRegion");
         memPlcCfg.setInitialSize(1024 * 1024 * 1024);
         memPlcCfg.setMaxSize(1024 * 1024 * 1024);
+        memPlcCfg.setPersistenceEnabled(true);
 
-        dbCfg.setDataRegionConfigurations(memPlcCfg);
-        dbCfg.setDefaultDataRegionName("dfltMemPlc");
+        dbCfg.setDefaultDataRegionConfiguration(memPlcCfg);
 
-        cfg.setDataStorageConfiguration(dbCfg);
+        dbCfg.setWalRecordIteratorBufferSize(1024 * 1024);
 
-        DataStorageConfiguration pCfg = new DataStorageConfiguration();
-
-        pCfg.setWalRecordIteratorBufferSize(1024 * 1024);
-
-        pCfg.setWalHistorySize(2);
+        dbCfg.setWalHistorySize(2);
 
         if (logOnly)
-            pCfg.setWalMode(WALMode.LOG_ONLY);
+            dbCfg.setWalMode(WALMode.LOG_ONLY);
 
         if (walSegmentSize != 0)
-            pCfg.setWalSegmentSize(walSegmentSize);
+            dbCfg.setWalSegmentSize(walSegmentSize);
 
-        cfg.setDataStorageConfiguration(pCfg);
+        cfg.setDataStorageConfiguration(dbCfg);
 
         cfg.setMarshaller(null);
 
