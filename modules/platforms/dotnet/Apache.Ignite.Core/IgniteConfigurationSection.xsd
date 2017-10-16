@@ -1715,12 +1715,12 @@
                                 <xs:documentation>Enable persistent store metrics.</xs:documentation>
                             </xs:annotation>
                         </xs:attribute>
-                        <xs:attribute name="subIntervals" type="xs:int">
+                        <xs:attribute name="metricsSubIntervalCount" type="xs:int">
                             <xs:annotation>
                                 <xs:documentation>Number of sub intervals to split RateTimeInterval into.</xs:documentation>
                             </xs:annotation>
                         </xs:attribute>
-                        <xs:attribute name="rateTimeInterval" type="xs:string">
+                        <xs:attribute name="metricsRateTimeInterval" type="xs:string">
                             <xs:annotation>
                                 <xs:documentation>Rate time interval.</xs:documentation>
                             </xs:annotation>

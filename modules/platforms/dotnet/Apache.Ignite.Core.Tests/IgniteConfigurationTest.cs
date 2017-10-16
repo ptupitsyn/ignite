@@ -623,8 +623,8 @@ namespace Apache.Ignite.Core.Tests
             Assert.AreEqual(DataStorageConfiguration.DefaultWalSegments, cfg.WalSegments);
             Assert.AreEqual(DataStorageConfiguration.DefaultWalMode, cfg.WalMode);
             Assert.IsFalse(cfg.MetricsEnabled);
-            Assert.AreEqual(DataStorageConfiguration.DefaultSubIntervals, cfg.SubIntervals);
-            Assert.AreEqual(DataStorageConfiguration.DefaultRateTimeInterval, cfg.RateTimeInterval);
+            Assert.AreEqual(DataStorageConfiguration.DefaultSubIntervals, cfg.MetricsSubIntervalCount);
+            Assert.AreEqual(DataStorageConfiguration.DefaultRateTimeInterval, cfg.MetricsRateTimeInterval);
             Assert.AreEqual(DataStorageConfiguration.DefaultWalPath, cfg.WalPath);
             Assert.AreEqual(DataStorageConfiguration.DefaultWalArchivePath, cfg.WalArchivePath);
             Assert.AreEqual(DataStorageConfiguration.DefaultCheckpointWriteOrder, cfg.CheckpointWriteOrder);
@@ -909,8 +909,8 @@ namespace Apache.Ignite.Core.Tests
                     WalSegmentSize = 5 * 1024 * 1024,
                     WalPath = Path.GetTempPath(),
                     MetricsEnabled = true,
-                    SubIntervals = 7,
-                    RateTimeInterval = TimeSpan.FromSeconds(9),
+                    MetricsSubIntervalCount = 7,
+                    MetricsRateTimeInterval = TimeSpan.FromSeconds(9),
                     CheckpointWriteOrder = Configuration.CheckpointWriteOrder.Random,
                     WriteThrottlingEnabled = true,
                     SystemRegionInitialSize = 64 * 1024 * 1024,

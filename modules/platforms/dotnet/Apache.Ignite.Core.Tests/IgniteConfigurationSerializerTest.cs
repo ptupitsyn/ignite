@@ -282,8 +282,8 @@ namespace Apache.Ignite.Core.Tests
             Assert.IsTrue(ds.MetricsEnabled);
             Assert.AreEqual(6, ds.PageSize);
             Assert.AreEqual("cde", ds.StoragePath);
-            Assert.AreEqual(TimeSpan.FromSeconds(7), ds.RateTimeInterval);
-            Assert.AreEqual(8, ds.SubIntervals);
+            Assert.AreEqual(TimeSpan.FromSeconds(7), ds.MetricsRateTimeInterval);
+            Assert.AreEqual(8, ds.MetricsSubIntervalCount);
             Assert.AreEqual(9, ds.SystemRegionInitialSize);
             Assert.AreEqual(10, ds.SystemRegionMaxSize);
             Assert.AreEqual(11, ds.WalThreadLocalBufferSize);
@@ -914,8 +914,8 @@ namespace Apache.Ignite.Core.Tests
                     WalSegmentSize = 5 * 1024 * 1024,
                     WalPath = Path.GetTempPath(),
                     MetricsEnabled = true,
-                    SubIntervals = 7,
-                    RateTimeInterval = TimeSpan.FromSeconds(9),
+                    MetricsSubIntervalCount = 7,
+                    MetricsRateTimeInterval = TimeSpan.FromSeconds(9),
                     CheckpointWriteOrder = Core.Configuration.CheckpointWriteOrder.Sequential,
                     WriteThrottlingEnabled = true,
                     SystemRegionInitialSize = 64 * 1024 * 1024,

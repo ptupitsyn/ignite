@@ -168,8 +168,8 @@ namespace Apache.Ignite.Core.Configuration
             WalFlushFrequency = DefaultWalFlushFrequency;
             WalRecordIteratorBufferSize = DefaultWalRecordIteratorBufferSize;
             WalFsyncDelayNanos = DefaultWalFsyncDelayNanos;
-            RateTimeInterval = DefaultRateTimeInterval;
-            SubIntervals = DefaultSubIntervals;
+            MetricsRateTimeInterval = DefaultRateTimeInterval;
+            MetricsSubIntervalCount = DefaultSubIntervals;
             WalArchivePath = DefaultWalArchivePath;
             WalPath = DefaultWalPath;
             CheckpointWriteOrder = DefaultCheckpointWriteOrder;
@@ -204,8 +204,8 @@ namespace Apache.Ignite.Core.Configuration
             WalRecordIteratorBufferSize = reader.ReadInt();
             AlwaysWriteFullPages = reader.ReadBoolean();
             MetricsEnabled = reader.ReadBoolean();
-            SubIntervals = reader.ReadInt();
-            RateTimeInterval = reader.ReadLongAsTimespan();
+            MetricsSubIntervalCount = reader.ReadInt();
+            MetricsRateTimeInterval = reader.ReadLongAsTimespan();
             CheckpointWriteOrder = (CheckpointWriteOrder)reader.ReadInt();
             WriteThrottlingEnabled = reader.ReadBoolean();
 
@@ -254,8 +254,8 @@ namespace Apache.Ignite.Core.Configuration
             writer.WriteInt(WalRecordIteratorBufferSize);
             writer.WriteBoolean(AlwaysWriteFullPages);
             writer.WriteBoolean(MetricsEnabled);
-            writer.WriteInt(SubIntervals);
-            writer.WriteTimeSpanAsLong(RateTimeInterval);
+            writer.WriteInt(MetricsSubIntervalCount);
+            writer.WriteTimeSpanAsLong(MetricsRateTimeInterval);
             writer.WriteInt((int)CheckpointWriteOrder);
             writer.WriteBoolean(WriteThrottlingEnabled);
 
@@ -405,15 +405,15 @@ namespace Apache.Ignite.Core.Configuration
         /// This interval defines a window over which hits will be tracked.
         /// </summary>
         [DefaultValue(typeof(TimeSpan), "00:01:00")]
-        public TimeSpan RateTimeInterval { get; set; }
+        public TimeSpan MetricsRateTimeInterval { get; set; }
 
         /// <summary>
-        /// Number of sub-intervals to split the <see cref="RateTimeInterval"/> into to track the update history.
+        /// Number of sub-intervals to split the <see cref="MetricsRateTimeInterval"/> into to track the update history.
         /// </summary>
         [DefaultValue(DefaultSubIntervals)]
         [SuppressMessage("Microsoft.Naming", "CA1702:CompoundWordsShouldBeCasedCorrectly",
             Justification = "Consistency with Java config")]
-        public int SubIntervals { get; set; }
+        public int MetricsSubIntervalCount { get; set; }
 
         /// <summary>
         /// Gets or sets the checkpoint page write order on disk.
