@@ -128,7 +128,7 @@ public class IgniteUidAsConsistentIdMigrationTest extends GridCommonAbstractTest
         if (configuredConsistentId != null)
             cfg.setConsistentId(configuredConsistentId);
 
-        final DataStorageConfiguration psCfg = new DataStorageConfiguration();
+        final DataStorageConfiguration dsCfg = new DataStorageConfiguration();
 
         if (placeStorageInTemp) {
             final File tempDir = new File(System.getProperty("java.io.tmpdir"));
@@ -137,19 +137,16 @@ public class IgniteUidAsConsistentIdMigrationTest extends GridCommonAbstractTest
             pstWalStoreCustomPath = new File(tempDir, "WalStore");
             pstWalArchCustomPath = new File(tempDir, "WalArchive");
 
-            psCfg.setPersistentStorePath(pstStoreCustomPath.getAbsolutePath());
-            psCfg.setWalStorePath(pstWalStoreCustomPath.getAbsolutePath());
-            psCfg.setWalArchivePath(pstWalArchCustomPath.getAbsolutePath());
+            dsCfg.setStoragePath(pstStoreCustomPath.getAbsolutePath());
+            dsCfg.setWalPath(pstWalStoreCustomPath.getAbsolutePath());
+            dsCfg.setWalArchivePath(pstWalArchCustomPath.getAbsolutePath());
         }
 
-        cfg.setDataStorageConfiguration(psCfg);
+        dsCfg.setDefaultDataRegionConfiguration(new DataRegionConfiguration()
+            .setMaxSize(32 * 1024 * 1024)
+            .setPersistenceEnabled(true));
 
-        final DataStorageConfiguration memCfg = new DataStorageConfiguration();
-        final DataRegionConfiguration memPolCfg = new DataRegionConfiguration();
-
-        memPolCfg.setMaxSize(32 * 1024 * 1024); // we don't need much memory for this test
-        memCfg.setDataRegionConfigurations(memPolCfg);
-        cfg.setDataStorageConfiguration(memCfg);
+        cfg.setDataStorageConfiguration(dsCfg);
 
         if (strLog != null)
             cfg.setGridLogger(strLog);
@@ -664,7 +661,7 @@ public class IgniteUidAsConsistentIdMigrationTest extends GridCommonAbstractTest
      */
     private void assertPdsDirsDefaultExist(String subDirName) throws IgniteCheckedException {
         assertDirectoryExist("binary_meta", subDirName);
-        assertDirectoryExist(DataStorageConfiguration.DFLT_WAL_STORE_PATH, subDirName);
+        assertDirectoryExist(DataStorageConfiguration.DFLT_WAL_PATH, subDirName);
         assertDirectoryExist(DataStorageConfiguration.DFLT_WAL_ARCHIVE_PATH, subDirName);
         assertDirectoryExist(PdsConsistentIdProcessor.DB_DEFAULT_FOLDER, subDirName);
     }
