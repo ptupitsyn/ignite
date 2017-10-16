@@ -131,8 +131,8 @@
             <listener type='Apache.Ignite.Core.Tests.IgniteConfigurationSerializerTest+MyEventListener' />
         </localEventListener>
     </localEventListeners>
-    <dataStorageConfiguration alwaysWriteFullPages="false" checkpointingFrequency="00:00:01" checkpointingPageBufferSize="2"
-                              checkpointingThreads="3" concurrencyLevel="4" lockWaitTime="00:00:05" metricsEnabled="true"
+    <dataStorageConfiguration alwaysWriteFullPages="false" checkpointFrequency="00:00:01" checkpointPageBufferSize="2"
+                              checkpointThreads="3" concurrencyLevel="4" lockWaitTime="00:00:05" metricsEnabled="true"
                               pageSize="6" storagePath="cde" rateTimeInterval="00:00:07"
                               subIntervals="8" systemRegionInitialSize="9" systemRegionMaxSize="10" tlbSize="11"
                               walArchivePath="abc" walFlushFrequency="00:00:12" walFsyncDelayNanos="13" walHistorySize="14"

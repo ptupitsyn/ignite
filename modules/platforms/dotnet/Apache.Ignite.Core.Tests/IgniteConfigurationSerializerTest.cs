@@ -274,9 +274,9 @@ namespace Apache.Ignite.Core.Tests
 
             var ds = cfg.DataStorageConfiguration;
             Assert.IsFalse(ds.AlwaysWriteFullPages);
-            Assert.AreEqual(TimeSpan.FromSeconds(1), ds.CheckpointingFrequency);
-            Assert.AreEqual(2, ds.CheckpointingPageBufferSize);
-            Assert.AreEqual(3, ds.CheckpointingThreads);
+            Assert.AreEqual(TimeSpan.FromSeconds(1), ds.CheckpointFrequency);
+            Assert.AreEqual(2, ds.CheckpointPageBufferSize);
+            Assert.AreEqual(3, ds.CheckpointThreads);
             Assert.AreEqual(4, ds.ConcurrencyLevel);
             Assert.AreEqual(TimeSpan.FromSeconds(5), ds.LockWaitTime);
             Assert.IsTrue(ds.MetricsEnabled);
@@ -898,9 +898,9 @@ namespace Apache.Ignite.Core.Tests
                 DataStorageConfiguration = new DataStorageConfiguration
                 {
                     AlwaysWriteFullPages = true,
-                    CheckpointingFrequency = TimeSpan.FromSeconds(25),
-                    CheckpointingPageBufferSize = 28 * 1024 * 1024,
-                    CheckpointingThreads = 2,
+                    CheckpointFrequency = TimeSpan.FromSeconds(25),
+                    CheckpointPageBufferSize = 28 * 1024 * 1024,
+                    CheckpointThreads = 2,
                     LockWaitTime = TimeSpan.FromSeconds(5),
                     StoragePath = Path.GetTempPath(),
                     TlbSize = 64 * 1024,

@@ -1621,9 +1621,9 @@ public class PlatformConfigurationUtils {
     private static DataStorageConfiguration readDataStorageConfiguration(BinaryRawReader in) {
         DataStorageConfiguration res = new DataStorageConfiguration()
                 .setStoragePath(in.readString())
-                .setCheckpointingFrequency(in.readLong())
-                .setCheckpointingPageBufferSize(in.readLong())
-                .setCheckpointingThreads(in.readInt())
+                .setCheckpointFrequency(in.readLong())
+                .setCheckpointPageBufferSize(in.readLong())
+                .setCheckpointThreads(in.readInt())
                 .setLockWaitTime((int) in.readLong())
                 .setWalHistorySize(in.readInt())
                 .setWalSegments(in.readInt())

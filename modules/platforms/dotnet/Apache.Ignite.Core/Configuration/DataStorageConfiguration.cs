@@ -41,9 +41,9 @@ namespace Apache.Ignite.Core.Configuration
     public class DataStorageConfiguration
     {
         /// <summary>
-        /// Default value for <see cref="CheckpointingThreads"/>.
+        /// Default value for <see cref="CheckpointThreads"/>.
         /// </summary>
-        public const int DefaultCheckpointingThreads = 4;
+        public const int DefaultCheckpointThreads = 4;
 
         /// <summary>
         /// Default name is assigned to default data region if no user-defined
@@ -52,9 +52,9 @@ namespace Apache.Ignite.Core.Configuration
         public const string DefaultDataRegionName = "default";
 
         /// <summary>
-        /// Default value for <see cref="CheckpointingFrequency"/>.
+        /// Default value for <see cref="CheckpointFrequency"/>.
         /// </summary>
-        public static readonly TimeSpan DefaultCheckpointingFrequency = TimeSpan.FromSeconds(180);
+        public static readonly TimeSpan DefaultCheckpointFrequency = TimeSpan.FromSeconds(180);
 
         /// <summary>
         /// Default value for <see cref="LockWaitTime"/>.
@@ -158,8 +158,8 @@ namespace Apache.Ignite.Core.Configuration
         /// </summary>
         public DataStorageConfiguration()
         {
-            CheckpointingThreads = DefaultCheckpointingThreads;
-            CheckpointingFrequency = DefaultCheckpointingFrequency;
+            CheckpointThreads = DefaultCheckpointThreads;
+            CheckpointFrequency = DefaultCheckpointFrequency;
             LockWaitTime = DefaultLockWaitTime;
             WalHistorySize = DefaultWalHistorySize;
             WalSegments = DefaultWalSegments;
@@ -188,9 +188,9 @@ namespace Apache.Ignite.Core.Configuration
             Debug.Assert(reader != null);
 
             StoragePath = reader.ReadString();
-            CheckpointingFrequency = reader.ReadLongAsTimespan();
-            CheckpointingPageBufferSize = reader.ReadLong();
-            CheckpointingThreads = reader.ReadInt();
+            CheckpointFrequency = reader.ReadLongAsTimespan();
+            CheckpointPageBufferSize = reader.ReadLong();
+            CheckpointThreads = reader.ReadInt();
             LockWaitTime = reader.ReadLongAsTimespan();
             WalHistorySize = reader.ReadInt();
             WalSegments = reader.ReadInt();
@@ -238,9 +238,9 @@ namespace Apache.Ignite.Core.Configuration
             Debug.Assert(writer != null);
 
             writer.WriteString(StoragePath);
-            writer.WriteTimeSpanAsLong(CheckpointingFrequency);
-            writer.WriteLong(CheckpointingPageBufferSize);
-            writer.WriteInt(CheckpointingThreads);
+            writer.WriteTimeSpanAsLong(CheckpointFrequency);
+            writer.WriteLong(CheckpointPageBufferSize);
+            writer.WriteInt(CheckpointThreads);
             writer.WriteTimeSpanAsLong(LockWaitTime);
             writer.WriteInt(WalHistorySize);
             writer.WriteInt(WalSegments);
@@ -305,20 +305,20 @@ namespace Apache.Ignite.Core.Configuration
         /// to the Persistent Store.
         /// </summary>
         [DefaultValue(typeof(TimeSpan), "00:03:00")]
-        public TimeSpan CheckpointingFrequency { get; set; }
+        public TimeSpan CheckpointFrequency { get; set; }
 
         /// <summary>
         /// Gets or sets the size of the checkpointing page buffer.
         /// <para />
         /// Default is <c>0</c>: Ignite will choose buffer size automatically.
         /// </summary>
-        public long CheckpointingPageBufferSize { get; set; }
+        public long CheckpointPageBufferSize { get; set; }
 
         /// <summary>
         /// Gets or sets the number of threads for checkpointing.
         /// </summary>
-        [DefaultValue(DefaultCheckpointingThreads)]
-        public int CheckpointingThreads { get; set; }
+        [DefaultValue(DefaultCheckpointThreads)]
+        public int CheckpointThreads { get; set; }
 
         /// <summary>
         /// Gets or sets the persistent manager file lock wait time.
