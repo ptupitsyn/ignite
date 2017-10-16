@@ -60,7 +60,7 @@ namespace Apache.Ignite.Core.Tests.Cache
 
                 var cache = ignite.CreateCache<int, object>("c");
 
-                cache.PutAll(Enumerable.Range(1, 10000)
+                cache.PutAll(Enumerable.Range(1, 10)
                     .ToDictionary(x => x, x => (object) new {Name = x.ToString(), Id = x}));
 
                 // Wait for checkpoint and metrics update and verify.
@@ -74,7 +74,24 @@ namespace Apache.Ignite.Core.Tests.Cache
                     return metrics.LastCheckpointTotalPagesNumber > 0;
                 }, 10000));
 
-                Assert.AreEqual(1, metrics.LastCheckpointTotalPagesNumber);
+                Assert.IsNotNull(metrics);
+
+                Assert.AreEqual(0, metrics.WalArchiveSegments);
+                Assert.AreEqual(0, metrics.WalFsyncTimeAverage);
+
+                Assert.AreEqual(77, metrics.LastCheckpointTotalPagesNumber);
+                Assert.AreEqual(10, metrics.LastCheckpointDataPagesNumber);
+                Assert.AreEqual(0, metrics.LastCheckpointCopiedOnWritePagesNumber);
+                Assert.AreEqual(TimeSpan.Zero, metrics.LastCheckpointLockWaitDuration);
+
+                Assert.Greater(metrics.LastCheckpointPagesWriteDuration, TimeSpan.Zero);
+                Assert.Greater(metrics.LastCheckpointMarkDuration, TimeSpan.Zero);
+                Assert.Greater(metrics.LastCheckpointingDuration, TimeSpan.Zero);
+                Assert.Greater(metrics.LastCheckpointFsyncDuration, TimeSpan.Zero);
+
+                Assert.Greater(metrics.LastCheckpointingDuration, metrics.LastCheckpointMarkDuration);
+                Assert.Greater(metrics.LastCheckpointingDuration, metrics.LastCheckpointPagesWriteDuration);
+                Assert.Greater(metrics.LastCheckpointingDuration, metrics.LastCheckpointFsyncDuration);
             }
         }
 
