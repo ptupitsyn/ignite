@@ -18,6 +18,7 @@
 namespace Apache.Ignite.Core.Tests.Cache
 {
     using System;
+    using System.IO;
     using System.Linq;
     using System.Threading;
     using Apache.Ignite.Core.Configuration;
@@ -52,7 +53,8 @@ namespace Apache.Ignite.Core.Tests.Cache
                         Name = "foobar",
                         MetricsRateTimeInterval = timeout
                     }
-                }
+                },
+                WorkDirectory = _tempDir
             };
 
             using (var ignite = Ignition.Start(cfg))
@@ -78,8 +80,7 @@ namespace Apache.Ignite.Core.Tests.Cache
         [TearDown]
         public void TearDown()
         {
-            // ???
-            //TestUtils.Cl
+            Directory.Delete(_tempDir, true);
         }
     }
 }
