@@ -1631,7 +1631,7 @@ public class PlatformConfigurationUtils {
                 .setWalPath(in.readString())
                 .setWalArchivePath(in.readString())
                 .setWalMode(WALMode.fromOrdinal(in.readInt()))
-                .setTlbSize(in.readInt())
+                .setWalThreadLocalBufferSize(in.readInt())
                 .setWalFlushFrequency((int) in.readLong())
                 .setWalFsyncDelayNanos(in.readLong())
                 .setWalRecordIteratorBufferSize(in.readInt())

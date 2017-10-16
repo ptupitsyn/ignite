@@ -609,7 +609,7 @@ namespace Apache.Ignite.Core.Tests
         /// <param name="cfg">Config.</param>
         private static void CheckDefaultProperties(DataStorageConfiguration cfg)
         {
-            Assert.AreEqual(DataStorageConfiguration.DefaultTlbSize, cfg.TlbSize);
+            Assert.AreEqual(DataStorageConfiguration.DefaultTlbSize, cfg.WalThreadLocalBufferSize);
             Assert.AreEqual(DataStorageConfiguration.DefaultCheckpointFrequency, cfg.CheckpointFrequency);
             Assert.AreEqual(DataStorageConfiguration.DefaultCheckpointThreads, cfg.CheckpointThreads);
             Assert.AreEqual(default(long), cfg.CheckpointPageBufferSize);
@@ -898,7 +898,7 @@ namespace Apache.Ignite.Core.Tests
                     CheckpointThreads = 2,
                     LockWaitTime = TimeSpan.FromSeconds(5),
                     StoragePath = Path.GetTempPath(),
-                    TlbSize = 64 * 1024,
+                    WalThreadLocalBufferSize = 64 * 1024,
                     WalArchivePath = Path.GetTempPath(),
                     WalFlushFrequency = TimeSpan.FromSeconds(3),
                     WalFsyncDelayNanos = 3,

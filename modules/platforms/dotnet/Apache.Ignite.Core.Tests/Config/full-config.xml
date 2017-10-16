@@ -134,7 +134,7 @@
     <dataStorageConfiguration alwaysWriteFullPages="false" checkpointFrequency="00:00:01" checkpointPageBufferSize="2"
                               checkpointThreads="3" concurrencyLevel="4" lockWaitTime="00:00:05" metricsEnabled="true"
                               pageSize="6" storagePath="cde" rateTimeInterval="00:00:07"
-                              subIntervals="8" systemRegionInitialSize="9" systemRegionMaxSize="10" tlbSize="11"
+                              subIntervals="8" systemRegionInitialSize="9" systemRegionMaxSize="10" walThreadLocalBufferSize="11"
                               walArchivePath="abc" walFlushFrequency="00:00:12" walFsyncDelayNanos="13" walHistorySize="14"
                               walMode="Background" walRecordIteratorBufferSize="15" walSegments="16" walSegmentSize="17"
                               walPath="wal-store" writeThrottlingEnabled="true">

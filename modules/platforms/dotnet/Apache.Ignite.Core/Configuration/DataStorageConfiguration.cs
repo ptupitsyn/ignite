@@ -77,7 +77,7 @@ namespace Apache.Ignite.Core.Configuration
         public const int DefaultWalSegmentSize = 64 * 1024 * 1024;
 
         /// <summary>
-        /// Default value for <see cref="TlbSize"/>.
+        /// Default value for <see cref="WalThreadLocalBufferSize"/>.
         /// </summary>
         public const int DefaultTlbSize = 128 * 1024;
 
@@ -164,7 +164,7 @@ namespace Apache.Ignite.Core.Configuration
             WalHistorySize = DefaultWalHistorySize;
             WalSegments = DefaultWalSegments;
             WalSegmentSize = DefaultWalSegmentSize;
-            TlbSize = DefaultTlbSize;
+            WalThreadLocalBufferSize = DefaultTlbSize;
             WalFlushFrequency = DefaultWalFlushFrequency;
             WalRecordIteratorBufferSize = DefaultWalRecordIteratorBufferSize;
             WalFsyncDelayNanos = DefaultWalFsyncDelayNanos;
@@ -198,7 +198,7 @@ namespace Apache.Ignite.Core.Configuration
             WalPath = reader.ReadString();
             WalArchivePath = reader.ReadString();
             WalMode = (WalMode)reader.ReadInt();
-            TlbSize = reader.ReadInt();
+            WalThreadLocalBufferSize = reader.ReadInt();
             WalFlushFrequency = reader.ReadLongAsTimespan();
             WalFsyncDelayNanos = reader.ReadLong();
             WalRecordIteratorBufferSize = reader.ReadInt();
@@ -248,7 +248,7 @@ namespace Apache.Ignite.Core.Configuration
             writer.WriteString(WalPath);
             writer.WriteString(WalArchivePath);
             writer.WriteInt((int)WalMode);
-            writer.WriteInt(TlbSize);
+            writer.WriteInt(WalThreadLocalBufferSize);
             writer.WriteTimeSpanAsLong(WalFlushFrequency);
             writer.WriteLong(WalFsyncDelayNanos);
             writer.WriteInt(WalRecordIteratorBufferSize);
@@ -369,7 +369,7 @@ namespace Apache.Ignite.Core.Configuration
         /// Gets or sets the size of the TLB (Thread-Local Buffer), in bytes.
         /// </summary>
         [DefaultValue(DefaultTlbSize)]
-        public int TlbSize { get; set; }
+        public int WalThreadLocalBufferSize { get; set; }
 
         /// <summary>
         /// Gets or sets the WAL (Write Ahead Log) flush frequency.

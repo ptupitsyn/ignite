@@ -1685,7 +1685,7 @@
                                 <xs:documentation>WAL (Write Ahead Log) mode.</xs:documentation>
                             </xs:annotation>
                         </xs:attribute>
-                        <xs:attribute name="tlbSize" type="xs:int">
+                        <xs:attribute name="walThreadLocalBufferSize" type="xs:int">
                             <xs:annotation>
                                 <xs:documentation>Size of the TLB (Thread-Local Buffer), in bytes.</xs:documentation>
                             </xs:annotation>

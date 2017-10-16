@@ -286,7 +286,7 @@ namespace Apache.Ignite.Core.Tests
             Assert.AreEqual(8, ds.SubIntervals);
             Assert.AreEqual(9, ds.SystemRegionInitialSize);
             Assert.AreEqual(10, ds.SystemRegionMaxSize);
-            Assert.AreEqual(11, ds.TlbSize);
+            Assert.AreEqual(11, ds.WalThreadLocalBufferSize);
             Assert.AreEqual("abc", ds.WalArchivePath);
             Assert.AreEqual(TimeSpan.FromSeconds(12), ds.WalFlushFrequency);
             Assert.AreEqual(13, ds.WalFsyncDelayNanos);
@@ -903,7 +903,7 @@ namespace Apache.Ignite.Core.Tests
                     CheckpointThreads = 2,
                     LockWaitTime = TimeSpan.FromSeconds(5),
                     StoragePath = Path.GetTempPath(),
-                    TlbSize = 64 * 1024,
+                    WalThreadLocalBufferSize = 64 * 1024,
                     WalArchivePath = Path.GetTempPath(),
                     WalFlushFrequency = TimeSpan.FromSeconds(3),
                     WalFsyncDelayNanos = 3,
