@@ -65,11 +65,17 @@ namespace Apache.Ignite.Core.Tests.Cache
 
                 cache.PutAll(Enumerable.Range(1, 100000).ToDictionary(x => x, x => x));
 
-                // Wait for checkpoint and metrics update.
-                Thread.Sleep(timeout + timeout);
-
-                // Verify.
+                // Wait for checkpoint and metrics update and verify.
                 var metrics = ignite.GetDataStorageMetrics();
+
+                Assert.IsTrue(TestUtils.WaitForCondition(() =>
+                {
+                    // ReSharper disable once AccessToDisposedClosure
+                    metrics = ignite.GetDataStorageMetrics();
+
+                    return metrics.LastCheckpointDataPagesNumber > 0;
+                }, 5000));
+
                 Assert.AreEqual(1, metrics.LastCheckpointTotalPagesNumber);
             }
         }
