@@ -316,25 +316,6 @@ namespace Apache.Ignite.Core.Tests
                 Assert.IsNotNull(disco);
                 Assert.AreEqual(TimeSpan.FromMilliseconds(300), disco.SocketTimeout);
 
-                // Check memory configuration defaults.
-                var mem = resCfg.MemoryConfiguration;
-
-                Assert.IsNotNull(mem);
-                Assert.AreEqual("dfltPlc", mem.DefaultMemoryPolicyName);
-                Assert.AreEqual(MemoryConfiguration.DefaultSystemCacheInitialSize, mem.SystemCacheInitialSize);
-                Assert.AreEqual(MemoryConfiguration.DefaultSystemCacheMaxSize, mem.SystemCacheMaxSize);
-
-                var plc = mem.MemoryPolicies.Single();
-                Assert.AreEqual("dfltPlc", plc.Name);
-                Assert.AreEqual(MemoryPolicyConfiguration.DefaultEmptyPagesPoolSize, plc.EmptyPagesPoolSize);
-                Assert.AreEqual(MemoryPolicyConfiguration.DefaultEvictionThreshold, plc.EvictionThreshold);
-                Assert.AreEqual(MemoryPolicyConfiguration.DefaultMaxSize, plc.MaxSize);
-                Assert.AreEqual(MemoryPolicyConfiguration.DefaultSubIntervals, plc.SubIntervals);
-                Assert.AreEqual(MemoryPolicyConfiguration.DefaultRateTimeInterval, plc.RateTimeInterval);
-
-                // Check PersistentStoreConfiguration defaults.
-                CheckDefaultProperties(resCfg.PersistentStoreConfiguration);
-
                 // DataStorage defaults.
                 CheckDefaultProperties(resCfg.DataStorageConfiguration);
                 CheckDefaultProperties(resCfg.DataStorageConfiguration.DefaultDataRegionConfiguration);
