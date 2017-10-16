@@ -295,7 +295,7 @@ namespace Apache.Ignite.Core.Tests
             Assert.AreEqual(15, ds.WalRecordIteratorBufferSize);
             Assert.AreEqual(16, ds.WalSegments);
             Assert.AreEqual(17, ds.WalSegmentSize);
-            Assert.AreEqual("wal-store", ds.WalStorePath);
+            Assert.AreEqual("wal-store", ds.WalPath);
             Assert.IsTrue(ds.WriteThrottlingEnabled);
 
             var dr = ds.DataRegionConfigurations.Single();
@@ -912,7 +912,7 @@ namespace Apache.Ignite.Core.Tests
                     WalRecordIteratorBufferSize = 32 * 1024 * 1024,
                     WalSegments = 6,
                     WalSegmentSize = 5 * 1024 * 1024,
-                    WalStorePath = Path.GetTempPath(),
+                    WalPath = Path.GetTempPath(),
                     MetricsEnabled = true,
                     SubIntervals = 7,
                     RateTimeInterval = TimeSpan.FromSeconds(9),

@@ -1628,7 +1628,7 @@ public class PlatformConfigurationUtils {
                 .setWalHistorySize(in.readInt())
                 .setWalSegments(in.readInt())
                 .setWalSegmentSize(in.readInt())
-                .setWalStorePath(in.readString())
+                .setWalPath(in.readString())
                 .setWalArchivePath(in.readString())
                 .setWalMode(WALMode.fromOrdinal(in.readInt()))
                 .setTlbSize(in.readInt())

@@ -137,7 +137,7 @@
                               subIntervals="8" systemRegionInitialSize="9" systemRegionMaxSize="10" tlbSize="11"
                               walArchivePath="abc" walFlushFrequency="00:00:12" walFsyncDelayNanos="13" walHistorySize="14"
                               walMode="Background" walRecordIteratorBufferSize="15" walSegments="16" walSegmentSize="17"
-                              walStorePath="wal-store" writeThrottlingEnabled="true">
+                              walPath="wal-store" writeThrottlingEnabled="true">
         <dataRegionConfigurations>
             <dataRegionConfiguration emptyPagesPoolSize="1" evictionThreshold="2" initialSize="3" metricsEnabled="true"
                                      maxSize="4" name="reg2" pageEvictionMode="RandomLru" rateTimeInterval="00:00:01" 

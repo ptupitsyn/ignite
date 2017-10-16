@@ -109,9 +109,9 @@ namespace Apache.Ignite.Core.Configuration
         public static readonly TimeSpan DefaultRateTimeInterval = TimeSpan.FromSeconds(60);
 
         /// <summary>
-        /// Default value for <see cref="WalStorePath"/>.
+        /// Default value for <see cref="WalPath"/>.
         /// </summary>
-        public const string DefaultWalStorePath = "db/wal";
+        public const string DefaultWalPath = "db/wal";
 
         /// <summary>
         /// Default value for <see cref="WalArchivePath"/>.
@@ -171,7 +171,7 @@ namespace Apache.Ignite.Core.Configuration
             RateTimeInterval = DefaultRateTimeInterval;
             SubIntervals = DefaultSubIntervals;
             WalArchivePath = DefaultWalArchivePath;
-            WalStorePath = DefaultWalStorePath;
+            WalPath = DefaultWalPath;
             CheckpointWriteOrder = DefaultCheckpointWriteOrder;
             WriteThrottlingEnabled = DefaultWriteThrottlingEnabled;
             SystemRegionInitialSize = DefaultSystemRegionInitialSize;
@@ -195,7 +195,7 @@ namespace Apache.Ignite.Core.Configuration
             WalHistorySize = reader.ReadInt();
             WalSegments = reader.ReadInt();
             WalSegmentSize = reader.ReadInt();
-            WalStorePath = reader.ReadString();
+            WalPath = reader.ReadString();
             WalArchivePath = reader.ReadString();
             WalMode = (WalMode)reader.ReadInt();
             TlbSize = reader.ReadInt();
@@ -245,7 +245,7 @@ namespace Apache.Ignite.Core.Configuration
             writer.WriteInt(WalHistorySize);
             writer.WriteInt(WalSegments);
             writer.WriteInt(WalSegmentSize);
-            writer.WriteString(WalStorePath);
+            writer.WriteString(WalPath);
             writer.WriteString(WalArchivePath);
             writer.WriteInt((int)WalMode);
             writer.WriteInt(TlbSize);
@@ -349,8 +349,8 @@ namespace Apache.Ignite.Core.Configuration
         /// <summary>
         /// Gets or sets the path to the directory where WAL (Write Ahead Log) is stored.
         /// </summary>
-        [DefaultValue(DefaultWalStorePath)]
-        public string WalStorePath { get; set; }
+        [DefaultValue(DefaultWalPath)]
+        public string WalPath { get; set; }
 
         /// <summary>
         /// Gets or sets the path to the directory where WAL (Write Ahead Log) archive is stored.
