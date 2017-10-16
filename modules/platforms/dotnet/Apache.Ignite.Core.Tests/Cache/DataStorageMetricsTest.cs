@@ -61,9 +61,9 @@ namespace Apache.Ignite.Core.Tests.Cache
             {
                 ignite.SetActive(true);
 
-                var cache = ignite.CreateCache<int, int>("c");
+                var cache = ignite.CreateCache<int, string>("c");
 
-                cache.PutAll(Enumerable.Range(1, 100000).ToDictionary(x => x, x => x));
+                cache.PutAll(Enumerable.Range(1, 100000).ToDictionary(x => x, x => Guid.NewGuid().ToString()));
 
                 // Wait for checkpoint and metrics update and verify.
                 var metrics = ignite.GetDataStorageMetrics();
