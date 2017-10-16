@@ -793,39 +793,6 @@ namespace Apache.Ignite.Core.Tests
                     ExpirationTimeout = TimeSpan.FromSeconds(5),
                     MaxEventCount = 10
                 },
-                MemoryConfiguration = new MemoryConfiguration
-                {
-                    ConcurrencyLevel = 3,
-                    DefaultMemoryPolicyName = "myDefaultPlc",
-                    PageSize = 2048,
-                    SystemCacheInitialSize = 13 * 1024 * 1024,
-                    SystemCacheMaxSize = 15 * 1024 * 1024,
-                    MemoryPolicies = new[]
-                    {
-                        new MemoryPolicyConfiguration
-                        {
-                            Name = "myDefaultPlc",
-                            PageEvictionMode = DataPageEvictionMode.Disabled,
-                            InitialSize = 340 * 1024 * 1024,
-                            MaxSize = 345 * 1024 * 1024,
-                            EvictionThreshold = 0.88,
-                            EmptyPagesPoolSize = 77,
-                            SwapFilePath = "myPath1",
-                            RateTimeInterval = TimeSpan.FromSeconds(35),
-                            SubIntervals = 7
-                        },
-                        new MemoryPolicyConfiguration
-                        {
-                            Name = "customPlc",
-                            PageEvictionMode = DataPageEvictionMode.Disabled,
-                            MaxSize = 456 * 1024 * 1024,
-                            EvictionThreshold = 0.77,
-                            EmptyPagesPoolSize = 66,
-                            SwapFilePath = "somePath2",
-                            MetricsEnabled = true
-                        }
-                    }
-                },
                 PublicThreadPoolSize = 3,
                 StripedThreadPoolSize = 5,
                 ServiceThreadPoolSize = 6,
@@ -845,30 +812,6 @@ namespace Apache.Ignite.Core.Tests
                     ThreadPoolSize = 4,
                     TcpNoDelay = false,
                     SocketSendBufferSize = 4096
-                },
-                PersistentStoreConfiguration = new PersistentStoreConfiguration
-                {
-                    AlwaysWriteFullPages = true,
-                    CheckpointingFrequency = TimeSpan.FromSeconds(25),
-                    CheckpointingPageBufferSize = 28 * 1024 * 1024,
-                    CheckpointingThreads = 2,
-                    LockWaitTime = TimeSpan.FromSeconds(5),
-                    PersistentStorePath = Path.GetTempPath(),
-                    TlbSize = 64 * 1024,
-                    WalArchivePath = Path.GetTempPath(),
-                    WalFlushFrequency = TimeSpan.FromSeconds(3),
-                    WalFsyncDelayNanos = 3,
-                    WalHistorySize = 10,
-                    WalMode = WalMode.LogOnly,
-                    WalRecordIteratorBufferSize = 32 * 1024 * 1024,
-                    WalSegments = 6,
-                    WalSegmentSize = 5 * 1024 * 1024,
-                    WalStorePath = Path.GetTempPath(),
-                    MetricsEnabled = true,
-                    SubIntervals = 7,
-                    RateTimeInterval = TimeSpan.FromSeconds(9),
-                    CheckpointWriteOrder = CheckpointWriteOrder.Random,
-                    WriteThrottlingEnabled = true
                 },
                 ConsistentId = new MyConsistentId {Data = "abc"},
                 DataStorageConfiguration = new DataStorageConfiguration
@@ -897,7 +840,7 @@ namespace Apache.Ignite.Core.Tests
                     SystemRegionInitialSize = 64 * 1024 * 1024,
                     SystemRegionMaxSize = 128 * 1024 * 1024,
                     ConcurrencyLevel = 1,
-                    PageSize = 5 * 1024,
+                    PageSize = 8 * 1024,
                     DefaultDataRegionConfiguration = new DataRegionConfiguration
                     {
                         Name = "reg1",
