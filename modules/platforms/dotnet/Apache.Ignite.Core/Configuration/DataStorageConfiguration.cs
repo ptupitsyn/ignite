@@ -187,7 +187,7 @@ namespace Apache.Ignite.Core.Configuration
         {
             Debug.Assert(reader != null);
 
-            PersistentStorePath = reader.ReadString();
+            StoragePath = reader.ReadString();
             CheckpointingFrequency = reader.ReadLongAsTimespan();
             CheckpointingPageBufferSize = reader.ReadLong();
             CheckpointingThreads = reader.ReadInt();
@@ -237,7 +237,7 @@ namespace Apache.Ignite.Core.Configuration
         {
             Debug.Assert(writer != null);
 
-            writer.WriteString(PersistentStorePath);
+            writer.WriteString(StoragePath);
             writer.WriteTimeSpanAsLong(CheckpointingFrequency);
             writer.WriteLong(CheckpointingPageBufferSize);
             writer.WriteInt(CheckpointingThreads);
@@ -298,7 +298,7 @@ namespace Apache.Ignite.Core.Configuration
         /// <summary>
         /// Gets or sets the path where data and indexes will be persisted.
         /// </summary>
-        public string PersistentStorePath { get; set; }
+        public string StoragePath { get; set; }
 
         /// <summary>
         /// Gets or sets the checkpointing frequency which is a minimal interval when the dirty pages will be written

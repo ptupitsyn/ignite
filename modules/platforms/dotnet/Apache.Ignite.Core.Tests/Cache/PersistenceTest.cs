@@ -57,7 +57,7 @@ namespace Apache.Ignite.Core.Tests.Cache
             {
                 DataStorageConfiguration = new DataStorageConfiguration
                 {
-                    PersistentStorePath = Path.Combine(_tempDir, "Store"),
+                    StoragePath = Path.Combine(_tempDir, "Store"),
                     WalStorePath = Path.Combine(_tempDir, "WalStore"),
                     WalArchivePath = Path.Combine(_tempDir, "WalArchive"),
                     MetricsEnabled = true,
@@ -106,7 +106,7 @@ namespace Apache.Ignite.Core.Tests.Cache
             }
 
             // Verify directories.
-            Assert.IsTrue(Directory.Exists(cfg.DataStorageConfiguration.PersistentStorePath));
+            Assert.IsTrue(Directory.Exists(cfg.DataStorageConfiguration.StoragePath));
             Assert.IsTrue(Directory.Exists(cfg.DataStorageConfiguration.WalStorePath));
             Assert.IsTrue(Directory.Exists(cfg.DataStorageConfiguration.WalArchivePath));
 

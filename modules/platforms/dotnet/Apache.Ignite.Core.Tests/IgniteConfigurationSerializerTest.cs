@@ -281,7 +281,7 @@ namespace Apache.Ignite.Core.Tests
             Assert.AreEqual(TimeSpan.FromSeconds(5), ds.LockWaitTime);
             Assert.IsTrue(ds.MetricsEnabled);
             Assert.AreEqual(6, ds.PageSize);
-            Assert.AreEqual("cde", ds.PersistentStorePath);
+            Assert.AreEqual("cde", ds.StoragePath);
             Assert.AreEqual(TimeSpan.FromSeconds(7), ds.RateTimeInterval);
             Assert.AreEqual(8, ds.SubIntervals);
             Assert.AreEqual(9, ds.SystemRegionInitialSize);
@@ -902,7 +902,7 @@ namespace Apache.Ignite.Core.Tests
                     CheckpointingPageBufferSize = 28 * 1024 * 1024,
                     CheckpointingThreads = 2,
                     LockWaitTime = TimeSpan.FromSeconds(5),
-                    PersistentStorePath = Path.GetTempPath(),
+                    StoragePath = Path.GetTempPath(),
                     TlbSize = 64 * 1024,
                     WalArchivePath = Path.GetTempPath(),
                     WalFlushFrequency = TimeSpan.FromSeconds(3),

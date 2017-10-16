@@ -1620,7 +1620,7 @@ public class PlatformConfigurationUtils {
      */
     private static DataStorageConfiguration readDataStorageConfiguration(BinaryRawReader in) {
         DataStorageConfiguration res = new DataStorageConfiguration()
-                .setPersistentStorePath(in.readString())
+                .setStoragePath(in.readString())
                 .setCheckpointingFrequency(in.readLong())
                 .setCheckpointingPageBufferSize(in.readLong())
                 .setCheckpointingThreads(in.readInt())

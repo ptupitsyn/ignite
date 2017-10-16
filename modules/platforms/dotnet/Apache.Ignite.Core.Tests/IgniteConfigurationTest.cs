@@ -897,7 +897,7 @@ namespace Apache.Ignite.Core.Tests
                     CheckpointingPageBufferSize = 28 * 1024 * 1024,
                     CheckpointingThreads = 2,
                     LockWaitTime = TimeSpan.FromSeconds(5),
-                    PersistentStorePath = Path.GetTempPath(),
+                    StoragePath = Path.GetTempPath(),
                     TlbSize = 64 * 1024,
                     WalArchivePath = Path.GetTempPath(),
                     WalFlushFrequency = TimeSpan.FromSeconds(3),
