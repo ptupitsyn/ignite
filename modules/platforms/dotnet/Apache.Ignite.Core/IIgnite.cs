@@ -337,6 +337,8 @@ namespace Apache.Ignite.Core
         /// Gets a collection of memory metrics, one for each <see cref="MemoryConfiguration.MemoryPolicies"/>.
         /// <para />
         /// Memory metrics should be enabled with <see cref="MemoryPolicyConfiguration.MetricsEnabled"/>.
+        /// <para />
+        /// Obsolete, use <see cref="GetDataRegionMetrics()"/>.
         /// </summary>
         [Obsolete("Use GetDataRegionMetrics.")]
         ICollection<IMemoryMetrics> GetMemoryMetrics();
@@ -346,6 +348,8 @@ namespace Apache.Ignite.Core
         /// <para />
         /// To get metrics for the default memory region,
         /// use <see cref="MemoryConfiguration.DefaultMemoryPolicyName"/>.
+        /// <para />
+        /// Obsolete, use <see cref="GetDataRegionMetrics(string)"/>.
         /// </summary>
         /// <param name="memoryPolicyName">Name of the memory policy.</param>
         [Obsolete("Use GetDataRegionMetrics.")]
