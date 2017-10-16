@@ -1715,25 +1715,25 @@ public class PlatformConfigurationUtils {
         if (cfg != null) {
             w.writeBoolean(true);
 
-            w.writeString(cfg.getPersistentStorePath());
-            w.writeLong(cfg.getCheckpointingFrequency());
-            w.writeLong(cfg.getCheckpointingPageBufferSize());
-            w.writeInt(cfg.getCheckpointingThreads());
+            w.writeString(cfg.getStoragePath());
+            w.writeLong(cfg.getCheckpointFrequency());
+            w.writeLong(cfg.getCheckpointPageBufferSize());
+            w.writeInt(cfg.getCheckpointThreads());
             w.writeLong(cfg.getLockWaitTime());
             w.writeInt(cfg.getWalHistorySize());
             w.writeInt(cfg.getWalSegments());
             w.writeInt(cfg.getWalSegmentSize());
-            w.writeString(cfg.getWalStorePath());
+            w.writeString(cfg.getWalPath());
             w.writeString(cfg.getWalArchivePath());
             w.writeInt(cfg.getWalMode().ordinal());
-            w.writeInt(cfg.getTlbSize());
+            w.writeInt(cfg.getWalThreadLocalBufferSize());
             w.writeLong(cfg.getWalFlushFrequency());
             w.writeLong(cfg.getWalFsyncDelayNanos());
             w.writeInt(cfg.getWalRecordIteratorBufferSize());
             w.writeBoolean(cfg.isAlwaysWriteFullPages());
             w.writeBoolean(cfg.isMetricsEnabled());
-            w.writeInt(cfg.getSubIntervals());
-            w.writeLong(cfg.getRateTimeInterval());
+            w.writeInt(cfg.getMetricsSubIntervalCount());
+            w.writeLong(cfg.getMetricsRateTimeInterval());
             w.writeInt(cfg.getCheckpointWriteOrder().ordinal());
             w.writeBoolean(cfg.isWriteThrottlingEnabled());
             w.writeLong(cfg.getSystemRegionInitialSize());
