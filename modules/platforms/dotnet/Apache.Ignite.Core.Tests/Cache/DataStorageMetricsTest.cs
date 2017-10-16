@@ -57,6 +57,8 @@ namespace Apache.Ignite.Core.Tests.Cache
 
             using (var ignite = Ignition.Start(cfg))
             {
+                ignite.SetActive(true);
+
                 var cache = ignite.CreateCache<int, int>("c");
 
                 cache.PutAll(Enumerable.Range(1, 100000).ToDictionary(x => x, x => x));
