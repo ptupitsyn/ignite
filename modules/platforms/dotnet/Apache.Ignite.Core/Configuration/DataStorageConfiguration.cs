@@ -101,12 +101,12 @@ namespace Apache.Ignite.Core.Configuration
         /// </summary>
         [SuppressMessage("Microsoft.Naming", "CA1702:CompoundWordsShouldBeCasedCorrectly",
             Justification = "Consistency with Java config")]
-        public const int DefaultSubIntervals = 5;
+        public const int DefaultMetricsSubIntervalCount = 5;
 
         /// <summary>
         /// The default rate time interval.
         /// </summary>
-        public static readonly TimeSpan DefaultRateTimeInterval = TimeSpan.FromSeconds(60);
+        public static readonly TimeSpan DefaultMetricsRateTimeInterval = TimeSpan.FromSeconds(60);
 
         /// <summary>
         /// Default value for <see cref="WalPath"/>.
@@ -168,8 +168,8 @@ namespace Apache.Ignite.Core.Configuration
             WalFlushFrequency = DefaultWalFlushFrequency;
             WalRecordIteratorBufferSize = DefaultWalRecordIteratorBufferSize;
             WalFsyncDelayNanos = DefaultWalFsyncDelayNanos;
-            MetricsRateTimeInterval = DefaultRateTimeInterval;
-            MetricsSubIntervalCount = DefaultSubIntervals;
+            MetricsRateTimeInterval = DefaultMetricsRateTimeInterval;
+            MetricsSubIntervalCount = DefaultMetricsSubIntervalCount;
             WalArchivePath = DefaultWalArchivePath;
             WalPath = DefaultWalPath;
             CheckpointWriteOrder = DefaultCheckpointWriteOrder;
@@ -410,7 +410,7 @@ namespace Apache.Ignite.Core.Configuration
         /// <summary>
         /// Number of sub-intervals to split the <see cref="MetricsRateTimeInterval"/> into to track the update history.
         /// </summary>
-        [DefaultValue(DefaultSubIntervals)]
+        [DefaultValue(DefaultMetricsSubIntervalCount)]
         [SuppressMessage("Microsoft.Naming", "CA1702:CompoundWordsShouldBeCasedCorrectly",
             Justification = "Consistency with Java config")]
         public int MetricsSubIntervalCount { get; set; }

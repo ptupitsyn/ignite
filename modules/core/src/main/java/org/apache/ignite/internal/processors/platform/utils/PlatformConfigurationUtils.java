@@ -1780,8 +1780,8 @@ public class PlatformConfigurationUtils {
         w.writeDouble(cfg.getEvictionThreshold());
         w.writeInt(cfg.getEmptyPagesPoolSize());
         w.writeBoolean(cfg.isMetricsEnabled());
-        w.writeInt(cfg.getSubIntervals());
-        w.writeLong(cfg.getRateTimeInterval());
+        w.writeInt(cfg.getMetricsSubIntervalCount());
+        w.writeLong(cfg.getMetricsRateTimeInterval());
     }
 
     /**
@@ -1802,8 +1802,8 @@ public class PlatformConfigurationUtils {
                 .setEvictionThreshold(r.readDouble())
                 .setEmptyPagesPoolSize(r.readInt())
                 .setMetricsEnabled(r.readBoolean())
-                .setSubIntervals(r.readInt())
-                .setRateTimeInterval(r.readLong());
+                .setMetricsSubIntervalCount(r.readInt())
+                .setMetricsRateTimeInterval(r.readLong());
     }
 
     /**

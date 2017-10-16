@@ -305,8 +305,8 @@ namespace Apache.Ignite.Core.Tests
             Assert.AreEqual(4, dr.MaxSize);
             Assert.AreEqual("reg2", dr.Name);
             Assert.AreEqual(Core.Configuration.DataPageEvictionMode.RandomLru, dr.PageEvictionMode);
-            Assert.AreEqual(TimeSpan.FromSeconds(1), dr.RateTimeInterval);
-            Assert.AreEqual(5, dr.SubIntervals);
+            Assert.AreEqual(TimeSpan.FromSeconds(1), dr.MetricsRateTimeInterval);
+            Assert.AreEqual(5, dr.MetricsSubIntervalCount);
             Assert.AreEqual("swap", dr.SwapFilePath);
             Assert.IsTrue(dr.MetricsEnabled);
 
@@ -317,8 +317,8 @@ namespace Apache.Ignite.Core.Tests
             Assert.AreEqual(5, dr.MaxSize);
             Assert.AreEqual("reg1", dr.Name);
             Assert.AreEqual(Core.Configuration.DataPageEvictionMode.Disabled, dr.PageEvictionMode);
-            Assert.AreEqual(TimeSpan.FromSeconds(3), dr.RateTimeInterval);
-            Assert.AreEqual(6, dr.SubIntervals);
+            Assert.AreEqual(TimeSpan.FromSeconds(3), dr.MetricsRateTimeInterval);
+            Assert.AreEqual(6, dr.MetricsSubIntervalCount);
             Assert.AreEqual("swap2", dr.SwapFilePath);
             Assert.IsFalse(dr.MetricsEnabled);
         }
@@ -932,8 +932,8 @@ namespace Apache.Ignite.Core.Tests
                         MetricsEnabled = true,
                         PageEvictionMode = Core.Configuration.DataPageEvictionMode.RandomLru,
                         PersistenceEnabled = false,
-                        RateTimeInterval = TimeSpan.FromMinutes(2),
-                        SubIntervals = 6,
+                        MetricsRateTimeInterval = TimeSpan.FromMinutes(2),
+                        MetricsSubIntervalCount = 6,
                         SwapFilePath = Path.GetTempPath()
                     },
                     DataRegionConfigurations = new[]
@@ -948,8 +948,8 @@ namespace Apache.Ignite.Core.Tests
                             MetricsEnabled = false,
                             PageEvictionMode = Core.Configuration.DataPageEvictionMode.RandomLru,
                             PersistenceEnabled = false,
-                            RateTimeInterval = TimeSpan.FromMinutes(3),
-                            SubIntervals = 7,
+                            MetricsRateTimeInterval = TimeSpan.FromMinutes(3),
+                            MetricsSubIntervalCount = 7,
                             SwapFilePath = Path.GetTempPath()
                         }
                     }

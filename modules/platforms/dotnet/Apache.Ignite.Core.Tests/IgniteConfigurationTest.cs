@@ -623,8 +623,8 @@ namespace Apache.Ignite.Core.Tests
             Assert.AreEqual(DataStorageConfiguration.DefaultWalSegments, cfg.WalSegments);
             Assert.AreEqual(DataStorageConfiguration.DefaultWalMode, cfg.WalMode);
             Assert.IsFalse(cfg.MetricsEnabled);
-            Assert.AreEqual(DataStorageConfiguration.DefaultSubIntervals, cfg.MetricsSubIntervalCount);
-            Assert.AreEqual(DataStorageConfiguration.DefaultRateTimeInterval, cfg.MetricsRateTimeInterval);
+            Assert.AreEqual(DataStorageConfiguration.DefaultMetricsSubIntervalCount, cfg.MetricsSubIntervalCount);
+            Assert.AreEqual(DataStorageConfiguration.DefaultMetricsRateTimeInterval, cfg.MetricsRateTimeInterval);
             Assert.AreEqual(DataStorageConfiguration.DefaultWalPath, cfg.WalPath);
             Assert.AreEqual(DataStorageConfiguration.DefaultWalArchivePath, cfg.WalArchivePath);
             Assert.AreEqual(DataStorageConfiguration.DefaultCheckpointWriteOrder, cfg.CheckpointWriteOrder);
@@ -647,8 +647,8 @@ namespace Apache.Ignite.Core.Tests
             Assert.AreEqual(DataRegionConfiguration.DefaultInitialSize, cfg.InitialSize);
             Assert.AreEqual(DataRegionConfiguration.DefaultMaxSize, cfg.MaxSize);
             Assert.AreEqual(DataRegionConfiguration.DefaultPersistenceEnabled, cfg.PersistenceEnabled);
-            Assert.AreEqual(DataRegionConfiguration.DefaultRateTimeInterval, cfg.RateTimeInterval);
-            Assert.AreEqual(DataRegionConfiguration.DefaultSubIntervals, cfg.SubIntervals);
+            Assert.AreEqual(DataRegionConfiguration.DefaultMetricsRateTimeInterval, cfg.MetricsRateTimeInterval);
+            Assert.AreEqual(DataRegionConfiguration.DefaultMetricsSubIntervalCount, cfg.MetricsSubIntervalCount);
         }
 
         /// <summary>
@@ -927,8 +927,8 @@ namespace Apache.Ignite.Core.Tests
                         MetricsEnabled = true,
                         PageEvictionMode = Configuration.DataPageEvictionMode.Random2Lru,
                         PersistenceEnabled = false,
-                        RateTimeInterval = TimeSpan.FromMinutes(2),
-                        SubIntervals = 6,
+                        MetricsRateTimeInterval = TimeSpan.FromMinutes(2),
+                        MetricsSubIntervalCount = 6,
                         SwapFilePath = Path.GetTempPath()
                     },
                     DataRegionConfigurations = new[]
@@ -943,8 +943,8 @@ namespace Apache.Ignite.Core.Tests
                             MetricsEnabled = false,
                             PageEvictionMode = Configuration.DataPageEvictionMode.RandomLru,
                             PersistenceEnabled = false,
-                            RateTimeInterval = TimeSpan.FromMinutes(3),
-                            SubIntervals = 7,
+                            MetricsRateTimeInterval = TimeSpan.FromMinutes(3),
+                            MetricsSubIntervalCount = 7,
                             SwapFilePath = Path.GetTempPath()
                         }
                     }

@@ -66,12 +66,12 @@ namespace Apache.Ignite.Core.Configuration
         /// </summary>
         [SuppressMessage("Microsoft.Naming", "CA1702:CompoundWordsShouldBeCasedCorrectly",
             Justification = "Consistency with Java config")]
-        public const int DefaultSubIntervals = 5;
+        public const int DefaultMetricsSubIntervalCount = 5;
 
         /// <summary>
         /// The default rate time interval.
         /// </summary>
-        public static readonly TimeSpan DefaultRateTimeInterval = TimeSpan.FromSeconds(60);
+        public static readonly TimeSpan DefaultMetricsRateTimeInterval = TimeSpan.FromSeconds(60);
 
         /// <summary>
         /// Initializes a new instance of the <see cref="DataRegionConfiguration"/> class.
@@ -83,8 +83,8 @@ namespace Apache.Ignite.Core.Configuration
             EmptyPagesPoolSize = DefaultEmptyPagesPoolSize;
             InitialSize = DefaultInitialSize;
             MaxSize = DefaultMaxSize;
-            SubIntervals = DefaultSubIntervals;
-            RateTimeInterval = DefaultRateTimeInterval;
+            MetricsSubIntervalCount = DefaultMetricsSubIntervalCount;
+            MetricsRateTimeInterval = DefaultMetricsRateTimeInterval;
         }
 
         /// <summary>
@@ -102,8 +102,8 @@ namespace Apache.Ignite.Core.Configuration
             EvictionThreshold = reader.ReadDouble();
             EmptyPagesPoolSize = reader.ReadInt();
             MetricsEnabled = reader.ReadBoolean();
-            SubIntervals = reader.ReadInt();
-            RateTimeInterval = reader.ReadLongAsTimespan();
+            MetricsSubIntervalCount = reader.ReadInt();
+            MetricsRateTimeInterval = reader.ReadLongAsTimespan();
         }
 
         /// <summary>
@@ -120,8 +120,8 @@ namespace Apache.Ignite.Core.Configuration
             writer.WriteDouble(EvictionThreshold);
             writer.WriteInt(EmptyPagesPoolSize);
             writer.WriteBoolean(MetricsEnabled);
-            writer.WriteInt(SubIntervals);
-            writer.WriteTimeSpanAsLong(RateTimeInterval);
+            writer.WriteInt(MetricsSubIntervalCount);
+            writer.WriteTimeSpanAsLong(MetricsRateTimeInterval);
         }
 
         /// <summary>
@@ -198,18 +198,18 @@ namespace Apache.Ignite.Core.Configuration
         /// rate (pages per second) for the last minute.
         /// </summary>
         [DefaultValue(typeof(TimeSpan), "00:01:00")]
-        public TimeSpan RateTimeInterval { get; set; }
+        public TimeSpan MetricsRateTimeInterval { get; set; }
 
         /// <summary>
-        /// Gets or sets the number of sub intervals to split <see cref="RateTimeInterval"/> into to calculate 
+        /// Gets or sets the number of sub intervals to split <see cref="MetricsRateTimeInterval"/> into to calculate 
         /// <see cref="IDataRegionMetrics.AllocationRate"/> and <see cref="IDataRegionMetrics.EvictionRate"/>.
         /// <para />
         /// Bigger value results in more accurate metrics.
         /// </summary>
-        [DefaultValue(DefaultSubIntervals)]
+        [DefaultValue(DefaultMetricsSubIntervalCount)]
         [SuppressMessage("Microsoft.Naming", "CA1702:CompoundWordsShouldBeCasedCorrectly",
             Justification = "Consistency with Java config")]
-        public int SubIntervals { get; set; }
+        public int MetricsSubIntervalCount { get; set; }
 
     }
 }
