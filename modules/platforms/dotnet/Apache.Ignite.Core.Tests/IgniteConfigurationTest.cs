@@ -222,33 +222,6 @@ namespace Apache.Ignite.Core.Tests
                 Assert.AreEqual(eventCfg.ExpirationTimeout, resEventCfg.ExpirationTimeout);
                 Assert.AreEqual(eventCfg.MaxEventCount, resEventCfg.MaxEventCount);
 
-                var memCfg = cfg.MemoryConfiguration;
-                var resMemCfg = resCfg.MemoryConfiguration;
-                Assert.IsNotNull(memCfg);
-                Assert.IsNotNull(resMemCfg);
-                Assert.AreEqual(memCfg.PageSize, resMemCfg.PageSize);
-                Assert.AreEqual(memCfg.ConcurrencyLevel, resMemCfg.ConcurrencyLevel);
-                Assert.AreEqual(memCfg.DefaultMemoryPolicyName, resMemCfg.DefaultMemoryPolicyName);
-                Assert.AreEqual(memCfg.SystemCacheInitialSize, resMemCfg.SystemCacheInitialSize);
-                Assert.AreEqual(memCfg.SystemCacheMaxSize, resMemCfg.SystemCacheMaxSize);
-                Assert.IsNotNull(memCfg.MemoryPolicies);
-                Assert.IsNotNull(resMemCfg.MemoryPolicies);
-                Assert.AreEqual(2, memCfg.MemoryPolicies.Count);
-                Assert.AreEqual(2, resMemCfg.MemoryPolicies.Count);
-
-                for (var i = 0; i < memCfg.MemoryPolicies.Count; i++)
-                {
-                    var plc = memCfg.MemoryPolicies.Skip(i).First();
-                    var resPlc = resMemCfg.MemoryPolicies.Skip(i).First();
-
-                    Assert.AreEqual(plc.PageEvictionMode, resPlc.PageEvictionMode);
-                    Assert.AreEqual(plc.MaxSize, resPlc.MaxSize);
-                    Assert.AreEqual(plc.EmptyPagesPoolSize, resPlc.EmptyPagesPoolSize);
-                    Assert.AreEqual(plc.EvictionThreshold, resPlc.EvictionThreshold);
-                    Assert.AreEqual(plc.Name, resPlc.Name);
-                    Assert.AreEqual(plc.SwapFilePath, resPlc.SwapFilePath);
-                }
-
                 var sql = cfg.SqlConnectorConfiguration;
                 var resSql = resCfg.SqlConnectorConfiguration;
 
@@ -261,30 +234,7 @@ namespace Apache.Ignite.Core.Tests
                 Assert.AreEqual(sql.TcpNoDelay, resSql.TcpNoDelay);
                 Assert.AreEqual(sql.ThreadPoolSize, resSql.ThreadPoolSize);
 
-                var pers = cfg.PersistentStoreConfiguration;
-                var resPers = resCfg.PersistentStoreConfiguration;
-
-                Assert.AreEqual(pers.AlwaysWriteFullPages, resPers.AlwaysWriteFullPages);
-                Assert.AreEqual(pers.CheckpointingFrequency, resPers.CheckpointingFrequency);
-                Assert.AreEqual(pers.CheckpointingPageBufferSize, resPers.CheckpointingPageBufferSize);
-                Assert.AreEqual(pers.CheckpointingThreads, resPers.CheckpointingThreads);
-                Assert.AreEqual(pers.LockWaitTime, resPers.LockWaitTime);
-                Assert.AreEqual(pers.PersistentStorePath, resPers.PersistentStorePath);
-                Assert.AreEqual(pers.TlbSize, resPers.TlbSize);
-                Assert.AreEqual(pers.WalArchivePath, resPers.WalArchivePath);
-                Assert.AreEqual(pers.WalFlushFrequency, resPers.WalFlushFrequency);
-                Assert.AreEqual(pers.WalFsyncDelayNanos, resPers.WalFsyncDelayNanos);
-                Assert.AreEqual(pers.WalHistorySize, resPers.WalHistorySize);
-                Assert.AreEqual(pers.WalMode, resPers.WalMode);
-                Assert.AreEqual(pers.WalRecordIteratorBufferSize, resPers.WalRecordIteratorBufferSize);
-                Assert.AreEqual(pers.WalSegments, resPers.WalSegments);
-                Assert.AreEqual(pers.WalSegmentSize, resPers.WalSegmentSize);
-                Assert.AreEqual(pers.WalStorePath, resPers.WalStorePath);
-                Assert.AreEqual(pers.MetricsEnabled, resPers.MetricsEnabled);
-                Assert.AreEqual(pers.RateTimeInterval, resPers.RateTimeInterval);
-                Assert.AreEqual(pers.SubIntervals, resPers.SubIntervals);
-                Assert.AreEqual(pers.CheckpointWriteOrder, resPers.CheckpointWriteOrder);
-                Assert.AreEqual(pers.WriteThrottlingEnabled, resPers.WriteThrottlingEnabled);
+                TestUtils.AssertReflectionEqual(cfg.DataStorageConfiguration, resCfg.DataStorageConfiguration);
             }
         }
 
@@ -851,7 +801,7 @@ namespace Apache.Ignite.Core.Tests
                         PersistenceEnabled = false,
                         MetricsRateTimeInterval = TimeSpan.FromMinutes(2),
                         MetricsSubIntervalCount = 6,
-                        SwapFilePath = Path.GetTempPath()
+                        SwapFilePath = IgniteUtils.GetTempDirectoryName()
                     },
                     DataRegionConfigurations = new[]
                     {
@@ -867,7 +817,7 @@ namespace Apache.Ignite.Core.Tests
                             PersistenceEnabled = false,
                             MetricsRateTimeInterval = TimeSpan.FromMinutes(3),
                             MetricsSubIntervalCount = 7,
-                            SwapFilePath = Path.GetTempPath()
+                            SwapFilePath = IgniteUtils.GetTempDirectoryName()
                         }
                     }
                 }
