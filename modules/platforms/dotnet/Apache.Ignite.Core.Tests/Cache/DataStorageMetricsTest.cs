@@ -38,22 +38,17 @@ namespace Apache.Ignite.Core.Tests.Cache
         [Test]
         public void TestDataStorageMetrics()
         {
-            var timeout = TimeSpan.FromSeconds(1);  // 1 second is the minimum allowed.
-
             var cfg = new IgniteConfiguration(TestUtils.GetTestConfiguration())
             {
                 DataStorageConfiguration = new DataStorageConfiguration
                 {
-                    CheckpointFrequency = timeout,
+                    CheckpointFrequency = TimeSpan.FromSeconds(1),
                     MetricsEnabled = true,
-                    MetricsRateTimeInterval = timeout,
                     WalMode = WalMode.LogOnly,
-                    CheckpointPageBufferSize = 1024,
                     DefaultDataRegionConfiguration = new DataRegionConfiguration
                     {
                         PersistenceEnabled = true,
-                        Name = "foobar",
-                        MetricsRateTimeInterval = timeout
+                        Name = "foobar"
                     }
                 },
                 WorkDirectory = _tempDir
@@ -69,7 +64,7 @@ namespace Apache.Ignite.Core.Tests.Cache
                     .ToDictionary(x => x, x => (object) new {Name = x.ToString(), Id = x}));
 
                 // Wait for checkpoint and metrics update and verify.
-                var metrics = ignite.GetDataStorageMetrics();
+                IDataStorageMetrics metrics = null;
 
                 Assert.IsTrue(TestUtils.WaitForCondition(() =>
                 {
