@@ -45,7 +45,10 @@ namespace Apache.Ignite.Core.Tests.Cache
                 DataStorageConfiguration = new DataStorageConfiguration
                 {
                     CheckpointFrequency = timeout,
+                    MetricsEnabled = true,
                     MetricsRateTimeInterval = timeout,
+                    WalMode = WalMode.LogOnly,
+                    CheckpointPageBufferSize = 1024,
                     DefaultDataRegionConfiguration = new DataRegionConfiguration
                     {
                         PersistenceEnabled = true,
