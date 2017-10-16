@@ -20,7 +20,6 @@ namespace Apache.Ignite.Core.Tests.Cache
     using System;
     using System.IO;
     using System.Linq;
-    using System.Threading;
     using Apache.Ignite.Core.Configuration;
     using Apache.Ignite.Core.Impl;
     using NUnit.Framework;
@@ -61,9 +60,10 @@ namespace Apache.Ignite.Core.Tests.Cache
             {
                 ignite.SetActive(true);
 
-                var cache = ignite.CreateCache<int, string>("c");
+                var cache = ignite.CreateCache<int, object>("c");
 
-                cache.PutAll(Enumerable.Range(1, 100000).ToDictionary(x => x, x => Guid.NewGuid().ToString()));
+                cache.PutAll(Enumerable.Range(1, 10000)
+                    .ToDictionary(x => x, x => (object) new {Name = x.ToString(), Id = x}));
 
                 // Wait for checkpoint and metrics update and verify.
                 var metrics = ignite.GetDataStorageMetrics();
@@ -73,8 +73,8 @@ namespace Apache.Ignite.Core.Tests.Cache
                     // ReSharper disable once AccessToDisposedClosure
                     metrics = ignite.GetDataStorageMetrics();
 
-                    return metrics.LastCheckpointDataPagesNumber > 0;
-                }, 5000));
+                    return metrics.LastCheckpointTotalPagesNumber > 0;
+                }, 10000));
 
                 Assert.AreEqual(1, metrics.LastCheckpointTotalPagesNumber);
             }
