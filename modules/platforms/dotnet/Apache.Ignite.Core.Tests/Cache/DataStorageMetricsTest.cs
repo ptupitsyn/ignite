@@ -34,7 +34,7 @@ namespace Apache.Ignite.Core.Tests.Cache
         [Test]
         public void TestDataStorageMetrics()
         {
-            var timeout = TimeSpan.FromMilliseconds(500);
+            var timeout = TimeSpan.FromSeconds(1);  // 1 second is the minimum allowed.
 
             var cfg = new IgniteConfiguration(TestUtils.GetTestConfiguration())
             {
@@ -64,6 +64,15 @@ namespace Apache.Ignite.Core.Tests.Cache
                 var metrics = ignite.GetDataStorageMetrics();
                 Assert.AreEqual(1, metrics.LastCheckpointTotalPagesNumber);
             }
+        }
+
+        /// <summary>
+        /// Tears down the test.
+        /// </summary>
+        [TearDown]
+        public void TearDown()
+        {
+            TestUtils.Cl
         }
     }
 }
