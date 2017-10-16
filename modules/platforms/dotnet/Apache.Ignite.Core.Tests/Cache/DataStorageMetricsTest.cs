@@ -17,10 +17,53 @@
 
 namespace Apache.Ignite.Core.Tests.Cache
 {
+    using System;
+    using System.Linq;
+    using System.Threading;
+    using Apache.Ignite.Core.Configuration;
+    using NUnit.Framework;
+
     /// <summary>
     /// Tests <see cref="IDataStorageMetrics"/>.
     /// </summary>
     public class DataStorageMetricsTest
     {
+        /// <summary>
+        /// Tests the data storage metrics.
+        /// </summary>
+        [Test]
+        public void TestDataStorageMetrics()
+        {
+            var timeout = TimeSpan.FromMilliseconds(500);
+
+            var cfg = new IgniteConfiguration(TestUtils.GetTestConfiguration())
+            {
+                DataStorageConfiguration = new DataStorageConfiguration
+                {
+                    CheckpointFrequency = timeout,
+                    MetricsRateTimeInterval = timeout,
+                    DefaultDataRegionConfiguration = new DataRegionConfiguration
+                    {
+                        PersistenceEnabled = true,
+                        Name = "foobar",
+                        MetricsRateTimeInterval = timeout
+                    }
+                }
+            };
+
+            using (var ignite = Ignition.Start(cfg))
+            {
+                var cache = ignite.CreateCache<int, int>("c");
+
+                cache.PutAll(Enumerable.Range(1, 100000).ToDictionary(x => x, x => x));
+
+                // Wait for checkpoint and metrics update.
+                Thread.Sleep(timeout + timeout);
+
+                // Verify.
+                var metrics = ignite.GetDataStorageMetrics();
+                Assert.AreEqual(1, metrics.LastCheckpointTotalPagesNumber);
+            }
+        }
     }
 }
