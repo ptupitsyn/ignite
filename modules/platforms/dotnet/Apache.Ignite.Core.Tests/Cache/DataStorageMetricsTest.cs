@@ -21,6 +21,7 @@ namespace Apache.Ignite.Core.Tests.Cache
     using System.Linq;
     using System.Threading;
     using Apache.Ignite.Core.Configuration;
+    using Apache.Ignite.Core.Impl;
     using NUnit.Framework;
 
     /// <summary>
@@ -28,6 +29,9 @@ namespace Apache.Ignite.Core.Tests.Cache
     /// </summary>
     public class DataStorageMetricsTest
     {
+        /** Temp dir for WAL. */
+        private readonly string _tempDir = IgniteUtils.GetTempDirectoryName();
+
         /// <summary>
         /// Tests the data storage metrics.
         /// </summary>
@@ -72,7 +76,8 @@ namespace Apache.Ignite.Core.Tests.Cache
         [TearDown]
         public void TearDown()
         {
-            TestUtils.Cl
+            // ???
+            //TestUtils.Cl
         }
     }
 }
