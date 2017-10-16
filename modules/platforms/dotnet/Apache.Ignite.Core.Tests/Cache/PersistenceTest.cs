@@ -19,6 +19,7 @@ namespace Apache.Ignite.Core.Tests.Cache
 {
     using System;
     using System.IO;
+    using System.Threading;
     using Apache.Ignite.Core.Cache.Configuration;
     using Apache.Ignite.Core.Common;
     using Apache.Ignite.Core.Configuration;
@@ -92,10 +93,7 @@ namespace Apache.Ignite.Core.Tests.Cache
                 cache[1] = 1;
 
                 // Check some metrics.
-                var metrics = ignite.GetDataStorageMetrics();
-                Assert.Greater(metrics.WalLoggingRate, 0);
-                Assert.Greater(metrics.WalWritingRate, 0);
-                Assert.Greater(metrics.WalFsyncTimeAverage, 0);
+                CheckDataStorageMetrics(ignite);
 
                 // Create cache with non-persistent region.
                 var volatileCache = ignite.CreateCache<int, int>(new CacheConfiguration
@@ -135,6 +133,18 @@ namespace Apache.Ignite.Core.Tests.Cache
 
                 Assert.IsFalse(ignite.GetCacheNames().Contains(cacheName));
             }
+        }
+
+        /// <summary>
+        /// Checks the data storage metrics.
+        /// </summary>
+        private static void CheckDataStorageMetrics(IIgnite ignite)
+        {
+            // Check metrics.
+            var metrics = ignite.GetDataStorageMetrics();
+            Assert.Greater(metrics.WalLoggingRate, 0);
+            Assert.Greater(metrics.WalWritingRate, 0);
+            Assert.Greater(metrics.WalFsyncTimeAverage, 0);
         }
 
         /// <summary>
