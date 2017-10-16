@@ -17,6 +17,7 @@
 
 namespace Apache.Ignite.Core.Tests.Cache
 {
+    using System;
     using System.IO;
     using Apache.Ignite.Core.Cache.Configuration;
     using Apache.Ignite.Core.Common;
@@ -120,7 +121,8 @@ namespace Apache.Ignite.Core.Tests.Cache
                 Assert.AreEqual(1, cache[1]);
 
                 // Non-persistent cache does not exist.
-                Assert.Throws<IgniteException>(() => ignite.GetCache<int, int>(volatileCacheName));
+                var ex = Assert.Throws<ArgumentException>(() => ignite.GetCache<int, int>(volatileCacheName));
+                Assert.AreEqual("Cache doesn't exist: volatileCache", ex.Message);
             }
 
             // Delete store directory.
