@@ -23,9 +23,9 @@ namespace Apache.Ignite.Core.Tests.Cache
     using NUnit.Framework;
 
     /// <summary>
-    /// Data storage metrics test.
+    /// Data region metrics test.
     /// </summary>
-    public class DataStorageMetricsTest
+    public class DataRegionMetricsTest
     {
         /** */
         private const string RegionWithMetrics = "regWithMetrics";
