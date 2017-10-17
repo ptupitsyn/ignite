@@ -89,8 +89,6 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
             Assert.AreEqual(CacheAtomicityMode.Transactional, cfg.AtomicityMode);
             Assert.AreEqual(3, cfg.Backups);
             Assert.AreEqual(CacheMode.Partitioned, cfg.CacheMode);
-
-            // TODO: Remove all caches.
         }
 
         /// <summary>
@@ -119,8 +117,6 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
             cache[1] = 1;
             cache = Client.GetOrCreateCache<int, int>(cache.Name);
             Assert.AreEqual(1, cache[1]);
-
-            // TODO: Remove all caches.
         }
 
         /** <inheritdoc /> */
