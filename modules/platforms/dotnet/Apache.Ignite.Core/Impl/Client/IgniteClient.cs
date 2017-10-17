@@ -18,6 +18,7 @@
 namespace Apache.Ignite.Core.Impl.Client
 {
     using System;
+    using System.Collections.Generic;
     using System.Diagnostics;
     using System.Diagnostics.CodeAnalysis;
     using Apache.Ignite.Core.Binary;
@@ -108,6 +109,12 @@ namespace Apache.Ignite.Core.Impl.Client
 
         /** <inheritDoc /> */
         public ICacheClient<TK, TV> CreateCache<TK, TV>(CacheConfiguration configuration)
+        {
+            throw new NotImplementedException();
+        }
+
+        /** <inheritDoc /> */
+        public ICollection<string> GetCacheNames()
         {
             throw new NotImplementedException();
         }

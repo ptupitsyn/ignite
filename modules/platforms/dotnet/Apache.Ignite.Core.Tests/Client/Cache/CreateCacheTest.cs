@@ -30,6 +30,18 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
         private const string TemplateCacheName = "template-cache-*";
 
         /// <summary>
+        /// Tears down the test.
+        /// </summary>
+        [TearDown]
+        public void TestTearDown()
+        {
+            foreach (var cacheName in Client.GetCacheNames())
+            {
+                Client.DestroyCache(cacheName);
+            }
+        }
+
+        /// <summary>
         /// Tests create from template.
         /// </summary>
         [Test]

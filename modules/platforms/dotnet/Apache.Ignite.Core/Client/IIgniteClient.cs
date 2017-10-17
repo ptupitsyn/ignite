@@ -18,6 +18,7 @@
 namespace Apache.Ignite.Core.Client
 {
     using System;
+    using System.Collections.Generic;
     using Apache.Ignite.Core.Cache.Configuration;
     using Apache.Ignite.Core.Client.Cache;
 
@@ -77,6 +78,12 @@ namespace Apache.Ignite.Core.Client
         /// <param name="configuration">Cache configuration.</param>
         /// <returns>Existing or newly created cache.</returns>
         ICacheClient<TK, TV> CreateCache<TK, TV>(CacheConfiguration configuration);
+
+        /// <summary>
+        /// Gets the collection of names of currently available caches, or empty collection if there are no caches.
+        /// </summary>
+        /// <returns>Collection of names of currently available caches.</returns>
+        ICollection<string> GetCacheNames();
 
         /// <summary>
         /// Destroys dynamically created (with <see cref="CreateCache{TK,TV}(string)"/> or 
