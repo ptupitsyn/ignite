@@ -119,6 +119,24 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
             Assert.AreEqual(1, cache[1]);
         }
 
+        /// <summary>
+        /// Tests cache creation from configuration.
+        /// </summary>
+        [Test]
+        public void TestCreateFromConfiguration()
+        {
+            // TODO
+        }
+
+        /// <summary>
+        /// Tests cache creation from configuration.
+        /// </summary>
+        [Test]
+        public void TestGetOrCreateFromConfiguration()
+        {
+            // TODO
+        }
+
         /** <inheritdoc /> */
         protected override IgniteConfiguration GetIgniteConfiguration()
         {
