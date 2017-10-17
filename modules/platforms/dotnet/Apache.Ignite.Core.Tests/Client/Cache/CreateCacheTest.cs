@@ -49,6 +49,38 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
             Assert.AreEqual(CacheAtomicityMode.Transactional, cfg.AtomicityMode);
             Assert.AreEqual(3, cfg.Backups);
             Assert.AreEqual(CacheMode.Partitioned, cfg.CacheMode);
+
+            // TODO: Remove all caches.
+        }
+
+        /// <summary>
+        /// Tests getOrCreate from template.
+        /// </summary>
+        [Test]
+        public void TestGetOrCreateFromTemplate()
+        {
+            // No template: default configuration.
+            var cache = Client.GetOrCreateCache<int, int>("foobar");
+            TestUtils.AssertReflectionEqual(new CacheConfiguration(), cache.GetConfiguration());
+            cache[1] = 1;
+
+            // Create when exists.
+            cache = Client.GetOrCreateCache<int, int>("foobar");
+            Assert.AreEqual(1, cache[1]);
+
+            // Template: custom configuration.
+            cache = Client.GetOrCreateCache<int, int>(TemplateCacheName.Replace("*", "1"));
+            var cfg = cache.GetConfiguration();
+            Assert.AreEqual(CacheAtomicityMode.Transactional, cfg.AtomicityMode);
+            Assert.AreEqual(3, cfg.Backups);
+            Assert.AreEqual(CacheMode.Partitioned, cfg.CacheMode);
+
+            // Create when exists.
+            cache[1] = 1;
+            cache = Client.GetOrCreateCache<int, int>(cache.Name);
+            Assert.AreEqual(1, cache[1]);
+
+            // TODO: Remove all caches.
         }
 
         /** <inheritdoc /> */
