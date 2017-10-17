@@ -17,6 +17,7 @@
 
 namespace Apache.Ignite.Core.Tests.Client.Cache
 {
+    using System.Linq;
     using Apache.Ignite.Core.Cache.Configuration;
     using Apache.Ignite.Core.Client;
     using NUnit.Framework;
@@ -33,12 +34,39 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
         /// Tears down the test.
         /// </summary>
         [TearDown]
-        public void TestTearDown()
+        public void TearDown()
+        {
+            DestroyCaches();
+        }
+
+        /// <summary>
+        /// Destroys caches.
+        /// </summary>
+        private void DestroyCaches()
         {
             foreach (var cacheName in Client.GetCacheNames())
             {
                 Client.DestroyCache(cacheName);
             }
+        }
+
+        /// <summary>
+        /// Tests the GetCacheNames.
+        /// </summary>
+        [Test]
+        public void TestGetCacheNames()
+        {
+            DestroyCaches();
+            Assert.AreEqual(0, Client.GetCacheNames().Count);
+
+            Client.CreateCache<int, int>("a");
+            Assert.AreEqual("a", Client.GetCacheNames().Single());
+
+            Client.CreateCache<int, int>("b");
+            Assert.AreEqual(new[] {"a", "b"}, Client.GetCacheNames().OrderBy(x => x).ToArray());
+
+            Client.DestroyCache("a");
+            Assert.AreEqual("b", Client.GetCacheNames().Single());
         }
 
         /// <summary>
