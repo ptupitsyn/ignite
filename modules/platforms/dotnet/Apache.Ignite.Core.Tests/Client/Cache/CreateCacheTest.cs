@@ -17,10 +17,54 @@
 
 namespace Apache.Ignite.Core.Tests.Client.Cache
 {
+    using Apache.Ignite.Core.Cache.Configuration;
+    using Apache.Ignite.Core.Client;
+    using NUnit.Framework;
+
     /// <summary>
     /// Tests dynamic cache start from client nodes.
     /// </summary>
-    public class CreateCacheTest
+    public class CreateCacheTest : ClientTestBase
     {
+        /** Template cache name. */
+        private const string TemplateCacheName = "template-cache-*";
+
+        /// <summary>
+        /// Tests create from template.
+        /// </summary>
+        [Test]
+        public void TestCreateFromTemplate()
+        {
+            // No template: default configuration.
+            var cache = Client.CreateCache<int, int>("foobar");
+            TestUtils.AssertReflectionEqual(new CacheConfiguration(), cache.GetConfiguration());
+
+            // Create when exists.
+            var ex = Assert.Throws<IgniteClientException>(() => Client.CreateCache<int, int>(cache.Name));
+            Assert.AreEqual("", ex.Message);
+
+            // Template: custom configuration.
+            cache = Client.CreateCache<int, int>(TemplateCacheName.Replace("*", "1"));
+            var cfg = cache.GetConfiguration();
+            Assert.AreEqual(CacheAtomicityMode.Transactional, cfg.AtomicityMode);
+            Assert.AreEqual(3, cfg.Backups);
+            Assert.AreEqual(CacheMode.Partitioned, cfg.CacheMode);
+        }
+
+        /** <inheritdoc /> */
+        protected override IgniteConfiguration GetIgniteConfiguration()
+        {
+            return new IgniteConfiguration(base.GetIgniteConfiguration())
+            {
+                CacheConfiguration = new[]
+                {
+                    new CacheConfiguration(TemplateCacheName)
+                    {
+                        AtomicityMode = CacheAtomicityMode.Transactional,
+                        Backups = 3
+                    }
+                }
+            };
+        }
     }
 }
