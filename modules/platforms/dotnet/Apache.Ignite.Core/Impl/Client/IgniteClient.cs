@@ -21,6 +21,7 @@ namespace Apache.Ignite.Core.Impl.Client
     using System.Diagnostics;
     using System.Diagnostics.CodeAnalysis;
     using Apache.Ignite.Core.Binary;
+    using Apache.Ignite.Core.Cache.Configuration;
     using Apache.Ignite.Core.Client;
     using Apache.Ignite.Core.Client.Cache;
     using Apache.Ignite.Core.Datastream;
@@ -85,6 +86,36 @@ namespace Apache.Ignite.Core.Impl.Client
             IgniteArgumentCheck.NotNull(name, "name");
 
             return new CacheClient<TK, TV>(this, name);
+        }
+
+        /** <inheritDoc /> */
+        public ICacheClient<TK, TV> GetOrCreateCache<TK, TV>(string name)
+        {
+            throw new NotImplementedException();
+        }
+
+        /** <inheritDoc /> */
+        public ICacheClient<TK, TV> GetOrCreateCache<TK, TV>(CacheConfiguration configuration)
+        {
+            throw new NotImplementedException();
+        }
+
+        /** <inheritDoc /> */
+        public ICacheClient<TK, TV> CreateCache<TK, TV>(string name)
+        {
+            throw new NotImplementedException();
+        }
+
+        /** <inheritDoc /> */
+        public ICacheClient<TK, TV> CreateCache<TK, TV>(CacheConfiguration configuration)
+        {
+            throw new NotImplementedException();
+        }
+
+        /** <inheritDoc /> */
+        public void DestroyCache(string name)
+        {
+            throw new NotImplementedException();
         }
 
         /** <inheritDoc /> */
