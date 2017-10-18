@@ -1775,7 +1775,7 @@ public class PlatformConfigurationUtils {
         w.writeBoolean(cfg.isPersistenceEnabled());
         w.writeLong(cfg.getInitialSize());
         w.writeLong(cfg.getMaxSize());
-        w.writeString(cfg.getSwapFilePath());
+        w.writeString(cfg.getSwapPath());
         w.writeInt(cfg.getPageEvictionMode().ordinal());
         w.writeDouble(cfg.getEvictionThreshold());
         w.writeInt(cfg.getEmptyPagesPoolSize());
@@ -1797,7 +1797,7 @@ public class PlatformConfigurationUtils {
                 .setPersistenceEnabled(r.readBoolean())
                 .setInitialSize(r.readLong())
                 .setMaxSize(r.readLong())
-                .setSwapFilePath(r.readString())
+                .setSwapPath(r.readString())
                 .setPageEvictionMode(DataPageEvictionMode.fromOrdinal(r.readInt()))
                 .setEvictionThreshold(r.readDouble())
                 .setEmptyPagesPoolSize(r.readInt())

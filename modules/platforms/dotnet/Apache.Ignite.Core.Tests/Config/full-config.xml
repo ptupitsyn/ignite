@@ -142,11 +142,11 @@
         <dataRegionConfigurations>
             <dataRegionConfiguration emptyPagesPoolSize="1" evictionThreshold="2" initialSize="3" metricsEnabled="true"
                                      maxSize="4" name="reg2" pageEvictionMode="RandomLru" metricsRateTimeInterval="00:00:01"
-                                     metricsSubIntervalCount="5" swapFilePath="swap" />
+                                     metricsSubIntervalCount="5" swapPath="swap" />
         </dataRegionConfigurations>
         <defaultDataRegionConfiguration emptyPagesPoolSize="2" evictionThreshold="3" initialSize="4"
                                         maxSize="5" metricsEnabled="false" name="reg1" pageEvictionMode="Disabled"
                                         metricsRateTimeInterval="00:00:03" metricsSubIntervalCount="6"
-                                        swapFilePath="swap2" />
+                                        swapPath="swap2" />
     </dataStorageConfiguration>
 </igniteConfiguration>

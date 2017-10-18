@@ -801,7 +801,7 @@ namespace Apache.Ignite.Core.Tests
                         PersistenceEnabled = false,
                         MetricsRateTimeInterval = TimeSpan.FromMinutes(2),
                         MetricsSubIntervalCount = 6,
-                        SwapFilePath = IgniteUtils.GetTempDirectoryName()
+                        SwapPath = IgniteUtils.GetTempDirectoryName()
                     },
                     DataRegionConfigurations = new[]
                     {
@@ -817,7 +817,7 @@ namespace Apache.Ignite.Core.Tests
                             PersistenceEnabled = false,
                             MetricsRateTimeInterval = TimeSpan.FromMinutes(3),
                             MetricsSubIntervalCount = 7,
-                            SwapFilePath = IgniteUtils.GetTempDirectoryName()
+                            SwapPath = IgniteUtils.GetTempDirectoryName()
                         }
                     }
                 }

@@ -1531,9 +1531,9 @@
                                             <xs:documentation>Maximum data region size.</xs:documentation>
                                         </xs:annotation>
                                     </xs:attribute>
-                                    <xs:attribute name="swapFilePath" type="xs:string">
+                                    <xs:attribute name="swapPath" type="xs:string">
                                         <xs:annotation>
-                                            <xs:documentation>Path to the memory-mapped file.</xs:documentation>
+                                            <xs:documentation>Path to the directory for memory-mapped files.</xs:documentation>
                                         </xs:annotation>
                                     </xs:attribute>
                                     <xs:attribute name="metricsEnabled" type="xs:boolean">
@@ -1599,9 +1599,9 @@
                                                         <xs:documentation>Maximum data region size.</xs:documentation>
                                                     </xs:annotation>
                                                 </xs:attribute>
-                                                <xs:attribute name="swapFilePath" type="xs:string">
+                                                <xs:attribute name="swapPath" type="xs:string">
                                                     <xs:annotation>
-                                                        <xs:documentation>Path to the memory-mapped file.</xs:documentation>
+                                                        <xs:documentation>Path to the directory for memory-mapped files.</xs:documentation>
                                                     </xs:annotation>
                                                 </xs:attribute>
                                                 <xs:attribute name="metricsEnabled" type="xs:boolean">

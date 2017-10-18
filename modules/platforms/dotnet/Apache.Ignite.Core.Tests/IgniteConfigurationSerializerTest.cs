@@ -307,7 +307,7 @@ namespace Apache.Ignite.Core.Tests
             Assert.AreEqual(Core.Configuration.DataPageEvictionMode.RandomLru, dr.PageEvictionMode);
             Assert.AreEqual(TimeSpan.FromSeconds(1), dr.MetricsRateTimeInterval);
             Assert.AreEqual(5, dr.MetricsSubIntervalCount);
-            Assert.AreEqual("swap", dr.SwapFilePath);
+            Assert.AreEqual("swap", dr.SwapPath);
             Assert.IsTrue(dr.MetricsEnabled);
 
             dr = ds.DefaultDataRegionConfiguration;
@@ -319,7 +319,7 @@ namespace Apache.Ignite.Core.Tests
             Assert.AreEqual(Core.Configuration.DataPageEvictionMode.Disabled, dr.PageEvictionMode);
             Assert.AreEqual(TimeSpan.FromSeconds(3), dr.MetricsRateTimeInterval);
             Assert.AreEqual(6, dr.MetricsSubIntervalCount);
-            Assert.AreEqual("swap2", dr.SwapFilePath);
+            Assert.AreEqual("swap2", dr.SwapPath);
             Assert.IsFalse(dr.MetricsEnabled);
         }
 
@@ -934,7 +934,7 @@ namespace Apache.Ignite.Core.Tests
                         PersistenceEnabled = false,
                         MetricsRateTimeInterval = TimeSpan.FromMinutes(2),
                         MetricsSubIntervalCount = 6,
-                        SwapFilePath = Path.GetTempPath()
+                        SwapPath = Path.GetTempPath()
                     },
                     DataRegionConfigurations = new[]
                     {
@@ -950,7 +950,7 @@ namespace Apache.Ignite.Core.Tests
                             PersistenceEnabled = false,
                             MetricsRateTimeInterval = TimeSpan.FromMinutes(3),
                             MetricsSubIntervalCount = 7,
-                            SwapFilePath = Path.GetTempPath()
+                            SwapPath = Path.GetTempPath()
                         }
                     }
                 }

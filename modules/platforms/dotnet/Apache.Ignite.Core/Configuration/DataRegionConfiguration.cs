@@ -97,7 +97,7 @@ namespace Apache.Ignite.Core.Configuration
             PersistenceEnabled = reader.ReadBoolean();
             InitialSize = reader.ReadLong();
             MaxSize = reader.ReadLong();
-            SwapFilePath = reader.ReadString();
+            SwapPath = reader.ReadString();
             PageEvictionMode = (DataPageEvictionMode)reader.ReadInt();
             EvictionThreshold = reader.ReadDouble();
             EmptyPagesPoolSize = reader.ReadInt();
@@ -115,7 +115,7 @@ namespace Apache.Ignite.Core.Configuration
             writer.WriteBoolean(PersistenceEnabled);
             writer.WriteLong(InitialSize);
             writer.WriteLong(MaxSize);
-            writer.WriteString(SwapFilePath);
+            writer.WriteString(SwapPath);
             writer.WriteInt((int)PageEvictionMode);
             writer.WriteDouble(EvictionThreshold);
             writer.WriteInt(EmptyPagesPoolSize);
@@ -150,13 +150,11 @@ namespace Apache.Ignite.Core.Configuration
         public long MaxSize { get; set; }
 
         /// <summary>
-        /// Gets or sets the the path to the memory-mapped file this data region
-        /// will be mapped to. Having the path set, allows relying on swapping capabilities of an underlying
-        /// operating system for the memory region.
+        /// Gets or sets the the path to the directory for memory-mapped files.
         /// <para />
         /// Null for no swap.
         /// </summary>
-        public string SwapFilePath { get; set; }
+        public string SwapPath { get; set; }
 
         /// <summary>
         /// Gets or sets the page eviction mode. If <see cref="DataPageEvictionMode.Disabled"/> is used (default)
