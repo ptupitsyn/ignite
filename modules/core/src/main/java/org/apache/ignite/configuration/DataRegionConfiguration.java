@@ -26,7 +26,8 @@ import static org.apache.ignite.configuration.DataStorageConfiguration.DFLT_DATA
 /**
  * This class allows defining custom data regions' configurations with various parameters for Apache Ignite
  * page memory (see {@link DataStorageConfiguration}. For each configured data region Apache Ignite instantiates
- * respective memory regions with different parameters like maximum size, eviction policy, swapping options, etc.
+ * respective memory regions with different parameters like maximum size, eviction policy, swapping options,
+ * persistent mode flag, etc.
  * An Apache Ignite cache can be mapped to a particular region using
  * {@link CacheConfiguration#setDataRegionName(String)} method.
  * <p>Sample configuration below shows how to configure several data regions:</p>
@@ -56,7 +57,7 @@ import static org.apache.ignite.configuration.DataStorageConfiguration.DFLT_DATA
  *                          <property name="name" value="25MB_Region_Swapping"/>
  *                          <property name="initialSize" value="#{25 * 1024 * 1024}"/>
  *                          <property name="initialSize" value="#{100 * 1024 * 1024}"/>
- *                          <property name="swapFilePath" value="dataRegionExampleSwap"/>
+ *                          <property name="swapPath" value="db/swap"/>
  *                      </bean>
  *                  </list>
  *              </property>
@@ -86,8 +87,8 @@ public final class DataRegionConfiguration implements Serializable {
     private long initSize = Math.min(
         DataStorageConfiguration.DFLT_DATA_REGION_MAX_SIZE, DataStorageConfiguration.DFLT_DATA_REGION_INITIAL_SIZE);
 
-    /** An optional path to a memory mapped file for this data region. */
-    private String swapFilePath;
+    /** An optional path to a memory mapped files directory for this data region. */
+    private String swapPath;
 
     /** An algorithm for memory pages eviction. */
     private DataPageEvictionMode pageEvictionMode = DataPageEvictionMode.DISABLED;
@@ -138,7 +139,7 @@ public final class DataRegionConfiguration implements Serializable {
     }
 
     /**
-     * Sets data region name. The name must be non empty and must not be equal to the reserved 'sysDataReg' one.
+     * Sets data region name. The name must be non empty and must not be equal to the reserved 'sysMemPlc' one.
      *
      * If not specified, {@link DataStorageConfiguration#DFLT_DATA_REG_DEFAULT_NAME} value is used.
      *
@@ -204,18 +205,18 @@ public final class DataRegionConfiguration implements Serializable {
      * @return A path to the memory-mapped files or {@code null} if this feature is not used for the memory region
      *         defined by this data region.
      */
-    public String getSwapFilePath() {
-        return swapFilePath;
+    public String getSwapPath() {
+        return swapPath;
     }
 
     /**
-     * Sets a path to the memory-mapped file.
+     * Sets a path to the memory-mapped files.
      *
      * @param swapFilePath A Path to the memory mapped file.
      * @return {@code this} for chaining.
      */
-    public DataRegionConfiguration setSwapFilePath(String swapFilePath) {
-        this.swapFilePath = swapFilePath;
+    public DataRegionConfiguration setSwapPath(String swapFilePath) {
+        this.swapPath = swapFilePath;
 
         return this;
     }

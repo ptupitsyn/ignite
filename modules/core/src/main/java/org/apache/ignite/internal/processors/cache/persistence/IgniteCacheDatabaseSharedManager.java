@@ -74,7 +74,7 @@ import static org.apache.ignite.configuration.DataStorageConfiguration.DFLT_PAGE
 public class IgniteCacheDatabaseSharedManager extends GridCacheSharedManagerAdapter
     implements IgniteChangeGlobalStateSupport, CheckpointLockStateChecker {
     /** DataRegionConfiguration name reserved for internal caches. */
-    static final String SYSTEM_DATA_REGION_NAME = "sysDataReg";
+    static final String SYSTEM_DATA_REGION_NAME = "sysMemPlc";
 
     /** Minimum size of memory chunk */
     private static final long MIN_PAGE_MEMORY_SIZE = 10 * 1024 * 1024;
@@ -529,7 +529,7 @@ public class IgniteCacheDatabaseSharedManager extends GridCacheSharedManagerAdap
     /**
      * @return collection of all configured {@link DataRegion policies}.
      */
-    public Collection<DataRegion> memoryPolicies() {
+    public Collection<DataRegion> dataRegions() {
         return dataRegionMap != null ? dataRegionMap.values() : null;
     }
 
@@ -879,7 +879,7 @@ public class IgniteCacheDatabaseSharedManager extends GridCacheSharedManagerAdap
      * @throws IgniteCheckedException If resolving swap directory fails.
      */
     @Nullable private File buildAllocPath(DataRegionConfiguration plc) throws IgniteCheckedException {
-        String path = plc.getSwapFilePath();
+        String path = plc.getSwapPath();
 
         if (path == null)
             return null;
