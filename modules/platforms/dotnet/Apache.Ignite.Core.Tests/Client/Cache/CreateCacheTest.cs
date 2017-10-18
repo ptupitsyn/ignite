@@ -125,7 +125,12 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
         [Test]
         public void TestCreateFromConfiguration()
         {
-            // TODO
+            // TODO: Which properties should we support?
+
+            // Default config.
+            var cfg = new CacheConfiguration("a");
+            var cache = Client.CreateCache<int, int>(cfg);
+            TestUtils.AssertReflectionEqual(cfg, cache.GetConfiguration());
         }
 
         /// <summary>
