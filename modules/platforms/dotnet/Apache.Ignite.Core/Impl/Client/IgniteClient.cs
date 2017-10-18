@@ -104,7 +104,8 @@ namespace Apache.Ignite.Core.Impl.Client
         /** <inheritDoc /> */
         public ICacheClient<TK, TV> CreateCache<TK, TV>(string name)
         {
-            throw new NotImplementedException();
+            // TODO: Common error handling mechanism and socket extension methods.
+            _socket.DoOutInOp(ClientOp.CacheCreateWithName, s => Marshaller.StartMarshal(s).WriteString(name), null);
         }
 
         /** <inheritDoc /> */
