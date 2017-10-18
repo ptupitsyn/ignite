@@ -93,7 +93,9 @@ namespace Apache.Ignite.Core.Impl.Client
         /** <inheritDoc /> */
         public ICacheClient<TK, TV> GetOrCreateCache<TK, TV>(string name)
         {
-            DoOutOp(ClientOp.GetOrCreateCacheCreateWithName, w => w.WriteString(name));
+            IgniteArgumentCheck.NotNull(name, "name");
+
+            DoOutOp(ClientOp.CacheGetOrCreateWithName, w => w.WriteString(name));
 
             return GetCache<TK, TV>(name);
         }
@@ -107,6 +109,8 @@ namespace Apache.Ignite.Core.Impl.Client
         /** <inheritDoc /> */
         public ICacheClient<TK, TV> CreateCache<TK, TV>(string name)
         {
+            IgniteArgumentCheck.NotNull(name, "name");
+
             DoOutOp(ClientOp.CacheCreateWithName, w => w.WriteString(name));
 
             return GetCache<TK, TV>(name);
@@ -121,13 +125,15 @@ namespace Apache.Ignite.Core.Impl.Client
         /** <inheritDoc /> */
         public ICollection<string> GetCacheNames()
         {
-            throw new NotImplementedException();
+            return DoOutInOp(ClientOp.CacheGetNames, null, s => Marshaller.StartUnmarshal(s).ReadStringCollection());
         }
 
         /** <inheritDoc /> */
         public void DestroyCache(string name)
         {
-            throw new NotImplementedException();
+            IgniteArgumentCheck.NotNull(name, "name");
+
+            DoOutOp(ClientOp.CacheDestroy, w => w.WriteString(name));
         }
 
         /** <inheritDoc /> */

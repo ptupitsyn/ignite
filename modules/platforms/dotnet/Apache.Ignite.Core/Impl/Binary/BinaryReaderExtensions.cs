@@ -19,6 +19,7 @@ namespace Apache.Ignite.Core.Impl.Binary
 {
     using System;
     using System.Collections.Generic;
+    using System.Diagnostics;
     using Apache.Ignite.Core.Binary;
     using Apache.Ignite.Core.Impl.Common;
 
@@ -96,6 +97,24 @@ namespace Apache.Ignite.Core.Impl.Binary
                 return default(T);
 
             return obj is T ? (T) obj : ((ObjectInfoHolder) obj).CreateInstance<T>();
+        }
+
+        /// <summary>
+        /// Reads the string collection.
+        /// </summary>
+        public static ICollection<string> ReadStringCollection(this IBinaryRawReader reader)
+        {
+            Debug.Assert(reader != null);
+
+            var cnt = reader.ReadInt();
+            var res = new List<string>(cnt);
+
+            for (var i = 0; i < cnt; i++)
+            {
+                res.Add(reader.ReadString());
+            }
+
+            return res;
         }
     }
 }
