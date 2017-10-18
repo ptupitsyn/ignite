@@ -27,6 +27,7 @@ namespace Apache.Ignite.Core.Impl.Client
     using Apache.Ignite.Core.Client.Cache;
     using Apache.Ignite.Core.Datastream;
     using Apache.Ignite.Core.Impl.Binary;
+    using Apache.Ignite.Core.Impl.Binary.IO;
     using Apache.Ignite.Core.Impl.Client.Cache;
     using Apache.Ignite.Core.Impl.Cluster;
     using Apache.Ignite.Core.Impl.Common;
@@ -92,7 +93,9 @@ namespace Apache.Ignite.Core.Impl.Client
         /** <inheritDoc /> */
         public ICacheClient<TK, TV> GetOrCreateCache<TK, TV>(string name)
         {
-            throw new NotImplementedException();
+            DoOutOp(ClientOp.GetOrCreateCacheCreateWithName, w => w.WriteString(name));
+
+            return GetCache<TK, TV>(name);
         }
 
         /** <inheritDoc /> */
@@ -104,8 +107,9 @@ namespace Apache.Ignite.Core.Impl.Client
         /** <inheritDoc /> */
         public ICacheClient<TK, TV> CreateCache<TK, TV>(string name)
         {
-            // TODO: Common error handling mechanism and socket extension methods.
-            _socket.DoOutInOp(ClientOp.CacheCreateWithName, s => Marshaller.StartMarshal(s).WriteString(name), null);
+            DoOutOp(ClientOp.CacheCreateWithName, w => w.WriteString(name));
+
+            return GetCache<TK, TV>(name);
         }
 
         /** <inheritDoc /> */
@@ -193,6 +197,33 @@ namespace Apache.Ignite.Core.Impl.Client
             }
 
             return new NotSupportedException(msg);
+        }
+
+        /// <summary>
+        /// Does the out in op.
+        /// </summary>
+        private T DoOutInOp<T>(ClientOp opId, Action<BinaryWriter> writeAction,
+            Func<IBinaryStream, T> readFunc)
+        {
+            return _socket.DoOutInOp(opId, stream =>
+            {
+                if (writeAction != null)
+                {
+                    var writer = _marsh.StartMarshal(stream);
+
+                    writeAction(writer);
+
+                    _marsh.FinishMarshal(writer);
+                }
+            }, readFunc);
+        }
+
+        /// <summary>
+        /// Does the out op.
+        /// </summary>
+        private void DoOutOp(ClientOp opId, Action<BinaryWriter> writeAction = null)
+        {
+            DoOutInOp<object>(opId, writeAction, null);
         }
     }
 }

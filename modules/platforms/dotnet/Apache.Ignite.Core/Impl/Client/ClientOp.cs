@@ -51,5 +51,6 @@ namespace Apache.Ignite.Core.Impl.Client
         CacheRemoveKeys = 27,
         CacheRemoveAll = 28,
         CacheCreateWithName = 29,
+        GetOrCreateCacheCreateWithName = 30,
     }
 }
