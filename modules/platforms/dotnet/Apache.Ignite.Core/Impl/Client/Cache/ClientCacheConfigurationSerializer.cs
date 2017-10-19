@@ -18,8 +18,9 @@
 namespace Apache.Ignite.Core.Impl.Client.Cache
 {
     using System.Diagnostics;
-    using Apache.Ignite.Core.Binary;
     using Apache.Ignite.Core.Cache.Configuration;
+    using Apache.Ignite.Core.Impl.Binary;
+    using Apache.Ignite.Core.Impl.Binary.IO;
 
     /// <summary>
     /// Writes and reads <see cref="CacheConfiguration"/> for thin client mode.
@@ -27,30 +28,35 @@ namespace Apache.Ignite.Core.Impl.Client.Cache
     /// Thin client supports a subset of <see cref="CacheConfiguration"/> properties, so
     /// <see cref="CacheConfiguration.Read"/> is not suitable.
     /// </summary>
-    internal class ClientCacheConfigurationSerializer
+    internal static class ClientCacheConfigurationSerializer
     {
         /// <summary>
         /// Writes the specified config.
         /// </summary>
-        public static void Write(CacheConfiguration cfg, IBinaryRawWriter writer)
+        public static void Write(CacheConfiguration cfg, IBinaryStream stream)
         {
             Debug.Assert(cfg != null);
-            Debug.Assert(writer != null);
+            Debug.Assert(stream != null);
 
-            writer.WriteString(cfg.Name);
+            // Configuration should be written with a system marshaller.
+            var w = BinaryUtils.Marshaller.StartMarshal(stream);
+
+            w.WriteString(cfg.Name);
             // TODO
         }
 
         /// <summary>
         /// Reads the config.
         /// </summary>
-        public static CacheConfiguration Read(IBinaryRawReader reader)
+        public static CacheConfiguration Read(IBinaryStream stream)
         {
-            Debug.Assert(reader != null);
+            Debug.Assert(stream != null);
+
+            var r = BinaryUtils.Marshaller.StartUnmarshal(stream);
          
             return new CacheConfiguration
             {
-                Name = reader.ReadString()
+                Name = r.ReadString()
 
                 // TODO
             };

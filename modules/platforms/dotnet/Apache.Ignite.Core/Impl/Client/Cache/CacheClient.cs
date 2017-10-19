@@ -331,7 +331,7 @@ namespace Apache.Ignite.Core.Impl.Client.Cache
         /** <inheritDoc /> */
         public CacheConfiguration GetConfiguration()
         {
-            throw new NotImplementedException();
+            return DoOutInOp(ClientOp.CacheGetConfiguration, null, s => ClientCacheConfigurationSerializer.Read(s));
         }
 
         /// <summary>

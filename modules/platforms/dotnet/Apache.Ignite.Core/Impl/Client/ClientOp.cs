@@ -53,6 +53,7 @@ namespace Apache.Ignite.Core.Impl.Client
         CacheCreateWithName = 29,
         CacheGetOrCreateWithName = 30,
         CacheDestroy = 31,
-        CacheGetNames = 32
+        CacheGetNames = 32,
+        CacheGetConfiguration = 33
     }
 }
