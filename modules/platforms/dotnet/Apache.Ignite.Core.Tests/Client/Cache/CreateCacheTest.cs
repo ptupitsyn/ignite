@@ -99,7 +99,7 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
         {
             // No template: default configuration.
             var cache = Client.GetOrCreateCache<int, int>("foobar");
-            TestUtils.AssertReflectionEqual(new CacheConfiguration(), cache.GetConfiguration());
+            TestUtils.AssertReflectionEqual(new CacheConfiguration {Name = "foobar"}, cache.GetConfiguration());
             cache[1] = 1;
 
             // Create when exists.
