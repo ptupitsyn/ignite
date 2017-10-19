@@ -45,6 +45,7 @@ import org.apache.ignite.internal.processors.platform.client.cache.ClientCacheGe
 import org.apache.ignite.internal.processors.platform.client.cache.ClientCacheGetAndRemoveRequest;
 import org.apache.ignite.internal.processors.platform.client.cache.ClientCacheGetAndReplaceRequest;
 import org.apache.ignite.internal.processors.platform.client.cache.ClientCacheGetNamesRequest;
+import org.apache.ignite.internal.processors.platform.client.cache.ClientCacheGetOrCreateWithNameRequest;
 import org.apache.ignite.internal.processors.platform.client.cache.ClientCacheGetRequest;
 import org.apache.ignite.internal.processors.platform.client.cache.ClientCacheGetSizeRequest;
 import org.apache.ignite.internal.processors.platform.client.cache.ClientCachePutAllRequest;
@@ -282,7 +283,7 @@ public class ClientMessageParser implements ClientListenerMessageParser {
                 return new ClientCacheCreateWithNameRequest(reader);
 
             case OP_CACHE_GET_OR_CREATE_WITH_NAME:
-                return null; // TODO
+                return new ClientCacheGetOrCreateWithNameRequest(reader);
 
             case OP_CACHE_DESTROY:
                 return new ClientCacheDestroyRequest(reader);
