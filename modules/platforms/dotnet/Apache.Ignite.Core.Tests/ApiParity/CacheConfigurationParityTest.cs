@@ -27,35 +27,19 @@ namespace Apache.Ignite.Core.Tests.ApiParity
     using NUnit.Framework;
 
     /// <summary>
-    /// Tests that .NET has all properties from Java configuration APIs.
+    /// Tests that .NET <see cref="CacheConfiguration"/> has all properties from Java configuration APIs.
     /// </summary>
-    public class ConfigurationParityTest
+    public class CacheConfigurationParityTest
     {
+        /** Property regex. */
         private static readonly Regex JavaPropertyRegex = 
             new Regex("public [^=]+ (.+?)\\(\\)\\s+{", RegexOptions.Compiled);
 
-        private static IEnumerable<string> GetJavaProperties(string path)
+        /** Known property name mappings. */
+        private static readonly Dictionary<string, string> KnownMappings = new Dictionary<string, string>
         {
-            var text = File.ReadAllText(path);
-
-            var exclude = new[] {"toString", "writeReplace"};
-
-            return JavaPropertyRegex.Matches(text)
-                .OfType<Match>()
-                .Select(m => m.Groups[1].Value.Replace("get", ""))
-                .Where(x => !x.Contains(" void "))
-                .Except(exclude);
-        }
-
-        private static IEnumerable<string> GetNameVariants(string javaPropertyName)
-        {
-            yield return javaPropertyName;
-
-            if (javaPropertyName.StartsWith("is"))
-            {
-                yield return javaPropertyName.Substring(2);
-            }
-        }
+            {"", ""}
+        };
 
         /// <summary>
         /// Tests the cache configuration parity.
@@ -81,6 +65,29 @@ namespace Apache.Ignite.Core.Tests.ApiParity
             {
                 Assert.Fail("CacheConfiguration properties are missing in .NET: \n" +
                             string.Join("\n", missingProperties));
+            }
+        }
+
+        private static IEnumerable<string> GetJavaProperties(string path)
+        {
+            var text = File.ReadAllText(path);
+
+            var exclude = new[] { "toString", "writeReplace" };
+
+            return JavaPropertyRegex.Matches(text)
+                .OfType<Match>()
+                .Select(m => m.Groups[1].Value.Replace("get", ""))
+                .Where(x => !x.Contains(" void "))
+                .Except(exclude);
+        }
+
+        private static IEnumerable<string> GetNameVariants(string javaPropertyName)
+        {
+            yield return javaPropertyName;
+
+            if (javaPropertyName.StartsWith("is"))
+            {
+                yield return javaPropertyName.Substring(2);
             }
         }
     }
