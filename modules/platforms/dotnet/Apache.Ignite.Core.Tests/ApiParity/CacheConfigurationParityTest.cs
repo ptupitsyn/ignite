@@ -41,6 +41,14 @@ namespace Apache.Ignite.Core.Tests.ApiParity
             {"", ""}
         };
 
+        /** Properties that are not needed on .NET side. */
+        private static readonly HashSet<string> UnneededProperties = new HashSet<string>(new[]
+        {
+            "IndexedTypes",
+            "toString",
+            "writeReplace"
+        });
+
         /// <summary>
         /// Tests the cache configuration parity.
         /// </summary>
@@ -72,13 +80,11 @@ namespace Apache.Ignite.Core.Tests.ApiParity
         {
             var text = File.ReadAllText(path);
 
-            var exclude = new[] { "toString", "writeReplace" };
-
             return JavaPropertyRegex.Matches(text)
                 .OfType<Match>()
                 .Select(m => m.Groups[1].Value.Replace("get", ""))
                 .Where(x => !x.Contains(" void "))
-                .Except(exclude);
+                .Except(UnneededProperties);
         }
 
         private static IEnumerable<string> GetNameVariants(string javaPropertyName)
