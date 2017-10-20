@@ -49,7 +49,7 @@ import org.apache.ignite.internal.util.typedef.internal.U;
  *         <bean class="org.apache.ignite.configuration.DataStorageConfiguration">
  *             <property name="systemCacheInitialSize" value="#{100 * 1024 * 1024}"/>
  *
- *             <property name="defaultRegionConfiguration">
+ *             <property name="defaultDataRegionConfiguration">
  *                 <bean class="org.apache.ignite.configuration.DataRegionConfiguration">
  *                     <property name="name" value="default_data_region"/>
  *                     <property name="initialSize" value="#{5 * 1024 * 1024 * 1024}"/>

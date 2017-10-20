@@ -80,7 +80,7 @@ public final class DataRegionConfiguration implements Serializable {
     /** Data region name. */
     private String name = DFLT_DATA_REG_DEFAULT_NAME;
 
-    /** Data region maximum size. */
+    /** Data region maximum size in memory. */
     private long maxSize = DataStorageConfiguration.DFLT_DATA_REGION_MAX_SIZE;
 
     /** Data region start size. */
