@@ -39,7 +39,8 @@ namespace Apache.Ignite.Core.Tests.ApiParity
         private static readonly Dictionary<string, string> KnownMappings = new Dictionary<string, string>
         {
             {"isStoreKeepBinary", "KeepBinaryInStore"},
-            {"Affinity", "AffinityFunction"}
+            {"Affinity", "AffinityFunction"},
+            {"DefaultLockTimeout", "LockTimeout"}
         };
 
         /** Properties that are not needed on .NET side. */
@@ -78,6 +79,9 @@ namespace Apache.Ignite.Core.Tests.ApiParity
             }
         }
 
+        /// <summary>
+        /// Gets the java properties from file.
+        /// </summary>
         private static IEnumerable<string> GetJavaProperties(string path)
         {
             var text = File.ReadAllText(path);
@@ -89,6 +93,9 @@ namespace Apache.Ignite.Core.Tests.ApiParity
                 .Except(UnneededProperties);
         }
 
+        /// <summary>
+        /// Gets the name variants for a property.
+        /// </summary>
         private static IEnumerable<string> GetNameVariants(string javaPropertyName)
         {
             yield return javaPropertyName;
