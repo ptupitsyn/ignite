@@ -43,7 +43,18 @@ namespace Apache.Ignite.Core.Tests.ApiParity
             return JavaPropertyRegex.Matches(text)
                 .OfType<Match>()
                 .Select(m => m.Groups[1].Value.Replace("get", ""))
+                .Where(x => !x.Contains(" void "))
                 .Except(exclude);
+        }
+
+        private static IEnumerable<string> GetNameVariants(string javaPropertyName)
+        {
+            yield return javaPropertyName;
+
+            if (javaPropertyName.StartsWith("is"))
+            {
+                yield return javaPropertyName.Substring(2);
+            }
         }
 
         /// <summary>
@@ -62,12 +73,14 @@ namespace Apache.Ignite.Core.Tests.ApiParity
 
             var javaProperties = GetJavaProperties(path);
 
-            var missingProperties = javaProperties.Where(jp => !dotNetProperties.ContainsKey(jp)).ToArray();
+            var missingProperties = javaProperties
+                .Where(jp => !GetNameVariants(jp).Any(dotNetProperties.ContainsKey))
+                .ToArray();
 
             if (missingProperties.Length > 0)
             {
-                Assert.Fail("CacheConfiguration properties are missing in .NET: " +
-                            string.Join(", ", missingProperties));
+                Assert.Fail("CacheConfiguration properties are missing in .NET: \n" +
+                            string.Join("\n", missingProperties));
             }
         }
     }
