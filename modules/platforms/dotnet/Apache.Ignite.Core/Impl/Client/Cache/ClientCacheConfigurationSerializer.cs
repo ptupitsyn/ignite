@@ -17,6 +17,7 @@
 
 namespace Apache.Ignite.Core.Impl.Client.Cache
 {
+    using System;
     using System.Diagnostics;
     using Apache.Ignite.Core.Cache.Configuration;
     using Apache.Ignite.Core.Impl.Binary;
@@ -42,7 +43,54 @@ namespace Apache.Ignite.Core.Impl.Client.Cache
             var w = BinaryUtils.Marshaller.StartMarshal(stream);
 
             w.WriteString(cfg.Name);
-            // TODO
+            w.WriteInt((int)cfg.AtomicityMode);
+            w.WriteInt(cfg.Backups);
+            w.WriteInt((int)cfg.CacheMode);
+            w.WriteBoolean(cfg.CopyOnRead);
+            w.WriteBoolean(cfg.EagerTtl);
+            w.WriteBoolean(cfg.Invalidate);
+            w.WriteBoolean(cfg.KeepBinaryInStore);
+            w.WriteBoolean(cfg.LoadPreviousValue);
+            w.WriteTimeSpanAsLong(cfg.LockTimeout);
+            w.WriteInt(cfg.MaxConcurrentAsyncOperations);
+            w.WriteBoolean(cfg.ReadFromBackup);
+            w.WriteInt(cfg.RebalanceBatchSize);
+            w.WriteTimeSpanAsLong(cfg.RebalanceDelay);
+            w.WriteInt((int)cfg.RebalanceMode);
+            w.WriteTimeSpanAsLong(cfg.RebalanceThrottle);
+            w.WriteTimeSpanAsLong(cfg.RebalanceTimeout);
+            w.WriteBoolean(cfg.SqlEscapeAll);
+            w.WriteInt(cfg.WriteBehindBatchSize);
+            w.WriteBoolean(cfg.WriteBehindEnabled);
+            w.WriteTimeSpanAsLong(cfg.WriteBehindFlushFrequency);
+            w.WriteInt(cfg.WriteBehindFlushSize);
+            w.WriteInt(cfg.WriteBehindFlushThreadCount);
+            w.WriteBoolean(cfg.WriteBehindCoalescing);
+            w.WriteInt((int)cfg.WriteSynchronizationMode);
+            w.WriteBoolean(cfg.ReadThrough);
+            w.WriteBoolean(cfg.WriteThrough);
+            w.WriteBoolean(cfg.EnableStatistics);
+            w.WriteString(cfg.MemoryPolicyName);
+            w.WriteInt((int)cfg.PartitionLossPolicy);
+            w.WriteString(cfg.GroupName);
+            w.WriteInt(cfg.SqlIndexMaxInlineSize);
+
+            if (cfg.QueryEntities != null)
+            {
+                w.WriteInt(cfg.QueryEntities.Count);
+
+                foreach (var entity in cfg.QueryEntities)
+                {
+                    if (entity == null)
+                        throw new InvalidOperationException("Invalid cache configuration: QueryEntity can't be null.");
+
+                    entity.Write(w);
+                }
+            }
+            else
+                w.WriteInt(0);
+
+            // TODO: Throw on unsupported properties.
         }
 
         /// <summary>
