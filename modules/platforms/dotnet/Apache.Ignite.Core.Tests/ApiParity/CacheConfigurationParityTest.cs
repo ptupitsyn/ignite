@@ -38,7 +38,8 @@ namespace Apache.Ignite.Core.Tests.ApiParity
         /** Known property name mappings. */
         private static readonly Dictionary<string, string> KnownMappings = new Dictionary<string, string>
         {
-            {"", ""}
+            {"isStoreKeepBinary", "KeepBinaryInStore"},
+            {"Affinity", "AffinityFunction"}
         };
 
         /** Properties that are not needed on .NET side. */
@@ -46,7 +47,8 @@ namespace Apache.Ignite.Core.Tests.ApiParity
         {
             "IndexedTypes",
             "toString",
-            "writeReplace"
+            "writeReplace",
+            "clearQueryEntities"
         });
 
         /// <summary>
@@ -94,6 +96,13 @@ namespace Apache.Ignite.Core.Tests.ApiParity
             if (javaPropertyName.StartsWith("is"))
             {
                 yield return javaPropertyName.Substring(2);
+            }
+
+            string map;
+
+            if (KnownMappings.TryGetValue(javaPropertyName, out map))
+            {
+                yield return map;
             }
         }
     }
