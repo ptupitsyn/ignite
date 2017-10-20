@@ -22,6 +22,7 @@ namespace Apache.Ignite.Core.Tests.ApiParity
     using System.IO;
     using System.Linq;
     using System.Text.RegularExpressions;
+    using Apache.Ignite.Core.Cache.Configuration;
     using Apache.Ignite.Core.Impl.Common;
     using NUnit.Framework;
 
@@ -56,9 +57,17 @@ namespace Apache.Ignite.Core.Tests.ApiParity
 
             Assert.IsTrue(File.Exists(path));
 
-            foreach (var javaProperty in GetJavaProperties(path))
+            var dotNetProperties = typeof(CacheConfiguration).GetProperties()
+                .ToDictionary(x => x.Name, x => x, StringComparer.OrdinalIgnoreCase);
+
+            var javaProperties = GetJavaProperties(path);
+
+            var missingProperties = javaProperties.Where(jp => !dotNetProperties.ContainsKey(jp)).ToArray();
+
+            if (missingProperties.Length > 0)
             {
-                Console.WriteLine(javaProperty);
+                Assert.Fail("CacheConfiguration properties are missing in .NET: " +
+                            string.Join(", ", missingProperties));
             }
         }
     }
