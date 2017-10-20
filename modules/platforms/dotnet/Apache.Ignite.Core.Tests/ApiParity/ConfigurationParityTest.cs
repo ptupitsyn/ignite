@@ -37,9 +37,17 @@ namespace Apache.Ignite.Core.Tests.ApiParity
         {
             var text = File.ReadAllText(path);
 
-            return JavaPropertyRegex.Matches(text).OfType<Match>().Select(m => m.Groups[1].Value);
+            var exclude = new[] {"toString", "writeReplace"};
+
+            return JavaPropertyRegex.Matches(text)
+                .OfType<Match>()
+                .Select(m => m.Groups[1].Value.Replace("get", ""))
+                .Except(exclude);
         }
 
+        /// <summary>
+        /// Tests the cache configuration parity.
+        /// </summary>
         [Test]
         public void TestCacheConfiguration()
         {
