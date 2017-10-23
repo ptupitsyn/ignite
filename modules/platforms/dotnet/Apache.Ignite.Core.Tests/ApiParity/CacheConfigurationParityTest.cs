@@ -49,7 +49,12 @@ namespace Apache.Ignite.Core.Tests.ApiParity
             "IndexedTypes",
             "toString",
             "writeReplace",
-            "clearQueryEntities"
+            "clearQueryEntities",
+            "CacheStoreSessionListenerFactories",
+            "CacheEntryListenerConfigurations",
+            "TopologyValidator",
+            "SqlFunctionClasses",
+            "Interceptor"
         });
 
         /** Properties that are missing on .NET side. */
