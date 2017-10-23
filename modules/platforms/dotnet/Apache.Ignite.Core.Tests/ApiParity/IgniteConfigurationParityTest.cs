@@ -25,9 +25,10 @@ namespace Apache.Ignite.Core.Tests.ApiParity
     /// </summary>
     public class IgniteConfigurationParityTest
     {
-        /** Known property name mappings. */
+        /** Known property name mappings Java -> .NET. */
         private static readonly Dictionary<string, string> KnownMappings = new Dictionary<string, string>
         {
+            {"GridLogger", "Logger"},
         };
 
         /** Properties that are not needed on .NET side. */
