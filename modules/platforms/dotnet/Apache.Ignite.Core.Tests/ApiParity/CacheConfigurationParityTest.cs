@@ -17,13 +17,9 @@
 
 namespace Apache.Ignite.Core.Tests.ApiParity
 {
-    using System;
     using System.Collections.Generic;
-    using System.IO;
     using System.Linq;
-    using System.Text.RegularExpressions;
     using Apache.Ignite.Core.Cache.Configuration;
-    using Apache.Ignite.Core.Impl.Common;
     using NUnit.Framework;
 
     /// <summary>
@@ -31,10 +27,6 @@ namespace Apache.Ignite.Core.Tests.ApiParity
     /// </summary>
     public class CacheConfigurationParityTest
     {
-        /** Property regex. */
-        private static readonly Regex JavaPropertyRegex = 
-            new Regex("(@Deprecated)?\\s+public [^=^\r^\n]+ (\\w+)\\(\\) {", RegexOptions.Compiled);
-
         /** Known property name mappings. */
         private static readonly Dictionary<string, string> KnownMappings = new Dictionary<string, string>
         {
@@ -89,61 +81,12 @@ namespace Apache.Ignite.Core.Tests.ApiParity
         [Test]
         public void TestCacheConfiguration()
         {
-            var path = Path.Combine(IgniteHome.Resolve(null),
-                @"modules\core\src\main\java\org\apache\ignite\configuration\CacheConfiguration.java");
-
-            Assert.IsTrue(File.Exists(path));
-
-            var dotNetProperties = typeof(CacheConfiguration).GetProperties()
-                .ToDictionary(x => x.Name, x => x, StringComparer.OrdinalIgnoreCase);
-
-            var javaProperties = GetJavaProperties(path);
-
-            var missingProperties = javaProperties
-                .Where(jp => !GetNameVariants(jp).Any(dotNetProperties.ContainsKey))
-                .ToArray();
-
-            if (missingProperties.Length > 0)
-            {
-                Assert.Fail("{0} CacheConfiguration properties are missing in .NET: \n{1}",
-                    missingProperties.Length, string.Join("\n", missingProperties));
-            }
-        }
-
-        /// <summary>
-        /// Gets the java properties from file.
-        /// </summary>
-        private static IEnumerable<string> GetJavaProperties(string path)
-        {
-            var text = File.ReadAllText(path);
-
-            return JavaPropertyRegex.Matches(text)
-                .OfType<Match>()
-                .Where(m => m.Groups[1].Value == string.Empty)
-                .Select(m => m.Groups[2].Value.Replace("get", ""))
-                .Where(x => !x.Contains(" void "))
-                .Except(UnneededProperties)
-                .Except(MissingProperties);
-        }
-
-        /// <summary>
-        /// Gets the name variants for a property.
-        /// </summary>
-        private static IEnumerable<string> GetNameVariants(string javaPropertyName)
-        {
-            yield return javaPropertyName;
-
-            if (javaPropertyName.StartsWith("is"))
-            {
-                yield return javaPropertyName.Substring(2);
-            }
-
-            string map;
-
-            if (KnownMappings.TryGetValue(javaPropertyName, out map))
-            {
-                yield return map;
-            }
+            ParityTestBase.CheckConfigurationParity(
+                @"modules\core\src\main\java\org\apache\ignite\configuration\CacheConfiguration.java", 
+                typeof(CacheConfiguration),
+                UnneededProperties,
+                MissingProperties,
+                KnownMappings);
         }
     }
 }
