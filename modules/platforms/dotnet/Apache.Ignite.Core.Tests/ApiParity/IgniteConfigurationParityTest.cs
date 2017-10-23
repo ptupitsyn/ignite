@@ -29,16 +29,56 @@ namespace Apache.Ignite.Core.Tests.ApiParity
         private static readonly Dictionary<string, string> KnownMappings = new Dictionary<string, string>
         {
             {"GridLogger", "Logger"},
+            {"IncludeEventTypes", "IncludedEventTypes"},
         };
 
         /** Properties that are not needed on .NET side. */
         private static readonly string[] UnneededProperties =
         {
+            "PeerClassLoadingThreadPoolSize",
+            "IgfsThreadPoolSize",
+            "UtilityCacheKeepAliveTime",
+            "MBeanServer",
+            "isPeerClassLoadingEnabled",
+            "isMarshalLocalJobs",
+            "PeerClassLoadingLocalClassPathExclude",
+            "LifecycleBeans",
+            "SslContextFactory",
+            "SegmentationResolvers",
+            "CollisionSpi",
+            "DeploymentSpi",
+            "CheckpointSpi",
+            "FailoverSpi",
+            "LoadBalancingSpi",
+            "IndexingSpi",
+            "AddressResolver",
+            "DeploymentMode",
+            "PeerClassLoadingMissedResourcesCacheSize",
+            "CacheKeyConfiguration",
+            "TimeServerPortBase",
+            "TimeServerPortRange",
+            "IncludeProperties",
+            "FileSystemConfiguration",
+            "HadoopConfiguration",
+            "ConnectorConfiguration",
+            "ServiceConfiguration",
+            "WarmupClosure",
+            "ClassLoader",
+            "CacheStoreSessionListenerFactories",
+            "PlatformConfiguration",
+            "ExecutorConfiguration"
         };
 
         /** Properties that are missing on .NET side. */
         private static readonly string[] MissingProperties =
         {
+            "RebalanceThreadPoolSize",
+            "SegmentationPolicy",
+            "isWaitForSegmentOnStart",
+            "isAllSegmentationResolversPassRequired",
+            "SegmentationResolveAttempts",
+            "SegmentCheckFrequency",
+            "isCacheSanityCheckEnabled",
         };
 
         /// <summary>

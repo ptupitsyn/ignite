@@ -74,7 +74,7 @@ namespace Apache.Ignite.Core.Tests.ApiParity
             {
                 if (!knownMissing.ContainsKey(javaMissingProp.Key))
                 {
-                    sb.AppendFormat("{0}.{1} property is missing in .NET.\n", type.Name, javaMissingProp.Key);
+                    sb.AppendFormat("\"{0}\",\n", javaMissingProp.Key);
                 }
             }
 
