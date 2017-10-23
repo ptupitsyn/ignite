@@ -47,9 +47,9 @@ namespace Apache.Ignite.Core.Tests.ApiParity
         /// </summary>
         public static void CheckConfigurationParity(string javaFilePath, 
             Type type, 
-            IEnumerable<string> excludedProperties,
-            IEnumerable<string> knownMissingProperties,
-            Dictionary<string, string> knownMappings)
+            IEnumerable<string> excludedProperties = null,
+            IEnumerable<string> knownMissingProperties = null,
+            Dictionary<string, string> knownMappings = null)
         {
             var path = Path.Combine(IgniteHome.Resolve(null), javaFilePath);
 
@@ -59,13 +59,13 @@ namespace Apache.Ignite.Core.Tests.ApiParity
                 .ToDictionary(x => x.Name, x => x, StringComparer.OrdinalIgnoreCase);
 
             var javaProperties = GetJavaProperties(path)
-                .Except(excludedProperties);
+                .Except(excludedProperties ?? Enumerable.Empty<string>());
 
             var missingProperties = javaProperties
                 .Where(jp => !GetNameVariants(jp, knownMappings).Any(dotNetProperties.ContainsKey))
                 .ToDictionary(x => x, x => x, StringComparer.OrdinalIgnoreCase);
 
-            var knownMissing = knownMissingProperties
+            var knownMissing = (knownMissingProperties ?? Enumerable.Empty<string>())
                 .ToDictionary(x => x, x => x, StringComparer.OrdinalIgnoreCase);
 
             var sb = new StringBuilder();
@@ -125,7 +125,7 @@ namespace Apache.Ignite.Core.Tests.ApiParity
 
             string map;
 
-            if (knownMappings.TryGetValue(javaPropertyName, out map))
+            if (knownMappings != null && knownMappings.TryGetValue(javaPropertyName, out map))
             {
                 yield return map;
             }
