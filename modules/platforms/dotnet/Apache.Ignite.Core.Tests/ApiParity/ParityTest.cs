@@ -21,6 +21,7 @@ namespace Apache.Ignite.Core.Tests.ApiParity
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
+    using System.Text;
     using System.Text.RegularExpressions;
     using Apache.Ignite.Core.Impl.Common;
     using NUnit.Framework;
@@ -60,11 +61,13 @@ namespace Apache.Ignite.Core.Tests.ApiParity
             var knownMissing = knownMissingProperties
                 .ToDictionary(x => x, x => x, StringComparer.OrdinalIgnoreCase);
 
+            var sb = new StringBuilder();
+
             foreach (var javaMissingProp in missingProperties)
             {
                 if (!knownMissing.ContainsKey(javaMissingProp.Key))
                 {
-                    Assert.Fail("{0}.{1} property is missing in .NET.", type.Name, javaMissingProp.Key);
+                    sb.AppendFormat("{0}.{1} property is missing in .NET.\n", type.Name, javaMissingProp.Key);
                 }
             }
 
@@ -72,9 +75,14 @@ namespace Apache.Ignite.Core.Tests.ApiParity
             {
                 if (!missingProperties.ContainsKey(dotnetMissingProp.Key))
                 {
-                    Assert.Fail("{0}.{1} property is missing in Java, but is specified as known in .NET.", 
+                    sb.AppendFormat("{0}.{1} property is missing in Java, but is specified as known in .NET.\n", 
                         type.Name, dotnetMissingProp.Key);
                 }
+            }
+
+            if (sb.Length > 0)
+            {
+                Assert.Fail(sb.ToString());
             }
         }
 
