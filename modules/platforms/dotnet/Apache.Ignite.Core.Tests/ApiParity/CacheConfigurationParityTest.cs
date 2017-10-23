@@ -46,23 +46,29 @@ namespace Apache.Ignite.Core.Tests.ApiParity
         /** Properties that are not needed on .NET side. */
         private static readonly HashSet<string> UnneededProperties = new HashSet<string>(new[]
         {
-            "IndexedTypes",
+            // False matches.
             "toString",
             "writeReplace",
             "clearQueryEntities",
+            
+            // Java-specific.
             "CacheStoreSessionListenerFactories",
             "CacheEntryListenerConfigurations",
             "TopologyValidator",
             "SqlFunctionClasses",
-            "Interceptor"
+            "Interceptor",
+            "EvictionFilter",
+
+            // Deprecated, but not marked so.
+            "AffinityMapper"
         });
 
         /** Properties that are missing on .NET side. */
         private static readonly HashSet<string> MissingProperties = new HashSet<string>(new[]
         {
+            "NodeFilter",  // IGNITE-2890
+
             "IsOnheapCacheEnabled",
-            "NodeFilter",
-            "EvictionFilter",
             "StoreConcurrentLoadAllThreshold"
         });
 
