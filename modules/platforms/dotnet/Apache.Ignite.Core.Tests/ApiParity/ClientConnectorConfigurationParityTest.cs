@@ -21,19 +21,19 @@ namespace Apache.Ignite.Core.Tests.ApiParity
     using NUnit.Framework;
 
     /// <summary>
-    /// Tests that .NET <see cref="DataRegionConfiguration"/> has all properties from Java configuration APIs.
+    /// Tests that .NET <see cref="ClientConnectorConfiguration"/> has all properties from Java configuration APIs.
     /// </summary>
-    public class DataRegionConfigurationParityTest
+    public class ClientConnectorConfigurationParityTest
     {
         /// <summary>
         /// Tests the ignite configuration parity.
         /// </summary>
         [Test]
-        public void TestRegionConfiguration()
+        public void TestConnectorConfiguration()
         {
             ParityTest.CheckConfigurationParity(
-                @"modules\core\src\main\java\org\apache\ignite\configuration\DataRegionConfiguration.java", 
-                typeof(DataRegionConfiguration));
+                @"modules\core\src\main\java\org\apache\ignite\configuration\ClientConnectorConfiguration.java", 
+                typeof(ClientConnectorConfiguration));
         }
     }
 }
