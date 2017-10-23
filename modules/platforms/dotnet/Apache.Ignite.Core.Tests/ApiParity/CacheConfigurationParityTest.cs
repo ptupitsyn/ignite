@@ -74,8 +74,8 @@ namespace Apache.Ignite.Core.Tests.ApiParity
 
             if (missingProperties.Length > 0)
             {
-                Assert.Fail("CacheConfiguration properties are missing in .NET: \n" +
-                            string.Join("\n", missingProperties));
+                Assert.Fail("{0} CacheConfiguration properties are missing in .NET: \n{1}",
+                    missingProperties.Length, string.Join("\n", missingProperties));
             }
         }
 
