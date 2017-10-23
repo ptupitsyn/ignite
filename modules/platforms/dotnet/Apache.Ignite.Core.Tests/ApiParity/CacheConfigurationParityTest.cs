@@ -44,13 +44,13 @@ namespace Apache.Ignite.Core.Tests.ApiParity
         };
 
         /** Properties that are not needed on .NET side. */
-        private static readonly HashSet<string> UnneededProperties = new HashSet<string>(new[]
+        private static readonly string[] UnneededProperties =
         {
             // False matches.
             "toString",
             "writeReplace",
             "clearQueryEntities",
-            
+
             // Java-specific.
             "CacheStoreSessionListenerFactories",
             "CacheEntryListenerConfigurations",
@@ -62,10 +62,10 @@ namespace Apache.Ignite.Core.Tests.ApiParity
 
             // Deprecated, but not marked so.
             "AffinityMapper"
-        });
+        };
 
         /** Properties that are missing on .NET side. */
-        private static readonly HashSet<string> MissingProperties = new HashSet<string>(new[]
+        private static readonly string[] MissingProperties =
         {
             "NodeFilter",  // IGNITE-2890
 
@@ -81,7 +81,7 @@ namespace Apache.Ignite.Core.Tests.ApiParity
             "QueryDetailMetricsSize",
             "SqlSchema",
             "QueryParallelism"
-        });
+        };
 
         /// <summary>
         /// Tests the cache configuration parity.
