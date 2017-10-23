@@ -33,7 +33,7 @@ namespace Apache.Ignite.Core.Tests.ApiParity
     {
         /** Property regex. */
         private static readonly Regex JavaPropertyRegex = 
-            new Regex("public [^=^\r^\n]+ (\\w+)\\(\\) {", RegexOptions.Compiled | RegexOptions.Multiline);
+            new Regex("(@Deprecated)?\\s+public [^=^\r^\n]+ (\\w+)\\(\\) {", RegexOptions.Compiled);
 
         /** Known property name mappings. */
         private static readonly Dictionary<string, string> KnownMappings = new Dictionary<string, string>
@@ -97,7 +97,8 @@ namespace Apache.Ignite.Core.Tests.ApiParity
 
             return JavaPropertyRegex.Matches(text)
                 .OfType<Match>()
-                .Select(m => m.Groups[1].Value.Replace("get", ""))
+                .Where(m => m.Groups[1].Value == string.Empty)
+                .Select(m => m.Groups[2].Value.Replace("get", ""))
                 .Where(x => !x.Contains(" void "))
                 .Except(UnneededProperties)
                 .Except(MissingProperties);
