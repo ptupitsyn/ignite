@@ -66,7 +66,6 @@ namespace Apache.Ignite.Core.Tests.ApiParity
             // IGNITE-6705
             "IsOnheapCacheEnabled",
             "StoreConcurrentLoadAllThreshold",
-            "isOnheapCacheEnabled",
             "RebalanceOrder",
             "RebalanceBatchesPrefetchCount",
             "MaxQueryIteratorsCount",

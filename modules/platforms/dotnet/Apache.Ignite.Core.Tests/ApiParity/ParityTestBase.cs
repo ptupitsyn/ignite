@@ -55,10 +55,27 @@ namespace Apache.Ignite.Core.Tests.ApiParity
 
             var missingProperties = javaProperties
                 .Where(jp => !GetNameVariants(jp, knownMappings).Any(dotNetProperties.ContainsKey))
-                .ToArray();
+                .ToDictionary(x => x, x => x, StringComparer.OrdinalIgnoreCase);
 
-            CollectionAssert.AreEquivalent(missingProperties, knownMissingProperties, 
-                "{0} properties do not match in .NET and Java.");
+            var knownMissing = knownMissingProperties
+                .ToDictionary(x => x, x => x, StringComparer.OrdinalIgnoreCase);
+
+            foreach (var javaMissingProp in missingProperties)
+            {
+                if (!knownMissing.ContainsKey(javaMissingProp.Key))
+                {
+                    Assert.Fail("{0}.{1} property is missing in .NET.", type.Name, javaMissingProp.Key);
+                }
+            }
+
+            foreach (var dotnetMissingProp in knownMissing)
+            {
+                if (!missingProperties.ContainsKey(dotnetMissingProp.Key))
+                {
+                    Assert.Fail("{0}.{1} property is missing in Java, but is specified as known in .NET.", 
+                        type.Name, dotnetMissingProp.Key);
+                }
+            }
         }
 
         /// <summary>
