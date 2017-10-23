@@ -38,8 +38,6 @@ namespace Apache.Ignite.Core.Tests.ApiParity
         private static readonly string[] UnneededProperties =
         {
             // False matches.
-            "toString",
-            "writeReplace",
             "clearQueryEntities",
 
             // Java-specific.

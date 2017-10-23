@@ -35,6 +35,13 @@ namespace Apache.Ignite.Core.Tests.ApiParity
         private static readonly Regex JavaPropertyRegex = 
             new Regex("(@Deprecated)?\\s+public [^=^\r^\n]+ (\\w+)\\(\\) {", RegexOptions.Compiled);
 
+        /** Properties that are not needed on .NET side. */
+        private static readonly string[] UnneededProperties =
+        {
+            "toString",
+            "writeReplace"
+        };
+
         /// <summary>
         /// Tests the configuration parity.
         /// </summary>
@@ -97,7 +104,8 @@ namespace Apache.Ignite.Core.Tests.ApiParity
                 .OfType<Match>()
                 .Where(m => m.Groups[1].Value == string.Empty)
                 .Select(m => m.Groups[2].Value.Replace("get", ""))
-                .Where(x => !x.Contains(" void "));
+                .Where(x => !x.Contains(" void "))
+                .Except(UnneededProperties);
         }
 
         /// <summary>
@@ -107,6 +115,8 @@ namespace Apache.Ignite.Core.Tests.ApiParity
             IDictionary<string, string> knownMappings)
         {
             yield return javaPropertyName;
+
+            yield return javaPropertyName.Replace("PoolSize", "ThreadPoolSize");
 
             if (javaPropertyName.StartsWith("is"))
             {
