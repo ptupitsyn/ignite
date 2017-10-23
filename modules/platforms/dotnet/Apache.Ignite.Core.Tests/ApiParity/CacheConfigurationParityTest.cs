@@ -33,7 +33,7 @@ namespace Apache.Ignite.Core.Tests.ApiParity
     {
         /** Property regex. */
         private static readonly Regex JavaPropertyRegex = 
-            new Regex("public [^=]+ (.+?)\\(\\)\\s+{", RegexOptions.Compiled | RegexOptions.Multiline);
+            new Regex("public [^=^\r^\n]+ (\\w+)\\(\\)\\s+{", RegexOptions.Compiled | RegexOptions.Multiline);
 
         /** Known property name mappings. */
         private static readonly Dictionary<string, string> KnownMappings = new Dictionary<string, string>
