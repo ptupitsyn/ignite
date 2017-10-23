@@ -28,11 +28,10 @@ namespace Apache.Ignite.Core.Tests.ApiParity
         /** Properties that are not needed on .NET side. */
         private static readonly string[] UnneededProperties =
         {
-        };
-
-        /** Properties that are missing on .NET side. */
-        private static readonly string[] MissingProperties =
-        {
+            "findKeyType",
+            "findValueType",
+            "KeyFields",
+            "NotNullFields"
         };
 
         /// <summary>
@@ -44,8 +43,7 @@ namespace Apache.Ignite.Core.Tests.ApiParity
             ParityTest.CheckConfigurationParity(
                 @"modules\core\src\main\java\org\apache\ignite\cache\QueryEntity.java", 
                 typeof(QueryEntity),
-                UnneededProperties,
-                MissingProperties);
+                UnneededProperties);
         }
     }
 }
