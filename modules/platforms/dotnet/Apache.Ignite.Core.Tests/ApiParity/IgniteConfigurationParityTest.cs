@@ -55,9 +55,6 @@ namespace Apache.Ignite.Core.Tests.ApiParity
             "DeploymentMode",
             "PeerClassLoadingMissedResourcesCacheSize",
             "CacheKeyConfiguration",
-            "TimeServerPortBase",
-            "TimeServerPortRange",
-            "IncludeProperties",
             "FileSystemConfiguration",
             "HadoopConfiguration",
             "ConnectorConfiguration",
@@ -79,6 +76,9 @@ namespace Apache.Ignite.Core.Tests.ApiParity
             "SegmentationResolveAttempts",
             "SegmentCheckFrequency",
             "isCacheSanityCheckEnabled",
+            "TimeServerPortBase",
+            "TimeServerPortRange",
+            "IncludeProperties"
         };
 
         /// <summary>
