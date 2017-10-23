@@ -33,7 +33,7 @@ namespace Apache.Ignite.Core.Tests.ApiParity
     {
         /** Property regex. */
         private static readonly Regex JavaPropertyRegex = 
-            new Regex("public [^=]+ (.+?)\\(\\)\\s+{", RegexOptions.Compiled);
+            new Regex("public [^=]+ (.+?)\\(\\)\\s+{", RegexOptions.Compiled | RegexOptions.Multiline);
 
         /** Known property name mappings. */
         private static readonly Dictionary<string, string> KnownMappings = new Dictionary<string, string>
@@ -50,6 +50,15 @@ namespace Apache.Ignite.Core.Tests.ApiParity
             "toString",
             "writeReplace",
             "clearQueryEntities"
+        });
+
+        /** Properties that are missing on .NET side. */
+        private static readonly HashSet<string> MissingProperties = new HashSet<string>(new[]
+        {
+            "IsOnheapCacheEnabled",
+            "NodeFilter",
+            "EvictionFilter",
+            "StoreConcurrentLoadAllThreshold"
         });
 
         /// <summary>
@@ -90,7 +99,8 @@ namespace Apache.Ignite.Core.Tests.ApiParity
                 .OfType<Match>()
                 .Select(m => m.Groups[1].Value.Replace("get", ""))
                 .Where(x => !x.Contains(" void "))
-                .Except(UnneededProperties);
+                .Except(UnneededProperties)
+                .Except(MissingProperties);
         }
 
         /// <summary>
