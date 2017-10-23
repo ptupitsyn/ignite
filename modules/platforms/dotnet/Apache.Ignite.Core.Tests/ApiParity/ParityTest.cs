@@ -28,7 +28,7 @@ namespace Apache.Ignite.Core.Tests.ApiParity
     /// <summary>
     /// Base class for API parity tests.
     /// </summary>
-    public static class ParityTestBase
+    public static class ParityTest
     {
         /** Property regex. */
         private static readonly Regex JavaPropertyRegex = 

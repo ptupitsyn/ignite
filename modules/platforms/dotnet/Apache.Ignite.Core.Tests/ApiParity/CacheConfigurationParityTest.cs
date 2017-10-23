@@ -18,7 +18,6 @@
 namespace Apache.Ignite.Core.Tests.ApiParity
 {
     using System.Collections.Generic;
-    using System.Linq;
     using Apache.Ignite.Core.Cache.Configuration;
     using NUnit.Framework;
 
@@ -80,7 +79,7 @@ namespace Apache.Ignite.Core.Tests.ApiParity
         [Test]
         public void TestCacheConfiguration()
         {
-            ParityTestBase.CheckConfigurationParity(
+            ParityTest.CheckConfigurationParity(
                 @"modules\core\src\main\java\org\apache\ignite\configuration\CacheConfiguration.java", 
                 typeof(CacheConfiguration),
                 UnneededProperties,
