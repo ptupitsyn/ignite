@@ -58,6 +58,7 @@ namespace Apache.Ignite.Core.Tests.ApiParity
             "SqlFunctionClasses",
             "Interceptor",
             "EvictionFilter",
+            "IndexedTypes",
 
             // Deprecated, but not marked so.
             "AffinityMapper"
@@ -69,7 +70,15 @@ namespace Apache.Ignite.Core.Tests.ApiParity
             "NodeFilter",  // IGNITE-2890
 
             "IsOnheapCacheEnabled",
-            "StoreConcurrentLoadAllThreshold"
+            "StoreConcurrentLoadAllThreshold",
+            "isOnheapCacheEnabled",
+            "RebalanceOrder",
+            "RebalanceBatchesPrefetchCount",
+            "MaxQueryIteratorsCount",
+            "QueryDetailMetricsSize",
+            "SqlSchema",
+            "QueryParallelism",
+            "KeyConfiguration"
         });
 
         /// <summary>
