@@ -39,6 +39,7 @@ namespace Apache.Ignite.Core.Tests.ApiParity
         private static readonly string[] UnneededProperties =
         {
             "toString",
+            "hashCode",
             "writeReplace"
         };
 
