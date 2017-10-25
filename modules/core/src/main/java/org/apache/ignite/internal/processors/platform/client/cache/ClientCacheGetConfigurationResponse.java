@@ -99,19 +99,6 @@ public class ClientCacheGetConfigurationResponse extends ClientResponse {
         writeEnumInt(writer, cfg.getWriteSynchronizationMode());
         writer.writeBoolean(cfg.isWriteThrough());
 
-        //noinspection unchecked
-        Collection<QueryEntity> qryEntities = cfg.getQueryEntities();
-
-        if (qryEntities != null) {
-            writer.writeInt(qryEntities.size());
-
-            for (QueryEntity e : qryEntities)
-                writeQueryEntity(writer, e);
-        }
-        else
-            writer.writeInt(0);
-
-
         CacheKeyConfiguration[] keys = cfg.getKeyConfiguration();
 
         if (keys != null) {
@@ -124,6 +111,17 @@ public class ClientCacheGetConfigurationResponse extends ClientResponse {
         } else {
             writer.writeInt(0);
         }
+
+        //noinspection unchecked
+        Collection<QueryEntity> qryEntities = cfg.getQueryEntities();
+
+        if (qryEntities != null) {
+            writer.writeInt(qryEntities.size());
+
+            for (QueryEntity e : qryEntities)
+                writeQueryEntity(writer, e);
+        } else
+            writer.writeInt(0);
     }
 
     /**
