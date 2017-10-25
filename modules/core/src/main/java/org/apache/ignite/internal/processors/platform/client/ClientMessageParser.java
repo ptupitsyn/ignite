@@ -164,6 +164,12 @@ public class ClientMessageParser implements ClientListenerMessageParser {
     /** */
     private static final short OP_CACHE_GET_CONFIGURATION = 33;
 
+    /** */
+    private static final short OP_CACHE_CREATE_WITH_CONFIGURATION = 34;
+
+    /** */
+    private static final short OP_CACHE_GET_OR_CREATE_WITH_CONFIGURATION = 35;
+
     /** Marshaller. */
     private final GridBinaryMarshaller marsh;
 
@@ -297,6 +303,12 @@ public class ClientMessageParser implements ClientListenerMessageParser {
 
             case OP_CACHE_GET_CONFIGURATION:
                 return new ClientCacheGetConfigurationRequest(reader);
+
+            case OP_CACHE_CREATE_WITH_CONFIGURATION:
+                return new ClientCacheCreateWithConfigurationRequest(reader);
+
+            case OP_CACHE_GET_OR_CREATE_WITH_CONFIGURATION:
+                return new ClientCacheGetOrCreateWithConfigurationRequest(reader);
         }
 
         return new ClientRawRequest(reader.readLong(), ClientStatus.INVALID_OP_CODE,
