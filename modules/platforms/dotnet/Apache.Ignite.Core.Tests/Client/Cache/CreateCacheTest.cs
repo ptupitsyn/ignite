@@ -20,6 +20,7 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
     using System.Linq;
     using Apache.Ignite.Core.Cache.Configuration;
     using Apache.Ignite.Core.Client;
+    using Apache.Ignite.Core.Impl.Client;
     using NUnit.Framework;
 
     /// <summary>
@@ -77,11 +78,13 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
         {
             // No template: default configuration.
             var cache = Client.CreateCache<int, int>("foobar");
-            TestUtils.AssertReflectionEqual(new CacheConfiguration(), cache.GetConfiguration());
+            TestUtils.AssertReflectionEqual(new CacheConfiguration("foobar"), cache.GetConfiguration());
 
             // Create when exists.
             var ex = Assert.Throws<IgniteClientException>(() => Client.CreateCache<int, int>(cache.Name));
-            Assert.AreEqual("", ex.Message);
+            Assert.AreEqual(
+                "Failed to start cache (a cache with the same name is already started): foobar", ex.Message);
+            Assert.AreEqual((int) ClientStatus.CacheExists, ex.ErrorCode);
 
             // Template: custom configuration.
             cache = Client.CreateCache<int, int>(TemplateCacheName.Replace("*", "1"));

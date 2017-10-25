@@ -18,9 +18,12 @@
 package org.apache.ignite.internal.processors.platform.client.cache;
 
 import org.apache.ignite.binary.BinaryRawReader;
+import org.apache.ignite.cache.CacheExistsException;
 import org.apache.ignite.internal.processors.platform.client.ClientConnectionContext;
 import org.apache.ignite.internal.processors.platform.client.ClientRequest;
 import org.apache.ignite.internal.processors.platform.client.ClientResponse;
+import org.apache.ignite.internal.processors.platform.client.ClientStatus;
+import org.apache.ignite.internal.processors.platform.client.IgniteClientException;
 
 /**
  * Cache create with name request.
@@ -42,7 +45,11 @@ public class ClientCacheCreateWithNameRequest extends ClientRequest {
 
     /** {@inheritDoc} */
     @Override public ClientResponse process(ClientConnectionContext ctx) {
-        ctx.kernalContext().grid().createCache(cacheName);
+        try {
+            ctx.kernalContext().grid().createCache(cacheName);
+        } catch (CacheExistsException e) {
+            throw new IgniteClientException(ClientStatus.CACHE_EXISTS, e.getMessage());
+        }
 
         return super.process(ctx);
     }
