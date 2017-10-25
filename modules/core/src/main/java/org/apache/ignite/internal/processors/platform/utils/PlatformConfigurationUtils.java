@@ -1343,7 +1343,7 @@ public class PlatformConfigurationUtils {
      * @param w Writer.
      * @param e Enum.
      */
-    private static void writeEnumInt(BinaryRawWriter w, Enum e) {
+    public static void writeEnumInt(BinaryRawWriter w, Enum e) {
         w.writeInt(e == null ? 0 : e.ordinal());
     }
 
@@ -1353,7 +1353,7 @@ public class PlatformConfigurationUtils {
      * @param w Writer.
      * @param e Enum.
      */
-    private static void writeEnumInt(BinaryRawWriter w, Enum e, Enum def) {
+    public static void writeEnumInt(BinaryRawWriter w, Enum e, Enum def) {
         assert def != null;
 
         w.writeInt(e == null ? def.ordinal() : e.ordinal());
