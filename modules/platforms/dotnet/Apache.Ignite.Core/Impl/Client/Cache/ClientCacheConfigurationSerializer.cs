@@ -17,7 +17,6 @@
 
 namespace Apache.Ignite.Core.Impl.Client.Cache
 {
-    using System;
     using System.Diagnostics;
     using Apache.Ignite.Core.Cache.Configuration;
     using Apache.Ignite.Core.Impl.Binary;
@@ -86,13 +85,52 @@ namespace Apache.Ignite.Core.Impl.Client.Cache
         {
             Debug.Assert(stream != null);
 
-            var r = BinaryUtils.Marshaller.StartUnmarshal(stream);
-         
+            var reader = BinaryUtils.Marshaller.StartUnmarshal(stream);
+
             return new CacheConfiguration
             {
-                Name = r.ReadString()
-
-                // TODO
+                AtomicityMode = (CacheAtomicityMode) reader.ReadInt(),
+                Backups = reader.ReadInt(),
+                CacheMode = (CacheMode) reader.ReadInt(),
+                CopyOnRead = reader.ReadBoolean(),
+                EagerTtl = reader.ReadBoolean(),
+                Invalidate = reader.ReadBoolean(),
+                KeepBinaryInStore = reader.ReadBoolean(),
+                LoadPreviousValue = reader.ReadBoolean(),
+                LockTimeout = reader.ReadLongAsTimespan(),
+                MaxConcurrentAsyncOperations = reader.ReadInt(),
+                Name = reader.ReadString(),
+                ReadFromBackup = reader.ReadBoolean(),
+                RebalanceBatchSize = reader.ReadInt(),
+                RebalanceDelay = reader.ReadLongAsTimespan(),
+                RebalanceMode = (CacheRebalanceMode) reader.ReadInt(),
+                RebalanceThrottle = reader.ReadLongAsTimespan(),
+                RebalanceTimeout = reader.ReadLongAsTimespan(),
+                SqlEscapeAll = reader.ReadBoolean(),
+                WriteBehindBatchSize = reader.ReadInt(),
+                WriteBehindEnabled = reader.ReadBoolean(),
+                WriteBehindFlushFrequency = reader.ReadLongAsTimespan(),
+                WriteBehindFlushSize = reader.ReadInt(),
+                WriteBehindFlushThreadCount = reader.ReadInt(),
+                WriteBehindCoalescing = reader.ReadBoolean(),
+                WriteSynchronizationMode = (CacheWriteSynchronizationMode) reader.ReadInt(),
+                ReadThrough = reader.ReadBoolean(),
+                WriteThrough = reader.ReadBoolean(),
+                EnableStatistics = reader.ReadBoolean(),
+                DataRegionName = reader.ReadString(),
+                PartitionLossPolicy = (PartitionLossPolicy) reader.ReadInt(),
+                GroupName = reader.ReadString(),
+                SqlIndexMaxInlineSize = reader.ReadInt(),
+                OnheapCacheEnabled = reader.ReadBoolean(),
+                StoreConcurrentLoadAllThreshold = reader.ReadInt(),
+                RebalanceOrder = reader.ReadInt(),
+                RebalanceBatchesPrefetchCount = reader.ReadLong(),
+                MaxQueryIteratorsCount = reader.ReadInt(),
+                QueryDetailMetricsSize = reader.ReadInt(),
+                QueryParallelism = reader.ReadInt(),
+                SqlSchema = reader.ReadString(),
+                QueryEntities = reader.ReadCollectionRaw(r => new QueryEntity(r)),
+                KeyConfiguration = reader.ReadCollectionRaw(r => new CacheKeyConfiguration(r))
             };
         }
     }
