@@ -17,10 +17,20 @@
 
 package org.apache.ignite.internal.processors.platform.client.cache;
 
+import org.apache.ignite.binary.BinaryRawWriter;
+import org.apache.ignite.cache.CacheKeyConfiguration;
+import org.apache.ignite.cache.QueryEntity;
+import org.apache.ignite.cache.QueryIndex;
 import org.apache.ignite.configuration.CacheConfiguration;
 import org.apache.ignite.internal.binary.BinaryRawWriterEx;
 import org.apache.ignite.internal.processors.platform.client.ClientResponse;
 
+import java.util.Collection;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.Set;
+
+import static org.apache.ignite.internal.processors.platform.utils.PlatformConfigurationUtils.writeEnumByte;
 import static org.apache.ignite.internal.processors.platform.utils.PlatformConfigurationUtils.writeEnumInt;
 
 /**
@@ -88,5 +98,121 @@ public class ClientCacheGetConfigurationResponse extends ClientResponse {
         writer.writeInt(cfg.getWriteBehindFlushThreadCount());
         writeEnumInt(writer, cfg.getWriteSynchronizationMode());
         writer.writeBoolean(cfg.isWriteThrough());
+
+        //noinspection unchecked
+        Collection<QueryEntity> qryEntities = cfg.getQueryEntities();
+
+        if (qryEntities != null) {
+            writer.writeInt(qryEntities.size());
+
+            for (QueryEntity e : qryEntities)
+                writeQueryEntity(writer, e);
+        }
+        else
+            writer.writeInt(0);
+
+
+        CacheKeyConfiguration[] keys = cfg.getKeyConfiguration();
+
+        if (keys != null) {
+            writer.writeInt(keys.length);
+
+            for (CacheKeyConfiguration key : keys) {
+                writer.writeString(key.getTypeName());
+                writer.writeString(key.getAffinityKeyFieldName());
+            }
+        } else {
+            writer.writeInt(0);
+        }
+    }
+
+    /**
+     * Write query entity.
+     *
+     * @param writer Writer.
+     * @param queryEntity Query entity.
+     */
+    private static void writeQueryEntity(BinaryRawWriter writer, QueryEntity queryEntity) {
+        assert queryEntity != null;
+
+        // TODO: Refactor all of this.
+        writer.writeString(queryEntity.getKeyType());
+        writer.writeString(queryEntity.getValueType());
+        writer.writeString(queryEntity.getTableName());
+
+        // Fields
+        LinkedHashMap<String, String> fields = queryEntity.getFields();
+
+        if (fields != null) {
+            Set<String> keyFields = queryEntity.getKeyFields();
+            Set<String> notNullFields = queryEntity.getNotNullFields();
+
+            writer.writeInt(fields.size());
+
+            for (Map.Entry<String, String> field : fields.entrySet()) {
+                writer.writeString(field.getKey());
+                writer.writeString(field.getValue());
+                writer.writeBoolean(keyFields != null && keyFields.contains(field.getKey()));
+                writer.writeBoolean(notNullFields != null && notNullFields.contains(field.getKey()));
+            }
+        }
+        else
+            writer.writeInt(0);
+
+        // Aliases
+        Map<String, String> aliases = queryEntity.getAliases();
+
+        if (aliases != null) {
+            writer.writeInt(aliases.size());
+
+            for (Map.Entry<String, String> alias : aliases.entrySet()) {
+                writer.writeString(alias.getKey());
+                writer.writeString(alias.getValue());
+            }
+        }
+        else
+            writer.writeInt(0);
+
+        // Indexes
+        Collection<QueryIndex> indexes = queryEntity.getIndexes();
+
+        if (indexes != null) {
+            writer.writeInt(indexes.size());
+
+            for (QueryIndex index : indexes)
+                writeQueryIndex(writer, index);
+        }
+        else
+            writer.writeInt(0);
+
+        writer.writeString(queryEntity.getKeyFieldName());
+        writer.writeString(queryEntity.getValueFieldName());
+    }
+
+    /**
+     * Writer query index.
+     *
+     * @param writer Writer.
+     * @param index Index.
+     */
+    private static void writeQueryIndex(BinaryRawWriter writer, QueryIndex index) {
+        assert index != null;
+
+        writer.writeString(index.getName());
+        writeEnumByte(writer, index.getIndexType());
+        writer.writeInt(index.getInlineSize());
+
+        LinkedHashMap<String, Boolean> fields = index.getFields();
+
+        if (fields != null) {
+            writer.writeInt(fields.size());
+
+            for (Map.Entry<String, Boolean> field : fields.entrySet()) {
+                writer.writeString(field.getKey());
+                writer.writeBoolean(!field.getValue());
+            }
+        }
+        else
+            writer.writeInt(0);
     }
 }
