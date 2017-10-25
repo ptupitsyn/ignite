@@ -100,6 +100,32 @@ namespace Apache.Ignite.Core.Impl.Binary
         }
 
         /// <summary>
+        /// Reads the collection.
+        /// </summary>
+        public static ICollection<T> ReadCollectionRaw<T, TReader>(this TReader reader,
+            Func<TReader, T> factory) where TReader : IBinaryRawReader
+        {
+            Debug.Assert(reader != null);
+            Debug.Assert(factory != null);
+
+            int count = reader.ReadInt();
+
+            if (count <= 0)
+            {
+                return null;
+            }
+
+            var res = new List<T>(count);
+
+            for (var i = 0; i < count; i++)
+            {
+                res.Add(factory(reader));
+            }
+
+            return res;
+        }
+
+        /// <summary>
         /// Reads the string collection.
         /// </summary>
         public static ICollection<string> ReadStringCollection(this IBinaryRawReader reader)
