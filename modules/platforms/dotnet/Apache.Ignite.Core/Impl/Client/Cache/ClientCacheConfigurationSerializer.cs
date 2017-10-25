@@ -17,6 +17,7 @@
 
 namespace Apache.Ignite.Core.Impl.Client.Cache
 {
+    using System;
     using System.Diagnostics;
     using Apache.Ignite.Core.Cache.Configuration;
     using Apache.Ignite.Core.Impl.Binary;
@@ -44,49 +45,53 @@ namespace Apache.Ignite.Core.Impl.Client.Cache
             writer.WriteInt((int) cfg.AtomicityMode);
             writer.WriteInt(cfg.Backups);
             writer.WriteInt((int) cfg.CacheMode);
+            writer.WriteObject(cfg.CacheStoreFactory);
             writer.WriteBoolean(cfg.CopyOnRead);
+            writer.WriteString(cfg.DataRegionName);
             writer.WriteBoolean(cfg.EagerTtl);
+            writer.WriteBoolean(cfg.EnableStatistics);
+            writer.WriteString(cfg.GroupName);
             writer.WriteBoolean(cfg.Invalidate);
             writer.WriteBoolean(cfg.KeepBinaryInStore);
             writer.WriteBoolean(cfg.LoadPreviousValue);
             writer.WriteLong((long) cfg.LockTimeout.TotalMilliseconds);
             writer.WriteInt(cfg.MaxConcurrentAsyncOperations);
+            writer.WriteInt(cfg.MaxQueryIteratorsCount);
             writer.WriteString(cfg.Name);
+            writer.WriteBoolean(cfg.OnheapCacheEnabled);
+            writer.WriteInt((int) cfg.PartitionLossPolicy);
+            writer.WriteInt(cfg.QueryDetailMetricsSize);
+            writer.WriteInt(cfg.QueryParallelism);
             writer.WriteBoolean(cfg.ReadFromBackup);
+            writer.WriteBoolean(cfg.ReadThrough);
+            writer.WriteLong(cfg.RebalanceBatchesPrefetchCount);
             writer.WriteInt(cfg.RebalanceBatchSize);
             writer.WriteLong((long) cfg.RebalanceDelay.TotalMilliseconds);
             writer.WriteInt((int) cfg.RebalanceMode);
+            writer.WriteInt(cfg.RebalanceOrder);
             writer.WriteLong((long) cfg.RebalanceThrottle.TotalMilliseconds);
             writer.WriteLong((long) cfg.RebalanceTimeout.TotalMilliseconds);
             writer.WriteBoolean(cfg.SqlEscapeAll);
+            writer.WriteInt(cfg.SqlIndexMaxInlineSize);
+            writer.WriteString(cfg.SqlSchema);
+            writer.WriteInt(cfg.StoreConcurrentLoadAllThreshold);
             writer.WriteInt(cfg.WriteBehindBatchSize);
+            writer.WriteBoolean(cfg.WriteBehindCoalescing);
             writer.WriteBoolean(cfg.WriteBehindEnabled);
             writer.WriteLong((long) cfg.WriteBehindFlushFrequency.TotalMilliseconds);
             writer.WriteInt(cfg.WriteBehindFlushSize);
             writer.WriteInt(cfg.WriteBehindFlushThreadCount);
-            writer.WriteBoolean(cfg.WriteBehindCoalescing);
             writer.WriteInt((int) cfg.WriteSynchronizationMode);
-            writer.WriteBoolean(cfg.ReadThrough);
             writer.WriteBoolean(cfg.WriteThrough);
-            writer.WriteBoolean(cfg.EnableStatistics);
-            writer.WriteString(cfg.DataRegionName);
-            writer.WriteInt((int) cfg.PartitionLossPolicy);
-            writer.WriteString(cfg.GroupName);
-            writer.WriteObject(cfg.CacheStoreFactory);
-            writer.WriteInt(cfg.SqlIndexMaxInlineSize);
-            writer.WriteBoolean(cfg.OnheapCacheEnabled);
-            writer.WriteInt(cfg.StoreConcurrentLoadAllThreshold);
-            writer.WriteInt(cfg.RebalanceOrder);
-            writer.WriteLong(cfg.RebalanceBatchesPrefetchCount);
-            writer.WriteInt(cfg.MaxQueryIteratorsCount);
-            writer.WriteInt(cfg.QueryDetailMetricsSize);
-            writer.WriteInt(cfg.QueryParallelism);
-            writer.WriteString(cfg.SqlSchema);
 
-            writer.WriteCollectionRaw(cfg.QueryEntities);
             writer.WriteCollectionRaw(cfg.KeyConfiguration);
+            writer.WriteCollectionRaw(cfg.QueryEntities);
 
-            // TODO: Throw on unsupported properties.
+            ThrowUnsupportedIfNotNull(cfg.AffinityFunction, "AffinityFunction");
+            ThrowUnsupportedIfNotNull(cfg.EvictionPolicy, "EvictionPolicy");
+            ThrowUnsupportedIfNotNull(cfg.ExpiryPolicyFactory, "ExpiryPolicyFactory");
+            ThrowUnsupportedIfNotNull(cfg.PluginConfigurations, "PluginConfigurations");
+            ThrowUnsupportedIfNotNull(cfg.CacheStoreFactory, "CacheStoreFactory");
         }
 
         /// <summary>
@@ -96,6 +101,7 @@ namespace Apache.Ignite.Core.Impl.Client.Cache
         {
             Debug.Assert(stream != null);
 
+            // Configuration should be read with system marshaller.
             var reader = BinaryUtils.Marshaller.StartUnmarshal(stream);
 
             return new CacheConfiguration
@@ -144,6 +150,22 @@ namespace Apache.Ignite.Core.Impl.Client.Cache
                 KeyConfiguration = reader.ReadCollectionRaw(r => new CacheKeyConfiguration(r)),
                 QueryEntities = reader.ReadCollectionRaw(r => new QueryEntity(r)),
             };
+        }
+
+        /// <summary>
+        /// Throws the unsupported exception if property is not null.
+        /// </summary>
+        /// <param name="obj">The object.</param>
+        /// <param name="propertyName">Name of the property.</param>
+        // ReSharper disable once ParameterOnlyUsedForPreconditionCheck.Local
+        private static void ThrowUnsupportedIfNotNull(object obj, string propertyName)
+        {
+            if (obj != null)
+            {
+                throw new NotSupportedException(
+                    string.Format("{0}.{1} property is not supported in thin client mode.",
+                        typeof(CacheConfiguration).Name, propertyName));
+            }
         }
     }
 }
