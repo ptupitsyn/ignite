@@ -53,11 +53,13 @@ public class ClientCacheGetConfigurationResponse extends ClientResponse {
         writeEnumInt(writer, cfg.getCacheMode(), CacheConfiguration.DFLT_CACHE_MODE);
         writer.writeBoolean(cfg.isCopyOnRead());
         writer.writeString(cfg.getDataRegionName());
-        writer.writeLong(cfg.getDefaultLockTimeout());
         writer.writeBoolean(cfg.isEagerTtl());
+        writer.writeBoolean(cfg.isStatisticsEnabled());
         writer.writeString(cfg.getGroupName());
         writer.writeBoolean(cfg.isInvalidate());
+        writer.writeBoolean(cfg.isStoreKeepBinary());
         writer.writeBoolean(cfg.isLoadPreviousValue());
+        writer.writeLong(cfg.getDefaultLockTimeout());
         writer.writeInt(cfg.getMaxConcurrentAsyncOperations());
         writer.writeInt(cfg.getMaxQueryIteratorsCount());
         writer.writeString(cfg.getName());
@@ -67,8 +69,8 @@ public class ClientCacheGetConfigurationResponse extends ClientResponse {
         writer.writeInt(cfg.getQueryParallelism());
         writer.writeBoolean(cfg.isReadFromBackup());
         writer.writeBoolean(cfg.isReadThrough());
-        writer.writeLong(cfg.getRebalanceBatchesPrefetchCount());
         writer.writeInt(cfg.getRebalanceBatchSize());
+        writer.writeLong(cfg.getRebalanceBatchesPrefetchCount());
         writer.writeLong(cfg.getRebalanceDelay());
         writeEnumInt(writer, cfg.getRebalanceMode(), CacheConfiguration.DFLT_REBALANCE_MODE);
         writer.writeInt(cfg.getRebalanceOrder());
@@ -77,9 +79,7 @@ public class ClientCacheGetConfigurationResponse extends ClientResponse {
         writer.writeBoolean(cfg.isSqlEscapeAll());
         writer.writeInt(cfg.getSqlIndexMaxInlineSize());
         writer.writeString(cfg.getSqlSchema());
-        writer.writeBoolean(cfg.isStatisticsEnabled());
         writer.writeInt(cfg.getStoreConcurrentLoadAllThreshold());
-        writer.writeBoolean(cfg.isStoreKeepBinary());
         writer.writeInt(cfg.getWriteBehindBatchSize());
         writer.writeBoolean(cfg.getWriteBehindCoalescing());
         writer.writeBoolean(cfg.isWriteBehindEnabled());
