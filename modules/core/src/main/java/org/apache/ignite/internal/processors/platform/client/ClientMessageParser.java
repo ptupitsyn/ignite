@@ -37,6 +37,7 @@ import org.apache.ignite.internal.processors.platform.client.cache.ClientCacheCl
 import org.apache.ignite.internal.processors.platform.client.cache.ClientCacheClearRequest;
 import org.apache.ignite.internal.processors.platform.client.cache.ClientCacheContainsKeyRequest;
 import org.apache.ignite.internal.processors.platform.client.cache.ClientCacheContainsKeysRequest;
+import org.apache.ignite.internal.processors.platform.client.cache.ClientCacheCreateWithConfigurationRequest;
 import org.apache.ignite.internal.processors.platform.client.cache.ClientCacheCreateWithNameRequest;
 import org.apache.ignite.internal.processors.platform.client.cache.ClientCacheDestroyRequest;
 import org.apache.ignite.internal.processors.platform.client.cache.ClientCacheGetAllRequest;
@@ -46,6 +47,7 @@ import org.apache.ignite.internal.processors.platform.client.cache.ClientCacheGe
 import org.apache.ignite.internal.processors.platform.client.cache.ClientCacheGetAndReplaceRequest;
 import org.apache.ignite.internal.processors.platform.client.cache.ClientCacheGetConfigurationRequest;
 import org.apache.ignite.internal.processors.platform.client.cache.ClientCacheGetNamesRequest;
+import org.apache.ignite.internal.processors.platform.client.cache.ClientCacheGetOrCreateWithConfigurationRequest;
 import org.apache.ignite.internal.processors.platform.client.cache.ClientCacheGetOrCreateWithNameRequest;
 import org.apache.ignite.internal.processors.platform.client.cache.ClientCacheGetRequest;
 import org.apache.ignite.internal.processors.platform.client.cache.ClientCacheGetSizeRequest;

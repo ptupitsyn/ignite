@@ -27,10 +27,10 @@ import org.apache.ignite.internal.processors.platform.client.ClientStatus;
 import org.apache.ignite.internal.processors.platform.client.IgniteClientException;
 
 /**
- * Cache create with configuration request.
+ * Cache get or create with configuration request.
  */
 @SuppressWarnings("unchecked")
-public class ClientCacheCreateWithConfigurationRequest extends ClientRequest {
+public class ClientCacheGetOrCreateWithConfigurationRequest extends ClientRequest {
     /** Cache configuration. */
     private final CacheConfiguration cacheCfg;
 
@@ -39,7 +39,7 @@ public class ClientCacheCreateWithConfigurationRequest extends ClientRequest {
      *
      * @param reader Reader.
      */
-    public ClientCacheCreateWithConfigurationRequest(BinaryRawReader reader) {
+    public ClientCacheGetOrCreateWithConfigurationRequest(BinaryRawReader reader) {
         super(reader);
 
         cacheCfg = ClientCacheConfigurationSerializer.read(reader);
@@ -48,7 +48,7 @@ public class ClientCacheCreateWithConfigurationRequest extends ClientRequest {
     /** {@inheritDoc} */
     @Override public ClientResponse process(ClientConnectionContext ctx) {
         try {
-            ctx.kernalContext().grid().createCache(cacheCfg);
+            ctx.kernalContext().grid().getOrCreateCache(cacheCfg);
         } catch (CacheExistsException e) {
             throw new IgniteClientException(ClientStatus.CACHE_EXISTS, e.getMessage());
         }
