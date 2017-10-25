@@ -34,10 +34,10 @@ namespace Apache.Ignite.Core.Impl.Client.Cache
         /// <summary>
         /// Writes the specified config.
         /// </summary>
-        public static void Write(CacheConfiguration cfg, IBinaryStream stream)
+        public static void Write(IBinaryStream stream, CacheConfiguration cfg)
         {
-            Debug.Assert(cfg != null);
             Debug.Assert(stream != null);
+            Debug.Assert(cfg != null);
 
             // Configuration should be written with a system marshaller.
             var writer = BinaryUtils.Marshaller.StartMarshal(stream);

@@ -103,7 +103,12 @@ namespace Apache.Ignite.Core.Impl.Client
         /** <inheritDoc /> */
         public ICacheClient<TK, TV> GetOrCreateCache<TK, TV>(CacheConfiguration configuration)
         {
-            throw new NotImplementedException();
+            IgniteArgumentCheck.NotNull(configuration, "configuration");
+
+            DoOutOp(ClientOp.CacheGetOrCreateWithConfiguration,
+                w => ClientCacheConfigurationSerializer.Write(w.Stream, configuration));
+
+            return GetCache<TK, TV>(configuration.Name);
         }
 
         /** <inheritDoc /> */
@@ -119,7 +124,12 @@ namespace Apache.Ignite.Core.Impl.Client
         /** <inheritDoc /> */
         public ICacheClient<TK, TV> CreateCache<TK, TV>(CacheConfiguration configuration)
         {
-            throw new NotImplementedException();
+            IgniteArgumentCheck.NotNull(configuration, "configuration");
+
+            DoOutOp(ClientOp.CacheCreateWithConfiguration,
+                w => ClientCacheConfigurationSerializer.Write(w.Stream, configuration));
+
+            return GetCache<TK, TV>(configuration.Name);
         }
 
         /** <inheritDoc /> */
