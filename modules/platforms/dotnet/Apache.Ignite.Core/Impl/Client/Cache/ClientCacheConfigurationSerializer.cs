@@ -70,25 +70,11 @@ namespace Apache.Ignite.Core.Impl.Client.Cache
             w.WriteBoolean(cfg.ReadThrough);
             w.WriteBoolean(cfg.WriteThrough);
             w.WriteBoolean(cfg.EnableStatistics);
-            w.WriteString(cfg.MemoryPolicyName);
+            w.WriteString(cfg.DataRegionName);
             w.WriteInt((int)cfg.PartitionLossPolicy);
             w.WriteString(cfg.GroupName);
             w.WriteInt(cfg.SqlIndexMaxInlineSize);
-
-            if (cfg.QueryEntities != null)
-            {
-                w.WriteInt(cfg.QueryEntities.Count);
-
-                foreach (var entity in cfg.QueryEntities)
-                {
-                    if (entity == null)
-                        throw new InvalidOperationException("Invalid cache configuration: QueryEntity can't be null.");
-
-                    entity.Write(w);
-                }
-            }
-            else
-                w.WriteInt(0);
+            w.WriteCollectionRaw(cfg.QueryEntities);
 
             // TODO: Throw on unsupported properties.
         }
