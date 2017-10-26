@@ -22,6 +22,9 @@ import org.apache.ignite.binary.BinaryRawWriter;
 import org.apache.ignite.cache.CacheAtomicityMode;
 import org.apache.ignite.cache.CacheKeyConfiguration;
 import org.apache.ignite.cache.CacheMode;
+import org.apache.ignite.cache.CacheRebalanceMode;
+import org.apache.ignite.cache.CacheWriteSynchronizationMode;
+import org.apache.ignite.cache.PartitionLossPolicy;
 import org.apache.ignite.cache.QueryEntity;
 import org.apache.ignite.cache.QueryIndex;
 import org.apache.ignite.configuration.CacheConfiguration;
@@ -210,7 +213,6 @@ public class ClientCacheConfigurationSerializer {
      * @return Configuration.
      */
     static CacheConfiguration read(BinaryRawReader reader) {
-        // TODO
         return new CacheConfiguration()
                 .setAtomicityMode(CacheAtomicityMode.fromOrdinal(reader.readInt()))
                 .setBackups(reader.readInt())
@@ -223,41 +225,37 @@ public class ClientCacheConfigurationSerializer {
                 .setInvalidate(reader.readBoolean())
                 .setStoreKeepBinary(reader.readBoolean())
                 .setLoadPreviousValue(reader.readBoolean())
-                .setDefaultLockTimeout();
+                .setDefaultLockTimeout(reader.readLong())
+                .setMaxConcurrentAsyncOperations(reader.readInt())
+                .setMaxQueryIteratorsCount(reader.readInt())
+                .setName(reader.readString())
+                .setName(reader.readString())
+                .setOnheapCacheEnabled(reader.readBoolean())
+                .setPartitionLossPolicy(PartitionLossPolicy.fromOrdinal((byte)reader.readInt()))
+                .setQueryDetailMetricsSize(reader.readInt())
+                .setQueryParallelism(reader.readInt())
+                .setReadFromBackup(reader.readBoolean())
+                .setReadThrough(reader.readBoolean())
+                .setRebalanceBatchSize(reader.readInt())
+                .setRebalanceBatchesPrefetchCount(reader.readLong())
+                .setRebalanceDelay(reader.readLong())
+                .setRebalanceMode(CacheRebalanceMode.fromOrdinal(reader.readInt()))
+                .setRebalanceOrder(reader.readInt())
+                .setRebalanceThrottle(reader.readLong())
+                .setRebalanceTimeout(reader.readLong())
+                .setSqlEscapeAll(reader.readBoolean())
+                .setSqlIndexMaxInlineSize(reader.readInt())
+                .setSqlSchema(reader.readString())
+                .setStoreConcurrentLoadAllThreshold(reader.readInt())
+                .setWriteBehindBatchSize(reader.readInt())
+                .setWriteBehindCoalescing(reader.readBoolean())
+                .setWriteBehindEnabled(reader.readBoolean())
+                .setWriteBehindFlushFrequency(reader.readLong())
+                .setWriteBehindFlushSize(reader.readInt())
+                .setWriteBehindFlushThreadCount(reader.readInt())
+                .setWriteSynchronizationMode(CacheWriteSynchronizationMode.fromOrdinal(reader.readInt()))
+                .setWriteThrough(reader.readBoolean());
 
-                        /**
-                GroupName = reader.ReadString(),
-                Invalidate = reader.ReadBoolean(),
-                KeepBinaryInStore = reader.ReadBoolean(),
-                LoadPreviousValue = reader.ReadBoolean(),
-                LockTimeout = reader.ReadLongAsTimespan(),
-                MaxConcurrentAsyncOperations = reader.ReadInt(),
-                MaxQueryIteratorsCount = reader.ReadInt(),
-                Name = reader.ReadString(),
-                OnheapCacheEnabled = reader.ReadBoolean(),
-                PartitionLossPolicy = (PartitionLossPolicy)reader.ReadInt(),
-                QueryDetailMetricsSize = reader.ReadInt(),
-                QueryParallelism = reader.ReadInt(),
-                ReadFromBackup = reader.ReadBoolean(),
-                ReadThrough = reader.ReadBoolean(),
-                RebalanceBatchSize = reader.ReadInt(),
-                RebalanceBatchesPrefetchCount = reader.ReadLong(),
-                RebalanceDelay = reader.ReadLongAsTimespan(),
-                RebalanceMode = (CacheRebalanceMode)reader.ReadInt(),
-                RebalanceOrder = reader.ReadInt(),
-                RebalanceThrottle = reader.ReadLongAsTimespan(),
-                RebalanceTimeout = reader.ReadLongAsTimespan(),
-                SqlEscapeAll = reader.ReadBoolean(),
-                SqlIndexMaxInlineSize = reader.ReadInt(),
-                SqlSchema = reader.ReadString(),
-                StoreConcurrentLoadAllThreshold = reader.ReadInt(),
-                WriteBehindBatchSize = reader.ReadInt(),
-                WriteBehindCoalescing = reader.ReadBoolean(),
-                WriteBehindEnabled = reader.ReadBoolean(),
-                WriteBehindFlushFrequency = reader.ReadLongAsTimespan(),
-                WriteBehindFlushSize = reader.ReadInt(),
-                WriteBehindFlushThreadCount = reader.ReadInt(),
-                WriteSynchronizationMode = (CacheWriteSynchronizationMode)reader.ReadInt(),
-                WriteThrough = reader.ReadBoolean(),*/
+        // TODO: CechKeys, QueryEntity
     }
 }
