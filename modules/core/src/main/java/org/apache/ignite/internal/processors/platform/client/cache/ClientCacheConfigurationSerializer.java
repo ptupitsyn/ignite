@@ -218,7 +218,12 @@ public class ClientCacheConfigurationSerializer {
                 .setCopyOnRead(reader.readBoolean())
                 .setDataRegionName(reader.readString())
                 .setEagerTtl(reader.readBoolean())
-                .setStatisticsEnabled(reader.readBoolean());
+                .setStatisticsEnabled(reader.readBoolean())
+                .setGroupName(reader.readString())
+                .setInvalidate(reader.readBoolean())
+                .setStoreKeepBinary(reader.readBoolean())
+                .setLoadPreviousValue(reader.readBoolean())
+                .setDefaultLockTimeout();
 
                         /**
                 GroupName = reader.ReadString(),

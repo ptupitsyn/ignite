@@ -53,7 +53,7 @@ namespace Apache.Ignite.Core.Impl.Client.Cache
             writer.WriteBoolean(cfg.Invalidate);
             writer.WriteBoolean(cfg.KeepBinaryInStore);
             writer.WriteBoolean(cfg.LoadPreviousValue);
-            writer.WriteLong((long) cfg.LockTimeout.TotalMilliseconds);
+            writer.WriteTimeSpanAsLong(cfg.LockTimeout);
             writer.WriteInt(cfg.MaxConcurrentAsyncOperations);
             writer.WriteInt(cfg.MaxQueryIteratorsCount);
             writer.WriteString(cfg.Name);
@@ -65,11 +65,11 @@ namespace Apache.Ignite.Core.Impl.Client.Cache
             writer.WriteBoolean(cfg.ReadThrough);
             writer.WriteLong(cfg.RebalanceBatchesPrefetchCount);
             writer.WriteInt(cfg.RebalanceBatchSize);
-            writer.WriteLong((long) cfg.RebalanceDelay.TotalMilliseconds);
+            writer.WriteTimeSpanAsLong(cfg.RebalanceDelay);
             writer.WriteInt((int) cfg.RebalanceMode);
             writer.WriteInt(cfg.RebalanceOrder);
-            writer.WriteLong((long) cfg.RebalanceThrottle.TotalMilliseconds);
-            writer.WriteLong((long) cfg.RebalanceTimeout.TotalMilliseconds);
+            writer.WriteTimeSpanAsLong(cfg.RebalanceThrottle);
+            writer.WriteTimeSpanAsLong(cfg.RebalanceTimeout);
             writer.WriteBoolean(cfg.SqlEscapeAll);
             writer.WriteInt(cfg.SqlIndexMaxInlineSize);
             writer.WriteString(cfg.SqlSchema);
@@ -77,7 +77,7 @@ namespace Apache.Ignite.Core.Impl.Client.Cache
             writer.WriteInt(cfg.WriteBehindBatchSize);
             writer.WriteBoolean(cfg.WriteBehindCoalescing);
             writer.WriteBoolean(cfg.WriteBehindEnabled);
-            writer.WriteLong((long) cfg.WriteBehindFlushFrequency.TotalMilliseconds);
+            writer.WriteTimeSpanAsLong(cfg.WriteBehindFlushFrequency);
             writer.WriteInt(cfg.WriteBehindFlushSize);
             writer.WriteInt(cfg.WriteBehindFlushThreadCount);
             writer.WriteInt((int) cfg.WriteSynchronizationMode);
