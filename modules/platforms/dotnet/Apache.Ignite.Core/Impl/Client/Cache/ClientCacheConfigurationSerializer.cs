@@ -92,6 +92,20 @@ namespace Apache.Ignite.Core.Impl.Client.Cache
             ThrowUnsupportedIfNotNull(cfg.PluginConfigurations, "PluginConfigurations");
             ThrowUnsupportedIfNotNull(cfg.CacheStoreFactory, "CacheStoreFactory");
             ThrowUnsupportedIfNotNull(cfg.NearConfiguration, "NearConfiguration");
+
+            // TODO: Disable store-related properties.
+            // KeepBinaryInStore = reader.ReadBoolean(),
+            // LoadPreviousValue = reader.ReadBoolean(),
+            // ReadThrough = reader.ReadBoolean(),
+            // StoreConcurrentLoadAllThreshold = reader.ReadInt(),
+            // WriteBehindBatchSize = reader.ReadInt(),
+            // WriteBehindCoalescing = reader.ReadBoolean(),
+            // WriteBehindEnabled = reader.ReadBoolean(),
+            // WriteBehindFlushFrequency = reader.ReadLongAsTimespan(),
+            // WriteBehindFlushSize = reader.ReadInt(),
+            // WriteBehindFlushThreadCount = reader.ReadInt(),
+            // WriteThrough = reader.ReadBoolean(),
+
         }
 
         /// <summary>
@@ -115,8 +129,6 @@ namespace Apache.Ignite.Core.Impl.Client.Cache
                 EnableStatistics = reader.ReadBoolean(),
                 GroupName = reader.ReadString(),
                 Invalidate = reader.ReadBoolean(),
-                KeepBinaryInStore = reader.ReadBoolean(),
-                LoadPreviousValue = reader.ReadBoolean(),
                 LockTimeout = reader.ReadLongAsTimespan(),
                 MaxConcurrentAsyncOperations = reader.ReadInt(),
                 MaxQueryIteratorsCount = reader.ReadInt(),
@@ -126,7 +138,6 @@ namespace Apache.Ignite.Core.Impl.Client.Cache
                 QueryDetailMetricsSize = reader.ReadInt(),
                 QueryParallelism = reader.ReadInt(),
                 ReadFromBackup = reader.ReadBoolean(),
-                ReadThrough = reader.ReadBoolean(),
                 RebalanceBatchSize = reader.ReadInt(),
                 RebalanceBatchesPrefetchCount = reader.ReadLong(),
                 RebalanceDelay = reader.ReadLongAsTimespan(),
@@ -137,18 +148,10 @@ namespace Apache.Ignite.Core.Impl.Client.Cache
                 SqlEscapeAll = reader.ReadBoolean(),
                 SqlIndexMaxInlineSize = reader.ReadInt(),
                 SqlSchema = reader.ReadString(),
-                StoreConcurrentLoadAllThreshold = reader.ReadInt(),
-                WriteBehindBatchSize = reader.ReadInt(),
-                WriteBehindCoalescing = reader.ReadBoolean(),
-                WriteBehindEnabled = reader.ReadBoolean(),
-                WriteBehindFlushFrequency = reader.ReadLongAsTimespan(),
-                WriteBehindFlushSize = reader.ReadInt(),
-                WriteBehindFlushThreadCount = reader.ReadInt(),
                 WriteSynchronizationMode = (CacheWriteSynchronizationMode)reader.ReadInt(),
-                WriteThrough = reader.ReadBoolean(),
 
                 KeyConfiguration = reader.ReadCollectionRaw(r => new CacheKeyConfiguration(r)),
-                QueryEntities = reader.ReadCollectionRaw(r => new QueryEntity(r)),
+                QueryEntities = reader.ReadCollectionRaw(r => new QueryEntity(r))
             };
         }
 
@@ -161,6 +164,20 @@ namespace Apache.Ignite.Core.Impl.Client.Cache
         private static void ThrowUnsupportedIfNotNull(object obj, string propertyName)
         {
             if (obj != null)
+            {
+                throw new NotSupportedException(
+                    string.Format("{0}.{1} property is not supported in thin client mode.",
+                        typeof(CacheConfiguration).Name, propertyName));
+            }
+        }
+
+        /// <summary>
+        /// Throws the unsupported exception if property is not null.
+        /// </summary>
+        // ReSharper disable once ParameterOnlyUsedForPreconditionCheck.Local
+        private static void ThrowUnsupportedIfNotDefault<T>(T obj, string propertyName, T defaultValue = default(T))
+        {
+            if (!Equals(obj, defaultValue))
             {
                 throw new NotSupportedException(
                     string.Format("{0}.{1} property is not supported in thin client mode.",

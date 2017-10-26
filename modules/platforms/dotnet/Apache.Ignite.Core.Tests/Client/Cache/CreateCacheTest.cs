@@ -20,6 +20,7 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
     using System.Linq;
     using Apache.Ignite.Core.Cache.Configuration;
     using Apache.Ignite.Core.Client;
+    using Apache.Ignite.Core.Configuration;
     using Apache.Ignite.Core.Impl.Client;
     using Apache.Ignite.Core.Tests.Cache;
     using NUnit.Framework;
@@ -135,9 +136,10 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
             TestUtils.AssertReflectionEqual(cfg, cache.GetConfiguration());
 
             // Custom config.
-            cfg = CacheConfigurationTest.GetCustomCacheConfiguration("b");
+            cfg = GetFullCacheConfiguration("b");
+
             cache = Client.CreateCache<int, int>(cfg);
-            TestUtils.AssertReflectionEqual(cfg, cache.GetConfiguration());
+            ClientCacheConfigurationTest.AssertClientConfigsAreEqual(cfg, cache.GetConfiguration());
         }
 
         /// <summary>
@@ -147,6 +149,26 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
         public void TestGetOrCreateFromConfiguration()
         {
             // TODO
+        }
+
+        /// <summary>
+        /// Gets the full cache configuration.
+        /// </summary>
+        private static CacheConfiguration GetFullCacheConfiguration(string name)
+        {
+            var cfg = CacheConfigurationTest.GetCustomCacheConfiguration(name);
+
+            // Reset unsupported properties.
+            cfg.AffinityFunction = null;
+            cfg.EvictionPolicy = null;
+            cfg.ExpiryPolicyFactory = null;
+            cfg.PluginConfigurations = null;
+            cfg.CacheStoreFactory = null;
+            cfg.NearConfiguration = null;
+            cfg.WriteThrough = false;
+            cfg.ReadThrough = false;
+
+            return cfg;
         }
 
         /** <inheritdoc /> */
@@ -160,6 +182,16 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
                     {
                         AtomicityMode = CacheAtomicityMode.Transactional,
                         Backups = 3
+                    }
+                },
+                DataStorageConfiguration = new DataStorageConfiguration
+                {
+                    DataRegionConfigurations = new[]
+                    {
+                        new DataRegionConfiguration
+                        {
+                            Name = "myMemPolicy"
+                        } 
                     }
                 }
             };

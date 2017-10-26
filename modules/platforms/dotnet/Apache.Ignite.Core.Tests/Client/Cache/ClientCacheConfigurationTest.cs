@@ -80,7 +80,15 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
         /// </summary>
         private static void TestSerializeDeserialize(CacheConfiguration cfg)
         {
-            TestUtils.AssertReflectionEqual(cfg, SerializeDeserialize(cfg),
+            AssertClientConfigsAreEqual(cfg, SerializeDeserialize(cfg));
+        }
+
+        /// <summary>
+        /// Asserts the client configs are equal.
+        /// </summary>
+        public static void AssertClientConfigsAreEqual(CacheConfiguration cfg, CacheConfiguration cfg2)
+        {
+            TestUtils.AssertReflectionEqual(cfg, cfg2,
                 ignoredProperties: new HashSet<string>(new[] {"LongQueryWarningTimeout"}));
         }
 
