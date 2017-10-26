@@ -91,6 +91,7 @@ namespace Apache.Ignite.Core.Impl.Client.Cache
             ThrowUnsupportedIfNotNull(cfg.ExpiryPolicyFactory, "ExpiryPolicyFactory");
             ThrowUnsupportedIfNotNull(cfg.PluginConfigurations, "PluginConfigurations");
             ThrowUnsupportedIfNotNull(cfg.CacheStoreFactory, "CacheStoreFactory");
+            ThrowUnsupportedIfNotNull(cfg.NearConfiguration, "NearConfiguration");
         }
 
         /// <summary>

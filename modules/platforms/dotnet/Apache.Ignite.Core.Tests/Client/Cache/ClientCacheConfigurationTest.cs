@@ -18,6 +18,7 @@
 namespace Apache.Ignite.Core.Tests.Client.Cache
 {
     using System;
+    using System.Collections.Generic;
     using System.IO;
     using Apache.Ignite.Core.Cache.Configuration;
     using Apache.Ignite.Core.Impl.Binary.IO;
@@ -57,6 +58,9 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
             TestSerializeDeserializeUnspported(cfg, "CacheStoreFactory");
             cfg.CacheStoreFactory = null;
 
+            TestSerializeDeserializeUnspported(cfg, "NearConfiguration");
+            cfg.NearConfiguration = null;
+
             // Full config without unsupported properties.
             TestSerializeDeserialize(cfg);
         }
@@ -76,7 +80,8 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
         /// </summary>
         private static void TestSerializeDeserialize(CacheConfiguration cfg)
         {
-            TestUtils.AssertReflectionEqual(cfg, SerializeDeserialize(cfg));
+            TestUtils.AssertReflectionEqual(cfg, SerializeDeserialize(cfg),
+                ignoredProperties: new HashSet<string>(new[] {"LongQueryWarningTimeout"}));
         }
 
         /// <summary>
