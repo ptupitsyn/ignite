@@ -21,6 +21,7 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
     using Apache.Ignite.Core.Cache.Configuration;
     using Apache.Ignite.Core.Client;
     using Apache.Ignite.Core.Impl.Client;
+    using Apache.Ignite.Core.Tests.Cache;
     using NUnit.Framework;
 
     /// <summary>
@@ -128,11 +129,14 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
         [Test]
         public void TestCreateFromConfiguration()
         {
-            // TODO: Which properties should we support?
-
             // Default config.
             var cfg = new CacheConfiguration("a");
             var cache = Client.CreateCache<int, int>(cfg);
+            TestUtils.AssertReflectionEqual(cfg, cache.GetConfiguration());
+
+            // Custom config.
+            cfg = CacheConfigurationTest.GetCustomCacheConfiguration("b");
+            cache = Client.CreateCache<int, int>(cfg);
             TestUtils.AssertReflectionEqual(cfg, cache.GetConfiguration());
         }
 
