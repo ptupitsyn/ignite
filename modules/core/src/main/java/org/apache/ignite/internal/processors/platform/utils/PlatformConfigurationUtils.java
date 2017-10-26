@@ -1327,7 +1327,7 @@ public class PlatformConfigurationUtils {
      * @param w Writer.
      * @param e Enum.
      */
-    public static void writeEnumByte(BinaryRawWriter w, Enum e) {
+    private static void writeEnumByte(BinaryRawWriter w, Enum e) {
         w.writeByte(e == null ? 0 : (byte)e.ordinal());
     }
 
