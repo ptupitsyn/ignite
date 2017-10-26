@@ -45,7 +45,6 @@ namespace Apache.Ignite.Core.Impl.Client.Cache
             writer.WriteInt((int) cfg.AtomicityMode);
             writer.WriteInt(cfg.Backups);
             writer.WriteInt((int) cfg.CacheMode);
-            writer.WriteObject(cfg.CacheStoreFactory);
             writer.WriteBoolean(cfg.CopyOnRead);
             writer.WriteString(cfg.DataRegionName);
             writer.WriteBoolean(cfg.EagerTtl);
