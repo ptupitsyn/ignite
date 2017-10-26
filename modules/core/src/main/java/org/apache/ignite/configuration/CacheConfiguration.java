@@ -1671,6 +1671,10 @@ public class CacheConfiguration<K, V> extends MutableConfiguration<K, V> {
      * @return {@code this} for chaining.
      */
     public CacheConfiguration<K, V> setSqlSchema(String sqlSchema) {
+        if (sqlSchema != null) {
+            A.ensure(!sqlSchema.isEmpty(), "Schema could not be empty.");
+        }
+
         this.sqlSchema = sqlSchema;
 
         return this;
