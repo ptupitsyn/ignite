@@ -229,7 +229,6 @@ public class ClientCacheConfigurationSerializer {
                 .setMaxConcurrentAsyncOperations(reader.readInt())
                 .setMaxQueryIteratorsCount(reader.readInt())
                 .setName(reader.readString())
-                .setName(reader.readString())
                 .setOnheapCacheEnabled(reader.readBoolean())
                 .setPartitionLossPolicy(PartitionLossPolicy.fromOrdinal((byte)reader.readInt()))
                 .setQueryDetailMetricsSize(reader.readInt())

@@ -209,11 +209,7 @@ public class PlatformConfigurationUtils {
         ccfg.setMaxQueryIteratorsCount(in.readInt());
         ccfg.setQueryDetailMetricsSize(in.readInt());
         ccfg.setQueryParallelism(in.readInt());
-
-        String sqlSchema = in.readString();
-        if (sqlSchema != null) {
-            ccfg.setSqlSchema(sqlSchema);
-        }
+        ccfg.setSqlSchema(in.readString());
 
         int qryEntCnt = in.readInt();
 
