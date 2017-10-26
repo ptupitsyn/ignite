@@ -21,10 +21,7 @@ import org.apache.ignite.IgniteCache;
 import org.apache.ignite.binary.BinaryRawReader;
 import org.apache.ignite.configuration.CacheConfiguration;
 import org.apache.ignite.internal.processors.platform.client.ClientConnectionContext;
-import org.apache.ignite.internal.processors.platform.client.ClientRequest;
 import org.apache.ignite.internal.processors.platform.client.ClientResponse;
-
-import javax.cache.configuration.Configuration;
 
 /**
  * Cache configuration request.
