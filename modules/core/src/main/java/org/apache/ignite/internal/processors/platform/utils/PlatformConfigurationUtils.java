@@ -482,6 +482,8 @@ public class PlatformConfigurationUtils {
         res.setKeyType(in.readString());
         res.setValueType(in.readString());
         res.setTableName(in.readString());
+        res.setKeyFieldName(in.readString());
+        res.setValueFieldName(in.readString());
 
         // Fields
         int cnt = in.readInt();
@@ -536,9 +538,6 @@ public class PlatformConfigurationUtils {
 
             res.setIndexes(indexes);
         }
-
-        res.setKeyFieldName(in.readString());
-        res.setValueFieldName(in.readString());
 
         return res;
     }
@@ -990,6 +989,8 @@ public class PlatformConfigurationUtils {
         writer.writeString(queryEntity.getKeyType());
         writer.writeString(queryEntity.getValueType());
         writer.writeString(queryEntity.getTableName());
+        writer.writeString(queryEntity.getKeyFieldName());
+        writer.writeString(queryEntity.getValueFieldName());
 
         // Fields
         LinkedHashMap<String, String> fields = queryEntity.getFields();
@@ -1035,9 +1036,6 @@ public class PlatformConfigurationUtils {
         }
         else
             writer.writeInt(0);
-
-        writer.writeString(queryEntity.getKeyFieldName());
-        writer.writeString(queryEntity.getValueFieldName());
     }
 
     /**
