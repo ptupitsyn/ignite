@@ -45,14 +45,11 @@ namespace Apache.Ignite.Core.Impl.Client.Cache
             writer.WriteInt((int) cfg.AtomicityMode);
             writer.WriteInt(cfg.Backups);
             writer.WriteInt((int) cfg.CacheMode);
-            writer.WriteBoolean(cfg.CopyOnRead);
             writer.WriteString(cfg.DataRegionName);
             writer.WriteBoolean(cfg.EagerTtl);
             writer.WriteBoolean(cfg.EnableStatistics);
             writer.WriteString(cfg.GroupName);
             writer.WriteBoolean(cfg.Invalidate);
-            writer.WriteBoolean(cfg.KeepBinaryInStore);
-            writer.WriteBoolean(cfg.LoadPreviousValue);
             writer.WriteTimeSpanAsLong(cfg.LockTimeout);
             writer.WriteInt(cfg.MaxConcurrentAsyncOperations);
             writer.WriteInt(cfg.MaxQueryIteratorsCount);
@@ -62,7 +59,6 @@ namespace Apache.Ignite.Core.Impl.Client.Cache
             writer.WriteInt(cfg.QueryDetailMetricsSize);
             writer.WriteInt(cfg.QueryParallelism);
             writer.WriteBoolean(cfg.ReadFromBackup);
-            writer.WriteBoolean(cfg.ReadThrough);
             writer.WriteInt(cfg.RebalanceBatchSize);
             writer.WriteLong(cfg.RebalanceBatchesPrefetchCount);
             writer.WriteTimeSpanAsLong(cfg.RebalanceDelay);
@@ -73,39 +69,37 @@ namespace Apache.Ignite.Core.Impl.Client.Cache
             writer.WriteBoolean(cfg.SqlEscapeAll);
             writer.WriteInt(cfg.SqlIndexMaxInlineSize);
             writer.WriteString(cfg.SqlSchema);
-            writer.WriteInt(cfg.StoreConcurrentLoadAllThreshold);
-            writer.WriteInt(cfg.WriteBehindBatchSize);
-            writer.WriteBoolean(cfg.WriteBehindCoalescing);
-            writer.WriteBoolean(cfg.WriteBehindEnabled);
-            writer.WriteTimeSpanAsLong(cfg.WriteBehindFlushFrequency);
-            writer.WriteInt(cfg.WriteBehindFlushSize);
-            writer.WriteInt(cfg.WriteBehindFlushThreadCount);
             writer.WriteInt((int) cfg.WriteSynchronizationMode);
-            writer.WriteBoolean(cfg.WriteThrough);
 
             writer.WriteCollectionRaw(cfg.KeyConfiguration);
             writer.WriteCollectionRaw(cfg.QueryEntities);
 
-            ThrowUnsupportedIfNotNull(cfg.AffinityFunction, "AffinityFunction");
-            ThrowUnsupportedIfNotNull(cfg.EvictionPolicy, "EvictionPolicy");
-            ThrowUnsupportedIfNotNull(cfg.ExpiryPolicyFactory, "ExpiryPolicyFactory");
-            ThrowUnsupportedIfNotNull(cfg.PluginConfigurations, "PluginConfigurations");
-            ThrowUnsupportedIfNotNull(cfg.CacheStoreFactory, "CacheStoreFactory");
-            ThrowUnsupportedIfNotNull(cfg.NearConfiguration, "NearConfiguration");
-
-            // TODO: Disable store-related properties.
-            // KeepBinaryInStore = reader.ReadBoolean(),
-            // LoadPreviousValue = reader.ReadBoolean(),
-            // ReadThrough = reader.ReadBoolean(),
-            // StoreConcurrentLoadAllThreshold = reader.ReadInt(),
-            // WriteBehindBatchSize = reader.ReadInt(),
-            // WriteBehindCoalescing = reader.ReadBoolean(),
-            // WriteBehindEnabled = reader.ReadBoolean(),
-            // WriteBehindFlushFrequency = reader.ReadLongAsTimespan(),
-            // WriteBehindFlushSize = reader.ReadInt(),
-            // WriteBehindFlushThreadCount = reader.ReadInt(),
-            // WriteThrough = reader.ReadBoolean(),
-
+            // Unsupported complex properties.
+            ThrowUnsupportedIfNotDefault(cfg.AffinityFunction, "AffinityFunction");
+            ThrowUnsupportedIfNotDefault(cfg.EvictionPolicy, "EvictionPolicy");
+            ThrowUnsupportedIfNotDefault(cfg.ExpiryPolicyFactory, "ExpiryPolicyFactory");
+            ThrowUnsupportedIfNotDefault(cfg.PluginConfigurations, "PluginConfigurations");
+            ThrowUnsupportedIfNotDefault(cfg.CacheStoreFactory, "CacheStoreFactory");
+            ThrowUnsupportedIfNotDefault(cfg.NearConfiguration, "NearConfiguration");
+            
+            // Unsupported store-related properties.
+            ThrowUnsupportedIfNotDefault(cfg.KeepBinaryInStore, "KeepBinaryInStore");
+            ThrowUnsupportedIfNotDefault(cfg.LoadPreviousValue, "LoadPreviousValue");
+            ThrowUnsupportedIfNotDefault(cfg.ReadThrough, "ReadThrough");
+            ThrowUnsupportedIfNotDefault(cfg.WriteThrough, "WriteThrough");
+            ThrowUnsupportedIfNotDefault(cfg.StoreConcurrentLoadAllThreshold, "StoreConcurrentLoadAllThreshold", 
+                CacheConfiguration.DefaultStoreConcurrentLoadAllThreshold);
+            ThrowUnsupportedIfNotDefault(cfg.WriteBehindBatchSize, "WriteBehindBatchSize",
+                CacheConfiguration.DefaultWriteBehindBatchSize);
+            ThrowUnsupportedIfNotDefault(cfg.WriteBehindCoalescing, "WriteBehindCoalescing",
+                CacheConfiguration.DefaultWriteBehindCoalescing);
+            ThrowUnsupportedIfNotDefault(cfg.WriteBehindEnabled, "WriteBehindEnabled");
+            ThrowUnsupportedIfNotDefault(cfg.WriteBehindFlushFrequency, "WriteBehindFlushFrequency",
+                CacheConfiguration.DefaultWriteBehindFlushFrequency);
+            ThrowUnsupportedIfNotDefault(cfg.WriteBehindFlushSize, "WriteBehindFlushSize",
+                CacheConfiguration.DefaultWriteBehindFlushSize);
+            ThrowUnsupportedIfNotDefault(cfg.WriteBehindFlushThreadCount, "WriteBehindFlushThreadCount",
+                CacheConfiguration.DefaultWriteBehindFlushThreadCount);
         }
 
         /// <summary>
@@ -156,25 +150,9 @@ namespace Apache.Ignite.Core.Impl.Client.Cache
         }
 
         /// <summary>
-        /// Throws the unsupported exception if property is not null.
+        /// Throws the unsupported exception if property is not default.
         /// </summary>
-        /// <param name="obj">The object.</param>
-        /// <param name="propertyName">Name of the property.</param>
-        // ReSharper disable once ParameterOnlyUsedForPreconditionCheck.Local
-        private static void ThrowUnsupportedIfNotNull(object obj, string propertyName)
-        {
-            if (obj != null)
-            {
-                throw new NotSupportedException(
-                    string.Format("{0}.{1} property is not supported in thin client mode.",
-                        typeof(CacheConfiguration).Name, propertyName));
-            }
-        }
-
-        /// <summary>
-        /// Throws the unsupported exception if property is not null.
-        /// </summary>
-        // ReSharper disable once ParameterOnlyUsedForPreconditionCheck.Local
+        // ReSharper disable ParameterOnlyUsedForPreconditionCheck.Local
         private static void ThrowUnsupportedIfNotDefault<T>(T obj, string propertyName, T defaultValue = default(T))
         {
             if (!Equals(obj, defaultValue))
