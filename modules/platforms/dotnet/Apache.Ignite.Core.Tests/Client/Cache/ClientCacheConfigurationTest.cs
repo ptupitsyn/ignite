@@ -61,6 +61,41 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
             TestSerializeDeserializeUnspported(cfg, "NearConfiguration");
             cfg.NearConfiguration = null;
 
+            /**
+            ThrowUnsupportedIfNotDefault(cfg.StoreConcurrentLoadAllThreshold, "StoreConcurrentLoadAllThreshold", 
+                CacheConfiguration.DefaultStoreConcurrentLoadAllThreshold);
+            ThrowUnsupportedIfNotDefault(cfg.WriteBehindBatchSize, "WriteBehindBatchSize",
+                CacheConfiguration.DefaultWriteBehindBatchSize);
+            ThrowUnsupportedIfNotDefault(cfg.WriteBehindCoalescing, "WriteBehindCoalescing",
+                CacheConfiguration.DefaultWriteBehindCoalescing);
+            ThrowUnsupportedIfNotDefault(cfg.WriteBehindEnabled, "WriteBehindEnabled");
+            ThrowUnsupportedIfNotDefault(cfg.WriteBehindFlushFrequency, "WriteBehindFlushFrequency",
+                CacheConfiguration.DefaultWriteBehindFlushFrequency);
+            ThrowUnsupportedIfNotDefault(cfg.WriteBehindFlushSize, "WriteBehindFlushSize",
+                CacheConfiguration.DefaultWriteBehindFlushSize);
+            ThrowUnsupportedIfNotDefault(cfg.WriteBehindFlushThreadCount, "WriteBehindFlushThreadCount",
+                CacheConfiguration.DefaultWriteBehindFlushThreadCount);
+
+             * */
+
+            TestSerializeDeserializeUnspported(cfg, "KeepBinaryInStore");
+            cfg.KeepBinaryInStore = false;
+
+            TestSerializeDeserializeUnspported(cfg, "LoadPreviousValue");
+            cfg.LoadPreviousValue = false;
+
+            TestSerializeDeserializeUnspported(cfg, "ReadThrough");
+            cfg.ReadThrough = false;
+
+            TestSerializeDeserializeUnspported(cfg, "WriteThrough");
+            cfg.WriteThrough = false;
+
+            TestSerializeDeserializeUnspported(cfg, "StoreConcurrentLoadAllThreshold");
+            cfg.StoreConcurrentLoadAllThreshold = CacheConfiguration.DefaultStoreConcurrentLoadAllThreshold;
+
+            TestSerializeDeserializeUnspported(cfg, "WriteBehindBatchSize");
+            cfg.WriteBehindBatchSize = CacheConfiguration.DefaultWriteBehindBatchSize;
+
             // Full config without unsupported properties.
             TestSerializeDeserialize(cfg);
         }
