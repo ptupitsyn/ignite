@@ -168,6 +168,19 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
             cfg.WriteThrough = false;
             cfg.ReadThrough = false;
 
+            // Store-specific.
+            cfg.KeepBinaryInStore = false;
+            cfg.LoadPreviousValue = false;
+            cfg.ReadThrough = false;
+            cfg.WriteThrough = false;
+            cfg.StoreConcurrentLoadAllThreshold = CacheConfiguration.DefaultStoreConcurrentLoadAllThreshold;
+            cfg.WriteBehindBatchSize = CacheConfiguration.DefaultWriteBehindBatchSize;
+            cfg.WriteBehindCoalescing = CacheConfiguration.DefaultWriteBehindCoalescing;
+            cfg.WriteBehindEnabled = CacheConfiguration.DefaultWriteBehindEnabled;
+            cfg.WriteBehindFlushFrequency = CacheConfiguration.DefaultWriteBehindFlushFrequency;
+            cfg.WriteBehindFlushSize = CacheConfiguration.DefaultWriteBehindFlushSize;
+            cfg.WriteBehindFlushThreadCount = CacheConfiguration.DefaultWriteBehindFlushThreadCount;
+
             return cfg;
         }
 

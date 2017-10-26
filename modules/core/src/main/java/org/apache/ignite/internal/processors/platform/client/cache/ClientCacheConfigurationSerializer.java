@@ -211,7 +211,7 @@ public class ClientCacheConfigurationSerializer {
                 .setEagerTtl(reader.readBoolean())
                 .setStatisticsEnabled(reader.readBoolean())
                 .setGroupName(reader.readString())
-                .setLoadPreviousValue(reader.readBoolean())
+                .setInvalidate(reader.readBoolean())
                 .setDefaultLockTimeout(reader.readLong())
                 .setMaxConcurrentAsyncOperations(reader.readInt())
                 .setMaxQueryIteratorsCount(reader.readInt())
