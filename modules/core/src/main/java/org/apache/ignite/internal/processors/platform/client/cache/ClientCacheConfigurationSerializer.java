@@ -59,8 +59,6 @@ public class ClientCacheConfigurationSerializer {
         writer.writeBoolean(cfg.isStatisticsEnabled());
         writer.writeString(cfg.getGroupName());
         writer.writeBoolean(cfg.isInvalidate());
-        writer.writeBoolean(cfg.isStoreKeepBinary());
-        writer.writeBoolean(cfg.isLoadPreviousValue());
         writer.writeLong(cfg.getDefaultLockTimeout());
         writer.writeInt(cfg.getMaxConcurrentAsyncOperations());
         writer.writeInt(cfg.getMaxQueryIteratorsCount());
@@ -70,7 +68,6 @@ public class ClientCacheConfigurationSerializer {
         writer.writeInt(cfg.getQueryDetailMetricsSize());
         writer.writeInt(cfg.getQueryParallelism());
         writer.writeBoolean(cfg.isReadFromBackup());
-        writer.writeBoolean(cfg.isReadThrough());
         writer.writeInt(cfg.getRebalanceBatchSize());
         writer.writeLong(cfg.getRebalanceBatchesPrefetchCount());
         writer.writeLong(cfg.getRebalanceDelay());
@@ -81,15 +78,7 @@ public class ClientCacheConfigurationSerializer {
         writer.writeBoolean(cfg.isSqlEscapeAll());
         writer.writeInt(cfg.getSqlIndexMaxInlineSize());
         writer.writeString(cfg.getSqlSchema());
-        writer.writeInt(cfg.getStoreConcurrentLoadAllThreshold());
-        writer.writeInt(cfg.getWriteBehindBatchSize());
-        writer.writeBoolean(cfg.getWriteBehindCoalescing());
-        writer.writeBoolean(cfg.isWriteBehindEnabled());
-        writer.writeLong(cfg.getWriteBehindFlushFrequency());
-        writer.writeInt(cfg.getWriteBehindFlushSize());
-        writer.writeInt(cfg.getWriteBehindFlushThreadCount());
         writeEnumInt(writer, cfg.getWriteSynchronizationMode());
-        writer.writeBoolean(cfg.isWriteThrough());
 
         CacheKeyConfiguration[] keys = cfg.getKeyConfiguration();
 
@@ -222,8 +211,6 @@ public class ClientCacheConfigurationSerializer {
                 .setEagerTtl(reader.readBoolean())
                 .setStatisticsEnabled(reader.readBoolean())
                 .setGroupName(reader.readString())
-                .setInvalidate(reader.readBoolean())
-                .setStoreKeepBinary(reader.readBoolean())
                 .setLoadPreviousValue(reader.readBoolean())
                 .setDefaultLockTimeout(reader.readLong())
                 .setMaxConcurrentAsyncOperations(reader.readInt())
@@ -234,7 +221,6 @@ public class ClientCacheConfigurationSerializer {
                 .setQueryDetailMetricsSize(reader.readInt())
                 .setQueryParallelism(reader.readInt())
                 .setReadFromBackup(reader.readBoolean())
-                .setReadThrough(reader.readBoolean())
                 .setRebalanceBatchSize(reader.readInt())
                 .setRebalanceBatchesPrefetchCount(reader.readLong())
                 .setRebalanceDelay(reader.readLong())
@@ -245,15 +231,7 @@ public class ClientCacheConfigurationSerializer {
                 .setSqlEscapeAll(reader.readBoolean())
                 .setSqlIndexMaxInlineSize(reader.readInt())
                 .setSqlSchema(reader.readString())
-                .setStoreConcurrentLoadAllThreshold(reader.readInt())
-                .setWriteBehindBatchSize(reader.readInt())
-                .setWriteBehindCoalescing(reader.readBoolean())
-                .setWriteBehindEnabled(reader.readBoolean())
-                .setWriteBehindFlushFrequency(reader.readLong())
-                .setWriteBehindFlushSize(reader.readInt())
-                .setWriteBehindFlushThreadCount(reader.readInt())
-                .setWriteSynchronizationMode(CacheWriteSynchronizationMode.fromOrdinal(reader.readInt()))
-                .setWriteThrough(reader.readBoolean());
+                .setWriteSynchronizationMode(CacheWriteSynchronizationMode.fromOrdinal(reader.readInt()));
 
         // TODO: CechKeys, QueryEntity
     }
