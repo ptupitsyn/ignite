@@ -63,8 +63,8 @@ namespace Apache.Ignite.Core.Impl.Client.Cache
             writer.WriteInt(cfg.QueryParallelism);
             writer.WriteBoolean(cfg.ReadFromBackup);
             writer.WriteBoolean(cfg.ReadThrough);
-            writer.WriteLong(cfg.RebalanceBatchesPrefetchCount);
             writer.WriteInt(cfg.RebalanceBatchSize);
+            writer.WriteLong(cfg.RebalanceBatchesPrefetchCount);
             writer.WriteTimeSpanAsLong(cfg.RebalanceDelay);
             writer.WriteInt((int) cfg.RebalanceMode);
             writer.WriteInt(cfg.RebalanceOrder);
