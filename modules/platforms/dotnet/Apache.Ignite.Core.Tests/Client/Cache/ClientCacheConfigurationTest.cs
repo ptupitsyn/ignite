@@ -17,10 +17,12 @@
 
 namespace Apache.Ignite.Core.Tests.Client.Cache
 {
+    using System;
     using System.IO;
     using Apache.Ignite.Core.Cache.Configuration;
     using Apache.Ignite.Core.Impl.Binary.IO;
     using Apache.Ignite.Core.Impl.Client.Cache;
+    using Apache.Ignite.Core.Tests.Cache;
     using NUnit.Framework;
 
     /// <summary>
@@ -34,9 +36,47 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
         [Test]
         public void TestSerializeDeserialize()
         {
-            var empty = new CacheConfiguration("foo");
+            // Empty.
+            TestSerializeDeserialize(new CacheConfiguration("foo"));
 
-            TestUtils.AssertReflectionEqual(empty, SerializeDeserialize(empty));
+            // Full config: has unsupported properties.
+            var cfg = CacheConfigurationTest.GetCustomCacheConfiguration("bar");
+            
+            TestSerializeDeserializeUnspported(cfg, "AffinityFunction");
+            cfg.AffinityFunction = null;
+
+            TestSerializeDeserializeUnspported(cfg, "EvictionPolicy");
+            cfg.EvictionPolicy = null;
+
+            TestSerializeDeserializeUnspported(cfg, "ExpiryPolicyFactory");
+            cfg.ExpiryPolicyFactory = null;
+
+            TestSerializeDeserializeUnspported(cfg, "PluginConfigurations");
+            cfg.PluginConfigurations = null;
+
+            TestSerializeDeserializeUnspported(cfg, "CacheStoreFactory");
+            cfg.CacheStoreFactory = null;
+
+            // Full config without unsupported properties.
+            TestSerializeDeserialize(cfg);
+        }
+
+        /// <summary>
+        /// Tests the serialization/deserialization of <see cref="CacheConfiguration"/>.
+        /// </summary>
+        private static void TestSerializeDeserializeUnspported(CacheConfiguration cfg, string propName)
+        {
+            var ex = Assert.Throws<NotSupportedException>(() => TestSerializeDeserialize(cfg));
+            Assert.AreEqual(string.Format("{0}.{1} property is not supported in thin client mode.",
+                typeof(CacheConfiguration).Name, propName), ex.Message);
+        }
+
+        /// <summary>
+        /// Tests the serialization/deserialization of <see cref="CacheConfiguration"/>.
+        /// </summary>
+        private static void TestSerializeDeserialize(CacheConfiguration cfg)
+        {
+            TestUtils.AssertReflectionEqual(cfg, SerializeDeserialize(cfg));
         }
 
         /// <summary>
