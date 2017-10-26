@@ -476,7 +476,7 @@ public class PlatformConfigurationUtils {
      * @param in Stream.
      * @return QueryEntity.
      */
-    private static QueryEntity readQueryEntity(BinaryRawReader in) {
+    public static QueryEntity readQueryEntity(BinaryRawReader in) {
         QueryEntity res = new QueryEntity();
 
         res.setKeyType(in.readString());
@@ -983,7 +983,7 @@ public class PlatformConfigurationUtils {
      * @param writer Writer.
      * @param queryEntity Query entity.
      */
-    private static void writeQueryEntity(BinaryRawWriter writer, QueryEntity queryEntity) {
+    public static void writeQueryEntity(BinaryRawWriter writer, QueryEntity queryEntity) {
         assert queryEntity != null;
 
         writer.writeString(queryEntity.getKeyType());
