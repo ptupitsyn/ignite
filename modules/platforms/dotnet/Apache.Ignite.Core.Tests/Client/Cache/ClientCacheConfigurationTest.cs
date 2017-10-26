@@ -20,6 +20,7 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
     using System;
     using System.Collections.Generic;
     using System.IO;
+    using System.Linq;
     using Apache.Ignite.Core.Cache.Configuration;
     using Apache.Ignite.Core.Impl.Binary.IO;
     using Apache.Ignite.Core.Impl.Client.Cache;
@@ -122,6 +123,15 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
         /// </summary>
         public static void AssertClientConfigsAreEqual(CacheConfiguration cfg, CacheConfiguration cfg2)
         {
+            if (cfg2.QueryEntities != null)
+            {
+                // Remove identical aliases which are added during config roundtrip.
+                foreach (var e in cfg2.QueryEntities)
+                {
+                    e.Aliases = e.Aliases.Where(x => x.Alias != x.FullName).ToArray();
+                }
+            }
+
             TestUtils.AssertReflectionEqual(cfg, cfg2,
                 ignoredProperties: new HashSet<string>(new[] {"LongQueryWarningTimeout"}));
         }
