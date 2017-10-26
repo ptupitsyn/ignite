@@ -154,7 +154,21 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
         [Test]
         public void TestGetOrCreateFromConfiguration()
         {
-            // TODO
+            // Default configur.
+            var cfg = new CacheConfiguration("a");
+            var cache = Client.GetOrCreateCache<int, int>(cfg);
+            TestUtils.AssertReflectionEqual(cfg, cache.GetConfiguration());
+            cache[1] = 1;
+
+            // Create when exists.
+            cache = Client.GetOrCreateCache<int, int>("a");
+            Assert.AreEqual(1, cache[1]);
+
+            // Custom config.
+            cfg = GetFullCacheConfiguration("b");
+
+            cache = Client.GetOrCreateCache<int, int>(cfg);
+            ClientCacheConfigurationTest.AssertClientConfigsAreEqual(cfg, cache.GetConfiguration());
         }
 
         /// <summary>
