@@ -61,23 +61,7 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
             TestSerializeDeserializeUnspported(cfg, "NearConfiguration");
             cfg.NearConfiguration = null;
 
-            /**
-            ThrowUnsupportedIfNotDefault(cfg.StoreConcurrentLoadAllThreshold, "StoreConcurrentLoadAllThreshold", 
-                CacheConfiguration.DefaultStoreConcurrentLoadAllThreshold);
-            ThrowUnsupportedIfNotDefault(cfg.WriteBehindBatchSize, "WriteBehindBatchSize",
-                CacheConfiguration.DefaultWriteBehindBatchSize);
-            ThrowUnsupportedIfNotDefault(cfg.WriteBehindCoalescing, "WriteBehindCoalescing",
-                CacheConfiguration.DefaultWriteBehindCoalescing);
-            ThrowUnsupportedIfNotDefault(cfg.WriteBehindEnabled, "WriteBehindEnabled");
-            ThrowUnsupportedIfNotDefault(cfg.WriteBehindFlushFrequency, "WriteBehindFlushFrequency",
-                CacheConfiguration.DefaultWriteBehindFlushFrequency);
-            ThrowUnsupportedIfNotDefault(cfg.WriteBehindFlushSize, "WriteBehindFlushSize",
-                CacheConfiguration.DefaultWriteBehindFlushSize);
-            ThrowUnsupportedIfNotDefault(cfg.WriteBehindFlushThreadCount, "WriteBehindFlushThreadCount",
-                CacheConfiguration.DefaultWriteBehindFlushThreadCount);
-
-             * */
-
+            // Store-specific properties.
             TestSerializeDeserializeUnspported(cfg, "KeepBinaryInStore");
             cfg.KeepBinaryInStore = false;
 
@@ -95,6 +79,21 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
 
             TestSerializeDeserializeUnspported(cfg, "WriteBehindBatchSize");
             cfg.WriteBehindBatchSize = CacheConfiguration.DefaultWriteBehindBatchSize;
+
+            TestSerializeDeserializeUnspported(cfg, "WriteBehindCoalescing");
+            cfg.WriteBehindCoalescing = CacheConfiguration.DefaultWriteBehindCoalescing;
+
+            TestSerializeDeserializeUnspported(cfg, "WriteBehindEnabled");
+            cfg.WriteBehindEnabled = CacheConfiguration.DefaultWriteBehindEnabled;
+
+            TestSerializeDeserializeUnspported(cfg, "WriteBehindFlushFrequency");
+            cfg.WriteBehindFlushFrequency = CacheConfiguration.DefaultWriteBehindFlushFrequency;
+
+            TestSerializeDeserializeUnspported(cfg, "WriteBehindFlushSize");
+            cfg.WriteBehindFlushSize = CacheConfiguration.DefaultWriteBehindFlushSize;
+
+            TestSerializeDeserializeUnspported(cfg, "WriteBehindFlushThreadCount");
+            cfg.WriteBehindFlushThreadCount = CacheConfiguration.DefaultWriteBehindFlushThreadCount;
 
             // Full config without unsupported properties.
             TestSerializeDeserialize(cfg);

@@ -600,7 +600,7 @@ namespace Apache.Ignite.Core.Tests.Cache
                 RebalanceTimeout = TimeSpan.FromSeconds(16),
                 SqlEscapeAll = true,
                 WriteBehindBatchSize = 18,
-                WriteBehindEnabled = false,
+                WriteBehindEnabled = true,
                 WriteSynchronizationMode = CacheWriteSynchronizationMode.PrimarySync,
                 CacheStoreFactory = new CacheStoreFactoryTest(),
                 ReadThrough = true,
