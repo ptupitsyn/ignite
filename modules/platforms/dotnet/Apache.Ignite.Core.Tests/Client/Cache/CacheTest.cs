@@ -845,6 +845,41 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
             }
         }
 
+        /// <summary>
+        /// Tests various cache names.
+        /// Cache id as calculated as a hash code and passed to the server side; this test verifies correct id
+        /// calculation for different strings.
+        /// </summary>
+        [Test]
+        public void TestCacheNames()
+        {
+            var cacheNames = new[]
+            {
+                "foo-bar",
+                "Foo-Bar",
+                "FOO-BAR",
+                new string('c', 100),
+                new string('C', 100),
+                Guid.NewGuid().ToString(),
+                "тест",
+                "Тест",
+                "ТЕСТ"
+            };
+
+            var ignite = Ignition.GetIgnite();
+
+            foreach (var cacheName in cacheNames)
+            {
+                ignite.CreateCache<int, int>(cacheName).Put(1, 1);
+
+                using (var client = GetClient())
+                {
+                    var cache = client.GetCache<int, int>(cacheName);
+                    Assert.AreEqual(1, cache[1]);
+                }
+            }
+        }
+
         private class Container
         {
             public Container Inner;
