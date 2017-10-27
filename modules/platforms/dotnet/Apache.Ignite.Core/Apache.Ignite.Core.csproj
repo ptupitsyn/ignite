@@ -135,6 +135,8 @@
     <Compile Include="Impl\Unmanaged\Jni\IgniteJniNativeMethods2.cs" />
     <Compile Include="Impl\PlatformDisposableTargetAdapter.cs" />
     <Compile Include="Impl\PlatformJniTarget.cs" />
+    <Compile Include="Impl\Unmanaged\Jni\JavaClass.cs" />
+    <Compile Include="Impl\Unmanaged\Jni\JniGlobalHandle.cs" />
     <Compile Include="PersistentStore\CheckpointWriteOrder.cs" />
     <Compile Include="PersistentStore\IPersistentStoreMetrics.cs" />
     <Compile Include="PersistentStore\Package-Info.cs" />
