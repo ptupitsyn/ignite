@@ -40,6 +40,27 @@ namespace Apache.Ignite.Core.Tests
         }
 
         [Test]
+        public void TestIgnitionStart()
+        {
+            /*
+                jstring cfgPath0 = env->NewStringUTF(cfgPath);
+                jstring name0 = env->NewStringUTF(name);
+
+                env->CallStaticVoidMethod(
+                    jvm->GetMembers().c_PlatformIgnition,
+                    jvm->GetMembers().m_PlatformIgnition_start,
+                    cfgPath0,
+                    name0,
+                    factoryId,
+                    reinterpret_cast<long long>(&hnds),
+                    dataPtr
+                );
+             */
+
+            
+        }
+
+        [Test]
         public unsafe void TestGetDefaultJvmArgs()
         {
             var args = new JavaVMInitArgs();

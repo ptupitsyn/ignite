@@ -43,6 +43,8 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
 
         public static void CreateJavaVM(out JavaVM jvm, out JNIEnv env, params string[] options)
         {
+            // TODO: Reuse existing if present: JNI_GetCreatedJavaVMs
+
             var args = new JavaVMInitArgs
             {
                 version = JNI_VERSION_1_6
