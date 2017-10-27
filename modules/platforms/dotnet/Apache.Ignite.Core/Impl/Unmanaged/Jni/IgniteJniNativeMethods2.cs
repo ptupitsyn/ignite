@@ -78,11 +78,20 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
 
         public static void CallStaticVoidMethod(JNIEnv env, JavaClass clazz, IntPtr methodId, params Value[] args)
         {
-            callStaticVoidMethod(env.EnvPtr, clazz.Handle, methodId, args);
+            var callStaticVoidMethod =
+                (CallStaticVoidMethodDelegate) Marshal.GetDelegateForFunctionPointer(
+                    env.Functions.CallStaticVoidMethod,
+                    typeof(CallStaticVoidMethodDelegate));
+
+            callStaticVoidMethod(env.EnvPtr, clazz.Handle.DangerousGetHandle(), methodId, args);
             
             // TODO
             // ExceptionTest();
         }
+
+        [UnmanagedFunctionPointer(CallingConvention.StdCall)]
+        private delegate JNIResult CallStaticVoidMethodDelegate(
+            IntPtr thiz, IntPtr clazz, IntPtr methodIdJavaPtr, params Value[] args);
 
     }
 
@@ -194,6 +203,11 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
         public IntPtr EnvPtr
         {
             get { return envPtr; }
+        }
+
+        public JNINativeInterface Functions
+        {
+            get { return functions; }
         }
 
         [StructLayout(LayoutKind.Sequential, Size = 4)]
