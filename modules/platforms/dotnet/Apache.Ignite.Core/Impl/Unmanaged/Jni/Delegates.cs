@@ -9,7 +9,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
     internal class Delegates
     {
         [UnmanagedFunctionPointer(CallingConvention.StdCall)]
-        public delegate JNIResult CallStaticVoidMethodDelegate(
+        public delegate JNIResult CallStaticVoidMethod(
             IntPtr thiz, IntPtr clazz, IntPtr methodIdJavaPtr, params Value[] args);
 
 

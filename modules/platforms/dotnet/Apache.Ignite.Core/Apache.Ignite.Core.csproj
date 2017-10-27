@@ -138,6 +138,8 @@
     <Compile Include="Impl\PlatformJniTarget.cs" />
     <Compile Include="Impl\Unmanaged\Jni\JavaClass.cs" />
     <Compile Include="Impl\Unmanaged\Jni\JniGlobalHandle.cs" />
+    <Compile Include="Impl\Unmanaged\Jni\Methods.cs" />
+    <Compile Include="Impl\Unmanaged\Jni\Jvm.cs" />
     <Compile Include="PersistentStore\CheckpointWriteOrder.cs" />
     <Compile Include="PersistentStore\IPersistentStoreMetrics.cs" />
     <Compile Include="PersistentStore\Package-Info.cs" />

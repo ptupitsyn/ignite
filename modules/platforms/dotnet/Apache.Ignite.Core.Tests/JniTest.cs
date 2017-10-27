@@ -34,9 +34,9 @@ namespace Apache.Ignite.Core.Tests
         [Test]
         public void TestCreateJvm()
         {
-            JavaVM jvm;
-            JNIEnv env;
-            IgniteJniNativeMethods2.CreateJavaVM(out jvm, out env);
+            var jvm = Jvm.GetOrCreate();
+
+            Assert.IsNotNull(jvm);
         }
 
         [Test]

@@ -25,8 +25,6 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
     [SuppressUnmanagedCodeSecurity]
     internal static unsafe class IgniteJniNativeMethods2
     {
-        private const int JNI_VERSION_1_6 = 0x00010006;
-
         // See https://github.com/srisatish/openjdk/blob/master/jdk/src/share/sample/vm/clr-jvm/invoker.cs
         // See https://github.com/jni4net/jni4net
 
@@ -41,47 +39,12 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
         [DllImport("jvm.dll", CallingConvention = CallingConvention.StdCall)]
         internal static extern JNIResult JNI_GetDefaultJavaVMInitArgs(JavaVMInitArgs* args);
 
-        public static void CreateJavaVM(out JavaVM jvm, out JNIEnv env, params string[] options)
-        {
-            // TODO: Reuse existing if present: JNI_GetCreatedJavaVMs
-
-            var args = new JavaVMInitArgs
-            {
-                version = JNI_VERSION_1_6
-            };
-
-            if (options.Length > 0)
-            {
-                args.nOptions = options.Length;
-                var opt = new JavaVMOption[options.Length];
-                for (int i = 0; i < options.Length; i++)
-                {
-                    opt[i].optionString = Marshal.StringToHGlobalAnsi(options[i]);
-                }
-                fixed (JavaVMOption* a = &opt[0])
-                {
-                    args.options = a;
-                }
-            }
-
-            IntPtr njvm;
-            IntPtr nenv;
-
-            var result = JNI_CreateJavaVM(out njvm, out nenv, &args);
-            if (result != JNIResult.Success)
-            {
-                throw new IgniteException("Can't load JVM: " + result);
-            }
-            jvm = new JavaVM(njvm);
-            env = new JNIEnv(nenv);
-        }
-
         public static void CallStaticVoidMethod(JNIEnv env, JavaClass clazz, IntPtr methodId, params Value[] args)
         {
             var callStaticVoidMethod =
-                (Delegates.CallStaticVoidMethodDelegate) Marshal.GetDelegateForFunctionPointer(
+                (Delegates.CallStaticVoidMethod) Marshal.GetDelegateForFunctionPointer(
                     env.Functions.CallStaticVoidMethod,
-                    typeof(Delegates.CallStaticVoidMethodDelegate));
+                    typeof(Delegates.CallStaticVoidMethod));
 
             callStaticVoidMethod(env.EnvPtr, clazz.Handle.DangerousGetHandle(), methodId, args);
             
