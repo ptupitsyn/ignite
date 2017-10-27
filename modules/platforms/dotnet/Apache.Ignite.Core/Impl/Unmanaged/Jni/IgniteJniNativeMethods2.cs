@@ -25,6 +25,8 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
     [SuppressUnmanagedCodeSecurity]
     internal static unsafe class IgniteJniNativeMethods2
     {
+        private const int JNI_VERSION_1_6 = 0x00010006;
+
         // See https://github.com/srisatish/openjdk/blob/master/jdk/src/share/sample/vm/clr-jvm/invoker.cs
         // See https://github.com/jni4net/jni4net
 
@@ -41,9 +43,10 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
 
         public static void CreateJavaVM(out JavaVM jvm, out JNIEnv env, params string[] options)
         {
-            IntPtr njvm;
-            IntPtr nenv;
-            var args = new JavaVMInitArgs();
+            var args = new JavaVMInitArgs
+            {
+                version = JNI_VERSION_1_6
+            };
 
             if (options.Length > 0)
             {
@@ -58,11 +61,14 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
                     args.options = a;
                 }
             }
+
+            IntPtr njvm;
+            IntPtr nenv;
+
             var result = JNI_CreateJavaVM(out njvm, out nenv, &args);
             if (result != JNIResult.Success)
             {
-                Console.Error.WriteLine("Can't load JVM (already have one ?)");
-                throw new IgniteException("Can't load JVM (already have one ?) " + result);
+                throw new IgniteException("Can't load JVM: " + result);
             }
             jvm = new JavaVM(njvm);
             env = new JNIEnv(nenv);
