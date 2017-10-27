@@ -65,6 +65,15 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
             return res;
         }
 
+        public IntPtr GetStaticMethodId(IntPtr env, IntPtr clazz, string name, string signature)
+        {
+            var res = _getStaticMethodId(env, clazz, name, signature);
+
+            ExceptionCheck();
+
+            return res;
+        }
+
         private static void ExceptionCheck()
         {
             // TODO
