@@ -134,11 +134,15 @@
     <Compile Include="Impl\PersistentStore\PersistentStoreMetrics.cs" />
     <Compile Include="Impl\Unmanaged\Jni\Delegates.cs" />
     <Compile Include="Impl\Unmanaged\Jni\JavaValue.cs" />
-    <Compile Include="Impl\Unmanaged\Jni\JniNativeMethods.cs" />
+    <Compile Include="Impl\Unmanaged\Jni\JavaVM.cs" />
+    <Compile Include="Impl\Unmanaged\Jni\JNIEnv.cs" />
+    <Compile Include="Impl\Unmanaged\Jni\JNINativeInterface.cs" />
+    <Compile Include="Impl\Unmanaged\Jni\JNIInvokeInterface.cs" />
     <Compile Include="Impl\PlatformDisposableTargetAdapter.cs" />
     <Compile Include="Impl\PlatformJniTarget.cs" />
     <Compile Include="Impl\Unmanaged\Jni\JavaClass.cs" />
     <Compile Include="Impl\Unmanaged\Jni\JniGlobalHandle.cs" />
+    <Compile Include="Impl\Unmanaged\Jni\JNIResult.cs" />
     <Compile Include="Impl\Unmanaged\Jni\Methods.cs" />
     <Compile Include="Impl\Unmanaged\Jni\Jvm.cs" />
     <Compile Include="PersistentStore\CheckpointWriteOrder.cs" />

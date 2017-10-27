@@ -60,18 +60,6 @@ namespace Apache.Ignite.Core.Tests
             
         }
 
-        [Test]
-        public unsafe void TestGetDefaultJvmArgs()
-        {
-            var args = new JavaVMInitArgs();
-
-            JniNativeMethods.JNI_GetDefaultJavaVMInitArgs(&args);
-
-            Assert.AreEqual(0, args.version);
-            Assert.AreEqual(0, args.nOptions);
-            Assert.AreEqual(0, args.ignoreUnrecognized);
-        }
-
         private class NoopLogger : ILogger
         {
             /** <inheritdoc /> */

@@ -19,11 +19,13 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
 {
     using System;
     using System.Runtime.InteropServices;
+    using System.Security;
     using Apache.Ignite.Core.Common;
 
     /// <summary>
     /// JVM holder.
     /// </summary>
+    [SuppressUnmanagedCodeSecurity]
     internal class Jvm
     {
         /** */
@@ -87,6 +89,39 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
             var env = new JNIEnv(nenv);
 
             return new Jvm(env, jvm);
+        }
+
+        [StructLayout(LayoutKind.Sequential, Pack = 0)]
+        private struct JavaVMOption
+        {
+            public IntPtr optionString;
+            public IntPtr extraInfo;
+        }
+
+        [StructLayout(LayoutKind.Sequential, Pack = 0)]
+        private unsafe struct JavaVMInitArgs
+        {
+            public int version;
+            public int nOptions;
+            public JavaVMOption* options;
+            public byte ignoreUnrecognized;
+        }
+
+        private static unsafe class JniNativeMethods
+        {
+            // See https://github.com/srisatish/openjdk/blob/master/jdk/src/share/sample/vm/clr-jvm/invoker.cs
+            // See https://github.com/jni4net/jni4net
+
+            [DllImport("jvm.dll", CallingConvention = CallingConvention.StdCall)]
+            internal static extern JNIResult JNI_CreateJavaVM(out IntPtr pvm, out IntPtr penv,
+                JavaVMInitArgs* args);
+
+            [DllImport("jvm.dll", CallingConvention = CallingConvention.StdCall)]
+            internal static extern JNIResult JNI_GetCreatedJavaVMs(out IntPtr pvm, int size,
+                [Out] out int size2);
+
+            [DllImport("jvm.dll", CallingConvention = CallingConvention.StdCall)]
+            internal static extern JNIResult JNI_GetDefaultJavaVMInitArgs(JavaVMInitArgs* args);
         }
     }
 }
