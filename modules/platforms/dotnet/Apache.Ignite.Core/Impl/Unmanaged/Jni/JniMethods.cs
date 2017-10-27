@@ -25,13 +25,13 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
     /// <summary>
     /// JNI methods accessor.
     /// </summary>
-    internal class Methods
+    internal class JniMethods
     {
         private readonly JNIEnv _env;
 
         private readonly Delegates.CallStaticVoidMethod _callStaticVoidMethod;
 
-        public Methods(JNIEnv env)
+        public JniMethods(JNIEnv env)
         {
             Debug.Assert(env != null);
             Debug.Assert(env.EnvPtr != IntPtr.Zero);
