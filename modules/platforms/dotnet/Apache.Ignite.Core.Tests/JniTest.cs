@@ -25,18 +25,22 @@ namespace Apache.Ignite.Core.Tests
 
     public class JniTest
     {
-        [Test]
-        public unsafe void TestCreateJvm()
+        [TestFixtureSetUp]
+        public void TestFixtureSetUp()
         {
             IgniteUtils.LoadDlls(null, new NoopLogger());
+        }
 
+        [Test]
+        public unsafe void TestGetDefaultJvmArgs()
+        {
             var args = new JavaVMInitArgs();
 
             IgniteJniNativeMethods2.JNI_GetDefaultJavaVMInitArgs(&args);
 
             Assert.AreEqual(0, args.version);
-
-            //IgniteJniNativeMethods2.JNI_CreateJavaVM()
+            Assert.AreEqual(0, args.nOptions);
+            Assert.AreEqual(0, args.ignoreUnrecognized);
         }
 
         private class NoopLogger : ILogger
