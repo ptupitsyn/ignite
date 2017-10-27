@@ -30,6 +30,9 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
         private readonly JNIEnv _env;
 
         private readonly Delegates.CallStaticVoidMethod _callStaticVoidMethod;
+        private readonly Delegates.FindClass _findClass;
+        private readonly Delegates.GetMethodID _getMethodId;
+        private readonly Delegates.GetStaticMethodID _getStaticMethodId;
 
         public JniMethods(JNIEnv env)
         {
@@ -41,14 +44,30 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
             var func = env.Functions;
 
             _callStaticVoidMethod = GetDelegate<Delegates.CallStaticVoidMethod>(func.CallStaticVoidMethod);
+            _findClass = GetDelegate<Delegates.FindClass>(func.FindClass);
+            _getMethodId = GetDelegate<Delegates.GetMethodID>(func.GetMethodID);
+            _getStaticMethodId = GetDelegate<Delegates.GetStaticMethodID>(func.GetStaticMethodID);
         }
 
-        public void CallStaticVoidMethod(JNIEnv env, JavaClass clazz, IntPtr methodId, params JavaValue[] args)
+        public void CallStaticVoidMethod(JNIEnv env, IntPtr clazz, IntPtr methodId, params JavaValue[] args)
         {
-            _callStaticVoidMethod(env.EnvPtr, clazz.Handle.DangerousGetHandle(), methodId, args);
+            _callStaticVoidMethod(env.EnvPtr, clazz, methodId, args);
 
+            ExceptionCheck();
+        }
+
+        public IntPtr FindClass(IntPtr env, string name)
+        {
+            var res = _findClass(env, name);
+
+            ExceptionCheck();
+
+            return res;
+        }
+
+        private static void ExceptionCheck()
+        {
             // TODO
-            // ExceptionTest();
         }
 
         private static T GetDelegate<T>(IntPtr ptr)

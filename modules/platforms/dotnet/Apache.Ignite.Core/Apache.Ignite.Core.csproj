@@ -140,8 +140,6 @@
     <Compile Include="Impl\Unmanaged\Jni\JNIInvokeInterface.cs" />
     <Compile Include="Impl\PlatformDisposableTargetAdapter.cs" />
     <Compile Include="Impl\PlatformJniTarget.cs" />
-    <Compile Include="Impl\Unmanaged\Jni\JavaClass.cs" />
-    <Compile Include="Impl\Unmanaged\Jni\JniGlobalHandle.cs" />
     <Compile Include="Impl\Unmanaged\Jni\JNIResult.cs" />
     <Compile Include="Impl\Unmanaged\Jni\JniMethods.cs" />
     <Compile Include="Impl\Unmanaged\Jni\Jvm.cs" />
