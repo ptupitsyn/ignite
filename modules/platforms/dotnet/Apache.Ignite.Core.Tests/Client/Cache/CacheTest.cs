@@ -866,7 +866,10 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
                 Guid.NewGuid().ToString(),
                 "тест",
                 "Тест",
-                "ТЕСТ"
+                "ТЕСТ",
+                "тест1",
+                "Тест2",
+                "ТЕСТ3"
             };
 
             var ignite = Ignition.GetIgnite();
