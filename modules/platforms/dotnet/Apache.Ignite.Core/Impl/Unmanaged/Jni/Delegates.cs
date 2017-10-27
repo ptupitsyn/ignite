@@ -10,20 +10,27 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
     {
         [UnmanagedFunctionPointer(CallingConvention.StdCall)]
         public delegate JNIResult CallStaticVoidMethod(
-            IntPtr thiz, IntPtr clazz, IntPtr methodIdJavaPtr, params JavaValue[] args);
-
-
-        [UnmanagedFunctionPointer(CallingConvention.StdCall)]
-        internal delegate IntPtr NewGlobalRef(IntPtr thiz, IntPtr lobj);
+            IntPtr env, IntPtr clazz, IntPtr methodIdJavaPtr, params JavaValue[] args);
 
         [UnmanagedFunctionPointer(CallingConvention.StdCall)]
-        internal delegate void DeleteLocalRef(IntPtr thiz, IntPtr lref);
+        internal delegate IntPtr NewGlobalRef(IntPtr env, IntPtr lobj);
+
+        [UnmanagedFunctionPointer(CallingConvention.StdCall)]
+        internal delegate void DeleteLocalRef(IntPtr env, IntPtr lref);
 
         [UnmanagedFunctionPointer(CallingConvention.StdCall)]
         [SuppressUnmanagedCodeSecurity]
-        internal delegate void DeleteGlobalRef(IntPtr thiz, IntPtr gref);
+        internal delegate void DeleteGlobalRef(IntPtr env, IntPtr gref);
 
         [UnmanagedFunctionPointer(CallingConvention.StdCall)]
-        internal delegate IntPtr FindClass(IntPtr thiz, [MarshalAs(UnmanagedType.LPStr)] string name);
+        internal delegate IntPtr FindClass(IntPtr env, [MarshalAs(UnmanagedType.LPStr)] string name);
+
+        [UnmanagedFunctionPointer(CallingConvention.StdCall)]
+        internal delegate IntPtr GetStaticMethodID(IntPtr env, IntPtr clazz, 
+            [MarshalAs(UnmanagedType.LPStr)] string name, [MarshalAs(UnmanagedType.LPStr)] string sig);
+
+        [UnmanagedFunctionPointer(CallingConvention.StdCall)]
+        internal delegate IntPtr GetMethodID(IntPtr env, IntPtr clazz, [MarshalAs(UnmanagedType.LPStr)] string name,
+            [MarshalAs(UnmanagedType.LPStr)] string sig);
     }
 }
