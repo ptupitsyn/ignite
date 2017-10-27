@@ -39,7 +39,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
         [DllImport("jvm.dll", CallingConvention = CallingConvention.StdCall)]
         internal static extern JNIResult JNI_GetDefaultJavaVMInitArgs(JavaVMInitArgs* args);
 
-        public static void CreateJavaVM(out JavaVM jvm, out JNIEnv env, bool attachIfExists, params string[] options)
+        public static void CreateJavaVM(out JavaVM jvm, out JNIEnv env, params string[] options)
         {
             IntPtr njvm;
             IntPtr nenv;
