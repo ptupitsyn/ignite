@@ -858,6 +858,9 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
                 "foo-bar",
                 "Foo-Bar",
                 "FOO-BAR",
+                "testCache1",
+                "TestCache2",
+                "TESTCACHE3",
                 new string('c', 100),
                 new string('C', 100),
                 Guid.NewGuid().ToString(),
@@ -868,14 +871,15 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
 
             var ignite = Ignition.GetIgnite();
 
-            foreach (var cacheName in cacheNames)
+            for (var i = 0; i < cacheNames.Length; i++)
             {
-                ignite.CreateCache<int, int>(cacheName).Put(1, 1);
+                var cacheName = cacheNames[i];
+                ignite.CreateCache<int, string>(cacheName).Put(i, cacheName);
 
                 using (var client = GetClient())
                 {
-                    var cache = client.GetCache<int, int>(cacheName);
-                    Assert.AreEqual(1, cache[1]);
+                    var cache = client.GetCache<int, string>(cacheName);
+                    Assert.AreEqual(cacheName, cache[i]);
                 }
             }
         }
