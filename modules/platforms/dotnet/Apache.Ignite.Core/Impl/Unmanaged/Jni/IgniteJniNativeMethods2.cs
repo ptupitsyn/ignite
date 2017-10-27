@@ -76,9 +76,35 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
             env = new JNIEnv(nenv);
         }
 
-
+        public static void CallStaticVoidMethod(JNIEnv env, JavaClass clazz, IntPtr methodId, params Value[] args)
+        {
+            callStaticVoidMethod(env.EnvPtr, clazz.Handle, methodId, args);
+            
+            // TODO
+            // ExceptionTest();
+        }
 
     }
+
+    [StructLayout(LayoutKind.Explicit, Size = 8)]
+    internal struct Value
+    {
+        public static Value Null
+        {
+            get { return new Value(); }
+        }
+
+        [FieldOffset(0)] public byte _bool;
+        [FieldOffset(0)] public byte _byte;
+        [FieldOffset(0)] public short _char;
+        [FieldOffset(0)] public short _short;
+        [FieldOffset(0)] public int _int;
+        [FieldOffset(0)] public long _long;
+        [FieldOffset(0)] public float _float;
+        [FieldOffset(0)] public double _double;
+        [FieldOffset(0)] public IntPtr _object;
+    }
+
 
     internal enum JNIResult
     {
@@ -149,6 +175,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
         //[ThreadStatic] private static JNIEnv threadJNIEnv;
 
         private readonly IntPtr envPtr;
+
         private JNINativeInterface functions;
         //private JavaVM javaVM;
 
@@ -162,6 +189,11 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
             //{
             //    defaultVM = GetJavaVM();
             //}
+        }
+
+        public IntPtr EnvPtr
+        {
+            get { return envPtr; }
         }
 
         [StructLayout(LayoutKind.Sequential, Size = 4)]

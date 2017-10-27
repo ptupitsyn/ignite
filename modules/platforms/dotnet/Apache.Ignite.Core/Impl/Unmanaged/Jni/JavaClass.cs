@@ -8,5 +8,10 @@
         {
             _handle = handle;
         }
+
+        public JniGlobalHandle Handle
+        {
+            get { return _handle; }
+        }
     }
 }

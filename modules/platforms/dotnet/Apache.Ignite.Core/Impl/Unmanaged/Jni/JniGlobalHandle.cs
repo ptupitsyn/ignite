@@ -13,6 +13,11 @@
 
         private readonly JavaVM _javaVm;
 
+        public JavaVM JavaVm
+        {
+            get { return _javaVm; }
+        }
+
         private static readonly JniGlobalHandle zero = new JniGlobalHandle(IntPtr.Zero, null);
 
         public static JniGlobalHandle Zero
