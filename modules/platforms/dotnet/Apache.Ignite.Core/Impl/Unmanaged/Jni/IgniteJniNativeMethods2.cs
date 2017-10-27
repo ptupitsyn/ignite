@@ -27,12 +27,6 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
         // See https://github.com/srisatish/openjdk/blob/master/jdk/src/share/sample/vm/clr-jvm/invoker.cs
         // See https://github.com/jni4net/jni4net
 
-        [DllImport(IgniteUtils.FileJvmDll, EntryPoint = "JNI_CreateJavaVM")]
-        public unsafe static extern long JNI_CreateJavaVM(void** ppVm, void** ppEnv, void* pArgs);
-
-        [DllImport(IgniteUtils.FileJvmDll, EntryPoint = "IgniteTargetInLongOutLong")]
-        public static extern long TargetInLongOutLong(void* ctx, void* target, int opType, long val);
-
         [DllImport("jvm.dll", CallingConvention = CallingConvention.StdCall)]
         internal static extern JNIResult JNI_CreateJavaVM(out IntPtr pvm, out IntPtr penv,
             JavaVMInitArgs* args);
