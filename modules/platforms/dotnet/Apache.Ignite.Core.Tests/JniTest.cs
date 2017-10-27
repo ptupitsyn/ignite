@@ -57,7 +57,11 @@ namespace Apache.Ignite.Core.Tests
                 );
              */
 
-            
+            var jvm = Jvm.GetOrCreate();
+            Assert.IsNotNull(jvm);
+
+            var ignition = jvm.Methods.FindClass("org/apache/ignite/internal/processors/platform/PlatformIgnition");
+            Assert.AreNotEqual(IntPtr.Zero, ignition);
         }
 
         private class NoopLogger : ILogger

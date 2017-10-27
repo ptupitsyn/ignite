@@ -49,25 +49,25 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
             _getStaticMethodId = GetDelegate<Delegates.GetStaticMethodID>(func.GetStaticMethodID);
         }
 
-        public void CallStaticVoidMethod(JNIEnv env, IntPtr clazz, IntPtr methodId, params JavaValue[] args)
+        public void CallStaticVoidMethod(IntPtr clazz, IntPtr methodId, params JavaValue[] args)
         {
-            _callStaticVoidMethod(env.EnvPtr, clazz, methodId, args);
+            _callStaticVoidMethod(_env.EnvPtr, clazz, methodId, args);
 
             ExceptionCheck();
         }
 
-        public IntPtr FindClass(IntPtr env, string name)
+        public IntPtr FindClass(string name)
         {
-            var res = _findClass(env, name);
+            var res = _findClass(_env.EnvPtr, name);
 
             ExceptionCheck();
 
             return res;
         }
 
-        public IntPtr GetStaticMethodId(IntPtr env, IntPtr clazz, string name, string signature)
+        public IntPtr GetStaticMethodId(IntPtr clazz, string name, string signature)
         {
-            var res = _getStaticMethodId(env, clazz, name, signature);
+            var res = _getStaticMethodId(_env.EnvPtr, clazz, name, signature);
 
             ExceptionCheck();
 
