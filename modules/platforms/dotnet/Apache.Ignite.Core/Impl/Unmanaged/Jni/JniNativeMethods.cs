@@ -20,10 +20,9 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
     using System;
     using System.Runtime.InteropServices;
     using System.Security;
-    using Apache.Ignite.Core.Common;
 
     [SuppressUnmanagedCodeSecurity]
-    internal static unsafe class IgniteJniNativeMethods2
+    internal static unsafe class JniNativeMethods
     {
         // See https://github.com/srisatish/openjdk/blob/master/jdk/src/share/sample/vm/clr-jvm/invoker.cs
         // See https://github.com/jni4net/jni4net
@@ -38,40 +37,6 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
 
         [DllImport("jvm.dll", CallingConvention = CallingConvention.StdCall)]
         internal static extern JNIResult JNI_GetDefaultJavaVMInitArgs(JavaVMInitArgs* args);
-
-        public static void CallStaticVoidMethod(JNIEnv env, JavaClass clazz, IntPtr methodId, params Value[] args)
-        {
-            var callStaticVoidMethod =
-                (Delegates.CallStaticVoidMethod) Marshal.GetDelegateForFunctionPointer(
-                    env.Functions.CallStaticVoidMethod,
-                    typeof(Delegates.CallStaticVoidMethod));
-
-            callStaticVoidMethod(env.EnvPtr, clazz.Handle.DangerousGetHandle(), methodId, args);
-            
-            // TODO
-            // ExceptionTest();
-        }
-
-
-    }
-
-    [StructLayout(LayoutKind.Explicit, Size = 8)]
-    internal struct Value
-    {
-        public static Value Null
-        {
-            get { return new Value(); }
-        }
-
-        [FieldOffset(0)] public byte _bool;
-        [FieldOffset(0)] public byte _byte;
-        [FieldOffset(0)] public short _char;
-        [FieldOffset(0)] public short _short;
-        [FieldOffset(0)] public int _int;
-        [FieldOffset(0)] public long _long;
-        [FieldOffset(0)] public float _float;
-        [FieldOffset(0)] public double _double;
-        [FieldOffset(0)] public IntPtr _object;
     }
 
 

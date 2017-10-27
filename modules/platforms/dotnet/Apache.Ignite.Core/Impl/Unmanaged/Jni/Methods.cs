@@ -43,7 +43,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
             _callStaticVoidMethod = GetDelegate<Delegates.CallStaticVoidMethod>(func.CallStaticVoidMethod);
         }
 
-        public void CallStaticVoidMethod(JNIEnv env, JavaClass clazz, IntPtr methodId, params Value[] args)
+        public void CallStaticVoidMethod(JNIEnv env, JavaClass clazz, IntPtr methodId, params JavaValue[] args)
         {
             _callStaticVoidMethod(env.EnvPtr, clazz.Handle.DangerousGetHandle(), methodId, args);
 

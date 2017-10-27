@@ -65,7 +65,7 @@ namespace Apache.Ignite.Core.Tests
         {
             var args = new JavaVMInitArgs();
 
-            IgniteJniNativeMethods2.JNI_GetDefaultJavaVMInitArgs(&args);
+            JniNativeMethods.JNI_GetDefaultJavaVMInitArgs(&args);
 
             Assert.AreEqual(0, args.version);
             Assert.AreEqual(0, args.nOptions);

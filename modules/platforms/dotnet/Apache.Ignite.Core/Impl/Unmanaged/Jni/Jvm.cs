@@ -77,7 +77,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
             IntPtr njvm;
             IntPtr nenv;
 
-            var result = IgniteJniNativeMethods2.JNI_CreateJavaVM(out njvm, out nenv, &args);
+            var result = JniNativeMethods.JNI_CreateJavaVM(out njvm, out nenv, &args);
             if (result != JNIResult.Success)
             {
                 throw new IgniteException("Can't load JVM: " + result);
