@@ -32,6 +32,12 @@ namespace Apache.Ignite.Core.Tests
         }
 
         [Test]
+        public void TestCreateJvm()
+        {
+            IgniteJniNativeMethods2.JNI_CreateJavaVM()
+        }
+
+        [Test]
         public unsafe void TestGetDefaultJvmArgs()
         {
             var args = new JavaVMInitArgs();
