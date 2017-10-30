@@ -18,10 +18,8 @@
 namespace Apache.Ignite.Core.Tests
 {
     using System;
-    using System.Runtime.InteropServices;
     using Apache.Ignite.Core.Impl;
     using Apache.Ignite.Core.Impl.Common;
-    using Apache.Ignite.Core.Impl.Memory;
     using Apache.Ignite.Core.Impl.Unmanaged.Jni;
     using Apache.Ignite.Core.Log;
     using NUnit.Framework;
@@ -32,14 +30,6 @@ namespace Apache.Ignite.Core.Tests
         public void TestFixtureSetUp()
         {
             IgniteUtils.LoadDlls(null, new NoopLogger());
-        }
-
-        [Test]
-        public void TestCreateJvm()
-        {
-            var jvm = Jvm.GetOrCreate();
-
-            Assert.IsNotNull(jvm);
         }
 
         [Test]
