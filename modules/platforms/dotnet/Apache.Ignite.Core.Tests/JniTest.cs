@@ -18,6 +18,7 @@
 namespace Apache.Ignite.Core.Tests
 {
     using System;
+    using System.Collections.Generic;
     using Apache.Ignite.Core.Impl;
     using Apache.Ignite.Core.Impl.Common;
     using Apache.Ignite.Core.Impl.Unmanaged.Jni;
@@ -47,7 +48,7 @@ namespace Apache.Ignite.Core.Tests
             jvm.Methods.CallStaticVoidMethod(ignition, stopAll);
         }
 
-        [Test]
+        //[Test]
         public unsafe void TestStartDelme()
         {
             var jvm = Jvm.GetOrCreate(Classpath.CreateClasspath(forceTestClasspath: true));
@@ -71,7 +72,7 @@ namespace Apache.Ignite.Core.Tests
             Console.WriteLine("------------");
         }
 
-        //[Test]
+        [Test]
         public unsafe void TestIgnitionStart()
         {
             /*
@@ -101,29 +102,30 @@ namespace Apache.Ignite.Core.Tests
             // TODO: How to pass strings? 
             // va_list is just a pointer to arguments in memory.
             // Primitives are written there directly, strings are char*
-            using (var argMem = IgniteManager.Memory.Allocate().GetStream())
+            var args = new List<JavaValue>();
+
             using (var dataMem = IgniteManager.Memory.Allocate().GetStream())
             {
                 // Cfg path: zero
-                argMem.WriteLong(0); // TODO: Sizeof(IntPtr)
+                args.Add(new JavaValue {_object = IntPtr.Zero});
 
                 // Name
                 var gridNameUtf = IgniteUtils.StringToUtf8Unmanaged("myGrid"); // TODO: FreeHGlobal
                 var gridName1 = jvm.Methods.NewStringUTF(new IntPtr(gridNameUtf));
-                argMem.WriteLong((long) gridName1);
+                args.Add(new JavaValue { _object = gridName1 });
 
                 // FactoryId
-                argMem.WriteInt(1);
+                args.Add(new JavaValue{_int = 1});
 
                 // EnvPtr ???
-                argMem.WriteLong((long) jvm.EnvPtr);
+                args.Add(new JavaValue { _object = jvm.EnvPtr });
 
                 // Additional data.
                 dataMem.WriteBool(false);
                 dataMem.WriteBool(false);
-                argMem.WriteLong(dataMem.SynchronizeOutput());
+                args.Add(new JavaValue { _long = dataMem.SynchronizeOutput() });
 
-                jvm.Methods.CallStaticVoidMethodV(ignition, start, new IntPtr(argMem.SynchronizeOutput()));
+                jvm.Methods.CallStaticVoidMethod(ignition, start, args.ToArray());
             }
         }
 
