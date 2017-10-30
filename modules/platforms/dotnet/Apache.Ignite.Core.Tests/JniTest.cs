@@ -62,15 +62,13 @@ namespace Apache.Ignite.Core.Tests
             // TODO: How to pass strings? 
             // va_list is just a pointer to arguments in memory.
             // Primitives are written there directly, strings are char*
-            using (var argMem = IgniteManager.Memory.Allocate().GetStream())
-            {
-                // Name
-                var gridNameUtf = IgniteUtils.StringToUtf8Unmanaged("myGrid"); // TODO: FreeHGlobal
-                var gridName1 = jvm.Methods.NewStringUTF(new IntPtr(gridNameUtf));
-                argMem.WriteLong((long)gridName1);
+            // Name
+            var gridNameUtf = IgniteUtils.StringToUtf8Unmanaged("myGrid"); // TODO: FreeHGlobal
+            var gridName1 = jvm.Methods.NewStringUTF(new IntPtr(gridNameUtf));
 
-                jvm.Methods.CallStaticVoidMethodV(ignition, start, new IntPtr(argMem.SynchronizeOutput()));
-            }
+            Console.Clear();
+            jvm.Methods.CallStaticVoidMethod(ignition, start, new JavaValue {_object = gridName1});
+            Console.WriteLine("------------");
         }
 
         //[Test]

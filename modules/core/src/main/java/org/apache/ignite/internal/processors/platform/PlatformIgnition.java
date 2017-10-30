@@ -42,7 +42,7 @@ public class PlatformIgnition {
     private static final HashMap<String, PlatformProcessor> instances = new HashMap<>();
 
     public static synchronized void startDelme(@Nullable String foo) {
-        System.out.println("HELLO THERE! " + foo);
+        System.out.println("HELLO THERE! |" + foo + "|");
     }
 
     /**
