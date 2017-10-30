@@ -18,8 +18,10 @@
 namespace Apache.Ignite.Core.Tests
 {
     using System;
+    using System.Runtime.InteropServices;
     using Apache.Ignite.Core.Impl;
     using Apache.Ignite.Core.Impl.Common;
+    using Apache.Ignite.Core.Impl.Memory;
     using Apache.Ignite.Core.Impl.Unmanaged.Jni;
     using Apache.Ignite.Core.Log;
     using NUnit.Framework;
@@ -41,7 +43,7 @@ namespace Apache.Ignite.Core.Tests
         }
 
         [Test]
-        public void TestIgnitionStart()
+        public unsafe void TestIgnitionStart()
         {
             /*
                 jstring cfgPath0 = env->NewStringUTF(cfgPath);
@@ -70,7 +72,29 @@ namespace Apache.Ignite.Core.Tests
             // TODO: How to pass strings? 
             // va_list is just a pointer to arguments in memory.
             // Primitives are written there directly, strings are char*
-            jvm.Methods.CallStaticVoidMethod(ignition, start, new JavaValue());
+            using (var argMem = IgniteManager.Memory.Allocate().GetStream())
+            using (var dataMem = IgniteManager.Memory.Allocate().GetStream())
+            {
+                // Cfg path: zero
+                argMem.WriteLong(0); // TODO: Sizeof(IntPtr)
+
+                // Name
+                sbyte* gridName0 = IgniteUtils.StringToUtf8Unmanaged("myGrid"); // TODO: FreeHGlobal
+                argMem.WriteLong((long) gridName0);
+
+                // FactoryId
+                argMem.WriteInt(1);
+
+                // EnvPtr ???
+                argMem.WriteLong((long) jvm.EnvPtr);
+
+                // Additional data.
+                dataMem.WriteBool(false);
+                dataMem.WriteBool(false);
+                argMem.WriteLong(dataMem.SynchronizeOutput());
+
+                jvm.Methods.CallStaticVoidMethodV(ignition, start, new IntPtr(argMem.SynchronizeOutput()));
+            }
         }
 
         private class NoopLogger : ILogger

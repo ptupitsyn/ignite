@@ -53,6 +53,11 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
             get { return _jniMethods; }
         }
 
+        public IntPtr EnvPtr
+        {
+            get { return _env.EnvPtr; }
+        }
+
         public static unsafe Jvm GetOrCreate(params string[] options)
         {
             var args = new JavaVMInitArgs
