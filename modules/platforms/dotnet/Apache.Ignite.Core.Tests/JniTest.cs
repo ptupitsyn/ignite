@@ -33,6 +33,21 @@ namespace Apache.Ignite.Core.Tests
         }
 
         [Test]
+        public static void TestIgnitionStopAll()
+        {
+            var jvm = Jvm.GetOrCreate(Classpath.CreateClasspath(forceTestClasspath: true));
+            Assert.IsNotNull(jvm);
+
+            var ignition = jvm.Methods.FindClass("org/apache/ignite/internal/processors/platform/PlatformIgnition");
+            Assert.AreNotEqual(IntPtr.Zero, ignition);
+
+            var stopAll = jvm.Methods.GetStaticMethodId(ignition, "stopAll", "(Z)V");
+            Assert.AreNotEqual(IntPtr.Zero, stopAll);
+
+            jvm.Methods.CallStaticVoidMethod(ignition, stopAll);
+        }
+
+        //[Test]
         public unsafe void TestIgnitionStart()
         {
             /*
