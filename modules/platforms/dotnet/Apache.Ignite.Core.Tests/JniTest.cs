@@ -63,6 +63,12 @@ namespace Apache.Ignite.Core.Tests
 
             var ignition = jvm.Methods.FindClass("org/apache/ignite/internal/processors/platform/PlatformIgnition");
             Assert.AreNotEqual(IntPtr.Zero, ignition);
+
+            var start = jvm.Methods.GetStaticMethodId(ignition, "start", "(Ljava/lang/String;Ljava/lang/String;IJJ)V");
+            Assert.AreNotEqual(IntPtr.Zero, start);
+
+            // TODO: How to pass strings?
+            jvm.Methods.CallStaticVoidMethod(ignition, start, new JavaValue());
         }
 
         private class NoopLogger : ILogger
