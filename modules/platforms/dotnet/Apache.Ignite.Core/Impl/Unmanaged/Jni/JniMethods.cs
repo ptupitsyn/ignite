@@ -30,11 +30,11 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
         private readonly JNIEnv _env;
 
         private readonly Delegates.CallStaticVoidMethod _callStaticVoidMethod;
-        private readonly Delegates.CallStaticVoidMethodV _callStaticVoidMethodV;
         private readonly Delegates.FindClass _findClass;
         private readonly Delegates.GetMethodID _getMethodId;
         private readonly Delegates.GetStaticMethodID _getStaticMethodId;
-        private readonly Delegates.NewStringUTF _newStringUTF;
+        private readonly Delegates.NewStringUTF _newStringUtf;
+        private readonly Delegates.ExceptionOccurred _exceptionOccurred;
 
         public JniMethods(JNIEnv env)
         {
@@ -46,23 +46,16 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
             var func = env.Functions;
 
             _callStaticVoidMethod = GetDelegate<Delegates.CallStaticVoidMethod>(func.CallStaticVoidMethod);
-            _callStaticVoidMethodV = GetDelegate<Delegates.CallStaticVoidMethodV>(func.__CallStaticVoidMethodV);
             _findClass = GetDelegate<Delegates.FindClass>(func.FindClass);
             _getMethodId = GetDelegate<Delegates.GetMethodID>(func.GetMethodID);
             _getStaticMethodId = GetDelegate<Delegates.GetStaticMethodID>(func.GetStaticMethodID);
-            _newStringUTF = GetDelegate<Delegates.NewStringUTF>(func.NewStringUTF);
+            _newStringUtf = GetDelegate<Delegates.NewStringUTF>(func.NewStringUTF);
+            _exceptionOccurred = GetDelegate<Delegates.ExceptionOccurred>(func.ExceptionOccurred);
         }
 
         public void CallStaticVoidMethod(IntPtr clazz, IntPtr methodId, params JavaValue[] args)
         {
             _callStaticVoidMethod(_env.EnvPtr, clazz, methodId, args);
-
-            ExceptionCheck();
-        }
-
-        public void CallStaticVoidMethodV(IntPtr clazz, IntPtr methodId, IntPtr vaList)
-        {
-            _callStaticVoidMethodV(_env.EnvPtr, clazz, methodId, vaList);
 
             ExceptionCheck();
         }
@@ -87,15 +80,17 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
 
         public IntPtr NewStringUTF(IntPtr utf)  // TODO: result must be released with DeleteLocalRef
         {
-            var res = _newStringUTF(_env.EnvPtr, utf);
+            var res = _newStringUtf(_env.EnvPtr, utf);
 
             ExceptionCheck();
 
             return res;
         }
 
-        private static void ExceptionCheck()
+        private void ExceptionCheck()
         {
+            var err = _exceptionOccurred(_env.EnvPtr);
+
             // TODO
         }
 

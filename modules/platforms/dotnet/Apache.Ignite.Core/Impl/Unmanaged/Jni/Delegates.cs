@@ -38,6 +38,9 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
             [MarshalAs(UnmanagedType.LPStr)] string sig);
 
         [UnmanagedFunctionPointer(CallingConvention.StdCall)]
-        internal delegate IntPtr NewStringUTF(IntPtr thiz, IntPtr utf);
+        internal delegate IntPtr NewStringUTF(IntPtr env, IntPtr utf);
+
+        [UnmanagedFunctionPointer(CallingConvention.StdCall)]
+        internal delegate IntPtr ExceptionOccurred(IntPtr env);
     }
 }
