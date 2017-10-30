@@ -36,5 +36,8 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
         [UnmanagedFunctionPointer(CallingConvention.StdCall)]
         internal delegate IntPtr GetMethodID(IntPtr env, IntPtr clazz, [MarshalAs(UnmanagedType.LPStr)] string name,
             [MarshalAs(UnmanagedType.LPStr)] string sig);
+
+        [UnmanagedFunctionPointer(CallingConvention.StdCall)]
+        internal delegate IntPtr NewStringUTF(IntPtr thiz, IntPtr utf);
     }
 }

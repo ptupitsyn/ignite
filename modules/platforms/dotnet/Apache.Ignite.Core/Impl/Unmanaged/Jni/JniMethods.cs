@@ -34,6 +34,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
         private readonly Delegates.FindClass _findClass;
         private readonly Delegates.GetMethodID _getMethodId;
         private readonly Delegates.GetStaticMethodID _getStaticMethodId;
+        private readonly Delegates.NewStringUTF _newStringUTF;
 
         public JniMethods(JNIEnv env)
         {
@@ -49,6 +50,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
             _findClass = GetDelegate<Delegates.FindClass>(func.FindClass);
             _getMethodId = GetDelegate<Delegates.GetMethodID>(func.GetMethodID);
             _getStaticMethodId = GetDelegate<Delegates.GetStaticMethodID>(func.GetStaticMethodID);
+            _newStringUTF = GetDelegate<Delegates.NewStringUTF>(func.NewStringUTF);
         }
 
         public void CallStaticVoidMethod(IntPtr clazz, IntPtr methodId, params JavaValue[] args)
@@ -77,6 +79,15 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
         public IntPtr GetStaticMethodId(IntPtr clazz, string name, string signature)
         {
             var res = _getStaticMethodId(_env.EnvPtr, clazz, name, signature);
+
+            ExceptionCheck();
+
+            return res;
+        }
+
+        public IntPtr NewStringUTF(IntPtr utf)  // TODO: result must be released with DeleteLocalRef
+        {
+            var res = _newStringUTF(_env.EnvPtr, utf);
 
             ExceptionCheck();
 

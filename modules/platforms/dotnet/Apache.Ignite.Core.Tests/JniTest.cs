@@ -69,8 +69,9 @@ namespace Apache.Ignite.Core.Tests
                 argMem.WriteLong(0); // TODO: Sizeof(IntPtr)
 
                 // Name
-                sbyte* gridName0 = IgniteUtils.StringToUtf8Unmanaged("myGrid"); // TODO: FreeHGlobal
-                argMem.WriteLong((long) gridName0);
+                var gridNameUtf = IgniteUtils.StringToUtf8Unmanaged("myGrid"); // TODO: FreeHGlobal
+                var gridName1 = jvm.Methods.NewStringUTF(new IntPtr(gridNameUtf));
+                argMem.WriteLong((long) gridName1);
 
                 // FactoryId
                 argMem.WriteInt(1);
