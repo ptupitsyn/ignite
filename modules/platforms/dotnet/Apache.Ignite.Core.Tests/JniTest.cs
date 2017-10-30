@@ -19,6 +19,7 @@ namespace Apache.Ignite.Core.Tests
 {
     using System;
     using Apache.Ignite.Core.Impl;
+    using Apache.Ignite.Core.Impl.Common;
     using Apache.Ignite.Core.Impl.Unmanaged.Jni;
     using Apache.Ignite.Core.Log;
     using NUnit.Framework;
@@ -57,7 +58,7 @@ namespace Apache.Ignite.Core.Tests
                 );
              */
 
-            var jvm = Jvm.GetOrCreate();
+            var jvm = Jvm.GetOrCreate(Classpath.CreateClasspath(forceTestClasspath: true));
             Assert.IsNotNull(jvm);
 
             var ignition = jvm.Methods.FindClass("org/apache/ignite/internal/processors/platform/PlatformIgnition");
