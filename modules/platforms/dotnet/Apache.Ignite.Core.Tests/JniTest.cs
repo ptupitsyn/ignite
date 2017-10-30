@@ -67,7 +67,9 @@ namespace Apache.Ignite.Core.Tests
             var start = jvm.Methods.GetStaticMethodId(ignition, "start", "(Ljava/lang/String;Ljava/lang/String;IJJ)V");
             Assert.AreNotEqual(IntPtr.Zero, start);
 
-            // TODO: How to pass strings?
+            // TODO: How to pass strings? 
+            // va_list is just a pointer to arguments in memory.
+            // Primitives are written there directly, strings are char*
             jvm.Methods.CallStaticVoidMethod(ignition, start, new JavaValue());
         }
 

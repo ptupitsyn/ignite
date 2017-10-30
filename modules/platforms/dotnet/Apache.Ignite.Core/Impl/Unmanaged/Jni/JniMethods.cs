@@ -30,6 +30,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
         private readonly JNIEnv _env;
 
         private readonly Delegates.CallStaticVoidMethod _callStaticVoidMethod;
+        private readonly Delegates.CallStaticVoidMethodV _callStaticVoidMethodV;
         private readonly Delegates.FindClass _findClass;
         private readonly Delegates.GetMethodID _getMethodId;
         private readonly Delegates.GetStaticMethodID _getStaticMethodId;
@@ -44,6 +45,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
             var func = env.Functions;
 
             _callStaticVoidMethod = GetDelegate<Delegates.CallStaticVoidMethod>(func.CallStaticVoidMethod);
+            _callStaticVoidMethodV = GetDelegate<Delegates.CallStaticVoidMethodV>(func.__CallStaticVoidMethodV);
             _findClass = GetDelegate<Delegates.FindClass>(func.FindClass);
             _getMethodId = GetDelegate<Delegates.GetMethodID>(func.GetMethodID);
             _getStaticMethodId = GetDelegate<Delegates.GetStaticMethodID>(func.GetStaticMethodID);
@@ -52,6 +54,13 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
         public void CallStaticVoidMethod(IntPtr clazz, IntPtr methodId, params JavaValue[] args)
         {
             _callStaticVoidMethod(_env.EnvPtr, clazz, methodId, args);
+
+            ExceptionCheck();
+        }
+
+        public void CallStaticVoidMethodV(IntPtr clazz, IntPtr methodId, IntPtr vaList)
+        {
+            _callStaticVoidMethodV(_env.EnvPtr, clazz, methodId, vaList);
 
             ExceptionCheck();
         }

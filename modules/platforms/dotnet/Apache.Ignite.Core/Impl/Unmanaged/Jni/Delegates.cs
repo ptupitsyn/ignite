@@ -13,6 +13,10 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
             IntPtr env, IntPtr clazz, IntPtr methodIdJavaPtr, params JavaValue[] args);
 
         [UnmanagedFunctionPointer(CallingConvention.StdCall)]
+        public delegate JNIResult CallStaticVoidMethodV(
+            IntPtr env, IntPtr clazz, IntPtr methodIdJavaPtr, IntPtr vaList);
+
+        [UnmanagedFunctionPointer(CallingConvention.StdCall)]
         internal delegate IntPtr NewGlobalRef(IntPtr env, IntPtr lobj);
 
         [UnmanagedFunctionPointer(CallingConvention.StdCall)]
