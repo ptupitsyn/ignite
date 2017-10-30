@@ -32,7 +32,7 @@ namespace Apache.Ignite.Core.Tests
             IgniteUtils.LoadDlls(null, new NoopLogger());
         }
 
-        [Test]
+        //[Test]
         public static void TestIgnitionStopAll()
         {
             var jvm = Jvm.GetOrCreate(Classpath.CreateClasspath(forceTestClasspath: true));
@@ -45,6 +45,32 @@ namespace Apache.Ignite.Core.Tests
             Assert.AreNotEqual(IntPtr.Zero, stopAll);
 
             jvm.Methods.CallStaticVoidMethod(ignition, stopAll);
+        }
+
+        [Test]
+        public unsafe void TestStartDelme()
+        {
+            var jvm = Jvm.GetOrCreate(Classpath.CreateClasspath(forceTestClasspath: true));
+            Assert.IsNotNull(jvm);
+
+            var ignition = jvm.Methods.FindClass("org/apache/ignite/internal/processors/platform/PlatformIgnition");
+            Assert.AreNotEqual(IntPtr.Zero, ignition);
+
+            var start = jvm.Methods.GetStaticMethodId(ignition, "startDelme", "(Ljava/lang/String;)V");
+            Assert.AreNotEqual(IntPtr.Zero, start);
+
+            // TODO: How to pass strings? 
+            // va_list is just a pointer to arguments in memory.
+            // Primitives are written there directly, strings are char*
+            using (var argMem = IgniteManager.Memory.Allocate().GetStream())
+            {
+                // Name
+                var gridNameUtf = IgniteUtils.StringToUtf8Unmanaged("myGrid"); // TODO: FreeHGlobal
+                var gridName1 = jvm.Methods.NewStringUTF(new IntPtr(gridNameUtf));
+                argMem.WriteLong((long)gridName1);
+
+                jvm.Methods.CallStaticVoidMethodV(ignition, start, new IntPtr(argMem.SynchronizeOutput()));
+            }
         }
 
         //[Test]

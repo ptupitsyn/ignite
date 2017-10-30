@@ -41,6 +41,10 @@ public class PlatformIgnition {
     /** Map with active instances. */
     private static final HashMap<String, PlatformProcessor> instances = new HashMap<>();
 
+    public static synchronized void startDelme(@Nullable String foo) {
+        System.out.println("HELLO THERE! " + foo);
+    }
+
     /**
      * Start Ignite node in platform mode.
      *
