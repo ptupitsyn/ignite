@@ -133,9 +133,10 @@ namespace Apache.Ignite.Core.Tests
                 GetNativeMethod("loggerIsLevelEnabled", "(JI)Z",
                     (CallbackDelegates.LoggerIsLevelEnabled) LoggerIsLevelEnabled),
 
-                GetNativeMethod("consoleWrite", "(Ljava/lang/String;Z)V", (Action) (() => { })),
+                GetNativeMethod("consoleWrite", "(Ljava/lang/String;Z)V",
+                    (CallbackDelegates.ConsoleWrite) ConsoleWrite),
 
-                GetNativeMethod("inLongOutLong", "(JIJ)J", (CallbackDelegates.ConsoleWrite) ConsoleWrite),
+                GetNativeMethod("inLongOutLong", "(JIJ)J", (Action) (() => { Console.WriteLine("woot"); })),
 
                 GetNativeMethod("inLongLongLongObjectOutLong", "(JIJJJLjava/lang/Object;)J",
                     (CallbackDelegates.InLongLongLongObjectOutLong) InLongLongLongObjectOutLong)
