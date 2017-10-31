@@ -19,6 +19,7 @@ namespace Apache.Ignite.Core.Tests
 {
     using System;
     using System.Collections.Generic;
+    using System.Runtime.InteropServices;
     using Apache.Ignite.Core.Impl;
     using Apache.Ignite.Core.Impl.Common;
     using Apache.Ignite.Core.Impl.Unmanaged.Jni;
@@ -107,10 +108,58 @@ namespace Apache.Ignite.Core.Tests
                 dataMem.WriteBool(false);
                 args.Add(new JavaValue { _long = dataMem.SynchronizeOutput() });
 
+                // Register callbacks.
+                RegisterNatives(jvm);
+
                 // TODO: This works, fails on callback. Implement callbacks.
                 jvm.Methods.CallStaticVoidMethod(ignition, start, args.ToArray());
             }
         }
+
+        private void RegisterNatives(Jvm jvm)
+        {
+            var callbackUtils = jvm.Methods.FindClass(
+                    "org/apache/ignite/internal/processors/platform/callback/PlatformCallbackUtils");
+
+            // TODO: Are delegates signature mandatory? What if we pass the method directly?
+            var methods = new[]
+            {
+                GetNativeMethod("loggerLog", "(JILjava/lang/String;Ljava/lang/String;Ljava/lang/String;J)V",
+                    (CallbackDelegates.LoggerLog) LoggerLog),
+            
+                GetNativeMethod("loggerIsLevelEnabled", "(JI)Z",
+                    (CallbackDelegates.LoggerIsLevelEnabled) LoggerIsLevelEnabled),
+                
+                GetNativeMethod("consoleWrite", "(Ljava/lang/String;Z)V", (Action) (() => { })),
+                
+                GetNativeMethod("inLongOutLong", "(JIJ)J", (Action) (() => { })),
+                
+                GetNativeMethod("inLongLongLongObjectOutLong", "(JIJJJLjava/lang/Object;)J", (Action) (() => { }))
+            };
+
+            jvm.Methods.RegisterNatives(callbackUtils, methods);
+        }
+
+        private static unsafe JNINativeMethod GetNativeMethod(string name, string sig, Delegate d)
+        {
+            return new JNINativeMethod
+            {
+                Name = (IntPtr) IgniteUtils.StringToUtf8Unmanaged(name),
+                Signature = (IntPtr) IgniteUtils.StringToUtf8Unmanaged(sig),
+                FuncPtr = Marshal.GetFunctionPointerForDelegate(d)
+            };
+        }
+
+        private void LoggerLog(IntPtr env, IntPtr clazz, int level, IntPtr message, IntPtr category, IntPtr error, long memPtr)
+        {
+            
+        }
+
+        private bool LoggerIsLevelEnabled(IntPtr env, IntPtr clazz, int level)
+        {
+            return false;
+        }
+
 
         private class NoopLogger : ILogger
         {
