@@ -29,19 +29,19 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
     {
         private readonly IntPtr _envPtr;
 
-        private readonly Delegates.CallStaticVoidMethod _callStaticVoidMethod;
-        private readonly Delegates.FindClass _findClass;
-        private readonly Delegates.GetMethodID _getMethodId;
-        private readonly Delegates.GetStaticMethodID _getStaticMethodId;
-        private readonly Delegates.NewStringUTF _newStringUtf;
-        private readonly Delegates.ExceptionOccurred _exceptionOccurred;
-        private readonly Delegates.GetObjectClass _getObjectClass;
-        private readonly Delegates.CallObjectMethod _callObjectMethod;
-        private readonly Delegates.GetStringChars _getStringChars;
-        private readonly Delegates.ReleaseStringChars _releaseStringChars;
-        private readonly Delegates.ExceptionClear _exceptionClear;
-        private readonly Delegates.CallStaticObjectMethod _callStaticObjectMethod;
-        private readonly Delegates.RegisterNatives _registerNatives;
+        private readonly EnvDelegates.CallStaticVoidMethod _callStaticVoidMethod;
+        private readonly EnvDelegates.FindClass _findClass;
+        private readonly EnvDelegates.GetMethodID _getMethodId;
+        private readonly EnvDelegates.GetStaticMethodID _getStaticMethodId;
+        private readonly EnvDelegates.NewStringUTF _newStringUtf;
+        private readonly EnvDelegates.ExceptionOccurred _exceptionOccurred;
+        private readonly EnvDelegates.GetObjectClass _getObjectClass;
+        private readonly EnvDelegates.CallObjectMethod _callObjectMethod;
+        private readonly EnvDelegates.GetStringChars _getStringChars;
+        private readonly EnvDelegates.ReleaseStringChars _releaseStringChars;
+        private readonly EnvDelegates.ExceptionClear _exceptionClear;
+        private readonly EnvDelegates.CallStaticObjectMethod _callStaticObjectMethod;
+        private readonly EnvDelegates.RegisterNatives _registerNatives;
 
         public EnvMethods(JNIEnv env)
         {
@@ -55,19 +55,19 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
             // Method IDs can be cached, but not the following delegates:
             // TODO Need to find a way to reduce allocatins while calling these.
             // We should do AttachCurrentThread with our own ThreadStatic stuff.
-            _callStaticVoidMethod = GetDelegate<Delegates.CallStaticVoidMethod>(func.CallStaticVoidMethod);
-            _findClass = GetDelegate<Delegates.FindClass>(func.FindClass);
-            _getMethodId = GetDelegate<Delegates.GetMethodID>(func.GetMethodID);
-            _getStaticMethodId = GetDelegate<Delegates.GetStaticMethodID>(func.GetStaticMethodID);
-            _newStringUtf = GetDelegate<Delegates.NewStringUTF>(func.NewStringUTF);
-            _exceptionOccurred = GetDelegate<Delegates.ExceptionOccurred>(func.ExceptionOccurred);
-            _exceptionClear = GetDelegate<Delegates.ExceptionClear>(func.ExceptionClear);
-            _getObjectClass = GetDelegate<Delegates.GetObjectClass>(func.GetObjectClass);
-            _callObjectMethod = GetDelegate<Delegates.CallObjectMethod>(func.CallObjectMethod);
-            _getStringChars = GetDelegate<Delegates.GetStringChars>(func.GetStringChars);
-            _releaseStringChars = GetDelegate<Delegates.ReleaseStringChars>(func.ReleaseStringChars);
-            _callStaticObjectMethod = GetDelegate<Delegates.CallStaticObjectMethod>(func.CallStaticObjectMethod);
-            _registerNatives = GetDelegate<Delegates.RegisterNatives>(func.RegisterNatives);
+            _callStaticVoidMethod = GetDelegate<EnvDelegates.CallStaticVoidMethod>(func.CallStaticVoidMethod);
+            _findClass = GetDelegate<EnvDelegates.FindClass>(func.FindClass);
+            _getMethodId = GetDelegate<EnvDelegates.GetMethodID>(func.GetMethodID);
+            _getStaticMethodId = GetDelegate<EnvDelegates.GetStaticMethodID>(func.GetStaticMethodID);
+            _newStringUtf = GetDelegate<EnvDelegates.NewStringUTF>(func.NewStringUTF);
+            _exceptionOccurred = GetDelegate<EnvDelegates.ExceptionOccurred>(func.ExceptionOccurred);
+            _exceptionClear = GetDelegate<EnvDelegates.ExceptionClear>(func.ExceptionClear);
+            _getObjectClass = GetDelegate<EnvDelegates.GetObjectClass>(func.GetObjectClass);
+            _callObjectMethod = GetDelegate<EnvDelegates.CallObjectMethod>(func.CallObjectMethod);
+            _getStringChars = GetDelegate<EnvDelegates.GetStringChars>(func.GetStringChars);
+            _releaseStringChars = GetDelegate<EnvDelegates.ReleaseStringChars>(func.ReleaseStringChars);
+            _callStaticObjectMethod = GetDelegate<EnvDelegates.CallStaticObjectMethod>(func.CallStaticObjectMethod);
+            _registerNatives = GetDelegate<EnvDelegates.RegisterNatives>(func.RegisterNatives);
         }
 
         public void CallStaticVoidMethod(IntPtr cls, IntPtr methodId, params JavaValue[] args)

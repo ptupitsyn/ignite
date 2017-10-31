@@ -22,7 +22,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
     using System.Security;
 
     [SuppressUnmanagedCodeSecurity]
-    internal static class Delegates // TODO: remove prefix from all Jni* classes
+    internal static class EnvDelegates // TODO: remove prefix from all Jni* classes
     {
         [UnmanagedFunctionPointer(CallingConvention.StdCall)]
         public delegate JNIResult CallStaticVoidMethod(
@@ -83,6 +83,8 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
         internal unsafe delegate JNIResult RegisterNatives(IntPtr env, IntPtr clazz,
             JNINativeMethod* methods, int nMethods);
 
+
+        
         [UnmanagedFunctionPointer(CallingConvention.StdCall)]
         [SuppressUnmanagedCodeSecurity]
         internal delegate JNIResult GetEnv(IntPtr jvm, out IntPtr env, int version);
