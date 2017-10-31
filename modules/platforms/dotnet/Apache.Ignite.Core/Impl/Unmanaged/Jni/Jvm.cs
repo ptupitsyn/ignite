@@ -38,17 +38,17 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
         private readonly JavaVM _vm;
 
         /** */
-        private readonly Methods _methods;
+        private readonly EnvMethods _methods;
 
         private Jvm(JNIEnv env, JavaVM vm)
         {
             _env = env;
             _vm = vm;
 
-            _methods = new Methods(env);
+            _methods = new EnvMethods(env);
         }
 
-        public Methods Methods
+        public EnvMethods Methods
         {
             get { return _methods; }
         }

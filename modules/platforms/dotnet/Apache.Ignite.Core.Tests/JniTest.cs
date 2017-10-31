@@ -162,7 +162,7 @@ namespace Apache.Ignite.Core.Tests
 
         private void ConsoleWrite(IntPtr env, IntPtr clazz, IntPtr message, bool isError)
         {
-            var msg = new Methods(new JNIEnv(env)).JStringToString(message);
+            var msg = new EnvMethods(new JNIEnv(env)).JStringToString(message);
 
             Console.Write(msg);
         }

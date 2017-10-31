@@ -25,9 +25,8 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
     /// <summary>
     /// JNI methods accessor.
     /// </summary>
-    internal class Methods
+    internal class EnvMethods
     {
-        private readonly JNIEnv _env;
         private readonly IntPtr _envPtr;
 
         private readonly Delegates.CallStaticVoidMethod _callStaticVoidMethod;
@@ -44,12 +43,11 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
         private readonly Delegates.CallStaticObjectMethod _callStaticObjectMethod;
         private readonly Delegates.RegisterNatives _registerNatives;
 
-        public Methods(JNIEnv env)
+        public EnvMethods(JNIEnv env)
         {
             Debug.Assert(env != null);
             Debug.Assert(env.EnvPtr != IntPtr.Zero);
 
-            _env = env;
             _envPtr = env.EnvPtr;
 
             var func = env.Functions;
