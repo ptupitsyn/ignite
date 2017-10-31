@@ -122,6 +122,7 @@ namespace Apache.Ignite.Core.Tests
                     "org/apache/ignite/internal/processors/platform/callback/PlatformCallbackUtils");
 
             // TODO: Are delegates signature mandatory? What if we pass the method directly?
+            // Turns out any signature works, wtf!
             var methods = new[]
             {
                 GetNativeMethod("loggerLog", "(JILjava/lang/String;Ljava/lang/String;Ljava/lang/String;J)V",
@@ -134,7 +135,7 @@ namespace Apache.Ignite.Core.Tests
                 
                 GetNativeMethod("inLongOutLong", "(JIJ)J", (Action) (() => { })),
                 
-                GetNativeMethod("inLongLongLongObjectOutLong", "(JIJJJLjava/lang/Object;)J", (Action) (() => { }))
+                GetNativeMethod("inLongLongLongObjectOutLong", "(JIJJJLjava/lang/Object;)J", (Action) (() => { Console.WriteLine("callback!"); }))
             };
 
             jvm.Methods.RegisterNatives(callbackUtils, methods);
