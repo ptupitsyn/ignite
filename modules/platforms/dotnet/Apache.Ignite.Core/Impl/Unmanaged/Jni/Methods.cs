@@ -151,8 +151,12 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
 
                 var classCls = FindClass("java/lang/Class");
                 var classGetName = GetMethodId(classCls, "getName", "()Ljava/lang/String;");
+
+                var throwableCls = FindClass("java/lang/Throwable");
+                var throwableGetMessage = GetMethodId(throwableCls, "getMessage", "()Ljava/lang/String;");
                 
                 var clsName = CallObjectMethod(cls, classGetName);
+                var msg = CallObjectMethod(err, throwableGetMessage);
 
                 //jstring clsName = static_cast<jstring>(env->CallObjectMethod(cls, jvm->GetJavaMembers().m_Class_getName));
                 //jstring msg = static_cast<jstring>(env->CallObjectMethod(err, jvm->GetJavaMembers().m_Throwable_getMessage));
@@ -160,7 +164,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
 
 
                 // Exception is present.
-                throw new Exception(JStringToString(clsName));
+                throw new Exception(string.Format("{0}: {1}", JStringToString(clsName), JStringToString(msg)));
             }
         }
 
