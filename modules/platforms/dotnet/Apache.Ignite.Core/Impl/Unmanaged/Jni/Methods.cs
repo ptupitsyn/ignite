@@ -152,13 +152,18 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
             _releaseStringChars(_envPtr, jstring, chars);
         }
 
-        public unsafe void RegisterNatives(IntPtr clazz, JNINativeMethod* methods, int methodCount)
+        public unsafe void RegisterNatives(IntPtr clazz, JNINativeMethod[] methods)
         {
-            var res = _registerNatives(_envPtr, clazz, methods, methodCount);
+            Debug.Assert(methods != null);
 
-            if (res != JNIResult.Success)
+            fixed (JNINativeMethod* m = &methods[0])
             {
-                throw new Exception("Failed to register natives.");
+                var res = _registerNatives(_envPtr, clazz, m, methods.Length);
+
+                if (res != JNIResult.Success)
+                {
+                    throw new Exception("Failed to register natives.");
+                }
             }
         }
 
