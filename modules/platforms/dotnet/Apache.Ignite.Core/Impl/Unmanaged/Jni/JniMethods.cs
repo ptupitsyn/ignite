@@ -29,12 +29,12 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
     {
         private readonly JNIEnv _env;
 
-        private readonly Delegates.CallStaticVoidMethod _callStaticVoidMethod;
-        private readonly Delegates.FindClass _findClass;
-        private readonly Delegates.GetMethodID _getMethodId;
-        private readonly Delegates.GetStaticMethodID _getStaticMethodId;
-        private readonly Delegates.NewStringUTF _newStringUtf;
-        private readonly Delegates.ExceptionOccurred _exceptionOccurred;
+        private readonly JniDelegates.CallStaticVoidMethod _callStaticVoidMethod;
+        private readonly JniDelegates.FindClass _findClass;
+        private readonly JniDelegates.GetMethodID _getMethodId;
+        private readonly JniDelegates.GetStaticMethodID _getStaticMethodId;
+        private readonly JniDelegates.NewStringUTF _newStringUtf;
+        private readonly JniDelegates.ExceptionOccurred _exceptionOccurred;
 
         public JniMethods(JNIEnv env)
         {
@@ -45,12 +45,12 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
 
             var func = env.Functions;
 
-            _callStaticVoidMethod = GetDelegate<Delegates.CallStaticVoidMethod>(func.CallStaticVoidMethod);
-            _findClass = GetDelegate<Delegates.FindClass>(func.FindClass);
-            _getMethodId = GetDelegate<Delegates.GetMethodID>(func.GetMethodID);
-            _getStaticMethodId = GetDelegate<Delegates.GetStaticMethodID>(func.GetStaticMethodID);
-            _newStringUtf = GetDelegate<Delegates.NewStringUTF>(func.NewStringUTF);
-            _exceptionOccurred = GetDelegate<Delegates.ExceptionOccurred>(func.ExceptionOccurred);
+            _callStaticVoidMethod = GetDelegate<JniDelegates.CallStaticVoidMethod>(func.CallStaticVoidMethod);
+            _findClass = GetDelegate<JniDelegates.FindClass>(func.FindClass);
+            _getMethodId = GetDelegate<JniDelegates.GetMethodID>(func.GetMethodID);
+            _getStaticMethodId = GetDelegate<JniDelegates.GetStaticMethodID>(func.GetStaticMethodID);
+            _newStringUtf = GetDelegate<JniDelegates.NewStringUTF>(func.NewStringUTF);
+            _exceptionOccurred = GetDelegate<JniDelegates.ExceptionOccurred>(func.ExceptionOccurred);
         }
 
         public void CallStaticVoidMethod(IntPtr clazz, IntPtr methodId, params JavaValue[] args)
@@ -93,6 +93,13 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
 
             if (err != IntPtr.Zero)
             {
+                //jclass cls = env->GetObjectClass(err);
+
+                //jstring clsName = static_cast<jstring>(env->CallObjectMethod(cls, jvm->GetJavaMembers().m_Class_getName));
+                //jstring msg = static_cast<jstring>(env->CallObjectMethod(err, jvm->GetJavaMembers().m_Throwable_getMessage));
+                //jstring trace = static_cast<jstring>(env->CallStaticObjectMethod(jvm->GetJavaMembers().c_PlatformUtils, jvm->GetJavaMembers().m_PlatformUtils_getFullStackTrace, err));
+
+
                 // Exception is present.
                 throw new Exception("Fuck");
             }

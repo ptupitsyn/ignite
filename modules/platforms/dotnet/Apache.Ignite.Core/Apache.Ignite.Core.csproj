@@ -132,7 +132,7 @@
     <Compile Include="Impl\IPlatformTargetInternal.cs" />
     <Compile Include="Impl\DataRegionMetrics.cs" />
     <Compile Include="Impl\PersistentStore\PersistentStoreMetrics.cs" />
-    <Compile Include="Impl\Unmanaged\Jni\Delegates.cs" />
+    <Compile Include="Impl\Unmanaged\Jni\JniDelegates.cs" />
     <Compile Include="Impl\Unmanaged\Jni\JavaValue.cs" />
     <Compile Include="Impl\Unmanaged\Jni\JavaVM.cs" />
     <Compile Include="Impl\Unmanaged\Jni\JNIEnv.cs" />

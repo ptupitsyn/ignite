@@ -6,7 +6,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
     using System.Security;
 
     [SuppressUnmanagedCodeSecurity]
-    internal class Delegates
+    internal class JniDelegates
     {
         [UnmanagedFunctionPointer(CallingConvention.StdCall)]
         public delegate JNIResult CallStaticVoidMethod(
@@ -42,5 +42,13 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
 
         [UnmanagedFunctionPointer(CallingConvention.StdCall)]
         internal delegate IntPtr ExceptionOccurred(IntPtr env);
+
+        [UnmanagedFunctionPointer(CallingConvention.StdCall)]
+        internal delegate IntPtr GetObjectClass(IntPtr env, IntPtr obj);
+
+        [UnmanagedFunctionPointer(CallingConvention.StdCall)]
+        internal delegate IntPtr CallObjectMethod(
+            IntPtr env, IntPtr obj, IntPtr methodIdJavaPtr, params JavaValue[] args);
+
     }
 }
