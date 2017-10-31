@@ -164,7 +164,7 @@ namespace Apache.Ignite.Core.Tests
         {
             var msg = new Methods(new JNIEnv(env)).JStringToString(message);
 
-            Console.WriteLine(msg);
+            Console.Write(msg);
         }
 
         private bool LoggerIsLevelEnabled(IntPtr env, IntPtr clazz, int level)
@@ -184,7 +184,7 @@ namespace Apache.Ignite.Core.Tests
                     var writer = BinaryUtils.Marshaller.StartMarshal(outStream);
 
                     // Config.
-                    new IgniteConfiguration().Write(writer);
+                    TestUtils.GetTestConfiguration().Write(writer);
 
                     // Beans.
                     writer.WriteInt(0);
