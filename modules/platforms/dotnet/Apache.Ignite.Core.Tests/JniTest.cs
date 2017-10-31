@@ -22,6 +22,7 @@ namespace Apache.Ignite.Core.Tests
     using System.Runtime.InteropServices;
     using Apache.Ignite.Core.Impl;
     using Apache.Ignite.Core.Impl.Common;
+    using Apache.Ignite.Core.Impl.Unmanaged;
     using Apache.Ignite.Core.Impl.Unmanaged.Jni;
     using Apache.Ignite.Core.Log;
     using NUnit.Framework;
@@ -125,15 +126,15 @@ namespace Apache.Ignite.Core.Tests
             // Turns out any signature works, wtf!
             var methods = new[]
             {
-                GetNativeMethod("loggerLog", "(JILjava/lang/String;Ljava/lang/String;Ljava/lang/String;J)V",
-                    (CallbackDelegates.LoggerLog) LoggerLog),
+                //GetNativeMethod("loggerLog", "(JILjava/lang/String;Ljava/lang/String;Ljava/lang/String;J)V",
+                //    (CallbackDelegates.LoggerLog) LoggerLog),
 
-                GetNativeMethod("loggerIsLevelEnabled", "(JI)Z",
-                    (CallbackDelegates.LoggerIsLevelEnabled) LoggerIsLevelEnabled),
+                //GetNativeMethod("loggerIsLevelEnabled", "(JI)Z",
+                //    (CallbackDelegates.LoggerIsLevelEnabled) LoggerIsLevelEnabled),
 
-                GetNativeMethod("consoleWrite", "(Ljava/lang/String;Z)V", (Action) (() => { })),
+                //GetNativeMethod("consoleWrite", "(Ljava/lang/String;Z)V", (Action) (() => { })),
 
-                GetNativeMethod("inLongOutLong", "(JIJ)J", (Action) (() => { })),
+                //GetNativeMethod("inLongOutLong", "(JIJ)J", (Action) (() => { })),
 
                 GetNativeMethod("inLongLongLongObjectOutLong", "(JIJJJLjava/lang/Object;)J",
                     (CallbackDelegates.InLongLongLongObjectOutLong) InLongLongLongObjectOutLong)
@@ -163,9 +164,16 @@ namespace Apache.Ignite.Core.Tests
         }
 
         private long InLongLongLongObjectOutLong(IntPtr env, IntPtr clazz, long envPtr, 
-            int op, long arg1, long arg2, IntPtr arg)
+            int op, long arg1, long arg2, long arg3, IntPtr arg)
         {
-            Console.WriteLine("callback!");
+            if (op == (int) UnmanagedCallbackOp.ExtensionInLongLongOutLong && arg1 == 1)
+            {
+                Console.WriteLine("OpPrepareDotNet");
+            }
+            else
+            {
+                Console.WriteLine("UNKNOWN CALLBACK");
+            }
 
             return 0;
         }
