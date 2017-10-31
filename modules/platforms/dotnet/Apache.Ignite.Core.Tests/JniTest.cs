@@ -162,7 +162,8 @@ namespace Apache.Ignite.Core.Tests
             return false;
         }
 
-        private long InLongLongLongObjectOutLong(IntPtr env, IntPtr clazz, long op, long arg1, long arg2, IntPtr arg)
+        private long InLongLongLongObjectOutLong(IntPtr env, IntPtr clazz, long envPtr, 
+            int op, long arg1, long arg2, IntPtr arg)
         {
             Console.WriteLine("callback!");
 

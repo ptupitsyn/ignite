@@ -33,7 +33,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
         public delegate bool LoggerIsLevelEnabled(IntPtr env, IntPtr clazz, int level);
 
         [UnmanagedFunctionPointer(CallingConvention.StdCall)]
-        public delegate long InLongLongLongObjectOutLong(IntPtr env, IntPtr clazz, long op, long arg1,
-            long arg2, IntPtr arg);
+        public delegate long InLongLongLongObjectOutLong(IntPtr env, IntPtr clazz, 
+            long envPtr, int op, long arg1, long arg2, IntPtr arg);
     }
 }
