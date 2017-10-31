@@ -43,6 +43,9 @@
         internal delegate IntPtr ExceptionOccurred(IntPtr env);
 
         [UnmanagedFunctionPointer(CallingConvention.StdCall)]
+        internal delegate void ExceptionClear(IntPtr env);
+
+        [UnmanagedFunctionPointer(CallingConvention.StdCall)]
         internal delegate IntPtr GetObjectClass(IntPtr env, IntPtr obj);
 
         [UnmanagedFunctionPointer(CallingConvention.StdCall)]

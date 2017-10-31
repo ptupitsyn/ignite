@@ -40,6 +40,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
         private readonly Delegates.CallObjectMethod _callObjectMethod;
         private readonly Delegates.GetStringChars _getStringChars;
         private readonly Delegates.ReleaseStringChars _releaseStringChars;
+        private readonly Delegates.ExceptionClear _exceptionClear;
 
         public Methods(JNIEnv env)
         {
@@ -57,6 +58,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
             _getStaticMethodId = GetDelegate<Delegates.GetStaticMethodID>(func.GetStaticMethodID);
             _newStringUtf = GetDelegate<Delegates.NewStringUTF>(func.NewStringUTF);
             _exceptionOccurred = GetDelegate<Delegates.ExceptionOccurred>(func.ExceptionOccurred);
+            _exceptionClear = GetDelegate<Delegates.ExceptionClear>(func.ExceptionClear);
             _getObjectClass = GetDelegate<Delegates.GetObjectClass>(func.GetObjectClass);
             _callObjectMethod = GetDelegate<Delegates.CallObjectMethod>(func.CallObjectMethod);
             _getStringChars = GetDelegate<Delegates.GetStringChars>(func.GetStringChars);
@@ -70,10 +72,28 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
             ExceptionCheck();
         }
 
+        public IntPtr CallObjectMethod(IntPtr obj, IntPtr methodId, params JavaValue[] args)
+        {
+            var res = _callObjectMethod(_envPtr, obj, methodId, args);
+
+            ExceptionCheck();
+
+            return res;
+        }
+
         public IntPtr FindClass(string name)
         {
             var res = _findClass(_envPtr, name);
 
+            ExceptionCheck();
+
+            return res;
+        }
+
+        public IntPtr GetObjectClass(IntPtr err)
+        {
+            var res = _getObjectClass(_envPtr, err);
+            
             ExceptionCheck();
 
             return res;
@@ -125,12 +145,14 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
 
             if (err != IntPtr.Zero)
             {
-                var cls = _getObjectClass(_envPtr, err);
+                _exceptionClear(_envPtr);
+
+                var cls = GetObjectClass(err);
 
                 var classCls = FindClass("java/lang/Class");
                 var classGetName = GetMethodId(classCls, "getName", "()Ljava/lang/String;");
                 
-                var clsName = _callObjectMethod(_envPtr, cls, classGetName);
+                var clsName = CallObjectMethod(cls, classGetName);
 
                 //jstring clsName = static_cast<jstring>(env->CallObjectMethod(cls, jvm->GetJavaMembers().m_Class_getName));
                 //jstring msg = static_cast<jstring>(env->CallObjectMethod(err, jvm->GetJavaMembers().m_Throwable_getMessage));
