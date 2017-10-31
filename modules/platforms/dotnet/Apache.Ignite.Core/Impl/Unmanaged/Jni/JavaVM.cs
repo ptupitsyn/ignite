@@ -20,6 +20,19 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
     using System;
     using System.Runtime.InteropServices;
 
+    /// <summary>
+    /// JNI defines "JavaVM" and "JNIEnv" structures.
+    /// They are pointers to function tables.
+    /// 
+    /// JavaVM allows to get/create/destroy JVM.
+    /// API implies that multiple JVMs can exist in one process, but only one is allowed.
+    ///
+    /// JNIEnv provides all other functions.
+    /// JNIEnv is used for thread-local storage.
+    /// JNIEnv CAN NOT be shared between threads.
+    /// JavaVM should be passed around, use GetEnv to get JNIEnv for a thread.
+    /// Not every thread has JNIEnv, AttachCurrentThread should be called to ensure this.
+    /// </summary>
     internal unsafe class JavaVM
     {
         private readonly IntPtr native;
