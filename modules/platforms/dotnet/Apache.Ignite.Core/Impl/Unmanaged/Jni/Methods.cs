@@ -28,6 +28,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
     internal class Methods
     {
         private readonly JNIEnv _env;
+        private readonly IntPtr _envPtr;
 
         private readonly Delegates.CallStaticVoidMethod _callStaticVoidMethod;
         private readonly Delegates.FindClass _findClass;
@@ -35,6 +36,8 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
         private readonly Delegates.GetStaticMethodID _getStaticMethodId;
         private readonly Delegates.NewStringUTF _newStringUtf;
         private readonly Delegates.ExceptionOccurred _exceptionOccurred;
+        private readonly Delegates.GetObjectClass _getObjectClass;
+        private readonly Delegates.CallObjectMethod _callObjectMethod;
 
         public Methods(JNIEnv env)
         {
@@ -42,6 +45,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
             Debug.Assert(env.EnvPtr != IntPtr.Zero);
 
             _env = env;
+            _envPtr = env.EnvPtr;
 
             var func = env.Functions;
 
@@ -51,18 +55,20 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
             _getStaticMethodId = GetDelegate<Delegates.GetStaticMethodID>(func.GetStaticMethodID);
             _newStringUtf = GetDelegate<Delegates.NewStringUTF>(func.NewStringUTF);
             _exceptionOccurred = GetDelegate<Delegates.ExceptionOccurred>(func.ExceptionOccurred);
+            _getObjectClass = GetDelegate<Delegates.GetObjectClass>(func.GetObjectClass);
+            _callObjectMethod = GetDelegate<Delegates.CallObjectMethod>(func.CallObjectMethod);
         }
 
         public void CallStaticVoidMethod(IntPtr clazz, IntPtr methodId, params JavaValue[] args)
         {
-            _callStaticVoidMethod(_env.EnvPtr, clazz, methodId, args);
+            _callStaticVoidMethod(_envPtr, clazz, methodId, args);
 
             ExceptionCheck();
         }
 
         public IntPtr FindClass(string name)
         {
-            var res = _findClass(_env.EnvPtr, name);
+            var res = _findClass(_envPtr, name);
 
             ExceptionCheck();
 
@@ -71,7 +77,16 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
 
         public IntPtr GetStaticMethodId(IntPtr clazz, string name, string signature)
         {
-            var res = _getStaticMethodId(_env.EnvPtr, clazz, name, signature);
+            var res = _getStaticMethodId(_envPtr, clazz, name, signature);
+
+            ExceptionCheck();
+
+            return res;
+        }
+
+        public IntPtr GetMethodId(IntPtr clazz, string name, string signature)
+        {
+            var res = _getMethodId(_envPtr, clazz, name, signature);
 
             ExceptionCheck();
 
@@ -80,7 +95,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
 
         public IntPtr NewStringUTF(IntPtr utf)  // TODO: result must be released with DeleteLocalRef
         {
-            var res = _newStringUtf(_env.EnvPtr, utf);
+            var res = _newStringUtf(_envPtr, utf);
 
             ExceptionCheck();
 
@@ -89,11 +104,16 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
 
         private void ExceptionCheck()
         {
-            var err = _exceptionOccurred(_env.EnvPtr);
+            var err = _exceptionOccurred(_envPtr);
 
             if (err != IntPtr.Zero)
             {
-                //jclass cls = env->GetObjectClass(err);
+                var cls = _getObjectClass(_envPtr, err);
+
+                var classCls = FindClass("java/lang/Class");
+                var classGetName = GetMethodId(classCls, "getName", "()Ljava/lang/String;");
+                
+                var clsName = _callObjectMethod(_envPtr, cls, classGetName);
 
                 //jstring clsName = static_cast<jstring>(env->CallObjectMethod(cls, jvm->GetJavaMembers().m_Class_getName));
                 //jstring msg = static_cast<jstring>(env->CallObjectMethod(err, jvm->GetJavaMembers().m_Throwable_getMessage));

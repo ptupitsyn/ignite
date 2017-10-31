@@ -1,20 +1,19 @@
-﻿using System;
-
-namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
+﻿namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
 {
+    using System;
     using System.Runtime.InteropServices;
     using System.Security;
 
     [SuppressUnmanagedCodeSecurity]
-    internal class Delegates  // TODO: remove prefix from all Jni* classes
+    internal class Delegates // TODO: remove prefix from all Jni* classes
     {
         [UnmanagedFunctionPointer(CallingConvention.StdCall)]
         public delegate JNIResult CallStaticVoidMethod(
-            IntPtr env, IntPtr clazz, IntPtr methodIdJavaPtr, params JavaValue[] args);
+            IntPtr env, IntPtr clazz, IntPtr methodId, params JavaValue[] args);
 
         [UnmanagedFunctionPointer(CallingConvention.StdCall)]
         public delegate JNIResult CallStaticVoidMethodV(
-            IntPtr env, IntPtr clazz, IntPtr methodIdJavaPtr, IntPtr vaList);
+            IntPtr env, IntPtr clazz, IntPtr methodId, IntPtr vaList);
 
         [UnmanagedFunctionPointer(CallingConvention.StdCall)]
         internal delegate IntPtr NewGlobalRef(IntPtr env, IntPtr lobj);
@@ -30,7 +29,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
         internal delegate IntPtr FindClass(IntPtr env, [MarshalAs(UnmanagedType.LPStr)] string name);
 
         [UnmanagedFunctionPointer(CallingConvention.StdCall)]
-        internal delegate IntPtr GetStaticMethodID(IntPtr env, IntPtr clazz, 
+        internal delegate IntPtr GetStaticMethodID(IntPtr env, IntPtr clazz,
             [MarshalAs(UnmanagedType.LPStr)] string name, [MarshalAs(UnmanagedType.LPStr)] string sig);
 
         [UnmanagedFunctionPointer(CallingConvention.StdCall)]
@@ -48,7 +47,10 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
 
         [UnmanagedFunctionPointer(CallingConvention.StdCall)]
         internal delegate IntPtr CallObjectMethod(
-            IntPtr env, IntPtr obj, IntPtr methodIdJavaPtr, params JavaValue[] args);
+            IntPtr env, IntPtr obj, IntPtr methodId, params JavaValue[] args);
 
+        [UnmanagedFunctionPointer(CallingConvention.StdCall)]
+        internal delegate IntPtr CallStaticObjectMethod(
+            IntPtr env, IntPtr clazz, IntPtr methodId, params JavaValue[] args);
     }
 }
