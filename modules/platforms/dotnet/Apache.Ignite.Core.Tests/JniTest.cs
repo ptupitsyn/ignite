@@ -161,7 +161,9 @@ namespace Apache.Ignite.Core.Tests
 
         private void ConsoleWrite(IntPtr env, IntPtr clazz, IntPtr message, bool isError)
         {
-            // TODO
+            var msg = new Methods(new JNIEnv(env)).JStringToString(message);
+
+            Console.WriteLine(msg);
         }
 
         private bool LoggerIsLevelEnabled(IntPtr env, IntPtr clazz, int level)
@@ -194,7 +196,7 @@ namespace Apache.Ignite.Core.Tests
             }
             else
             {
-                Console.WriteLine("UNKNOWN CALLBACK");
+                Console.WriteLine("UNKNOWN CALLBACK: " + op);
             }
 
             return 0;

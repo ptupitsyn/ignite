@@ -201,7 +201,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
             return TypeCaster<T>.Cast(Marshal.GetDelegateForFunctionPointer(ptr, typeof(T)));
         }
 
-        private string JStringToString(IntPtr jstring)
+        public string JStringToString(IntPtr jstring)
         {
             if (jstring != IntPtr.Zero)
             {
