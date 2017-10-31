@@ -21,6 +21,9 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
     using System.Runtime.InteropServices;
     using System.Security;
 
+    /// <summary>
+    /// Delegates for JNI Env entity.
+    /// </summary>
     [SuppressUnmanagedCodeSecurity]
     internal static class EnvDelegates // TODO: remove prefix from all Jni* classes
     {
