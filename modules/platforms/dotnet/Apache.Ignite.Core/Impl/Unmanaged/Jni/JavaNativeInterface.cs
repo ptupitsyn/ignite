@@ -21,7 +21,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
     using System.Runtime.InteropServices;
 
     [StructLayout(LayoutKind.Sequential)]
-    internal struct JNINativeInterface
+    internal struct JavaNativeInterface
     {
         public IntPtr reserved0;
         public IntPtr reserved1;

@@ -27,7 +27,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
 
         private readonly IntPtr envPtr;
 
-        private JNINativeInterface functions;
+        private JavaNativeInterface functions;
         //private JavaVM javaVM;
 
         internal JNIEnv(IntPtr native)
@@ -47,7 +47,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
             get { return envPtr; }
         }
 
-        public JNINativeInterface Functions
+        public JavaNativeInterface Functions
         {
             get { return functions; }
         }
@@ -55,7 +55,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
         [StructLayout(LayoutKind.Sequential, Size = 4)]
         internal struct JavaPtr
         {
-            public JNINativeInterface* functions;
+            public JavaNativeInterface* functions;
         }
     }
 }
