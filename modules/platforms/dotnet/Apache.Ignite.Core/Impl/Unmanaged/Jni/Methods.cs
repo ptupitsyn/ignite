@@ -41,6 +41,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
         private readonly Delegates.GetStringChars _getStringChars;
         private readonly Delegates.ReleaseStringChars _releaseStringChars;
         private readonly Delegates.ExceptionClear _exceptionClear;
+        private readonly Delegates.CallStaticObjectMethod _callStaticObjectMethod;
 
         public Methods(JNIEnv env)
         {
@@ -63,11 +64,12 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
             _callObjectMethod = GetDelegate<Delegates.CallObjectMethod>(func.CallObjectMethod);
             _getStringChars = GetDelegate<Delegates.GetStringChars>(func.GetStringChars);
             _releaseStringChars = GetDelegate<Delegates.ReleaseStringChars>(func.ReleaseStringChars);
+            _callStaticObjectMethod = GetDelegate<Delegates.CallStaticObjectMethod>(func.CallStaticObjectMethod);
         }
 
-        public void CallStaticVoidMethod(IntPtr clazz, IntPtr methodId, params JavaValue[] args)
+        public void CallStaticVoidMethod(IntPtr cls, IntPtr methodId, params JavaValue[] args)
         {
-            _callStaticVoidMethod(_envPtr, clazz, methodId, args);
+            _callStaticVoidMethod(_envPtr, cls, methodId, args);
 
             ExceptionCheck();
         }
@@ -75,6 +77,15 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
         public IntPtr CallObjectMethod(IntPtr obj, IntPtr methodId, params JavaValue[] args)
         {
             var res = _callObjectMethod(_envPtr, obj, methodId, args);
+
+            ExceptionCheck();
+
+            return res;
+        }
+
+        public IntPtr CallStaticObjectMethod(IntPtr cls, IntPtr methodId, params JavaValue[] args)
+        {
+            var res = _callStaticObjectMethod(_envPtr, cls, methodId, args);
 
             ExceptionCheck();
 
@@ -147,24 +158,24 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
             {
                 _exceptionClear(_envPtr);
 
-                var cls = GetObjectClass(err);
-
                 var classCls = FindClass("java/lang/Class");
                 var classGetName = GetMethodId(classCls, "getName", "()Ljava/lang/String;");
 
                 var throwableCls = FindClass("java/lang/Throwable");
                 var throwableGetMessage = GetMethodId(throwableCls, "getMessage", "()Ljava/lang/String;");
-                
+
+                var platformUtilsCls = FindClass("org/apache/ignite/internal/processors/platform/utils/PlatformUtils");
+                var getStackTrace = GetMethodId(platformUtilsCls, "getFullStackTrace",
+                    "(Ljava/lang/Throwable;)Ljava/lang/String;");
+
+                var cls = GetObjectClass(err);
                 var clsName = CallObjectMethod(cls, classGetName);
                 var msg = CallObjectMethod(err, throwableGetMessage);
-
-                //jstring clsName = static_cast<jstring>(env->CallObjectMethod(cls, jvm->GetJavaMembers().m_Class_getName));
-                //jstring msg = static_cast<jstring>(env->CallObjectMethod(err, jvm->GetJavaMembers().m_Throwable_getMessage));
-                //jstring trace = static_cast<jstring>(env->CallStaticObjectMethod(jvm->GetJavaMembers().c_PlatformUtils, jvm->GetJavaMembers().m_PlatformUtils_getFullStackTrace, err));
-
+                var trace = CallStaticObjectMethod(platformUtilsCls, getStackTrace, new JavaValue {_object = err});
 
                 // Exception is present.
-                throw new Exception(string.Format("{0}: {1}", JStringToString(clsName), JStringToString(msg)));
+                throw new Exception(string.Format("{0}: {1}\n\n{2}", JStringToString(clsName), JStringToString(msg),
+                    JStringToString(trace)));
             }
         }
 
