@@ -38,6 +38,8 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
         private readonly Delegates.ExceptionOccurred _exceptionOccurred;
         private readonly Delegates.GetObjectClass _getObjectClass;
         private readonly Delegates.CallObjectMethod _callObjectMethod;
+        private readonly Delegates.GetStringChars _getStringChars;
+        private readonly Delegates.ReleaseStringChars _releaseStringChars;
 
         public Methods(JNIEnv env)
         {
@@ -57,6 +59,8 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
             _exceptionOccurred = GetDelegate<Delegates.ExceptionOccurred>(func.ExceptionOccurred);
             _getObjectClass = GetDelegate<Delegates.GetObjectClass>(func.GetObjectClass);
             _callObjectMethod = GetDelegate<Delegates.CallObjectMethod>(func.CallObjectMethod);
+            _getStringChars = GetDelegate<Delegates.GetStringChars>(func.GetStringChars);
+            _releaseStringChars = GetDelegate<Delegates.ReleaseStringChars>(func.ReleaseStringChars);
         }
 
         public void CallStaticVoidMethod(IntPtr clazz, IntPtr methodId, params JavaValue[] args)
@@ -102,6 +106,19 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
             return res;
         }
 
+        public unsafe IntPtr GetStringChars(IntPtr jstring)
+        {
+            Debug.Assert(jstring != IntPtr.Zero);
+
+            byte isCopy;
+            return _getStringChars(_envPtr, jstring, &isCopy);
+        }
+
+        public void ReleaseStringChars(IntPtr jstring, IntPtr chars)
+        {
+            _releaseStringChars(_envPtr, jstring, chars);
+        }
+
         private void ExceptionCheck()
         {
             var err = _exceptionOccurred(_envPtr);
@@ -121,13 +138,26 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
 
 
                 // Exception is present.
-                throw new Exception("Fuck");
+                throw new Exception(JStringToString(clsName));
             }
         }
 
         private static T GetDelegate<T>(IntPtr ptr)
         {
             return TypeCaster<T>.Cast(Marshal.GetDelegateForFunctionPointer(ptr, typeof(T)));
+        }
+
+        private string JStringToString(IntPtr jstring)
+        {
+            if (jstring != IntPtr.Zero)
+            {
+                var chars = GetStringChars(jstring);
+                var result = Marshal.PtrToStringUni(chars);
+                ReleaseStringChars(jstring, chars);
+                return result;
+            }
+
+            return null;
         }
     }
 }

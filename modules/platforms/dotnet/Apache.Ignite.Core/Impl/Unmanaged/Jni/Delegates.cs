@@ -52,5 +52,11 @@
         [UnmanagedFunctionPointer(CallingConvention.StdCall)]
         internal delegate IntPtr CallStaticObjectMethod(
             IntPtr env, IntPtr clazz, IntPtr methodId, params JavaValue[] args);
+
+        [UnmanagedFunctionPointer(CallingConvention.StdCall)]
+        internal unsafe delegate IntPtr GetStringChars(IntPtr env, IntPtr jstring, byte* isCopy);
+
+        [UnmanagedFunctionPointer(CallingConvention.StdCall)]
+        internal delegate void ReleaseStringChars(IntPtr env, IntPtr jstring, IntPtr chars);
     }
 }
