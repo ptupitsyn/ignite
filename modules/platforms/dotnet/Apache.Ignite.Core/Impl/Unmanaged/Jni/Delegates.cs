@@ -6,7 +6,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
     using System.Security;
 
     [SuppressUnmanagedCodeSecurity]
-    internal class JniDelegates  // TODO: remove prefix from all Jni* classes
+    internal class Delegates  // TODO: remove prefix from all Jni* classes
     {
         [UnmanagedFunctionPointer(CallingConvention.StdCall)]
         public delegate JNIResult CallStaticVoidMethod(
