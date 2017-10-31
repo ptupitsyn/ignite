@@ -54,6 +54,9 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
 
             var func = env.Functions;
 
+            // Method IDs can be cached, but not the following delegates:
+            // TODO Need to find a way to reduce allocatins while calling these.
+            // We can use ThreadStatic, or?
             _callStaticVoidMethod = GetDelegate<Delegates.CallStaticVoidMethod>(func.CallStaticVoidMethod);
             _findClass = GetDelegate<Delegates.FindClass>(func.FindClass);
             _getMethodId = GetDelegate<Delegates.GetMethodID>(func.GetMethodID);
