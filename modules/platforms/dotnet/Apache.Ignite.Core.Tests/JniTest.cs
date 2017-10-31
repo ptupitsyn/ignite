@@ -133,9 +133,9 @@ namespace Apache.Ignite.Core.Tests
                 GetNativeMethod("loggerIsLevelEnabled", "(JI)Z",
                     (CallbackDelegates.LoggerIsLevelEnabled) LoggerIsLevelEnabled),
 
-                //GetNativeMethod("consoleWrite", "(Ljava/lang/String;Z)V", (Action) (() => { })),
+                GetNativeMethod("consoleWrite", "(Ljava/lang/String;Z)V", (Action) (() => { })),
 
-                //GetNativeMethod("inLongOutLong", "(JIJ)J", (Action) (() => { })),
+                GetNativeMethod("inLongOutLong", "(JIJ)J", (CallbackDelegates.ConsoleWrite) ConsoleWrite),
 
                 GetNativeMethod("inLongLongLongObjectOutLong", "(JIJJJLjava/lang/Object;)J",
                     (CallbackDelegates.InLongLongLongObjectOutLong) InLongLongLongObjectOutLong)
@@ -157,6 +157,11 @@ namespace Apache.Ignite.Core.Tests
         private void LoggerLog(IntPtr env, IntPtr clazz, int level, IntPtr message, IntPtr category, IntPtr error, long memPtr)
         {
             
+        }
+
+        private void ConsoleWrite(IntPtr env, IntPtr clazz, IntPtr message, bool isError)
+        {
+            // TODO
         }
 
         private bool LoggerIsLevelEnabled(IntPtr env, IntPtr clazz, int level)

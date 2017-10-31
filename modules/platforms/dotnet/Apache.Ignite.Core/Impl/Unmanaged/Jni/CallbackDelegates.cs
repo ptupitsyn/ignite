@@ -35,5 +35,8 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
         [UnmanagedFunctionPointer(CallingConvention.StdCall)]
         public delegate long InLongLongLongObjectOutLong(IntPtr env, IntPtr clazz, 
             long envPtr, int op, long arg1, long arg2, long arg3, IntPtr arg);
+
+        [UnmanagedFunctionPointer(CallingConvention.StdCall)]
+        public delegate void ConsoleWrite(IntPtr env, IntPtr clazz, IntPtr message, bool isError);
     }
 }
