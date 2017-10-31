@@ -91,7 +91,11 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
         {
             var err = _exceptionOccurred(_env.EnvPtr);
 
-            // TODO
+            if (err != IntPtr.Zero)
+            {
+                // Exception is present.
+                throw new Exception("Fuck");
+            }
         }
 
         private static T GetDelegate<T>(IntPtr ptr)
