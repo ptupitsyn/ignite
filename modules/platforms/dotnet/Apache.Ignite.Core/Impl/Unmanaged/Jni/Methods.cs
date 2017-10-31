@@ -42,6 +42,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
         private readonly Delegates.ReleaseStringChars _releaseStringChars;
         private readonly Delegates.ExceptionClear _exceptionClear;
         private readonly Delegates.CallStaticObjectMethod _callStaticObjectMethod;
+        private readonly Delegates.RegisterNatives _registerNatives;
 
         public Methods(JNIEnv env)
         {
@@ -65,6 +66,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
             _getStringChars = GetDelegate<Delegates.GetStringChars>(func.GetStringChars);
             _releaseStringChars = GetDelegate<Delegates.ReleaseStringChars>(func.ReleaseStringChars);
             _callStaticObjectMethod = GetDelegate<Delegates.CallStaticObjectMethod>(func.CallStaticObjectMethod);
+            _registerNatives = GetDelegate<Delegates.RegisterNatives>(func.RegisterNatives);
         }
 
         public void CallStaticVoidMethod(IntPtr cls, IntPtr methodId, params JavaValue[] args)
@@ -148,6 +150,16 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
         public void ReleaseStringChars(IntPtr jstring, IntPtr chars)
         {
             _releaseStringChars(_envPtr, jstring, chars);
+        }
+
+        public unsafe void RegisterNatives(IntPtr clazz, JNINativeMethod* methods, int methodCount)
+        {
+            var res = _registerNatives(_envPtr, clazz, methods, methodCount);
+
+            if (res != JNIResult.Success)
+            {
+                throw new Exception("Failed to register natives.");
+            }
         }
 
         private void ExceptionCheck()

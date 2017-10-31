@@ -75,21 +75,6 @@ namespace Apache.Ignite.Core.Tests
         [Test]
         public unsafe void TestIgnitionStart()
         {
-            /*
-                jstring cfgPath0 = env->NewStringUTF(cfgPath);
-                jstring name0 = env->NewStringUTF(name);
-
-                env->CallStaticVoidMethod(
-                    jvm->GetMembers().c_PlatformIgnition,
-                    jvm->GetMembers().m_PlatformIgnition_start,
-                    cfgPath0,
-                    name0,
-                    factoryId,
-                    reinterpret_cast<long long>(&hnds),
-                    dataPtr
-                );
-             */
-
             var jvm = Jvm.GetOrCreate(Classpath.CreateClasspath(forceTestClasspath: true));
             Assert.IsNotNull(jvm);
 
@@ -99,9 +84,6 @@ namespace Apache.Ignite.Core.Tests
             var start = jvm.Methods.GetStaticMethodId(ignition, "start", "(Ljava/lang/String;Ljava/lang/String;IJJ)V");
             Assert.AreNotEqual(IntPtr.Zero, start);
 
-            // TODO: How to pass strings? 
-            // va_list is just a pointer to arguments in memory.
-            // Primitives are written there directly, strings are char*
             var args = new List<JavaValue>();
 
             using (var dataMem = IgniteManager.Memory.Allocate().GetStream())
