@@ -19,6 +19,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
 {
     using System;
     using System.Runtime.InteropServices;
+    using System.Threading;
 
     /// <summary>
     /// JNI defines "JavaVM" and "JNIEnv" structures.
@@ -32,6 +33,8 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
     /// JNIEnv CAN NOT be shared between threads.
     /// JavaVM should be passed around, use GetEnv to get JNIEnv for a thread.
     /// Not every thread has JNIEnv, AttachCurrentThread should be called to ensure this.
+    /// 
+    /// TODO: Threads attached through JNI must call DetachCurrentThread before they exit.
     /// </summary>
     internal unsafe class JavaVM
     {
