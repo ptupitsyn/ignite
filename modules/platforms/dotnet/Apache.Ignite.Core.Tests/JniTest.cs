@@ -21,6 +21,7 @@ namespace Apache.Ignite.Core.Tests
     using System.Collections.Generic;
     using System.Runtime.InteropServices;
     using Apache.Ignite.Core.Impl;
+    using Apache.Ignite.Core.Impl.Binary;
     using Apache.Ignite.Core.Impl.Common;
     using Apache.Ignite.Core.Impl.Unmanaged;
     using Apache.Ignite.Core.Impl.Unmanaged.Jni;
@@ -169,6 +170,22 @@ namespace Apache.Ignite.Core.Tests
             if (op == (int) UnmanagedCallbackOp.ExtensionInLongLongOutLong && arg1 == 1)
             {
                 Console.WriteLine("OpPrepareDotNet");
+                using (var inStream = IgniteManager.Memory.Get(arg1).GetStream())
+                using (var outStream = IgniteManager.Memory.Get(arg2).GetStream())
+                {
+                    var writer = BinaryUtils.Marshaller.StartMarshal(outStream);
+
+                    // Config.
+                    new IgniteConfiguration().Write(writer);
+
+                    // Beans.
+                    writer.WriteInt(0);
+
+                    outStream.SynchronizeOutput();
+
+                    return 0;
+                }
+
             }
             else
             {
