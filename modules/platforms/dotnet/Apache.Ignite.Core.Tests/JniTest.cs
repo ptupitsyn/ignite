@@ -127,11 +127,11 @@ namespace Apache.Ignite.Core.Tests
             // Turns out any signature works, wtf!
             var methods = new[]
             {
-                //GetNativeMethod("loggerLog", "(JILjava/lang/String;Ljava/lang/String;Ljava/lang/String;J)V",
-                //    (CallbackDelegates.LoggerLog) LoggerLog),
+                GetNativeMethod("loggerLog", "(JILjava/lang/String;Ljava/lang/String;Ljava/lang/String;J)V",
+                    (CallbackDelegates.LoggerLog) LoggerLog),
 
-                //GetNativeMethod("loggerIsLevelEnabled", "(JI)Z",
-                //    (CallbackDelegates.LoggerIsLevelEnabled) LoggerIsLevelEnabled),
+                GetNativeMethod("loggerIsLevelEnabled", "(JI)Z",
+                    (CallbackDelegates.LoggerIsLevelEnabled) LoggerIsLevelEnabled),
 
                 //GetNativeMethod("consoleWrite", "(Ljava/lang/String;Z)V", (Action) (() => { })),
 
@@ -170,8 +170,8 @@ namespace Apache.Ignite.Core.Tests
             if (op == (int) UnmanagedCallbackOp.ExtensionInLongLongOutLong && arg1 == 1)
             {
                 Console.WriteLine("OpPrepareDotNet");
-                using (var inStream = IgniteManager.Memory.Get(arg1).GetStream())
-                using (var outStream = IgniteManager.Memory.Get(arg2).GetStream())
+                using (var inStream = IgniteManager.Memory.Get(arg2).GetStream())
+                using (var outStream = IgniteManager.Memory.Get(arg3).GetStream())
                 {
                     var writer = BinaryUtils.Marshaller.StartMarshal(outStream);
 
