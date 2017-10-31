@@ -127,15 +127,16 @@ namespace Apache.Ignite.Core.Tests
             {
                 GetNativeMethod("loggerLog", "(JILjava/lang/String;Ljava/lang/String;Ljava/lang/String;J)V",
                     (CallbackDelegates.LoggerLog) LoggerLog),
-            
+
                 GetNativeMethod("loggerIsLevelEnabled", "(JI)Z",
                     (CallbackDelegates.LoggerIsLevelEnabled) LoggerIsLevelEnabled),
-                
+
                 GetNativeMethod("consoleWrite", "(Ljava/lang/String;Z)V", (Action) (() => { })),
-                
+
                 GetNativeMethod("inLongOutLong", "(JIJ)J", (Action) (() => { })),
-                
-                GetNativeMethod("inLongLongLongObjectOutLong", "(JIJJJLjava/lang/Object;)J", (Action) (() => { Console.WriteLine("callback!"); }))
+
+                GetNativeMethod("inLongLongLongObjectOutLong", "(JIJJJLjava/lang/Object;)J",
+                    (CallbackDelegates.InLongLongLongObjectOutLong) InLongLongLongObjectOutLong)
             };
 
             jvm.Methods.RegisterNatives(callbackUtils, methods);
@@ -161,12 +162,19 @@ namespace Apache.Ignite.Core.Tests
             return false;
         }
 
+        private long InLongLongLongObjectOutLong(IntPtr env, IntPtr clazz, long op, long arg1, long arg2, IntPtr arg)
+        {
+            Console.WriteLine("callback!");
+
+            return 0;
+        }
+
 
         private class NoopLogger : ILogger
         {
             /** <inheritdoc /> */
-            public void Log(LogLevel level, string message, object[] args, IFormatProvider formatProvider, string category,
-                string nativeErrorInfo, Exception ex)
+            public void Log(LogLevel level, string message, object[] args, IFormatProvider formatProvider,
+                string category, string nativeErrorInfo, Exception ex)
             {
                 // No-op.
             }
