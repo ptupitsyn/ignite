@@ -125,7 +125,7 @@ namespace Apache.Ignite.Core.Tests
                 dataMem.WriteBool(false);
                 args.Add(new JavaValue { _long = dataMem.SynchronizeOutput() });
 
-                // TODO: Some exception happens, implement ExceptionCheck.
+                // TODO: This works, fails on callback. Implement callbacks.
                 jvm.Methods.CallStaticVoidMethod(ignition, start, args.ToArray());
             }
         }
