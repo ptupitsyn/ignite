@@ -165,7 +165,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
                 var throwableGetMessage = GetMethodId(throwableCls, "getMessage", "()Ljava/lang/String;");
 
                 var platformUtilsCls = FindClass("org/apache/ignite/internal/processors/platform/utils/PlatformUtils");
-                var getStackTrace = GetMethodId(platformUtilsCls, "getFullStackTrace",
+                var getStackTrace = GetStaticMethodId(platformUtilsCls, "getFullStackTrace",
                     "(Ljava/lang/Throwable;)Ljava/lang/String;");
 
                 var cls = GetObjectClass(err);
