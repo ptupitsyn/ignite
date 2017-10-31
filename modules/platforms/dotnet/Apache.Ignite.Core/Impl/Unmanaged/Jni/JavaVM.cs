@@ -19,7 +19,6 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
 {
     using System;
     using System.Runtime.InteropServices;
-    using System.Threading;
 
     /// <summary>
     /// JNI defines "JavaVM" and "JNIEnv" structures.
@@ -35,6 +34,8 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
     /// Not every thread has JNIEnv, AttachCurrentThread should be called to ensure this.
     /// 
     /// TODO: Threads attached through JNI must call DetachCurrentThread before they exit.
+    /// However, DLL_THREAD_DETACH does not work currently. Need to investigate.
+    /// Always detach if just attached?
     /// </summary>
     internal unsafe class JavaVM
     {
@@ -44,15 +45,8 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
         public JavaVM(IntPtr native)
         {
             this.native = native;
-            functions = *(*(JavaPtr*) native.ToPointer()).functions;
+            var x = (JNIInvokeInterface**) native;
+            functions = **x;
         }
-
-        [StructLayout(LayoutKind.Sequential, Size = 4)]
-        internal struct JavaPtr
-        {
-            public JNIInvokeInterface* functions;
-        }
-
-
     }
 }
