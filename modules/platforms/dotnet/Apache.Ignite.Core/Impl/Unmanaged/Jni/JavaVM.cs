@@ -40,12 +40,12 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
     internal unsafe class JavaVM
     {
         private readonly IntPtr native;
-        private JNIInvokeInterface functions;
+        private JvmInterface functions;
 
         public JavaVM(IntPtr native)
         {
             this.native = native;
-            var x = (JNIInvokeInterface**) native;
+            var x = (JvmInterface**) native;
             functions = **x;
         }
     }

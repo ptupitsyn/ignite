@@ -22,7 +22,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
 
 
     [StructLayout(LayoutKind.Sequential)]
-    internal struct JNIInvokeInterface
+    internal struct JvmInterface
     {
         public IntPtr reserved0;
         public IntPtr reserved1;
