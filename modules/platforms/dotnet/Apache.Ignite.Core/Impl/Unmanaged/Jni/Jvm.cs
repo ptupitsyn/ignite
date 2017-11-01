@@ -104,7 +104,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
 
             if (res != JniResult.Success)
             {
-                throw new IgniteException("Failed to attach to JVM.");
+                throw new IgniteException("Failed to attach to JVM: " + res);
             }
 
             Debug.Assert(envPtr != IntPtr.Zero);

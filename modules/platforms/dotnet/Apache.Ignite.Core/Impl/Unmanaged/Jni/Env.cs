@@ -196,7 +196,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
 
                 if (res != JniResult.Success)
                 {
-                    throw new Exception("Failed to register natives.");
+                    throw new Exception("Failed to register natives: " + res);
                 }
             }
         }
