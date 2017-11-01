@@ -42,18 +42,15 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
         {
             Debug.Assert(env != null);
 
-            // TODO: Classes should use GlobalRef (if used for a long time), method ids don't
-            var classCls = env.FindClass("java/lang/Class");
-            ClassGetName = env.GetMethodId(classCls, "getName", "()Ljava/lang/String;");
+            using (var classCls = env.FindClass("java/lang/Class"))
+            {
+                ClassGetName = env.GetMethodId(classCls, "getName", "()Ljava/lang/String;");
+            }
 
-            var throwableCls = env.FindClass("java/lang/Throwable");
-            ThrowableGetMessage = env.GetMethodId(throwableCls, "getMessage", "()Ljava/lang/String;");
-
-            
-
-
-            // TODO: DeleteLocalRef, IDisposable
+            using (var throwableCls = env.FindClass("java/lang/Throwable"))
+            {
+                ThrowableGetMessage = env.GetMethodId(throwableCls, "getMessage", "()Ljava/lang/String;");
+            }
         }
-
     }
 }
