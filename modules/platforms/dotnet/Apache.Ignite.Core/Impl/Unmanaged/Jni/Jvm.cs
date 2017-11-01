@@ -84,6 +84,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
             IntPtr njvm;
             IntPtr nenv;
 
+            // TODO: Get if exists.
             var result = JniNativeMethods.JNI_CreateJavaVM(out njvm, out nenv, &args);
             if (result != JNIResult.Success)
             {
