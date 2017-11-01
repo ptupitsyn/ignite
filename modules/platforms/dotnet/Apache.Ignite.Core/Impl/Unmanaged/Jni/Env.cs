@@ -62,6 +62,15 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
         private readonly EnvDelegates.GetStringChars _getStringChars;
 
         /** */
+        private readonly EnvDelegates.GetStringUtfChars _getStringUtfChars;
+
+        /** */
+        private readonly EnvDelegates.GetStringUtfLength _getStringUtfLength;
+
+        /** */
+        private readonly EnvDelegates.ReleaseStringUtfChars _releaseStringUtfChars;
+
+        /** */
         private readonly EnvDelegates.ReleaseStringChars _releaseStringChars;
 
         /** */
@@ -99,8 +108,15 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
             GetDelegate(func.ExceptionClear, out _exceptionClear);
             GetDelegate(func.GetObjectClass, out _getObjectClass);
             GetDelegate(func.CallObjectMethod, out _callObjectMethod);
+
             GetDelegate(func.GetStringChars, out _getStringChars);
             GetDelegate(func.ReleaseStringChars, out _releaseStringChars);
+
+            GetDelegate(func.GetStringUTFChars, out _getStringUtfChars);
+            GetDelegate(func.ReleaseStringUTFChars, out _releaseStringUtfChars);
+
+            GetDelegate(func.GetStringUTFLength, out _getStringUtfLength);
+
             GetDelegate(func.CallStaticObjectMethod, out _callStaticObjectMethod);
             GetDelegate(func.RegisterNatives, out _registerNatives);
             GetDelegate(func.DeleteLocalRef, out _deleteLocalRef);
@@ -197,6 +213,26 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
             _releaseStringChars(_envPtr, jstring, chars);
         }
 
+        private IntPtr GetStringUtfChars(IntPtr jstring)
+        {
+            Debug.Assert(jstring != IntPtr.Zero);
+
+            byte isCopy;
+            return _getStringUtfChars(_envPtr, jstring, &isCopy);
+        }
+
+        private void ReleaseStringUtfChars(IntPtr jstring, IntPtr chars)
+        {
+            _releaseStringUtfChars(_envPtr, jstring, chars);
+        }
+
+        private int GetStringUtfLength(IntPtr jstring)
+        {
+            Debug.Assert(jstring != IntPtr.Zero);
+
+            return _getStringUtfLength(_envPtr, jstring);
+        }
+
         public void RegisterNatives(LocalRef clazz, NativeMethod[] methods)
         {
             Debug.Assert(methods != null);
@@ -219,10 +255,17 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
 
         public string JStringToString(IntPtr jstring)
         {
-            var chars = GetStringChars(jstring);
-            var result = Marshal.PtrToStringUni(chars);
-            ReleaseStringChars(jstring, chars);
-            return result;
+            var chars = GetStringUtfChars(jstring);
+            var len = GetStringUtfLength(jstring);
+
+            try
+            {
+                return IgniteUtils.Utf8UnmanagedToString((sbyte*) chars, len);
+            }
+            finally 
+            {
+                ReleaseStringUtfChars(jstring, chars);
+            }
         }
 
         public void DeleteLocalRef(IntPtr lref)

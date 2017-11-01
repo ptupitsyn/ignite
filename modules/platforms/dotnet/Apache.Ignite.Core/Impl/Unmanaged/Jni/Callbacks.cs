@@ -166,14 +166,10 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
 
         private static void ConsoleWrite(IntPtr envPtr, IntPtr clazz, IntPtr message, bool isError)
         {
-            // TODO: This causes crash some times (probably unreleased stuff or incorrect env handling)
             if (message != IntPtr.Zero)
             {
                 var env = Jvm.Get().AttachCurrentThread();
                 var msg = env.JStringToString(message);
-
-                // TODO
-                // var str = IgniteUtils.Utf8UnmanagedToString(chars, charsLen);
 
                 var target = isError ? Console.Error : Console.Out;
                 target.Write(msg);

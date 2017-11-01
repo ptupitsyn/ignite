@@ -83,6 +83,15 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
         internal delegate void ReleaseStringChars(IntPtr env, IntPtr jstring, IntPtr chars);
 
         [UnmanagedFunctionPointer(CallingConvention.StdCall)]
+        internal unsafe delegate IntPtr GetStringUtfChars(IntPtr env, IntPtr jstring, byte* isCopy);
+
+        [UnmanagedFunctionPointer(CallingConvention.StdCall)]
+        internal delegate void ReleaseStringUtfChars(IntPtr env, IntPtr jstring, IntPtr chars);
+
+        [UnmanagedFunctionPointer(CallingConvention.StdCall)]
+        internal delegate int GetStringUtfLength(IntPtr env, IntPtr jstring);
+
+        [UnmanagedFunctionPointer(CallingConvention.StdCall)]
         internal unsafe delegate JniResult RegisterNatives(IntPtr env, IntPtr clazz,
             NativeMethod* methods, int nMethods);
         
