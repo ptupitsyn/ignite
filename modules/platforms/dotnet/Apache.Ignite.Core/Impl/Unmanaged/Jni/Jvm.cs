@@ -39,6 +39,9 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
         /** */
         private readonly JvmDelegates.AttachCurrentThread _attachCurrentThread;
 
+        /** */
+        private readonly MethodId _methodId;
+
         /** Static instamce */
         private static Jvm _instance;
 
@@ -61,6 +64,8 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
             var func = **funcPtr;
 
             GetDelegate(func.AttachCurrentThread, out _attachCurrentThread);
+
+            _methodId = new MethodId(AttachCurrentThread());
         }
 
         /// <summary>
@@ -145,6 +150,14 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
         }
 
         /// <summary>
+        /// Gets the method IDs.
+        /// </summary>
+        public MethodId MethodId
+        {
+            get { return _methodId; }
+        }
+
+        /// <summary>
         /// Attaches current thread to the JVM and returns JNIEnv.
         /// </summary>
         public Env AttachCurrentThread()
@@ -159,7 +172,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
                     throw new IgniteException("AttachCurrentThread failed: " + res);
                 }
 
-                _env = new Env(envPtr);
+                _env = new Env(envPtr, this);
             }
 
             return _env;

@@ -31,6 +31,9 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
         /** JNIEnv pointer. */
         private readonly IntPtr _envPtr;
 
+        /** JVM. */
+        private readonly Jvm _jvm;
+
         /** */
         private readonly EnvDelegates.CallStaticVoidMethod _callStaticVoidMethod;
 
@@ -73,10 +76,13 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
         /// <summary>
         /// Initializes a new instance of the <see cref="Env" /> class.
         /// </summary>
-        internal Env(IntPtr envPtr)
+        internal Env(IntPtr envPtr, Jvm jvm)
         {
-            Debug.Assert( envPtr != IntPtr.Zero);
+            Debug.Assert(envPtr != IntPtr.Zero);
+            Debug.Assert(jvm != null);
+
             _envPtr = envPtr;
+            _jvm = jvm;
 
             var funcPtr = (EnvInterface**)envPtr;
             var func = **funcPtr;
@@ -226,19 +232,13 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
             {
                 _exceptionClear(_envPtr);
 
-                var classCls = FindClass("java/lang/Class");
-                var classGetName = GetMethodId(classCls, "getName", "()Ljava/lang/String;");
-
-                var throwableCls = FindClass("java/lang/Throwable");
-                var throwableGetMessage = GetMethodId(throwableCls, "getMessage", "()Ljava/lang/String;");
-
                 var platformUtilsCls = FindClass("org/apache/ignite/internal/processors/platform/utils/PlatformUtils");
                 var getStackTrace = GetStaticMethodId(platformUtilsCls, "getFullStackTrace",
                     "(Ljava/lang/Throwable;)Ljava/lang/String;");
 
                 var cls = GetObjectClass(err);
-                var clsName = CallObjectMethod(cls, classGetName);
-                var msg = CallObjectMethod(err, throwableGetMessage);
+                var clsName = CallObjectMethod(cls, _jvm.MethodId.ClassGetName);
+                var msg = CallObjectMethod(err, _jvm.MethodId.ThrowableGetMessage);
                 var trace = CallStaticObjectMethod(platformUtilsCls, getStackTrace, new JavaValue { _object = err });
 
                 // Exception is present.
