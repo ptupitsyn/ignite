@@ -36,55 +36,18 @@ namespace Apache.Ignite.Core.Tests
             IgniteUtils.LoadDlls(null, new NoopLogger());
         }
 
-        //[Test]
-        public static void TestIgnitionStopAll()
-        {
-            var jvm = Jvm.GetOrCreate(Classpath.CreateClasspath(forceTestClasspath: true));
-            Assert.IsNotNull(jvm);
-
-            var ignition = jvm.Methods.FindClass("org/apache/ignite/internal/processors/platform/PlatformIgnition");
-            Assert.AreNotEqual(IntPtr.Zero, ignition);
-
-            var stopAll = jvm.Methods.GetStaticMethodId(ignition, "stopAll", "(Z)V");
-            Assert.AreNotEqual(IntPtr.Zero, stopAll);
-
-            jvm.Methods.CallStaticVoidMethod(ignition, stopAll);
-        }
-
-        //[Test]
-        public unsafe void TestStartDelme()
-        {
-            var jvm = Jvm.GetOrCreate(Classpath.CreateClasspath(forceTestClasspath: true));
-            Assert.IsNotNull(jvm);
-
-            var ignition = jvm.Methods.FindClass("org/apache/ignite/internal/processors/platform/PlatformIgnition");
-            Assert.AreNotEqual(IntPtr.Zero, ignition);
-
-            var start = jvm.Methods.GetStaticMethodId(ignition, "startDelme", "(Ljava/lang/String;)V");
-            Assert.AreNotEqual(IntPtr.Zero, start);
-
-            // TODO: How to pass strings? 
-            // va_list is just a pointer to arguments in memory.
-            // Primitives are written there directly, strings are char*
-            // Name
-            var gridNameUtf = IgniteUtils.StringToUtf8Unmanaged("myGrid"); // TODO: FreeHGlobal
-            var gridName1 = jvm.Methods.NewStringUTF(new IntPtr(gridNameUtf));
-
-            Console.Clear();
-            jvm.Methods.CallStaticVoidMethod(ignition, start, new JavaValue {_object = gridName1});
-            Console.WriteLine("------------");
-        }
-
         [Test]
         public unsafe void TestIgnitionStart()
         {
             var jvm = Jvm.GetOrCreate(Classpath.CreateClasspath(forceTestClasspath: true));
             Assert.IsNotNull(jvm);
 
-            var ignition = jvm.Methods.FindClass("org/apache/ignite/internal/processors/platform/PlatformIgnition");
+            var env = jvm.AttachCurrentThread();
+
+            var ignition = env.Methods.FindClass("org/apache/ignite/internal/processors/platform/PlatformIgnition");
             Assert.AreNotEqual(IntPtr.Zero, ignition);
 
-            var start = jvm.Methods.GetStaticMethodId(ignition, "start", "(Ljava/lang/String;Ljava/lang/String;IJJ)V");
+            var start = env.Methods.GetStaticMethodId(ignition, "start", "(Ljava/lang/String;Ljava/lang/String;IJJ)V");
             Assert.AreNotEqual(IntPtr.Zero, start);
 
             var args = new List<JavaValue>();
@@ -96,14 +59,14 @@ namespace Apache.Ignite.Core.Tests
 
                 // Name
                 var gridNameUtf = IgniteUtils.StringToUtf8Unmanaged("myGrid"); // TODO: FreeHGlobal
-                var gridName1 = jvm.Methods.NewStringUTF(new IntPtr(gridNameUtf));
+                var gridName1 = env.Methods.NewStringUTF(new IntPtr(gridNameUtf));
                 args.Add(new JavaValue { _object = gridName1 });
 
                 // FactoryId
                 args.Add(new JavaValue{_int = 1});
 
                 // EnvPtr ???
-                args.Add(new JavaValue { _object = jvm.EnvPtr });
+                args.Add(new JavaValue { _object = env.EnvPtr });
 
                 // Additional data.
                 dataMem.WriteBool(false);
@@ -111,15 +74,15 @@ namespace Apache.Ignite.Core.Tests
                 args.Add(new JavaValue { _long = dataMem.SynchronizeOutput() });
 
                 // Register callbacks.
-                RegisterNatives(jvm);
+                RegisterNatives(env);
 
-                jvm.Methods.CallStaticVoidMethod(ignition, start, args.ToArray());
+                env.Methods.CallStaticVoidMethod(ignition, start, args.ToArray());
             }
         }
 
-        private void RegisterNatives(Jvm jvm)
+        private void RegisterNatives(Env env)
         {
-            var callbackUtils = jvm.Methods.FindClass(
+            var callbackUtils = env.Methods.FindClass(
                     "org/apache/ignite/internal/processors/platform/callback/PlatformCallbackUtils");
 
             // Turns out any signature works, we can ignore parameters!
@@ -140,7 +103,7 @@ namespace Apache.Ignite.Core.Tests
                     (CallbackDelegates.InLongLongLongObjectOutLong) InLongLongLongObjectOutLong)
             };
 
-            jvm.Methods.RegisterNatives(callbackUtils, methods);
+            env.Methods.RegisterNatives(callbackUtils, methods);
         }
 
         private static unsafe NativeMethod GetNativeMethod(string name, string sig, Delegate d)

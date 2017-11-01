@@ -30,6 +30,9 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
         /** Functions. */
         private readonly EnvInterface _functions;
 
+        /** Methods. */
+        private readonly EnvMethods _methods;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="Env" /> class.
         /// </summary>
@@ -38,6 +41,16 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
             _envPtr = envPtr;
             var funcPtr = (EnvInterface**)envPtr;
             _functions = **funcPtr;
+
+            _methods = new EnvMethods(this);
+        }
+
+        /// <summary>
+        /// Gets the methods.
+        /// </summary>
+        public EnvMethods Methods
+        {
+            get { return _methods; }
         }
 
         /// <summary>

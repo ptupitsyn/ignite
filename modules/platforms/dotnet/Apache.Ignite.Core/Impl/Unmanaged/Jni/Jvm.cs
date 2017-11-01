@@ -32,35 +32,23 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
         private const int JNI_VERSION_1_6 = 0x00010006;
 
         /** */
-        private readonly Env _env;
+        private readonly JvmMethods _methods;
 
-        /** */
-        private readonly JavaVM _vm;
-
-        /** */
-        private readonly EnvMethods _methods;
-
-        private Jvm(Env env, JavaVM vm)
+        /// <summary>
+        /// Initializes a new instance of the <see cref="Jvm"/> class.
+        /// </summary>
+        private Jvm(IntPtr jvmPtr)
         {
-            _env = env;
-            _vm = vm;
-
-            _methods = new EnvMethods(env);
+            _methods = new JvmMethods(jvmPtr);
         }
 
-        public EnvMethods Methods
-        {
-            get { return _methods; }
-        }
-
-        public IntPtr EnvPtr
-        {
-            get { return _env.EnvPtr; }
-        }
-
+        /// <summary>
+        /// Gets or creates the JVM.
+        /// </summary>
+        /// <param name="options">JVM options.</param>
         public static unsafe Jvm GetOrCreate(params string[] options)
         {
-            var args = new JavaVMInitArgs
+            var args = new JvmInitArgs
             {
                 version = JNI_VERSION_1_6
             };
@@ -68,51 +56,66 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
             if (options.Length > 0)
             {
                 args.nOptions = options.Length;
-                var opt = new JavaVMOption[options.Length];
+                var opt = new JvmOption[options.Length];
 
                 for (int i = 0; i < options.Length; i++)
                 {
                     opt[i].optionString = Marshal.StringToHGlobalAnsi(options[i]);
                 }
 
-                fixed (JavaVMOption* a = &opt[0])
+                fixed (JvmOption* a = &opt[0])
                 {
                     args.options = a;
                 }
             }
 
-            IntPtr njvm;
-            IntPtr nenv;
+            IntPtr jvm;
+            IntPtr env;
 
             // TODO: Get if exists.
-            var result = JniNativeMethods.JNI_CreateJavaVM(out njvm, out nenv, &args);
+            var result = JniNativeMethods.JNI_CreateJavaVM(out jvm, out env, &args);
             if (result != JNIResult.Success)
             {
                 throw new IgniteException("Can't load JVM: " + result);
             }
-            
-            var jvm = new JavaVM(njvm);
-            var env = new Env(nenv);
 
-            return new Jvm(env, jvm);
+            return new Jvm(jvm);
         }
 
+        /// <summary>
+        /// Attaches current thread to the JVM and returns JNIEnv.
+        /// </summary>
+        public Env AttachCurrentThread()
+        {
+            // TODO: Cache in a ThreadLocal.
+            return new Env(_methods.AttachCurrentThread());
+        }
+
+        /// <summary>
+        /// JavaVMOption.
+        /// </summary>
         [StructLayout(LayoutKind.Sequential, Pack = 0)]
-        private struct JavaVMOption
+        private struct JvmOption
         {
             public IntPtr optionString;
             public IntPtr extraInfo;
         }
 
+        /// <summary>
+        /// JavaVMInitArgs.
+        /// </summary>
         [StructLayout(LayoutKind.Sequential, Pack = 0)]
-        private unsafe struct JavaVMInitArgs
+        private unsafe struct JvmInitArgs
         {
             public int version;
             public int nOptions;
-            public JavaVMOption* options;
+            public JvmOption* options;
             public byte ignoreUnrecognized;
         }
 
+        /// <summary>
+        /// DLL imports.
+        /// </summary>
         private static unsafe class JniNativeMethods
         {
             // See https://github.com/srisatish/openjdk/blob/master/jdk/src/share/sample/vm/clr-jvm/invoker.cs
@@ -120,14 +123,14 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
 
             [DllImport("jvm.dll", CallingConvention = CallingConvention.StdCall)]
             internal static extern JNIResult JNI_CreateJavaVM(out IntPtr pvm, out IntPtr penv,
-                JavaVMInitArgs* args);
+                JvmInitArgs* args);
 
             [DllImport("jvm.dll", CallingConvention = CallingConvention.StdCall)]
             internal static extern JNIResult JNI_GetCreatedJavaVMs(out IntPtr pvm, int size,
                 [Out] out int size2);
 
             [DllImport("jvm.dll", CallingConvention = CallingConvention.StdCall)]
-            internal static extern JNIResult JNI_GetDefaultJavaVMInitArgs(JavaVMInitArgs* args);
+            internal static extern JNIResult JNI_GetDefaultJavaVMInitArgs(JvmInitArgs* args);
         }
     }
 }

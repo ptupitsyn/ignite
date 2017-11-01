@@ -20,7 +20,6 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
     using System;
     using System.Diagnostics;
     using System.Runtime.InteropServices;
-    using Apache.Ignite.Core.Impl.Common;
 
     /// <summary>
     /// JNI methods accessor.
@@ -55,19 +54,20 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
             // Method IDs can be cached, but not the following delegates:
             // TODO Need to find a way to reduce allocatins while calling these.
             // We should do AttachCurrentThread with our own ThreadStatic stuff.
-            _callStaticVoidMethod = GetDelegate<EnvDelegates.CallStaticVoidMethod>(func.CallStaticVoidMethod);
-            _findClass = GetDelegate<EnvDelegates.FindClass>(func.FindClass);
-            _getMethodId = GetDelegate<EnvDelegates.GetMethodID>(func.GetMethodID);
-            _getStaticMethodId = GetDelegate<EnvDelegates.GetStaticMethodID>(func.GetStaticMethodID);
-            _newStringUtf = GetDelegate<EnvDelegates.NewStringUTF>(func.NewStringUTF);
-            _exceptionOccurred = GetDelegate<EnvDelegates.ExceptionOccurred>(func.ExceptionOccurred);
-            _exceptionClear = GetDelegate<EnvDelegates.ExceptionClear>(func.ExceptionClear);
-            _getObjectClass = GetDelegate<EnvDelegates.GetObjectClass>(func.GetObjectClass);
-            _callObjectMethod = GetDelegate<EnvDelegates.CallObjectMethod>(func.CallObjectMethod);
-            _getStringChars = GetDelegate<EnvDelegates.GetStringChars>(func.GetStringChars);
-            _releaseStringChars = GetDelegate<EnvDelegates.ReleaseStringChars>(func.ReleaseStringChars);
-            _callStaticObjectMethod = GetDelegate<EnvDelegates.CallStaticObjectMethod>(func.CallStaticObjectMethod);
-            _registerNatives = GetDelegate<EnvDelegates.RegisterNatives>(func.RegisterNatives);
+
+            GetDelegate(func.CallStaticVoidMethod, out _callStaticVoidMethod);
+            GetDelegate(func.FindClass, out _findClass);
+            GetDelegate(func.GetMethodID, out _getMethodId);
+            GetDelegate(func.GetStaticMethodID, out _getStaticMethodId);
+            GetDelegate(func.NewStringUTF, out _newStringUtf);
+            GetDelegate(func.ExceptionOccurred, out _exceptionOccurred);
+            GetDelegate(func.ExceptionClear, out _exceptionClear);
+            GetDelegate(func.GetObjectClass, out _getObjectClass);
+            GetDelegate(func.CallObjectMethod, out _callObjectMethod);
+            GetDelegate(func.GetStringChars, out _getStringChars);
+            GetDelegate(func.ReleaseStringChars, out _releaseStringChars);
+            GetDelegate(func.CallStaticObjectMethod, out _callStaticObjectMethod);
+            GetDelegate(func.RegisterNatives, out _registerNatives);
         }
 
         public void CallStaticVoidMethod(IntPtr cls, IntPtr methodId, params JavaValue[] args)
@@ -197,9 +197,12 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
             }
         }
 
-        private static T GetDelegate<T>(IntPtr ptr)
+        /// <summary>
+        /// Gets the delegate.
+        /// </summary>
+        private static void GetDelegate<T>(IntPtr ptr, out T del)
         {
-            return TypeCaster<T>.Cast(Marshal.GetDelegateForFunctionPointer(ptr, typeof(T)));
+            del = (T) (object) Marshal.GetDelegateForFunctionPointer(ptr, typeof(T));
         }
 
         public string JStringToString(IntPtr jstring)
