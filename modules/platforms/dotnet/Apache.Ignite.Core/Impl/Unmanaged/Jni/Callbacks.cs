@@ -23,6 +23,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
     using System.Diagnostics;
     using System.Runtime.InteropServices;
     using Apache.Ignite.Core.Impl.Binary;
+    using Apache.Ignite.Core.Impl.Handle;
 
     /// <summary>
     /// Java -> .NET callback dispatcher.
@@ -33,6 +34,9 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
         // ReSharper disable once CollectionNeverQueried.Local
         private readonly List<Delegate> _delegates = new List<Delegate>();
 
+        /** Holds Ignite instance-specific callbacks. */
+        private readonly HandleRegistry _callbackRegistry = new HandleRegistry(100);
+
         /// <summary>
         /// Initializes a new instance of the <see cref="Callbacks"/> class.
         /// </summary>
@@ -41,6 +45,14 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
             Debug.Assert(env != null);
 
             RegisterNatives(env);
+        }
+
+        /// <summary>
+        /// Registers callback handlers.
+        /// </summary>
+        public long RegisterHandlers(UnmanagedCallbacks cbs)
+        {
+            return _callbackRegistry.AllocateCritical(cbs);
         }
 
         /// <summary>
@@ -108,18 +120,6 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
 
         }
 
-        private static void ConsoleWrite(IntPtr envPtr, IntPtr clazz, IntPtr message, bool isError)
-        {
-            // TODO: This causes crash some times (probably unreleased stuff or incorrect env handling)
-            if (message != IntPtr.Zero)
-            {
-                var env = Jvm.Get().AttachCurrentThread();
-                var msg = env.JStringToString(message);
-
-                Console.Write(msg);
-            }
-        }
-
         private bool LoggerIsLevelEnabled(IntPtr env, IntPtr clazz, long ignteId, int level)
         {
             return false;
@@ -162,6 +162,18 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
         {
             // TODO
             return 0;
+        }
+
+        private static void ConsoleWrite(IntPtr envPtr, IntPtr clazz, IntPtr message, bool isError)
+        {
+            // TODO: This causes crash some times (probably unreleased stuff or incorrect env handling)
+            if (message != IntPtr.Zero)
+            {
+                var env = Jvm.Get().AttachCurrentThread();
+                var msg = env.JStringToString(message);
+
+                Console.Write(msg);
+            }
         }
     }
 }
