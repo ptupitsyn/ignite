@@ -26,16 +26,18 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
     /// Java -> .NET callback delegates.
     /// <para />
     /// Delegates are registered once per JVM.
+    /// Every callback has igniteId argument to identify related Ignite instance
+    /// (this value is passed as EnvPtr to PlatformIgnition.start).
     /// </summary>
     [SuppressUnmanagedCodeSecurity]
     internal static class CallbackDelegates
     {
         [UnmanagedFunctionPointer(CallingConvention.StdCall)]
-        public delegate void LoggerLog(IntPtr env, IntPtr clazz, int level, IntPtr message, IntPtr category,
-            IntPtr error, long memPtr);
+        public delegate void LoggerLog(IntPtr env, IntPtr clazz, long igniteId, int level, IntPtr message,
+            IntPtr category, IntPtr error, long memPtr);
 
         [UnmanagedFunctionPointer(CallingConvention.StdCall)]
-        public delegate bool LoggerIsLevelEnabled(IntPtr env, IntPtr clazz, int level);
+        public delegate bool LoggerIsLevelEnabled(IntPtr env, IntPtr clazz, long ignteId, int level);
 
         [UnmanagedFunctionPointer(CallingConvention.StdCall)]
         public delegate void ConsoleWrite(IntPtr env, IntPtr clazz, IntPtr message, bool isError);

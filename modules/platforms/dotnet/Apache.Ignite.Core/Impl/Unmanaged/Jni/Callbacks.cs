@@ -1,15 +1,48 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿/*
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+using System;
 
 namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
 {
+    using System.Collections.Generic;
+    using System.Diagnostics;
     using System.Runtime.InteropServices;
     using Apache.Ignite.Core.Impl.Binary;
 
+    /// <summary>
+    /// Java -> .NET callback dispatcher.
+    /// </summary>
     internal class Callbacks
     {
+        /** Holds delegates so that GC does not collect them. */
+        // ReSharper disable once CollectionNeverQueried.Local
+        private readonly List<Delegate> _delegates = new List<Delegate>();
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="Callbacks"/> class.
+        /// </summary>
+        public Callbacks(Env env)
+        {
+            Debug.Assert(env != null);
+
+            RegisterNatives(env);
+        }
+
         /// <summary>
         /// Registers native callbacks.
         /// </summary>
@@ -33,7 +66,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
                     GetNativeMethod("consoleWrite", "(Ljava/lang/String;Z)V",
                         (CallbackDelegates.ConsoleWrite) ConsoleWrite),
 
-                    GetNativeMethod("inLongOutLong", "(JIJ)J", (Action) (() => { Console.WriteLine("woot"); })),
+                    GetNativeMethod("inLongOutLong", "(JIJ)J", (CallbackDelegates.InLongOutLong) InLongOutLong),
 
                     GetNativeMethod("inLongLongLongObjectOutLong", "(JIJJJLjava/lang/Object;)J",
                         (CallbackDelegates.InLongLongLongObjectOutLong) InLongLongLongObjectOutLong)
@@ -57,8 +90,10 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
         /// <summary>
         /// Gets the native method.
         /// </summary>
-        private static unsafe NativeMethod GetNativeMethod(string name, string sig, Delegate d)
+        private unsafe NativeMethod GetNativeMethod(string name, string sig, Delegate d)
         {
+            _delegates.Add(d);
+
             return new NativeMethod
             {
                 Name = (IntPtr)IgniteUtils.StringToUtf8Unmanaged(name),
@@ -67,23 +102,25 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
             };
         }
 
-
-        private void LoggerLog(IntPtr env, IntPtr clazz, int level, IntPtr message, IntPtr category, IntPtr error,
-            long memPtr)
+        private void LoggerLog(IntPtr env, IntPtr clazz, long igniteId, int level, IntPtr category, IntPtr error,
+            IntPtr intPtr, long memPtr)
         {
 
         }
 
-        private void ConsoleWrite(IntPtr envPtr, IntPtr clazz, IntPtr message, bool isError)
+        private static void ConsoleWrite(IntPtr envPtr, IntPtr clazz, IntPtr message, bool isError)
         {
             // TODO: This causes crash some times (probably unreleased stuff or incorrect env handling)
-            var env = Jvm.Get().AttachCurrentThread();
-            var msg = env.JStringToString(message);
+            if (message != IntPtr.Zero)
+            {
+                var env = Jvm.Get().AttachCurrentThread();
+                var msg = env.JStringToString(message);
 
-            Console.Write(msg);
+                Console.Write(msg);
+            }
         }
 
-        private bool LoggerIsLevelEnabled(IntPtr env, IntPtr clazz, int level)
+        private bool LoggerIsLevelEnabled(IntPtr env, IntPtr clazz, long ignteId, int level)
         {
             return false;
         }
@@ -117,6 +154,13 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
                 Console.WriteLine("UNKNOWN CALLBACK: " + op);
             }
 
+            return 0;
+        }
+
+        private long InLongOutLong(IntPtr env, IntPtr clazz, long igniteId,
+            int op, long arg)
+        {
+            // TODO
             return 0;
         }
     }
