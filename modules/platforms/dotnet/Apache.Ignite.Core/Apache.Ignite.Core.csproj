@@ -141,7 +141,7 @@
     <Compile Include="Impl\PlatformDisposableTargetAdapter.cs" />
     <Compile Include="Impl\PlatformJniTarget.cs" />
     <Compile Include="Impl\Unmanaged\Jni\NativeMethod.cs" />
-    <Compile Include="Impl\Unmanaged\Jni\JNIResult.cs" />
+    <Compile Include="Impl\Unmanaged\Jni\JniResult1.cs" />
     <Compile Include="Impl\Unmanaged\Jni\Jvm.cs" />
     <Compile Include="Impl\Unmanaged\Jni\JvmDelegates.cs" />
     <Compile Include="PersistentStore\CheckpointWriteOrder.cs" />
