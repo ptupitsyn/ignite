@@ -18,47 +18,42 @@
 namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
 {
     using System;
-    using System.Runtime.InteropServices;
 
     /// <summary>
     /// JNIEnv.
     /// </summary>
     internal unsafe class Env
     {
-        //private static JavaVM defaultVM;
-        //[ThreadStatic] private static JNIEnv threadJNIEnv;
+        /** JNIEnv pointer. */
+        private readonly IntPtr _envPtr;
 
-        private readonly IntPtr envPtr;
+        /** Functions. */
+        private readonly EnvInterface _functions;
 
-        private EnvInterface functions;
-        //private JavaVM javaVM;
-
-        internal Env(IntPtr native)
+        /// <summary>
+        /// Initializes a new instance of the <see cref="Env" /> class.
+        /// </summary>
+        internal Env(IntPtr envPtr)
         {
-            this.envPtr = native;
-            functions = *(*(JavaPtr*) native.ToPointer()).functions;
-            // TODO
-            // InitMethods();
-            //if (defaultVM == null)
-            //{
-            //    defaultVM = GetJavaVM();
-            //}
+            _envPtr = envPtr;
+            var funcPtr = (EnvInterface**)envPtr;
+            _functions = **funcPtr;
         }
 
+        /// <summary>
+        /// Gets the env pointer.
+        /// </summary>
         public IntPtr EnvPtr
         {
-            get { return envPtr; }
+            get { return _envPtr; }
         }
 
+        /// <summary>
+        /// Gets the functions.
+        /// </summary>
         public EnvInterface Functions
         {
-            get { return functions; }
-        }
-
-        [StructLayout(LayoutKind.Sequential, Size = 4)]
-        internal struct JavaPtr
-        {
-            public EnvInterface* functions;
+            get { return _functions; }
         }
     }
 }

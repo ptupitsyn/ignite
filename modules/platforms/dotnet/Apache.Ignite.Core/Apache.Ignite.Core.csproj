@@ -141,7 +141,7 @@
     <Compile Include="Impl\Unmanaged\Jni\JvmInterface.cs" />
     <Compile Include="Impl\PlatformDisposableTargetAdapter.cs" />
     <Compile Include="Impl\PlatformJniTarget.cs" />
-    <Compile Include="Impl\Unmanaged\Jni\JNINativeMethod.cs" />
+    <Compile Include="Impl\Unmanaged\Jni\NativeMethod.cs" />
     <Compile Include="Impl\Unmanaged\Jni\JNIResult.cs" />
     <Compile Include="Impl\Unmanaged\Jni\EnvMethods.cs" />
     <Compile Include="Impl\Unmanaged\Jni\Jvm.cs" />

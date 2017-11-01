@@ -143,9 +143,9 @@ namespace Apache.Ignite.Core.Tests
             jvm.Methods.RegisterNatives(callbackUtils, methods);
         }
 
-        private static unsafe JNINativeMethod GetNativeMethod(string name, string sig, Delegate d)
+        private static unsafe NativeMethod GetNativeMethod(string name, string sig, Delegate d)
         {
-            return new JNINativeMethod
+            return new NativeMethod
             {
                 Name = (IntPtr) IgniteUtils.StringToUtf8Unmanaged(name),
                 Signature = (IntPtr) IgniteUtils.StringToUtf8Unmanaged(sig),
@@ -160,6 +160,7 @@ namespace Apache.Ignite.Core.Tests
 
         private void ConsoleWrite(IntPtr env, IntPtr clazz, IntPtr message, bool isError)
         {
+            // TODO: This causes crash some times (probably unreleased stuff or incorrect env handling)
             var msg = new EnvMethods(new Env(env)).JStringToString(message);
 
             Console.Write(msg);

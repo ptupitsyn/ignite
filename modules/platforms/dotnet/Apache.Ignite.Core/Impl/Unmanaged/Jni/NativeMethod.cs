@@ -19,7 +19,10 @@ using System;
 
 namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
 {
-    internal struct JNINativeMethod
+    /// <summary>
+    /// JNINativeMethod.
+    /// </summary>
+    internal struct NativeMethod
     {
         public IntPtr Name;
         public IntPtr Signature;

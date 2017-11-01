@@ -153,11 +153,11 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
             _releaseStringChars(_envPtr, jstring, chars);
         }
 
-        public unsafe void RegisterNatives(IntPtr clazz, JNINativeMethod[] methods)
+        public unsafe void RegisterNatives(IntPtr clazz, NativeMethod[] methods)
         {
             Debug.Assert(methods != null);
 
-            fixed (JNINativeMethod* m = &methods[0])
+            fixed (NativeMethod* m = &methods[0])
             {
                 var res = _registerNatives(_envPtr, clazz, m, methods.Length);
 
