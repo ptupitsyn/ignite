@@ -18,6 +18,7 @@
 namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
 {
     using System;
+    using System.Diagnostics;
     using System.Runtime.InteropServices;
     using System.Security;
     using Apache.Ignite.Core.Common;
@@ -26,27 +27,38 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
     /// JVM holder.
     /// </summary>
     [SuppressUnmanagedCodeSecurity]
-    internal class Jvm
+    internal unsafe class Jvm
     {
         /** */
+        // ReSharper disable once InconsistentNaming
         private const int JNI_VERSION_1_6 = 0x00010006;
 
         /** */
-        private readonly JvmMethods _methods;
+        private readonly IntPtr _jvmPtr;
+
+        /** */
+        private readonly JvmDelegates.AttachCurrentThread _attachCurrentThread;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="Jvm"/> class.
         /// </summary>
         private Jvm(IntPtr jvmPtr)
         {
-            _methods = new JvmMethods(jvmPtr);
+            Debug.Assert(jvmPtr != IntPtr.Zero);
+
+            _jvmPtr = jvmPtr;
+
+            var funcPtr = (JvmInterface**)jvmPtr;
+            var func = **funcPtr;
+
+            GetDelegate(func.AttachCurrentThread, out _attachCurrentThread);
         }
 
         /// <summary>
         /// Gets or creates the JVM.
         /// </summary>
         /// <param name="options">JVM options.</param>
-        public static unsafe Jvm GetOrCreate(params string[] options)
+        public static Jvm GetOrCreate(params string[] options)
         {
             var args = new JvmInitArgs
             {
@@ -74,7 +86,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
 
             // TODO: Get if exists.
             var result = JniNativeMethods.JNI_CreateJavaVM(out jvm, out env, &args);
-            if (result != JNIResult.Success)
+            if (result != JniResult.Success)
             {
                 throw new IgniteException("Can't load JVM: " + result);
             }
@@ -87,8 +99,25 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
         /// </summary>
         public Env AttachCurrentThread()
         {
-            // TODO: Cache in a ThreadLocal.
-            return new Env(_methods.AttachCurrentThread());
+            IntPtr envPtr;
+            var res = _attachCurrentThread(_jvmPtr, out envPtr, IntPtr.Zero);
+
+            if (res != JniResult.Success)
+            {
+                throw new IgniteException("Failed to attach to JVM.");
+            }
+
+            Debug.Assert(envPtr != IntPtr.Zero);
+
+            return new Env(envPtr);
+        }
+
+        /// <summary>
+        /// Gets the delegate.
+        /// </summary>
+        private static void GetDelegate<T>(IntPtr ptr, out T del)
+        {
+            del = (T)(object)Marshal.GetDelegateForFunctionPointer(ptr, typeof(T));
         }
 
         /// <summary>
@@ -98,39 +127,39 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
         private struct JvmOption
         {
             public IntPtr optionString;
-            public IntPtr extraInfo;
+            private readonly IntPtr extraInfo;
         }
 
         /// <summary>
         /// JavaVMInitArgs.
         /// </summary>
         [StructLayout(LayoutKind.Sequential, Pack = 0)]
-        private unsafe struct JvmInitArgs
+        private struct JvmInitArgs
         {
             public int version;
             public int nOptions;
             public JvmOption* options;
-            public byte ignoreUnrecognized;
+            private readonly byte ignoreUnrecognized;
         }
 
         /// <summary>
         /// DLL imports.
         /// </summary>
-        private static unsafe class JniNativeMethods
+        private static class JniNativeMethods
         {
             // See https://github.com/srisatish/openjdk/blob/master/jdk/src/share/sample/vm/clr-jvm/invoker.cs
             // See https://github.com/jni4net/jni4net
 
             [DllImport("jvm.dll", CallingConvention = CallingConvention.StdCall)]
-            internal static extern JNIResult JNI_CreateJavaVM(out IntPtr pvm, out IntPtr penv,
+            internal static extern JniResult JNI_CreateJavaVM(out IntPtr pvm, out IntPtr penv,
                 JvmInitArgs* args);
 
             [DllImport("jvm.dll", CallingConvention = CallingConvention.StdCall)]
-            internal static extern JNIResult JNI_GetCreatedJavaVMs(out IntPtr pvm, int size,
+            internal static extern JniResult JNI_GetCreatedJavaVMs(out IntPtr pvm, int size,
                 [Out] out int size2);
 
             [DllImport("jvm.dll", CallingConvention = CallingConvention.StdCall)]
-            internal static extern JNIResult JNI_GetDefaultJavaVMInitArgs(JvmInitArgs* args);
+            internal static extern JniResult JNI_GetDefaultJavaVMInitArgs(JvmInitArgs* args);
         }
     }
 }

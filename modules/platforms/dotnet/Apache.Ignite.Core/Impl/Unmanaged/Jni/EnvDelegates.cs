@@ -25,14 +25,14 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
     /// Delegates for JNI Env entity.
     /// </summary>
     [SuppressUnmanagedCodeSecurity]
-    internal static class EnvDelegates // TODO: remove prefix from all Jni* classes
+    internal static class EnvDelegates
     {
         [UnmanagedFunctionPointer(CallingConvention.StdCall)]
-        public delegate JNIResult CallStaticVoidMethod(
+        public delegate JniResult CallStaticVoidMethod(
             IntPtr env, IntPtr clazz, IntPtr methodId, params JavaValue[] args);
 
         [UnmanagedFunctionPointer(CallingConvention.StdCall)]
-        public delegate JNIResult CallStaticVoidMethodV(
+        public delegate JniResult CallStaticVoidMethodV(
             IntPtr env, IntPtr clazz, IntPtr methodId, IntPtr vaList);
 
         [UnmanagedFunctionPointer(CallingConvention.StdCall)]
@@ -83,17 +83,15 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
         internal delegate void ReleaseStringChars(IntPtr env, IntPtr jstring, IntPtr chars);
 
         [UnmanagedFunctionPointer(CallingConvention.StdCall)]
-        internal unsafe delegate JNIResult RegisterNatives(IntPtr env, IntPtr clazz,
+        internal unsafe delegate JniResult RegisterNatives(IntPtr env, IntPtr clazz,
             NativeMethod* methods, int nMethods);
-
-
         
         [UnmanagedFunctionPointer(CallingConvention.StdCall)]
         [SuppressUnmanagedCodeSecurity]
-        internal delegate JNIResult GetEnv(IntPtr jvm, out IntPtr env, int version);
+        internal delegate JniResult GetEnv(IntPtr jvm, out IntPtr env, int version);
 
         [UnmanagedFunctionPointer(CallingConvention.StdCall)]
         [SuppressUnmanagedCodeSecurity]
-        internal delegate JNIResult AttachCurrentThread(IntPtr jvm, out IntPtr env, IntPtr args);
+        internal delegate JniResult AttachCurrentThread(IntPtr jvm, out IntPtr env, IntPtr args);
     }
 }

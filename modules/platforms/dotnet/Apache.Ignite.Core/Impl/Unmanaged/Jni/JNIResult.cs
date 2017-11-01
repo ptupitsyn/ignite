@@ -17,7 +17,10 @@
 
 namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
 {
-    internal enum JNIResult
+    /// <summary>
+    /// JNI call result.
+    /// </summary>
+    internal enum JniResult
     {
         Success = 0,
         Error = -1,

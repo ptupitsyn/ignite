@@ -20,10 +20,12 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
     using System;
     using System.Diagnostics;
     using System.Runtime.InteropServices;
+    using System.Security;
 
     /// <summary>
     /// JNIEnv.
     /// </summary>
+    [SuppressUnmanagedCodeSecurity]
     internal unsafe class Env
     {
         /** JNIEnv pointer. */
@@ -192,7 +194,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
             {
                 var res = _registerNatives(_envPtr, clazz, m, methods.Length);
 
-                if (res != JNIResult.Success)
+                if (res != JniResult.Success)
                 {
                     throw new Exception("Failed to register natives.");
                 }
