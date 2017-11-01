@@ -20,17 +20,20 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
     using System;
     using System.Runtime.InteropServices;
 
-    internal unsafe class JNIEnv
+    /// <summary>
+    /// JNIEnv.
+    /// </summary>
+    internal unsafe class Env
     {
         //private static JavaVM defaultVM;
         //[ThreadStatic] private static JNIEnv threadJNIEnv;
 
         private readonly IntPtr envPtr;
 
-        private JavaNativeInterface functions;
+        private EnvInterface functions;
         //private JavaVM javaVM;
 
-        internal JNIEnv(IntPtr native)
+        internal Env(IntPtr native)
         {
             this.envPtr = native;
             functions = *(*(JavaPtr*) native.ToPointer()).functions;
@@ -47,7 +50,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
             get { return envPtr; }
         }
 
-        public JavaNativeInterface Functions
+        public EnvInterface Functions
         {
             get { return functions; }
         }
@@ -55,7 +58,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
         [StructLayout(LayoutKind.Sequential, Size = 4)]
         internal struct JavaPtr
         {
-            public JavaNativeInterface* functions;
+            public EnvInterface* functions;
         }
     }
 }

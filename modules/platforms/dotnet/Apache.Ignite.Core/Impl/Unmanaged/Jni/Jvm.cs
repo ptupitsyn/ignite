@@ -32,7 +32,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
         private const int JNI_VERSION_1_6 = 0x00010006;
 
         /** */
-        private readonly JNIEnv _env;
+        private readonly Env _env;
 
         /** */
         private readonly JavaVM _vm;
@@ -40,7 +40,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
         /** */
         private readonly EnvMethods _methods;
 
-        private Jvm(JNIEnv env, JavaVM vm)
+        private Jvm(Env env, JavaVM vm)
         {
             _env = env;
             _vm = vm;
@@ -91,7 +91,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
             }
             
             var jvm = new JavaVM(njvm);
-            var env = new JNIEnv(nenv);
+            var env = new Env(nenv);
 
             return new Jvm(env, jvm);
         }

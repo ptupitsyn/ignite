@@ -43,7 +43,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
         private readonly EnvDelegates.CallStaticObjectMethod _callStaticObjectMethod;
         private readonly EnvDelegates.RegisterNatives _registerNatives;
 
-        public EnvMethods(JNIEnv env)
+        public EnvMethods(Env env)
         {
             Debug.Assert(env != null);
             Debug.Assert(env.EnvPtr != IntPtr.Zero);

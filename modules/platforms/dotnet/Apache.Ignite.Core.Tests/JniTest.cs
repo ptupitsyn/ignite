@@ -113,7 +113,6 @@ namespace Apache.Ignite.Core.Tests
                 // Register callbacks.
                 RegisterNatives(jvm);
 
-                // TODO: This works, fails on callback. Implement callbacks.
                 jvm.Methods.CallStaticVoidMethod(ignition, start, args.ToArray());
             }
         }
@@ -123,8 +122,7 @@ namespace Apache.Ignite.Core.Tests
             var callbackUtils = jvm.Methods.FindClass(
                     "org/apache/ignite/internal/processors/platform/callback/PlatformCallbackUtils");
 
-            // TODO: Are delegates signature mandatory? What if we pass the method directly?
-            // Turns out any signature works, wtf!
+            // Turns out any signature works, we can ignore parameters!
             var methods = new[]
             {
                 GetNativeMethod("loggerLog", "(JILjava/lang/String;Ljava/lang/String;Ljava/lang/String;J)V",
@@ -162,7 +160,7 @@ namespace Apache.Ignite.Core.Tests
 
         private void ConsoleWrite(IntPtr env, IntPtr clazz, IntPtr message, bool isError)
         {
-            var msg = new EnvMethods(new JNIEnv(env)).JStringToString(message);
+            var msg = new EnvMethods(new Env(env)).JStringToString(message);
 
             Console.Write(msg);
         }

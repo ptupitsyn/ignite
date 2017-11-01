@@ -137,7 +137,7 @@
     <Compile Include="Impl\Unmanaged\Jni\JavaValue.cs" />
     <Compile Include="Impl\Unmanaged\Jni\JavaVM.cs" />
     <Compile Include="Impl\Unmanaged\Jni\JNIEnv.cs" />
-    <Compile Include="Impl\Unmanaged\Jni\JavaNativeInterface.cs" />
+    <Compile Include="Impl\Unmanaged\Jni\EnvInterface.cs" />
     <Compile Include="Impl\Unmanaged\Jni\JNIInvokeInterface.cs" />
     <Compile Include="Impl\PlatformDisposableTargetAdapter.cs" />
     <Compile Include="Impl\PlatformJniTarget.cs" />
