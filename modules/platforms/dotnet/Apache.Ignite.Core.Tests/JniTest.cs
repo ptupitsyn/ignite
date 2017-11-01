@@ -125,10 +125,11 @@ namespace Apache.Ignite.Core.Tests
             
         }
 
-        private void ConsoleWrite(IntPtr env, IntPtr clazz, IntPtr message, bool isError)
+        private void ConsoleWrite(IntPtr envPtr, IntPtr clazz, IntPtr message, bool isError)
         {
             // TODO: This causes crash some times (probably unreleased stuff or incorrect env handling)
-            var msg = new Env(env).JStringToString(message);
+            var env = Jvm.Get().AttachCurrentThread();
+            var msg = env.JStringToString(message);
 
             Console.Write(msg);
         }

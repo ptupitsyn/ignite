@@ -75,6 +75,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
         /// </summary>
         internal Env(IntPtr envPtr)
         {
+            Debug.Assert( envPtr != IntPtr.Zero);
             _envPtr = envPtr;
 
             var funcPtr = (EnvInterface**)envPtr;

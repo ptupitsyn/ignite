@@ -45,6 +45,9 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
         /** Sync. */
         private static readonly object SyncRoot = new object();
 
+        /** Env for current thread. */
+        [ThreadStatic] private static Env _env;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="_instance"/> class.
         /// </summary>
@@ -75,6 +78,19 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
             {
                 return _instance ?? (_instance = new Jvm(GetJvmPtr(options)));
             }
+        }
+
+        /// <summary>
+        /// Gets the JVM.
+        /// </summary>
+        public static Jvm Get()
+        {
+            if (_instance == null)
+            {
+                throw new IgniteException("JVM has not been created.");
+            }
+
+            return _instance;
         }
 
         /// <summary>
@@ -133,17 +149,20 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
         /// </summary>
         public Env AttachCurrentThread()
         {
-            IntPtr envPtr;
-            var res = _attachCurrentThread(_jvmPtr, out envPtr, IntPtr.Zero);
-
-            if (res != JniResult.Success)
+            if (_env == null)
             {
-                throw new IgniteException("Failed to attach to JVM: " + res);
+                IntPtr envPtr;
+                var res = _attachCurrentThread(_jvmPtr, out envPtr, IntPtr.Zero);
+
+                if (res != JniResult.Success)
+                {
+                    throw new IgniteException("AttachCurrentThread failed: " + res);
+                }
+
+                _env = new Env(envPtr);
             }
 
-            Debug.Assert(envPtr != IntPtr.Zero);
-
-            return new Env(envPtr);
+            return _env;
         }
 
         /// <summary>
@@ -151,7 +170,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
         /// </summary>
         private static void GetDelegate<T>(IntPtr ptr, out T del)
         {
-            del = (T)(object)Marshal.GetDelegateForFunctionPointer(ptr, typeof(T));
+            del = (T) (object) Marshal.GetDelegateForFunctionPointer(ptr, typeof(T));
         }
 
         /// <summary>
