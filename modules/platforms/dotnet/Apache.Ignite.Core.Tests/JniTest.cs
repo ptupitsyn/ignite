@@ -64,10 +64,10 @@ namespace Apache.Ignite.Core.Tests
                 // Name
                 var gridNameUtf = IgniteUtils.StringToUtf8Unmanaged("myGrid"); // TODO: FreeHGlobal
                 var gridName1 = env.NewStringUtf(new IntPtr(gridNameUtf));
-                args.Add(new JavaValue { _object = gridName1 });
+                args.Add(new JavaValue(gridName1));
 
                 // FactoryId
-                args.Add(new JavaValue{_int = 1});
+                args.Add(new JavaValue(1));
 
                 // EnvPtr ???
                 args.Add(new JavaValue { _object = env.EnvPtr });

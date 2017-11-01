@@ -15,32 +15,46 @@
  * limitations under the License.
  */
 
+using System;
+
 namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
 {
-    using System;
-    using System.Runtime.InteropServices;
+    using System.Diagnostics;
 
-    [StructLayout(LayoutKind.Explicit, Size = 8)]
-    internal struct JavaValue
+    internal class LocalRef : IDisposable
     {
-        public JavaValue(LocalRef r) : this()
+        private readonly Env _env;
+
+        private readonly IntPtr _lref;
+
+        public LocalRef(Env env, IntPtr lref)
         {
-            _object = r.Ref;
+            Debug.Assert(env != null);
+            Debug.Assert(lref != IntPtr.Zero);
+
+            _env = env;
+            _lref = lref;
         }
 
-        public JavaValue(int i) : this()
+        public IntPtr Ref
         {
-            _int = i;
+            get { return _lref; }
         }
 
-        [FieldOffset(0)] public byte _bool;
-        [FieldOffset(0)] public byte _byte;
-        [FieldOffset(0)] public short _char;
-        [FieldOffset(0)] public short _short;
-        [FieldOffset(0)] public int _int;
-        [FieldOffset(0)] public long _long;
-        [FieldOffset(0)] public float _float;
-        [FieldOffset(0)] public double _double;
-        [FieldOffset(0)] public IntPtr _object;
+        private void ReleaseUnmanagedResources()
+        {
+            _env.DeleteLocalRef(_lref);
+        }
+
+        public void Dispose()
+        {
+            ReleaseUnmanagedResources();
+            GC.SuppressFinalize(this);
+        }
+
+        ~LocalRef()
+        {
+            ReleaseUnmanagedResources();
+        }
     }
 }

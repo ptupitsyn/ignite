@@ -114,77 +114,77 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
             get { return _envPtr; }
         }
 
-        public void CallStaticVoidMethod(IntPtr cls, IntPtr methodId, params JavaValue[] args)
+        public void CallStaticVoidMethod(LocalRef cls, IntPtr methodId, params JavaValue[] args)
         {
-            _callStaticVoidMethod(_envPtr, cls, methodId, args);
+            _callStaticVoidMethod(_envPtr, cls.Ref, methodId, args);
 
             ExceptionCheck();
         }
 
-        public IntPtr CallObjectMethod(IntPtr obj, IntPtr methodId, params JavaValue[] args)
+        public LocalRef CallObjectMethod(LocalRef obj, IntPtr methodId, params JavaValue[] args)
         {
-            var res = _callObjectMethod(_envPtr, obj, methodId, args);
+            var res = _callObjectMethod(_envPtr, obj.Ref, methodId, args);
 
             ExceptionCheck();
 
-            return res;
+            return new LocalRef(this, res);
         }
 
-        public IntPtr CallStaticObjectMethod(IntPtr cls, IntPtr methodId, params JavaValue[] args)
+        public LocalRef CallStaticObjectMethod(LocalRef cls, IntPtr methodId, params JavaValue[] args)
         {
-            var res = _callStaticObjectMethod(_envPtr, cls, methodId, args);
+            var res = _callStaticObjectMethod(_envPtr, cls.Ref, methodId, args);
 
             ExceptionCheck();
 
-            return res;
+            return new LocalRef(this, res);
         }
 
-        public IntPtr FindClass(string name)
+        public LocalRef FindClass(string name)
         {
             var res = _findClass(_envPtr, name);
 
             ExceptionCheck();
 
-            return res;
+            return new LocalRef(this, res);
         }
 
-        public IntPtr GetObjectClass(IntPtr err)
+        public LocalRef GetObjectClass(LocalRef obj)
         {
-            var res = _getObjectClass(_envPtr, err);
+            var res = _getObjectClass(_envPtr, obj.Ref);
+
+            ExceptionCheck();
+
+            return new LocalRef(this, res);
+        }
+
+        public IntPtr GetStaticMethodId(LocalRef clazz, string name, string signature)
+        {
+            var res = _getStaticMethodId(_envPtr, clazz.Ref, name, signature);
 
             ExceptionCheck();
 
             return res;
         }
 
-        public IntPtr GetStaticMethodId(IntPtr clazz, string name, string signature)
+        public IntPtr GetMethodId(LocalRef clazz, string name, string signature)
         {
-            var res = _getStaticMethodId(_envPtr, clazz, name, signature);
+            var res = _getMethodId(_envPtr, clazz.Ref, name, signature);
 
             ExceptionCheck();
 
             return res;
         }
 
-        public IntPtr GetMethodId(IntPtr clazz, string name, string signature)
-        {
-            var res = _getMethodId(_envPtr, clazz, name, signature);
-
-            ExceptionCheck();
-
-            return res;
-        }
-
-        public IntPtr NewStringUtf(IntPtr utf)  // TODO: result must be released with DeleteLocalRef
+        public LocalRef NewStringUtf(IntPtr utf)
         {
             var res = _newStringUtf(_envPtr, utf);
 
             ExceptionCheck();
 
-            return res;
+            return new LocalRef(this, res);
         }
 
-        public IntPtr GetStringChars(IntPtr jstring)
+        private IntPtr GetStringChars(IntPtr jstring)
         {
             Debug.Assert(jstring != IntPtr.Zero);
 
@@ -192,18 +192,18 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
             return _getStringChars(_envPtr, jstring, &isCopy);
         }
 
-        public void ReleaseStringChars(IntPtr jstring, IntPtr chars)
+        private void ReleaseStringChars(IntPtr jstring, IntPtr chars)
         {
             _releaseStringChars(_envPtr, jstring, chars);
         }
 
-        public void RegisterNatives(IntPtr clazz, NativeMethod[] methods)
+        public void RegisterNatives(LocalRef clazz, NativeMethod[] methods)
         {
             Debug.Assert(methods != null);
 
             fixed (NativeMethod* m = &methods[0])
             {
-                var res = _registerNatives(_envPtr, clazz, m, methods.Length);
+                var res = _registerNatives(_envPtr, clazz.Ref, m, methods.Length);
 
                 if (res != JniResult.Success)
                 {
@@ -212,17 +212,17 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
             }
         }
 
+        public string JStringToString(LocalRef jstring)
+        {
+            return JStringToString(jstring.Ref);
+        }
+
         public string JStringToString(IntPtr jstring)
         {
-            if (jstring != IntPtr.Zero)
-            {
-                var chars = GetStringChars(jstring);
-                var result = Marshal.PtrToStringUni(chars);
-                ReleaseStringChars(jstring, chars);
-                return result;
-            }
-
-            return null;
+            var chars = GetStringChars(jstring);
+            var result = Marshal.PtrToStringUni(chars);
+            ReleaseStringChars(jstring, chars);
+            return result;
         }
 
         public void DeleteLocalRef(IntPtr lref)
@@ -241,18 +241,25 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
             {
                 _exceptionClear(_envPtr);
 
-                var platformUtilsCls = FindClass("org/apache/ignite/internal/processors/platform/utils/PlatformUtils");
-                var getStackTrace = GetStaticMethodId(platformUtilsCls, "getFullStackTrace",
-                    "(Ljava/lang/Throwable;)Ljava/lang/String;");
+                using (var errRef = new LocalRef(this, err))
+                using (var platformUtilsCls =
+                    FindClass("org/apache/ignite/internal/processors/platform/utils/PlatformUtils"))
+                {
+                    var getStackTrace = GetStaticMethodId(platformUtilsCls, "getFullStackTrace",
+                        "(Ljava/lang/Throwable;)Ljava/lang/String;");
 
-                var cls = GetObjectClass(err);
-                var clsName = CallObjectMethod(cls, _jvm.MethodId.ClassGetName);
-                var msg = CallObjectMethod(err, _jvm.MethodId.ThrowableGetMessage);
-                var trace = CallStaticObjectMethod(platformUtilsCls, getStackTrace, new JavaValue { _object = err });
+                    var cls = GetObjectClass(errRef);
+                    var clsName = CallObjectMethod(cls, _jvm.MethodId.ClassGetName);
+                    var msg = CallObjectMethod(errRef, _jvm.MethodId.ThrowableGetMessage);
+                    var trace = CallStaticObjectMethod(platformUtilsCls, getStackTrace,
+                        new JavaValue { _object = err });
 
-                // Exception is present.
-                throw new Exception(string.Format("{0}: {1}\n\n{2}", JStringToString(clsName), JStringToString(msg),
-                    JStringToString(trace)));
+                    // Exception is present.
+                    throw new Exception(string.Format("{0}: {1}\n\n{2}",
+                        JStringToString(clsName),
+                        JStringToString(msg),
+                        JStringToString(trace)));
+                }
             }
         }
 
