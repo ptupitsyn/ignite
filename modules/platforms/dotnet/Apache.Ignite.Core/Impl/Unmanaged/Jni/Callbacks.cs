@@ -22,7 +22,6 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
     using System.Collections.Generic;
     using System.Diagnostics;
     using System.Runtime.InteropServices;
-    using Apache.Ignite.Core.Impl.Binary;
     using Apache.Ignite.Core.Impl.Handle;
 
     /// <summary>
@@ -128,31 +127,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
         private long InLongLongLongObjectOutLong(IntPtr env, IntPtr clazz, long igniteId,
             int op, long arg1, long arg2, long arg3, IntPtr arg)
         {
-            if (op == (int)UnmanagedCallbackOp.ExtensionInLongLongOutLong && arg1 == 1)
-            {
-                Console.WriteLine("OpPrepareDotNet");
-                using (var inStream = IgniteManager.Memory.Get(arg2).GetStream())
-                using (var outStream = IgniteManager.Memory.Get(arg3).GetStream())
-                {
-                    var writer = BinaryUtils.Marshaller.StartMarshal(outStream);
-
-                    // Config.
-                    // TODO
-                    //TestUtils.GetTestConfiguration().Write(writer);
-
-                    // Beans.
-                    writer.WriteInt(0);
-
-                    outStream.SynchronizeOutput();
-
-                    return 0;
-                }
-
-            }
-            else
-            {
-                Console.WriteLine("UNKNOWN CALLBACK: " + op);
-            }
+            // TODO: Delegate to registered handler.
 
             return 0;
         }
