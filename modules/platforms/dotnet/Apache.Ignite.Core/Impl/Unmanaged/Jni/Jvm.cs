@@ -39,8 +39,14 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
         /** */
         private readonly JvmDelegates.AttachCurrentThread _attachCurrentThread;
 
+        /** Static instamce */
+        private static Jvm _instance;
+
+        /** Sync. */
+        private static readonly object SyncRoot = new object();
+
         /// <summary>
-        /// Initializes a new instance of the <see cref="Jvm"/> class.
+        /// Initializes a new instance of the <see cref="_instance"/> class.
         /// </summary>
         private Jvm(IntPtr jvmPtr)
         {
@@ -60,6 +66,22 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
         /// <param name="options">JVM options.</param>
         public static Jvm GetOrCreate(params string[] options)
         {
+            if (_instance != null)
+            {
+                return _instance;
+            }
+
+            lock (SyncRoot)
+            {
+                return _instance ?? (_instance = new Jvm(GetJvmPtr(options)));
+            }
+        }
+
+        /// <summary>
+        /// Gets the JVM pointer.
+        /// </summary>
+        private static IntPtr GetJvmPtr(string[] options)
+        {
             IntPtr jvm;
             int existingJvmCount;
 
@@ -72,7 +94,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
 
             if (existingJvmCount > 0)
             {
-                return new Jvm(jvm);
+                return jvm;
             }
 
             var args = new JvmInitArgs
@@ -103,7 +125,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
                 throw new IgniteException("JNI_CreateJavaVM failed: " + res);
             }
 
-            return new Jvm(jvm);
+            return jvm;
         }
 
         /// <summary>
