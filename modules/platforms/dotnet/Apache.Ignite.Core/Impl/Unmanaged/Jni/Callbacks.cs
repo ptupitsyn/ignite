@@ -172,7 +172,11 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
                 var env = Jvm.Get().AttachCurrentThread();
                 var msg = env.JStringToString(message);
 
-                Console.Write(msg);
+                // TODO
+                // var str = IgniteUtils.Utf8UnmanagedToString(chars, charsLen);
+
+                var target = isError ? Console.Error : Console.Out;
+                target.Write(msg);
             }
         }
     }
