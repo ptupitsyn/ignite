@@ -42,6 +42,10 @@ namespace Apache.Ignite.Core.Tests
             var jvm = Jvm.GetOrCreate(Classpath.CreateClasspath(forceTestClasspath: true));
             Assert.IsNotNull(jvm);
 
+            // Should return existing.
+            jvm = Jvm.GetOrCreate();
+            Assert.IsNotNull(jvm);
+
             var env = jvm.AttachCurrentThread();
 
             var ignition = env.FindClass("org/apache/ignite/internal/processors/platform/PlatformIgnition");
