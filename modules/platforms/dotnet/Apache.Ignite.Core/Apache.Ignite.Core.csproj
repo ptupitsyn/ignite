@@ -143,7 +143,6 @@
     <Compile Include="Impl\Unmanaged\Jni\JvmMethods.cs" />
     <Compile Include="Impl\Unmanaged\Jni\NativeMethod.cs" />
     <Compile Include="Impl\Unmanaged\Jni\JNIResult.cs" />
-    <Compile Include="Impl\Unmanaged\Jni\EnvMethods.cs" />
     <Compile Include="Impl\Unmanaged\Jni\Jvm.cs" />
     <Compile Include="Impl\Unmanaged\Jni\JvmDelegates.cs" />
     <Compile Include="PersistentStore\CheckpointWriteOrder.cs" />

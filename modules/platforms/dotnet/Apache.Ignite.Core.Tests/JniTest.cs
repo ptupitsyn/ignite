@@ -44,10 +44,10 @@ namespace Apache.Ignite.Core.Tests
 
             var env = jvm.AttachCurrentThread();
 
-            var ignition = env.Methods.FindClass("org/apache/ignite/internal/processors/platform/PlatformIgnition");
+            var ignition = env.FindClass("org/apache/ignite/internal/processors/platform/PlatformIgnition");
             Assert.AreNotEqual(IntPtr.Zero, ignition);
 
-            var start = env.Methods.GetStaticMethodId(ignition, "start", "(Ljava/lang/String;Ljava/lang/String;IJJ)V");
+            var start = env.GetStaticMethodId(ignition, "start", "(Ljava/lang/String;Ljava/lang/String;IJJ)V");
             Assert.AreNotEqual(IntPtr.Zero, start);
 
             var args = new List<JavaValue>();
@@ -59,7 +59,7 @@ namespace Apache.Ignite.Core.Tests
 
                 // Name
                 var gridNameUtf = IgniteUtils.StringToUtf8Unmanaged("myGrid"); // TODO: FreeHGlobal
-                var gridName1 = env.Methods.NewStringUTF(new IntPtr(gridNameUtf));
+                var gridName1 = env.NewStringUtf(new IntPtr(gridNameUtf));
                 args.Add(new JavaValue { _object = gridName1 });
 
                 // FactoryId
@@ -76,13 +76,13 @@ namespace Apache.Ignite.Core.Tests
                 // Register callbacks.
                 RegisterNatives(env);
 
-                env.Methods.CallStaticVoidMethod(ignition, start, args.ToArray());
+                env.CallStaticVoidMethod(ignition, start, args.ToArray());
             }
         }
 
         private void RegisterNatives(Env env)
         {
-            var callbackUtils = env.Methods.FindClass(
+            var callbackUtils = env.FindClass(
                     "org/apache/ignite/internal/processors/platform/callback/PlatformCallbackUtils");
 
             // Turns out any signature works, we can ignore parameters!
@@ -103,7 +103,7 @@ namespace Apache.Ignite.Core.Tests
                     (CallbackDelegates.InLongLongLongObjectOutLong) InLongLongLongObjectOutLong)
             };
 
-            env.Methods.RegisterNatives(callbackUtils, methods);
+            env.RegisterNatives(callbackUtils, methods);
         }
 
         private static unsafe NativeMethod GetNativeMethod(string name, string sig, Delegate d)
@@ -124,7 +124,7 @@ namespace Apache.Ignite.Core.Tests
         private void ConsoleWrite(IntPtr env, IntPtr clazz, IntPtr message, bool isError)
         {
             // TODO: This causes crash some times (probably unreleased stuff or incorrect env handling)
-            var msg = new EnvMethods(new Env(env)).JStringToString(message);
+            var msg = new Env(env).JStringToString(message);
 
             Console.Write(msg);
         }
