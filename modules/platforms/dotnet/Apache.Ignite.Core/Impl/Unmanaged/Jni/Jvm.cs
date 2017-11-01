@@ -60,6 +60,21 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
         /// <param name="options">JVM options.</param>
         public static Jvm GetOrCreate(params string[] options)
         {
+            IntPtr jvm;
+            int existingJvmCount;
+
+            // Use existing JVM if present.
+            var res = JniNativeMethods.JNI_GetCreatedJavaVMs(out jvm, 1, out existingJvmCount);
+            if (res != JniResult.Success)
+            {
+                throw new IgniteException("JNI_GetCreatedJavaVMs failed: " + res);
+            }
+
+            if (existingJvmCount > 0)
+            {
+                return new Jvm(jvm);
+            }
+
             var args = new JvmInitArgs
             {
                 version = JNI_VERSION_1_6
@@ -81,14 +96,11 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
                 }
             }
 
-            IntPtr jvm;
             IntPtr env;
-
-            // TODO: Get if exists.
-            var result = JniNativeMethods.JNI_CreateJavaVM(out jvm, out env, &args);
-            if (result != JniResult.Success)
+            res = JniNativeMethods.JNI_CreateJavaVM(out jvm, out env, &args);
+            if (res != JniResult.Success)
             {
-                throw new IgniteException("Can't load JVM: " + result);
+                throw new IgniteException("JNI_CreateJavaVM failed: " + res);
             }
 
             return new Jvm(jvm);
@@ -147,9 +159,6 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
         /// </summary>
         private static class JniNativeMethods
         {
-            // See https://github.com/srisatish/openjdk/blob/master/jdk/src/share/sample/vm/clr-jvm/invoker.cs
-            // See https://github.com/jni4net/jni4net
-
             [DllImport("jvm.dll", CallingConvention = CallingConvention.StdCall)]
             internal static extern JniResult JNI_CreateJavaVM(out IntPtr pvm, out IntPtr penv,
                 JvmInitArgs* args);
@@ -157,9 +166,6 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
             [DllImport("jvm.dll", CallingConvention = CallingConvention.StdCall)]
             internal static extern JniResult JNI_GetCreatedJavaVMs(out IntPtr pvm, int size,
                 [Out] out int size2);
-
-            [DllImport("jvm.dll", CallingConvention = CallingConvention.StdCall)]
-            internal static extern JniResult JNI_GetDefaultJavaVMInitArgs(JvmInitArgs* args);
         }
     }
 }
