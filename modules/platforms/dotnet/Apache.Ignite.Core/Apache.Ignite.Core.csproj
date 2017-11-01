@@ -133,6 +133,7 @@
     <Compile Include="Impl\DataRegionMetrics.cs" />
     <Compile Include="Impl\PersistentStore\PersistentStoreMetrics.cs" />
     <Compile Include="Impl\Unmanaged\Jni\CallbackDelegates.cs" />
+    <Compile Include="Impl\Unmanaged\Jni\Callbacks.cs" />
     <Compile Include="Impl\Unmanaged\Jni\EnvDelegates.cs" />
     <Compile Include="Impl\Unmanaged\Jni\JavaValue.cs" />
     <Compile Include="Impl\Unmanaged\Jni\Env.cs" />

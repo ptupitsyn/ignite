@@ -22,6 +22,11 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
     using System.Runtime.InteropServices;
     using System.Security;
 
+    /// <summary>
+    /// Java -> .NET callback delegates.
+    /// <para />
+    /// Delegates are registered once per JVM.
+    /// </summary>
     [SuppressUnmanagedCodeSecurity]
     internal static class CallbackDelegates
     {
@@ -33,10 +38,13 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
         public delegate bool LoggerIsLevelEnabled(IntPtr env, IntPtr clazz, int level);
 
         [UnmanagedFunctionPointer(CallingConvention.StdCall)]
-        public delegate long InLongLongLongObjectOutLong(IntPtr env, IntPtr clazz, 
-            long envPtr, int op, long arg1, long arg2, long arg3, IntPtr arg);
+        public delegate void ConsoleWrite(IntPtr env, IntPtr clazz, IntPtr message, bool isError);
 
         [UnmanagedFunctionPointer(CallingConvention.StdCall)]
-        public delegate void ConsoleWrite(IntPtr env, IntPtr clazz, IntPtr message, bool isError);
+        public delegate long InLongOutLong(IntPtr env, IntPtr clazz, long igniteId, int op, long arg);
+
+        [UnmanagedFunctionPointer(CallingConvention.StdCall)]
+        public delegate long InLongLongLongObjectOutLong(IntPtr env, IntPtr clazz,
+            long igniteId, int op, long arg1, long arg2, long arg3, IntPtr arg);
     }
 }

@@ -68,63 +68,10 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
             var env = AttachCurrentThread();
             _methodId = new MethodId(env);
 
-            RegisterNatives(env);
+            // TODO
+            //RegisterNatives(env);
         }
 
-        /// <summary>
-        /// Registers native callbacks.
-        /// </summary>
-        private void RegisterNatives(Env env)
-        {
-            using (var callbackUtils = env.FindClass(
-                "org/apache/ignite/internal/processors/platform/callback/PlatformCallbackUtils"))
-            {
-
-                // Turns out any signature works, we can ignore parameters!
-                var methods = new[]
-                {
-                    GetNativeMethod("loggerLog", "(JILjava/lang/String;Ljava/lang/String;Ljava/lang/String;J)V",
-                        (CallbackDelegates.LoggerLog) LoggerLog),
-
-                    GetNativeMethod("loggerIsLevelEnabled", "(JI)Z",
-                        (CallbackDelegates.LoggerIsLevelEnabled) LoggerIsLevelEnabled),
-
-                    GetNativeMethod("consoleWrite", "(Ljava/lang/String;Z)V",
-                        (CallbackDelegates.ConsoleWrite) ConsoleWrite),
-
-                    GetNativeMethod("inLongOutLong", "(JIJ)J", (Action) (() => { Console.WriteLine("woot"); })),
-
-                    GetNativeMethod("inLongLongLongObjectOutLong", "(JIJJJLjava/lang/Object;)J",
-                        (CallbackDelegates.InLongLongLongObjectOutLong) InLongLongLongObjectOutLong)
-                };
-
-                try
-                {
-                    env.RegisterNatives(callbackUtils, methods);
-                }
-                finally
-                {
-                    foreach (var nativeMethod in methods)
-                    {
-                        Marshal.FreeHGlobal(nativeMethod.Name);
-                        Marshal.FreeHGlobal(nativeMethod.Signature);
-                    }
-                }
-            }
-        }
-
-        /// <summary>
-        /// Gets the native method.
-        /// </summary>
-        private static NativeMethod GetNativeMethod(string name, string sig, Delegate d)
-        {
-            return new NativeMethod
-            {
-                Name = (IntPtr)IgniteUtils.StringToUtf8Unmanaged(name),
-                Signature = (IntPtr)IgniteUtils.StringToUtf8Unmanaged(sig),
-                FuncPtr = Marshal.GetFunctionPointerForDelegate(d)
-            };
-        }
 
         /// <summary>
         /// Gets or creates the JVM.
