@@ -248,17 +248,18 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
                     var getStackTrace = GetStaticMethodId(platformUtilsCls, "getFullStackTrace",
                         "(Ljava/lang/Throwable;)Ljava/lang/String;");
 
-                    var cls = GetObjectClass(errRef);
-                    var clsName = CallObjectMethod(cls, _jvm.MethodId.ClassGetName);
-                    var msg = CallObjectMethod(errRef, _jvm.MethodId.ThrowableGetMessage);
-                    var trace = CallStaticObjectMethod(platformUtilsCls, getStackTrace,
-                        new JavaValue { _object = err });
-
-                    // Exception is present.
-                    throw new Exception(string.Format("{0}: {1}\n\n{2}",
-                        JStringToString(clsName),
-                        JStringToString(msg),
-                        JStringToString(trace)));
+                    using (var cls = GetObjectClass(errRef))
+                    using (var clsName = CallObjectMethod(cls, _jvm.MethodId.ClassGetName))
+                    using (var msg = CallObjectMethod(errRef, _jvm.MethodId.ThrowableGetMessage))
+                    using (var trace = CallStaticObjectMethod(platformUtilsCls, getStackTrace,
+                        new JavaValue {_object = err}))
+                    {
+                        // Exception is present.
+                        throw new Exception(string.Format("{0}: {1}\n\n{2}",
+                            JStringToString(clsName),
+                            JStringToString(msg),
+                            JStringToString(trace)));
+                    }
                 }
             }
         }
@@ -268,7 +269,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
         /// </summary>
         private static void GetDelegate<T>(IntPtr ptr, out T del)
         {
-            del = (T)(object)Marshal.GetDelegateForFunctionPointer(ptr, typeof(T));
+            del = (T) (object) Marshal.GetDelegateForFunctionPointer(ptr, typeof(T));
         }
     }
 }
