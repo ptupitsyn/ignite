@@ -73,6 +73,9 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
         /** */
         private readonly EnvDelegates.RegisterNatives _registerNatives;
 
+        /** */
+        private readonly EnvDelegates.DeleteLocalRef _deleteLocalRef;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="Env" /> class.
         /// </summary>
@@ -100,6 +103,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
             GetDelegate(func.ReleaseStringChars, out _releaseStringChars);
             GetDelegate(func.CallStaticObjectMethod, out _callStaticObjectMethod);
             GetDelegate(func.RegisterNatives, out _registerNatives);
+            GetDelegate(func.DeleteLocalRef, out _deleteLocalRef);
         }
 
         /// <summary>
@@ -219,6 +223,11 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
             }
 
             return null;
+        }
+
+        public void DeleteLocalRef(IntPtr lref)
+        {
+            _deleteLocalRef(_envPtr, lref);
         }
 
         /// <summary>

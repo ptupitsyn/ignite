@@ -81,7 +81,14 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
 
             lock (SyncRoot)
             {
-                return _instance ?? (_instance = new Jvm(GetJvmPtr(options)));
+                if (_instance == null)
+                {
+                    _instance = new Jvm(GetJvmPtr(options));
+
+                    // TODO: RegisterNatives
+                }
+
+                return _instance;
             }
         }
 
