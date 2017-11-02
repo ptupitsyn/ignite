@@ -185,14 +185,25 @@ namespace Apache.Ignite.Core.Impl.Unmanaged
             }
         }
 
-        internal static IUnmanagedTarget TargetInObjectStreamOutObjectStream(IUnmanagedTarget target, int opType, void* arg, long inMemPtr, long outMemPtr)
+        internal static IUnmanagedTarget TargetInObjectStreamOutObjectStream(IUnmanagedTarget target, int opType, 
+            IUnmanagedTarget arg, long inMemPtr, long outMemPtr)
         {
-            void* res = JNI.TargetInObjectStreamOutObjectStream(target.Context, target.Target, opType, arg, inMemPtr, outMemPtr);
+            var jvm = Jvm.Get();
 
-            if (res == null)
-                return null;
+            using (var lRef = jvm.AttachCurrentThread().CallObjectMethod(
+                target, jvm.MethodId.TargetInObjectStreamOutObjectStream,
+                new JavaValue(opType), new JavaValue(arg), new JavaValue(inMemPtr), new JavaValue(outMemPtr)))
+            {
+                return lRef.ToGlobal();
+            }
 
-            return target.ChangeTarget(res);
+
+            //void* res = JNI.TargetInObjectStreamOutObjectStream(target.Context, target.Target, opType, arg, inMemPtr, outMemPtr);
+
+            //if (res == null)
+            //    return null;
+
+            //return target.ChangeTarget(res);
         }
 
         internal static void TargetOutStream(IUnmanagedTarget target, int opType, long memPtr)

@@ -175,7 +175,7 @@ namespace Apache.Ignite.Core.Impl
 
         /** <inheritdoc /> */
         [SuppressMessage("Microsoft.Reliability", "CA2000:Dispose objects before losing scope")]
-        public unsafe TR InObjectStreamOutObjectStream<TR>(int type, Action<IBinaryStream> writeAction, 
+        public TR InObjectStreamOutObjectStream<TR>(int type, Action<IBinaryStream> writeAction, 
             Func<IBinaryStream, IPlatformTargetInternal, TR> readAction, IPlatformTargetInternal arg)
         {
             PlatformMemoryStream outStream = null;
@@ -199,8 +199,8 @@ namespace Apache.Ignite.Core.Impl
                     inPtr = inStream.MemoryPointer;
                 }
 
-                var res = UU.TargetInObjectStreamOutObjectStream(_target, type, 
-                    ((PlatformJniTarget)arg).Target.Target, outPtr, inPtr);
+                var res = UU.TargetInObjectStreamOutObjectStream(_target, type,
+                    ((PlatformJniTarget) arg).Target, outPtr, inPtr);
 
                 if (readAction == null)
                     return default(TR);
@@ -381,7 +381,7 @@ namespace Apache.Ignite.Core.Impl
         }
 
         /** <inheritdoc /> */
-        public unsafe T InObjectStreamOutObjectStream<T>(int type, IPlatformTarget arg, 
+        public T InObjectStreamOutObjectStream<T>(int type, IPlatformTarget arg, 
             Action<IBinaryRawWriter> writeAction, Func<IBinaryRawReader, IPlatformTarget, T> readAction)
         {
             PlatformMemoryStream outStream = null;
@@ -521,9 +521,9 @@ namespace Apache.Ignite.Core.Impl
         /// <summary>
         /// Gets the target pointer.
         /// </summary>
-        private static unsafe void* GetTargetPtr(IPlatformTarget target)
+        private static IUnmanagedTarget GetTargetPtr(IPlatformTarget target)
         {
-            return target == null ? null : ((PlatformJniTarget) target)._target.Target;
+            return target == null ? null : ((PlatformJniTarget) target)._target;
         }
 
         #endregion
