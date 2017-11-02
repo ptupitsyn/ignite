@@ -18,6 +18,7 @@
 namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
 {
     using System;
+    using System.Collections.Generic;
     using System.Diagnostics;
     using System.Runtime.InteropServices;
     using System.Security;
@@ -93,7 +94,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
         /// Gets or creates the JVM.
         /// </summary>
         /// <param name="options">JVM options.</param>
-        public static Jvm GetOrCreate(params string[] options)
+        public static Jvm GetOrCreate(IList<string> options)
         {
             if (_instance != null)
             {
@@ -159,7 +160,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
         /// <summary>
         /// Gets the JVM pointer.
         /// </summary>
-        private static IntPtr GetJvmPtr(string[] options)
+        private static IntPtr GetJvmPtr(IList<string> options)
         {
             IntPtr jvm;
             int existingJvmCount;
@@ -181,12 +182,12 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
                 version = JNI_VERSION_1_6
             };
 
-            if (options.Length > 0)
+            if (options != null && options.Count > 0)
             {
-                args.nOptions = options.Length;
-                var opt = new JvmOption[options.Length];
+                args.nOptions = options.Count;
+                var opt = new JvmOption[options.Count];
 
-                for (int i = 0; i < options.Length; i++)
+                for (int i = 0; i < options.Count; i++)
                 {
                     opt[i].optionString = Marshal.StringToHGlobalAnsi(options[i]);
                 }
@@ -255,7 +256,8 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
         {
             public Callbacks GetCallbacks()
             {
-                return GetOrCreate()._callbacks;
+                // TODO: Make sure native JVM exists.
+                return GetOrCreate(null)._callbacks;
             }
         }
     }

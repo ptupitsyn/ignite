@@ -77,17 +77,18 @@ namespace Apache.Ignite.Core.Impl
                 }
 
                 // 2. Create unmanaged pointer.
-                var jvm = CreateJvm(cfg, cbs);
+                var jvm = CreateJvm(cfg);
                 var igniteId = jvm.RegisterCallbacks(cbs);
 
-                cbs.SetContext(ctx);
+                cbs.SetContext(jvm, igniteId);
 
                 // 3. If this is the first JVM created, preserve it.
-                if (_ctx == null)
+                if (_jvmCfg == null)
                 {
-                    _ctx = ctx;
                     _jvmCfg = jvmCfg;
                 }
+
+                return jvm;
             }
         }
         
@@ -103,44 +104,15 @@ namespace Apache.Ignite.Core.Impl
         /// Create JVM.
         /// </summary>
         /// <returns>JVM.</returns>
-        private static Jvm CreateJvm(IgniteConfiguration cfg, UnmanagedCallbacks cbs)
+        private static Jvm CreateJvm(IgniteConfiguration cfg)
         {
             var cp = Classpath.CreateClasspath(cfg);
 
             var jvmOpts = GetMergedJvmOptions(cfg);
-            
-            var opts = new sbyte*[1 + jvmOpts.Count];
 
-            int idx = 0;
-                
-            opts[idx++] = IgniteUtils.StringToUtf8Unmanaged(cp);
+            jvmOpts.Add(cp);
 
-            foreach (string cfgOpt in jvmOpts)
-                opts[idx++] = IgniteUtils.StringToUtf8Unmanaged(cfgOpt);
-
-            try
-            {
-                IntPtr mem = Marshal.AllocHGlobal(opts.Length * 8);
-
-                fixed (sbyte** opts0 = opts)
-                {
-                    PlatformMemoryUtils.CopyMemory(opts0, mem.ToPointer(), opts.Length * 8);
-                }
-
-                try
-                {
-                    return UU.CreateContext(mem.ToPointer(), opts.Length, cbs.CallbacksPointer);
-                }
-                finally
-                {
-                    Marshal.FreeHGlobal(mem);
-                }
-            }
-            finally
-            {
-                foreach (sbyte* opt in opts)
-                    Marshal.FreeHGlobal((IntPtr)opt);
-            }
+            return Jvm.GetOrCreate(jvmOpts);
         }
 
         /// <summary>

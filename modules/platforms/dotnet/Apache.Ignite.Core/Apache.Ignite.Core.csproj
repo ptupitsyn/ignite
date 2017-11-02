@@ -517,8 +517,6 @@
     <Compile Include="Impl\Unmanaged\UnmanagedCallbackHandlers.cs" />
     <Compile Include="Impl\Unmanaged\UnmanagedCallbackOp.cs" />
     <Compile Include="Impl\Unmanaged\UnmanagedCallbacks.cs" />
-    <Compile Include="Impl\Unmanaged\UnmanagedNonReleaseableTarget.cs" />
-    <Compile Include="Impl\Unmanaged\UnmanagedTarget.cs" />
     <Compile Include="Impl\Unmanaged\UnmanagedUtils.cs" />
     <Compile Include="Interop\IPlatformTarget.cs" />
     <Compile Include="Interop\JavaObject.cs" />
