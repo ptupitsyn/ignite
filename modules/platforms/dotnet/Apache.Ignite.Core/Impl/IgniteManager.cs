@@ -80,7 +80,7 @@ namespace Apache.Ignite.Core.Impl
                 var jvm = CreateJvm(cfg);
                 var igniteId = jvm.RegisterCallbacks(cbs);
 
-                cbs.SetContext(jvm, igniteId);
+                cbs.SetContext(igniteId);
 
                 // 3. If this is the first JVM created, preserve it.
                 if (_jvmCfg == null)

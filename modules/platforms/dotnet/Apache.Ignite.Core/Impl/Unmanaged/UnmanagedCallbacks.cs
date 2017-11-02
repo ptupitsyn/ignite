@@ -67,9 +67,6 @@ namespace Apache.Ignite.Core.Impl.Unmanaged
         private static readonly void* ConsoleWritePtr =
             Marshal.GetFunctionPointerForDelegate(ConsoleWriteDel).ToPointer();
 
-        /** JVM. */
-        private volatile Jvm _jvm;
-
         /** */
         private long _igniteId;
 
@@ -151,7 +148,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged
         /// <summary>
         /// Gets the ignite identifier.
         /// </summary>
-        public long IgniteId
+        public long IgniteId  // TODO: This is not needed here.
         {
             get { return _igniteId; }
         }
@@ -1342,11 +1339,8 @@ namespace Apache.Ignite.Core.Impl.Unmanaged
         /// <summary>
         /// Sets the context.
         /// </summary>
-        public void SetContext(Jvm jvm, long igniteId)
+        public void SetContext(long igniteId)
         {
-            Debug.Assert(jvm != null);
-
-            _jvm = jvm;
             _igniteId = igniteId;
         }
 
