@@ -33,40 +33,6 @@ namespace Apache.Ignite.Core.Impl.Unmanaged
         /** Interop factory ID for .Net. */
         private const int InteropFactoryId = 1;
 
-        /// <summary>
-        /// Initializer.
-        /// </summary>
-        [SuppressMessage("Microsoft.Design", "CA1065:DoNotRaiseExceptionsInUnexpectedLocations")]
-        static UnmanagedUtils()
-        {
-            var platform = Environment.Is64BitProcess ? "x64" : "x86";
-
-            var resName = string.Format("{0}.{1}", platform, IgniteUtils.FileIgniteJniDll);
-
-            var path = IgniteUtils.UnpackEmbeddedResource(resName, IgniteUtils.FileIgniteJniDll);
-
-            var ptr = NativeMethods.LoadLibrary(path);
-
-            if (ptr == IntPtr.Zero)
-            {
-                var err = Marshal.GetLastWin32Error();
-
-                throw new IgniteException(string.Format("Failed to load {0} from {1}: [{2}]",
-                    IgniteUtils.FileIgniteJniDll, path, IgniteUtils.FormatWin32Error(err)));
-            }
-
-            // Clean directories in background to avoid extra work on start.
-            Task.Factory.StartNew(IgniteUtils.TryCleanTempDirectories);
-        }
-
-        /// <summary>
-        /// No-op initializer used to force type loading and static constructor call.
-        /// </summary>
-        internal static void Initialize()
-        {
-            // No-op.
-        }
-
         #region NATIVE METHODS: PROCESSOR
 
         internal static void IgnitionStart(Env env, string cfgPath, string gridName,
