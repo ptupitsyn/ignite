@@ -23,14 +23,19 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
     [StructLayout(LayoutKind.Explicit, Size = 8)]
     internal struct JavaValue
     {
-        public JavaValue(LocalRef r) : this()
+        public JavaValue(IUnmanagedTarget r) : this()
         {
-            _object = r.Ref;
+            _object = r.Target;
         }
 
         public JavaValue(int i) : this()
         {
             _int = i;
+        }
+
+        public JavaValue(long l) : this()
+        {
+            _long = l;
         }
 
         [FieldOffset(0)] public byte _bool;

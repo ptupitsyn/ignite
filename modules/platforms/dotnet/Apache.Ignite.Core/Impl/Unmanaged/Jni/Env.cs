@@ -59,6 +59,9 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
         private readonly EnvDelegates.CallObjectMethod _callObjectMethod;
 
         /** */
+        private readonly EnvDelegates.CallLongMethod _callLongMethod;
+
+        /** */
         private readonly EnvDelegates.GetStringChars _getStringChars;
 
         /** */
@@ -114,6 +117,8 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
             GetDelegate(func.ExceptionClear, out _exceptionClear);
             GetDelegate(func.GetObjectClass, out _getObjectClass);
             GetDelegate(func.CallObjectMethod, out _callObjectMethod);
+            GetDelegate(func.CallStaticObjectMethod, out _callStaticObjectMethod);
+            GetDelegate(func.CallLongMethod, out _callLongMethod);
 
             GetDelegate(func.GetStringChars, out _getStringChars);
             GetDelegate(func.ReleaseStringChars, out _releaseStringChars);
@@ -123,7 +128,6 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
 
             GetDelegate(func.GetStringUTFLength, out _getStringUtfLength);
 
-            GetDelegate(func.CallStaticObjectMethod, out _callStaticObjectMethod);
             GetDelegate(func.RegisterNatives, out _registerNatives);
             GetDelegate(func.DeleteLocalRef, out _deleteLocalRef);
             GetDelegate(func.NewGlobalRef, out _newGlobalRef);
@@ -160,6 +164,15 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
             ExceptionCheck();
 
             return new LocalRef(this, res);
+        }
+
+        public long CallLongMethod(IUnmanagedTarget obj, IntPtr methodId, params JavaValue[] args)
+        {
+            var res = _callLongMethod(_envPtr, obj.Target, methodId, args);
+
+            ExceptionCheck();
+
+            return res;
         }
 
         public LocalRef CallStaticObjectMethod(LocalRef cls, IntPtr methodId, params JavaValue[] args)

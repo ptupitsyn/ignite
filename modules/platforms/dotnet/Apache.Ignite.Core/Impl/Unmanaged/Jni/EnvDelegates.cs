@@ -73,6 +73,10 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
             IntPtr env, IntPtr obj, IntPtr methodId, params JavaValue[] args);
 
         [UnmanagedFunctionPointer(CallingConvention.StdCall)]
+        internal delegate long CallLongMethod(
+            IntPtr env, IntPtr obj, IntPtr methodId, params JavaValue[] args);
+
+        [UnmanagedFunctionPointer(CallingConvention.StdCall)]
         internal delegate IntPtr CallStaticObjectMethod(
             IntPtr env, IntPtr clazz, IntPtr methodId, params JavaValue[] args);
 

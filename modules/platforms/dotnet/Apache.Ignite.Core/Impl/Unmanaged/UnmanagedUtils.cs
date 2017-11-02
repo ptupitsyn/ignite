@@ -151,7 +151,10 @@ namespace Apache.Ignite.Core.Impl.Unmanaged
 
         internal static long TargetInLongOutLong(IUnmanagedTarget target, int opType, long memPtr)
         {
-            return JNI.TargetInLongOutLong(target.Context, target.Target, opType, memPtr);
+            var jvm = Jvm.Get();
+
+            return jvm.AttachCurrentThread().CallLongMethod(
+                target, jvm.MethodId.TargetInLongOutLong, new JavaValue(opType), new JavaValue(memPtr));
         }
 
         internal static long TargetInStreamOutLong(IUnmanagedTarget target, int opType, long memPtr)
