@@ -238,6 +238,11 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
 
         public LocalRef NewStringUtf(IntPtr utf)
         {
+            if (utf == IntPtr.Zero)
+            {
+                return null;
+            }
+
             var res = _newStringUtf(_envPtr, utf);
 
             ExceptionCheck();

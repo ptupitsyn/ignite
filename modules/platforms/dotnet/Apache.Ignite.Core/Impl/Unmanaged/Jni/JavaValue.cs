@@ -25,7 +25,10 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
     {
         public JavaValue(IUnmanagedTarget r) : this()
         {
-            _object = r.Target;
+            if (r != null)
+            {
+                _object = r.Target;
+            }
         }
 
         public JavaValue(int i) : this()
