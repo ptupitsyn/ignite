@@ -69,6 +69,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
             _methodId = new MethodId(env);
 
             // TODO: Can we register natives multiple times from different domains?
+            // Yes, we can, second call overwrites first registration. What do we do with that?
             //RegisterNatives(env);
         }
 
