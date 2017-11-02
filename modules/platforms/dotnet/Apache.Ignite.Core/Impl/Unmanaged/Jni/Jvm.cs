@@ -79,9 +79,11 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
                 // E.g. if (!AppDomain.CurrentDomain.IsDefault) _callbacks = CreateInstanceAndUnwrap(...)
 
                 var defDomain = AppDomains.GetDefaultAppDomain();
-                
                 var type = typeof(DomainHelper);
-                var helper = (DomainHelper) defDomain.CreateInstance(type.Assembly.FullName, type.FullName).Unwrap();
+
+                //var helper = (DomainHelper) defDomain.CreateInstance(type.Assembly.FullName, type.FullName).Unwrap();
+                var helper = (DomainHelper) defDomain.
+                    CreateInstanceFrom(type.Assembly.CodeBase, type.FullName).Unwrap();
                 _callbacks = helper.GetCallbacks();
             }
             else
