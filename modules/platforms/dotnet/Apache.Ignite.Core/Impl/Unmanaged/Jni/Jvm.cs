@@ -19,6 +19,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
 {
     using System;
     using System.Diagnostics;
+    using System.Linq;
     using System.Runtime.InteropServices;
     using System.Security;
     using Apache.Ignite.Core.Common;
@@ -72,13 +73,15 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
             var env = AttachCurrentThread();
             _methodId = new MethodId(env);
 
-            // TODO: Can we register natives multiple times from different domains?
-            // Yes, we can, second call overwrites first registration
-            
-            // We should make sure to regiter callbacks ONLY from default AppDomain (which can't be closed)
-            // Non-default appDomains should delegate this logic to the default one.
-            // E.g. if (!AppDomain.CurrentDomain.IsDefault) _callbacks = CreateInstanceAndUnwrap(...)
-            
+            if (!AppDomain.CurrentDomain.IsDefaultAppDomain())
+            {
+                // We should make sure to regiter callbacks ONLY from default AppDomain (which can't be closed)
+                // Non-default appDomains should delegate this logic to the default one.
+                // E.g. if (!AppDomain.CurrentDomain.IsDefault) _callbacks = CreateInstanceAndUnwrap(...)
+
+                var domains = AppDomains.EnumAppDomains().ToArray();
+                throw new Exception("TODO");
+            }
 
             _callbacks = new Callbacks(env);
         }
