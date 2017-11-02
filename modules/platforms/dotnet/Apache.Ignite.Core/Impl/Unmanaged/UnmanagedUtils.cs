@@ -131,13 +131,15 @@ namespace Apache.Ignite.Core.Impl.Unmanaged
             }
         }
 
-        internal static bool IgnitionStop(void* ctx, string gridName, bool cancel)
+        internal static bool IgnitionStop(Env env, string gridName, bool cancel)
         {
             sbyte* gridName0 = IgniteUtils.StringToUtf8Unmanaged(gridName);
 
             try
             {
-                return JNI.IgnitionStop(ctx, gridName0, cancel);
+                // TODO
+                // return JNI.IgnitionStop(ctx, gridName0, cancel);
+                return true;
             }
             finally
             {

@@ -40,7 +40,6 @@ namespace Apache.Ignite.Core
     using Apache.Ignite.Core.Impl.Log;
     using Apache.Ignite.Core.Impl.Memory;
     using Apache.Ignite.Core.Impl.Unmanaged;
-    using Apache.Ignite.Core.Impl.Unmanaged.Jni;
     using Apache.Ignite.Core.Lifecycle;
     using Apache.Ignite.Core.Log;
     using Apache.Ignite.Core.Resource;
@@ -250,8 +249,7 @@ namespace Apache.Ignite.Core
                 try
                 {
                     // 4. Initiate Ignite start.
-                    UU.IgnitionStart(env, cfg.SpringConfigUrl, gridName, ClientMode, cfg.Logger != null);
-
+                    UU.IgnitionStart(env, cfg.SpringConfigUrl, gridName, ClientMode, cfg.Logger != null, cbs.IgniteId);
 
                     // 5. At this point start routine is finished. We expect STARTUP object to have all necessary data.
                     var node = _startup.Ignite;
@@ -285,7 +283,7 @@ namespace Apache.Ignite.Core
 
                     // 2. Stop Ignite node if it was started.
                     if (interopProc != null)
-                        UU.IgnitionStop(interopProc.Target.Context, gridName, true);
+                        UU.IgnitionStop(env, gridName, true);
 
                     // 3. Throw error further (use startup error if exists because it is more precise).
                     if (_startup.Error != null)
