@@ -49,9 +49,9 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
         }
 
         /** <inheritdoc /> */
-        public unsafe void* Target
+        public IntPtr Target
         {
-            get { return _gref.ToPointer(); }
+            get { return _gref; }
         }
     }
 }

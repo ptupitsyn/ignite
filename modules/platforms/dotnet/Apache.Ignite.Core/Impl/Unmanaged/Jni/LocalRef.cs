@@ -36,7 +36,8 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
             _lref = lref;
         }
 
-        public IntPtr Ref
+        /** <inheritdoc /> */
+        public IntPtr Target
         {
             get { return _lref; }
         }
@@ -55,12 +56,6 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
         {
             // Finalizer is not needed, local ref can only be released in original thread.
             ReleaseUnmanagedResources();
-        }
-
-        /** <inheritdoc /> */
-        public unsafe void* Target
-        {
-            get { return _lref.ToPointer(); }
         }
     }
 }

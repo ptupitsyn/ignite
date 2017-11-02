@@ -18,11 +18,13 @@
 namespace Apache.Ignite.Core.Impl.Unmanaged
 {
     using System;
+    using System.Collections.Generic;
     using System.Diagnostics;
     using System.Diagnostics.CodeAnalysis;
     using System.Runtime.InteropServices;
     using System.Threading.Tasks;
     using Apache.Ignite.Core.Common;
+    using Apache.Ignite.Core.Impl.Unmanaged.Jni;
     using JNI = IgniteJniNativeMethods;
 
     /// <summary>
@@ -84,25 +86,45 @@ namespace Apache.Ignite.Core.Impl.Unmanaged
 
         #region NATIVE METHODS: PROCESSOR
 
-        internal static void IgnitionStart(UnmanagedContext ctx, string cfgPath, string gridName,
-            bool clientMode, bool userLogger)
+        internal static void IgnitionStart(Env env, string cfgPath, string gridName,
+            bool clientMode, bool userLogger, long igniteId)
         {
             using (var mem = IgniteManager.Memory.Allocate().GetStream())
             {
                 mem.WriteBool(clientMode);
                 mem.WriteBool(userLogger);
 
-                sbyte* cfgPath0 = IgniteUtils.StringToUtf8Unmanaged(cfgPath);
-                sbyte* gridName0 = IgniteUtils.StringToUtf8Unmanaged(gridName);
+                var cfgPath0 = IgniteUtils.StringToUtf8Unmanaged(cfgPath);
+                var gridName0 = IgniteUtils.StringToUtf8Unmanaged(gridName);
+
+                var cfgPath1 = env.NewStringUtf(cfgPath0);
+                var gridName1 = env.NewStringUtf(gridName0);
 
                 try
                 {
+                    var args = new List<JavaValue>
+                    {
+                        new JavaValue(cfgPath1),
+                        new JavaValue(gridName1),
+                        new JavaValue(InteropFactoryId),
+                        new JavaValue {_long = igniteId}
+                    };
+
+                    // Additional data.
+                    mem.WriteBool(false);
+                    mem.WriteBool(false);
+                    args.Add(new JavaValue { _long = mem.SynchronizeOutput() });
+
                     // OnStart receives InteropProcessor referece and stores it.
-                    JNI.IgnitionStart(ctx.NativeContext, cfgPath0, gridName0, InteropFactoryId,
-                        mem.SynchronizeOutput());
+                    var methodId = env.Jvm.MethodId;
+                    env.CallStaticVoidMethod(methodId.PlatformIgnition, methodId.PlatformIgnitionStart, 
+                        args.ToArray());
                 }
                 finally
                 {
+                    cfgPath1.Dispose();
+                    gridName1.Dispose();
+
                     Marshal.FreeHGlobal(new IntPtr(cfgPath0));
                     Marshal.FreeHGlobal(new IntPtr(gridName0));
                 }

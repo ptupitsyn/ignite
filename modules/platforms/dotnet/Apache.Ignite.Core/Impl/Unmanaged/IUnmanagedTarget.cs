@@ -22,11 +22,11 @@ namespace Apache.Ignite.Core.Impl.Unmanaged
     /// <summary>
     /// Unmanaged target.
     /// </summary>
-    internal unsafe interface IUnmanagedTarget : IDisposable
+    internal interface IUnmanagedTarget : IDisposable
     {
         /// <summary>
         /// Target.
         /// </summary>
-        void* Target { get; }
+        IntPtr Target { get; }
     }
 }

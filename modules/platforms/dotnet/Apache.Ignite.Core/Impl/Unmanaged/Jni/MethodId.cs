@@ -36,6 +36,16 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
         public IntPtr ThrowableGetMessage { get; private set; }
 
         /// <summary>
+        /// PlatformIgnition.
+        /// </summary>
+        public GlobalRef PlatformIgnition { get; private set; }
+
+        /// <summary>
+        /// PlatformIgnition.start().
+        /// </summary>
+        public IntPtr PlatformIgnitionStart { get; private set; }
+
+        /// <summary>
         /// Initializes a new instance of the <see cref="MethodId"/> class.
         /// </summary>
         public MethodId(Env env)
@@ -50,6 +60,13 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
             using (var throwableCls = env.FindClass("java/lang/Throwable"))
             {
                 ThrowableGetMessage = env.GetMethodId(throwableCls, "getMessage", "()Ljava/lang/String;");
+            }
+
+            using (var ignition = env.FindClass("org/apache/ignite/internal/processors/platform/PlatformIgnition"))
+            {
+                PlatformIgnition = ignition.ToGlobal();
+                PlatformIgnitionStart =
+                    env.GetStaticMethodId(ignition, "start", "(Ljava/lang/String;Ljava/lang/String;IJJ)V");
             }
         }
     }

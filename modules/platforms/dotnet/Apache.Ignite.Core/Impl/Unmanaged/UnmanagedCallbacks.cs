@@ -174,6 +174,14 @@ namespace Apache.Ignite.Core.Impl.Unmanaged
             get { return _handleRegistry; }
         }
 
+        /// <summary>
+        /// Gets the ignite identifier.
+        /// </summary>
+        public long IgniteId
+        {
+            get { return _igniteId; }
+        }
+
         #region HANDLERS
 
         /// <summary>

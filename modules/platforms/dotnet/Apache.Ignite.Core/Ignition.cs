@@ -231,9 +231,8 @@ namespace Apache.Ignite.Core
 
                 var cbs = new UnmanagedCallbacks(log);
 
-                var jvm = Jvm.GetOrCreate()
-
-                IgniteManager.CreateJvmContext(cfg, cbs, log);
+                var jvm = IgniteManager.CreateJvmContext(cfg, cbs, log);
+                var env = jvm.AttachCurrentThread();
                 log.Debug("JVM started.");
 
                 var gridName = cfg.IgniteInstanceName;
@@ -251,7 +250,7 @@ namespace Apache.Ignite.Core
                 try
                 {
                     // 4. Initiate Ignite start.
-                    UU.IgnitionStart(cbs.Context, cfg.SpringConfigUrl, gridName, ClientMode, cfg.Logger != null);
+                    UU.IgnitionStart(env, cfg.SpringConfigUrl, gridName, ClientMode, cfg.Logger != null);
 
 
                     // 5. At this point start routine is finished. We expect STARTUP object to have all necessary data.

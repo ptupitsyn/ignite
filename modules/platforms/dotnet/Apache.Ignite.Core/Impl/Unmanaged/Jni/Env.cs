@@ -138,16 +138,24 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
             get { return _envPtr; }
         }
 
-        public void CallStaticVoidMethod(LocalRef cls, IntPtr methodId, params JavaValue[] args)
+        /// <summary>
+        /// Gets the JVM.
+        /// </summary>
+        public Jvm Jvm
         {
-            _callStaticVoidMethod(_envPtr, cls.Ref, methodId, args);
+            get { return _jvm; }
+        }
+
+        public void CallStaticVoidMethod(IUnmanagedTarget cls, IntPtr methodId, params JavaValue[] args)
+        {
+            _callStaticVoidMethod(_envPtr, cls.Target, methodId, args);
 
             ExceptionCheck();
         }
 
         public LocalRef CallObjectMethod(LocalRef obj, IntPtr methodId, params JavaValue[] args)
         {
-            var res = _callObjectMethod(_envPtr, obj.Ref, methodId, args);
+            var res = _callObjectMethod(_envPtr, obj.Target, methodId, args);
 
             ExceptionCheck();
 
@@ -156,7 +164,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
 
         public LocalRef CallStaticObjectMethod(LocalRef cls, IntPtr methodId, params JavaValue[] args)
         {
-            var res = _callStaticObjectMethod(_envPtr, cls.Ref, methodId, args);
+            var res = _callStaticObjectMethod(_envPtr, cls.Target, methodId, args);
 
             ExceptionCheck();
 
@@ -174,7 +182,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
 
         public LocalRef GetObjectClass(LocalRef obj)
         {
-            var res = _getObjectClass(_envPtr, obj.Ref);
+            var res = _getObjectClass(_envPtr, obj.Target);
 
             ExceptionCheck();
 
@@ -183,7 +191,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
 
         public IntPtr GetStaticMethodId(LocalRef clazz, string name, string signature)
         {
-            var res = _getStaticMethodId(_envPtr, clazz.Ref, name, signature);
+            var res = _getStaticMethodId(_envPtr, clazz.Target, name, signature);
 
             ExceptionCheck();
 
@@ -192,11 +200,16 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
 
         public IntPtr GetMethodId(LocalRef clazz, string name, string signature)
         {
-            var res = _getMethodId(_envPtr, clazz.Ref, name, signature);
+            var res = _getMethodId(_envPtr, clazz.Target, name, signature);
 
             ExceptionCheck();
 
             return res;
+        }
+
+        public LocalRef NewStringUtf(sbyte* utf)
+        {
+            return NewStringUtf(new IntPtr(utf));
         }
 
         public LocalRef NewStringUtf(IntPtr utf)
@@ -247,7 +260,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
 
             fixed (NativeMethod* m = &methods[0])
             {
-                var res = _registerNatives(_envPtr, clazz.Ref, m, methods.Length);
+                var res = _registerNatives(_envPtr, clazz.Target, m, methods.Length);
 
                 if (res != JniResult.Success)
                 {
@@ -258,7 +271,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
 
         public string JStringToString(LocalRef jstring)
         {
-            return JStringToString(jstring.Ref);
+            return JStringToString(jstring.Target);
         }
 
         public string JStringToString(IntPtr jstring)
