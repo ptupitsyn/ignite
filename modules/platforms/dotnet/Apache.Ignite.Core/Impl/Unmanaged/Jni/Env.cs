@@ -86,6 +86,9 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
         private readonly EnvDelegates.DeleteLocalRef _deleteLocalRef;
 
         /** */
+        private readonly EnvDelegates.NewGlobalRef _newGlobalRef;
+
+        /** */
         private readonly EnvDelegates.DeleteGlobalRef _deleteGlobalRef;
 
         /// <summary>
@@ -123,6 +126,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
             GetDelegate(func.CallStaticObjectMethod, out _callStaticObjectMethod);
             GetDelegate(func.RegisterNatives, out _registerNatives);
             GetDelegate(func.DeleteLocalRef, out _deleteLocalRef);
+            GetDelegate(func.NewGlobalRef, out _newGlobalRef);
             GetDelegate(func.DeleteGlobalRef, out _deleteGlobalRef);
         }
 
@@ -275,6 +279,11 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
         public void DeleteLocalRef(IntPtr lref)
         {
             _deleteLocalRef(_envPtr, lref);
+        }
+
+        public GlobalRef NewGlobalRef(IntPtr lref)
+        {
+            return new GlobalRef(_newGlobalRef(_envPtr, lref));
         }
 
         public void DeleteGlobalRef(IntPtr gref)

@@ -41,6 +41,11 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
             get { return _lref; }
         }
 
+        public GlobalRef ToGlobal()
+        {
+            return _env.NewGlobalRef(_lref);
+        }
+
         private void ReleaseUnmanagedResources()
         {
             _env.DeleteLocalRef(_lref);
