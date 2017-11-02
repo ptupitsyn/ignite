@@ -41,10 +41,6 @@ public class PlatformIgnition {
     /** Map with active instances. */
     private static final HashMap<String, PlatformProcessor> instances = new HashMap<>();
 
-    public static synchronized void startDelme(@Nullable String foo) {
-        System.out.println("HELLO THERE! |" + foo + "|");
-    }
-
     /**
      * Start Ignite node in platform mode.
      *
@@ -56,8 +52,6 @@ public class PlatformIgnition {
      */
     public static synchronized void start(@Nullable String springCfgPath,
         @Nullable String igniteInstanceName, int factoryId, long envPtr, long dataPtr) {
-        System.out.println("HELLO THERE!");
-
         if (envPtr <= 0)
             throw new IgniteException("Environment pointer must be positive.");
 
@@ -136,8 +130,6 @@ public class PlatformIgnition {
      * @param cancel Cancel flag.
      */
     public static synchronized void stopAll(boolean cancel) {
-        System.out.println("STOP_ALL!");
-
         for (PlatformProcessor proc : instances.values())
             Ignition.stop(proc.ignite().name(), cancel);
 
