@@ -78,7 +78,7 @@ namespace Apache.Ignite.Core.Tests
                 args.Add(new JavaValue { _long = dataMem.SynchronizeOutput() });
 
                 // Register callbacks.
-                RegisterNatives(env);
+                //RegisterNatives(env);
 
                 env.CallStaticVoidMethod(ignition, start, args.ToArray());
             }
