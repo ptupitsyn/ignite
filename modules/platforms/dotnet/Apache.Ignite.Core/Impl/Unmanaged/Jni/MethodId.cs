@@ -46,6 +46,51 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
         public IntPtr PlatformIgnitionStart { get; private set; }
 
         /// <summary>
+        /// PlatformTargetProxy.inStreamOutObjectAsync().
+        /// </summary>
+        public IntPtr TargetInStreamOutObjectAsync { get; private set; }
+
+        /// <summary>
+        /// PlatformTargetProxy.inStreamAsync().
+        /// </summary>
+        public IntPtr TargetInStreamAsync { get; private set; }
+
+        /// <summary>
+        /// PlatformTargetProxy.outObject ().
+        /// </summary>
+        public IntPtr TargetOutObject { get; private set; }
+
+        /// <summary>
+        /// PlatformTargetProxy.outStream().
+        /// </summary>
+        public IntPtr TargetOutStream { get; private set; }
+
+        /// <summary>
+        /// PlatformTargetProxy.inStreamOutStream().
+        /// </summary>
+        public IntPtr TargetInStreamOutStream { get; private set; }
+
+        /// <summary>
+        /// PlatformTargetProxy.inObjectStreamOutObjectStream().
+        /// </summary>
+        public IntPtr TargetInObjectStreamOutObjectStream { get; private set; }
+
+        /// <summary>
+        /// PlatformTargetProxy.inStreamOutObject().
+        /// </summary>
+        public IntPtr TargetInStreamOutObject { get; private set; }
+
+        /// <summary>
+        /// PlatformTargetProxy.inStreamOutLong().
+        /// </summary>
+        public IntPtr TargetInStreamOutLong { get; private set; }
+
+        /// <summary>
+        /// PlatformTargetProxy.inLongOutLong().
+        /// </summary>
+        public IntPtr TargetInLongOutLong { get; private set; }
+
+        /// <summary>
         /// Initializes a new instance of the <see cref="MethodId"/> class.
         /// </summary>
         public MethodId(Env env)
@@ -67,6 +112,20 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
                 PlatformIgnition = ignition.ToGlobal();
                 PlatformIgnitionStart =
                     env.GetStaticMethodId(ignition, "start", "(Ljava/lang/String;Ljava/lang/String;IJJ)V");
+            }
+
+            using (var target = env.FindClass("org/apache/ignite/internal/processors/platform/PlatformTargetProxy"))
+            {
+                TargetInLongOutLong = env.GetMethodId(target, "inLongOutLong", "(IJ)J");
+                TargetInStreamOutLong = env.GetMethodId(target, "inStreamOutLong", "(IJ)J");
+                TargetInStreamOutObject = env.GetMethodId(target, "inStreamOutObject", "(IJ)Ljava/lang/Object;");
+                TargetInStreamOutStream = env.GetMethodId(target, "inStreamOutStream", "(IJJ)V");
+                TargetInObjectStreamOutObjectStream = env.GetMethodId(target, "inObjectStreamOutObjectStream",
+                    "(ILjava/lang/Object;JJ)Ljava/lang/Object;");
+                TargetOutStream = env.GetMethodId(target, "outStream", "(IJ)V");
+                TargetOutObject = env.GetMethodId(target, "outObject", "(I)Ljava/lang/Object;");
+                TargetInStreamAsync = env.GetMethodId(target, "inStreamAsync", "(IJ)V");
+                TargetInStreamOutObjectAsync = env.GetMethodId(target, "inStreamOutObjectAsync", "(IJ)Ljava/lang/Object;");
             }
         }
     }
