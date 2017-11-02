@@ -142,6 +142,7 @@
     <Compile Include="Impl\Unmanaged\Jni\JvmInterface.cs" />
     <Compile Include="Impl\PlatformDisposableTargetAdapter.cs" />
     <Compile Include="Impl\PlatformJniTarget.cs" />
+    <Compile Include="Impl\Unmanaged\Jni\GlobalRef.cs" />
     <Compile Include="Impl\Unmanaged\Jni\LocalRef.cs" />
     <Compile Include="Impl\Unmanaged\Jni\MethodId.cs" />
     <Compile Include="Impl\Unmanaged\Jni\NativeMethod.cs" />
