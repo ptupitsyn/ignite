@@ -131,7 +131,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged
             }
         }
 
-        internal static bool IgnitionStop(Env env, string gridName, bool cancel)
+        internal static bool IgnitionStop(string gridName, bool cancel)
         {
             sbyte* gridName0 = IgniteUtils.StringToUtf8Unmanaged(gridName);
 
@@ -256,13 +256,14 @@ namespace Apache.Ignite.Core.Impl.Unmanaged
             return Jvm.Get().AttachCurrentThread().NewGlobalRef(new IntPtr(target));
         }
 
-        internal static void ThrowToJava(void* ctx, Exception e)
+        internal static void ThrowToJava(Exception e)
         {
             char* msgChars = (char*)IgniteUtils.StringToUtf8Unmanaged(e.Message);
 
             try
             {
-                JNI.ThrowToJava(ctx, msgChars);
+                // TODO:
+                //JNI.ThrowToJava(ctx, msgChars);
             }
             finally
             {

@@ -283,7 +283,7 @@ namespace Apache.Ignite.Core
 
                     // 2. Stop Ignite node if it was started.
                     if (interopProc != null)
-                        UU.IgnitionStop(env, gridName, true);
+                        UU.IgnitionStop(gridName, true);
 
                     // 3. Throw error further (use startup error if exists because it is more precise).
                     if (_startup.Error != null)

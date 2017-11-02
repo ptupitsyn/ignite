@@ -299,7 +299,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged
             {
                 _log.Error(e, "Failure in Java callback");
 
-                UU.ThrowToJava(_ctx.NativeContext, e);
+                UU.ThrowToJava(e);
 
                 return 0;
             }
