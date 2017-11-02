@@ -73,12 +73,10 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
             _methodId = new MethodId(env);
 
             // TODO: Can we register natives multiple times from different domains?
-            // Yes, we can, second call overwrites first registration. What do we do with that?
-            // Should work for ASP.NET scenario, but would not fly with multiple Ignite instances in different domains.
-            // See ConsoleRedirectTest.RunInNewDomain.
-
-            // We should invent some cross-domain logic to handle that: 
-            // If there is another domain, ask it to register callbacks for us instead of the JVM.
+            // Yes, we can, second call overwrites first registration
+            
+            // We should make sure to regiter callbacks ONLY from default AppDomain (which can't be closed)
+            // Non-default appDomains should delegate this logic to the default one.
 
             _callbacks = new Callbacks(env);
         }
