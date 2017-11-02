@@ -23,12 +23,16 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
 
     internal class LocalRef : IUnmanagedTarget
     {
+        private readonly Env _env;
+
         private readonly IntPtr _lref;
 
-        public LocalRef(IntPtr lref)
+        public LocalRef(Env env, IntPtr lref)
         {
+            Debug.Assert(env != null);
             Debug.Assert(lref != IntPtr.Zero);
 
+            _env = env;
             _lref = lref;
         }
 
@@ -39,17 +43,12 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
 
         private void ReleaseUnmanagedResources()
         {
-            Jvm.Get().AttachCurrentThread().DeleteLocalRef(_lref);
+            _env.DeleteLocalRef(_lref);
         }
 
         public void Dispose()
         {
-            ReleaseUnmanagedResources();
-            GC.SuppressFinalize(this);
-        }
-
-        ~LocalRef()
-        {
+            // Finalizer is not needed, local ref can only be released in original thread.
             ReleaseUnmanagedResources();
         }
 

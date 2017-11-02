@@ -143,7 +143,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
 
             ExceptionCheck();
 
-            return new LocalRef(res);
+            return new LocalRef(this, res);
         }
 
         public LocalRef CallStaticObjectMethod(LocalRef cls, IntPtr methodId, params JavaValue[] args)
@@ -152,7 +152,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
 
             ExceptionCheck();
 
-            return new LocalRef(res);
+            return new LocalRef(this, res);
         }
 
         public LocalRef FindClass(string name)
@@ -161,7 +161,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
 
             ExceptionCheck();
 
-            return new LocalRef(res);
+            return new LocalRef(this, res);
         }
 
         public LocalRef GetObjectClass(LocalRef obj)
@@ -170,7 +170,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
 
             ExceptionCheck();
 
-            return new LocalRef(res);
+            return new LocalRef(this, res);
         }
 
         public IntPtr GetStaticMethodId(LocalRef clazz, string name, string signature)
@@ -197,7 +197,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
 
             ExceptionCheck();
 
-            return new LocalRef(res);
+            return new LocalRef(this, res);
         }
 
         private IntPtr GetStringChars(IntPtr jstring)
@@ -284,7 +284,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
             {
                 _exceptionClear(_envPtr);
 
-                using (var errRef = new LocalRef(err))
+                using (var errRef = new LocalRef(this, err))
                 using (var platformUtilsCls =
                     FindClass("org/apache/ignite/internal/processors/platform/utils/PlatformUtils"))
                 {
