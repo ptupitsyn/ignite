@@ -21,6 +21,9 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
 {
     using System.Diagnostics;
 
+    /// <summary>
+    /// JNI local ref.
+    /// </summary>
     internal class LocalRef : IUnmanagedTarget
     {
         private readonly Env _env;

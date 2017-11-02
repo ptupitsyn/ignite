@@ -149,6 +149,7 @@
     <Compile Include="Impl\Unmanaged\Jni\JniResult.cs" />
     <Compile Include="Impl\Unmanaged\Jni\Jvm.cs" />
     <Compile Include="Impl\Unmanaged\Jni\JvmDelegates.cs" />
+    <Compile Include="Impl\Unmanaged\Jni\NonReleasableRef.cs" />
     <Compile Include="PersistentStore\CheckpointWriteOrder.cs" />
     <Compile Include="PersistentStore\IPersistentStoreMetrics.cs" />
     <Compile Include="PersistentStore\Package-Info.cs" />
@@ -514,7 +515,6 @@
     <Compile Include="Impl\Transactions\TransactionsImpl.cs" />
     <Compile Include="Impl\Unmanaged\IgniteJniNativeMethods.cs" />
     <Compile Include="Impl\Unmanaged\IUnmanagedTarget.cs" />
-    <Compile Include="Impl\Unmanaged\UnmanagedCallbackHandlers.cs" />
     <Compile Include="Impl\Unmanaged\UnmanagedCallbackOp.cs" />
     <Compile Include="Impl\Unmanaged\UnmanagedCallbacks.cs" />
     <Compile Include="Impl\Unmanaged\UnmanagedUtils.cs" />

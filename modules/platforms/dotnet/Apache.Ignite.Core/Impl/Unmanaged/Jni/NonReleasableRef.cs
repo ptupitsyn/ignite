@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
@@ -15,24 +15,25 @@
  * limitations under the License.
  */
 
-namespace Apache.Ignite.Core.Impl.Unmanaged
+namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
 {
-    using System.Runtime.InteropServices;
+    using System;
 
     /// <summary>
-    /// Unmanaged callback handler function pointers.
+    /// JNI ref that does not need to be released.
     /// </summary>
-    [StructLayout(LayoutKind.Sequential, Pack = 0)]
-    internal unsafe struct UnmanagedCallbackHandlers
+    internal class NonReleasableRef : IUnmanagedTarget
     {
-        internal void* target;
+        public NonReleasableRef(IntPtr target)
+        {
+            Target = target;
+        }
 
-        internal void* error;
+        public void Dispose()
+        {
+            // No-op.
+        }
 
-        internal void* loggerLog;
-        internal void* loggerIsLevelEnabled;
-
-        internal void* inLongOutLong;
-        internal void* inLongLongObjectOutLong;
+        public IntPtr Target { get; private set; }
     }
 }

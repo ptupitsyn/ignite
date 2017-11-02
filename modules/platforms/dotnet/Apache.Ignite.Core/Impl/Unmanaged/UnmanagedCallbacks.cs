@@ -99,13 +99,6 @@ namespace Apache.Ignite.Core.Impl.Unmanaged
         /** Actions to be called upon Ignite initialization. */
         private readonly List<Action<Ignite>> _initActions = new List<Action<Ignite>>();
 
-        /** GC handle to UnmanagedCallbacks instance to prevent it from being GCed. */
-        private readonly GCHandle _thisHnd;
-
-        /** Callbacks pointer. */
-        [SuppressMessage("Microsoft.Reliability", "CA2006:UseSafeHandleToEncapsulateNativeResources")]
-        private readonly IntPtr _cbsPtr;
-
         /** Log. */
         private readonly ILogger _log;
 
@@ -143,25 +136,6 @@ namespace Apache.Ignite.Core.Impl.Unmanaged
             Debug.Assert(log != null);
 
             _log = log;
-
-            var cbs = new UnmanagedCallbackHandlers
-            {
-                target = IntPtr.Zero.ToPointer(), // Target is not used in .Net as we rely on dynamic FP creation.
-
-                error = CreateFunctionPointer((ErrorCallbackDelegate)Error),
-
-                loggerLog = CreateFunctionPointer((LoggerLogDelegate)LoggerLog),
-                loggerIsLevelEnabled = CreateFunctionPointer((LoggerIsLevelEnabledDelegate)LoggerIsLevelEnabled),
-
-                inLongOutLong = CreateFunctionPointer((InLongOutLongDelegate)InLongOutLong),
-                inLongLongObjectOutLong = CreateFunctionPointer((InLongLongLongObjectOutLongDelegate)InLongLongLongObjectOutLong)
-            };
-
-            _cbsPtr = Marshal.AllocHGlobal(UU.HandlersSize());
-
-            Marshal.StructureToPtr(cbs, _cbsPtr, false);
-
-            _thisHnd = GCHandle.Alloc(this);
 
             InitHandlers();
         }
@@ -332,7 +306,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged
             {
                 _log.Error(e, "Failure in Java callback");
 
-                UU.ThrowToJava(_ctx.NativeContext, e);
+                UU.ThrowToJava(e);
 
                 return 0;
             }
@@ -697,8 +671,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged
 
                 if (receiver != null)
                 {
-                    var target = new PlatformJniTarget(new UnmanagedNonReleaseableTarget(_ctx, cache), 
-                        _ignite.Marshaller);
+                    var target = new PlatformJniTarget(new NonReleasableRef(new IntPtr(cache)), _ignite.Marshaller);
                     receiver.Receive(_ignite, target, stream, keepBinary);
                 }
 
@@ -1086,7 +1059,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged
 
         private long OnStart(long memPtr, long unused, long unused1, void* proc)
         {
-            var proc0 = UU.Acquire(_ctx, proc);
+            var proc0 = UU.Acquire(proc);
 
             using (var stream = IgniteManager.Memory.Get(memPtr).GetStream())
             {
@@ -1098,14 +1071,6 @@ namespace Apache.Ignite.Core.Impl.Unmanaged
 
         private long OnStop(long unused)
         {
-            Marshal.FreeHGlobal(_cbsPtr);
-
-            // ReSharper disable once ImpureMethodCallOnReadonlyValueField
-            _thisHnd.Free();
-
-            // Allow context to be collected, which will cause resource cleanup in finalizer.
-            _ctx = null;
-
             // Notify grid
             var ignite = _ignite;
 
@@ -1242,7 +1207,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged
 
                 if (affBase != null)
                 {
-                    var baseFunc0 = new PlatformJniTarget(UU.Acquire(_ctx, baseFunc), _ignite.Marshaller);
+                    var baseFunc0 = new PlatformJniTarget(UU.Acquire(baseFunc), _ignite.Marshaller);
 
                     affBase.SetBaseFunction(new PlatformAffinityFunction(baseFunc0));
                 }
@@ -1330,7 +1295,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged
             {
                 _log.Error(e, "Failure in Java callback");
 
-                UU.ThrowToJava(_ctx.NativeContext, e);
+                UU.ThrowToJava(e);
             }
         }
 
@@ -1348,7 +1313,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged
             {
                 _log.Error(e, "Failure in Java callback");
 
-                UU.ThrowToJava(_ctx.NativeContext, e);
+                UU.ThrowToJava(e);
 
                 return default(T);
             }
@@ -1356,22 +1321,6 @@ namespace Apache.Ignite.Core.Impl.Unmanaged
 
         #endregion
         
-        /// <summary>
-        /// Callbacks pointer.
-        /// </summary>
-        public void* CallbacksPointer
-        {
-            get { return _cbsPtr.ToPointer(); }
-        }
-
-        /// <summary>
-        /// Gets the context.
-        /// </summary>
-        public UnmanagedContext Context
-        {
-            get { return _ctx; }
-        }
-
         /// <summary>
         /// Gets the log.
         /// </summary>
