@@ -582,34 +582,6 @@
     <Compile Include="Transactions\TransactionState.cs" />
     <Compile Include="Transactions\TransactionTimeoutException.cs" />
   </ItemGroup>
-  <ItemGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
-    <EmbeddedResource Include="$(SolutionDir)\x64\Debug\ignite.jni.dll">
-      <Link>resources\debug\x64\ignite.jni.dll</Link>
-    </EmbeddedResource>
-  </ItemGroup>
-  <ItemGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
-    <EmbeddedResource Include="$(SolutionDir)\x64\Release\ignite.jni.dll">
-      <Link>resources\release\x64\ignite.jni.dll</Link>
-    </EmbeddedResource>
-  </ItemGroup>
-  <ItemGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x86'">
-    <EmbeddedResource Include="$(SolutionDir)\Win32\Debug\ignite.jni.dll">
-      <Link>resources\debug\x86\ignite.jni.dll</Link>
-    </EmbeddedResource>
-  </ItemGroup>
-  <ItemGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x86'">
-    <EmbeddedResource Include="$(SolutionDir)\Win32\Release\ignite.jni.dll">
-      <Link>resources\release\x86\ignite.jni.dll</Link>
-    </EmbeddedResource>
-  </ItemGroup>
-  <ItemGroup Condition="'$(Platform)' == 'AnyCPU'">
-    <EmbeddedResource Include="$(ProjectDir)..\..\cpp\jni\project\vs\x64\$(Configuration)\ignite.jni.dll">
-      <Link>resources\x64\ignite.jni.dll</Link>
-    </EmbeddedResource>
-    <EmbeddedResource Include="$(ProjectDir)..\..\cpp\jni\project\vs\Win32\$(Configuration)\ignite.jni.dll" Condition="'$(Configuration)' == 'Release' Or Exists('$(ProjectDir)..\..\cpp\jni\project\vs\Win32\$(Configuration)\ignite.jni.dll')">
-      <Link>resources\x86\ignite.jni.dll</Link>
-    </EmbeddedResource>
-  </ItemGroup>
   <ItemGroup>
     <None Include="Apache.Ignite.Core.ruleset" />
     <None Include="Apache.Ignite.Core.nuspec" />
@@ -625,11 +597,6 @@
     </None>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <PropertyGroup Condition="'$(Platform)' == 'AnyCPU'">
-    <PreBuildEvent>cd "$(ProjectDir)"
-	set COMPLUS_ApplicationMigrationRuntimeActivationConfigPath=$(ProjectDir)
-	PowerShell.exe -executionpolicy remotesigned -File build-common.ps1 -Configuration $(ConfigurationName) -msbuildexe "$(MSBuildBinPath)\msbuild.exe"</PreBuildEvent>
-  </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it.
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">
