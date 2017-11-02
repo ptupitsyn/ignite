@@ -251,7 +251,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
                 [Out] out int size2);
         }
 
-        private class DomainHelper
+        private class DomainHelper : MarshalByRefObject
         {
             public Callbacks GetCallbacks()
             {
