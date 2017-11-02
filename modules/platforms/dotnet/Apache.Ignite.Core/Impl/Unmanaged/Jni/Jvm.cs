@@ -68,7 +68,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
             var env = AttachCurrentThread();
             _methodId = new MethodId(env);
 
-            // TODO
+            // TODO: Can we register natives multiple times from different domains?
             //RegisterNatives(env);
         }
 

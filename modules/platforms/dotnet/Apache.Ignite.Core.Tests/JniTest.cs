@@ -120,7 +120,7 @@ namespace Apache.Ignite.Core.Tests
             };
         }
 
-        private void LoggerLog(IntPtr env, IntPtr clazz, int level, IntPtr message, IntPtr category, IntPtr error, long memPtr)
+        private void LoggerLog(IntPtr env, IntPtr clazz, long igniteId, int level, IntPtr message, IntPtr category, IntPtr error, long memPtr)
         {
             
         }
@@ -134,7 +134,7 @@ namespace Apache.Ignite.Core.Tests
             Console.Write(msg);
         }
 
-        private bool LoggerIsLevelEnabled(IntPtr env, IntPtr clazz, int level)
+        private bool LoggerIsLevelEnabled(IntPtr env, IntPtr clazz, long igniteId, int level)
         {
             return false;
         }
