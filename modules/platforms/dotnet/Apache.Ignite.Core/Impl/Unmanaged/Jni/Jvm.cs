@@ -20,6 +20,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
+    using System.Reflection;
     using System.Runtime.InteropServices;
     using System.Security;
     using Apache.Ignite.Core.Common;
@@ -78,12 +79,18 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
                 // Non-default appDomains should delegate this logic to the default one.
                 // E.g. if (!AppDomain.CurrentDomain.IsDefault) _callbacks = CreateInstanceAndUnwrap(...)
 
+                // TODO: Clean this stuff up.
                 var defDomain = AppDomains.GetDefaultAppDomain();
-                var type = typeof(DomainHelper);
 
-                //var helper = (DomainHelper) defDomain.CreateInstance(type.Assembly.FullName, type.FullName).Unwrap();
-                var helper = (DomainHelper) defDomain.
-                    CreateInstanceFrom(type.Assembly.CodeBase, type.FullName).Unwrap();
+                // In some cases default AppDomain is not able to locate Apache.Ignite.Core assembly.
+                // First, use CreateInstanceFrom to set up the AssemblyResolve handler.
+                var resHelpType = typeof(ResolveHelper);
+                var resHelp = (ResolveHelper)defDomain.CreateInstanceFrom(resHelpType.Assembly.Location, resHelpType.FullName).Unwrap();
+                resHelp.TrackResolve(resHelpType.Assembly.FullName, resHelpType.Assembly.Location);
+
+                // Now use CreateInstance to get the domain helper of a properly loaded class.
+                var type = typeof(DomainHelper);
+                var helper = (DomainHelper) defDomain.CreateInstance(type.Assembly.FullName, type.FullName).Unwrap();
                 _callbacks = helper.GetCallbacks();
             }
             else
@@ -260,6 +267,22 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
             {
                 // TODO: Make sure native JVM exists.
                 return GetOrCreate(null)._callbacks;
+            }
+        }
+
+        private class ResolveHelper : MarshalByRefObject
+        {
+            public void TrackResolve(string name, string path)
+            {
+                AppDomain.CurrentDomain.AssemblyResolve += (sender, args) =>
+                {
+                    if (args.Name == name)
+                    {
+                        return Assembly.LoadFrom(path);
+                    }
+
+                    return null;
+                };
             }
         }
     }
