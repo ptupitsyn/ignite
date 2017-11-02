@@ -196,38 +196,44 @@ namespace Apache.Ignite.Core.Impl.Unmanaged
             {
                 return lRef.ToGlobal();
             }
-
-
-            //void* res = JNI.TargetInObjectStreamOutObjectStream(target.Context, target.Target, opType, arg, inMemPtr, outMemPtr);
-
-            //if (res == null)
-            //    return null;
-
-            //return target.ChangeTarget(res);
         }
 
         internal static void TargetOutStream(IUnmanagedTarget target, int opType, long memPtr)
         {
-            JNI.TargetOutStream(target.Context, target.Target, opType, memPtr);
+            var jvm = Jvm.Get();
+
+            jvm.AttachCurrentThread().CallVoidMethod(
+                target, jvm.MethodId.TargetOutStream, new JavaValue(opType), new JavaValue(memPtr));
         }
 
         internal static IUnmanagedTarget TargetOutObject(IUnmanagedTarget target, int opType)
         {
-            void* res = JNI.TargetOutObject(target.Context, target.Target, opType);
+            var jvm = Jvm.Get();
 
-            return target.ChangeTarget(res);
+            using (var lRef = jvm.AttachCurrentThread().CallObjectMethod(
+                target, jvm.MethodId.TargetOutObject, new JavaValue(opType)))
+            {
+                return lRef.ToGlobal();
+            }
         }
 
         internal static void TargetInStreamAsync(IUnmanagedTarget target, int opType, long memPtr)
         {
-            JNI.TargetInStreamAsync(target.Context, target.Target, opType, memPtr);
+            var jvm = Jvm.Get();
+
+            jvm.AttachCurrentThread().CallVoidMethod(
+                target, jvm.MethodId.TargetInStreamAsync, new JavaValue(opType), new JavaValue(memPtr));
         }
 
         internal static IUnmanagedTarget TargetInStreamOutObjectAsync(IUnmanagedTarget target, int opType, long memPtr)
         {
-            void* res = JNI.TargetInStreamOutObjectAsync(target.Context, target.Target, opType, memPtr);
+            var jvm = Jvm.Get();
 
-            return target.ChangeTarget(res);
+            using (var lRef = jvm.AttachCurrentThread().CallObjectMethod(
+                target, jvm.MethodId.TargetInStreamOutObjectAsync, new JavaValue(opType), new JavaValue(memPtr)))
+            {
+                return lRef.ToGlobal();
+            }
         }
 
         #endregion
