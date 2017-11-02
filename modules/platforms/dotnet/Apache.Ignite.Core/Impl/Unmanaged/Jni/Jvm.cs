@@ -77,6 +77,8 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
             
             // We should make sure to regiter callbacks ONLY from default AppDomain (which can't be closed)
             // Non-default appDomains should delegate this logic to the default one.
+            // E.g. if (!AppDomain.CurrentDomain.IsDefault) _callbacks = CreateInstanceAndUnwrap(...)
+            
 
             _callbacks = new Callbacks(env);
         }
