@@ -42,6 +42,9 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
         /** */
         private readonly MethodId _methodId;
 
+        /** Callbacks. */
+        private readonly Callbacks _callbacks;
+
         /** Static instamce */
         private static Jvm _instance;
 
@@ -50,6 +53,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
 
         /** Env for current thread. */
         [ThreadStatic] private static Env _env;
+
 
         /// <summary>
         /// Initializes a new instance of the <see cref="_instance"/> class.
@@ -76,9 +80,8 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
             // We should invent some cross-domain logic to handle that: 
             // If there is another domain, ask it to register callbacks for us instead of the JVM.
 
-            // RegisterNatives(env);
+            _callbacks = new Callbacks(env);
         }
-
 
         /// <summary>
         /// Gets or creates the JVM.
@@ -108,6 +111,43 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
             }
 
             return _instance;
+        }
+
+        /// <summary>
+        /// Gets the method IDs.
+        /// </summary>
+        public MethodId MethodId
+        {
+            get { return _methodId; }
+        }
+
+        /// <summary>
+        /// Attaches current thread to the JVM and returns JNIEnv.
+        /// </summary>
+        public Env AttachCurrentThread()
+        {
+            if (_env == null)
+            {
+                IntPtr envPtr;
+                var res = _attachCurrentThread(_jvmPtr, out envPtr, IntPtr.Zero);
+
+                if (res != JniResult.Success)
+                {
+                    throw new IgniteException("AttachCurrentThread failed: " + res);
+                }
+
+                _env = new Env(envPtr, this);
+            }
+
+            return _env;
+        }
+
+        /// <summary>
+        /// Registers the callbacks.
+        /// </summary>
+        public void RegisterCallbacks(UnmanagedCallbacks cbs)
+        {
+            _callbacks.RegisterHandlers(cbs);
         }
 
         /// <summary>
@@ -159,35 +199,6 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
             }
 
             return jvm;
-        }
-
-        /// <summary>
-        /// Gets the method IDs.
-        /// </summary>
-        public MethodId MethodId
-        {
-            get { return _methodId; }
-        }
-
-        /// <summary>
-        /// Attaches current thread to the JVM and returns JNIEnv.
-        /// </summary>
-        public Env AttachCurrentThread()
-        {
-            if (_env == null)
-            {
-                IntPtr envPtr;
-                var res = _attachCurrentThread(_jvmPtr, out envPtr, IntPtr.Zero);
-
-                if (res != JniResult.Success)
-                {
-                    throw new IgniteException("AttachCurrentThread failed: " + res);
-                }
-
-                _env = new Env(envPtr, this);
-            }
-
-            return _env;
         }
 
         /// <summary>
