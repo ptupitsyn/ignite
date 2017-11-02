@@ -122,11 +122,17 @@ namespace Apache.Ignite.Core.Impl.Unmanaged
                 }
                 finally
                 {
-                    cfgPath1.Dispose();
-                    gridName1.Dispose();
+                    if (cfgPath != null)
+                    {
+                        cfgPath1.Dispose();
+                        Marshal.FreeHGlobal(new IntPtr(cfgPath0));
+                    }
 
-                    Marshal.FreeHGlobal(new IntPtr(cfgPath0));
-                    Marshal.FreeHGlobal(new IntPtr(gridName0));
+                    if (gridName != null)
+                    {
+                        gridName1.Dispose();
+                        Marshal.FreeHGlobal(new IntPtr(gridName0));
+                    }
                 }
             }
         }
