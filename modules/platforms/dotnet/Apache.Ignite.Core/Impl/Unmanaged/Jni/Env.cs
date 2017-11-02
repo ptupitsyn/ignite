@@ -62,6 +62,9 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
         private readonly EnvDelegates.CallLongMethod _callLongMethod;
 
         /** */
+        private readonly EnvDelegates.CallVoidMethod _callVoidMethod;
+
+        /** */
         private readonly EnvDelegates.GetStringChars _getStringChars;
 
         /** */
@@ -119,6 +122,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
             GetDelegate(func.CallObjectMethod, out _callObjectMethod);
             GetDelegate(func.CallStaticObjectMethod, out _callStaticObjectMethod);
             GetDelegate(func.CallLongMethod, out _callLongMethod);
+            GetDelegate(func.CallVoidMethod, out _callVoidMethod);
 
             GetDelegate(func.GetStringChars, out _getStringChars);
             GetDelegate(func.ReleaseStringChars, out _releaseStringChars);
@@ -173,6 +177,13 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
             ExceptionCheck();
 
             return res;
+        }
+
+        public void CallVoidMethod(IUnmanagedTarget obj, IntPtr methodId, params JavaValue[] args)
+        {
+            _callVoidMethod(_envPtr, obj.Target, methodId, args);
+
+            ExceptionCheck();
         }
 
         public LocalRef CallStaticObjectMethod(LocalRef cls, IntPtr methodId, params JavaValue[] args)

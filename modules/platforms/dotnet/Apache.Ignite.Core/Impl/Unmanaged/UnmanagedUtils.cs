@@ -159,12 +159,19 @@ namespace Apache.Ignite.Core.Impl.Unmanaged
 
         internal static long TargetInStreamOutLong(IUnmanagedTarget target, int opType, long memPtr)
         {
-            return JNI.TargetInStreamOutLong(target.Context, target.Target, opType, memPtr);
+            var jvm = Jvm.Get();
+
+            return jvm.AttachCurrentThread().CallLongMethod(
+                target, jvm.MethodId.TargetInStreamOutLong, new JavaValue(opType), new JavaValue(memPtr));
         }
 
         internal static void TargetInStreamOutStream(IUnmanagedTarget target, int opType, long inMemPtr, long outMemPtr)
         {
-            JNI.TargetInStreamOutStream(target.Context, target.Target, opType, inMemPtr, outMemPtr);
+            var jvm = Jvm.Get();
+
+            jvm.AttachCurrentThread().CallVoidMethod(
+                target, jvm.MethodId.TargetInStreamOutStream, new JavaValue(opType), 
+                new JavaValue(inMemPtr), new JavaValue(outMemPtr));
         }
 
         internal static IUnmanagedTarget TargetInStreamOutObject(IUnmanagedTarget target, int opType, long inMemPtr)
