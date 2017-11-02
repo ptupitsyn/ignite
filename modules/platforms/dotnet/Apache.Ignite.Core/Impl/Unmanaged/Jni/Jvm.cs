@@ -151,9 +151,9 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
         /// <summary>
         /// Registers the callbacks.
         /// </summary>
-        public void RegisterCallbacks(UnmanagedCallbacks cbs)
+        public long RegisterCallbacks(UnmanagedCallbacks cbs)
         {
-            _callbacks.RegisterHandlers(cbs);
+            return _callbacks.RegisterHandlers(cbs);
         }
 
         /// <summary>

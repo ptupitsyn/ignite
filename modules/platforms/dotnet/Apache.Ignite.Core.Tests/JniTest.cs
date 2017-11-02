@@ -56,6 +56,9 @@ namespace Apache.Ignite.Core.Tests
 
             var args = new List<JavaValue>();
 
+            var cbs = new UnmanagedCallbacks(new NoopLogger());
+            var igniteId = jvm.RegisterCallbacks(cbs);
+
             using (var dataMem = IgniteManager.Memory.Allocate().GetStream())
             {
                 // Cfg path: zero
@@ -69,8 +72,8 @@ namespace Apache.Ignite.Core.Tests
                 // FactoryId
                 args.Add(new JavaValue(1));
 
-                // EnvPtr ???
-                args.Add(new JavaValue { _object = env.EnvPtr });
+                // IgniteId
+                args.Add(new JavaValue { _long = igniteId });
 
                 // Additional data.
                 dataMem.WriteBool(false);
