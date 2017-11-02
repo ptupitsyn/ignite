@@ -27,13 +27,14 @@ namespace Apache.Ignite.Core.Impl
     using Apache.Ignite.Core.Impl.Common;
     using Apache.Ignite.Core.Impl.Memory;
     using Apache.Ignite.Core.Impl.Unmanaged;
+    using Apache.Ignite.Core.Impl.Unmanaged.Jni;
     using Apache.Ignite.Core.Log;
     using UU = Apache.Ignite.Core.Impl.Unmanaged.UnmanagedUtils;
 
     /// <summary>
     /// Native interface manager.
     /// </summary>
-    public static unsafe class IgniteManager
+    internal static unsafe class IgniteManager
     {
         /** Java Command line argument: Xms. Case sensitive. */
         private const string CmdJvmMinMemJava = "-Xms";
@@ -43,9 +44,6 @@ namespace Apache.Ignite.Core.Impl
 
         /** Monitor for DLL load synchronization. */
         private static readonly object SyncRoot = new object();
-
-        /** First created context. */
-        private static void* _ctx;
 
         /** Configuration used on JVM start. */
         private static JvmConfiguration _jvmCfg;
@@ -60,7 +58,7 @@ namespace Apache.Ignite.Core.Impl
         /// <param name="cbs">Callbacks.</param>
         /// <param name="log"></param>
         /// <returns>Context.</returns>
-        internal static void CreateJvmContext(IgniteConfiguration cfg, UnmanagedCallbacks cbs, ILogger log)
+        internal static Jvm CreateJvmContext(IgniteConfiguration cfg, UnmanagedCallbacks cbs, ILogger log)
         {
             lock (SyncRoot)
             {
@@ -79,7 +77,8 @@ namespace Apache.Ignite.Core.Impl
                 }
 
                 // 2. Create unmanaged pointer.
-                void* ctx = CreateJvm(cfg, cbs);
+                var jvm = CreateJvm(cfg, cbs);
+                var igniteId = jvm.RegisterCallbacks(cbs);
 
                 cbs.SetContext(ctx);
 
@@ -101,26 +100,10 @@ namespace Apache.Ignite.Core.Impl
         }
 
         /// <summary>
-        /// Blocks until JVM stops.
-        /// </summary>
-        public static void DestroyJvm()
-        {
-            lock (SyncRoot)
-            {
-                if (_ctx != null)
-                {
-                    UU.DestroyJvm(_ctx);
-
-                    _ctx = null;
-                }
-            }
-        }
-
-        /// <summary>
         /// Create JVM.
         /// </summary>
         /// <returns>JVM.</returns>
-        private static void* CreateJvm(IgniteConfiguration cfg, UnmanagedCallbacks cbs)
+        private static Jvm CreateJvm(IgniteConfiguration cfg, UnmanagedCallbacks cbs)
         {
             var cp = Classpath.CreateClasspath(cfg);
 

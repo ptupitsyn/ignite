@@ -25,18 +25,8 @@ namespace Apache.Ignite.Core.Impl.Unmanaged
     internal unsafe interface IUnmanagedTarget : IDisposable
     {
         /// <summary>
-        /// Context.
-        /// </summary>
-        void* Context { get; }
-
-        /// <summary>
         /// Target.
         /// </summary>
         void* Target { get; }
-
-        /// <summary>
-        /// Creates new instance with same context and different target.
-        /// </summary>
-        IUnmanagedTarget ChangeTarget(void* target);
     }
 }

@@ -40,6 +40,7 @@ namespace Apache.Ignite.Core
     using Apache.Ignite.Core.Impl.Log;
     using Apache.Ignite.Core.Impl.Memory;
     using Apache.Ignite.Core.Impl.Unmanaged;
+    using Apache.Ignite.Core.Impl.Unmanaged.Jni;
     using Apache.Ignite.Core.Lifecycle;
     using Apache.Ignite.Core.Log;
     using Apache.Ignite.Core.Resource;
@@ -229,6 +230,8 @@ namespace Apache.Ignite.Core
                 IgniteUtils.LoadDlls(cfg.JvmDllPath, log);
 
                 var cbs = new UnmanagedCallbacks(log);
+
+                var jvm = Jvm.GetOrCreate()
 
                 IgniteManager.CreateJvmContext(cfg, cbs, log);
                 log.Debug("JVM started.");

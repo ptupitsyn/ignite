@@ -44,6 +44,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged
     using Apache.Ignite.Core.Impl.Messaging;
     using Apache.Ignite.Core.Impl.Resource;
     using Apache.Ignite.Core.Impl.Services;
+    using Apache.Ignite.Core.Impl.Unmanaged.Jni;
     using Apache.Ignite.Core.Lifecycle;
     using Apache.Ignite.Core.Log;
     using Apache.Ignite.Core.Services;
@@ -66,8 +67,11 @@ namespace Apache.Ignite.Core.Impl.Unmanaged
         private static readonly void* ConsoleWritePtr =
             Marshal.GetFunctionPointerForDelegate(ConsoleWriteDel).ToPointer();
 
-        /** Unmanaged context. */
-        private volatile UnmanagedContext _ctx;
+        /** JVM. */
+        private volatile Jvm _jvm;
+
+        /** */
+        private long _igniteId;
 
         /** Handle registry. */
         private readonly HandleRegistry _handleRegistry = new HandleRegistry();
@@ -1378,13 +1382,15 @@ namespace Apache.Ignite.Core.Impl.Unmanaged
             return Marshal.GetFunctionPointerForDelegate(del).ToPointer();
         }
 
-        /// <param name="context">Context.</param>
-        public void SetContext(void* context)
+        /// <summary>
+        /// Sets the context.
+        /// </summary>
+        public void SetContext(Jvm jvm, long igniteId)
         {
-            Debug.Assert(context != null);
-            Debug.Assert(_ctx == null);
+            Debug.Assert(jvm != null);
 
-            _ctx = new UnmanagedContext(context);
+            _jvm = jvm;
+            _igniteId = igniteId;
         }
 
         /// <summary>

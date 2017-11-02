@@ -21,18 +21,14 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
 {
     using System.Diagnostics;
 
-    internal class LocalRef : IDisposable
+    internal class LocalRef : IUnmanagedTarget
     {
-        private readonly Env _env;
-
         private readonly IntPtr _lref;
 
-        public LocalRef(Env env, IntPtr lref)
+        public LocalRef(IntPtr lref)
         {
-            Debug.Assert(env != null);
             Debug.Assert(lref != IntPtr.Zero);
 
-            _env = env;
             _lref = lref;
         }
 
@@ -43,7 +39,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
 
         private void ReleaseUnmanagedResources()
         {
-            _env.DeleteLocalRef(_lref);
+            Jvm.Get().AttachCurrentThread().DeleteLocalRef(_lref);
         }
 
         public void Dispose()
@@ -55,6 +51,12 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
         ~LocalRef()
         {
             ReleaseUnmanagedResources();
+        }
+
+        /** <inheritdoc /> */
+        public unsafe void* Target
+        {
+            get { return _lref.ToPointer(); }
         }
     }
 }
