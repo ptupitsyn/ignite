@@ -19,13 +19,11 @@ namespace Apache.Ignite.Core.Impl.Unmanaged
 {
     using System;
     using System.Collections.Generic;
-    using System.Diagnostics;
     using System.Diagnostics.CodeAnalysis;
     using System.Runtime.InteropServices;
     using System.Threading.Tasks;
     using Apache.Ignite.Core.Common;
     using Apache.Ignite.Core.Impl.Unmanaged.Jni;
-    using JNI = IgniteJniNativeMethods;
 
     /// <summary>
     /// Unmanaged utility classes.
@@ -57,23 +55,8 @@ namespace Apache.Ignite.Core.Impl.Unmanaged
                     IgniteUtils.FileIgniteJniDll, path, IgniteUtils.FormatWin32Error(err)));
             }
 
-            AppDomain.CurrentDomain.DomainUnload += CurrentDomain_DomainUnload;
-
-            JNI.SetConsoleHandler(UnmanagedCallbacks.ConsoleWriteHandler);
-
             // Clean directories in background to avoid extra work on start.
             Task.Factory.StartNew(IgniteUtils.TryCleanTempDirectories);
-        }
-
-        /// <summary>
-        /// Handles the DomainUnload event of the current AppDomain.
-        /// </summary>
-        private static void CurrentDomain_DomainUnload(object sender, EventArgs e)
-        {
-            // Clean the handler to avoid JVM crash.
-            var removedCnt = JNI.RemoveConsoleHandler(UnmanagedCallbacks.ConsoleWriteHandler);
-
-            Debug.Assert(removedCnt == 1);
         }
 
         /// <summary>
@@ -250,11 +233,12 @@ namespace Apache.Ignite.Core.Impl.Unmanaged
 
         internal static void Reallocate(long memPtr, int cap)
         {
-            int res = JNI.Reallocate(memPtr, cap);
+            // TODO
+            //int res = JNI.Reallocate(memPtr, cap);
 
-            if (res != 0)
-                throw new IgniteException("Failed to reallocate external memory [ptr=" + memPtr + 
-                    ", capacity=" + cap + ']');
+            //if (res != 0)
+            //    throw new IgniteException("Failed to reallocate external memory [ptr=" + memPtr + 
+            //        ", capacity=" + cap + ']');
         }
 
         internal static IUnmanagedTarget Acquire(void* target)
@@ -275,26 +259,6 @@ namespace Apache.Ignite.Core.Impl.Unmanaged
             {
                 Marshal.FreeHGlobal(new IntPtr(msgChars));
             }
-        }
-
-        internal static int HandlersSize()
-        {
-            return JNI.HandlersSize();
-        }
-
-        internal static void* CreateContext(void* opts, int optsLen, void* cbs)
-        {
-            return JNI.CreateContext(opts, optsLen, cbs);
-        }
-
-        internal static void DeleteContext(void* ctx)
-        {
-            JNI.DeleteContext(ctx);
-        }
-
-        internal static void DestroyJvm(void* ctx)
-        {
-            JNI.DestroyJvm(ctx);
         }
 
         #endregion

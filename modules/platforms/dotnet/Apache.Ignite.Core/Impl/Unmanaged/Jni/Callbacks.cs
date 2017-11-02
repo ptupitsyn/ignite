@@ -145,6 +145,8 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
 
         private static void ConsoleWrite(IntPtr envPtr, IntPtr clazz, IntPtr message, bool isError)
         {
+            // TODO: This happens only in default domain, is that ok?
+
             if (message != IntPtr.Zero)
             {
                 var env = Jvm.Get().AttachCurrentThread();

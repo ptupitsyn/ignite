@@ -513,7 +513,6 @@
     <Compile Include="Impl\Transactions\TransactionImpl.cs" />
     <Compile Include="Impl\Transactions\TransactionMetricsImpl.cs" />
     <Compile Include="Impl\Transactions\TransactionsImpl.cs" />
-    <Compile Include="Impl\Unmanaged\IgniteJniNativeMethods.cs" />
     <Compile Include="Impl\Unmanaged\IUnmanagedTarget.cs" />
     <Compile Include="Impl\Unmanaged\UnmanagedCallbackOp.cs" />
     <Compile Include="Impl\Unmanaged\UnmanagedCallbacks.cs" />
