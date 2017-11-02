@@ -51,6 +51,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
         /// </summary>
         public long RegisterHandlers(UnmanagedCallbacks cbs)
         {
+            // TODO: Unregister on stop.
             return _callbackRegistry.AllocateCritical(cbs);
         }
 
