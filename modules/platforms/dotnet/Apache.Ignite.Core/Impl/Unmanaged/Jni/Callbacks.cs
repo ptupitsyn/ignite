@@ -127,7 +127,9 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
         private long InLongLongLongObjectOutLong(IntPtr env, IntPtr clazz, long igniteId,
             int op, long arg1, long arg2, long arg3, IntPtr arg)
         {
-            // TODO: Delegate to registered handler.
+            var cbs = _callbackRegistry.Get<UnmanagedCallbacks>(igniteId, true);
+
+            cbs.InLongLongLongObjectOutLong(op, arg1, arg2, arg3, arg);
 
             return 0;
         }

@@ -57,7 +57,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged
         Justification = "This class instance usually lives as long as the app runs.")]
     [SuppressMessage("Microsoft.Design", "CA1049:TypesThatOwnNativeResourcesShouldBeDisposable",
         Justification = "This class instance usually lives as long as the app runs.")]
-    internal unsafe class UnmanagedCallbacks
+    internal unsafe class UnmanagedCallbacks : MarshalByRefObject
     {
         /** Console write delegate. */
         private static readonly ConsoleWriteDelegate ConsoleWriteDel = ConsoleWrite;
@@ -296,6 +296,11 @@ namespace Apache.Ignite.Core.Impl.Unmanaged
         [SuppressMessage("Microsoft.Design", "CA1031:DoNotCatchGeneralExceptionTypes")]
         private long InLongLongLongObjectOutLong(void* target, int type, long val1, long val2, long val3, void* arg)
         {
+            return InLongLongLongObjectOutLong(type, val1, val2, val3, new IntPtr(arg));
+        }
+
+        internal long InLongLongLongObjectOutLong(int type, long val1, long val2, long val3, IntPtr arg)
+        {
             try
             {
                 if (type < 0 || type > _inLongLongLongObjectOutLongHandlers.Length)
@@ -309,7 +314,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged
                 if (!hnd.AllowUninitialized)
                     _initEvent.Wait();
 
-                return hnd.Handler(val1, val2, val3, arg);
+                return hnd.Handler(val1, val2, val3, arg.ToPointer());
             }
             catch (Exception e)
             {
