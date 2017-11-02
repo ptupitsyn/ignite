@@ -27,7 +27,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
     /// <summary>
     /// Java -> .NET callback dispatcher.
     /// </summary>
-    internal class Callbacks
+    internal class Callbacks : MarshalByRefObject
     {
         /** Holds delegates so that GC does not collect them. */
         // ReSharper disable once CollectionNeverQueried.Local

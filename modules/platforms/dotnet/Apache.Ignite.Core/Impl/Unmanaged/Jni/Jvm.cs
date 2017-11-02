@@ -19,7 +19,6 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
 {
     using System;
     using System.Diagnostics;
-    using System.Linq;
     using System.Runtime.InteropServices;
     using System.Security;
     using Apache.Ignite.Core.Common;
@@ -28,7 +27,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
     /// JVM holder.
     /// </summary>
     [SuppressUnmanagedCodeSecurity]
-    internal unsafe class Jvm
+    internal unsafe class Jvm : MarshalByRefObject
     {
         /** */
         // ReSharper disable once InconsistentNaming
@@ -55,7 +54,6 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
         /** Env for current thread. */
         [ThreadStatic] private static Env _env;
 
-
         /// <summary>
         /// Initializes a new instance of the <see cref="_instance"/> class.
         /// </summary>
@@ -79,11 +77,16 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
                 // Non-default appDomains should delegate this logic to the default one.
                 // E.g. if (!AppDomain.CurrentDomain.IsDefault) _callbacks = CreateInstanceAndUnwrap(...)
 
-                var domains = AppDomains.EnumAppDomains().ToArray();
-                throw new Exception("TODO");
+                var defDomain = AppDomains.GetDefaultAppDomain();
+                
+                var type = typeof(DomainHelper);
+                var helper = (DomainHelper) defDomain.CreateInstance(type.Assembly.FullName, type.FullName).Unwrap();
+                _callbacks = helper.GetCallbacks();
             }
-
-            _callbacks = new Callbacks(env);
+            else
+            {
+                _callbacks = new Callbacks(env);
+            }
         }
 
         /// <summary>
@@ -246,6 +249,14 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
             [DllImport("jvm.dll", CallingConvention = CallingConvention.StdCall)]
             internal static extern JniResult JNI_GetCreatedJavaVMs(out IntPtr pvm, int size,
                 [Out] out int size2);
+        }
+
+        private class DomainHelper
+        {
+            public Callbacks GetCallbacks()
+            {
+                return GetOrCreate()._callbacks;
+            }
         }
     }
 }

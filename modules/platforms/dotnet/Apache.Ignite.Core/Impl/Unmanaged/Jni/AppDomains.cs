@@ -16,51 +16,47 @@
  */
 
 using System;
-using System.Collections.Generic;
 
 namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
 {
     using System.Runtime.InteropServices;
 
+    /// <summary>
+    /// AppDomain accessor.
+    /// </summary>
     internal static class AppDomains
     {
-        public static IEnumerable<_AppDomain> EnumAppDomains()
+        private static Guid CLSID_CLRMetaHost = new Guid(0x9280188d, 0xe8e, 0x4867, 0xb3, 0xc, 0x7f, 0xa8, 0x38, 0x84, 0xe8, 0xde);
+        private static Guid IID_CLRMetaHost = new Guid(0xD332DB9E, 0xB9B3, 0x4125, 0x82, 0x07, 0xA1, 0x48, 0x84, 0xF5, 0x32, 0x16);
+        private static Guid IID_CLRRuntimeInfo = new Guid(0xBD39D1D2, 0xBA2F, 0x486a, 0x89, 0xB0, 0xB4, 0xB0, 0xCB, 0x46, 0x68, 0x91);
+        private static Guid CLSID_CorRuntimeHost = new Guid(0xcb2f6723, 0xab3a, 0x11d2, 0x9c, 0x40, 0x00, 0xc0, 0x4f, 0xa3, 0x0a, 0x3e);
+        private static Guid IID_CorRuntimeHost = new Guid(0xcb2f6722, 0xab3a, 0x11d2, 0x9c, 0x40, 0x00, 0xc0, 0x4f, 0xa3, 0x0a, 0x3e);
+
+        public static _AppDomain GetDefaultAppDomain()
         {
             // Obtain ICLRMetaHost interface
             object objHost;
             int hr = CLRCreateInstance(ref CLSID_CLRMetaHost, ref IID_CLRMetaHost, out objHost);
             if (hr < 0) throw new COMException("Cannot create meta host", hr);
-            var host = (ICLRMetaHost)objHost;
+            var host = (ICLRMetaHost) objHost;
 
             // Obtain ICLRRuntimeInfo interface
             var vers = Environment.Version;
             var versString = string.Format("v{0}.{1}.{2}", vers.Major, vers.Minor, vers.Build);
-            var objRuntime = host.GetRuntime(versString, ref IID_CLRRuntimeInfo);
-            var runtime = (ICLRRuntimeInfo)objRuntime;
+            var runtime = (ICLRRuntimeInfo) host.GetRuntime(versString, ref IID_CLRRuntimeInfo);
             bool started;
             uint flags;
             runtime.IsStarted(out started, out flags);
             if (!started) throw new COMException("CLR not started??");
 
             // Obtain legacy ICorRuntimeHost interface and iterate appdomains
-            var V2Host = (ICorRuntimeHost)runtime.GetInterface(ref CLSID_CorRuntimeHost, ref IID_CorRuntimeHost);
-            IntPtr hDomainEnum;
-            V2Host.EnumDomains(out hDomainEnum);
-            for (; ; )
-            {
-                _AppDomain domain = null;
-                V2Host.NextDomain(hDomainEnum, out domain);
-                if (domain == null) break;
-                yield return domain;
-            }
-            V2Host.CloseEnum(hDomainEnum);
-        }
+            var rtHost = (ICorRuntimeHost) runtime.GetInterface(ref CLSID_CorRuntimeHost, ref IID_CorRuntimeHost);
 
-        private static Guid CLSID_CLRMetaHost = new Guid(0x9280188d, 0xe8e, 0x4867, 0xb3, 0xc, 0x7f, 0xa8, 0x38, 0x84, 0xe8, 0xde);
-        private static Guid IID_CLRMetaHost = new Guid(0xD332DB9E, 0xB9B3, 0x4125, 0x82, 0x07, 0xA1, 0x48, 0x84, 0xF5, 0x32, 0x16);
-        private static Guid IID_CLRRuntimeInfo = new Guid(0xBD39D1D2, 0xBA2F, 0x486a, 0x89, 0xB0, 0xB4, 0xB0, 0xCB, 0x46, 0x68, 0x91);
-        private static Guid CLSID_CorRuntimeHost = new Guid(0xcb2f6723, 0xab3a, 0x11d2, 0x9c, 0x40, 0x00, 0xc0, 0x4f, 0xa3, 0x0a, 0x3e);
-        private static Guid IID_CorRuntimeHost = new Guid(0xcb2f6722, 0xab3a, 0x11d2, 0x9c, 0x40, 0x00, 0xc0, 0x4f, 0xa3, 0x0a, 0x3e);
+            _AppDomain domain;
+            rtHost.GetDefaultDomain(out domain);
+
+            return domain;
+        }
 
         [DllImport("mscoree.dll")]
         private static extern int CLRCreateInstance(ref Guid clsid, ref Guid iid,
@@ -106,11 +102,6 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
             void Stop();
             void CreateDomain(string name, object identity, out _AppDomain domain);
             void GetDefaultDomain(out _AppDomain domain);
-            void EnumDomains(out IntPtr hEnum);
-            void NextDomain(IntPtr hEnum, out _AppDomain domain);
-            void CloseEnum(IntPtr hEnum);
-            // rest omitted
         }
     }
-
 }
