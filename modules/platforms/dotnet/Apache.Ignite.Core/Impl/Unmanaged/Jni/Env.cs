@@ -161,7 +161,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
             ExceptionCheck();
         }
 
-        public LocalRef CallObjectMethod(LocalRef obj, IntPtr methodId, params JavaValue[] args)
+        public LocalRef CallObjectMethod(IUnmanagedTarget obj, IntPtr methodId, params JavaValue[] args)
         {
             var res = _callObjectMethod(_envPtr, obj.Target, methodId, args);
 

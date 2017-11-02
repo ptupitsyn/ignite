@@ -176,12 +176,13 @@ namespace Apache.Ignite.Core.Impl.Unmanaged
 
         internal static IUnmanagedTarget TargetInStreamOutObject(IUnmanagedTarget target, int opType, long inMemPtr)
         {
-            void* res = JNI.TargetInStreamOutObject(target.Context, target.Target, opType, inMemPtr);
+            var jvm = Jvm.Get();
 
-            if (res == null)
-                return null;
-
-            return target.ChangeTarget(res);
+            using (var lRef = jvm.AttachCurrentThread().CallObjectMethod(
+                target, jvm.MethodId.TargetInStreamOutObject, new JavaValue(opType), new JavaValue(inMemPtr)))
+            {
+                return lRef.ToGlobal();
+            }
         }
 
         internal static IUnmanagedTarget TargetInObjectStreamOutObjectStream(IUnmanagedTarget target, int opType, void* arg, long inMemPtr, long outMemPtr)
