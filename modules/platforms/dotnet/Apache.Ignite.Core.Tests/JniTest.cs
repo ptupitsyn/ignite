@@ -39,11 +39,12 @@ namespace Apache.Ignite.Core.Tests
         [Test]
         public unsafe void TestIgnitionStart()
         {
-            var jvm = Jvm.GetOrCreate(Classpath.CreateClasspath(forceTestClasspath: true));
+            var opts = new List<string> {Classpath.CreateClasspath(forceTestClasspath: true)};
+            var jvm = Jvm.GetOrCreate(opts);
             Assert.IsNotNull(jvm);
 
             // Should return existing.
-            jvm = Jvm.GetOrCreate();
+            jvm = Jvm.GetOrCreate(opts);
             Assert.IsNotNull(jvm);
 
             var env = jvm.AttachCurrentThread();
