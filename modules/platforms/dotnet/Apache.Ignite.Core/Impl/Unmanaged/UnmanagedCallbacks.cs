@@ -249,7 +249,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged
         #region IMPLEMENTATION: GENERAL PURPOSE
 
         [SuppressMessage("Microsoft.Design", "CA1031:DoNotCatchGeneralExceptionTypes")]
-        private long InLongOutLong(void* target, int type, long val)
+        internal long InLongOutLong(int type, long val)
         {
             try
             {
@@ -277,11 +277,6 @@ namespace Apache.Ignite.Core.Impl.Unmanaged
         }
 
         [SuppressMessage("Microsoft.Design", "CA1031:DoNotCatchGeneralExceptionTypes")]
-        private long InLongLongLongObjectOutLong(void* target, int type, long val1, long val2, long val3, void* arg)
-        {
-            return InLongLongLongObjectOutLong(type, val1, val2, val3, new IntPtr(arg));
-        }
-
         internal long InLongLongLongObjectOutLong(int type, long val1, long val2, long val3, IntPtr arg)
         {
             try

@@ -128,25 +128,24 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
         private long InLongLongLongObjectOutLong(IntPtr env, IntPtr clazz, long igniteId,
             int op, long arg1, long arg2, long arg3, IntPtr arg)
         {
-            Console.WriteLine("InLongLongLongObjectOutLong");
-
             var cbs = _callbackRegistry.Get<UnmanagedCallbacks>(igniteId, true);
 
-            cbs.InLongLongLongObjectOutLong(op, arg1, arg2, arg3, arg);
-
-            return 0;
+            return cbs.InLongLongLongObjectOutLong(op, arg1, arg2, arg3, arg);
         }
 
         private long InLongOutLong(IntPtr env, IntPtr clazz, long igniteId,
             int op, long arg)
         {
-            // TODO
-            return 0;
+            var cbs = _callbackRegistry.Get<UnmanagedCallbacks>(igniteId, true);
+
+            return cbs.InLongOutLong(op, arg);
         }
 
         private static void ConsoleWrite(IntPtr envPtr, IntPtr clazz, IntPtr message, bool isError)
         {
             // TODO: This happens only in default domain, is that ok?
+            // No, this should happen in the proper domain (to be seen from UnitTest runners, etc).
+            // Need a flag indicating whether specific domain has Ignite started.
 
             if (message != IntPtr.Zero)
             {
