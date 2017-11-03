@@ -102,5 +102,8 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
         [UnmanagedFunctionPointer(CallingConvention.StdCall)]
         internal unsafe delegate JniResult RegisterNatives(IntPtr env, IntPtr clazz,
             NativeMethod* methods, int nMethods);
+
+        [UnmanagedFunctionPointer(CallingConvention.StdCall)]
+        internal delegate JniResult ThrowNew(IntPtr env, IntPtr clazz, IntPtr msg);
     }
 }

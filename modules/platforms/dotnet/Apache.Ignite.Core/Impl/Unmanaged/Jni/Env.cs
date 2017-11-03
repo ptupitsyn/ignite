@@ -100,6 +100,9 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
         /** */
         private readonly EnvDelegates.DeleteGlobalRef _deleteGlobalRef;
 
+        /** */
+        private readonly EnvDelegates.ThrowNew _throwNew;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="Env" /> class.
         /// </summary>
@@ -140,14 +143,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
             GetDelegate(func.DeleteLocalRef, out _deleteLocalRef);
             GetDelegate(func.NewGlobalRef, out _newGlobalRef);
             GetDelegate(func.DeleteGlobalRef, out _deleteGlobalRef);
-        }
-
-        /// <summary>
-        /// Gets the env pointer.
-        /// </summary>
-        public IntPtr EnvPtr
-        {
-            get { return _envPtr; }
+            GetDelegate(func.ThrowNew, out _throwNew);
         }
 
         /// <summary>
@@ -336,6 +332,25 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
         public void DeleteGlobalRef(IntPtr gref)
         {
             _deleteGlobalRef(_envPtr, gref);
+        }
+
+        public void ThrowToJava(string message)
+        {
+            Debug.Assert(message != null);
+            var msgChars = IgniteUtils.StringToUtf8Unmanaged(message);
+
+            try
+            {
+                using (var cls = FindClass("org/apache/ignite/IgniteException"))
+                using (var msg = NewStringUtf(msgChars))
+                {
+                    _throwNew(_envPtr, cls.Target, msg.Target);
+                }
+            }
+            finally 
+            {
+                Marshal.FreeHGlobal(new IntPtr(msgChars));
+            }
         }
 
         /// <summary>
