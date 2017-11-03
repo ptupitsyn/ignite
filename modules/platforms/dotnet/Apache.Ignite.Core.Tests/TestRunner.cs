@@ -45,9 +45,9 @@ namespace Apache.Ignite.Core.Tests
                 return;
             }
 
-            //TestOne(typeof(ConsoleRedirectTest), "TestMultipleDomains");
+            TestOne(typeof(ConsoleRedirectTest), "TestMultipleDomains");
 
-            TestAll(typeof (JniTest));
+            //TestAll(typeof (AffinityFunctionTest));
             //TestAllInAssembly();
         }
 
