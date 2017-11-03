@@ -19,13 +19,16 @@ using System;
 
 namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
 {
+    using System.Collections.Concurrent;
     using System.Collections.Generic;
     using System.Diagnostics;
+    using System.Linq;
     using System.Runtime.InteropServices;
     using Apache.Ignite.Core.Impl.Handle;
 
     /// <summary>
     /// Java -> .NET callback dispatcher.
+    /// Instance of this class should only exist once per process, in the default AppDomain.
     /// </summary>
     internal class Callbacks : MarshalByRefObject
     {
@@ -35,6 +38,10 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
 
         /** Holds Ignite instance-specific callbacks. */
         private readonly HandleRegistry _callbackRegistry = new HandleRegistry(100);
+
+        /** Console writers.  */
+        private readonly ConcurrentBag<ConsoleWriter> _consoleWriters 
+            = new ConcurrentBag<ConsoleWriter>();
 
         /// <summary>
         /// Initializes a new instance of the <see cref="Callbacks"/> class.
@@ -51,8 +58,21 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
         /// </summary>
         public long RegisterHandlers(UnmanagedCallbacks cbs)
         {
+            Debug.Assert(cbs != null);
+
             // TODO: Unregister on stop.
             return _callbackRegistry.AllocateCritical(cbs);
+        }
+
+        /// <summary>
+        /// Registers the console writer.
+        /// </summary>
+        public void RegisterConsoleWriter(ConsoleWriter writer)
+        {
+            Debug.Assert(writer != null);
+
+            // TODO: Unregister on domain exit.
+            _consoleWriters.Add(writer);
         }
 
         /// <summary>
@@ -150,19 +170,20 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
             return cbs.InLongOutLong(op, arg);
         }
 
-        private static void ConsoleWrite(IntPtr envPtr, IntPtr clazz, IntPtr message, bool isError)
+        private void ConsoleWrite(IntPtr envPtr, IntPtr clazz, IntPtr message, bool isError)
         {
-            // TODO: This happens only in default domain, is that ok?
-            // No, this should happen in the proper domain (to be seen from UnitTest runners, etc).
-            // Need a flag indicating whether specific domain has Ignite started.
-
             if (message != IntPtr.Zero)
             {
-                var env = Jvm.Get().AttachCurrentThread();
-                var msg = env.JStringToString(message);
+                // Each domain registers it's own writer.
+                var writer = _consoleWriters.FirstOrDefault();
 
-                var target = isError ? Console.Error : Console.Out;
-                target.Write(msg);
+                if (writer != null)
+                {                    
+                    var env = Jvm.Get().AttachCurrentThread();
+                    var msg = env.JStringToString(message);
+
+                    writer.Write(msg, isError);
+                }
             }
         }
     }
