@@ -184,7 +184,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
             return new LocalRef(this, res);
         }
 
-        public long CallLongMethod(IUnmanagedTarget obj, IntPtr methodId, JavaValue* args)
+        public long CallLongMethod(IUnmanagedTarget obj, IntPtr methodId, long* args)
         {
             var res = _callLongMethod(_envPtr, obj.Target, methodId, args);
 

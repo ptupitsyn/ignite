@@ -23,7 +23,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
     /// <summary>
     /// Delegates for JNI Env entity.
     /// </summary>
-    internal static class EnvDelegates
+    internal static unsafe class EnvDelegates
     {
         [UnmanagedFunctionPointer(CallingConvention.StdCall)]
         public delegate JniResult CallStaticVoidMethod(
@@ -73,8 +73,8 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
             IntPtr env, IntPtr obj, IntPtr methodId, params JavaValue[] args);
 
         [UnmanagedFunctionPointer(CallingConvention.StdCall)]
-        internal unsafe delegate long CallLongMethod(
-            IntPtr env, IntPtr obj, IntPtr methodId, JavaValue* args);
+        internal delegate long CallLongMethod(
+            IntPtr env, IntPtr obj, IntPtr methodId, long* argsPtr);
 
         [UnmanagedFunctionPointer(CallingConvention.StdCall)]
         internal delegate void CallVoidMethod(
@@ -85,13 +85,13 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
             IntPtr env, IntPtr clazz, IntPtr methodId, params JavaValue[] args);
 
         [UnmanagedFunctionPointer(CallingConvention.StdCall)]
-        internal unsafe delegate IntPtr GetStringChars(IntPtr env, IntPtr jstring, byte* isCopy);
+        internal delegate IntPtr GetStringChars(IntPtr env, IntPtr jstring, byte* isCopy);
 
         [UnmanagedFunctionPointer(CallingConvention.StdCall)]
         internal delegate void ReleaseStringChars(IntPtr env, IntPtr jstring, IntPtr chars);
 
         [UnmanagedFunctionPointer(CallingConvention.StdCall)]
-        internal unsafe delegate IntPtr GetStringUtfChars(IntPtr env, IntPtr jstring, byte* isCopy);
+        internal delegate IntPtr GetStringUtfChars(IntPtr env, IntPtr jstring, byte* isCopy);
 
         [UnmanagedFunctionPointer(CallingConvention.StdCall)]
         internal delegate void ReleaseStringUtfChars(IntPtr env, IntPtr jstring, IntPtr chars);
@@ -100,7 +100,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
         internal delegate int GetStringUtfLength(IntPtr env, IntPtr jstring);
 
         [UnmanagedFunctionPointer(CallingConvention.StdCall)]
-        internal unsafe delegate JniResult RegisterNatives(IntPtr env, IntPtr clazz,
+        internal delegate JniResult RegisterNatives(IntPtr env, IntPtr clazz,
             NativeMethod* methods, int nMethods);
 
         [UnmanagedFunctionPointer(CallingConvention.StdCall)]
