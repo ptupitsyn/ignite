@@ -78,6 +78,7 @@ namespace Apache.Ignite.Core.Impl
 
                 // 2. Create unmanaged pointer.
                 var jvm = CreateJvm(cfg);
+                jvm.EnableJavaConsoleWriter();
                 var igniteId = jvm.RegisterCallbacks(cbs);
 
                 cbs.SetContext(igniteId);

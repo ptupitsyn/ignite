@@ -23,6 +23,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
     using System.Reflection;
     using System.Runtime.InteropServices;
     using System.Security;
+    using System.Threading;
     using Apache.Ignite.Core.Common;
 
     /// <summary>
@@ -58,6 +59,9 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
 
         /** Env for current thread. */
         [ThreadStatic] private static Env _env;
+
+        /** Console writer flag. */
+        private int _isConsoleWriterEnabled;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="_instance"/> class.
@@ -100,11 +104,6 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
             {
                 _callbacks = new Callbacks(env);
             }
-
-            // Register console writer.
-            // TODO: Do this only for domain where Ignite starts.
-            var writerId = _callbacks.RegisterConsoleWriter(ConsoleWriter);
-            AppDomain.CurrentDomain.DomainUnload += (s, a) => _callbacks.ReleaseConsoleWriter(writerId);
         }
 
         /// <summary>
@@ -172,6 +171,18 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
         public long RegisterCallbacks(UnmanagedCallbacks cbs)
         {
             return _callbacks.RegisterHandlers(cbs);
+        }
+
+        /// <summary>
+        /// Enables the Java console output propagation.
+        /// </summary>
+        public void EnableJavaConsoleWriter()
+        {
+            if (Interlocked.CompareExchange(ref _isConsoleWriterEnabled, 1, 0) == 0)
+            {
+                var writerId = _callbacks.RegisterConsoleWriter(ConsoleWriter);
+                AppDomain.CurrentDomain.DomainUnload += (s, a) => _callbacks.ReleaseConsoleWriter(writerId);
+            }
         }
 
         /// <summary>
