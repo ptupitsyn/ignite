@@ -175,6 +175,14 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
         }
 
         /// <summary>
+        /// Releases the callbacks.
+        /// </summary>
+        public void ReleaseCallbacks(long igniteId)
+        {
+            _callbacks.ReleaseHandlers(igniteId);
+        }
+
+        /// <summary>
         /// Enables the Java console output propagation.
         /// </summary>
         public void EnableJavaConsoleWriter()

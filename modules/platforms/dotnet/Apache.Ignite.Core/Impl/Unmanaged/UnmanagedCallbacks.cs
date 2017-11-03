@@ -148,7 +148,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged
         /// <summary>
         /// Gets the ignite identifier.
         /// </summary>
-        public long IgniteId  // TODO: This is not needed here.
+        public long IgniteId
         {
             get { return _igniteId; }
         }
@@ -1334,6 +1334,8 @@ namespace Apache.Ignite.Core.Impl.Unmanaged
         public void Cleanup()
         {
             _ignite = null;
+
+            Jvm.Get().ReleaseCallbacks(_igniteId);
 
             _handleRegistry.Close();
         }

@@ -69,6 +69,14 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
         }
 
         /// <summary>
+        /// Releases callback handlers.
+        /// </summary>
+        public void ReleaseHandlers(long igniteId)
+        {
+            _callbackRegistry.Release(igniteId);
+        }
+
+        /// <summary>
         /// Registers the console writer.
         /// </summary>
         public long RegisterConsoleWriter(ConsoleWriter writer)
