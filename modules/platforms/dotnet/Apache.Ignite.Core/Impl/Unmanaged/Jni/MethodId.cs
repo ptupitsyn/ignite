@@ -96,6 +96,16 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
         public IntPtr TargetInLongOutLong { get; private set; }
 
         /// <summary>
+        /// PlatformUtils class.
+        /// </summary>
+        public GlobalRef PlatformUtils { get; private set; }
+
+        /// <summary>
+        /// PlatformUtils.getFullStackTrace.
+        /// </summary>
+        public IntPtr PlatformUtilsGetStackTrace { get; private set; }
+
+        /// <summary>
         /// Initializes a new instance of the <see cref="MethodId"/> class.
         /// </summary>
         public MethodId(Env env)
@@ -131,7 +141,17 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
                 TargetOutStream = env.GetMethodId(target, "outStream", "(IJ)V");
                 TargetOutObject = env.GetMethodId(target, "outObject", "(I)Ljava/lang/Object;");
                 TargetInStreamAsync = env.GetMethodId(target, "inStreamAsync", "(IJ)V");
-                TargetInStreamOutObjectAsync = env.GetMethodId(target, "inStreamOutObjectAsync", "(IJ)Ljava/lang/Object;");
+                TargetInStreamOutObjectAsync =
+                    env.GetMethodId(target, "inStreamOutObjectAsync", "(IJ)Ljava/lang/Object;");
+            }
+
+            using (var platformUtilsCls =
+                env.FindClass("org/apache/ignite/internal/processors/platform/utils/PlatformUtils"))
+            {
+                PlatformUtils = platformUtilsCls.ToGlobal();
+                PlatformUtilsGetStackTrace = env.GetStaticMethodId(platformUtilsCls, "getFullStackTrace",
+                    "(Ljava/lang/Throwable;)Ljava/lang/String;");
+
             }
         }
     }

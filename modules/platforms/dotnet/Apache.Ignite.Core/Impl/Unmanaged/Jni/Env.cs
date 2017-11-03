@@ -199,7 +199,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
             ExceptionCheck();
         }
 
-        public LocalRef CallStaticObjectMethod(LocalRef cls, IntPtr methodId, params JavaValue[] args)
+        public LocalRef CallStaticObjectMethod(GlobalRef cls, IntPtr methodId, params JavaValue[] args)
         {
             var res = _callStaticObjectMethod(_envPtr, cls.Target, methodId, args);
 
@@ -350,17 +350,14 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
                 _exceptionClear(_envPtr);
 
                 using (var errRef = new LocalRef(this, err))
-                using (var platformUtilsCls =
-                    FindClass("org/apache/ignite/internal/processors/platform/utils/PlatformUtils"))
                 {
-                    var getStackTrace = GetStaticMethodId(platformUtilsCls, "getFullStackTrace",
-                        "(Ljava/lang/Throwable;)Ljava/lang/String;");
+                    var methodId = _jvm.MethodId;
 
                     using (var cls = GetObjectClass(errRef))
-                    using (var clsName = CallObjectMethod(cls, _jvm.MethodId.ClassGetName))
-                    using (var msg = CallObjectMethod(errRef, _jvm.MethodId.ThrowableGetMessage))
-                    using (var trace = CallStaticObjectMethod(platformUtilsCls, getStackTrace,
-                        new JavaValue {_object = err}))
+                    using (var clsName = CallObjectMethod(cls, methodId.ClassGetName))
+                    using (var msg = CallObjectMethod(errRef, methodId.ThrowableGetMessage))
+                    using (var trace = CallStaticObjectMethod(methodId.PlatformUtils,
+                        methodId.PlatformUtilsGetStackTrace, new JavaValue {_object = err}))
                     {
                         // Exception is present.
                         throw new Exception(string.Format("{0}: {1}\n\n{2}",
