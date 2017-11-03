@@ -45,6 +45,11 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
             get { return _lref; }
         }
 
+        public long TargetAddr
+        {
+            get { return (long) _lref; }
+        }
+
         public GlobalRef ToGlobal()
         {
             return _env.NewGlobalRef(_lref);

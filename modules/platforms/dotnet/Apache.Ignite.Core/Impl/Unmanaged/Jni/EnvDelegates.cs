@@ -27,11 +27,11 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
     {
         [UnmanagedFunctionPointer(CallingConvention.StdCall)]
         public delegate JniResult CallStaticVoidMethod(
-            IntPtr env, IntPtr clazz, IntPtr methodId, params JavaValue[] args);
+            IntPtr env, IntPtr clazz, IntPtr methodId, long* argsPtr);
 
         [UnmanagedFunctionPointer(CallingConvention.StdCall)]
         internal delegate byte CallStaticBooleanMethod(
-            IntPtr env, IntPtr clazz, IntPtr methodId, params JavaValue[] args);
+            IntPtr env, IntPtr clazz, IntPtr methodId, long* argsPtr);
 
         [UnmanagedFunctionPointer(CallingConvention.StdCall)]
         internal delegate IntPtr NewGlobalRef(IntPtr env, IntPtr lobj);
@@ -70,7 +70,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
 
         [UnmanagedFunctionPointer(CallingConvention.StdCall)]
         internal delegate IntPtr CallObjectMethod(
-            IntPtr env, IntPtr obj, IntPtr methodId, params JavaValue[] args);
+            IntPtr env, IntPtr obj, IntPtr methodId, long* argsPtr);
 
         [UnmanagedFunctionPointer(CallingConvention.StdCall)]
         internal delegate long CallLongMethod(
@@ -78,11 +78,11 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
 
         [UnmanagedFunctionPointer(CallingConvention.StdCall)]
         internal delegate void CallVoidMethod(
-            IntPtr env, IntPtr obj, IntPtr methodId, params JavaValue[] args);
+            IntPtr env, IntPtr obj, IntPtr methodId, long* argsPtr);
 
         [UnmanagedFunctionPointer(CallingConvention.StdCall)]
         internal delegate IntPtr CallStaticObjectMethod(
-            IntPtr env, IntPtr clazz, IntPtr methodId, params JavaValue[] args);
+            IntPtr env, IntPtr clazz, IntPtr methodId, long* argsPtr);
 
         [UnmanagedFunctionPointer(CallingConvention.StdCall)]
         internal delegate IntPtr GetStringChars(IntPtr env, IntPtr jstring, byte* isCopy);

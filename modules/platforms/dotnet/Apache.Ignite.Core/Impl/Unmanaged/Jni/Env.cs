@@ -159,50 +159,50 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
             get { return _jvm; }
         }
 
-        public void CallStaticVoidMethod(IUnmanagedTarget cls, IntPtr methodId, params JavaValue[] args)
+        public void CallStaticVoidMethod(IUnmanagedTarget cls, IntPtr methodId, long* argsPtr = null)
         {
-            _callStaticVoidMethod(_envPtr, cls.Target, methodId, args);
+            _callStaticVoidMethod(_envPtr, cls.Target, methodId, argsPtr);
 
             ExceptionCheck();
         }
 
-        public bool CallStaticBoolMethod(IUnmanagedTarget cls, IntPtr methodId, params JavaValue[] args)
+        public bool CallStaticBoolMethod(IUnmanagedTarget cls, IntPtr methodId, long* argsPtr = null)
         {
-            var res = _callStaticBoolMethod(_envPtr, cls.Target, methodId, args);
+            var res = _callStaticBoolMethod(_envPtr, cls.Target, methodId, argsPtr);
 
             ExceptionCheck();
 
             return res > 0;
         }
 
-        public LocalRef CallObjectMethod(IUnmanagedTarget obj, IntPtr methodId, params JavaValue[] args)
+        public LocalRef CallObjectMethod(IUnmanagedTarget obj, IntPtr methodId, long* argsPtr = null)
         {
-            var res = _callObjectMethod(_envPtr, obj.Target, methodId, args);
+            var res = _callObjectMethod(_envPtr, obj.Target, methodId, argsPtr);
 
             ExceptionCheck();
 
             return new LocalRef(this, res);
         }
 
-        public long CallLongMethod(IUnmanagedTarget obj, IntPtr methodId, long* args)
+        public long CallLongMethod(IUnmanagedTarget obj, IntPtr methodId, long* argsPtr = null)
         {
-            var res = _callLongMethod(_envPtr, obj.Target, methodId, args);
+            var res = _callLongMethod(_envPtr, obj.Target, methodId, argsPtr);
 
             ExceptionCheck();
 
             return res;
         }
 
-        public void CallVoidMethod(IUnmanagedTarget obj, IntPtr methodId, params JavaValue[] args)
+        public void CallVoidMethod(IUnmanagedTarget obj, IntPtr methodId, long* argsPtr = null)
         {
-            _callVoidMethod(_envPtr, obj.Target, methodId, args);
+            _callVoidMethod(_envPtr, obj.Target, methodId, argsPtr);
 
             ExceptionCheck();
         }
 
-        public LocalRef CallStaticObjectMethod(GlobalRef cls, IntPtr methodId, params JavaValue[] args)
+        public LocalRef CallStaticObjectMethod(GlobalRef cls, IntPtr methodId, long* argsPtr = null)
         {
-            var res = _callStaticObjectMethod(_envPtr, cls.Target, methodId, args);
+            var res = _callStaticObjectMethod(_envPtr, cls.Target, methodId, argsPtr);
 
             ExceptionCheck();
 
@@ -369,13 +369,14 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
 
             using (var errRef = new LocalRef(this, err))
             {
+                var errRef0 = (long) errRef.Target;
                 var methodId = _jvm.MethodId;
 
                 using (var cls = GetObjectClass(errRef))
                 using (var clsName = CallObjectMethod(cls, methodId.ClassGetName))
                 using (var msg = CallObjectMethod(errRef, methodId.ThrowableGetMessage))
                 using (var trace = CallStaticObjectMethod(methodId.PlatformUtils,
-                    methodId.PlatformUtilsGetStackTrace, new JavaValue {_object = err}))
+                    methodId.PlatformUtilsGetStackTrace, &errRef0))
                 {
                     throw new JavaException(
                         JStringToString(clsName),

@@ -18,7 +18,6 @@
 namespace Apache.Ignite.Core.Impl.Unmanaged
 {
     using System;
-    using System.Collections.Generic;
     using System.Diagnostics;
     using System.Runtime.InteropServices;
     using Apache.Ignite.Core.Impl.Unmanaged.Jni;
@@ -49,23 +48,20 @@ namespace Apache.Ignite.Core.Impl.Unmanaged
 
                 try
                 {
-                    var args = new List<JavaValue>
-                    {
-                        new JavaValue(cfgPath1),
-                        new JavaValue(gridName1),
-                        new JavaValue(InteropFactoryId),
-                        new JavaValue {_long = igniteId}
-                    };
-
                     // Additional data.
                     mem.WriteBool(false);
                     mem.WriteBool(false);
-                    args.Add(new JavaValue { _long = mem.SynchronizeOutput() });
+
+                    long* args = stackalloc long[5];
+                    args[0] = cfgPath1.TargetAddr;
+                    args[1] = gridName1.TargetAddr;
+                    args[2] = InteropFactoryId;
+                    args[3] = igniteId;
+                    args[4] = mem.SynchronizeOutput();
 
                     // OnStart receives InteropProcessor referece and stores it.
                     var methodId = env.Jvm.MethodId;
-                    env.CallStaticVoidMethod(methodId.PlatformIgnition, methodId.PlatformIgnitionStart, 
-                        args.ToArray());
+                    env.CallStaticVoidMethod(methodId.PlatformIgnition, methodId.PlatformIgnitionStart, args);
                 }
                 finally
                 {
@@ -95,8 +91,11 @@ namespace Apache.Ignite.Core.Impl.Unmanaged
 
                 using (var gridName1 = env.NewStringUtf(gridName0))
                 {
-                    return env.CallStaticBoolMethod(methodId.PlatformIgnition, methodId.PlatformIgnitionStop,
-                        new JavaValue(gridName1), new JavaValue(cancel));
+                    long* args = stackalloc long[2];
+                    args[0] = gridName1.TargetAddr;
+                    args[1] = cancel ? 1 : 0;
+
+                    return env.CallStaticBoolMethod(methodId.PlatformIgnition, methodId.PlatformIgnitionStop, args);
                 }
             }
             finally
@@ -136,18 +135,26 @@ namespace Apache.Ignite.Core.Impl.Unmanaged
         {
             var jvm = Jvm.Get();
 
-            jvm.AttachCurrentThread().CallVoidMethod(
-                target, jvm.MethodId.TargetInStreamOutStream, new JavaValue(opType), 
-                new JavaValue(inMemPtr), new JavaValue(outMemPtr));
+            long* args = stackalloc long[3];
+            args[0] = opType;
+            args[1] = inMemPtr;
+            args[2] = outMemPtr;
+
+            jvm.AttachCurrentThread().CallVoidMethod(target, jvm.MethodId.TargetInStreamOutStream, args);
         }
 
         internal static IUnmanagedTarget TargetInStreamOutObject(IUnmanagedTarget target, int opType, long inMemPtr)
         {
             var jvm = Jvm.Get();
 
+            long* args = stackalloc long[2];
+            args[0] = opType;
+            args[1] = inMemPtr;
+
             using (var lRef = jvm.AttachCurrentThread().CallObjectMethod(
-                target, jvm.MethodId.TargetInStreamOutObject, new JavaValue(opType), new JavaValue(inMemPtr)))
+                target, jvm.MethodId.TargetInStreamOutObject, args))
             {
+                // TODO: Avoid "using", add method ToGlobalRelease or something.
                 return lRef.ToGlobal();
             }
         }
@@ -157,9 +164,14 @@ namespace Apache.Ignite.Core.Impl.Unmanaged
         {
             var jvm = Jvm.Get();
 
+            long* args = stackalloc long[4];
+            args[0] = opType;
+            args[1] = (long) arg.Target;
+            args[2] = inMemPtr;
+            args[3] = outMemPtr;
+
             using (var lRef = jvm.AttachCurrentThread().CallObjectMethod(
-                target, jvm.MethodId.TargetInObjectStreamOutObjectStream,
-                new JavaValue(opType), new JavaValue(arg), new JavaValue(inMemPtr), new JavaValue(outMemPtr)))
+                target, jvm.MethodId.TargetInObjectStreamOutObjectStream, args))
             {
                 return lRef.ToGlobal();
             }
@@ -169,16 +181,21 @@ namespace Apache.Ignite.Core.Impl.Unmanaged
         {
             var jvm = Jvm.Get();
 
-            jvm.AttachCurrentThread().CallVoidMethod(
-                target, jvm.MethodId.TargetOutStream, new JavaValue(opType), new JavaValue(memPtr));
+            long* args = stackalloc long[4];
+            args[0] = opType;
+            args[1] = memPtr;
+
+            jvm.AttachCurrentThread().CallVoidMethod(target, jvm.MethodId.TargetOutStream, args);
         }
 
         internal static IUnmanagedTarget TargetOutObject(IUnmanagedTarget target, int opType)
         {
             var jvm = Jvm.Get();
 
+            long opType0 = opType;
+
             using (var lRef = jvm.AttachCurrentThread().CallObjectMethod(
-                target, jvm.MethodId.TargetOutObject, new JavaValue(opType)))
+                target, jvm.MethodId.TargetOutObject, &opType0))
             {
                 return lRef.ToGlobal();
             }
@@ -188,16 +205,23 @@ namespace Apache.Ignite.Core.Impl.Unmanaged
         {
             var jvm = Jvm.Get();
 
-            jvm.AttachCurrentThread().CallVoidMethod(
-                target, jvm.MethodId.TargetInStreamAsync, new JavaValue(opType), new JavaValue(memPtr));
+            long* args = stackalloc long[4];
+            args[0] = opType;
+            args[1] = memPtr;
+
+            jvm.AttachCurrentThread().CallVoidMethod(target, jvm.MethodId.TargetInStreamAsync, args);
         }
 
         internal static IUnmanagedTarget TargetInStreamOutObjectAsync(IUnmanagedTarget target, int opType, long memPtr)
         {
             var jvm = Jvm.Get();
 
+            long* args = stackalloc long[4];
+            args[0] = opType;
+            args[1] = memPtr;
+
             using (var lRef = jvm.AttachCurrentThread().CallObjectMethod(
-                target, jvm.MethodId.TargetInStreamOutObjectAsync, new JavaValue(opType), new JavaValue(memPtr)))
+                target, jvm.MethodId.TargetInStreamOutObjectAsync, args))
             {
                 return lRef.ToGlobal();
             }
@@ -212,8 +236,12 @@ namespace Apache.Ignite.Core.Impl.Unmanaged
             var jvm = Jvm.Get();
             var methodId = jvm.MethodId;
 
+            long* args = stackalloc long[4];
+            args[0] = memPtr;
+            args[1] = cap;
+
             jvm.AttachCurrentThread().CallStaticVoidMethod(methodId.PlatformUtils, methodId.PlatformUtilsReallocate,
-                new JavaValue(memPtr), new JavaValue(cap));
+                args);
         }
 
         internal static IUnmanagedTarget Acquire(void* target)
