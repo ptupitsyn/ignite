@@ -24,6 +24,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
     using System.Diagnostics;
     using System.Linq;
     using System.Runtime.InteropServices;
+    using System.Threading;
     using Apache.Ignite.Core.Impl.Handle;
 
     /// <summary>
@@ -39,9 +40,12 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
         /** Holds Ignite instance-specific callbacks. */
         private readonly HandleRegistry _callbackRegistry = new HandleRegistry(100);
 
-        /** Console writers.  */
-        private readonly ConcurrentBag<ConsoleWriter> _consoleWriters 
-            = new ConcurrentBag<ConsoleWriter>();
+        /** Console writers. */
+        private readonly ConcurrentDictionary<long, ConsoleWriter> _consoleWriters
+            = new ConcurrentDictionary<long, ConsoleWriter>();
+
+        /** Console writer id generator. */
+        private long _consoleWriterId;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="Callbacks"/> class.
@@ -67,12 +71,26 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
         /// <summary>
         /// Registers the console writer.
         /// </summary>
-        public void RegisterConsoleWriter(ConsoleWriter writer)
+        public long RegisterConsoleWriter(ConsoleWriter writer)
         {
             Debug.Assert(writer != null);
 
-            // TODO: Unregister on domain exit.
-            _consoleWriters.Add(writer);
+            var id = Interlocked.Increment(ref _consoleWriterId);
+
+            var res = _consoleWriters.TryAdd(id, writer);
+            Debug.Assert(res);
+
+            return id;
+        }
+
+        /// <summary>
+        /// Registers the console writer.
+        /// </summary>
+        public void ReleaseConsoleWriter(long id)
+        {
+            ConsoleWriter writer;
+            var res = _consoleWriters.TryRemove(id, out writer);
+            Debug.Assert(res);
         }
 
         /// <summary>
@@ -175,7 +193,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
             if (message != IntPtr.Zero)
             {
                 // Each domain registers it's own writer.
-                var writer = _consoleWriters.FirstOrDefault();
+                var writer = _consoleWriters.Select(x => x.Value).FirstOrDefault();
 
                 if (writer != null)
                 {                    

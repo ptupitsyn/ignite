@@ -26,7 +26,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
     using Apache.Ignite.Core.Common;
 
     /// <summary>
-    /// JVM holder.
+    /// JVM holder. Should exist once per domain.
     /// </summary>
     [SuppressUnmanagedCodeSecurity]
     internal unsafe class Jvm : MarshalByRefObject
@@ -52,6 +52,9 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
 
         /** Sync. */
         private static readonly object SyncRoot = new object();
+
+        /** Console writer. */
+        private static readonly ConsoleWriter ConsoleWriter = new ConsoleWriter();
 
         /** Env for current thread. */
         [ThreadStatic] private static Env _env;
@@ -97,6 +100,11 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
             {
                 _callbacks = new Callbacks(env);
             }
+
+            // Register console writer.
+            // TODO: Do this only for domain where Ignite starts.
+            var writerId = _callbacks.RegisterConsoleWriter(ConsoleWriter);
+            AppDomain.CurrentDomain.DomainUnload += (s, a) => _callbacks.ReleaseConsoleWriter(writerId);
         }
 
         /// <summary>
