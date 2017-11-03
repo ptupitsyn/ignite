@@ -22,19 +22,17 @@ namespace Apache.Ignite.Core.Impl
     using System.Diagnostics.CodeAnalysis;
     using System.Globalization;
     using System.Linq;
-    using System.Runtime.InteropServices;
     using System.Text;
     using Apache.Ignite.Core.Impl.Common;
     using Apache.Ignite.Core.Impl.Memory;
     using Apache.Ignite.Core.Impl.Unmanaged;
     using Apache.Ignite.Core.Impl.Unmanaged.Jni;
     using Apache.Ignite.Core.Log;
-    using UU = Apache.Ignite.Core.Impl.Unmanaged.UnmanagedUtils;
 
     /// <summary>
     /// Native interface manager.
     /// </summary>
-    internal static unsafe class IgniteManager
+    internal static class IgniteManager
     {
         /** Java Command line argument: Xms. Case sensitive. */
         private const string CmdJvmMinMemJava = "-Xms";
