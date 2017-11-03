@@ -338,9 +338,8 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
             try
             {
                 using (var cls = FindClass("org/apache/ignite/IgniteException"))
-                using (var msg = NewStringUtf(msgChars))
                 {
-                    _throwNew(_envPtr, cls.Target, msg.Target);
+                    _throwNew(_envPtr, cls.Target, new IntPtr(msgChars));
                 }
             }
             finally 
