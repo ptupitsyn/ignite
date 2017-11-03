@@ -114,15 +114,24 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
             };
         }
 
-        private void LoggerLog(IntPtr env, IntPtr clazz, long igniteId, int level, IntPtr category, IntPtr error,
-            IntPtr intPtr, long memPtr)
+        private void LoggerLog(IntPtr envPtr, IntPtr clazz, long igniteId, int level, IntPtr message, IntPtr category,
+            IntPtr errorInfo, long memPtr)
         {
+            var cbs = _callbackRegistry.Get<UnmanagedCallbacks>(igniteId, true);
+            var env = Jvm.Get().AttachCurrentThread();
 
+            var message0 = env.JStringToString(message);
+            var category0 = env.JStringToString(category);
+            var errorInfo0 = env.JStringToString(errorInfo);
+
+            cbs.LoggerLog(level, message0, category0, errorInfo0, memPtr);
         }
 
-        private bool LoggerIsLevelEnabled(IntPtr env, IntPtr clazz, long ignteId, int level)
+        private bool LoggerIsLevelEnabled(IntPtr env, IntPtr clazz, long igniteId, int level)
         {
-            return false;
+            var cbs = _callbackRegistry.Get<UnmanagedCallbacks>(igniteId, true);
+
+            return cbs.LoggerIsLevelEnabled(level);
         }
 
         private long InLongLongLongObjectOutLong(IntPtr env, IntPtr clazz, long igniteId,

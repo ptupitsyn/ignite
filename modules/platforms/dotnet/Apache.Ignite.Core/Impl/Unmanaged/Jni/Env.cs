@@ -305,6 +305,11 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
 
         public string JStringToString(IntPtr jstring)
         {
+            if (jstring == IntPtr.Zero)
+            {
+                return null;
+            }
+
             var chars = GetStringUtfChars(jstring);
             var len = GetStringUtfLength(jstring);
 

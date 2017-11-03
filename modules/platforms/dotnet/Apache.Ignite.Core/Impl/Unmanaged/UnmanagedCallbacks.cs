@@ -1114,18 +1114,13 @@ namespace Apache.Ignite.Core.Impl.Unmanaged
             return 0;
         }
 
-        private void LoggerLog(void* target, int level, sbyte* messageChars, int messageCharsLen, sbyte* categoryChars,
-            int categoryCharsLen, sbyte* errorInfoChars, int errorInfoCharsLen, long memPtr)
+        internal void LoggerLog(int level, string message, string category, string nativeError, long memPtr)
         {
             // When custom logger in .NET is not defined, Java should not call us.
             Debug.Assert(!(_log is JavaLogger));
 
             SafeCall(() =>
             {
-                var message = IgniteUtils.Utf8UnmanagedToString(messageChars, messageCharsLen);
-                var category = IgniteUtils.Utf8UnmanagedToString(categoryChars, categoryCharsLen);
-                var nativeError = IgniteUtils.Utf8UnmanagedToString(errorInfoChars, errorInfoCharsLen);
-
                 Exception ex = null;
 
                 if (memPtr != 0 && _ignite != null)
@@ -1140,7 +1135,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged
             }, true);
         }
 
-        private bool LoggerIsLevelEnabled(void* target, int level)
+        internal bool LoggerIsLevelEnabled(int level)
         {
             // When custom logger in .NET is not defined, Java should not call us.
             Debug.Assert(!(_log is JavaLogger));
