@@ -151,12 +151,8 @@ namespace Apache.Ignite.Core.Impl.Unmanaged
             args[0] = opType;
             args[1] = inMemPtr;
 
-            using (var lRef = jvm.AttachCurrentThread().CallObjectMethod(
-                target, jvm.MethodId.TargetInStreamOutObject, args))
-            {
-                // TODO: Avoid "using", add method ToGlobalRelease or something.
-                return lRef.ToGlobal();
-            }
+            return jvm.AttachCurrentThread().CallObjectMethod(
+                target, jvm.MethodId.TargetInStreamOutObject, args).ToGlobal();
         }
 
         internal static IUnmanagedTarget TargetInObjectStreamOutObjectStream(IUnmanagedTarget target, int opType, 
@@ -170,11 +166,8 @@ namespace Apache.Ignite.Core.Impl.Unmanaged
             args[2] = inMemPtr;
             args[3] = outMemPtr;
 
-            using (var lRef = jvm.AttachCurrentThread().CallObjectMethod(
-                target, jvm.MethodId.TargetInObjectStreamOutObjectStream, args))
-            {
-                return lRef.ToGlobal();
-            }
+            return jvm.AttachCurrentThread().CallObjectMethod(
+                target, jvm.MethodId.TargetInObjectStreamOutObjectStream, args).ToGlobal();
         }
 
         internal static void TargetOutStream(IUnmanagedTarget target, int opType, long memPtr)
@@ -194,11 +187,8 @@ namespace Apache.Ignite.Core.Impl.Unmanaged
 
             long opType0 = opType;
 
-            using (var lRef = jvm.AttachCurrentThread().CallObjectMethod(
-                target, jvm.MethodId.TargetOutObject, &opType0))
-            {
-                return lRef.ToGlobal();
-            }
+            return jvm.AttachCurrentThread().CallObjectMethod(
+                target, jvm.MethodId.TargetOutObject, &opType0).ToGlobal();
         }
 
         internal static void TargetInStreamAsync(IUnmanagedTarget target, int opType, long memPtr)
@@ -220,11 +210,8 @@ namespace Apache.Ignite.Core.Impl.Unmanaged
             args[0] = opType;
             args[1] = memPtr;
 
-            using (var lRef = jvm.AttachCurrentThread().CallObjectMethod(
-                target, jvm.MethodId.TargetInStreamOutObjectAsync, args))
-            {
-                return lRef.ToGlobal();
-            }
+            return jvm.AttachCurrentThread().CallObjectMethod(
+                target, jvm.MethodId.TargetInStreamOutObjectAsync, args).ToGlobal();
         }
 
         #endregion

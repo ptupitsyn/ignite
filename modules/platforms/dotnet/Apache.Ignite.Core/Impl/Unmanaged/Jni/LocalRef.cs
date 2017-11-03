@@ -24,11 +24,11 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
     /// <summary>
     /// JNI local ref.
     /// </summary>
-    internal class LocalRef : IUnmanagedTarget
+    internal struct LocalRef : IUnmanagedTarget
     {
         private readonly Env _env;
 
-        private readonly IntPtr _lref;
+        private IntPtr _lref;
 
         public LocalRef(Env env, IntPtr lref)
         {
@@ -52,12 +52,20 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
 
         public GlobalRef ToGlobal()
         {
-            return _env.NewGlobalRef(_lref);
+            var globalRef = _env.NewGlobalRef(_lref);
+
+            ReleaseUnmanagedResources();
+
+            return globalRef;
         }
 
         private void ReleaseUnmanagedResources()
         {
-            _env.DeleteLocalRef(_lref);
+            if (_lref != IntPtr.Zero)
+            {
+                _lref = IntPtr.Zero;
+                _env.DeleteLocalRef(_lref);
+            }
         }
 
         public void Dispose()

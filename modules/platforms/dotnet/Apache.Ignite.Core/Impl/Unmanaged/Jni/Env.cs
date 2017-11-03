@@ -218,7 +218,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
             return new LocalRef(this, res);
         }
 
-        public LocalRef GetObjectClass(LocalRef obj)
+        public LocalRef GetObjectClass(IUnmanagedTarget obj)
         {
             var res = _getObjectClass(_envPtr, obj.Target);
 
@@ -227,7 +227,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
             return new LocalRef(this, res);
         }
 
-        public IntPtr GetStaticMethodId(LocalRef clazz, string name, string signature)
+        public IntPtr GetStaticMethodId(IUnmanagedTarget clazz, string name, string signature)
         {
             var res = _getStaticMethodId(_envPtr, clazz.Target, name, signature);
 
@@ -236,7 +236,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
             return res;
         }
 
-        public IntPtr GetMethodId(LocalRef clazz, string name, string signature)
+        public IntPtr GetMethodId(IUnmanagedTarget clazz, string name, string signature)
         {
             var res = _getMethodId(_envPtr, clazz.Target, name, signature);
 

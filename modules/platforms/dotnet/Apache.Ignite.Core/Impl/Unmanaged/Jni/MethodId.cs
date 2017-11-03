@@ -127,13 +127,11 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
                 ThrowableGetMessage = env.GetMethodId(throwableCls, "getMessage", "()Ljava/lang/String;");
             }
 
-            using (var ignition = env.FindClass("org/apache/ignite/internal/processors/platform/PlatformIgnition"))
-            {
-                PlatformIgnition = ignition.ToGlobal();
-                PlatformIgnitionStart =
-                    env.GetStaticMethodId(ignition, "start", "(Ljava/lang/String;Ljava/lang/String;IJJ)V");
-                PlatformIgnitionStop = env.GetStaticMethodId(ignition, "stop", "(Ljava/lang/String;Z)Z");
-            }
+            PlatformIgnition = env.FindClass(
+                "org/apache/ignite/internal/processors/platform/PlatformIgnition").ToGlobal();
+            PlatformIgnitionStart = env.GetStaticMethodId(PlatformIgnition,
+                "start", "(Ljava/lang/String;Ljava/lang/String;IJJ)V");
+            PlatformIgnitionStop = env.GetStaticMethodId(PlatformIgnition, "stop", "(Ljava/lang/String;Z)Z");
 
             using (var target = env.FindClass("org/apache/ignite/internal/processors/platform/PlatformTargetProxy"))
             {
@@ -150,14 +148,11 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
                     env.GetMethodId(target, "inStreamOutObjectAsync", "(IJ)Ljava/lang/Object;");
             }
 
-            using (var platformUtilsCls =
-                env.FindClass("org/apache/ignite/internal/processors/platform/utils/PlatformUtils"))
-            {
-                PlatformUtils = platformUtilsCls.ToGlobal();
-                PlatformUtilsGetStackTrace = env.GetStaticMethodId(platformUtilsCls, "getFullStackTrace",
-                    "(Ljava/lang/Throwable;)Ljava/lang/String;");
-                PlatformUtilsReallocate = env.GetStaticMethodId(platformUtilsCls, "reallocate", "(JI)V");
-            }
+            PlatformUtils = env.FindClass("org/apache/ignite/internal/processors/platform/utils/PlatformUtils")
+                .ToGlobal();
+            PlatformUtilsGetStackTrace = env.GetStaticMethodId(PlatformUtils, "getFullStackTrace",
+                "(Ljava/lang/Throwable;)Ljava/lang/String;");
+            PlatformUtilsReallocate = env.GetStaticMethodId(PlatformUtils, "reallocate", "(JI)V");
         }
     }
 }
