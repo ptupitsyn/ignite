@@ -36,7 +36,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
         {
             // Obtain ICLRMetaHost interface
             object objHost;
-            int hr = CLRCreateInstance(ref CLSID_CLRMetaHost, ref IID_CLRMetaHost, out objHost);
+            int hr = NativeMethods.CLRCreateInstance(ref CLSID_CLRMetaHost, ref IID_CLRMetaHost, out objHost);
             if (hr < 0) throw new COMException("Cannot create meta host", hr);
             var host = (ICLRMetaHost) objHost;
 
@@ -57,10 +57,6 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
 
             return domain;
         }
-
-        [DllImport("mscoree.dll")]
-        private static extern int CLRCreateInstance(ref Guid clsid, ref Guid iid,
-            [MarshalAs(UnmanagedType.Interface)] out object ptr);
 
         [ComImport, Guid("D332DB9E-B9B3-4125-8207-A14884F53216"), InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
         private interface ICLRMetaHost
@@ -102,6 +98,13 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
             void Stop();
             void CreateDomain(string name, object identity, out _AppDomain domain);
             void GetDefaultDomain(out _AppDomain domain);
+        }
+
+        private static class NativeMethods
+        {
+            [DllImport("mscoree.dll")]
+            public static extern int CLRCreateInstance(ref Guid clsid, ref Guid iid,
+                [MarshalAs(UnmanagedType.Interface)] out object ptr);
         }
     }
 }

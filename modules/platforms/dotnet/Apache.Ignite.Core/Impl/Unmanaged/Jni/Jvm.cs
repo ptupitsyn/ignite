@@ -20,6 +20,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
+    using System.Diagnostics.CodeAnalysis;
     using System.Reflection;
     using System.Runtime.InteropServices;
     using System.Security;
@@ -247,6 +248,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
         /// <summary>
         /// JavaVMOption.
         /// </summary>
+        [SuppressMessage("Microsoft.Design", "CA1049:TypesThatOwnNativeResourcesShouldBeDisposable")]
         [StructLayout(LayoutKind.Sequential, Pack = 0)]
         private struct JvmOption
         {

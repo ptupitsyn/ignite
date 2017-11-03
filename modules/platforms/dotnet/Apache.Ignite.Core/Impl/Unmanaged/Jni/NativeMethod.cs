@@ -17,11 +17,16 @@
 
 using System;
 
+#pragma warning disable 414  // Unused FuncPtr
+
 namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
 {
+    using System.Diagnostics.CodeAnalysis;
+
     /// <summary>
     /// JNINativeMethod.
     /// </summary>
+    [SuppressMessage("Microsoft.Design", "CA1049:TypesThatOwnNativeResourcesShouldBeDisposable")]
     internal struct NativeMethod
     {
         public IntPtr Name;
