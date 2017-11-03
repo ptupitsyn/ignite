@@ -25,6 +25,7 @@ namespace Apache.Ignite.Core.Impl
     using System.Threading;
     using System.Threading.Tasks;
     using Apache.Ignite.Core.Binary;
+    using Apache.Ignite.Core.Common;
     using Apache.Ignite.Core.Impl.Binary;
     using Apache.Ignite.Core.Impl.Binary.IO;
     using Apache.Ignite.Core.Impl.Common;
@@ -99,13 +100,20 @@ namespace Apache.Ignite.Core.Impl
         /** <inheritdoc /> */
         public IPlatformTargetInternal InStreamOutObject(int type, Action<IBinaryStream> writeAction)
         {
-            using (var stream = IgniteManager.Memory.Allocate().GetStream())
+            try
             {
-                writeAction(stream);
+                using (var stream = IgniteManager.Memory.Allocate().GetStream())
+                {
+                    writeAction(stream);
 
-                var target = UU.TargetInStreamOutObject(_target, type, stream.SynchronizeOutput());
+                    var target = UU.TargetInStreamOutObject(_target, type, stream.SynchronizeOutput());
 
-                return target == null ? null : new PlatformJniTarget(target, _marsh);
+                    return target == null ? null : new PlatformJniTarget(target, _marsh);
+                }
+            }
+            catch (JavaException jex)
+            {
+                throw ConvertException(jex);
             }
         }
 
@@ -524,6 +532,11 @@ namespace Apache.Ignite.Core.Impl
         private static IUnmanagedTarget GetTargetPtr(IPlatformTarget target)
         {
             return target == null ? null : ((PlatformJniTarget) target)._target;
+        }
+
+        private Exception ConvertException(JavaException jex)
+        {
+            return ExceptionUtils.GetException()
         }
 
         #endregion
