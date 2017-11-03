@@ -186,6 +186,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
 
         public long CallLongMethod(IUnmanagedTarget obj, IntPtr methodId, params JavaValue[] args)
         {
+            // TODO: Avoid args allocation somehow.
             var res = _callLongMethod(_envPtr, obj.Target, methodId, args);
 
             ExceptionCheck();
