@@ -209,7 +209,7 @@ namespace Apache.Ignite.Core
         /// Starts Ignite with given configuration.
         /// </summary>
         /// <returns>Started Ignite.</returns>
-        public static unsafe IIgnite Start(IgniteConfiguration cfg)
+        public static IIgnite Start(IgniteConfiguration cfg)
         {
             IgniteArgumentCheck.NotNull(cfg, "cfg");
 

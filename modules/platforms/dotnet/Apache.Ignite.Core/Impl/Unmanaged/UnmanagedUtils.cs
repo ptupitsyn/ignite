@@ -95,7 +95,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged
 
                 using (var gridName1 = env.NewStringUtf(gridName0))
                 {
-                    return env.CallStaticBoolMethod(methodId.PlatformIgnition, methodId.PlatformIgnitionStart,
+                    return env.CallStaticBoolMethod(methodId.PlatformIgnition, methodId.PlatformIgnitionStop,
                         new JavaValue(gridName1), new JavaValue(cancel));
                 }
             }
