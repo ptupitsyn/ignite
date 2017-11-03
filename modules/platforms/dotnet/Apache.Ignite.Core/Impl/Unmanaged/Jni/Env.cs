@@ -21,6 +21,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
     using System.Diagnostics;
     using System.Runtime.InteropServices;
     using System.Security;
+    using Apache.Ignite.Core.Common;
 
     /// <summary>
     /// JNIEnv.
@@ -369,11 +370,10 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
                     using (var trace = CallStaticObjectMethod(methodId.PlatformUtils,
                         methodId.PlatformUtilsGetStackTrace, new JavaValue {_object = err}))
                     {
-                        // Exception is present.
-                        throw new Exception(string.Format("{0}: {1}\n\n{2}",
+                        throw new JavaException(
                             JStringToString(clsName),
                             JStringToString(msg),
-                            JStringToString(trace)));
+                            JStringToString(trace));
                     }
                 }
             }
