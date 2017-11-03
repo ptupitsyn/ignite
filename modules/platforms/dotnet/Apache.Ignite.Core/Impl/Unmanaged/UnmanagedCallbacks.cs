@@ -1072,34 +1072,6 @@ namespace Apache.Ignite.Core.Impl.Unmanaged
             return 0;
         }
 
-        private void Error(void* target, int errType, sbyte* errClsChars, int errClsCharsLen, sbyte* errMsgChars,
-            int errMsgCharsLen, sbyte* stackTraceChars, int stackTraceCharsLen, void* errData, int errDataLen)
-        {
-            // errData mechanism is only needed for CachePartialUpdateException and is no longer used,
-            // since CacheImpl handles all errors itself.
-            Debug.Assert(errDataLen == 0);
-            Debug.Assert(errData == null);
-
-            string errCls = IgniteUtils.Utf8UnmanagedToString(errClsChars, errClsCharsLen);
-            string errMsg = IgniteUtils.Utf8UnmanagedToString(errMsgChars, errMsgCharsLen);
-            string stackTrace = IgniteUtils.Utf8UnmanagedToString(stackTraceChars, stackTraceCharsLen);
-
-            switch (errType)
-            {
-                case ErrGeneric:
-                    throw ExceptionUtils.GetException(_ignite, errCls, errMsg, stackTrace);
-
-                case ErrJvmInit:
-                    throw ExceptionUtils.GetJvmInitializeException(errCls, errMsg, stackTrace);
-
-                case ErrJvmAttach:
-                    throw new IgniteException("Failed to attach to JVM.");
-
-                default:
-                    throw new IgniteException("Unknown exception [cls=" + errCls + ", msg=" + errMsg + ']');
-            }
-        }
-
         private long OnClientDisconnected(long unused)
         {
             _ignite.OnClientDisconnected();
