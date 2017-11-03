@@ -245,9 +245,7 @@ namespace Apache.Ignite.Core.Impl
             if (errorCode == NativeMethods.ERROR_MOD_NOT_FOUND)
             {
                 return "DLL could not be loaded (126: ERROR_MOD_NOT_FOUND). " +
-                       "This can be caused by missing dependencies. " +
-                       "Make sure that Microsoft Visual C++ 2010 Redistributable Package is installed " +
-                       "(https://www.microsoft.com/en-us/download/details.aspx?id=14632).";
+                       "This can be caused by missing dependencies. ";
             }
 
             return string.Format("{0}: {1}", errorCode, new Win32Exception(errorCode).Message);
