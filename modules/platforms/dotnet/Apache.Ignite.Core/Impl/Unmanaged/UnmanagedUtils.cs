@@ -53,8 +53,8 @@ namespace Apache.Ignite.Core.Impl.Unmanaged
                     mem.WriteBool(false);
 
                     long* args = stackalloc long[5];
-                    args[0] = cfgPath1.TargetAddr;
-                    args[1] = gridName1.TargetAddr;
+                    args[0] = cfgPath != null ? cfgPath1.TargetAddr : 0;
+                    args[1] = gridName != null ?  gridName1.TargetAddr : 0;
                     args[2] = InteropFactoryId;
                     args[3] = igniteId;
                     args[4] = mem.SynchronizeOutput();
