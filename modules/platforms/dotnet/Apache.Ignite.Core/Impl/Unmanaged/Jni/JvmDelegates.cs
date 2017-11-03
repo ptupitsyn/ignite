@@ -19,16 +19,13 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
 {
     using System;
     using System.Runtime.InteropServices;
-    using System.Security;
 
     /// <summary>
     /// Delegates for JavaVM JNI entity.
     /// </summary>
-    [SuppressUnmanagedCodeSecurity]
     internal static class JvmDelegates
     {
         [UnmanagedFunctionPointer(CallingConvention.StdCall)]
-        [SuppressUnmanagedCodeSecurity]
         internal delegate JniResult AttachCurrentThread(IntPtr jvm, out IntPtr env, IntPtr args);
     }
 }

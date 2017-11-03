@@ -24,7 +24,6 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
     /// <summary>
     /// Delegates for JNI Env entity.
     /// </summary>
-    [SuppressUnmanagedCodeSecurity]
     internal static class EnvDelegates
     {
         [UnmanagedFunctionPointer(CallingConvention.StdCall)]
@@ -42,7 +41,6 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
         internal delegate void DeleteLocalRef(IntPtr env, IntPtr lref);
 
         [UnmanagedFunctionPointer(CallingConvention.StdCall)]
-        [SuppressUnmanagedCodeSecurity]
         internal delegate void DeleteGlobalRef(IntPtr env, IntPtr gref);
 
         [UnmanagedFunctionPointer(CallingConvention.StdCall)]
