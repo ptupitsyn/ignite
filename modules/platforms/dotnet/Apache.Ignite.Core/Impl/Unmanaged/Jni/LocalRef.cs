@@ -52,6 +52,11 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
 
         public GlobalRef ToGlobal()
         {
+            if (_lref == IntPtr.Zero)
+            {
+                return null;
+            }
+
             var globalRef = _env.NewGlobalRef(_lref);
 
             ReleaseUnmanagedResources();
