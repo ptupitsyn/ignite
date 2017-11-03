@@ -38,16 +38,19 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
         private readonly EnvDelegates.CallStaticVoidMethod _callStaticVoidMethod;
 
         /** */
+        private readonly EnvDelegates.CallStaticBooleanMethod _callStaticBoolMethod;
+
+        /** */
         private readonly EnvDelegates.FindClass _findClass;
 
         /** */
-        private readonly EnvDelegates.GetMethodID _getMethodId;
+        private readonly EnvDelegates.GetMethodId _getMethodId;
 
         /** */
-        private readonly EnvDelegates.GetStaticMethodID _getStaticMethodId;
+        private readonly EnvDelegates.GetStaticMethodId _getStaticMethodId;
 
         /** */
-        private readonly EnvDelegates.NewStringUTF _newStringUtf;
+        private readonly EnvDelegates.NewStringUtf _newStringUtf;
 
         /** */
         private readonly EnvDelegates.ExceptionOccurred _exceptionOccurred;
@@ -112,6 +115,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
             var func = **funcPtr;
 
             GetDelegate(func.CallStaticVoidMethod, out _callStaticVoidMethod);
+            GetDelegate(func.CallStaticBooleanMethod, out _callStaticBoolMethod);
             GetDelegate(func.FindClass, out _findClass);
             GetDelegate(func.GetMethodID, out _getMethodId);
             GetDelegate(func.GetStaticMethodID, out _getStaticMethodId);
@@ -159,6 +163,15 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
             _callStaticVoidMethod(_envPtr, cls.Target, methodId, args);
 
             ExceptionCheck();
+        }
+
+        public bool CallStaticBoolMethod(IUnmanagedTarget cls, IntPtr methodId, params JavaValue[] args)
+        {
+            var res = _callStaticBoolMethod(_envPtr, cls.Target, methodId, args);
+
+            ExceptionCheck();
+
+            return res > 0;
         }
 
         public LocalRef CallObjectMethod(IUnmanagedTarget obj, IntPtr methodId, params JavaValue[] args)

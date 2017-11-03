@@ -46,6 +46,11 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
         public IntPtr PlatformIgnitionStart { get; private set; }
 
         /// <summary>
+        /// PlatformIgnition.stop().
+        /// </summary>
+        public IntPtr PlatformIgnitionStop { get; private set; }
+
+        /// <summary>
         /// PlatformTargetProxy.inStreamOutObjectAsync().
         /// </summary>
         public IntPtr TargetInStreamOutObjectAsync { get; private set; }
@@ -112,6 +117,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
                 PlatformIgnition = ignition.ToGlobal();
                 PlatformIgnitionStart =
                     env.GetStaticMethodId(ignition, "start", "(Ljava/lang/String;Ljava/lang/String;IJJ)V");
+                PlatformIgnitionStop = env.GetStaticMethodId(ignition, "stop", "(Ljava/lang/String;Z)Z");
             }
 
             using (var target = env.FindClass("org/apache/ignite/internal/processors/platform/PlatformTargetProxy"))

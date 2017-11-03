@@ -29,10 +29,6 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
     {
         [UnmanagedFunctionPointer(CallingConvention.StdCall)]
         [SuppressUnmanagedCodeSecurity]
-        internal delegate JniResult GetEnv(IntPtr jvm, out IntPtr env, int version);
-
-        [UnmanagedFunctionPointer(CallingConvention.StdCall)]
-        [SuppressUnmanagedCodeSecurity]
         internal delegate JniResult AttachCurrentThread(IntPtr jvm, out IntPtr env, IntPtr args);
     }
 }

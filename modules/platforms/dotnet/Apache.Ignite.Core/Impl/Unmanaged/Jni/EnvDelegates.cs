@@ -32,8 +32,8 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
             IntPtr env, IntPtr clazz, IntPtr methodId, params JavaValue[] args);
 
         [UnmanagedFunctionPointer(CallingConvention.StdCall)]
-        public delegate JniResult CallStaticVoidMethodV(
-            IntPtr env, IntPtr clazz, IntPtr methodId, IntPtr vaList);
+        internal delegate byte CallStaticBooleanMethod(
+            IntPtr env, IntPtr clazz, IntPtr methodId, params JavaValue[] args);
 
         [UnmanagedFunctionPointer(CallingConvention.StdCall)]
         internal delegate IntPtr NewGlobalRef(IntPtr env, IntPtr lobj);
@@ -49,15 +49,15 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
         internal delegate IntPtr FindClass(IntPtr env, [MarshalAs(UnmanagedType.LPStr)] string name);
 
         [UnmanagedFunctionPointer(CallingConvention.StdCall)]
-        internal delegate IntPtr GetStaticMethodID(IntPtr env, IntPtr clazz,
+        internal delegate IntPtr GetStaticMethodId(IntPtr env, IntPtr clazz,
             [MarshalAs(UnmanagedType.LPStr)] string name, [MarshalAs(UnmanagedType.LPStr)] string sig);
 
         [UnmanagedFunctionPointer(CallingConvention.StdCall)]
-        internal delegate IntPtr GetMethodID(IntPtr env, IntPtr clazz, [MarshalAs(UnmanagedType.LPStr)] string name,
+        internal delegate IntPtr GetMethodId(IntPtr env, IntPtr clazz, [MarshalAs(UnmanagedType.LPStr)] string name,
             [MarshalAs(UnmanagedType.LPStr)] string sig);
 
         [UnmanagedFunctionPointer(CallingConvention.StdCall)]
-        internal delegate IntPtr NewStringUTF(IntPtr env, IntPtr utf);
+        internal delegate IntPtr NewStringUtf(IntPtr env, IntPtr utf);
 
         [UnmanagedFunctionPointer(CallingConvention.StdCall)]
         internal delegate IntPtr ExceptionOccurred(IntPtr env);
@@ -102,13 +102,5 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
         [UnmanagedFunctionPointer(CallingConvention.StdCall)]
         internal unsafe delegate JniResult RegisterNatives(IntPtr env, IntPtr clazz,
             NativeMethod* methods, int nMethods);
-        
-        [UnmanagedFunctionPointer(CallingConvention.StdCall)]
-        [SuppressUnmanagedCodeSecurity]
-        internal delegate JniResult GetEnv(IntPtr jvm, out IntPtr env, int version);
-
-        [UnmanagedFunctionPointer(CallingConvention.StdCall)]
-        [SuppressUnmanagedCodeSecurity]
-        internal delegate JniResult AttachCurrentThread(IntPtr jvm, out IntPtr env, IntPtr args);
     }
 }

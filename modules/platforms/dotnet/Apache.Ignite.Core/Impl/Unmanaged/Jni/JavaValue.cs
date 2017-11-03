@@ -41,6 +41,11 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
             _long = l;
         }
 
+        public JavaValue(bool b) : this()
+        {
+            _bool = (byte) (b ? 1 : 0);
+        }
+
         [FieldOffset(0)] public byte _bool;
         [FieldOffset(0)] public byte _byte;
         [FieldOffset(0)] public short _char;

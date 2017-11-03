@@ -19,10 +19,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged
 {
     using System;
     using System.Collections.Generic;
-    using System.Diagnostics.CodeAnalysis;
     using System.Runtime.InteropServices;
-    using System.Threading.Tasks;
-    using Apache.Ignite.Core.Common;
     using Apache.Ignite.Core.Impl.Unmanaged.Jni;
 
     /// <summary>
@@ -92,9 +89,14 @@ namespace Apache.Ignite.Core.Impl.Unmanaged
 
             try
             {
-                // TODO
-                // return JNI.IgnitionStop(ctx, gridName0, cancel);
-                return true;
+                var env = Jvm.Get().AttachCurrentThread();
+                var methodId = env.Jvm.MethodId;
+
+                using (var gridName1 = env.NewStringUtf(gridName0))
+                {
+                    return env.CallStaticBoolMethod(methodId.PlatformIgnition, methodId.PlatformIgnitionStart,
+                        new JavaValue(gridName1), new JavaValue(cancel));
+                }
             }
             finally
             {
