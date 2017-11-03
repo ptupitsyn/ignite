@@ -268,7 +268,7 @@ namespace Apache.Ignite.Core
 
                     return node;
                 }
-                catch (Exception)
+                catch (Exception ex)
                 {
                     // 1. Perform keys cleanup.
                     string name = _startup.Name;
@@ -293,7 +293,14 @@ namespace Apache.Ignite.Core
                             _startup.Error);
                     }
 
-                    throw;
+                    var jex = ex as JavaException;
+
+                    if (jex == null)
+                    {
+                        throw;
+                    }
+
+                    throw ExceptionUtils.GetException(null, jex);
                 }
                 finally
                 {
