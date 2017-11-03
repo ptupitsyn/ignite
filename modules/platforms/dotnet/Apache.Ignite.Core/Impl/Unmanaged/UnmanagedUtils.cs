@@ -201,12 +201,11 @@ namespace Apache.Ignite.Core.Impl.Unmanaged
 
         internal static void Reallocate(long memPtr, int cap)
         {
-            // TODO
-            //int res = JNI.Reallocate(memPtr, cap);
+            var jvm = Jvm.Get();
+            var methodId = jvm.MethodId;
 
-            //if (res != 0)
-            //    throw new IgniteException("Failed to reallocate external memory [ptr=" + memPtr + 
-            //        ", capacity=" + cap + ']');
+            jvm.AttachCurrentThread().CallStaticVoidMethod(methodId.PlatformUtils, methodId.PlatformUtilsReallocate,
+                new JavaValue(memPtr), new JavaValue(cap));
         }
 
         internal static IUnmanagedTarget Acquire(void* target)
