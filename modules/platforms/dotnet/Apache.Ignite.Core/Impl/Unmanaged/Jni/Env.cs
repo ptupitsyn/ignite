@@ -249,7 +249,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
         {
             if (utf == null)
             {
-                return null;
+                return new LocalRef();
             }
 
             var res = _newStringUtf(_envPtr, new IntPtr(utf));
@@ -257,6 +257,25 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
             ExceptionCheck();
 
             return new LocalRef(this, res);
+        }
+
+        public LocalRef NewStringUtf(string str)
+        {
+            if (str == null)
+            {
+                return new LocalRef();
+            }
+
+            var chars = IgniteUtils.StringToUtf8Unmanaged(str);
+
+            try
+            {
+                return NewStringUtf(chars);
+            }
+            finally 
+            {
+                Marshal.FreeHGlobal(new IntPtr(chars));
+            }
         }
 
         private IntPtr GetStringUtfChars(IntPtr jstring)

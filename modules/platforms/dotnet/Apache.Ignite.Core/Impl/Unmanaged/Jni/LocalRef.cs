@@ -33,7 +33,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
         public LocalRef(Env env, IntPtr lref)
         {
             Debug.Assert(env != null);
-            Debug.Assert(lref != IntPtr.Zero);
+            Debug.Assert(lref != null);
 
             _env = env;
             _lref = lref;

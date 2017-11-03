@@ -19,7 +19,6 @@ namespace Apache.Ignite.Core.Impl.Unmanaged
 {
     using System;
     using System.Diagnostics;
-    using System.Runtime.InteropServices;
     using Apache.Ignite.Core.Impl.Unmanaged.Jni;
 
     /// <summary>
@@ -36,71 +35,41 @@ namespace Apache.Ignite.Core.Impl.Unmanaged
             bool clientMode, bool userLogger, long igniteId)
         {
             using (var mem = IgniteManager.Memory.Allocate().GetStream())
+            using (var cfgPath0 = env.NewStringUtf(cfgPath))
+            using (var gridName0 = env.NewStringUtf(gridName))
             {
                 mem.WriteBool(clientMode);
                 mem.WriteBool(userLogger);
 
-                var cfgPath0 = IgniteUtils.StringToUtf8Unmanaged(cfgPath);
-                var gridName0 = IgniteUtils.StringToUtf8Unmanaged(gridName);
+                // Additional data.
+                mem.WriteBool(false);
+                mem.WriteBool(false);
 
-                var cfgPath1 = env.NewStringUtf(cfgPath0);
-                var gridName1 = env.NewStringUtf(gridName0);
+                long* args = stackalloc long[5];
+                args[0] = cfgPath0.TargetAddr;
+                args[1] = gridName0.TargetAddr;
+                args[2] = InteropFactoryId;
+                args[3] = igniteId;
+                args[4] = mem.SynchronizeOutput();
 
-                try
-                {
-                    // Additional data.
-                    mem.WriteBool(false);
-                    mem.WriteBool(false);
-
-                    long* args = stackalloc long[5];
-                    args[0] = cfgPath != null ? cfgPath1.TargetAddr : 0;
-                    args[1] = gridName != null ?  gridName1.TargetAddr : 0;
-                    args[2] = InteropFactoryId;
-                    args[3] = igniteId;
-                    args[4] = mem.SynchronizeOutput();
-
-                    // OnStart receives InteropProcessor referece and stores it.
-                    var methodId = env.Jvm.MethodId;
-                    env.CallStaticVoidMethod(methodId.PlatformIgnition, methodId.PlatformIgnitionStart, args);
-                }
-                finally
-                {
-                    if (cfgPath != null)
-                    {
-                        cfgPath1.Dispose();
-                        Marshal.FreeHGlobal(new IntPtr(cfgPath0));
-                    }
-
-                    if (gridName != null)
-                    {
-                        gridName1.Dispose();
-                        Marshal.FreeHGlobal(new IntPtr(gridName0));
-                    }
-                }
+                // OnStart receives InteropProcessor referece and stores it.
+                var methodId = env.Jvm.MethodId;
+                env.CallStaticVoidMethod(methodId.PlatformIgnition, methodId.PlatformIgnitionStart, args);
             }
         }
 
         internal static bool IgnitionStop(string gridName, bool cancel)
         {
-            sbyte* gridName0 = IgniteUtils.StringToUtf8Unmanaged(gridName);
+            var env = Jvm.Get().AttachCurrentThread();
+            var methodId = env.Jvm.MethodId;
 
-            try
+            using (var gridName1 = env.NewStringUtf(gridName))
             {
-                var env = Jvm.Get().AttachCurrentThread();
-                var methodId = env.Jvm.MethodId;
+                long* args = stackalloc long[2];
+                args[0] = gridName1.TargetAddr;
+                args[1] = cancel ? 1 : 0;
 
-                using (var gridName1 = env.NewStringUtf(gridName0))
-                {
-                    long* args = stackalloc long[2];
-                    args[0] = gridName1.TargetAddr;
-                    args[1] = cancel ? 1 : 0;
-
-                    return env.CallStaticBoolMethod(methodId.PlatformIgnition, methodId.PlatformIgnitionStop, args);
-                }
-            }
-            finally
-            {
-                Marshal.FreeHGlobal(new IntPtr(gridName0));
+                return env.CallStaticBoolMethod(methodId.PlatformIgnition, methodId.PlatformIgnitionStop, args);
             }
         }
 
