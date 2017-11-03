@@ -250,19 +250,6 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
             return new LocalRef(this, res);
         }
 
-        private IntPtr GetStringChars(IntPtr jstring)
-        {
-            Debug.Assert(jstring != IntPtr.Zero);
-
-            byte isCopy;
-            return _getStringChars(_envPtr, jstring, &isCopy);
-        }
-
-        private void ReleaseStringChars(IntPtr jstring, IntPtr chars)
-        {
-            _releaseStringChars(_envPtr, jstring, chars);
-        }
-
         private IntPtr GetStringUtfChars(IntPtr jstring)
         {
             Debug.Assert(jstring != IntPtr.Zero);
