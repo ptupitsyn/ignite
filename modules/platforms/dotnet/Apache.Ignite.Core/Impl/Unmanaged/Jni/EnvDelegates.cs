@@ -19,7 +19,6 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
 {
     using System;
     using System.Runtime.InteropServices;
-    using System.Security;
 
     /// <summary>
     /// Delegates for JNI Env entity.
@@ -62,6 +61,9 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
 
         [UnmanagedFunctionPointer(CallingConvention.StdCall)]
         internal delegate void ExceptionClear(IntPtr env);
+
+        [UnmanagedFunctionPointer(CallingConvention.StdCall)]
+        internal delegate bool ExceptionCheck(IntPtr env);
 
         [UnmanagedFunctionPointer(CallingConvention.StdCall)]
         internal delegate IntPtr GetObjectClass(IntPtr env, IntPtr obj);

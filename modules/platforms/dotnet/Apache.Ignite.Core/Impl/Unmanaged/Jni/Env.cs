@@ -87,6 +87,9 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
         private readonly EnvDelegates.ExceptionClear _exceptionClear;
 
         /** */
+        private readonly EnvDelegates.ExceptionCheck _exceptionCheck;
+
+        /** */
         private readonly EnvDelegates.CallStaticObjectMethod _callStaticObjectMethod;
 
         /** */
@@ -126,6 +129,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
             GetDelegate(func.NewStringUTF, out _newStringUtf);
             GetDelegate(func.ExceptionOccurred, out _exceptionOccurred);
             GetDelegate(func.ExceptionClear, out _exceptionClear);
+            GetDelegate(func.ExceptionCheck, out _exceptionCheck);
             GetDelegate(func.GetObjectClass, out _getObjectClass);
             GetDelegate(func.CallObjectMethod, out _callObjectMethod);
             GetDelegate(func.CallStaticObjectMethod, out _callStaticObjectMethod);
@@ -353,27 +357,30 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
         /// </summary>
         private void ExceptionCheck()
         {
-            var err = _exceptionOccurred(_envPtr);
-
-            if (err != IntPtr.Zero)
+            if (!_exceptionCheck(_envPtr))
             {
-                _exceptionClear(_envPtr);
+                return;
+            }
 
-                using (var errRef = new LocalRef(this, err))
+            var err = _exceptionOccurred(_envPtr);
+            Debug.Assert(err != IntPtr.Zero);
+
+            _exceptionClear(_envPtr);
+
+            using (var errRef = new LocalRef(this, err))
+            {
+                var methodId = _jvm.MethodId;
+
+                using (var cls = GetObjectClass(errRef))
+                using (var clsName = CallObjectMethod(cls, methodId.ClassGetName))
+                using (var msg = CallObjectMethod(errRef, methodId.ThrowableGetMessage))
+                using (var trace = CallStaticObjectMethod(methodId.PlatformUtils,
+                    methodId.PlatformUtilsGetStackTrace, new JavaValue {_object = err}))
                 {
-                    var methodId = _jvm.MethodId;
-
-                    using (var cls = GetObjectClass(errRef))
-                    using (var clsName = CallObjectMethod(cls, methodId.ClassGetName))
-                    using (var msg = CallObjectMethod(errRef, methodId.ThrowableGetMessage))
-                    using (var trace = CallStaticObjectMethod(methodId.PlatformUtils,
-                        methodId.PlatformUtilsGetStackTrace, new JavaValue {_object = err}))
-                    {
-                        throw new JavaException(
-                            JStringToString(clsName),
-                            JStringToString(msg),
-                            JStringToString(trace));
-                    }
+                    throw new JavaException(
+                        JStringToString(clsName),
+                        JStringToString(msg),
+                        JStringToString(trace));
                 }
             }
         }
