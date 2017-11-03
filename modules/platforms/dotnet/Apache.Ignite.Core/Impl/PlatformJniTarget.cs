@@ -534,9 +534,12 @@ namespace Apache.Ignite.Core.Impl
             return target == null ? null : ((PlatformJniTarget) target)._target;
         }
 
+        /// <summary>
+        /// Converts the exception.
+        /// </summary>
         private Exception ConvertException(JavaException jex)
         {
-            return ExceptionUtils.GetException()
+            return ExceptionUtils.GetException(_marsh.Ignite, jex);
         }
 
         #endregion
