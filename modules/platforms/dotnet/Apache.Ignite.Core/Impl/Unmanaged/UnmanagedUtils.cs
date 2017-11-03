@@ -19,6 +19,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged
 {
     using System;
     using System.Collections.Generic;
+    using System.Diagnostics;
     using System.Runtime.InteropServices;
     using Apache.Ignite.Core.Impl.Unmanaged.Jni;
 
@@ -215,17 +216,9 @@ namespace Apache.Ignite.Core.Impl.Unmanaged
 
         internal static void ThrowToJava(Exception e)
         {
-            char* msgChars = (char*)IgniteUtils.StringToUtf8Unmanaged(e.Message);
+            Debug.Assert(e != null);
 
-            try
-            {
-                // TODO:
-                //JNI.ThrowToJava(ctx, msgChars);
-            }
-            finally
-            {
-                Marshal.FreeHGlobal(new IntPtr(msgChars));
-            }
+            Jvm.Get().AttachCurrentThread().ThrowToJava(e.Message);
         }
 
         #endregion
