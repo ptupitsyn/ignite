@@ -300,24 +300,25 @@ namespace Apache.Ignite.Core.Tests
         private static void UseIgnite(IIgnite ignite)
         {
             // Create objects holding references to java objects.
+            // TODO: GetCompute causes leak.
             var comp = ignite.GetCompute();
 
-            // ReSharper disable once RedundantAssignment
-            comp = comp.WithKeepBinary();
+            //// ReSharper disable once RedundantAssignment
+            //comp = comp.WithKeepBinary();
 
-            var prj = ignite.GetCluster().ForOldest();
+            //var prj = ignite.GetCluster().ForOldest();
 
-            Assert.IsTrue(prj.GetNodes().Count > 0);
+            //Assert.IsTrue(prj.GetNodes().Count > 0);
 
-            Assert.IsNotNull(prj.GetCompute());
+            //Assert.IsNotNull(prj.GetCompute());
 
-            var cache = ignite.GetCache<int, int>("cache1");
+            //var cache = ignite.GetCache<int, int>("cache1");
 
-            Assert.IsNotNull(cache);
+            //Assert.IsNotNull(cache);
 
-            cache.GetAndPut(1, 1);
+            //cache.GetAndPut(1, 1);
 
-            Assert.AreEqual(1, cache.Get(1));
+            //Assert.AreEqual(1, cache.Get(1));
         }
 
         /// <summary>
