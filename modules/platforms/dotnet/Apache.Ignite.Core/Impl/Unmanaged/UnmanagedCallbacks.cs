@@ -23,7 +23,6 @@ namespace Apache.Ignite.Core.Impl.Unmanaged
     using System.Diagnostics.CodeAnalysis;
     using System.Globalization;
     using System.Linq;
-    using System.Runtime.InteropServices;
     using System.Threading;
     using Apache.Ignite.Core.Cache.Affinity;
     using Apache.Ignite.Core.Cluster;
@@ -53,7 +52,6 @@ namespace Apache.Ignite.Core.Impl.Unmanaged
     /// <summary>
     /// Unmanaged callbacks.
     /// </summary>
-    [SuppressMessage("ReSharper", "UnusedMember.Local")]
     [SuppressMessage("Microsoft.Design", "CA1001:TypesThatOwnDisposableFieldsShouldBeDisposable",
         Justification = "This class instance usually lives as long as the app runs.")]
     [SuppressMessage("Microsoft.Design", "CA1049:TypesThatOwnNativeResourcesShouldBeDisposable",
@@ -68,10 +66,6 @@ namespace Apache.Ignite.Core.Impl.Unmanaged
 
         /** Grid. */
         private volatile Ignite _ignite;
-
-        /** Keep references to created delegates. */
-        // ReSharper disable once CollectionNeverQueried.Local
-        private readonly List<Delegate> _delegates = new List<Delegate>(5);
 
         /** Max op code. */
         private static readonly int MaxOpCode = Enum.GetValues(typeof(UnmanagedCallbackOp)).Cast<int>().Max();
@@ -92,27 +86,8 @@ namespace Apache.Ignite.Core.Impl.Unmanaged
         /** Log. */
         private readonly ILogger _log;
 
-        /** Error type: generic. */
-        private const int ErrGeneric = 1;
-
-        /** Error type: initialize. */
-        private const int ErrJvmInit = 2;
-
-        /** Error type: attach. */
-        private const int ErrJvmAttach = 3;
-
         /** Operation: prepare .Net. */
         private const int OpPrepareDotNet = 1;
-
-        private delegate void ErrorCallbackDelegate(void* target, int errType, sbyte* errClsChars, int errClsCharsLen, sbyte* errMsgChars, int errMsgCharsLen, sbyte* stackTraceChars, int stackTraceCharsLen, void* errData, int errDataLen);
-
-        private delegate void LoggerLogDelegate(void* target, int level, sbyte* messageChars, int messageCharsLen, sbyte* categoryChars, int categoryCharsLen, sbyte* errorInfoChars, int errorInfoCharsLen, long memPtr);
-        private delegate bool LoggerIsLevelEnabledDelegate(void* target, int level);
-
-        private delegate void ConsoleWriteDelegate(sbyte* chars, int charsLen, bool isErr);
-
-        private delegate long InLongOutLongDelegate(void* target, int type, long val);
-        private delegate long InLongLongLongObjectOutLongDelegate(void* target, int type, long val1, long val2, long val3, void* arg);
 
         private delegate long InLongOutLongFunc(long val);
         private delegate long InLongLongLongObjectOutLongFunc(long val1, long val2, long val3, void* arg);
@@ -1108,24 +1083,6 @@ namespace Apache.Ignite.Core.Impl.Unmanaged
             return SafeCall(() => _log.IsEnabled((LogLevel) level), true);
         }
 
-        [SuppressMessage("Microsoft.Design", "CA1031:DoNotCatchGeneralExceptionTypes")]
-        private static void ConsoleWrite(sbyte* chars, int charsLen, bool isErr)
-        {
-            try
-            {
-                var str = IgniteUtils.Utf8UnmanagedToString(chars, charsLen);
-
-                var target = isErr ? Console.Error : Console.Out;
-
-                target.Write(str);
-
-            }
-            catch (Exception ex)
-            {
-                Console.Error.WriteLine("ConsoleWrite unmanaged callback failed: " + ex);
-            }
-        }
-
         private long PluginProcessorIgniteStop(long val)
         {
             _ignite.PluginProcessor.OnIgniteStop(val != 0);
@@ -1279,16 +1236,6 @@ namespace Apache.Ignite.Core.Impl.Unmanaged
         public ILogger Log
         {
             get { return _log; }
-        }
-
-        /// <summary>
-        /// Create function pointer for the given function.
-        /// </summary>
-        private void* CreateFunctionPointer(Delegate del)
-        {
-            _delegates.Add(del); // Prevent delegate from being GC-ed.
-
-            return Marshal.GetFunctionPointerForDelegate(del).ToPointer();
         }
 
         /// <summary>
