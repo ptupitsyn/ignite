@@ -121,7 +121,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged
             args[1] = inMemPtr;
 
             return jvm.AttachCurrentThread().CallObjectMethod(
-                target, jvm.MethodId.TargetInStreamOutObject, args).ToGlobal();
+                target, jvm.MethodId.TargetInStreamOutObject, args);
         }
 
         internal static IUnmanagedTarget TargetInObjectStreamOutObjectStream(IUnmanagedTarget target, int opType, 
@@ -136,7 +136,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged
             args[3] = outMemPtr;
 
             return jvm.AttachCurrentThread().CallObjectMethod(
-                target, jvm.MethodId.TargetInObjectStreamOutObjectStream, args).ToGlobal();
+                target, jvm.MethodId.TargetInObjectStreamOutObjectStream, args);
         }
 
         internal static void TargetOutStream(IUnmanagedTarget target, int opType, long memPtr)
@@ -157,7 +157,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged
             long opType0 = opType;
 
             return jvm.AttachCurrentThread().CallObjectMethod(
-                target, jvm.MethodId.TargetOutObject, &opType0).ToGlobal();
+                target, jvm.MethodId.TargetOutObject, &opType0);
         }
 
         internal static void TargetInStreamAsync(IUnmanagedTarget target, int opType, long memPtr)
@@ -180,7 +180,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged
             args[1] = memPtr;
 
             return jvm.AttachCurrentThread().CallObjectMethod(
-                target, jvm.MethodId.TargetInStreamOutObjectAsync, args).ToGlobal();
+                target, jvm.MethodId.TargetInStreamOutObjectAsync, args);
         }
 
         #endregion

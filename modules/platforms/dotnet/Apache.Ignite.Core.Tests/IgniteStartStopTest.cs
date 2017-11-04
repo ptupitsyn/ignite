@@ -302,7 +302,7 @@ namespace Apache.Ignite.Core.Tests
         {
             // Create objects holding references to java objects.
             // TODO: ForServers causes leak.
-            //var comp = ignite.GetCluster().ForServers();
+            var comp = ignite.GetCluster().ForServers();
             //((ClusterGroupImpl)comp).Target.Dispose();
 
             // TODO: GetCache also causes leak.

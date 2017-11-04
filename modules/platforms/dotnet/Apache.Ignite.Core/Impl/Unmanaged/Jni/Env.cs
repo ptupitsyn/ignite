@@ -175,13 +175,19 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
             return res > 0;
         }
 
-        public LocalRef CallObjectMethod(IUnmanagedTarget obj, IntPtr methodId, long* argsPtr = null)
+        public GlobalRef CallObjectMethod(IUnmanagedTarget obj, IntPtr methodId, long* argsPtr = null)
         {
-            var res = _callObjectMethod(_envPtr, obj.Target, methodId, argsPtr);
+            // TODO: Change all methods to this approach.
+            // LocalRef should be immediately converted to global and then deleted.
+            var lref = _callObjectMethod(_envPtr, obj.Target, methodId, argsPtr);
 
             ExceptionCheck();
 
-            return new LocalRef(this, res);
+            var gref = _newGlobalRef(_envPtr, lref);
+
+            _deleteLocalRef(_envPtr, lref);
+
+            return new GlobalRef(gref);
         }
 
         public long CallLongMethod(IUnmanagedTarget obj, IntPtr methodId, long* argsPtr = null)
@@ -313,7 +319,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
             }
         }
 
-        public string JStringToString(LocalRef jstring)
+        public string JStringToString(IUnmanagedTarget jstring)
         {
             return JStringToString(jstring.Target);
         }
