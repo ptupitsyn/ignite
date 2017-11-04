@@ -115,6 +115,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
         {
             // TODO: Proper lazy singleton http://jonskeet.uk/csharp/singleton.html
             // Just cache JVM where it is needed in a readonly field. 
+            // LazyInitializer.EnsureInitialized(ref _instance, )
             if (_instance != null)
             {
                 return _instance;
