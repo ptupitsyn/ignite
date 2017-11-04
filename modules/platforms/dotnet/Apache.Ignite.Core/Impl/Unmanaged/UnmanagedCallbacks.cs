@@ -84,7 +84,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged
         private readonly List<Action<Ignite>> _initActions = new List<Action<Ignite>>();
 
         /** Log. */
-        private readonly ILogger _log;
+        private ILogger _log;
 
         /** Operation: prepare .Net. */
         private const int OpPrepareDotNet = 1;
@@ -1273,7 +1273,11 @@ namespace Apache.Ignite.Core.Impl.Unmanaged
         /// </summary>
         public void Cleanup()
         {
+            // This instance crosses AppDomain boundaries and is GCed with a delay.
+            // Release all external references.
+
             _ignite = null;
+            _log = null;
 
             Jvm.Get().ReleaseCallbacks(_igniteId);
 
