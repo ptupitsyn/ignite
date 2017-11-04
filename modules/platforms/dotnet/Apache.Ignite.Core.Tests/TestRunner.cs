@@ -46,7 +46,7 @@ namespace Apache.Ignite.Core.Tests
                 return;
             }
 
-            TestOne(typeof(ComputeApiTest), "TestForDaemons");
+            TestOne(typeof(IgniteStartStopTest), "TestStartStopLeak");
 
             //TestAll(typeof (AffinityFunctionTest));
             //TestAllInAssembly();
