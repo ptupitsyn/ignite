@@ -113,6 +113,8 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
         /// <param name="options">JVM options.</param>
         public static Jvm GetOrCreate(IList<string> options)
         {
+            // TODO: Proper lazy singleton http://jonskeet.uk/csharp/singleton.html
+            // Just cache JVM where it is needed in a readonly field. 
             if (_instance != null)
             {
                 return _instance;
