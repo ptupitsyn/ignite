@@ -24,6 +24,7 @@ namespace Apache.Ignite.Core.Tests
     using System.Threading;
     using System.Threading.Tasks;
     using Apache.Ignite.Core.Common;
+    using Apache.Ignite.Core.Impl.Cluster;
     using Apache.Ignite.Core.Messaging;
     using Apache.Ignite.Core.Tests.Process;
     using NUnit.Framework;
@@ -300,8 +301,14 @@ namespace Apache.Ignite.Core.Tests
         private static void UseIgnite(IIgnite ignite)
         {
             // Create objects holding references to java objects.
-            // TODO: GetCompute causes leak.
-            var comp = ignite.GetCompute();
+            // TODO: ForServers causes leak.
+            //var comp = ignite.GetCluster().ForServers();
+            //((ClusterGroupImpl)comp).Target.Dispose();
+
+            // TODO: GetCache also causes leak.
+            // However, retained is 0 for these objects, what does that mean?
+            //ignite.GetCache<int, int>("cache1");
+
 
             //// ReSharper disable once RedundantAssignment
             //comp = comp.WithKeepBinary();
