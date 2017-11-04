@@ -229,12 +229,13 @@ namespace Apache.Ignite.Core.Tests
                 JvmClasspath = TestUtils.CreateTestClasspath()
             };
 
-            for (var i = 0; i < 20; i++)
+            for (var i = 0; i < 2000; i++)  // TODO: Less iterations
             {
                 Console.WriteLine("Iteration: " + i);
 
                 var grid = Ignition.Start(cfg);
 
+                // TODO: Some usage causes leak. Without this line there is no leak.
                 UseIgnite(grid);
 
                 if (i % 2 == 0) // Try to stop ignite from another thread.
