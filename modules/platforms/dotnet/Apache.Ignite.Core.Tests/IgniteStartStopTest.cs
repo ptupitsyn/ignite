@@ -236,7 +236,6 @@ namespace Apache.Ignite.Core.Tests
 
                 var grid = Ignition.Start(cfg);
 
-                // TODO: Some usage causes leak. Without this line there is no leak.
                 UseIgnite(grid);
 
                 if (i % 2 == 0) // Try to stop ignite from another thread.
@@ -301,31 +300,24 @@ namespace Apache.Ignite.Core.Tests
         private static void UseIgnite(IIgnite ignite)
         {
             // Create objects holding references to java objects.
-            // TODO: ForServers causes leak.
-            var comp = ignite.GetCluster().ForServers();
-            //((ClusterGroupImpl)comp).Target.Dispose();
+            var comp = ignite.GetCompute();
 
-            // TODO: GetCache also causes leak.
-            // However, retained is 0 for these objects, what does that mean?
-            //ignite.GetCache<int, int>("cache1");
+            // ReSharper disable once RedundantAssignment
+            comp = comp.WithKeepBinary();
 
+            var prj = ignite.GetCluster().ForOldest();
 
-            //// ReSharper disable once RedundantAssignment
-            //comp = comp.WithKeepBinary();
+            Assert.IsTrue(prj.GetNodes().Count > 0);
 
-            //var prj = ignite.GetCluster().ForOldest();
+            Assert.IsNotNull(prj.GetCompute());
 
-            //Assert.IsTrue(prj.GetNodes().Count > 0);
+            var cache = ignite.GetCache<int, int>("cache1");
 
-            //Assert.IsNotNull(prj.GetCompute());
+            Assert.IsNotNull(cache);
 
-            //var cache = ignite.GetCache<int, int>("cache1");
+            cache.GetAndPut(1, 1);
 
-            //Assert.IsNotNull(cache);
-
-            //cache.GetAndPut(1, 1);
-
-            //Assert.AreEqual(1, cache.Get(1));
+            Assert.AreEqual(1, cache.Get(1));
         }
 
         /// <summary>
