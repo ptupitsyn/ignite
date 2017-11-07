@@ -92,22 +92,21 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
                 return new Callbacks(env, jvm);
             }
 
-            // We should make sure to regiter callbacks ONLY from default AppDomain (which can't be closed)
+            // JVM exists once per process, and JVM callbacks exist once per process.
+            // We should register callbacks ONLY from the default AppDomain (which can't be unloaded).
             // Non-default appDomains should delegate this logic to the default one.
-            // E.g. if (!AppDomain.CurrentDomain.IsDefault) _callbacks = CreateInstanceAndUnwrap(...)
-
             var defDomain = AppDomains.GetDefaultAppDomain();
 
             // In some cases default AppDomain is not able to locate Apache.Ignite.Core assembly.
             // First, use CreateInstanceFrom to set up the AssemblyResolve handler.
-            var resHelpType = typeof(ResolveHelper);
-            var resHelp = (ResolveHelper)defDomain.CreateInstanceFrom(resHelpType.Assembly.Location, resHelpType.FullName)
+            var resHelpType = typeof(AssemblyResolver);
+            var resHelp = (AssemblyResolver)defDomain.CreateInstanceFrom(resHelpType.Assembly.Location, resHelpType.FullName)
                 .Unwrap();
             resHelp.TrackResolve(resHelpType.Assembly.FullName, resHelpType.Assembly.Location);
 
             // Now use CreateInstance to get the domain helper of a properly loaded class.
-            var type = typeof(DomainHelper);
-            var helper = (DomainHelper)defDomain.CreateInstance(type.Assembly.FullName, type.FullName).Unwrap();
+            var type = typeof(CallbackAccessor);
+            var helper = (CallbackAccessor)defDomain.CreateInstance(type.Assembly.FullName, type.FullName).Unwrap();
 
             return helper.GetCallbacks();
         }
@@ -290,8 +289,15 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
                 [Out] out int size2);
         }
 
-        private class DomainHelper : MarshalByRefObject
+        /// <summary>
+        /// Provides access to <see cref="Callbacks"/> instance in the default AppDomain.
+        /// </summary>
+        /// <seealso cref="System.MarshalByRefObject" />
+        private class CallbackAccessor : MarshalByRefObject
         {
+            /// <summary>
+            /// Gets the callbacks.
+            /// </summary>
             public Callbacks GetCallbacks()
             {
                 // TODO: Make sure native JVM exists.
@@ -299,8 +305,14 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
             }
         }
 
-        private class ResolveHelper : MarshalByRefObject
+        /// <summary>
+        /// Resolves Apache.Ignite.Core assembly in the default AppDomain when needed.
+        /// </summary>
+        private class AssemblyResolver : MarshalByRefObject
         {
+            /// <summary>
+            /// Tracks the AssemblyResolve event.
+            /// </summary>
             public void TrackResolve(string name, string path)
             {
                 AppDomain.CurrentDomain.AssemblyResolve += (sender, args) =>
