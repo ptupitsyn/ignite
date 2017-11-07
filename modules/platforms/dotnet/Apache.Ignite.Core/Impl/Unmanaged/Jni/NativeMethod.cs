@@ -22,15 +22,27 @@ using System;
 namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
 {
     using System.Diagnostics.CodeAnalysis;
+    using System.Runtime.InteropServices;
 
     /// <summary>
-    /// JNINativeMethod.
+    /// JNINativeMethod structure for registering Java -> .NET callbacks.
     /// </summary>
     [SuppressMessage("Microsoft.Design", "CA1049:TypesThatOwnNativeResourcesShouldBeDisposable")]
     internal struct NativeMethod
     {
+        /// <summary>
+        /// Method name, char*.
+        /// </summary>
         public IntPtr Name;
+
+        /// <summary>
+        /// Method signature, char*.
+        /// </summary>
         public IntPtr Signature;
+
+        /// <summary>
+        /// Function pointer (from <see cref="Marshal.GetFunctionPointerForDelegate"/>).
+        /// </summary>
         public IntPtr FuncPtr;
     }
 }

@@ -20,10 +20,13 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
     using System;
     using System.Runtime.InteropServices;
 
-
+    /// <summary>
+    /// JavaVM interface.
+    /// </summary>
     [StructLayout(LayoutKind.Sequential)]
     internal struct JvmInterface
     {
+        // ReSharper disable MemberCanBePrivate.Global
         public IntPtr reserved0;
         public IntPtr reserved1;
         public IntPtr reserved2;

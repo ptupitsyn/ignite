@@ -21,7 +21,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
     using System.Diagnostics;
 
     /// <summary>
-    /// JNI method ids.
+    /// Cached JNI method ids: initialized once on JVM start.
     /// </summary>
     internal class MethodId
     {
