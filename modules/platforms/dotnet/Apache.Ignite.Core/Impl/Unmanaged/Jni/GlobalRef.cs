@@ -25,16 +25,20 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
     {
         private readonly IntPtr _gref;
 
-        public GlobalRef(IntPtr gref)
+        private readonly Jvm _jvm;
+
+        public GlobalRef(IntPtr gref, Jvm jvm)
         {
             Debug.Assert(gref != IntPtr.Zero);
+            Debug.Assert(jvm != null);
 
             _gref = gref;
+            _jvm = jvm;
         }
 
         private void ReleaseUnmanagedResources()
         {
-            Jvm.Get().AttachCurrentThread().DeleteGlobalRef(_gref);
+            _jvm.AttachCurrentThread().DeleteGlobalRef(_gref);
         }
 
         public void Dispose()

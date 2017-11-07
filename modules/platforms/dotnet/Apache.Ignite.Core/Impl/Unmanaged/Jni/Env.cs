@@ -187,7 +187,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
 
             _deleteLocalRef(_envPtr, lref);
 
-            return new GlobalRef(gref);
+            return new GlobalRef(gref, _jvm);
         }
 
         public long CallLongMethod(IUnmanagedTarget obj, IntPtr methodId, long* argsPtr = null)
@@ -351,7 +351,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
 
         public GlobalRef NewGlobalRef(IntPtr lref)
         {
-            return new GlobalRef(_newGlobalRef(_envPtr, lref));
+            return new GlobalRef(_newGlobalRef(_envPtr, lref), _jvm);
         }
 
         public void DeleteGlobalRef(IntPtr gref)

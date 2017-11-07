@@ -79,7 +79,7 @@ namespace Apache.Ignite.Core.Impl
                 jvm.EnableJavaConsoleWriter();
                 var igniteId = jvm.RegisterCallbacks(cbs);
 
-                cbs.SetContext(igniteId);
+                cbs.SetContext(igniteId, jvm);
 
                 // 3. If this is the first JVM created, preserve it.
                 if (_jvmCfg == null)

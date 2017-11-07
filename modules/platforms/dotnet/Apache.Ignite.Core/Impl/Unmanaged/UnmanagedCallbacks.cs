@@ -67,6 +67,12 @@ namespace Apache.Ignite.Core.Impl.Unmanaged
         /** Grid. */
         private volatile Ignite _ignite;
 
+        /** JVM. */
+        private volatile Jvm _jvm;
+
+        /** Log. */
+        private volatile ILogger _log;
+
         /** Max op code. */
         private static readonly int MaxOpCode = Enum.GetValues(typeof(UnmanagedCallbackOp)).Cast<int>().Max();
 
@@ -82,9 +88,6 @@ namespace Apache.Ignite.Core.Impl.Unmanaged
 
         /** Actions to be called upon Ignite initialization. */
         private readonly List<Action<Ignite>> _initActions = new List<Action<Ignite>>();
-
-        /** Log. */
-        private ILogger _log;
 
         /** Operation: prepare .Net. */
         private const int OpPrepareDotNet = 1;
@@ -1241,9 +1244,12 @@ namespace Apache.Ignite.Core.Impl.Unmanaged
         /// <summary>
         /// Sets the context.
         /// </summary>
-        public void SetContext(long igniteId)
+        public void SetContext(long igniteId, Jvm jvm)
         {
+            Debug.Assert(jvm != null);
+
             _igniteId = igniteId;
+            _jvm = jvm;
         }
 
         /// <summary>
@@ -1279,7 +1285,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged
             _ignite = null;
             _log = null;
 
-            Jvm.Get().ReleaseCallbacks(_igniteId);
+            _jvm.ReleaseCallbacks(_igniteId);
 
             _handleRegistry.Close();
         }
