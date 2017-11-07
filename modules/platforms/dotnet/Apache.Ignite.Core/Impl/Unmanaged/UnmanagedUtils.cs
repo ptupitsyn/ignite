@@ -46,8 +46,8 @@ namespace Apache.Ignite.Core.Impl.Unmanaged
                 mem.WriteBool(false);
 
                 long* args = stackalloc long[5];
-                args[0] = cfgPath0.Target.ToInt64();
-                args[1] = gridName0.Target.ToInt64();
+                args[0] = cfgPath == null ? 0 : cfgPath0.Target.ToInt64();
+                args[1] = gridName == null ? 0 : gridName0.Target.ToInt64();
                 args[2] = InteropFactoryId;
                 args[3] = igniteId;
                 args[4] = mem.SynchronizeOutput();
@@ -66,7 +66,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged
             using (var gridName1 = env.NewStringUtf(gridName))
             {
                 long* args = stackalloc long[2];
-                args[0] = gridName1.Target.ToInt64();
+                args[0] = gridName == null ? 0 : gridName1.Target.ToInt64();
                 args[1] = cancel ? 1 : 0;
 
                 return env.CallStaticBoolMethod(methodId.PlatformIgnition, methodId.PlatformIgnitionStop, args);
