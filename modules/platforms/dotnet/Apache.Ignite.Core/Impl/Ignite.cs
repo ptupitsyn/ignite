@@ -40,7 +40,6 @@ namespace Apache.Ignite.Core.Impl
     using Apache.Ignite.Core.Impl.Datastream;
     using Apache.Ignite.Core.Impl.DataStructures;
     using Apache.Ignite.Core.Impl.Handle;
-    using Apache.Ignite.Core.Impl.Log;
     using Apache.Ignite.Core.Impl.Plugin;
     using Apache.Ignite.Core.Impl.Transactions;
     using Apache.Ignite.Core.Impl.Unmanaged;
@@ -391,14 +390,6 @@ namespace Apache.Ignite.Core.Impl
             UU.IgnitionStop(Name, cancel);
 
             _cbs.Cleanup();
-
-            _proc.Dispose();
-
-            var javaLogger = Logger as JavaLogger;
-            if (javaLogger != null)
-            {
-                javaLogger.SetIgnite(null);
-            }
         }
 
         /// <summary>
