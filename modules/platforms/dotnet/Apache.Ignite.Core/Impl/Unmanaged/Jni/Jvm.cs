@@ -128,12 +128,15 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
         /// </summary>
         public static Jvm Get()
         {
-            if (_instance == null)
+            lock (SyncRoot)
             {
-                throw new IgniteException("JVM has not been created.");
-            }
+                if (_instance == null)
+                {
+                    throw new IgniteException("JVM has not been created.");
+                }
 
-            return _instance;
+                return _instance;
+            }
         }
 
         /// <summary>
@@ -301,7 +304,6 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
             /// </summary>
             public Callbacks GetCallbacks()
             {
-                // TODO: Make sure native JVM exists.
                 return GetOrCreate(null)._callbacks;
             }
         }
