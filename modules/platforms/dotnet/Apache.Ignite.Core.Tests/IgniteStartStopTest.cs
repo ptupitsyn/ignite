@@ -229,7 +229,7 @@ namespace Apache.Ignite.Core.Tests
                 JvmClasspath = TestUtils.CreateTestClasspath()
             };
 
-            for (var i = 0; i < 2000; i++)  // TODO: Less iterations
+            for (var i = 0; i < 20; i++)
             {
                 Console.WriteLine("Iteration: " + i);
 
