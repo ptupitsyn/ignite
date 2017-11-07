@@ -127,6 +127,8 @@ namespace Apache.Ignite.Core.Impl.Unmanaged
         internal static IUnmanagedTarget TargetInObjectStreamOutObjectStream(IUnmanagedTarget target, int opType, 
             IUnmanagedTarget arg, long inMemPtr, long outMemPtr)
         {
+            // TODO: Remove all mentions of Jvm.Get. 
+            // IUnmanagedTarget is always a GlobalRef which has the JVM in it.
             var jvm = Jvm.Get();
 
             long* args = stackalloc long[4];
