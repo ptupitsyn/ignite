@@ -79,7 +79,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged
 
         internal static long TargetInLongOutLong(GlobalRef target, int opType, long memPtr)
         {
-            var jvm = Jvm.Get();
+            var jvm = target.Jvm;
 
             long* args = stackalloc long[2];
             args[0] = opType;
@@ -90,7 +90,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged
 
         internal static long TargetInStreamOutLong(GlobalRef target, int opType, long memPtr)
         {
-            var jvm = Jvm.Get();
+            var jvm = target.Jvm;
 
             long* args = stackalloc long[2];
             args[0] = opType;
@@ -102,7 +102,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged
         internal static void TargetInStreamOutStream(GlobalRef target, int opType, long inMemPtr,
             long outMemPtr)
         {
-            var jvm = Jvm.Get();
+            var jvm = target.Jvm;
 
             long* args = stackalloc long[3];
             args[0] = opType;
@@ -114,7 +114,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged
 
         internal static GlobalRef TargetInStreamOutObject(GlobalRef target, int opType, long inMemPtr)
         {
-            var jvm = Jvm.Get();
+            var jvm = target.Jvm;
 
             long* args = stackalloc long[2];
             args[0] = opType;
@@ -127,9 +127,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged
         internal static GlobalRef TargetInObjectStreamOutObjectStream(GlobalRef target, int opType, 
             GlobalRef arg, long inMemPtr, long outMemPtr)
         {
-            // TODO: Remove all mentions of Jvm.Get. 
-            // IUnmanagedTarget is always a GlobalRef which has the JVM in it.
-            var jvm = Jvm.Get();
+            var jvm = target.Jvm;
 
             long* args = stackalloc long[4];
             args[0] = opType;
@@ -143,7 +141,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged
 
         internal static void TargetOutStream(GlobalRef target, int opType, long memPtr)
         {
-            var jvm = Jvm.Get();
+            var jvm = target.Jvm;
 
             long* args = stackalloc long[4];
             args[0] = opType;
@@ -154,7 +152,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged
 
         internal static GlobalRef TargetOutObject(GlobalRef target, int opType)
         {
-            var jvm = Jvm.Get();
+            var jvm = target.Jvm;
 
             long opType0 = opType;
 
@@ -164,7 +162,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged
 
         internal static void TargetInStreamAsync(GlobalRef target, int opType, long memPtr)
         {
-            var jvm = Jvm.Get();
+            var jvm = target.Jvm;
 
             long* args = stackalloc long[4];
             args[0] = opType;
@@ -175,7 +173,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged
 
         internal static GlobalRef TargetInStreamOutObjectAsync(GlobalRef target, int opType, long memPtr)
         {
-            var jvm = Jvm.Get();
+            var jvm = target.Jvm;
 
             long* args = stackalloc long[4];
             args[0] = opType;
@@ -202,11 +200,12 @@ namespace Apache.Ignite.Core.Impl.Unmanaged
                 args);
         }
 
-        internal static void ThrowToJava(Exception e)
+        internal static void ThrowToJava(Exception e, Jvm jvm)
         {
             Debug.Assert(e != null);
+            Debug.Assert(jvm != null);
 
-            Jvm.Get().AttachCurrentThread().ThrowToJava(e.Message);
+            jvm.AttachCurrentThread().ThrowToJava(e.Message);
         }
 
         #endregion
