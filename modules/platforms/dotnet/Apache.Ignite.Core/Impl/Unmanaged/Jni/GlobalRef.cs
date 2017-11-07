@@ -21,41 +21,64 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
 {
     using System.Diagnostics;
 
-    internal class GlobalRef : IUnmanagedTarget
+    /// <summary>
+    /// JNI Global Reference.
+    /// </summary>
+    internal class GlobalRef : IDisposable
     {
-        private readonly IntPtr _gref;
+        /** Reference. */
+        private readonly IntPtr _target;
 
+        /** JVM. */
         private readonly Jvm _jvm;
 
-        public GlobalRef(IntPtr gref, Jvm jvm)
+        /// <summary>
+        /// Initializes a new instance of the <see cref="GlobalRef"/> class.
+        /// </summary>
+        public GlobalRef(IntPtr target, Jvm jvm)
         {
-            Debug.Assert(gref != IntPtr.Zero);
+            Debug.Assert(target != IntPtr.Zero);
             Debug.Assert(jvm != null);
 
-            _gref = gref;
+            _target = target;
             _jvm = jvm;
         }
 
-        private void ReleaseUnmanagedResources()
+        /// <summary>
+        /// Gets the target.
+        /// </summary>
+        public IntPtr Target
         {
-            _jvm.AttachCurrentThread().DeleteGlobalRef(_gref);
+            get { return _target; }
         }
 
+        /// <summary>
+        /// Gets the JVM.
+        /// </summary>
+        public Jvm Jvm
+        {
+            get { return _jvm; }
+        }
+
+        /// <summary>
+        /// Releases the unmanaged resources.
+        /// </summary>
+        private void ReleaseUnmanagedResources()
+        {
+            _jvm.AttachCurrentThread().DeleteGlobalRef(_target);
+        }
+
+        /** <inheritdoc /> */
         public void Dispose()
         {
             ReleaseUnmanagedResources();
             GC.SuppressFinalize(this);
         }
 
+        /** <inheritdoc /> */
         ~GlobalRef()
         {
             ReleaseUnmanagedResources();
-        }
-
-        /** <inheritdoc /> */
-        public IntPtr Target
-        {
-            get { return _gref; }
         }
     }
 }

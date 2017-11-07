@@ -159,14 +159,14 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
             get { return _jvm; }
         }
 
-        public void CallStaticVoidMethod(IUnmanagedTarget cls, IntPtr methodId, long* argsPtr = null)
+        public void CallStaticVoidMethod(GlobalRef cls, IntPtr methodId, long* argsPtr = null)
         {
             _callStaticVoidMethod(_envPtr, cls.Target, methodId, argsPtr);
 
             ExceptionCheck();
         }
 
-        public bool CallStaticBoolMethod(IUnmanagedTarget cls, IntPtr methodId, long* argsPtr = null)
+        public bool CallStaticBoolMethod(GlobalRef cls, IntPtr methodId, long* argsPtr = null)
         {
             var res = _callStaticBoolMethod(_envPtr, cls.Target, methodId, argsPtr);
 
@@ -175,7 +175,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
             return res > 0;
         }
 
-        public GlobalRef CallObjectMethod(IUnmanagedTarget obj, IntPtr methodId, long* argsPtr = null)
+        public GlobalRef CallObjectMethod(GlobalRef obj, IntPtr methodId, long* argsPtr = null)
         {
             var lref = _callObjectMethod(_envPtr, obj.Target, methodId, argsPtr);
 
@@ -184,7 +184,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
             return NewGlobalRef(lref);
         }
 
-        public long CallLongMethod(IUnmanagedTarget obj, IntPtr methodId, long* argsPtr = null)
+        public long CallLongMethod(GlobalRef obj, IntPtr methodId, long* argsPtr = null)
         {
             var res = _callLongMethod(_envPtr, obj.Target, methodId, argsPtr);
 
@@ -193,7 +193,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
             return res;
         }
 
-        public void CallVoidMethod(IUnmanagedTarget obj, IntPtr methodId, long* argsPtr = null)
+        public void CallVoidMethod(GlobalRef obj, IntPtr methodId, long* argsPtr = null)
         {
             _callVoidMethod(_envPtr, obj.Target, methodId, argsPtr);
 
@@ -218,7 +218,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
             return NewGlobalRef(res);
         }
 
-        public GlobalRef GetObjectClass(IUnmanagedTarget obj)
+        public GlobalRef GetObjectClass(GlobalRef obj)
         {
             var res = _getObjectClass(_envPtr, obj.Target);
 
@@ -227,7 +227,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
             return NewGlobalRef(res);
         }
 
-        public IntPtr GetStaticMethodId(IUnmanagedTarget clazz, string name, string signature)
+        public IntPtr GetStaticMethodId(GlobalRef clazz, string name, string signature)
         {
             var res = _getStaticMethodId(_envPtr, clazz.Target, name, signature);
 
@@ -236,7 +236,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
             return res;
         }
 
-        public IntPtr GetMethodId(IUnmanagedTarget clazz, string name, string signature)
+        public IntPtr GetMethodId(GlobalRef clazz, string name, string signature)
         {
             var res = _getMethodId(_envPtr, clazz.Target, name, signature);
 
@@ -298,7 +298,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
             return _getStringUtfLength(_envPtr, jstring);
         }
 
-        public void RegisterNatives(IUnmanagedTarget clazz, NativeMethod[] methods)
+        public void RegisterNatives(GlobalRef clazz, NativeMethod[] methods)
         {
             Debug.Assert(methods != null);
 
@@ -313,7 +313,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
             }
         }
 
-        public string JStringToString(IUnmanagedTarget jstring)
+        public string JStringToString(GlobalRef jstring)
         {
             return JStringToString(jstring.Target);
         }

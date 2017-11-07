@@ -30,7 +30,7 @@ namespace Apache.Ignite.Core.Impl
     using Apache.Ignite.Core.Impl.Binary.IO;
     using Apache.Ignite.Core.Impl.Common;
     using Apache.Ignite.Core.Impl.Memory;
-    using Apache.Ignite.Core.Impl.Unmanaged;
+    using Apache.Ignite.Core.Impl.Unmanaged.Jni;
     using Apache.Ignite.Core.Interop;
     using BinaryReader = Apache.Ignite.Core.Impl.Binary.BinaryReader;
     using BinaryWriter = Apache.Ignite.Core.Impl.Binary.BinaryWriter;
@@ -56,7 +56,7 @@ namespace Apache.Ignite.Core.Impl
             };
         
         /** Unmanaged target. */
-        private readonly IUnmanagedTarget _target;
+        private readonly GlobalRef _target;
 
         /** Marshaller. */
         private readonly Marshaller _marsh;
@@ -66,7 +66,7 @@ namespace Apache.Ignite.Core.Impl
         /// </summary>
         /// <param name="target">Target.</param>
         /// <param name="marsh">Marshaller.</param>
-        public PlatformJniTarget(IUnmanagedTarget target, Marshaller marsh)
+        public PlatformJniTarget(GlobalRef target, Marshaller marsh)
         {
             Debug.Assert(target != null);
             Debug.Assert(marsh != null);
@@ -78,7 +78,7 @@ namespace Apache.Ignite.Core.Impl
         /// <summary>
         /// Gets the target.
         /// </summary>
-        public IUnmanagedTarget Target
+        public GlobalRef Target
         {
             get { return _target; }
         }
@@ -293,7 +293,7 @@ namespace Apache.Ignite.Core.Impl
         /// <param name="convertFunc">The function to read future result from stream.</param>
         /// <returns>Created future.</returns>
         [SuppressMessage("Microsoft.Reliability", "CA2000:Dispose objects before losing scope")]
-        private Future<T> GetFuture<T>(Func<long, int, IUnmanagedTarget> listenAction, bool keepBinary = false,
+        private Future<T> GetFuture<T>(Func<long, int, GlobalRef> listenAction, bool keepBinary = false,
             Func<BinaryReader, T> convertFunc = null)
         {
             var futType = FutureType.Object;
@@ -309,7 +309,7 @@ namespace Apache.Ignite.Core.Impl
 
             var futHnd = _marsh.Ignite.HandleRegistry.Allocate(fut);
 
-            IUnmanagedTarget futTarget;
+            GlobalRef futTarget;
 
             try
             {
@@ -613,7 +613,7 @@ namespace Apache.Ignite.Core.Impl
         /// <summary>
         /// Gets the platform target.
         /// </summary>
-        private IPlatformTargetInternal GetPlatformTarget(IUnmanagedTarget target)
+        private IPlatformTargetInternal GetPlatformTarget(GlobalRef target)
         {
             return target == null ? null : new PlatformJniTarget(target, _marsh);
         }
@@ -621,7 +621,7 @@ namespace Apache.Ignite.Core.Impl
         /// <summary>
         /// Gets the target pointer.
         /// </summary>
-        private static IUnmanagedTarget GetTargetPtr(IPlatformTarget target)
+        private static GlobalRef GetTargetPtr(IPlatformTarget target)
         {
             return target == null ? null : ((PlatformJniTarget) target)._target;
         }

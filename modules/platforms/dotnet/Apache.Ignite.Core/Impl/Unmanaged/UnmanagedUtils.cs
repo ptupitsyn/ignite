@@ -77,7 +77,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged
 
         #region NATIVE METHODS: TARGET
 
-        internal static long TargetInLongOutLong(IUnmanagedTarget target, int opType, long memPtr)
+        internal static long TargetInLongOutLong(GlobalRef target, int opType, long memPtr)
         {
             var jvm = Jvm.Get();
 
@@ -88,7 +88,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged
             return jvm.AttachCurrentThread().CallLongMethod(target, jvm.MethodId.TargetInLongOutLong, args);
         }
 
-        internal static long TargetInStreamOutLong(IUnmanagedTarget target, int opType, long memPtr)
+        internal static long TargetInStreamOutLong(GlobalRef target, int opType, long memPtr)
         {
             var jvm = Jvm.Get();
 
@@ -99,7 +99,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged
             return jvm.AttachCurrentThread().CallLongMethod(target, jvm.MethodId.TargetInStreamOutLong, args);
         }
 
-        internal static void TargetInStreamOutStream(IUnmanagedTarget target, int opType, long inMemPtr,
+        internal static void TargetInStreamOutStream(GlobalRef target, int opType, long inMemPtr,
             long outMemPtr)
         {
             var jvm = Jvm.Get();
@@ -112,7 +112,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged
             jvm.AttachCurrentThread().CallVoidMethod(target, jvm.MethodId.TargetInStreamOutStream, args);
         }
 
-        internal static IUnmanagedTarget TargetInStreamOutObject(IUnmanagedTarget target, int opType, long inMemPtr)
+        internal static GlobalRef TargetInStreamOutObject(GlobalRef target, int opType, long inMemPtr)
         {
             var jvm = Jvm.Get();
 
@@ -124,8 +124,8 @@ namespace Apache.Ignite.Core.Impl.Unmanaged
                 target, jvm.MethodId.TargetInStreamOutObject, args);
         }
 
-        internal static IUnmanagedTarget TargetInObjectStreamOutObjectStream(IUnmanagedTarget target, int opType, 
-            IUnmanagedTarget arg, long inMemPtr, long outMemPtr)
+        internal static GlobalRef TargetInObjectStreamOutObjectStream(GlobalRef target, int opType, 
+            GlobalRef arg, long inMemPtr, long outMemPtr)
         {
             // TODO: Remove all mentions of Jvm.Get. 
             // IUnmanagedTarget is always a GlobalRef which has the JVM in it.
@@ -141,7 +141,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged
                 target, jvm.MethodId.TargetInObjectStreamOutObjectStream, args);
         }
 
-        internal static void TargetOutStream(IUnmanagedTarget target, int opType, long memPtr)
+        internal static void TargetOutStream(GlobalRef target, int opType, long memPtr)
         {
             var jvm = Jvm.Get();
 
@@ -152,7 +152,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged
             jvm.AttachCurrentThread().CallVoidMethod(target, jvm.MethodId.TargetOutStream, args);
         }
 
-        internal static IUnmanagedTarget TargetOutObject(IUnmanagedTarget target, int opType)
+        internal static GlobalRef TargetOutObject(GlobalRef target, int opType)
         {
             var jvm = Jvm.Get();
 
@@ -162,7 +162,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged
                 target, jvm.MethodId.TargetOutObject, &opType0);
         }
 
-        internal static void TargetInStreamAsync(IUnmanagedTarget target, int opType, long memPtr)
+        internal static void TargetInStreamAsync(GlobalRef target, int opType, long memPtr)
         {
             var jvm = Jvm.Get();
 
@@ -173,7 +173,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged
             jvm.AttachCurrentThread().CallVoidMethod(target, jvm.MethodId.TargetInStreamAsync, args);
         }
 
-        internal static IUnmanagedTarget TargetInStreamOutObjectAsync(IUnmanagedTarget target, int opType, long memPtr)
+        internal static GlobalRef TargetInStreamOutObjectAsync(GlobalRef target, int opType, long memPtr)
         {
             var jvm = Jvm.Get();
 
