@@ -23,6 +23,8 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
     internal enum JniResult
     {
         Success = 0,
+        // ReSharper disable UnusedMember.Global
+        // Some statuses are not used directly, but will be displayed as part of error message.
         Error = -1,
         ThreadDetached = -2,
         VersionError = -3,
