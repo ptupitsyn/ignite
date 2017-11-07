@@ -128,7 +128,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
             }
 
             PlatformIgnition = env.FindClass(
-                "org/apache/ignite/internal/processors/platform/PlatformIgnition").ToGlobal();
+                "org/apache/ignite/internal/processors/platform/PlatformIgnition");
             PlatformIgnitionStart = env.GetStaticMethodId(PlatformIgnition,
                 "start", "(Ljava/lang/String;Ljava/lang/String;IJJ)V");
             PlatformIgnitionStop = env.GetStaticMethodId(PlatformIgnition, "stop", "(Ljava/lang/String;Z)Z");
@@ -148,8 +148,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
                     env.GetMethodId(target, "inStreamOutObjectAsync", "(IJ)Ljava/lang/Object;");
             }
 
-            PlatformUtils = env.FindClass("org/apache/ignite/internal/processors/platform/utils/PlatformUtils")
-                .ToGlobal();
+            PlatformUtils = env.FindClass("org/apache/ignite/internal/processors/platform/utils/PlatformUtils");
             PlatformUtilsGetStackTrace = env.GetStaticMethodId(PlatformUtils, "getFullStackTrace",
                 "(Ljava/lang/Throwable;)Ljava/lang/String;");
             PlatformUtilsReallocate = env.GetStaticMethodId(PlatformUtils, "reallocate", "(JI)V");

@@ -206,31 +206,31 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
             ExceptionCheck();
         }
 
-        public LocalRef CallStaticObjectMethod(GlobalRef cls, IntPtr methodId, long* argsPtr = null)
+        public GlobalRef CallStaticObjectMethod(GlobalRef cls, IntPtr methodId, long* argsPtr = null)
         {
             var res = _callStaticObjectMethod(_envPtr, cls.Target, methodId, argsPtr);
 
             ExceptionCheck();
 
-            return new LocalRef(this, res);
+            return NewGlobalRef(res);
         }
 
-        public LocalRef FindClass(string name)
+        public GlobalRef FindClass(string name)
         {
             var res = _findClass(_envPtr, name);
 
             ExceptionCheck();
 
-            return new LocalRef(this, res);
+            return NewGlobalRef(res);
         }
 
-        public LocalRef GetObjectClass(IUnmanagedTarget obj)
+        public GlobalRef GetObjectClass(IUnmanagedTarget obj)
         {
             var res = _getObjectClass(_envPtr, obj.Target);
 
             ExceptionCheck();
 
-            return new LocalRef(this, res);
+            return NewGlobalRef(res);
         }
 
         public IntPtr GetStaticMethodId(IUnmanagedTarget clazz, string name, string signature)
@@ -251,25 +251,25 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
             return res;
         }
 
-        public LocalRef NewStringUtf(sbyte* utf)
+        public GlobalRef NewStringUtf(sbyte* utf)
         {
             if (utf == null)
             {
-                return new LocalRef();
+                return null;
             }
 
             var res = _newStringUtf(_envPtr, new IntPtr(utf));
 
             ExceptionCheck();
 
-            return new LocalRef(this, res);
+            return NewGlobalRef(res);
         }
 
-        public LocalRef NewStringUtf(string str)
+        public GlobalRef NewStringUtf(string str)
         {
             if (str == null)
             {
-                return new LocalRef();
+                return null;
             }
 
             var chars = IgniteUtils.StringToUtf8Unmanaged(str);
@@ -304,7 +304,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
             return _getStringUtfLength(_envPtr, jstring);
         }
 
-        public void RegisterNatives(LocalRef clazz, NativeMethod[] methods)
+        public void RegisterNatives(IUnmanagedTarget clazz, NativeMethod[] methods)
         {
             Debug.Assert(methods != null);
 
@@ -392,7 +392,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
 
             _exceptionClear(_envPtr);
 
-            using (var errRef = new LocalRef(this, err))
+            using (var errRef = NewGlobalRef(err))
             {
                 var errRef0 = (long) errRef.Target;
                 var methodId = _jvm.MethodId;
