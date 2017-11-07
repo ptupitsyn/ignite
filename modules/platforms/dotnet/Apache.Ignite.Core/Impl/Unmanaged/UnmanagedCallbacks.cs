@@ -634,7 +634,8 @@ namespace Apache.Ignite.Core.Impl.Unmanaged
 
                 if (receiver != null)
                 {
-                    var target = new PlatformJniTarget(new NonReleasableRef(new IntPtr(cache)), _ignite.Marshaller);
+                    var cacheRef = _jvm.AttachCurrentThread().NewGlobalRef((IntPtr) cache);
+                    var target = new PlatformJniTarget(cacheRef, _ignite.Marshaller);
                     receiver.Receive(_ignite, target, stream, keepBinary);
                 }
 
