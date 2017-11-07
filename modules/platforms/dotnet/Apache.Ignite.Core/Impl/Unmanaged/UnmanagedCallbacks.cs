@@ -64,11 +64,11 @@ namespace Apache.Ignite.Core.Impl.Unmanaged
         /** Handle registry. */
         private readonly HandleRegistry _handleRegistry = new HandleRegistry();
 
+        /** JVM. */
+        private readonly Jvm _jvm;
+
         /** Grid. */
         private volatile Ignite _ignite;
-
-        /** JVM. */
-        private volatile Jvm _jvm;
 
         /** Log. */
         private volatile ILogger _log;
@@ -99,11 +99,14 @@ namespace Apache.Ignite.Core.Impl.Unmanaged
         /// Constructor.
         /// </summary>
         /// <param name="log">Logger.</param>
-        public UnmanagedCallbacks(ILogger log)
+        /// <param name="jvm"></param>
+        public UnmanagedCallbacks(ILogger log, Jvm jvm)
         {
             Debug.Assert(log != null);
+            Debug.Assert(jvm != null);
 
             _log = log;
+            _jvm = jvm;
 
             InitHandlers();
         }
@@ -122,6 +125,14 @@ namespace Apache.Ignite.Core.Impl.Unmanaged
         public long IgniteId
         {
             get { return _igniteId; }
+        }
+
+        /// <summary>
+        /// Gets the JVM.
+        /// </summary>
+        public Jvm Jvm
+        {
+            get { return _jvm; }
         }
 
         #region HANDLERS
@@ -1246,12 +1257,9 @@ namespace Apache.Ignite.Core.Impl.Unmanaged
         /// <summary>
         /// Sets the context.
         /// </summary>
-        public void SetContext(long igniteId, Jvm jvm)
+        public void SetContext(long igniteId)
         {
-            Debug.Assert(jvm != null);
-
             _igniteId = igniteId;
-            _jvm = jvm;
         }
 
         /// <summary>

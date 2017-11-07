@@ -53,10 +53,9 @@ namespace Apache.Ignite.Core.Impl
         /// Create JVM.
         /// </summary>
         /// <param name="cfg">Configuration.</param>
-        /// <param name="cbs">Callbacks.</param>
-        /// <param name="log"></param>
-        /// <returns>Context.</returns>
-        internal static Jvm CreateJvmContext(IgniteConfiguration cfg, UnmanagedCallbacks cbs, ILogger log)
+        /// <param name="log">Logger</param>
+        /// <returns>Callback context.</returns>
+        internal static UnmanagedCallbacks CreateJvmContext(IgniteConfiguration cfg, ILogger log)
         {
             lock (SyncRoot)
             {
@@ -77,17 +76,17 @@ namespace Apache.Ignite.Core.Impl
                 // 2. Create unmanaged pointer.
                 var jvm = CreateJvm(cfg);
                 jvm.EnableJavaConsoleWriter();
-                var igniteId = jvm.RegisterCallbacks(cbs);
 
-                cbs.SetContext(igniteId, jvm);
+                var cbs = new UnmanagedCallbacks(log, jvm);
+                jvm.RegisterCallbacks(cbs);
 
-                // 3. If this is the first JVM created, preserve it.
+                // 3. If this is the first JVM created, preserve configuration.
                 if (_jvmCfg == null)
                 {
                     _jvmCfg = jvmCfg;
                 }
 
-                return jvm;
+                return cbs;
             }
         }
         
