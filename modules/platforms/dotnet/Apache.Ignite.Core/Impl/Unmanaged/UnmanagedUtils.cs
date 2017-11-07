@@ -202,11 +202,6 @@ namespace Apache.Ignite.Core.Impl.Unmanaged
                 args);
         }
 
-        internal static IUnmanagedTarget Acquire(void* target)
-        {
-            return Jvm.Get().AttachCurrentThread().NewGlobalRef(new IntPtr(target));
-        }
-
         internal static void ThrowToJava(Exception e)
         {
             Debug.Assert(e != null);

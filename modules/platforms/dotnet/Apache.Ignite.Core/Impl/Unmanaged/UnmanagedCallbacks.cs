@@ -1022,7 +1022,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged
 
         private long OnStart(long memPtr, long unused, long unused1, void* proc)
         {
-            var proc0 = UU.Acquire(proc);
+            var proc0 = _jvm.AttachCurrentThread().NewGlobalRef((IntPtr) proc);
 
             using (var stream = IgniteManager.Memory.Get(memPtr).GetStream())
             {
@@ -1119,7 +1119,8 @@ namespace Apache.Ignite.Core.Impl.Unmanaged
 
                 if (affBase != null)
                 {
-                    var baseFunc0 = new PlatformJniTarget(UU.Acquire(baseFunc), _ignite.Marshaller);
+                    var baseFuncRef = _jvm.AttachCurrentThread().NewGlobalRef((IntPtr) baseFunc);
+                    var baseFunc0 = new PlatformJniTarget(baseFuncRef, _ignite.Marshaller);
 
                     affBase.SetBaseFunction(new PlatformAffinityFunction(baseFunc0));
                 }
