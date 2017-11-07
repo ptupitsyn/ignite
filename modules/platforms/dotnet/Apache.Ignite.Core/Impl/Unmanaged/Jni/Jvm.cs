@@ -75,36 +75,41 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
 
             var funcPtr = (JvmInterface**)jvmPtr;
             var func = **funcPtr;
-
             GetDelegate(func.AttachCurrentThread, out _attachCurrentThread);
 
             var env = AttachCurrentThread();
             _methodId = new MethodId(env);
+            _callbacks = GetCallbacks(env, this);
+        }
 
-            if (!AppDomain.CurrentDomain.IsDefaultAppDomain())
+        /// <summary>
+        /// Gets the callbacks.
+        /// </summary>
+        private static Callbacks GetCallbacks(Env env, Jvm jvm)
+        {
+            if (AppDomain.CurrentDomain.IsDefaultAppDomain())
             {
-                // We should make sure to regiter callbacks ONLY from default AppDomain (which can't be closed)
-                // Non-default appDomains should delegate this logic to the default one.
-                // E.g. if (!AppDomain.CurrentDomain.IsDefault) _callbacks = CreateInstanceAndUnwrap(...)
-
-                // TODO: Clean this stuff up.
-                var defDomain = AppDomains.GetDefaultAppDomain();
-
-                // In some cases default AppDomain is not able to locate Apache.Ignite.Core assembly.
-                // First, use CreateInstanceFrom to set up the AssemblyResolve handler.
-                var resHelpType = typeof(ResolveHelper);
-                var resHelp = (ResolveHelper)defDomain.CreateInstanceFrom(resHelpType.Assembly.Location, resHelpType.FullName).Unwrap();
-                resHelp.TrackResolve(resHelpType.Assembly.FullName, resHelpType.Assembly.Location);
-
-                // Now use CreateInstance to get the domain helper of a properly loaded class.
-                var type = typeof(DomainHelper);
-                var helper = (DomainHelper) defDomain.CreateInstance(type.Assembly.FullName, type.FullName).Unwrap();
-                _callbacks = helper.GetCallbacks();
+                return new Callbacks(env, jvm);
             }
-            else
-            {
-                _callbacks = new Callbacks(env, this);
-            }
+
+            // We should make sure to regiter callbacks ONLY from default AppDomain (which can't be closed)
+            // Non-default appDomains should delegate this logic to the default one.
+            // E.g. if (!AppDomain.CurrentDomain.IsDefault) _callbacks = CreateInstanceAndUnwrap(...)
+
+            var defDomain = AppDomains.GetDefaultAppDomain();
+
+            // In some cases default AppDomain is not able to locate Apache.Ignite.Core assembly.
+            // First, use CreateInstanceFrom to set up the AssemblyResolve handler.
+            var resHelpType = typeof(ResolveHelper);
+            var resHelp = (ResolveHelper)defDomain.CreateInstanceFrom(resHelpType.Assembly.Location, resHelpType.FullName)
+                .Unwrap();
+            resHelp.TrackResolve(resHelpType.Assembly.FullName, resHelpType.Assembly.Location);
+
+            // Now use CreateInstance to get the domain helper of a properly loaded class.
+            var type = typeof(DomainHelper);
+            var helper = (DomainHelper)defDomain.CreateInstance(type.Assembly.FullName, type.FullName).Unwrap();
+
+            return helper.GetCallbacks();
         }
 
         /// <summary>
