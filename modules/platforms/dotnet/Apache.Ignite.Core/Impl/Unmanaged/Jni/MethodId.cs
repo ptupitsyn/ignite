@@ -23,7 +23,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
     /// <summary>
     /// Cached JNI method ids: initialized once on JVM start.
     /// </summary>
-    internal class MethodId
+    internal sealed class MethodId
     {
         /// <summary>
         /// Class.getName().

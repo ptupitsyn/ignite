@@ -22,7 +22,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
     /// <summary>
     /// Console writer.
     /// </summary>
-    internal class ConsoleWriter : MarshalByRefObject
+    internal sealed class ConsoleWriter : MarshalByRefObject
     {
         /// <summary>
         /// Writes the specified message to console.

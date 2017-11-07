@@ -27,7 +27,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
     /// We should always convert local reference to global and delete local one immediately,
     /// otherwise these local references may cause memory leaks (false GC roots).
     /// </summary>
-    internal class GlobalRef : IDisposable
+    internal sealed class GlobalRef : IDisposable
     {
         /** Reference. */
         private readonly IntPtr _target;

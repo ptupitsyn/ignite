@@ -32,7 +32,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
     /// Java -> .NET callback dispatcher.
     /// Instance of this class should only exist once per process, in the default AppDomain.
     /// </summary>
-    internal class Callbacks : MarshalByRefObject
+    internal sealed class Callbacks : MarshalByRefObject
     {
         /** Holds delegates so that GC does not collect them. */
         // ReSharper disable once CollectionNeverQueried.Local

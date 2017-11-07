@@ -27,7 +27,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
     /// JNIEnv.
     /// </summary>
     [SuppressUnmanagedCodeSecurity]
-    internal unsafe class Env
+    internal sealed unsafe class Env
     {
         /** JNIEnv pointer. */
         private readonly IntPtr _envPtr;
