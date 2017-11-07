@@ -26,6 +26,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
     using System.Runtime.InteropServices;
     using System.Threading;
     using Apache.Ignite.Core.Impl.Handle;
+    using Apache.Ignite.Core.Log;
 
     /// <summary>
     /// Java -> .NET callback dispatcher.
@@ -164,6 +165,9 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
             };
         }
 
+        /// <summary>
+        /// <see cref="ILogger.Log"/> callback.
+        /// </summary>
         private void LoggerLog(IntPtr envPtr, IntPtr clazz, long igniteId, int level, IntPtr message, IntPtr category,
             IntPtr errorInfo, long memPtr)
         {
@@ -177,6 +181,9 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
             cbs.LoggerLog(level, message0, category0, errorInfo0, memPtr);
         }
 
+        /// <summary>
+        /// <see cref="ILogger.IsEnabled"/> callback.
+        /// </summary>
         private bool LoggerIsLevelEnabled(IntPtr env, IntPtr clazz, long igniteId, int level)
         {
             var cbs = _callbackRegistry.Get<UnmanagedCallbacks>(igniteId, true);
@@ -184,6 +191,9 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
             return cbs.LoggerIsLevelEnabled(level);
         }
 
+        /// <summary>
+        /// 3 longs + object -> long.
+        /// </summary>
         private long InLongLongLongObjectOutLong(IntPtr env, IntPtr clazz, long igniteId,
             int op, long arg1, long arg2, long arg3, IntPtr arg)
         {
@@ -192,6 +202,9 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
             return cbs.InLongLongLongObjectOutLong(op, arg1, arg2, arg3, arg);
         }
 
+        /// <summary>
+        /// long -> long.
+        /// </summary>
         private long InLongOutLong(IntPtr env, IntPtr clazz, long igniteId,
             int op, long arg)
         {
@@ -200,6 +213,13 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
             return cbs.InLongOutLong(op, arg);
         }
 
+        /// <summary>
+        /// System.out.println -> Console.Write.
+        /// <para />
+        /// Java uses system output which can not be accessed with native .NET APIs.
+        /// For example, unit test runners won't show Java console output, and so on.
+        /// To fix this we delegate console output from Java to .NET APIs.
+        /// </summary>
         private void ConsoleWrite(IntPtr envPtr, IntPtr clazz, IntPtr message, bool isError)
         {
             if (message != IntPtr.Zero)
