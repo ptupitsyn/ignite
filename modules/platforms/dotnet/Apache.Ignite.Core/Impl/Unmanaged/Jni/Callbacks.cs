@@ -44,16 +44,21 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
         private readonly ConcurrentDictionary<long, ConsoleWriter> _consoleWriters
             = new ConcurrentDictionary<long, ConsoleWriter>();
 
+        /** Gets the JVM. */
+        private readonly Jvm _jvm;
+
         /** Console writer id generator. */
         private long _consoleWriterId;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="Callbacks"/> class.
         /// </summary>
-        public Callbacks(Env env)
+        public Callbacks(Env env, Jvm jvm)
         {
             Debug.Assert(env != null);
+            Debug.Assert(jvm != null);
 
+            _jvm = jvm;
             RegisterNatives(env);
         }
 
@@ -64,7 +69,6 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
         {
             Debug.Assert(cbs != null);
 
-            // TODO: Unregister on stop.
             return _callbackRegistry.AllocateCritical(cbs);
         }
 
@@ -164,7 +168,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
             IntPtr errorInfo, long memPtr)
         {
             var cbs = _callbackRegistry.Get<UnmanagedCallbacks>(igniteId, true);
-            var env = Jvm.Get().AttachCurrentThread();
+            var env = _jvm.AttachCurrentThread();
 
             var message0 = env.JStringToString(message);
             var category0 = env.JStringToString(category);
@@ -205,7 +209,7 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
 
                 if (writer != null)
                 {                    
-                    var env = Jvm.Get().AttachCurrentThread();
+                    var env = _jvm.AttachCurrentThread();
                     var msg = env.JStringToString(message);
 
                     writer.Write(msg, isError);
