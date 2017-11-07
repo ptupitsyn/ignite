@@ -315,6 +315,11 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
 
         public string JStringToString(GlobalRef jstring)
         {
+            if (jstring == null)
+            {
+                return null;
+            }
+
             return JStringToString(jstring.Target);
         }
 
