@@ -338,11 +338,6 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
             }
         }
 
-        public void DeleteLocalRef(IntPtr lref)
-        {
-            _deleteLocalRef(_envPtr, lref);
-        }
-
         public GlobalRef NewGlobalRef(IntPtr lref)
         {
             var res = new GlobalRef(_newGlobalRef(_envPtr, lref), _jvm);
