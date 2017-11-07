@@ -23,6 +23,9 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
 
     /// <summary>
     /// JNI Global Reference.
+    /// <para />
+    /// We should always convert local reference to global and delete local one immediately,
+    /// otherwise these local references may cause memory leaks (false GC roots).
     /// </summary>
     internal class GlobalRef : IDisposable
     {
