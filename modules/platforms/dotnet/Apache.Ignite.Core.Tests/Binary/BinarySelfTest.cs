@@ -1540,6 +1540,9 @@ namespace Apache.Ignite.Core.Tests.Binary
             int[][] ints = {new[] {1, 2}, new[] {2, 3}};
             Assert.AreEqual(ints, TestUtils.SerializeDeserialize(ints));
 
+            uint[][] uints = {new uint[] {1, 2}, new uint[] {2, 3}};
+            Assert.AreEqual(uints, TestUtils.SerializeDeserialize(uints));
+
             PropertyType[][][] objs = {new[] {new[] {new PropertyType {Field1 = 42}}}};
             Assert.AreEqual(42, TestUtils.SerializeDeserialize(objs)[0][0][0].Field1);
         }
@@ -1550,7 +1553,6 @@ namespace Apache.Ignite.Core.Tests.Binary
         [Test]
         public void TestMultidimensionalArrays()
         {
-
         }
 
         /// <summary>
