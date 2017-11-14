@@ -85,7 +85,7 @@ namespace Apache.Ignite.Core.Impl.Binary
         {
             var res = new int[lens.Length];
 
-            for (var i = 0; i < lens.Length; i++)
+            for (var i = lens.Length - 1; i >= 0; i--)
             {
                 var len = lens[i];
 
