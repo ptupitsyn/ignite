@@ -72,8 +72,18 @@ namespace Apache.Ignite.Core.Impl.Binary
             for (var i = 0; i < totalLen; i++)
             {
                 var obj = reader.ReadObject<object>();
+                var idx = GetIndices(i, lens);
 
+                _array.SetValue(obj, idx);
             }
+        }
+
+        /// <summary>
+        /// Gets the indices in a multidimensional array from a global index.
+        /// </summary>
+        private static int[] GetIndices(int i, int[] lens)
+        {
+            throw new NotImplementedException();
         }
 
         /// <summary>

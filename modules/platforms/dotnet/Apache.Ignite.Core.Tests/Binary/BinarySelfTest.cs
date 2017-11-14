@@ -1553,10 +1553,10 @@ namespace Apache.Ignite.Core.Tests.Binary
         [Test]
         public void TestMultidimensionalArrays()
         {
-            int[,] ints = {{1, 2}, {2, 3}};
+            int[,] ints = {{1, 2}, {3, 4}};
             Assert.AreEqual(ints, TestUtils.SerializeDeserialize(ints));
 
-            uint[,,] uints = {{{1, 2}, {2, 3}}};
+            uint[,,] uints = {{{1, 2}, {3, 4}}, {{5, 6}, {7, 8}}};
             Assert.AreEqual(uints, TestUtils.SerializeDeserialize(uints));
 
             PropertyType[,] objs = {{new PropertyType {Field1 = 123}}};
