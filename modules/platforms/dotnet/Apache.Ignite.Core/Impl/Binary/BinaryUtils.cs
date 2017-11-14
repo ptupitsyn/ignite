@@ -1034,24 +1034,40 @@ namespace Apache.Ignite.Core.Impl.Binary
             else
             {
                 var elemType = val.GetType().GetElementType();
-
                 Debug.Assert(elemType != null);
 
-                var typeId = ObjTypeId;
-
-                if (elemType != typeof(object))
-                    typeId = ctx.Marshaller.GetDescriptor(elemType).TypeId;
-
+                var typeId = GetArrayElementTypeId(val, ctx.Marshaller);
                 stream.WriteInt(typeId);
 
                 if (typeId == BinaryTypeId.Unregistered)
+                {
                     ctx.WriteString(elemType.FullName);
+                }
             }
 
             stream.WriteInt(val.Length);
 
             for (int i = 0; i < val.Length; i++)
                 ctx.Write(val.GetValue(i));
+        }
+
+        /// <summary>
+        /// Gets the array element type identifier.
+        /// </summary>
+        public static int GetArrayElementTypeId(Array val, Marshaller marsh)
+        {
+            var elemType = val.GetType().GetElementType();
+            Debug.Assert(elemType != null);
+
+            return GetArrayElementTypeId(marsh, elemType);
+        }
+
+        /// <summary>
+        /// Gets the array element type identifier.
+        /// </summary>
+        public static int GetArrayElementTypeId(Marshaller marsh, Type elemType)
+        {
+            return elemType == typeof(object) ? ObjTypeId : marsh.GetDescriptor(elemType).TypeId;
         }
 
         /// <summary>
