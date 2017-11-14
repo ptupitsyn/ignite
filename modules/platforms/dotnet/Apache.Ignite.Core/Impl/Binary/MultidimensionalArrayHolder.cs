@@ -18,6 +18,7 @@
 namespace Apache.Ignite.Core.Impl.Binary
 {
     using System;
+    using System.Collections;
     using System.Diagnostics;
     using Apache.Ignite.Core.Binary;
     using Apache.Ignite.Core.Impl.Deployment;
@@ -73,6 +74,10 @@ namespace Apache.Ignite.Core.Impl.Binary
             }
 
             // Data.
+            foreach (var obj in (IEnumerable)_array)
+            {
+                raw.WriteObject(obj);
+            }
         }
     }
 }
