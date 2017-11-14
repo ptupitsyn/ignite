@@ -1545,6 +1545,11 @@ namespace Apache.Ignite.Core.Tests.Binary
 
             PropertyType[][][] objs = {new[] {new[] {new PropertyType {Field1 = 42}}}};
             Assert.AreEqual(42, TestUtils.SerializeDeserialize(objs)[0][0][0].Field1);
+
+            var obj = new MultidimArrays { JaggedInt = ints, JaggedUInt = uints };
+            var resObj = TestUtils.SerializeDeserialize(obj);
+            Assert.AreEqual(obj.JaggedInt, resObj.JaggedInt);
+            Assert.AreEqual(obj.JaggedUInt, resObj.JaggedUInt);
         }
 
         /// <summary>
@@ -1561,6 +1566,11 @@ namespace Apache.Ignite.Core.Tests.Binary
 
             PropertyType[,] objs = {{new PropertyType {Field1 = 123}}};
             Assert.AreEqual(123, TestUtils.SerializeDeserialize(objs)[0, 0].Field1);
+            
+            var obj = new MultidimArrays { MultidimInt = ints, MultidimUInt = uints };
+            var resObj = TestUtils.SerializeDeserialize(obj);
+            Assert.AreEqual(obj.MultidimInt, resObj.MultidimInt);
+            Assert.AreEqual(obj.MultidimUInt, resObj.MultidimUInt);
         }
 
         /// <summary>
@@ -2635,6 +2645,15 @@ namespace Apache.Ignite.Core.Tests.Binary
             {
                 return !left.Equals(right);
             }
+        }
+
+        private class MultidimArrays
+        {
+            public int[][] JaggedInt { get; set; }
+            public uint[][][] JaggedUInt { get; set; }
+
+            public int[,] MultidimInt { get; set; }
+            public uint[,,] MultidimUInt { get; set; }
         }
     }
 }
