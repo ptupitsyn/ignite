@@ -48,6 +48,35 @@ namespace Apache.Ignite.Core.Impl.Binary
         }
 
         /// <summary>
+        /// Initializes a new instance of the <see cref="MultidimensionalArrayHolder"/> class.
+        /// </summary>
+        /// <param name="reader">The reader.</param>
+        public MultidimensionalArrayHolder(BinaryReader reader)
+        {
+            var typeId = reader.ReadInt();
+            var type = BinaryUtils.GetArrayElementType(typeId, reader.Marshaller);
+
+            var rank = reader.ReadInt();
+            var lens = new int[rank];
+            var totalLen = 1;
+
+            for (var i = 0; i < rank; i++)
+            {
+                var len = reader.ReadInt();
+                lens[i] = len;
+                totalLen *= len;
+            }
+
+            _array = System.Array.CreateInstance(type, lens);
+
+            for (var i = 0; i < totalLen; i++)
+            {
+                var obj = reader.ReadObject<object>();
+
+            }
+        }
+
+        /// <summary>
         /// Gets the object.
         /// </summary>
         public object Array
