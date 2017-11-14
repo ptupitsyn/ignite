@@ -23,7 +23,7 @@ namespace Apache.Ignite.Core.Impl.Binary
     /// <summary>
     /// Serializer for <see cref="MultidimensionalArrayHolder"/>. Unwraps underlying object automatically.
     /// </summary>
-    internal class MultidimensionalArraySerializer
+    internal class MultidimensionalArraySerializer : IBinarySerializerInternal
     {
         /** <inheritdoc /> */
         public void WriteBinary<T>(T obj, BinaryWriter writer)
