@@ -257,8 +257,10 @@ namespace Apache.Ignite.Core.Impl.Binary
             if (field.FieldType.GetArrayRank() > 1)
             {
                 writeAction = raw
-                    ? GetRawWriter<Array>(field, (w, o) => w.WriteObject(new MultidimensionalArrayHolder(o)))
-                    : GetWriter<Array>(field, (f, w, o) => w.WriteObject(f, new MultidimensionalArrayHolder(o)));
+                    ? GetRawWriter<Array>(field, (w, o) => w.WriteObject(
+                        o == null ? null : new MultidimensionalArrayHolder(o)))
+                    : GetWriter<Array>(field, (f, w, o) => w.WriteObject(f,
+                        o == null ? null : new MultidimensionalArrayHolder(o)));
                 readAction = raw
                     ? GetRawReader(field, r => r.ReadObject<object>())
                     : GetReader(field, (f, r) => r.ReadObject<object>(f));
