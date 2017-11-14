@@ -30,7 +30,7 @@ namespace Apache.Ignite.Core.Impl.Binary
     /// However, there is no int[,]-style arrays in Java, and there is no way to support them in a generic way.
     /// So we have to wrap them inside an object (so it looks like a BinaryObject in Java).
     /// </summary>
-    internal class MultidimensionalArrayHolder : IBinaryWriteAware
+    internal sealed class MultidimensionalArrayHolder : IBinaryWriteAware
     {
         /** Object. */
         private readonly Array _array;
