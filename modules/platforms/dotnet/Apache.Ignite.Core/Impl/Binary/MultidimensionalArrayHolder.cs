@@ -81,9 +81,19 @@ namespace Apache.Ignite.Core.Impl.Binary
         /// <summary>
         /// Gets the indices in a multidimensional array from a global index.
         /// </summary>
-        private static int[] GetIndices(int i, int[] lens)
+        private static int[] GetIndices(int globalIdx, int[] lens)
         {
-            throw new NotImplementedException();
+            var res = new int[lens.Length];
+
+            for (var i = 0; i < lens.Length; i++)
+            {
+                var len = lens[i];
+
+                res[i] = globalIdx % len;
+                globalIdx = globalIdx / len;
+            }
+
+            return res;
         }
 
         /// <summary>

@@ -1024,6 +1024,7 @@ namespace Apache.Ignite.Core.Impl.Binary
         public static void WriteArray(Array val, BinaryWriter ctx, int? elemTypeId = null)
         {
             Debug.Assert(val != null && ctx != null);
+            Debug.Assert(val.Rank == 1);
 
             IBinaryStream stream = ctx.Stream;
 
