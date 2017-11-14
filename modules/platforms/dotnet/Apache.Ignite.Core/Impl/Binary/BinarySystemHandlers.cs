@@ -178,6 +178,13 @@ namespace Apache.Ignite.Core.Impl.Binary
 
             if (type.IsArray)
             {
+                if (type.GetArrayRank() > 1)
+                {
+                    // int[,]-style arrays are wrapped, see comments in holder.
+                    return new BinarySystemWriteHandler<Array>(
+                        (w, o) => w.WriteObject(new MultidimensionalArrayHolder(o)), true);
+                }
+
                 // We know how to write any array type.
                 Type elemType = type.GetElementType();
                 
