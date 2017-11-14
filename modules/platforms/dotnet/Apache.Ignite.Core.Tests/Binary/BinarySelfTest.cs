@@ -1532,6 +1532,28 @@ namespace Apache.Ignite.Core.Tests.Binary
         }
 
         /// <summary>
+        /// Tests the jagged arrays.
+        /// </summary>
+        [Test]
+        public void TestJaggedArrays()
+        {
+            int[][] ints = {new[] {1, 2}, new[] {2, 3}};
+            Assert.AreEqual(ints, TestUtils.SerializeDeserialize(ints));
+
+            PropertyType[][][] objs = {new[] {new[] {new PropertyType {Field1 = 42}}}};
+            Assert.AreEqual(42, TestUtils.SerializeDeserialize(objs)[0][0][0].Field1);
+        }
+
+        /// <summary>
+        /// Tests the multidimensional arrays.
+        /// </summary>
+        [Test]
+        public void TestMultidimensionalArrays()
+        {
+
+        }
+
+        /// <summary>
         /// Tests the compact footer setting.
         /// </summary>
         [Test]
