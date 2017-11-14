@@ -74,7 +74,7 @@ namespace Apache.Ignite.Core.Impl.Binary
                 var obj = reader.ReadObject<object>();
                 var idx = GetIndices(i, lens);
 
-                _array.SetValue(obj, idx);
+                _array.SetValue(Convert.ChangeType(obj, type), idx);
             }
         }
 
