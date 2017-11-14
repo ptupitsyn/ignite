@@ -1553,6 +1553,8 @@ namespace Apache.Ignite.Core.Tests.Binary
         [Test]
         public void TestMultidimensionalArrays()
         {
+            int[,] ints = {{1, 2}, {2, 3}};
+            Assert.AreEqual(ints, TestUtils.SerializeDeserialize(ints));
         }
 
         /// <summary>
@@ -1879,6 +1881,7 @@ namespace Apache.Ignite.Core.Tests.Binary
         }
 
         [Serializable]
+        [QuerySqlEntity]
         public class PrimitiveFieldType 
         {
             public PrimitiveFieldType()
