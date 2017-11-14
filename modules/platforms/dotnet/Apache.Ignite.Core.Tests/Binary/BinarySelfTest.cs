@@ -1550,6 +1550,11 @@ namespace Apache.Ignite.Core.Tests.Binary
             var resObj = TestUtils.SerializeDeserialize(obj);
             Assert.AreEqual(obj.JaggedInt, resObj.JaggedInt);
             Assert.AreEqual(obj.JaggedUInt, resObj.JaggedUInt);
+
+            var obj2 = new MultidimArraysBinarizable { JaggedInt = ints, JaggedUInt = uints };
+            var resObj2 = TestUtils.SerializeDeserialize(obj);
+            Assert.AreEqual(obj2.JaggedInt, resObj2.JaggedInt);
+            Assert.AreEqual(obj2.JaggedUInt, resObj2.JaggedUInt);
         }
 
         /// <summary>
@@ -1571,6 +1576,11 @@ namespace Apache.Ignite.Core.Tests.Binary
             var resObj = TestUtils.SerializeDeserialize(obj);
             Assert.AreEqual(obj.MultidimInt, resObj.MultidimInt);
             Assert.AreEqual(obj.MultidimUInt, resObj.MultidimUInt);
+
+            var obj2 = new MultidimArraysBinarizable { MultidimInt = ints, MultidimUInt = uints };
+            var resObj2 = TestUtils.SerializeDeserialize(obj);
+            Assert.AreEqual(obj2.MultidimInt, resObj2.MultidimInt);
+            Assert.AreEqual(obj2.MultidimUInt, resObj2.MultidimUInt);
         }
 
         /// <summary>
@@ -2654,6 +2664,33 @@ namespace Apache.Ignite.Core.Tests.Binary
 
             public int[,] MultidimInt { get; set; }
             public uint[,,] MultidimUInt { get; set; }
+        }
+
+        private class MultidimArraysBinarizable : IBinarizable
+        {
+            public int[][] JaggedInt { get; set; }
+            public uint[][][] JaggedUInt { get; set; }
+
+            public int[,] MultidimInt { get; set; }
+            public uint[,,] MultidimUInt { get; set; }
+            
+            public void WriteBinary(IBinaryWriter writer)
+            {
+                writer.WriteObject("JaggedInt", JaggedInt);
+                writer.WriteObject("JaggedUInt", JaggedUInt);
+
+                writer.WriteObject("MultidimInt", MultidimInt);
+                writer.WriteObject("MultidimUInt", MultidimUInt);
+            }
+
+            public void ReadBinary(IBinaryReader reader)
+            {
+                JaggedInt = reader.ReadObject<int[][]>("JaggedInt");
+                JaggedUInt = reader.ReadObject<uint[][][]>("JaggedUInt");
+
+                MultidimInt = reader.ReadObject<int[,]>("MultidimInt");
+                MultidimUInt = reader.ReadObject<uint[,,]>("MultidimUInt");
+            }
         }
     }
 }
