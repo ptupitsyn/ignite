@@ -57,22 +57,22 @@ namespace Apache.Ignite.Core.Impl.Binary
             var type = BinaryUtils.GetArrayElementType(typeId, reader.Marshaller);
 
             var rank = reader.ReadInt();
-            var lens = new int[rank];
+            var lengths = new int[rank];
             var totalLen = 1;
 
             for (var i = 0; i < rank; i++)
             {
                 var len = reader.ReadInt();
-                lens[i] = len;
+                lengths[i] = len;
                 totalLen *= len;
             }
 
-            _array = System.Array.CreateInstance(type, lens);
+            _array = System.Array.CreateInstance(type, lengths);
 
             for (var i = 0; i < totalLen; i++)
             {
                 var obj = reader.ReadObject<object>();
-                var idx = GetIndices(i, lens);
+                var idx = GetIndices(i, lengths);
 
                 _array.SetValue(Convert.ChangeType(obj, type), idx);
             }
@@ -81,13 +81,13 @@ namespace Apache.Ignite.Core.Impl.Binary
         /// <summary>
         /// Gets the indices in a multidimensional array from a global index.
         /// </summary>
-        private static int[] GetIndices(int globalIdx, int[] lens)
+        private static int[] GetIndices(int globalIdx, int[] lengths)
         {
-            var res = new int[lens.Length];
+            var res = new int[lengths.Length];
 
-            for (var i = lens.Length - 1; i >= 0; i--)
+            for (var i = lengths.Length - 1; i >= 0; i--)
             {
-                var len = lens[i];
+                var len = lengths[i];
 
                 res[i] = globalIdx % len;
                 globalIdx = globalIdx / len;
