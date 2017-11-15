@@ -126,7 +126,7 @@ namespace Apache.Ignite.Core.Tests
 
             if (Environment.GetEnvironmentVariable(envVar) == "true")
             {
-                var cfg = new IgniteConfiguration(TestUtils.GetTestConfiguration());
+                var cfg = new IgniteConfiguration(TestUtils.GetTestConfiguration(false));
                 Assert.IsTrue(cfg.RedirectJavaConsoleOutput);
 
                 cfg.RedirectJavaConsoleOutput = false;
