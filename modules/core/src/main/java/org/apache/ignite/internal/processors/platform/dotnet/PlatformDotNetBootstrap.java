@@ -39,6 +39,7 @@ public class PlatformDotNetBootstrap extends PlatformAbstractBootstrap {
         if (input.readBoolean())
             cfg.setGridLogger(new PlatformLogger());
 
+        // TODO: This must be earlier.
         if (input.readBoolean()) {
             // Initialize console propagation.
             // This call is idempotent, doing it on each node start is fine.
