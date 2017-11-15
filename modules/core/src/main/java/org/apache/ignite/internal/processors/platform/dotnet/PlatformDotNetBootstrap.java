@@ -30,16 +30,6 @@ import java.io.PrintStream;
  */
 public class PlatformDotNetBootstrap extends PlatformAbstractBootstrap {
     /** {@inheritDoc} */
-    @Override public void init() {
-        // Initialize console propagation.
-        // This call is idempotent, doing it on each node start is fine.
-        System.setOut(new PrintStream(new PlatformDotNetConsoleStream(false)));
-        System.setErr(new PrintStream(new PlatformDotNetConsoleStream(true)));
-
-        super.init();
-    }
-
-    /** {@inheritDoc} */
     @Override protected PlatformAbstractConfigurationClosure closure(long envPtr) {
         return new PlatformDotNetConfigurationClosure(envPtr);
     }
@@ -48,5 +38,12 @@ public class PlatformDotNetBootstrap extends PlatformAbstractBootstrap {
     @Override protected void processInput(PlatformInputStream input, IgniteConfiguration cfg) {
         if (input.readBoolean())
             cfg.setGridLogger(new PlatformLogger());
+
+        if (input.readBoolean()) {
+            // Initialize console propagation.
+            // This call is idempotent, doing it on each node start is fine.
+            System.setOut(new PrintStream(new PlatformDotNetConsoleStream(false)));
+            System.setErr(new PrintStream(new PlatformDotNetConsoleStream(true)));
+        }
     }
 }
