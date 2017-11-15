@@ -1420,5 +1420,13 @@ namespace Apache.Ignite.Core
         /// Gets or sets consistent globally unique node identifier which survives node restarts.
         /// </summary>
         public object ConsistentId { get; set; }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether Java console output should be redirected
+        /// to <see cref="Console.Out"/> and <see cref="Console.Error"/>, respectively.
+        /// <para />
+        /// TODO
+        /// </summary>
+        public bool RedirectJavaConsoleOutput { get; set; }
     }
 }
