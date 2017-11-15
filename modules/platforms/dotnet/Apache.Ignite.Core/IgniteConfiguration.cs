@@ -215,6 +215,11 @@ namespace Apache.Ignite.Core
         public const bool DefaultIsActiveOnStart = true;
 
         /// <summary>
+        /// Default value for <see cref="RedirectJavaConsoleOutput"/> property.
+        /// </summary>
+        public const bool DefaultRedirectJavaConsoleOutput = true;
+
+        /// <summary>
         /// Initializes a new instance of the <see cref="IgniteConfiguration"/> class.
         /// </summary>
         public IgniteConfiguration()
@@ -1425,8 +1430,15 @@ namespace Apache.Ignite.Core
         /// Gets or sets a value indicating whether Java console output should be redirected
         /// to <see cref="Console.Out"/> and <see cref="Console.Error"/>, respectively.
         /// <para />
-        /// TODO
+        /// Default is <see cref="DefaultRedirectJavaConsoleOutput"/>.
+        /// <para />
+        /// Java code outputs valuable information to console. However, since that is Java console,
+        /// it is not possible to capture that output with standard .NET APIs (<see cref="Console.SetOut"/>).
+        /// As a result, many tools (IDEs, test runners) are not able to display Ignite console output in UI.
+        /// <para />
+        /// This property is enabled by default and redirects Java console output to standard .NET console.
         /// </summary>
+        [DefaultValue(DefaultRedirectJavaConsoleOutput)]
         public bool RedirectJavaConsoleOutput { get; set; }
     }
 }
