@@ -1439,6 +1439,7 @@ namespace Apache.Ignite.Core
         /// As a result, many tools (IDEs, test runners) are not able to display Ignite console output in UI.
         /// <para />
         /// This property is enabled by default and redirects Java console output to standard .NET console.
+        /// It is recommended to disable this in production.
         /// </summary>
         [DefaultValue(DefaultRedirectJavaConsoleOutput)]
         public bool RedirectJavaConsoleOutput { get; set; }
