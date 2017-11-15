@@ -766,6 +766,7 @@ namespace Apache.Ignite.Core
             AutoGenerateIgniteInstanceName = cfg.AutoGenerateIgniteInstanceName;
             PeerAssemblyLoadingMode = cfg.PeerAssemblyLoadingMode;
             LocalEventListeners = cfg.LocalEventListeners;
+            RedirectJavaConsoleOutput = cfg.RedirectJavaConsoleOutput;
 
             if (CacheConfiguration != null && cfg.CacheConfiguration != null)
             {
