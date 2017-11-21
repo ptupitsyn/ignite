@@ -60,7 +60,7 @@ namespace Apache.Ignite.Core.Tests
                 Assembly.GetAssembly(testClass).Location
             };
 
-            int returnCode = Runner.Main(args);
+            int returnCode = Program.Main(args);
 
             if (returnCode != 0)
                 Console.Beep();
@@ -76,7 +76,7 @@ namespace Apache.Ignite.Core.Tests
                 "/run:" + testClass.FullName, Assembly.GetAssembly(testClass).Location
             };
 
-            int returnCode = Runner.Main(args);
+            int returnCode = Program.Main(args);
 
             if (returnCode != 0)
                 Console.Beep();
@@ -90,7 +90,7 @@ namespace Apache.Ignite.Core.Tests
                 Assembly.GetAssembly(typeof(InteropMemoryTest)).Location
             };
 
-            int returnCode = Runner.Main(args);
+            int returnCode = Program.Main(args);
 
             if (returnCode != 0)
                 Console.Beep();
