@@ -45,7 +45,7 @@ namespace Apache.Ignite.Core.Tests.Cache
         /// <summary>
         /// Fixture setup.
         /// </summary>
-        [TestFixtureSetUp]
+        [OneTimeSetUp]
         public void StartGrids()
         {
             TestUtils.KillProcesses();
@@ -74,7 +74,7 @@ namespace Apache.Ignite.Core.Tests.Cache
         /// <summary>
         /// Fixture teardown.
         /// </summary>
-        [TestFixtureTearDown]
+        [OneTimeTearDown]
         public void StopGrids()
         {
             Ignition.StopAll(true);

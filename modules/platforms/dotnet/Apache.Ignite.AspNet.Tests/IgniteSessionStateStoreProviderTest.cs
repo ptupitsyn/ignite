@@ -61,7 +61,7 @@ namespace Apache.Ignite.AspNet.Tests
         /// <summary>
         /// Fixture setup.
         /// </summary>
-        [TestFixtureSetUp]
+        [OneTimeSetUp]
         public void TestFixtureSetUp()
         {
             Ignition.Start(new IgniteConfiguration(TestUtils.GetTestConfiguration()) { IgniteInstanceName = GridName });
@@ -70,7 +70,7 @@ namespace Apache.Ignite.AspNet.Tests
         /// <summary>
         /// Fixture teardown.
         /// </summary>
-        [TestFixtureTearDown]
+        [OneTimeTearDown]
         public void TestFixtureTearDown()
         {
             Ignition.StopAll(true);

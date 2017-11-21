@@ -61,7 +61,7 @@ namespace Apache.Ignite.Core.Tests.Binary
         /// <summary>
         /// 
         /// </summary>
-        [TestFixtureSetUp]
+        [OneTimeSetUp]
         public void BeforeTest()
         {
             _marsh = new Marshaller(new BinaryConfiguration

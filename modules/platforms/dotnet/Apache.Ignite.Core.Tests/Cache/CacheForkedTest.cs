@@ -32,7 +32,7 @@ namespace Apache.Ignite.Core.Tests.Cache
         /// <summary>
         /// Set up.
         /// </summary>
-        [TestFixtureSetUp]
+        [OneTimeSetUp]
         public void SetUp()
         {
             const string springConfigUrl = "config\\compute\\compute-grid1.xml";
@@ -59,7 +59,7 @@ namespace Apache.Ignite.Core.Tests.Cache
         /// <summary>
         /// Tear down.
         /// </summary>
-        [TestFixtureTearDown]
+        [OneTimeTearDown]
         public void TearDown()
         {
             IgniteProcess.KillAll();

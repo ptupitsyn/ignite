@@ -63,7 +63,7 @@ namespace Apache.Ignite.EntityFramework.Tests
         /// <summary>
         /// Fixture set up.
         /// </summary>
-        [TestFixtureSetUp]
+        [OneTimeSetUp]
         public void FixtureSetUp()
         {
             // Start 2 nodes.
@@ -90,7 +90,7 @@ namespace Apache.Ignite.EntityFramework.Tests
         /// <summary>
         /// Fixture tear down.
         /// </summary>
-        [TestFixtureTearDown]
+        [OneTimeTearDown]
         public void FixtureTearDown()
         {
             using (var ctx = GetDbContext())

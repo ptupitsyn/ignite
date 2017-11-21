@@ -43,7 +43,7 @@ namespace Apache.Ignite.Core.Tests.Cache.Affinity
         /// <summary>
         /// Fixture set up.
         /// </summary>
-        [TestFixtureSetUp]
+        [OneTimeSetUp]
         public void FixtureSetUp()
         {
             var grid1 = Ignition.Start(GetConfig());
@@ -64,7 +64,7 @@ namespace Apache.Ignite.Core.Tests.Cache.Affinity
         /// <summary>
         /// Fixture tear down.
         /// </summary>
-        [TestFixtureTearDown]
+        [OneTimeTearDown]
         public void FixtureTearDown()
         {
             Ignition.StopAll(true);

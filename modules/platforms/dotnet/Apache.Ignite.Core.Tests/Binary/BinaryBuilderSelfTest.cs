@@ -47,7 +47,7 @@ namespace Apache.Ignite.Core.Tests.Binary
         /// <summary>
         /// Set up routine.
         /// </summary>
-        [TestFixtureSetUp]
+        [OneTimeSetUp]
         public void SetUp()
         {
             TestUtils.KillProcesses();
@@ -132,7 +132,7 @@ namespace Apache.Ignite.Core.Tests.Binary
         /// <summary>
         /// Tear down routine.
         /// </summary>
-        [TestFixtureTearDown]
+        [OneTimeTearDown]
         public void TearDown()
         {
             Ignition.StopAll(true);

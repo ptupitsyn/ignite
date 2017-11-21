@@ -35,7 +35,7 @@ namespace Apache.Ignite.Core.Tests.Cache.Query
         /// <summary>
         /// Sets up test fixture.
         /// </summary>
-        [TestFixtureSetUp]
+        [OneTimeSetUp]
         public void FixtureSetUp()
         {
             var cfg = new IgniteConfiguration(TestUtils.GetTestConfiguration())
@@ -61,7 +61,7 @@ namespace Apache.Ignite.Core.Tests.Cache.Query
         /// <summary>
         /// Tears down test fixture.
         /// </summary>
-        [TestFixtureTearDown]
+        [OneTimeTearDown]
         public void FixtureTearDown()
         {
             Ignition.StopAll(true);

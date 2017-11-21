@@ -38,7 +38,7 @@ namespace Apache.Ignite.Core.Tests
         /// <summary>
         /// Test fixture set-up routine.
         /// </summary>
-        [TestFixtureSetUp]
+        [OneTimeSetUp]
         public void TestFixtureSetUp()
         {
             var grid = Ignition.Start(TestUtils.GetTestConfiguration());
@@ -51,7 +51,7 @@ namespace Apache.Ignite.Core.Tests
         /// <summary>
         /// Test fixture tear-down routine.
         /// </summary>
-        [TestFixtureTearDown]
+        [OneTimeTearDown]
         public void TestFixtureTearDown()
         {
             Ignition.StopAll(true);

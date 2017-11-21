@@ -34,7 +34,7 @@ namespace Apache.Ignite.Core.Tests.Client
         /// <summary>
         /// Fixture tear down.
         /// </summary>
-        [TestFixtureTearDown]
+        [OneTimeTearDown]
         public void FixtureTearDown()
         {
             Ignition.StopAll(true);

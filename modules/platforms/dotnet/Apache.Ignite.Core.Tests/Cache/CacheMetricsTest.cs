@@ -36,7 +36,7 @@ namespace Apache.Ignite.Core.Tests.Cache
         /// <summary>
         /// Fixture set up.
         /// </summary>
-        [TestFixtureSetUp]
+        [OneTimeSetUp]
         public void FixtureSetUp()
         {
             Ignition.Start(TestUtils.GetTestConfiguration());
@@ -46,7 +46,7 @@ namespace Apache.Ignite.Core.Tests.Cache
         /// <summary>
         /// Fixture tear down.
         /// </summary>
-        [TestFixtureTearDown]
+        [OneTimeTearDown]
         public void FixtureTearDown()
         {
             Ignition.StopAll(true);

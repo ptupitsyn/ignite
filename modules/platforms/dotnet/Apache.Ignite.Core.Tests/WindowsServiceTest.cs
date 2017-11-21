@@ -35,7 +35,7 @@ namespace Apache.Ignite.Core.Tests
         /// <summary>
         /// Test fixture set up.
         /// </summary>
-        [TestFixtureSetUp]
+        [OneTimeSetUp]
         public void TestFixtureSetUp()
         {
             StopServiceAndUninstall();
@@ -44,7 +44,7 @@ namespace Apache.Ignite.Core.Tests
         /// <summary>
         /// Test fixture tear down.
         /// </summary>
-        [TestFixtureTearDown]
+        [OneTimeTearDown]
         public void TestFixtureTearDown()
         {
             StopServiceAndUninstall();

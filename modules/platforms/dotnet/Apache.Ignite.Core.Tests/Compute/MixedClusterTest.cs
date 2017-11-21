@@ -47,7 +47,7 @@ namespace Apache.Ignite.Core.Tests.Compute
         /** */
         private const string StopTask = "org.apache.ignite.platform.PlatformStopIgniteTask";
 
-        [TestFixtureSetUp]
+        [OneTimeSetUp]
         public void FixtureSetUp()
         {
             var cfg = new IgniteConfiguration(TestUtils.GetTestConfiguration()) {SpringConfigUrl = SpringConfig};
@@ -59,7 +59,7 @@ namespace Apache.Ignite.Core.Tests.Compute
             Assert.IsTrue(_ignite.WaitTopology(2));
         }
 
-        [TestFixtureTearDown]
+        [OneTimeTearDown]
         public void FixtureTearDown()
         {
             _ignite.GetCompute().ExecuteJavaTask<object>(StopTask, _javaNodeName);

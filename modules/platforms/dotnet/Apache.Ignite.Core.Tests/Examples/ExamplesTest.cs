@@ -188,7 +188,7 @@ namespace Apache.Ignite.Core.Tests.Examples
         /// <summary>
         /// Fixture setup.
         /// </summary>
-        [TestFixtureSetUp]
+        [OneTimeSetUp]
         public void FixtureSetUp()
         {
             Environment.SetEnvironmentVariable("IGNITE_NATIVE_TEST_CLASSPATH", "true");
@@ -209,7 +209,7 @@ namespace Apache.Ignite.Core.Tests.Examples
         /// <summary>
         /// Fixture teardown.
         /// </summary>
-        [TestFixtureTearDown]
+        [OneTimeTearDown]
         public void FixtureTearDown()
         {
             _changedConfig.Dispose();

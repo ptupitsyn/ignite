@@ -60,7 +60,7 @@ namespace Apache.Ignite.Core.Tests.Cache.Affinity
         /// <summary>
         /// Fixture set up.
         /// </summary>
-        [TestFixtureSetUp]
+        [OneTimeSetUp]
         public void FixtureSetUp()
         {
             var cfg = new IgniteConfiguration(TestUtils.GetTestConfiguration())
@@ -87,7 +87,7 @@ namespace Apache.Ignite.Core.Tests.Cache.Affinity
         /// <summary>
         /// Fixture tear down.
         /// </summary>
-        [TestFixtureTearDown]
+        [OneTimeTearDown]
         public void FixtureTearDown()
         {
             try

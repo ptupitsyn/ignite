@@ -30,7 +30,7 @@ namespace Apache.Ignite.Core.Tests.Cache.Affinity
         /// <summary>
         /// Test set up.
         /// </summary>
-        [TestFixtureSetUp]
+        [OneTimeSetUp]
         public void StartGrids()
         {
             for (int i = 0; i < 3; i++)
@@ -48,7 +48,7 @@ namespace Apache.Ignite.Core.Tests.Cache.Affinity
         /// <summary>
         /// Tear-down routine.
         /// </summary>
-        [TestFixtureTearDown]
+        [OneTimeTearDown]
         public void StopGrids()
         {
             Ignition.StopAll(true);

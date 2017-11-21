@@ -142,7 +142,7 @@ namespace Apache.Ignite.Core.Tests.Compute
         /// <summary>
         /// Initialization routine.
         /// </summary>
-        [TestFixtureSetUp]
+        [OneTimeSetUp]
         public void InitClient()
         {
             TestUtils.KillProcesses();
@@ -179,7 +179,7 @@ namespace Apache.Ignite.Core.Tests.Compute
         }
 
 
-        [TestFixtureTearDown]
+        [OneTimeTearDown]
         public void StopClient()
         {
             Ignition.StopAll(true);

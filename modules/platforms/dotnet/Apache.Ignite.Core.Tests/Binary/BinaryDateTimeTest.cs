@@ -31,7 +31,7 @@ namespace Apache.Ignite.Core.Tests.Binary
         /// <summary>
         /// Sets up the test fixture.
         /// </summary>
-        [TestFixtureSetUp]
+        [OneTimeSetUp]
         public void FixtureSetUp()
         {
             Ignition.Start(new IgniteConfiguration(TestUtils.GetTestConfiguration())
@@ -52,7 +52,7 @@ namespace Apache.Ignite.Core.Tests.Binary
         /// <summary>
         /// Tears down the test fixture.
         /// </summary>
-        [TestFixtureTearDown]
+        [OneTimeTearDown]
         public void FixtureTearDown()
         {
             Ignition.StopAll(true);

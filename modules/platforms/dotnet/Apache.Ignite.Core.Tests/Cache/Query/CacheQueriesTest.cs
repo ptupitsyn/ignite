@@ -53,7 +53,7 @@ namespace Apache.Ignite.Core.Tests.Cache.Query
         /// <summary>
         /// Fixture setup.
         /// </summary>
-        [TestFixtureSetUp]
+        [OneTimeSetUp]
         public void StartGrids()
         {
             for (int i = 0; i < GridCnt; i++)
@@ -81,7 +81,7 @@ namespace Apache.Ignite.Core.Tests.Cache.Query
         /// <summary>
         /// Fixture teardown.
         /// </summary>
-        [TestFixtureTearDown]
+        [OneTimeTearDown]
         public void StopGrids()
         {
             Ignition.StopAll(true);

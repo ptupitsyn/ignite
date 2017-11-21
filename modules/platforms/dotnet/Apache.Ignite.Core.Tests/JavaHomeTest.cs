@@ -34,7 +34,7 @@ namespace Apache.Ignite.Core.Tests
         /// <summary>
         /// Fixture set up.
         /// </summary>
-        [TestFixtureSetUp]
+        [OneTimeSetUp]
         public void FixtureSetUp()
         {
             _javaHomeBackup = Environment.GetEnvironmentVariable(EnvJavaHome);
@@ -45,7 +45,7 @@ namespace Apache.Ignite.Core.Tests
         /// <summary>
         /// Fixture tear down.
         /// </summary>
-        [TestFixtureTearDown]
+        [OneTimeTearDown]
         public void FixtureTearDown()
         {
             Environment.SetEnvironmentVariable(EnvJavaHome, _javaHomeBackup);

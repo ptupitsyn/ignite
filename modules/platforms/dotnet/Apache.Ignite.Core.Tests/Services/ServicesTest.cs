@@ -58,7 +58,7 @@ namespace Apache.Ignite.Core.Tests.Services
         /** */
         protected IIgnite[] Grids;
 
-        [TestFixtureTearDown]
+        [OneTimeTearDown]
         public void FixtureTearDown()
         {
             StopGrids();

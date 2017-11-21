@@ -53,7 +53,7 @@ namespace Apache.Ignite.Core.Tests.Client
         /// <summary>
         /// Fixture tear down.
         /// </summary>
-        [TestFixtureSetUp]
+        [OneTimeSetUp]
         public void FixtureSetUp()
         {
             var cfg = GetIgniteConfiguration();
@@ -72,7 +72,7 @@ namespace Apache.Ignite.Core.Tests.Client
         /// <summary>
         /// Fixture tear down.
         /// </summary>
-        [TestFixtureTearDown]
+        [OneTimeTearDown]
         public void FixtureTearDown()
         {
             Ignition.StopAll(true);

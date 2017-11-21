@@ -47,7 +47,7 @@ namespace Apache.Ignite.Core.Tests.Dataload
         /// <summary>
         /// Initialization routine.
         /// </summary>
-        [TestFixtureSetUp]
+        [OneTimeSetUp]
         public void InitClient()
         {
             _grid = Ignition.Start(TestUtils.GetTestConfiguration());
@@ -63,7 +63,7 @@ namespace Apache.Ignite.Core.Tests.Dataload
         /// <summary>
         /// Fixture teardown.
         /// </summary>
-        [TestFixtureTearDown]
+        [OneTimeTearDown]
         public void StopGrids()
         {
             Ignition.StopAll(true);

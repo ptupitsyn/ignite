@@ -37,7 +37,7 @@ namespace Apache.Ignite.Core.Tests.Binary.Serializable
         /// <summary>
         /// Set up routine.
         /// </summary>
-        [TestFixtureSetUp]
+        [OneTimeSetUp]
         public void SetUp()
         {
             Ignition.Start(TestUtils.GetTestConfiguration());
@@ -46,7 +46,7 @@ namespace Apache.Ignite.Core.Tests.Binary.Serializable
         /// <summary>
         /// Tear down routine.
         /// </summary>
-        [TestFixtureTearDown]
+        [OneTimeTearDown]
         public void TearDown()
         {
             Ignition.StopAll(true);

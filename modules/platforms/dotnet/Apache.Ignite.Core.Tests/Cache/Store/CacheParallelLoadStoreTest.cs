@@ -32,7 +32,7 @@ namespace Apache.Ignite.Core.Tests.Cache.Store
         /// <summary>
         /// Set up test class.
         /// </summary>
-        [TestFixtureSetUp]
+        [OneTimeSetUp]
         public void BeforeTests()
         {
             Ignition.Start(new IgniteConfiguration(TestUtils.GetTestConfiguration())
@@ -44,7 +44,7 @@ namespace Apache.Ignite.Core.Tests.Cache.Store
         /// <summary>
         /// Tear down test class.
         /// </summary>
-        [TestFixtureTearDown]
+        [OneTimeTearDown]
         public void AfterTests()
         {
             Ignition.StopAll(true);

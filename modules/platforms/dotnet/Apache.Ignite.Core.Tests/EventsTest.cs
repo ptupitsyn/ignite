@@ -98,7 +98,7 @@ namespace Apache.Ignite.Core.Tests
         /// <summary>
         /// Fixture tear down.
         /// </summary>
-        [TestFixtureTearDown]
+        [OneTimeTearDown]
         public void FixtureTearDown()
         {
             StopGrids();
@@ -651,7 +651,7 @@ namespace Apache.Ignite.Core.Tests
             Assert.AreEqual(locNode, evt.Node);
             Assert.AreEqual("msg", evt.Message);
             Assert.AreEqual(EventType.NodeFailed, evt.Type);
-            Assert.IsNotNullOrEmpty(evt.Name);
+            Assert.IsNotNull(evt.Name);
             Assert.AreNotEqual(Guid.Empty, evt.Id.GlobalId);
             Assert.IsTrue(Math.Abs((evt.Timestamp - DateTime.UtcNow).TotalSeconds) < 20, 
                 "Invalid event timestamp: '{0}', current time: '{1}'", evt.Timestamp, DateTime.Now);

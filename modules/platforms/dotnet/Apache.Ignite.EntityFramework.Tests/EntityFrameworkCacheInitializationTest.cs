@@ -33,7 +33,7 @@ namespace Apache.Ignite.EntityFramework.Tests
         /// <summary>
         /// Fixture tear down.
         /// </summary>
-        [TestFixtureTearDown]
+        [OneTimeTearDown]
         public void TestFixtureTearDown()
         {
             Ignition.StopAll(true);

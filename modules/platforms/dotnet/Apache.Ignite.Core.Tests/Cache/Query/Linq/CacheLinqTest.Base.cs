@@ -66,7 +66,7 @@ namespace Apache.Ignite.Core.Tests.Cache.Query.Linq
         /// <summary>
         /// Fixture set up.
         /// </summary>
-        [TestFixtureSetUp]
+        [OneTimeSetUp]
         public void FixtureSetUp()
         {
             _runDbConsole = false;  // set to true to open H2 console
@@ -148,7 +148,7 @@ namespace Apache.Ignite.Core.Tests.Cache.Query.Linq
         /// <summary>
         /// Fixture tear down.
         /// </summary>
-        [TestFixtureTearDown]
+        [OneTimeTearDown]
         public void FixtureTearDown()
         {
             if (_runDbConsole)
