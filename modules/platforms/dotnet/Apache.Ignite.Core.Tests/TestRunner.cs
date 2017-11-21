@@ -15,14 +15,13 @@
 * limitations under the License.
 */
 
+// ReSharper disable PossibleNullReferenceException
 namespace Apache.Ignite.Core.Tests
 {
     using System;
     using System.Diagnostics;
     using System.Linq;
-    using System.Reflection;
-    using Apache.Ignite.Core.Tests.Memory;
-    using NUnit.ConsoleRunner;
+    using NUnit.Engine;
 
     public static class TestRunner
     {
@@ -46,55 +45,43 @@ namespace Apache.Ignite.Core.Tests
             }
 
             TestOne(typeof(ConsoleRedirectTest), "TestMultipleDomains");
-
-            //TestAll(typeof (AffinityFunctionTest));
-            //TestAllInAssembly();
         }
 
         private static int TestOne(Type testClass, string method)
         {
-            string[] args =
+            // Create runner.
+            var engine = TestEngineActivator.CreateInstance();
+            var package = new TestPackage(testClass.Assembly.Location);
+            var runner = engine.GetRunner(package);
+
+            // Filter to specified test.
+            var filterBuilder = engine.Services.GetService<ITestFilterService>().GetTestFilterBuilder();
+            filterBuilder.AddTest(testClass.FullName + "." + method);
+            
+            // Run.
+            var testResult = runner.Run(new TestEventListener(), filterBuilder.GetFilter());
+
+            var total = int.Parse(testResult.Attributes["total"].Value);
+            var passed = int.Parse(testResult.Attributes["passed"].Value);
+
+            if (total == 1 && passed == 1)
             {
-                "/noshadow",
-                "/run:" + testClass.FullName + "." + method,
-                Assembly.GetAssembly(testClass).Location
-            };
+                // Success.
+                return 0;
+            }
 
-            int returnCode = Program.Main(args);
+            // Failure.
+            Console.WriteLine("Tests total: {0}, passed: {1}", total, passed);
 
-            if (returnCode != 0)
-                Console.Beep();
-
-            return returnCode;
+            return 1;
         }
 
-        private static void TestAll(Type testClass)
+        private class TestEventListener : ITestEventListener
         {
-            string[] args =
+            public void OnTestEvent(string report)
             {
-                "/noshadow",
-                "/run:" + testClass.FullName, Assembly.GetAssembly(testClass).Location
-            };
-
-            int returnCode = Program.Main(args);
-
-            if (returnCode != 0)
-                Console.Beep();
+                // No-op.
+            }
         }
-
-        private static void TestAllInAssembly()
-        {
-            string[] args =
-            {
-                "/noshadow",
-                Assembly.GetAssembly(typeof(InteropMemoryTest)).Location
-            };
-
-            int returnCode = Program.Main(args);
-
-            if (returnCode != 0)
-                Console.Beep();
-        }
-
     }
 }
