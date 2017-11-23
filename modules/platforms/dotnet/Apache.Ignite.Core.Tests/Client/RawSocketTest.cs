@@ -84,7 +84,7 @@ namespace Apache.Ignite.Core.Tests.Client
             {
                 s.WriteShort(1); // OP_GET
                 s.WriteLong(1); // Request id.
-                var cacheId = BinaryUtils.GetStringHashCodeLowerCase(cache.Name);
+                var cacheId = BinaryUtils.GetCacheId(cache.Name);
                 s.WriteInt(cacheId);
                 s.WriteByte(0); // Flags (withSkipStore, etc)
 
@@ -93,15 +93,23 @@ namespace Apache.Ignite.Core.Tests.Client
                 s.WriteInt(1);  // value
 
                 // Val: BinaryObject
+                // Header, 24 bytes
                 s.WriteByte(103);  // bin obj mark
                 s.WriteByte(1);  // varsion
                 s.WriteShort(1 + 2);  // flags, 1 = user type, 2 = has schema
-                s.WriteInt(0);  // type name, TODO
+                s.WriteInt(0);  // type id, TODO
                 s.WriteInt(0);  // hash code, TODO
-                s.WriteInt(24 + 1);  // length, TODO
+                s.WriteInt(24 + 5 + 8);  // length, hdr + one int field + schema (id + offset)
                 s.WriteInt(0);  // schema id
+                s.WriteInt(24 + 5);  // schema offset, TODO
+                
+                // Fields
+                s.WriteByte(3);  // Field type, INT
+                s.WriteInt(42);  // Field value
 
-
+                // Schema
+                s.WriteInt(BinaryUtils.GetStringHashCodeLowerCase("myField"));  // Field id
+                s.WriteInt(0);  // Field position
             });
         }
 
