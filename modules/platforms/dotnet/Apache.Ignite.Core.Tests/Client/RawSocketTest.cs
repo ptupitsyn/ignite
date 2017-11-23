@@ -78,6 +78,31 @@ namespace Apache.Ignite.Core.Tests.Client
                 var res = reader.ReadObject<string>();
                 Assert.AreEqual(cache[1], res);
             }
+
+            // Binary object.
+            SendRequest(sock, s =>
+            {
+                s.WriteShort(1); // OP_GET
+                s.WriteLong(1); // Request id.
+                var cacheId = BinaryUtils.GetStringHashCodeLowerCase(cache.Name);
+                s.WriteInt(cacheId);
+                s.WriteByte(0); // Flags (withSkipStore, etc)
+
+                // Key: int = 2
+                s.WriteByte(3);  // INT
+                s.WriteInt(1);  // value
+
+                // Val: BinaryObject
+                s.WriteByte(103);  // bin obj mark
+                s.WriteByte(1);  // varsion
+                s.WriteShort(1 + 2);  // flags, 1 = user type, 2 = has schema
+                s.WriteInt(0);  // type name, TODO
+                s.WriteInt(0);  // hash code, TODO
+                s.WriteInt(24 + 1);  // length, TODO
+                s.WriteInt(0);  // schema id
+
+
+            });
         }
 
         /// <summary>
