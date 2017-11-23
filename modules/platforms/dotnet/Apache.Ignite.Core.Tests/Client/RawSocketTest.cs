@@ -110,7 +110,7 @@ namespace Apache.Ignite.Core.Tests.Client
 
                 // Schema
                 s.WriteInt(BinaryUtils.GetStringHashCodeLowerCase("myField"));  // Field id
-                s.WriteInt(0);  // Field position
+                s.WriteInt(24);  // Field position from object start
             });
 
             msg = ReceiveMessage(sock);
