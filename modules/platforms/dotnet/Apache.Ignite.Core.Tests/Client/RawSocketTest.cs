@@ -20,6 +20,7 @@ namespace Apache.Ignite.Core.Tests.Client
     using System;
     using System.Net;
     using System.Net.Sockets;
+    using Apache.Ignite.Core.Binary;
     using Apache.Ignite.Core.Configuration;
     using Apache.Ignite.Core.Impl;
     using Apache.Ignite.Core.Impl.Binary;
@@ -82,7 +83,7 @@ namespace Apache.Ignite.Core.Tests.Client
             // Binary object.
             SendRequest(sock, s =>
             {
-                s.WriteShort(1); // OP_GET
+                s.WriteShort(4); // OP_CACHE_PUT
                 s.WriteLong(1); // Request id.
                 var cacheId = BinaryUtils.GetCacheId(cache.Name);
                 s.WriteInt(cacheId);
@@ -90,7 +91,7 @@ namespace Apache.Ignite.Core.Tests.Client
 
                 // Key: int = 2
                 s.WriteByte(3);  // INT
-                s.WriteInt(1);  // value
+                s.WriteInt(2);  // value
 
                 // Val: BinaryObject
                 // Header, 24 bytes
@@ -111,6 +112,10 @@ namespace Apache.Ignite.Core.Tests.Client
                 s.WriteInt(BinaryUtils.GetStringHashCodeLowerCase("myField"));  // Field id
                 s.WriteInt(0);  // Field position
             });
+
+            var binCache = cache.WithKeepBinary<int, IBinaryObject>();
+            var binObj = binCache[2];
+            Assert.AreEqual(42, binObj.GetField<int>("myField"));
         }
 
         /// <summary>
