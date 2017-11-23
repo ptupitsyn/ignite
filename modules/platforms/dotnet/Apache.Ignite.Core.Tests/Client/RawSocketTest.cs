@@ -84,7 +84,7 @@ namespace Apache.Ignite.Core.Tests.Client
             SendRequest(sock, s =>
             {
                 s.WriteShort(4); // OP_CACHE_PUT
-                s.WriteLong(1); // Request id.
+                s.WriteLong(11); // Request id.
                 var cacheId = BinaryUtils.GetCacheId(cache.Name);
                 s.WriteInt(cacheId);
                 s.WriteByte(0); // Flags (withSkipStore, etc)
@@ -112,6 +112,19 @@ namespace Apache.Ignite.Core.Tests.Client
                 s.WriteInt(BinaryUtils.GetStringHashCodeLowerCase("myField"));  // Field id
                 s.WriteInt(0);  // Field position
             });
+
+            msg = ReceiveMessage(sock);
+
+            using (var stream = new BinaryHeapStream(msg))
+            {
+                var reader = marsh.StartUnmarshal(stream);
+
+                var requestId = reader.ReadLong();
+                Assert.AreEqual(11, requestId);
+
+                var status = reader.ReadInt();
+                Assert.AreEqual(0, status); // Success.
+            }
 
             var binCache = cache.WithKeepBinary<int, IBinaryObject>();
             var binObj = binCache[2];
