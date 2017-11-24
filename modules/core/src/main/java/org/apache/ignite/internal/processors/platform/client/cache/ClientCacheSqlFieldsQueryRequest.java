@@ -18,7 +18,9 @@
 package org.apache.ignite.internal.processors.platform.client.cache;
 
 import org.apache.ignite.cache.query.FieldsQueryCursor;
+import org.apache.ignite.cache.query.Query;
 import org.apache.ignite.cache.query.SqlFieldsQuery;
+import org.apache.ignite.cache.query.SqlQuery;
 import org.apache.ignite.internal.binary.BinaryRawReaderEx;
 import org.apache.ignite.internal.processors.cache.DynamicCacheDescriptor;
 import org.apache.ignite.internal.processors.cache.query.SqlFieldsQueryEx;
@@ -37,10 +39,18 @@ import java.util.concurrent.TimeUnit;
 @SuppressWarnings("unchecked")
 public class ClientCacheSqlFieldsQueryRequest extends ClientCacheRequest {
     /** Query. */
-    private final SqlFieldsQuery qry;
+    private final Query qry;
 
     /** Include field names flag. */
     private final boolean includeFieldNames;
+
+    /**
+     * Whether this query has full syntax (select ... from ...) (when true)
+     * or simplified syntax (where ...) (when false).
+     * Simplified syntax always returns full cache entries (BinaryObject key + BinaryObject val).
+     * Full syntax returns a number of fields depending on the query.
+     */
+    private final boolean isFieldsQuery;
 
     /**
      * Ctor.
@@ -64,24 +74,32 @@ public class ClientCacheSqlFieldsQueryRequest extends ClientCacheRequest {
         boolean collocated = reader.readBoolean();
         boolean lazy = reader.readBoolean();
         int timeout = (int) reader.readLong();
+
+        isFieldsQuery = reader.readBoolean();
         includeFieldNames = reader.readBoolean();
 
-        SqlFieldsQuery qry = stmtType == JdbcStatementType.ANY_STATEMENT_TYPE
-                ? new SqlFieldsQuery(sql)
-                : new SqlFieldsQueryEx(sql,stmtType == JdbcStatementType.SELECT_STATEMENT_TYPE);
+        if (isFieldsQuery) {
+            SqlFieldsQuery qry = stmtType == JdbcStatementType.ANY_STATEMENT_TYPE
+                    ? new SqlFieldsQuery(sql)
+                    : new SqlFieldsQueryEx(sql, stmtType == JdbcStatementType.SELECT_STATEMENT_TYPE);
 
-        qry.setSchema(schema)
-                .setPageSize(pageSize)
-                .setArgs(args)
-                .setDistributedJoins(distributedJoins)
-                .setLocal(loc)
-                .setReplicatedOnly(replicatedOnly)
-                .setEnforceJoinOrder(enforceJoinOrder)
-                .setCollocated(collocated)
-                .setLazy(lazy)
-                .setTimeout(timeout, TimeUnit.MILLISECONDS);
+            qry.setSchema(schema)
+                    .setPageSize(pageSize)
+                    .setArgs(args)
+                    .setDistributedJoins(distributedJoins)
+                    .setLocal(loc)
+                    .setReplicatedOnly(replicatedOnly)
+                    .setEnforceJoinOrder(enforceJoinOrder)
+                    .setCollocated(collocated)
+                    .setLazy(lazy)
+                    .setTimeout(timeout, TimeUnit.MILLISECONDS);
 
-        this.qry = qry;
+            this.qry = qry;
+        } else {
+            // TODO: validate invalid options, like stmtType
+            SqlQuery qry = new SqlQuery(sql)
+
+        }
     }
 
     /** {@inheritDoc} */
@@ -89,33 +107,39 @@ public class ClientCacheSqlFieldsQueryRequest extends ClientCacheRequest {
         ctx.incrementCursors();
 
         try {
-            // If cacheId is provided, we must check the cache for existence.
-            if (cacheId() != 0) {
-                DynamicCacheDescriptor desc = cacheDescriptor(ctx);
+            if (qry instanceof SqlFieldsQuery) {
+                SqlFieldsQuery qry0 = (SqlFieldsQuery)qry;
 
-                if (qry.getSchema() == null) {
-                    String schema = QueryUtils.normalizeSchemaName(desc.cacheName(),
-                            desc.cacheConfiguration().getSqlSchema());
+                // If cacheId is provided, we must check the cache for existence.
+                if (cacheId() != 0) {
+                    DynamicCacheDescriptor desc = cacheDescriptor(ctx);
 
-                    qry.setSchema(schema);
+                    if (qry0.getSchema() == null) {
+                        String schema = QueryUtils.normalizeSchemaName(desc.cacheName(),
+                                desc.cacheConfiguration().getSqlSchema());
+
+                        qry0.setSchema(schema);
+                    }
                 }
+
+                List<FieldsQueryCursor<List<?>>> curs = ctx.kernalContext().query()
+                        .querySqlFieldsNoCache(qry0, true, true);
+
+                assert curs.size() == 1;
+
+                FieldsQueryCursor cur = curs.get(0);
+
+                ClientCacheFieldsQueryCursor cliCur = new ClientCacheFieldsQueryCursor(
+                        cur, qry0.getPageSize(), ctx);
+
+                long cursorId = ctx.resources().put(cliCur);
+
+                cliCur.id(cursorId);
+
+                return new ClientCacheSqlFieldsQueryResponse(requestId(), cliCur, cur, includeFieldNames);
+            } else {
+                // TODO
             }
-
-            List<FieldsQueryCursor<List<?>>> curs = ctx.kernalContext().query()
-                    .querySqlFieldsNoCache(qry, true, true);
-
-            assert curs.size() == 1;
-
-            FieldsQueryCursor cur = curs.get(0);
-
-            ClientCacheFieldsQueryCursor cliCur = new ClientCacheFieldsQueryCursor(
-                    cur, qry.getPageSize(), ctx);
-
-            long cursorId = ctx.resources().put(cliCur);
-
-            cliCur.id(cursorId);
-
-            return new ClientCacheSqlFieldsQueryResponse(requestId(), cliCur, cur, includeFieldNames);
         }
         catch (Exception e) {
             ctx.decrementCursors();
