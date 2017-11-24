@@ -19,16 +19,12 @@ package org.apache.ignite.internal.processors.platform.client.cache;
 
 import org.apache.ignite.binary.BinaryRawReader;
 import org.apache.ignite.internal.processors.platform.client.ClientConnectionContext;
-import org.apache.ignite.internal.processors.platform.client.ClientRequest;
 import org.apache.ignite.internal.processors.platform.client.ClientResponse;
 
 /**
  * Cache destroy request.
  */
-public class ClientCacheDestroyRequest extends ClientRequest {
-    /** Cache name. */
-    private final String cacheName;
-
+public class ClientCacheDestroyRequest extends ClientCacheRequest {
     /**
      * Constructor.
      *
@@ -36,13 +32,11 @@ public class ClientCacheDestroyRequest extends ClientRequest {
      */
     public ClientCacheDestroyRequest(BinaryRawReader reader) {
         super(reader);
-
-        cacheName = reader.readString();
     }
 
     /** {@inheritDoc} */
     @Override public ClientResponse process(ClientConnectionContext ctx) {
-        ctx.kernalContext().grid().destroyCache(cacheName);
+        ctx.kernalContext().grid().destroyCache(cacheDescriptor(ctx).cacheName());
 
         return super.process(ctx);
     }
