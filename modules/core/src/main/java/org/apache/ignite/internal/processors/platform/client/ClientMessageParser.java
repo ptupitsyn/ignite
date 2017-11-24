@@ -71,84 +71,71 @@ import org.apache.ignite.internal.processors.platform.client.cache.ClientCacheSq
 public class ClientMessageParser implements ClientListenerMessageParser {
     /* General-purpose operations. */
     /** */
-    private static final short OP_RESOURCE_CLOSE = 1;
-
-    /* Binary metadata operations. */
-    /** */
-    private static final short OP_GET_BINARY_TYPE_NAME = 301;
-
-    /** */
-    private static final short OP_PUT_BINARY_TYPE_NAME = 302;
-
-    /** */
-    private static final short OP_GET_BINARY_TYPE = 303;
-
-    /** */
-    private static final short OP_PUT_BINARY_TYPE = 304;
+    private static final short OP_RESOURCE_CLOSE = 0;
 
     /* Cache operations */
     /** */
-    private static final short OP_CACHE_GET = 101;
+    private static final short OP_CACHE_GET = 100;
 
     /** */
-    private static final short OP_CACHE_PUT = 102;
+    private static final short OP_CACHE_PUT = 101;
 
     /** */
-    private static final short OP_CACHE_PUT_IF_ABSENT = 103;
+    private static final short OP_CACHE_PUT_IF_ABSENT = 102;
 
     /** */
-    private static final short OP_CACHE_GET_ALL = 104;
+    private static final short OP_CACHE_GET_ALL = 103;
 
     /** */
-    private static final short OP_CACHE_PUT_ALL = 105;
+    private static final short OP_CACHE_PUT_ALL = 104;
 
     /** */
-    private static final short OP_CACHE_GET_AND_PUT = 106;
+    private static final short OP_CACHE_GET_AND_PUT = 105;
 
     /** */
-    private static final short OP_CACHE_GET_AND_REPLACE = 107;
+    private static final short OP_CACHE_GET_AND_REPLACE = 106;
 
     /** */
-    private static final short OP_CACHE_GET_AND_REMOVE = 108;
+    private static final short OP_CACHE_GET_AND_REMOVE = 107;
 
     /** */
-    private static final short OP_CACHE_GET_AND_PUT_IF_ABSENT = 109;
+    private static final short OP_CACHE_GET_AND_PUT_IF_ABSENT = 108;
 
     /** */
-    private static final short OP_CACHE_REPLACE = 110;
+    private static final short OP_CACHE_REPLACE = 109;
 
     /** */
-    private static final short OP_CACHE_REPLACE_IF_EQUALS = 111;
+    private static final short OP_CACHE_REPLACE_IF_EQUALS = 110;
 
     /** */
-    private static final short OP_CACHE_CONTAINS_KEY = 112;
+    private static final short OP_CACHE_CONTAINS_KEY = 111;
 
     /** */
-    private static final short OP_CACHE_CONTAINS_KEYS = 113;
+    private static final short OP_CACHE_CONTAINS_KEYS = 112;
 
     /** */
-    private static final short OP_CACHE_CLEAR = 114;
+    private static final short OP_CACHE_CLEAR = 113;
 
     /** */
-    private static final short OP_CACHE_CLEAR_KEY = 115;
+    private static final short OP_CACHE_CLEAR_KEY = 114;
 
     /** */
-    private static final short OP_CACHE_CLEAR_KEYS = 116;
+    private static final short OP_CACHE_CLEAR_KEYS = 115;
 
     /** */
-    private static final short OP_CACHE_REMOVE_KEY = 117;
+    private static final short OP_CACHE_REMOVE_KEY = 116;
 
     /** */
-    private static final short OP_CACHE_REMOVE_IF_EQUALS = 118;
+    private static final short OP_CACHE_REMOVE_IF_EQUALS = 117;
 
     /** */
-    private static final short OP_CACHE_REMOVE_KEYS = 119;
+    private static final short OP_CACHE_REMOVE_KEYS = 118;
 
     /** */
-    private static final short OP_CACHE_REMOVE_ALL = 120;
+    private static final short OP_CACHE_REMOVE_ALL = 119;
 
     /** */
-    private static final short OP_CACHE_GET_SIZE = 121;
+    private static final short OP_CACHE_GET_SIZE = 120;
 
     /* Cache create / destroy, configuration. */
     /** */
@@ -172,26 +159,37 @@ public class ClientMessageParser implements ClientListenerMessageParser {
     /** */
     private static final short OP_CACHE_DESTROY = 156;
 
+    /* Query operations. */
+    /** */
+    private static final short OP_QUERY_SCAN = 200;
 
     /** */
-    private static final short OP_QUERY_SCAN = 7;
+    private static final short OP_QUERY_SCAN_CURSOR_GET_PAGE = 201;
 
     /** */
-    private static final short OP_QUERY_SCAN_CURSOR_GET_PAGE = 8;
-
-
+    private static final short OP_QUERY_SQL = 202;
 
     /** */
-    private static final short OP_QUERY_SQL = 36;
+    private static final short OP_QUERY_SQL_CURSOR_GET_PAGE = 203;
 
     /** */
-    private static final short OP_QUERY_SQL_CURSOR_GET_PAGE = 37;
+    private static final short OP_QUERY_SQL_FIELDS = 204;
 
     /** */
-    private static final short OP_QUERY_SQL_FIELDS = 38;
+    private static final short OP_QUERY_SQL_FIELDS_CURSOR_GET_PAGE = 205;
+
+    /* Binary metadata operations. */
+    /** */
+    private static final short OP_GET_BINARY_TYPE_NAME = 300;
 
     /** */
-    private static final short OP_QUERY_SQL_FIELDS_CURSOR_GET_PAGE = 39;
+    private static final short OP_PUT_BINARY_TYPE_NAME = 301;
+
+    /** */
+    private static final short OP_GET_BINARY_TYPE = 302;
+
+    /** */
+    private static final short OP_PUT_BINARY_TYPE = 303;
 
     /** Marshaller. */
     private final GridBinaryMarshaller marsh;
