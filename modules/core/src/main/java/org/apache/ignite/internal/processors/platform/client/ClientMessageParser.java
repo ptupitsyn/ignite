@@ -69,23 +69,109 @@ import org.apache.ignite.internal.processors.platform.client.cache.ClientCacheSq
  * Thin client message parser.
  */
 public class ClientMessageParser implements ClientListenerMessageParser {
+    /* General-purpose operations. */
     /** */
-    private static final short OP_CACHE_GET = 1;
+    private static final short OP_RESOURCE_CLOSE = 1;
+
+    /* Binary metadata operations. */
+    /** */
+    private static final short OP_GET_BINARY_TYPE_NAME = 301;
 
     /** */
-    private static final short OP_GET_BINARY_TYPE_NAME = 2;
+    private static final short OP_PUT_BINARY_TYPE_NAME = 302;
 
     /** */
-    private static final short OP_GET_BINARY_TYPE = 3;
+    private static final short OP_GET_BINARY_TYPE = 303;
 
     /** */
-    private static final short OP_CACHE_PUT = 4;
+    private static final short OP_PUT_BINARY_TYPE = 304;
+
+    /* Cache operations */
+    /** */
+    private static final short OP_CACHE_GET = 101;
 
     /** */
-    private static final short OP_REGISTER_BINARY_TYPE_NAME = 5;
+    private static final short OP_CACHE_PUT = 102;
 
     /** */
-    private static final short OP_PUT_BINARY_TYPE = 6;
+    private static final short OP_CACHE_PUT_IF_ABSENT = 103;
+
+    /** */
+    private static final short OP_CACHE_GET_ALL = 104;
+
+    /** */
+    private static final short OP_CACHE_PUT_ALL = 105;
+
+    /** */
+    private static final short OP_CACHE_GET_AND_PUT = 106;
+
+    /** */
+    private static final short OP_CACHE_GET_AND_REPLACE = 107;
+
+    /** */
+    private static final short OP_CACHE_GET_AND_REMOVE = 108;
+
+    /** */
+    private static final short OP_CACHE_GET_AND_PUT_IF_ABSENT = 109;
+
+    /** */
+    private static final short OP_CACHE_REPLACE = 110;
+
+    /** */
+    private static final short OP_CACHE_REPLACE_IF_EQUALS = 111;
+
+    /** */
+    private static final short OP_CACHE_CONTAINS_KEY = 112;
+
+    /** */
+    private static final short OP_CACHE_CONTAINS_KEYS = 113;
+
+    /** */
+    private static final short OP_CACHE_CLEAR = 114;
+
+    /** */
+    private static final short OP_CACHE_CLEAR_KEY = 115;
+
+    /** */
+    private static final short OP_CACHE_CLEAR_KEYS = 116;
+
+    /** */
+    private static final short OP_CACHE_REMOVE_KEY = 117;
+
+    /** */
+    private static final short OP_CACHE_REMOVE_IF_EQUALS = 118;
+
+    /** */
+    private static final short OP_CACHE_REMOVE_KEYS = 119;
+
+    /** */
+    private static final short OP_CACHE_REMOVE_ALL = 120;
+
+    /** */
+    private static final short OP_CACHE_GET_SIZE = 121;
+
+    /* Cache create / destroy, configuration. */
+    /** */
+    private static final short OP_CACHE_GET_NAMES = 150;
+
+    /** */
+    private static final short OP_CACHE_CREATE_WITH_NAME = 151;
+
+    /** */
+    private static final short OP_CACHE_GET_OR_CREATE_WITH_NAME = 152;
+
+    /** */
+    private static final short OP_CACHE_CREATE_WITH_CONFIGURATION = 153;
+
+    /** */
+    private static final short OP_CACHE_GET_OR_CREATE_WITH_CONFIGURATION = 154;
+
+    /** */
+    private static final short OP_CACHE_GET_CONFIGURATION = 155;
+
+    /** */
+    private static final short OP_CACHE_DESTROY = 156;
+
 
     /** */
     private static final short OP_QUERY_SCAN = 7;
@@ -93,86 +179,7 @@ public class ClientMessageParser implements ClientListenerMessageParser {
     /** */
     private static final short OP_QUERY_SCAN_CURSOR_GET_PAGE = 8;
 
-    /** */
-    private static final short OP_RESOURCE_CLOSE = 9;
 
-    /** */
-    private static final short OP_CACHE_CONTAINS_KEY = 10;
-
-    /** */
-    private static final short OP_CACHE_CONTAINS_KEYS = 11;
-
-    /** */
-    private static final short OP_CACHE_GET_ALL = 12;
-
-    /** */
-    private static final short OP_CACHE_GET_AND_PUT = 13;
-
-    /** */
-    private static final short OP_CACHE_GET_AND_REPLACE = 14;
-
-    /** */
-    private static final short OP_CACHE_GET_AND_REMOVE = 15;
-
-    /** */
-    private static final short OP_CACHE_PUT_IF_ABSENT = 16;
-
-    /** */
-    private static final short OP_CACHE_GET_AND_PUT_IF_ABSENT = 17;
-
-    /** */
-    private static final short OP_CACHE_REPLACE = 18;
-
-    /** */
-    private static final short OP_CACHE_REPLACE_IF_EQUALS = 19;
-
-    /** */
-    private static final short OP_CACHE_PUT_ALL = 20;
-
-    /** */
-    private static final short OP_CACHE_CLEAR = 21;
-
-    /** */
-    private static final short OP_CACHE_CLEAR_KEY = 22;
-
-    /** */
-    private static final short OP_CACHE_CLEAR_KEYS = 23;
-
-    /** */
-    private static final short OP_CACHE_REMOVE_KEY = 24;
-
-    /** */
-    private static final short OP_CACHE_REMOVE_IF_EQUALS = 25;
-
-    /** */
-    private static final short OP_CACHE_GET_SIZE = 26;
-
-    /** */
-    private static final short OP_CACHE_REMOVE_KEYS = 27;
-
-    /** */
-    private static final short OP_CACHE_REMOVE_ALL = 28;
-
-    /** */
-    private static final short OP_CACHE_CREATE_WITH_NAME = 29;
-
-    /** */
-    private static final short OP_CACHE_GET_OR_CREATE_WITH_NAME = 30;
-
-    /** */
-    private static final short OP_CACHE_DESTROY = 31;
-
-    /** */
-    private static final short OP_CACHE_GET_NAMES = 32;
-
-    /** */
-    private static final short OP_CACHE_GET_CONFIGURATION = 33;
-
-    /** */
-    private static final short OP_CACHE_CREATE_WITH_CONFIGURATION = 34;
-
-    /** */
-    private static final short OP_CACHE_GET_OR_CREATE_WITH_CONFIGURATION = 35;
 
     /** */
     private static final short OP_QUERY_SQL = 36;
@@ -233,7 +240,7 @@ public class ClientMessageParser implements ClientListenerMessageParser {
             case OP_CACHE_PUT:
                 return new ClientCachePutRequest(reader);
 
-            case OP_REGISTER_BINARY_TYPE_NAME:
+            case OP_PUT_BINARY_TYPE_NAME:
                 return new ClientBinaryTypeNamePutRequest(reader);
 
             case OP_PUT_BINARY_TYPE:
