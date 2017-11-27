@@ -22,7 +22,10 @@ namespace Apache.Ignite.Core.Impl.Client
     /// </summary>
     internal enum ClientOp : short
     {
+        // General purpose.
         ResourceClose = 0,
+
+        // Cache.
         CacheGet = 100,
         CachePut = 101,
         CachePutIfAbsent = 102,
@@ -51,12 +54,16 @@ namespace Apache.Ignite.Core.Impl.Client
         CacheGetOrCreateWithConfiguration = 154,
         CacheGetConfiguration = 155,
         CacheDestroy = 156,
+        
+        // Queries.
         QueryScan = 200,
         QueryScanCursorGetPage = 201,
         QuerySql = 202,
         QuerySqlCursorGetPage = 203,
         QuerySqlFields = 204,
         QuerySqlFieldsCursorGetPage = 205,
+
+        // Metadata.
         BinaryTypeNameGet = 300,
         BinaryTypeNamePut = 301,
         BinaryTypeGet = 302,
