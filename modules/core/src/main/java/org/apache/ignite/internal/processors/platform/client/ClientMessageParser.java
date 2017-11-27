@@ -76,121 +76,121 @@ public class ClientMessageParser implements ClientListenerMessageParser {
 
     /* Cache operations */
     /** */
-    private static final short OP_CACHE_GET = 100;
+    private static final short OP_CACHE_GET = 1000;
 
     /** */
-    private static final short OP_CACHE_PUT = 101;
+    private static final short OP_CACHE_PUT = 1001;
 
     /** */
-    private static final short OP_CACHE_PUT_IF_ABSENT = 102;
+    private static final short OP_CACHE_PUT_IF_ABSENT = 1002;
 
     /** */
-    private static final short OP_CACHE_GET_ALL = 103;
+    private static final short OP_CACHE_GET_ALL = 1003;
 
     /** */
-    private static final short OP_CACHE_PUT_ALL = 104;
+    private static final short OP_CACHE_PUT_ALL = 1004;
 
     /** */
-    private static final short OP_CACHE_GET_AND_PUT = 105;
+    private static final short OP_CACHE_GET_AND_PUT = 1005;
 
     /** */
-    private static final short OP_CACHE_GET_AND_REPLACE = 106;
+    private static final short OP_CACHE_GET_AND_REPLACE = 1006;
 
     /** */
-    private static final short OP_CACHE_GET_AND_REMOVE = 107;
+    private static final short OP_CACHE_GET_AND_REMOVE = 1007;
 
     /** */
-    private static final short OP_CACHE_GET_AND_PUT_IF_ABSENT = 108;
+    private static final short OP_CACHE_GET_AND_PUT_IF_ABSENT = 1008;
 
     /** */
-    private static final short OP_CACHE_REPLACE = 109;
+    private static final short OP_CACHE_REPLACE = 1009;
 
     /** */
-    private static final short OP_CACHE_REPLACE_IF_EQUALS = 110;
+    private static final short OP_CACHE_REPLACE_IF_EQUALS = 1010;
 
     /** */
-    private static final short OP_CACHE_CONTAINS_KEY = 111;
+    private static final short OP_CACHE_CONTAINS_KEY = 1011;
 
     /** */
-    private static final short OP_CACHE_CONTAINS_KEYS = 112;
+    private static final short OP_CACHE_CONTAINS_KEYS = 1012;
 
     /** */
-    private static final short OP_CACHE_CLEAR = 113;
+    private static final short OP_CACHE_CLEAR = 1013;
 
     /** */
-    private static final short OP_CACHE_CLEAR_KEY = 114;
+    private static final short OP_CACHE_CLEAR_KEY = 1014;
 
     /** */
-    private static final short OP_CACHE_CLEAR_KEYS = 115;
+    private static final short OP_CACHE_CLEAR_KEYS = 1015;
 
     /** */
-    private static final short OP_CACHE_REMOVE_KEY = 116;
+    private static final short OP_CACHE_REMOVE_KEY = 1016;
 
     /** */
-    private static final short OP_CACHE_REMOVE_IF_EQUALS = 117;
+    private static final short OP_CACHE_REMOVE_IF_EQUALS = 1017;
 
     /** */
-    private static final short OP_CACHE_REMOVE_KEYS = 118;
+    private static final short OP_CACHE_REMOVE_KEYS = 1018;
 
     /** */
-    private static final short OP_CACHE_REMOVE_ALL = 119;
+    private static final short OP_CACHE_REMOVE_ALL = 1019;
 
     /** */
-    private static final short OP_CACHE_GET_SIZE = 120;
+    private static final short OP_CACHE_GET_SIZE = 1020;
 
     /* Cache create / destroy, configuration. */
     /** */
-    private static final short OP_CACHE_GET_NAMES = 150;
+    private static final short OP_CACHE_GET_NAMES = 1050;
 
     /** */
-    private static final short OP_CACHE_CREATE_WITH_NAME = 151;
+    private static final short OP_CACHE_CREATE_WITH_NAME = 1051;
 
     /** */
-    private static final short OP_CACHE_GET_OR_CREATE_WITH_NAME = 152;
+    private static final short OP_CACHE_GET_OR_CREATE_WITH_NAME = 1052;
 
     /** */
-    private static final short OP_CACHE_CREATE_WITH_CONFIGURATION = 153;
+    private static final short OP_CACHE_CREATE_WITH_CONFIGURATION = 1053;
 
     /** */
-    private static final short OP_CACHE_GET_OR_CREATE_WITH_CONFIGURATION = 154;
+    private static final short OP_CACHE_GET_OR_CREATE_WITH_CONFIGURATION = 1054;
 
     /** */
-    private static final short OP_CACHE_GET_CONFIGURATION = 155;
+    private static final short OP_CACHE_GET_CONFIGURATION = 1055;
 
     /** */
-    private static final short OP_CACHE_DESTROY = 156;
+    private static final short OP_CACHE_DESTROY = 1056;
 
     /* Query operations. */
     /** */
-    private static final short OP_QUERY_SCAN = 200;
+    private static final short OP_QUERY_SCAN = 2000;
 
     /** */
-    private static final short OP_QUERY_SCAN_CURSOR_GET_PAGE = 201;
+    private static final short OP_QUERY_SCAN_CURSOR_GET_PAGE = 2001;
 
     /** */
-    private static final short OP_QUERY_SQL = 202;
+    private static final short OP_QUERY_SQL = 2002;
 
     /** */
-    private static final short OP_QUERY_SQL_CURSOR_GET_PAGE = 203;
+    private static final short OP_QUERY_SQL_CURSOR_GET_PAGE = 2003;
 
     /** */
-    private static final short OP_QUERY_SQL_FIELDS = 204;
+    private static final short OP_QUERY_SQL_FIELDS = 2004;
 
     /** */
-    private static final short OP_QUERY_SQL_FIELDS_CURSOR_GET_PAGE = 205;
+    private static final short OP_QUERY_SQL_FIELDS_CURSOR_GET_PAGE = 2005;
 
     /* Binary metadata operations. */
     /** */
-    private static final short OP_BINARY_TYPE_NAME_GET = 300;
+    private static final short OP_BINARY_TYPE_NAME_GET = 3000;
 
     /** */
-    private static final short OP_BINARY_TYPE_NAME_PUT = 301;
+    private static final short OP_BINARY_TYPE_NAME_PUT = 3001;
 
     /** */
-    private static final short OP_BINARY_TYPE_GET = 302;
+    private static final short OP_BINARY_TYPE_GET = 3002;
 
     /** */
-    private static final short OP_BINARY_TYPE_PUT = 303;
+    private static final short OP_BINARY_TYPE_PUT = 3003;
 
     /** Marshaller. */
     private final GridBinaryMarshaller marsh;
