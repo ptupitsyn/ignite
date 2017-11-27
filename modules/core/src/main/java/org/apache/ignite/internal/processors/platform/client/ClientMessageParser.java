@@ -180,16 +180,16 @@ public class ClientMessageParser implements ClientListenerMessageParser {
 
     /* Binary metadata operations. */
     /** */
-    private static final short OP_GET_BINARY_TYPE_NAME = 300;
+    private static final short OP_BINARY_TYPE_NAME_GET = 300;
 
     /** */
-    private static final short OP_PUT_BINARY_TYPE_NAME = 301;
+    private static final short OP_BINARY_TYPE_NAME_PUT = 301;
 
     /** */
-    private static final short OP_GET_BINARY_TYPE = 302;
+    private static final short OP_BINARY_TYPE_GET = 302;
 
     /** */
-    private static final short OP_PUT_BINARY_TYPE = 303;
+    private static final short OP_BINARY_TYPE_PUT = 303;
 
     /** Marshaller. */
     private final GridBinaryMarshaller marsh;
@@ -229,19 +229,19 @@ public class ClientMessageParser implements ClientListenerMessageParser {
             case OP_CACHE_GET:
                 return new ClientCacheGetRequest(reader);
 
-            case OP_GET_BINARY_TYPE_NAME:
+            case OP_BINARY_TYPE_NAME_GET:
                 return new ClientBinaryTypeNameGetRequest(reader);
 
-            case OP_GET_BINARY_TYPE:
+            case OP_BINARY_TYPE_GET:
                 return new ClientBinaryTypeGetRequest(reader);
 
             case OP_CACHE_PUT:
                 return new ClientCachePutRequest(reader);
 
-            case OP_PUT_BINARY_TYPE_NAME:
+            case OP_BINARY_TYPE_NAME_PUT:
                 return new ClientBinaryTypeNamePutRequest(reader);
 
-            case OP_PUT_BINARY_TYPE:
+            case OP_BINARY_TYPE_PUT:
                 return new ClientBinaryTypePutRequest(reader);
 
             case OP_QUERY_SCAN:
