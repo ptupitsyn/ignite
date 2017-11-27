@@ -20,6 +20,7 @@ package org.apache.ignite.internal.processors.platform.client;
 import org.apache.ignite.internal.GridKernalContext;
 import org.apache.ignite.internal.binary.BinaryRawReaderEx;
 import org.apache.ignite.internal.binary.BinaryRawWriterEx;
+import org.apache.ignite.internal.binary.BinaryReaderExImpl;
 import org.apache.ignite.internal.binary.GridBinaryMarshaller;
 import org.apache.ignite.internal.binary.streams.BinaryHeapInputStream;
 import org.apache.ignite.internal.binary.streams.BinaryHeapOutputStream;
@@ -211,7 +212,10 @@ public class ClientMessageParser implements ClientListenerMessageParser {
         assert msg != null;
 
         BinaryInputStream inStream = new BinaryHeapInputStream(msg);
-        BinaryRawReaderEx reader = marsh.reader(inStream);
+
+        // skipHdrCheck must be true (we have 103 op code).
+        BinaryRawReaderEx reader = new BinaryReaderExImpl(marsh.context(), inStream,
+                null, null, true, true);
 
         return decode(reader);
     }
