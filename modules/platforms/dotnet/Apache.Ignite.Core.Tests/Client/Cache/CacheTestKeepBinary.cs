@@ -477,7 +477,8 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
                     .WithKeepBinary<IBinaryObject, int>();
 
                 var bin = client.GetBinary();
-                Func<int, IBinaryObject> toBin = id => bin.ToBinary<IBinaryObject>(new Person(id));
+                Func<int, IBinaryObject> toBin = id => bin.ToBinary<IBinaryObject>(
+                    new Person(id) {DateTime = DateTime.MinValue.ToUniversalTime()});
 
                 cache[toBin(1)] = 1;
                 cache[toBin(2)] = 2;
