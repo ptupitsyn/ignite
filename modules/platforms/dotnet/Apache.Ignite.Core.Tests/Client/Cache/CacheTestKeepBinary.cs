@@ -473,20 +473,22 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
         {
             using (var client = GetClient())
             {
-                var cache = client.GetCache<int?, int?>(CacheName);
+                var cache = client.GetCache<int, int>(CacheName)
+                    .WithKeepBinary<IBinaryObject, int>();
 
-                cache[1] = 1;
-                cache[2] = 2;
+                var bin = client.GetBinary();
+                Func<int, IBinaryObject> toBin = id => bin.ToBinary<IBinaryObject>(new Person(id));
 
-                cache.Clear(1);
-                Assert.IsFalse(cache.ContainsKey(1));
-                Assert.IsTrue(cache.ContainsKey(2));
+                cache[toBin(1)] = 1;
+                cache[toBin(2)] = 2;
 
-                cache.Clear(2);
-                Assert.IsFalse(cache.ContainsKey(1));
-                Assert.IsFalse(cache.ContainsKey(2));
+                cache.Clear(toBin(1));
+                Assert.IsFalse(cache.ContainsKey(toBin(1)));
+                Assert.IsTrue(cache.ContainsKey(toBin(2)));
 
-                Assert.Throws<ArgumentNullException>(() => cache.Clear(null));
+                cache.Clear(toBin(2));
+                Assert.IsFalse(cache.ContainsKey(toBin(1)));
+                Assert.IsFalse(cache.ContainsKey(toBin(2)));
             }
         }
 
