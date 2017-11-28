@@ -140,27 +140,23 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
         {
             using (var client = GetClient())
             {
-                var cache = client.GetCache<int?, int>(CacheName);
+                var cache = client.GetCache<int?, Person>(CacheName);
 
-                cache[1] = 1;
-                cache[2] = 2;
-                cache[3] = 3;
+                cache[1] = new Person(1);
+                cache[2] = new Person(2);
 
-                var res = cache.GetAll(new int?[] {1}).Single();
+                var binCache = cache.WithKeepBinary<int?, IBinaryObject>();
+
+                var res = binCache.GetAll(new int?[] {1}).Single();
                 Assert.AreEqual(1, res.Key);
-                Assert.AreEqual(1, res.Value);
+                Assert.AreEqual(1, res.Value.GetField<int>("Id"));
 
-                res = cache.GetAll(new int?[] {1, -1}).Single();
+                res = binCache.GetAll(new int?[] {1, -1}).Single();
                 Assert.AreEqual(1, res.Key);
-                Assert.AreEqual(1, res.Value);
+                Assert.AreEqual(1, res.Value.GetField<int>("Id"));
 
-                CollectionAssert.AreEquivalent(new[] {1, 2, 3},
-                    cache.GetAll(new int?[] {1, 2, 3}).Select(x => x.Value));
-
-                Assert.Throws<ArgumentNullException>(() => cache.GetAll(null));
-
-                Assert.Throws<IgniteClientException>(() => cache.GetAll(new int?[] {1, null}));
-                Assert.Throws<IgniteClientException>(() => cache.GetAll(new int?[] {null}));
+                CollectionAssert.AreEquivalent(new[] {1, 2},
+                    binCache.GetAll(new int?[] {1, 2, 3}).Select(x => x.Value.GetField<int>("Id")));
             }
         }
 
