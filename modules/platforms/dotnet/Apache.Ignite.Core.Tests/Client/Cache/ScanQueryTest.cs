@@ -22,6 +22,7 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
     using System.Diagnostics;
     using System.Diagnostics.CodeAnalysis;
     using System.Linq;
+    using Apache.Ignite.Core.Binary;
     using Apache.Ignite.Core.Cache;
     using Apache.Ignite.Core.Cache.Query;
     using Apache.Ignite.Core.Client;
@@ -135,6 +136,26 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
 #endif
             }
         }
+
+        /// <summary>
+        /// Tests scan query with .NET filter in binary mode.
+        /// </summary>
+        [Test]
+        public void TestWithFilterBinary()
+        {
+            GetPersonCache();
+
+            using (var client = GetClient())
+            {
+                var clientCache = client.GetCache<int, Person>(CacheName);
+                var binCache = clientCache.WithKeepBinary<int, IBinaryObject>();
+
+                // One result.
+                var single = binCache.Query(new ScanQuery<int, IBinaryObject>(new PersonIdFilterBinary(8))).Single();
+                Assert.AreEqual(8, single.Key);
+            }
+        }
+
 
 #if !NETCOREAPP2_0   // Serializing delegates and exceptions is not supported on this platform.
         /// <summary>
@@ -291,6 +312,29 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
             public bool Invoke(ICacheEntry<int, Person> entry)
             {
                 return entry.Key == _key;
+            }
+        }
+
+        /// <summary>
+        /// Person filter.
+        /// </summary>
+        private class PersonIdFilterBinary : ICacheEntryFilter<int, IBinaryObject>
+        {
+            /** Key. */
+            private readonly int _id;
+
+            /// <summary>
+            /// Initializes a new instance of the <see cref="PersonFilter"/> class.
+            /// </summary>
+            public PersonIdFilterBinary(int id)
+            {
+                _id = id;
+            }
+
+            /** <inheritdoc /> */
+            public bool Invoke(ICacheEntry<int, IBinaryObject> entry)
+            {
+                return entry.Value.GetField<int>("Id") == _id;
             }
         }
     }
