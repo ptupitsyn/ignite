@@ -98,24 +98,22 @@
                 serverCache.Put(1, person);
 
                 // Put through client cache.
-                clientCache.Put(2, person2);
-                clientCache[3] = person2;
+                var binPerson = client.GetBinary().ToBinary<IBinaryObject>(person2);
+                clientCache.Put(2, binPerson);
 
                 // Read from client cache.
                 Assert.AreEqual("foo", clientCache.Get(1).GetField<string>("Name"));
                 Assert.AreEqual(100, clientCache[1].GetField<int>("Id"));
                 Assert.AreEqual(200, clientCache[2].GetField<int>("Id"));
-                Assert.AreEqual(200, clientCache[3].GetField<int>("Id"));
 
                 // Read from server cache.
                 Assert.AreEqual("foo", serverCache.Get(1).Name);
                 Assert.AreEqual(100, serverCache[1].Id);
                 Assert.AreEqual(200, serverCache[2].Id);
-                Assert.AreEqual(200, serverCache[3].Id);
 
                 // Null key or value.
                 Assert.Throws<ArgumentNullException>(() => clientCache.Put(10, null));
-                Assert.Throws<ArgumentNullException>(() => clientCache.Put(null, person));
+                Assert.Throws<ArgumentNullException>(() => clientCache.Put(null, binPerson));
             }
         }
 
