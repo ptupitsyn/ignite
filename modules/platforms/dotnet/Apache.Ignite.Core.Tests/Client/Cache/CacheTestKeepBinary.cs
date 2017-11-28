@@ -466,26 +466,6 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
         }
 
         /// <summary>
-        /// Tests the Clear method.
-        /// </summary>
-        [Test]
-        public void TestClear()
-        {
-            using (var client = GetClient())
-            {
-                var cache = client.GetCache<int?, int?>(CacheName);
-
-                cache[1] = 1;
-                cache[2] = 2;
-
-                cache.Clear();
-
-                Assert.IsFalse(cache.ContainsKey(1));
-                Assert.IsFalse(cache.ContainsKey(2));
-            }
-        }
-
-        /// <summary>
         /// Tests the Clear method with a key argument.
         /// </summary>
         [Test]
@@ -507,30 +487,6 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
                 Assert.IsFalse(cache.ContainsKey(2));
 
                 Assert.Throws<ArgumentNullException>(() => cache.Clear(null));
-            }
-        }
-
-        /// <summary>
-        /// Tests the ClearAll method.
-        /// </summary>
-        [Test]
-        public void TestClearAll()
-        {
-            using (var client = GetClient())
-            {
-                var cache = client.GetCache<int?, int?>(CacheName);
-
-                cache[1] = 1;
-                cache[2] = 2;
-                cache[3] = 3;
-
-                cache.ClearAll(new int?[] {1, 3});
-                Assert.IsFalse(cache.ContainsKey(1));
-                Assert.IsTrue(cache.ContainsKey(2));
-                Assert.IsFalse(cache.ContainsKey(3));
-
-                Assert.Throws<ArgumentNullException>(() => cache.ClearAll(null));
-                Assert.Throws<IgniteClientException>(() => cache.ClearAll(new int?[] {null, 1}));
             }
         }
 
@@ -627,65 +583,6 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
 
                 Assert.Throws<ArgumentNullException>(() => cache.RemoveAll(null));
                 Assert.Throws<IgniteClientException>(() => cache.RemoveAll(new int?[] {1, null}));
-            }
-        }
-
-        /// <summary>
-        /// Tests the RemoveAll method without argument.
-        /// </summary>
-        [Test]
-        public void TestRemoveAll()
-        {
-            using (var client = GetClient())
-            {
-                var cache = client.GetCache<int, int>(CacheName);
-
-                cache[1] = 1;
-                cache[2] = 2;
-
-                cache.RemoveAll();
-
-                Assert.AreEqual(0, cache.GetSize());
-            }
-        }
-
-        /// <summary>
-        /// Tests the GetSize method.
-        /// </summary>
-        [Test]
-        public void TestGetSize()
-        {
-            using (var client = GetClient())
-            {
-                var cache = client.GetCache<int, int>(CacheName);
-
-                Assert.AreEqual(0, cache.GetSize());
-                Assert.AreEqual(0, cache.GetSize(CachePeekMode.All));
-                Assert.AreEqual(0, cache.GetSize(CachePeekMode.Backup));
-                Assert.AreEqual(0, cache.GetSize(CachePeekMode.Near));
-                Assert.AreEqual(0, cache.GetSize(CachePeekMode.Offheap));
-                Assert.AreEqual(0, cache.GetSize(CachePeekMode.Onheap));
-                Assert.AreEqual(0, cache.GetSize(CachePeekMode.Primary));
-
-                cache[1] = 1;
-                
-                Assert.AreEqual(1, cache.GetSize());
-                Assert.AreEqual(1, cache.GetSize(CachePeekMode.All));
-                Assert.AreEqual(0, cache.GetSize(CachePeekMode.Backup));
-                Assert.AreEqual(0, cache.GetSize(CachePeekMode.Near));
-                Assert.AreEqual(1, cache.GetSize(CachePeekMode.Offheap));
-                Assert.AreEqual(0, cache.GetSize(CachePeekMode.Onheap));
-                Assert.AreEqual(1, cache.GetSize(CachePeekMode.Primary));
-
-                cache.PutAll(Enumerable.Range(1, 100).ToDictionary(x => x, x => x));
-                
-                Assert.AreEqual(100, cache.GetSize());
-                Assert.AreEqual(100, cache.GetSize(CachePeekMode.All));
-                Assert.AreEqual(0, cache.GetSize(CachePeekMode.Backup));
-                Assert.AreEqual(0, cache.GetSize(CachePeekMode.Near));
-                Assert.AreEqual(100, cache.GetSize(CachePeekMode.Offheap));
-                Assert.AreEqual(0, cache.GetSize(CachePeekMode.Onheap));
-                Assert.AreEqual(100, cache.GetSize(CachePeekMode.Primary));
             }
         }
 
