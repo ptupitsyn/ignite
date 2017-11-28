@@ -195,6 +195,10 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
                     Assert.IsTrue(cur2.MoveNext());
                     Assert.IsTrue(cur3.MoveNext());
 
+                    Assert.IsNotNull(cur1.Current);
+                    Assert.IsNotNull(cur2.Current);
+                    Assert.IsNotNull(cur3.Current);
+
                     Assert.AreEqual(cur1.Current.Key, cur2.Current.Key);
                     Assert.AreEqual(cur1.Current.Key, cur3.Current.Key);
                 }
