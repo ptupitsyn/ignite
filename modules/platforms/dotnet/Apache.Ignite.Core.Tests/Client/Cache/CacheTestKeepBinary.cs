@@ -89,7 +89,8 @@
                 var person2 = new Person2 {Id = 200, Name = "bar"};
 
                 var serverCache = GetCache<Person>();
-                var clientCache = client.GetCache<int?, Person>(CacheName);
+                var clientCache = client.GetCache<int?, Person>(CacheName)
+                    .WithKeepBinary<int?, IBinaryObject>();
 
                 Assert.AreEqual(CacheName, clientCache.Name);
 
@@ -101,10 +102,10 @@
                 clientCache[3] = person2;
 
                 // Read from client cache.
-                Assert.AreEqual("foo", clientCache.Get(1).Name);
-                Assert.AreEqual(100, clientCache[1].Id);
-                Assert.AreEqual(200, clientCache[2].Id);
-                Assert.AreEqual(200, clientCache[3].Id);
+                Assert.AreEqual("foo", clientCache.Get(1).GetField<string>("Name"));
+                Assert.AreEqual(100, clientCache[1].GetField<int>("Id"));
+                Assert.AreEqual(200, clientCache[2].GetField<int>("Id"));
+                Assert.AreEqual(200, clientCache[3].GetField<int>("Id"));
 
                 // Read from server cache.
                 Assert.AreEqual("foo", serverCache.Get(1).Name);
