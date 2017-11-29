@@ -481,5 +481,19 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
 
             Assert.Throws<ArgumentNullException>(() => cache.RemoveAll(null));
         }
+
+        /// <summary>
+        /// Tests the WithKeepBinary logic.
+        /// </summary>
+        [Test]
+        public void TestWithKeepBinary()
+        {
+            var cache = GetBinaryCache();
+            var cache2 = cache.WithKeepBinary<int, IBinaryObject>();
+
+            Assert.AreSame(cache, cache2);
+
+            Assert.Throws<InvalidOperationException>(() => cache.WithKeepBinary<int, object>());
+        }
     }
 }
