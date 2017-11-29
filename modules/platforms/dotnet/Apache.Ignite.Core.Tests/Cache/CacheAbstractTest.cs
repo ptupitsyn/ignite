@@ -517,23 +517,26 @@ namespace Apache.Ignite.Core.Tests.Cache
         [Test]
         public void TestReplaceBinary()
         {
-            var cache = Cache<object, int>();
+            var cache = Cache<object, object>();
             var key = new {Foo = "bar"};
+            var val = new {Bar = "baz", Id = 1};
+            var val2 = new {Bar = "baz2", Id = 2};
+            var val3 = new {Bar = "baz3", Id = 3};
 
             Assert.IsFalse(cache.ContainsKey(key));
-            Assert.AreEqual(false, cache.Replace(key, 1));
+            Assert.AreEqual(false, cache.Replace(key, val));
             Assert.IsFalse(cache.ContainsKey(key));
 
-            cache.Put(key, 1);
-            Assert.AreEqual(1, cache.Get(key));
-            Assert.IsTrue(cache.Replace(key, 2));
-            Assert.AreEqual(2, cache.Get(key));
+            cache.Put(key, val);
+            Assert.AreEqual(val, cache.Get(key));
+            Assert.IsTrue(cache.Replace(key, val2));
+            Assert.AreEqual(val2, cache.Get(key));
 
             Assert.IsFalse(cache.Replace(key, -1, 3));
-            Assert.AreEqual(2, cache.Get(key));
+            Assert.AreEqual(val2, cache.Get(key));
 
-            Assert.IsTrue(cache.Replace(key, 2, 3));
-            Assert.AreEqual(3, cache.Get(key));
+            Assert.IsTrue(cache.Replace(key, val2, val3));
+            Assert.AreEqual(val3, cache.Get(key));
         }
 
         [Test]
