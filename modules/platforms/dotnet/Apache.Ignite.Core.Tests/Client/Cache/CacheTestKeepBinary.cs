@@ -342,6 +342,7 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
         [Test]
         public void TestReplaceIfEquals()
         {
+            // TODO: Why does it resolve .NET type name as Java? Something is wrong.
             var cache = GetBinaryCache();
 
             Assert.IsFalse(cache.ContainsKey(1));
