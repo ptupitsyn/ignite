@@ -168,24 +168,21 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
         {
             using (var client = GetClient())
             {
-                var cache = client.GetCache<int?, int?>(CacheName);
+                var cache = client.GetCache<int, Person>(CacheName).WithKeepBinary<int, IBinaryObject>();
 
                 Assert.IsFalse(cache.ContainsKey(1));
 
-                var res = cache.GetAndPut(1, 1);
+                var res = cache.GetAndPut(1, GetBinaryPerson(1));
                 Assert.IsFalse(res.Success);
                 Assert.IsNull(res.Value);
 
                 Assert.IsTrue(cache.ContainsKey(1));
 
-                res = cache.GetAndPut(1, 2);
+                res = cache.GetAndPut(1, GetBinaryPerson(2));
                 Assert.IsTrue(res.Success);
-                Assert.AreEqual(1, res.Value);
+                Assert.AreEqual(GetBinaryPerson(1), res.Value);
 
-                Assert.AreEqual(2, cache[1]);
-
-                Assert.Throws<ArgumentNullException>(() => cache.GetAndPut(1, null));
-                Assert.Throws<ArgumentNullException>(() => cache.GetAndPut(null, 1));
+                Assert.AreEqual(GetBinaryPerson(2), cache[1]);
             }
         }
 
@@ -476,20 +473,16 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
                 var cache = client.GetCache<int, int>(CacheName)
                     .WithKeepBinary<IBinaryObject, int>();
 
-                var bin = client.GetBinary();
-                Func<int, IBinaryObject> toBin = id => bin.ToBinary<IBinaryObject>(
-                    new Person(id) {DateTime = DateTime.MinValue.ToUniversalTime()});
+                cache[GetBinaryPerson(1)] = 1;
+                cache[GetBinaryPerson(2)] = 2;
 
-                cache[toBin(1)] = 1;
-                cache[toBin(2)] = 2;
+                cache.Clear(GetBinaryPerson(1));
+                Assert.IsFalse(cache.ContainsKey(GetBinaryPerson(1)));
+                Assert.IsTrue(cache.ContainsKey(GetBinaryPerson(2)));
 
-                cache.Clear(toBin(1));
-                Assert.IsFalse(cache.ContainsKey(toBin(1)));
-                Assert.IsTrue(cache.ContainsKey(toBin(2)));
-
-                cache.Clear(toBin(2));
-                Assert.IsFalse(cache.ContainsKey(toBin(1)));
-                Assert.IsFalse(cache.ContainsKey(toBin(2)));
+                cache.Clear(GetBinaryPerson(2));
+                Assert.IsFalse(cache.ContainsKey(GetBinaryPerson(1)));
+                Assert.IsFalse(cache.ContainsKey(GetBinaryPerson(2)));
             }
         }
 
@@ -587,6 +580,22 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
                 Assert.Throws<ArgumentNullException>(() => cache.RemoveAll(null));
                 Assert.Throws<IgniteClientException>(() => cache.RemoveAll(new int?[] {1, null}));
             }
+        }
+
+        /// <summary>
+        /// Converts object to binary form.
+        /// </summary>
+        private IBinaryObject ToBinary(object o)
+        {
+            return Client.GetBinary().ToBinary<IBinaryObject>(o);
+        }
+
+        /// <summary>
+        /// Gets the binary person.
+        /// </summary>
+        private IBinaryObject GetBinaryPerson(int id)
+        {
+            return ToBinary(new Person(id) {DateTime = DateTime.MinValue.ToUniversalTime()});
         }
 
         private class Container
