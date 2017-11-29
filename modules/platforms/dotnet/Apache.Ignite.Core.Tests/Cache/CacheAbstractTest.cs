@@ -515,6 +515,28 @@ namespace Apache.Ignite.Core.Tests.Cache
         }
 
         [Test]
+        public void TestReplaceBinary()
+        {
+            var cache = Cache<BinarizablePerson, int>();
+            var key = new BinarizablePerson("foo", 1);
+
+            Assert.IsFalse(cache.ContainsKey(key));
+            Assert.AreEqual(false, cache.Replace(key, 1));
+            Assert.IsFalse(cache.ContainsKey(key));
+
+            cache.Put(key, 1);
+            Assert.AreEqual(1, cache.Get(key));
+            Assert.IsTrue(cache.Replace(key, 2));
+            Assert.AreEqual(2, cache.Get(key));
+
+            Assert.IsFalse(cache.Replace(key, -1, 3));
+            Assert.AreEqual(2, cache.Get(key));
+
+            Assert.IsTrue(cache.Replace(key, 2, 3));
+            Assert.AreEqual(3, cache.Get(key));
+        }
+
+        [Test]
         public void TestGetAndReplaceAsync()
         {
             var cache = Cache().WrapAsync();
