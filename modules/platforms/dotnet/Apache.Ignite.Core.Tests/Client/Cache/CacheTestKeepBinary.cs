@@ -143,18 +143,16 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
             cache[1] = GetBinaryPerson(1);
             cache[2] = GetBinaryPerson(2);
 
-            var binCache = cache.WithKeepBinary<int?, IBinaryObject>();
-
-            var res = binCache.GetAll(new int?[] {1}).Single();
+            var res = cache.GetAll(new [] {1}).Single();
             Assert.AreEqual(1, res.Key);
             Assert.AreEqual(1, res.Value.GetField<int>("Id"));
 
-            res = binCache.GetAll(new int?[] {1, -1}).Single();
+            res = cache.GetAll(new [] {1, -1}).Single();
             Assert.AreEqual(1, res.Key);
             Assert.AreEqual(1, res.Value.GetField<int>("Id"));
 
-            CollectionAssert.AreEquivalent(new[] {1, 2},
-                binCache.GetAll(new int?[] {1, 2, 3}).Select(x => x.Value.GetField<int>("Id")));
+            CollectionAssert.AreEquivalent(new[] {1, 2}, 
+                cache.GetAll(new [] {1, 2, 3}).Select(x => x.Value.GetField<int>("Id")));
         }
 
         /// <summary>
@@ -199,7 +197,7 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
 
             res = cache.GetAndReplace(1, GetBinaryPerson(2));
             Assert.IsTrue(res.Success);
-            Assert.AreEqual(1, res.Value);
+            Assert.AreEqual(GetBinaryPerson(1), res.Value);
 
             Assert.AreEqual(GetBinaryPerson(2), cache[1]);
         }
