@@ -484,6 +484,36 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
         }
 
         /// <summary>
+        /// Tests the classless object builder.
+        /// </summary>
+        [Test]
+        public void TestClasslessBuilder()
+        {
+            var bin = Client.GetBinary();
+
+            var obj = bin.GetBuilder("FooBarBaz")
+                .SetByteField("code", 99)
+                .SetStringField("name", "abc")
+                .Build();
+
+            var cache = GetBinaryCache();
+            cache[1] = obj;
+            var res = cache.Get(1);
+
+            Assert.AreEqual("abc", res.GetField<string>("name"));
+            Assert.AreEqual(99, res.GetField<byte>("code"));
+            Assert.IsNull(res.GetField<object>("field"));
+
+            var type = res.GetBinaryType();
+            Assert.AreEqual("FooBarBaz", type.TypeName);
+            Assert.IsFalse(type.IsEnum);
+
+            CollectionAssert.AreEquivalent(new[] {"code", "name"}, type.Fields);
+            Assert.AreEqual("byte", type.GetFieldTypeName("code"));
+            Assert.AreEqual("string", type.GetFieldTypeName("name"));
+        }
+
+        /// <summary>
         /// Converts object to binary form.
         /// </summary>
         private IBinaryObject ToBinary(object o)
