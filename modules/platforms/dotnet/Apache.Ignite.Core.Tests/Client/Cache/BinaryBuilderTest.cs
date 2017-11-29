@@ -18,6 +18,8 @@
 namespace Apache.Ignite.Core.Tests.Client.Cache
 {
     using System;
+    using System.Collections.Generic;
+    using Apache.Ignite.Core.Cache.Configuration;
     using NUnit.Framework;
 
     /// <summary>
@@ -83,6 +85,25 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
 
             // Meta.
             Assert.AreEqual(cache[2].GetBinaryType().TypeId, Client.GetBinary().GetBinaryType(typeof(Person)).TypeId);
+        }
+
+        /// <summary>
+        /// Tests the enum builder.
+        /// </summary>
+        [Test]
+        public void TestEnumBuilder()
+        {
+            var bin = Client.GetBinary();
+            var cache = GetBinaryCache();
+
+            cache[1] = bin.BuildEnum(typeof(CacheMode), "Replicated");
+            Assert.AreEqual((int) CacheMode.Replicated, cache[1].EnumValue);
+
+            Assert.Throws<NotSupportedException>(() => bin.RegisterEnum("MyEnum", new Dictionary<string, int>
+            {
+                {"Foo", 1},
+                {"Bar", 2}
+            }));
         }
 
         /// <summary>
