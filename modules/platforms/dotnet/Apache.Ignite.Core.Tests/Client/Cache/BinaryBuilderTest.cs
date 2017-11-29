@@ -61,12 +61,22 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
         [Test]
         public void TestPersonBuilder()
         {
+            var fullCache = GetCache<Person>();
             var cache = GetBinaryCache();
             cache[1] = GetBinaryPerson(1);
 
+            // Modify.
             cache[1] = cache[1].ToBuilder().SetField("Name", "Baz").Build();
+            Assert.AreEqual("Baz", fullCache[1].Name);
 
-            Assert.AreEqual("Baz", GetCache<Person>()[1].Name);
+            // Build from scratch.
+            cache[2] = Client.GetBinary().GetBuilder(typeof(Person).FullName)
+                .SetIntField("Id", 25)
+                .SetStringField("Name", "Joe")
+                .Build();
+
+            Assert.AreEqual(25, fullCache[2].Id);
+            Assert.AreEqual("Joe", fullCache[2].Name);
         }
     }
 }
