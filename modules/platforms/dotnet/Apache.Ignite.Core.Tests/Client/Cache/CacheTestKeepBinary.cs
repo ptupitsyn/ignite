@@ -319,57 +319,46 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
         [Test]
         public void TestReplace()
         {
-            using (var client = GetClient())
-            {
-                var cache = client.GetCache<int?, int?>(CacheName);
+            var cache = GetBinaryKeyCache();
+            
+            Assert.IsFalse(cache.ContainsKey(GetBinaryPerson(1)));
 
-                Assert.IsFalse(cache.ContainsKey(1));
+            var res = cache.Replace(GetBinaryPerson(1), 1);
+            Assert.IsFalse(res);
+            Assert.IsFalse(cache.ContainsKey(GetBinaryPerson(1)));
 
-                var res = cache.Replace(1, 1);
-                Assert.IsFalse(res);
-                Assert.IsFalse(cache.ContainsKey(1));
+            cache[GetBinaryPerson(1)] = 1;
 
-                cache[1] = 1;
+            res = cache.Replace(GetBinaryPerson(1), 2);
+            Assert.IsTrue(res);
+            Assert.AreEqual(2, cache[GetBinaryPerson(1)]);
 
-                res = cache.Replace(1, 2);
-                Assert.IsTrue(res);
-                Assert.AreEqual(2, cache[1]);
-
-                Assert.Throws<ArgumentNullException>(() => cache.Replace(null, 1));
-                Assert.Throws<ArgumentNullException>(() => cache.Replace(1, null));
-            }
+            Assert.Throws<ArgumentNullException>(() => cache.Replace(null, 1));
         }
 
         /// <summary>
         /// Tests the Replace overload with additional argument.
         /// </summary>
         [Test]
-        public void TestReplace2()
+        public void TestReplaceIfEquals()
         {
-            using (var client = GetClient())
-            {
-                var cache = client.GetCache<int?, int?>(CacheName);
+            var cache = GetBinaryCache();
 
-                Assert.IsFalse(cache.ContainsKey(1));
+            Assert.IsFalse(cache.ContainsKey(1));
 
-                var res = cache.Replace(1, 1, 2);
-                Assert.IsFalse(res);
-                Assert.IsFalse(cache.ContainsKey(1));
+            var res = cache.Replace(1, GetBinaryPerson(1), GetBinaryPerson(2));
+            Assert.IsFalse(res);
+            Assert.IsFalse(cache.ContainsKey(1));
 
-                cache[1] = 1;
+            cache[1] = GetBinaryPerson(1);
 
-                res = cache.Replace(1, -1, 2);
-                Assert.IsFalse(res);
-                Assert.AreEqual(1, cache[1]);
+            res = cache.Replace(1, GetBinaryPerson(-1), GetBinaryPerson(2));
+            Assert.IsFalse(res);
+            Assert.AreEqual(1, cache[1]);
 
-                res = cache.Replace(1, 1, 2);
-                Assert.IsTrue(res);
-                Assert.AreEqual(2, cache[1]);
-
-                Assert.Throws<ArgumentNullException>(() => cache.Replace(null, 1, 1));
-                Assert.Throws<ArgumentNullException>(() => cache.Replace(1, null, 1));
-                Assert.Throws<ArgumentNullException>(() => cache.Replace(1, 1, null));
-            }
+            res = cache.Replace(1, GetBinaryPerson(1), GetBinaryPerson(2));
+            Assert.IsTrue(res);
+            Assert.AreEqual(GetBinaryPerson(2), cache[1]);
         }
 
         /// <summary>
