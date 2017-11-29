@@ -296,25 +296,21 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
         [Test]
         public void TestGetAndPutIfAbsent()
         {
-            using (var client = GetClient())
-            {
-                var cache = client.GetCache<int?, int?>(CacheName);
+            var cache = GetBinaryKeyCache();
 
-                Assert.IsFalse(cache.ContainsKey(1));
+            Assert.IsFalse(cache.ContainsKey(GetBinaryPerson(1)));
 
-                var res = cache.GetAndPutIfAbsent(1, 1);
-                Assert.IsFalse(res.Success);
-                Assert.IsNull(res.Value);
-                Assert.AreEqual(1, cache[1]);
+            var res = cache.GetAndPutIfAbsent(GetBinaryPerson(1), 1);
+            Assert.IsFalse(res.Success);
+            Assert.AreEqual(0, res.Value);
+            Assert.AreEqual(1, cache[GetBinaryPerson(1)]);
 
-                res = cache.GetAndPutIfAbsent(1, 2);
-                Assert.IsTrue(res.Success);
-                Assert.AreEqual(1, res.Value);
-                Assert.AreEqual(1, cache[1]);
+            res = cache.GetAndPutIfAbsent(GetBinaryPerson(1), 2);
+            Assert.IsTrue(res.Success);
+            Assert.AreEqual(1, res.Value);
+            Assert.AreEqual(1, cache[GetBinaryPerson(1)]);
 
-                Assert.Throws<ArgumentNullException>(() => cache.GetAndPutIfAbsent(null, 1));
-                Assert.Throws<ArgumentNullException>(() => cache.GetAndPutIfAbsent(1, null));
-            }
+            Assert.Throws<ArgumentNullException>(() => cache.GetAndPutIfAbsent(null, 1));
         }
 
         /// <summary>
