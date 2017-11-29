@@ -381,22 +381,18 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
         [Test]
         public void TestClearKey()
         {
-            using (var client = GetClient())
-            {
-                var cache = client.GetCache<int, int>(CacheName)
-                    .WithKeepBinary<IBinaryObject, int>();
+            var cache = GetBinaryKeyCache();
 
-                cache[GetBinaryPerson(1)] = 1;
-                cache[GetBinaryPerson(2)] = 2;
+            cache[GetBinaryPerson(1)] = 1;
+            cache[GetBinaryPerson(2)] = 2;
 
-                cache.Clear(GetBinaryPerson(1));
-                Assert.IsFalse(cache.ContainsKey(GetBinaryPerson(1)));
-                Assert.IsTrue(cache.ContainsKey(GetBinaryPerson(2)));
+            cache.Clear(GetBinaryPerson(1));
+            Assert.IsFalse(cache.ContainsKey(GetBinaryPerson(1)));
+            Assert.IsTrue(cache.ContainsKey(GetBinaryPerson(2)));
 
-                cache.Clear(GetBinaryPerson(2));
-                Assert.IsFalse(cache.ContainsKey(GetBinaryPerson(1)));
-                Assert.IsFalse(cache.ContainsKey(GetBinaryPerson(2)));
-            }
+            cache.Clear(GetBinaryPerson(2));
+            Assert.IsFalse(cache.ContainsKey(GetBinaryPerson(1)));
+            Assert.IsFalse(cache.ContainsKey(GetBinaryPerson(2)));
         }
 
         /// <summary>
@@ -405,28 +401,25 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
         [Test]
         public void TestRemove()
         {
-            using (var client = GetClient())
-            {
-                var cache = client.GetCache<int?, int?>(CacheName);
+            var cache = GetBinaryKeyCache();
 
-                cache[1] = 1;
-                cache[2] = 2;
+            cache[GetBinaryPerson(1)] = 1;
+            cache[GetBinaryPerson(2)] = 2;
 
-                var res = cache.Remove(1);
-                Assert.IsTrue(res);
-                Assert.IsFalse(cache.ContainsKey(1));
-                Assert.IsTrue(cache.ContainsKey(2));
+            var res = cache.Remove(GetBinaryPerson(1));
+            Assert.IsTrue(res);
+            Assert.IsFalse(cache.ContainsKey(GetBinaryPerson(1)));
+            Assert.IsTrue(cache.ContainsKey(GetBinaryPerson(2)));
 
-                res = cache.Remove(2);
-                Assert.IsTrue(res);
-                Assert.IsFalse(cache.ContainsKey(1));
-                Assert.IsFalse(cache.ContainsKey(2));
+            res = cache.Remove(GetBinaryPerson(2));
+            Assert.IsTrue(res);
+            Assert.IsFalse(cache.ContainsKey(GetBinaryPerson(1)));
+            Assert.IsFalse(cache.ContainsKey(GetBinaryPerson(2)));
 
-                res = cache.Remove(-1);
-                Assert.IsFalse(res);
+            res = cache.Remove(GetBinaryPerson(-1));
+            Assert.IsFalse(res);
 
-                Assert.Throws<ArgumentNullException>(() => cache.Remove(null));
-            }
+            Assert.Throws<ArgumentNullException>(() => cache.Remove(null));
         }
 
         /// <summary>
