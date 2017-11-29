@@ -17,6 +17,7 @@
 
 namespace Apache.Ignite.Core.Tests.Client.Cache
 {
+    using System;
     using Apache.Ignite.Core.Binary;
     using NUnit.Framework;
 
@@ -80,6 +81,15 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
 
             Assert.AreEqual(25, fullCache[2].Id);
             Assert.AreEqual("Joe", fullCache[2].Name);
+        }
+
+        /// <summary>
+        /// Tests binary types retrieval.
+        /// </summary>
+        [Test]
+        public void TestGetBinaryTypes()
+        {
+            Assert.Throws<NotSupportedException>(() => Client.GetBinary().GetBinaryTypes());
         }
     }
 }

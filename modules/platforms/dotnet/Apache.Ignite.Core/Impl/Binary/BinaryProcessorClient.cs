@@ -59,7 +59,7 @@ namespace Apache.Ignite.Core.Impl.Binary
         /** <inheritdoc /> */
         public List<IBinaryType> GetBinaryTypes()
         {
-            throw new NotSupportedException();
+            throw IgniteClient.GetClientNotSupportedException();
         }
 
         /** <inheritdoc /> */
@@ -96,7 +96,7 @@ namespace Apache.Ignite.Core.Impl.Binary
         /** <inheritdoc /> */
         public BinaryType RegisterEnum(string typeName, IEnumerable<KeyValuePair<string, int>> values)
         {
-            throw new NotSupportedException();
+            throw IgniteClient.GetClientNotSupportedException();
         }
 
         /** <inheritdoc /> */
