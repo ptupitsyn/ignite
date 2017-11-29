@@ -517,8 +517,8 @@ namespace Apache.Ignite.Core.Tests.Cache
         [Test]
         public void TestReplaceBinary()
         {
-            var cache = Cache<BinarizablePerson, int>();
-            var key = new BinarizablePerson("foo", 1);
+            var cache = Cache<object, int>();
+            var key = new {Foo = "bar"};
 
             Assert.IsFalse(cache.ContainsKey(key));
             Assert.AreEqual(false, cache.Replace(key, 1));
