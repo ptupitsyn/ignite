@@ -23,6 +23,7 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
     using Apache.Ignite.Core.Binary;
     using Apache.Ignite.Core.Cache;
     using Apache.Ignite.Core.Client;
+    using Apache.Ignite.Core.Client.Cache;
     using NUnit.Framework;
 
     /// <summary>
@@ -138,26 +139,22 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
         [Test]
         public void TestGetAll()
         {
-            using (var client = GetClient())
-            {
-                var cache = client.GetCache<int?, Person>(CacheName);
+            var cache = GetBinaryCache();
+            cache[1] = GetBinaryPerson(1);
+            cache[2] = GetBinaryPerson(2);
 
-                cache[1] = new Person(1);
-                cache[2] = new Person(2);
+            var binCache = cache.WithKeepBinary<int?, IBinaryObject>();
 
-                var binCache = cache.WithKeepBinary<int?, IBinaryObject>();
+            var res = binCache.GetAll(new int?[] {1}).Single();
+            Assert.AreEqual(1, res.Key);
+            Assert.AreEqual(1, res.Value.GetField<int>("Id"));
 
-                var res = binCache.GetAll(new int?[] {1}).Single();
-                Assert.AreEqual(1, res.Key);
-                Assert.AreEqual(1, res.Value.GetField<int>("Id"));
+            res = binCache.GetAll(new int?[] {1, -1}).Single();
+            Assert.AreEqual(1, res.Key);
+            Assert.AreEqual(1, res.Value.GetField<int>("Id"));
 
-                res = binCache.GetAll(new int?[] {1, -1}).Single();
-                Assert.AreEqual(1, res.Key);
-                Assert.AreEqual(1, res.Value.GetField<int>("Id"));
-
-                CollectionAssert.AreEquivalent(new[] {1, 2},
-                    binCache.GetAll(new int?[] {1, 2, 3}).Select(x => x.Value.GetField<int>("Id")));
-            }
+            CollectionAssert.AreEquivalent(new[] {1, 2},
+                binCache.GetAll(new int?[] {1, 2, 3}).Select(x => x.Value.GetField<int>("Id")));
         }
 
         /// <summary>
@@ -166,24 +163,21 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
         [Test]
         public void TestGetAndPut()
         {
-            using (var client = GetClient())
-            {
-                var cache = client.GetCache<int, Person>(CacheName).WithKeepBinary<int, IBinaryObject>();
+            var cache = GetBinaryCache();
 
-                Assert.IsFalse(cache.ContainsKey(1));
+            Assert.IsFalse(cache.ContainsKey(1));
 
-                var res = cache.GetAndPut(1, GetBinaryPerson(1));
-                Assert.IsFalse(res.Success);
-                Assert.IsNull(res.Value);
+            var res = cache.GetAndPut(1, GetBinaryPerson(1));
+            Assert.IsFalse(res.Success);
+            Assert.IsNull(res.Value);
 
-                Assert.IsTrue(cache.ContainsKey(1));
+            Assert.IsTrue(cache.ContainsKey(1));
 
-                res = cache.GetAndPut(1, GetBinaryPerson(2));
-                Assert.IsTrue(res.Success);
-                Assert.AreEqual(GetBinaryPerson(1), res.Value);
+            res = cache.GetAndPut(1, GetBinaryPerson(2));
+            Assert.IsTrue(res.Success);
+            Assert.AreEqual(GetBinaryPerson(1), res.Value);
 
-                Assert.AreEqual(GetBinaryPerson(2), cache[1]);
-            }
+            Assert.AreEqual(GetBinaryPerson(2), cache[1]);
         }
 
         /// <summary>
@@ -192,28 +186,22 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
         [Test]
         public void TestGetAndReplace()
         {
-            using (var client = GetClient())
-            {
-                var cache = client.GetCache<int?, int?>(CacheName);
+            var cache = GetBinaryCache();
 
-                Assert.IsFalse(cache.ContainsKey(1));
+            Assert.IsFalse(cache.ContainsKey(1));
 
-                var res = cache.GetAndReplace(1, 1);
-                Assert.IsFalse(res.Success);
-                Assert.IsNull(res.Value);
+            var res = cache.GetAndReplace(1, GetBinaryPerson(1));
+            Assert.IsFalse(res.Success);
+            Assert.IsNull(res.Value);
 
-                Assert.IsFalse(cache.ContainsKey(1));
-                cache[1] = 1;
+            Assert.IsFalse(cache.ContainsKey(1));
+            cache[1] = GetBinaryPerson(1);
 
-                res = cache.GetAndReplace(1, 2);
-                Assert.IsTrue(res.Success);
-                Assert.AreEqual(1, res.Value);
+            res = cache.GetAndReplace(1, GetBinaryPerson(2));
+            Assert.IsTrue(res.Success);
+            Assert.AreEqual(1, res.Value);
 
-                Assert.AreEqual(2, cache[1]);
-
-                Assert.Throws<ArgumentNullException>(() => cache.GetAndReplace(1, null));
-                Assert.Throws<ArgumentNullException>(() => cache.GetAndReplace(null, 1));
-            }
+            Assert.AreEqual(GetBinaryPerson(2), cache[1]);
         }
 
         /// <summary>
@@ -588,6 +576,14 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
         private IBinaryObject ToBinary(object o)
         {
             return Client.GetBinary().ToBinary<IBinaryObject>(o);
+        }
+
+        /// <summary>
+        /// Gets the binary cache.
+        /// </summary>
+        private ICacheClient<int, IBinaryObject> GetBinaryCache()
+        {
+            return Client.GetCache<int, Person>(CacheName).WithKeepBinary<int, IBinaryObject>();
         }
 
         /// <summary>
