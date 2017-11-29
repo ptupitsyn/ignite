@@ -510,7 +510,7 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
 
             CollectionAssert.AreEquivalent(new[] {"code", "name"}, type.Fields);
             Assert.AreEqual("byte", type.GetFieldTypeName("code"));
-            Assert.AreEqual("string", type.GetFieldTypeName("name"));
+            Assert.AreEqual("String", type.GetFieldTypeName("name"));
         }
 
         /// <summary>
