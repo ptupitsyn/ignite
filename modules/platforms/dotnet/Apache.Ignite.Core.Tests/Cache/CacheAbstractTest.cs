@@ -515,6 +515,7 @@ namespace Apache.Ignite.Core.Tests.Cache
         }
 
         [Test]
+        [Ignore("IGNITE-7072")]
         public void TestReplaceBinary()
         {
             var cache = Cache<object, object>();
