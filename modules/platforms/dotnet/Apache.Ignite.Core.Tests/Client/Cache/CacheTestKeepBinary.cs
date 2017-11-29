@@ -232,7 +232,7 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
         [Test]
         public void TestContainsKey()
         {
-            var cache = Client.GetCache<int, Person>(CacheName).WithKeepBinary<IBinaryObject, int>();
+            var cache = GetBinaryKeyCache();
 
             cache[GetBinaryPerson(25)] = 1;
 
@@ -248,27 +248,25 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
         [Test]
         public void TestContainsKeys()
         {
-            using (var client = GetClient())
-            {
-                var cache = client.GetCache<int, int>(CacheName);
+            var cache = GetBinaryKeyCache();
 
-                cache[1] = 1;
-                cache[2] = 2;
-                cache[3] = 3;
+            cache[GetBinaryPerson(1)] = 1;
+            cache[GetBinaryPerson(2)] = 2;
+            cache[GetBinaryPerson(3)] = 3;
 
-                Assert.IsTrue(cache.ContainsKeys(new[] {1}));
-                Assert.IsTrue(cache.ContainsKeys(new[] {1, 2}));
-                Assert.IsTrue(cache.ContainsKeys(new[] {2, 1}));
-                Assert.IsTrue(cache.ContainsKeys(new[] {1, 2, 3}));
-                Assert.IsTrue(cache.ContainsKeys(new[] {1, 3, 2}));
+            Assert.IsTrue(cache.ContainsKeys(new[] {GetBinaryPerson(1)}));
+            Assert.IsTrue(cache.ContainsKeys(new[] {GetBinaryPerson(1), GetBinaryPerson(2)}));
+            Assert.IsTrue(cache.ContainsKeys(new[] {GetBinaryPerson(2), GetBinaryPerson(1)}));
+            Assert.IsTrue(cache.ContainsKeys(new[] {GetBinaryPerson(1), GetBinaryPerson(2), GetBinaryPerson(3)}));
+            Assert.IsTrue(cache.ContainsKeys(new[] {GetBinaryPerson(1), GetBinaryPerson(3), GetBinaryPerson(2)}));
 
-                Assert.IsFalse(cache.ContainsKeys(new[] {0}));
-                Assert.IsFalse(cache.ContainsKeys(new[] {0, 1}));
-                Assert.IsFalse(cache.ContainsKeys(new[] {1, 0}));
-                Assert.IsFalse(cache.ContainsKeys(new[] {1, 2, 3, 0}));
+            Assert.IsFalse(cache.ContainsKeys(new[] { GetBinaryPerson(0) }));
+            Assert.IsFalse(cache.ContainsKeys(new[] { GetBinaryPerson(0), GetBinaryPerson(1) }));
+            Assert.IsFalse(cache.ContainsKeys(new[] { GetBinaryPerson(1), GetBinaryPerson(0) }));
+            Assert.IsFalse(cache.ContainsKeys(new[]
+                {GetBinaryPerson(1), GetBinaryPerson(3), GetBinaryPerson(2), GetBinaryPerson(0)}));
 
-                Assert.Throws<ArgumentNullException>(() => cache.ContainsKeys(null));
-            }
+            Assert.Throws<ArgumentNullException>(() => cache.ContainsKeys(null));
         }
 
         /// <summary>
@@ -574,6 +572,14 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
         private ICacheClient<int, IBinaryObject> GetBinaryCache()
         {
             return Client.GetCache<int, Person>(CacheName).WithKeepBinary<int, IBinaryObject>();
+        }
+
+        /// <summary>
+        /// Gets the binary key cache.
+        /// </summary>
+        private ICacheClient<IBinaryObject, int> GetBinaryKeyCache()
+        {
+            return Client.GetCache<int, Person>(CacheName).WithKeepBinary<IBinaryObject, int>();
         }
 
         /// <summary>
