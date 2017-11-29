@@ -426,37 +426,36 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
         /// Tests the Remove method with value argument.
         /// </summary>
         [Test]
+        [Ignore("IGNITE-7072")]
         public void TestRemoveKeyVal()
         {
-            using (var client = GetClient())
-            {
-                var cache = client.GetCache<int?, int?>(CacheName);
+            var cache = GetBinaryKeyValCache();
 
-                cache[1] = 1;
-                cache[2] = 2;
+            var x = GetBinaryPerson(1);
+            var y = GetBinaryPerson(2);
+            var z = GetBinaryPerson(0);
 
-                var res = cache.Remove(1, 0);
-                Assert.IsFalse(res);
+            cache[x] = x;
+            cache[y] = y;
 
-                res = cache.Remove(0, 0);
-                Assert.IsFalse(res);
+            var res = cache.Remove(x, z);
+            Assert.IsFalse(res);
 
-                res = cache.Remove(1, 1);
-                Assert.IsTrue(res);
-                Assert.IsFalse(cache.ContainsKey(1));
-                Assert.IsTrue(cache.ContainsKey(2));
+            res = cache.Remove(z, z);
+            Assert.IsFalse(res);
 
-                res = cache.Remove(2, 2);
-                Assert.IsTrue(res);
-                Assert.IsFalse(cache.ContainsKey(1));
-                Assert.IsFalse(cache.ContainsKey(2));
+            res = cache.Remove(x, x);
+            Assert.IsTrue(res);
+            Assert.IsFalse(cache.ContainsKey(x));
+            Assert.IsTrue(cache.ContainsKey(y));
 
-                res = cache.Remove(2, 2);
-                Assert.IsFalse(res);
+            res = cache.Remove(y, y);
+            Assert.IsTrue(res);
+            Assert.IsFalse(cache.ContainsKey(x));
+            Assert.IsFalse(cache.ContainsKey(y));
 
-                Assert.Throws<ArgumentNullException>(() => cache.Remove(1, null));
-                Assert.Throws<ArgumentNullException>(() => cache.Remove(null, 1));
-            }
+            res = cache.Remove(y, y);
+            Assert.IsFalse(res);
         }
 
         /// <summary>
@@ -509,7 +508,15 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
         /// </summary>
         private ICacheClient<IBinaryObject, int> GetBinaryKeyCache()
         {
-            return Client.GetCache<int, Person>(CacheName).WithKeepBinary<IBinaryObject, int>();
+            return Client.GetCache<Person, int>(CacheName).WithKeepBinary<IBinaryObject, int>();
+        }
+
+        /// <summary>
+        /// Gets the binary key-val cache.
+        /// </summary>
+        private ICacheClient<IBinaryObject, IBinaryObject> GetBinaryKeyValCache()
+        {
+            return Client.GetCache<Person, Person>(CacheName).WithKeepBinary<IBinaryObject, IBinaryObject>();
         }
 
         /// <summary>
