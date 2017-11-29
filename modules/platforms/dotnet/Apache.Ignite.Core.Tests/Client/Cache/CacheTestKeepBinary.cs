@@ -464,27 +464,24 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
         [Test]
         public void TestRemoveReys()
         {
-            using (var client = GetClient())
-            {
-                var cache = client.GetCache<int?, int?>(CacheName);
-                var keys = Enumerable.Range(1, 10).Cast<int?>().ToArray();
+            var cache = GetBinaryKeyCache();
 
-                cache.PutAll(keys.ToDictionary(x => x, x => x));
+            var ids = Enumerable.Range(1, 10).ToArray();
+            var keys = ids.Select(GetBinaryPerson).ToArray();
+            cache.PutAll(ids.ToDictionary(GetBinaryPerson, x => x));
 
-                cache.RemoveAll(keys.Skip(2));
-                CollectionAssert.AreEquivalent(keys.Take(2), cache.GetAll(keys).Select(x => x.Key));
+            cache.RemoveAll(keys.Skip(2));
+            CollectionAssert.AreEquivalent(keys.Take(2), cache.GetAll(keys).Select(x => x.Key));
 
-                cache.RemoveAll(new int?[] {1});
-                Assert.AreEqual(2, cache.GetAll(keys).Single().Value);
+            cache.RemoveAll(new[] {GetBinaryPerson(1)});
+            Assert.AreEqual(2, cache.GetAll(keys).Single().Value);
 
-                cache.RemoveAll(keys);
-                cache.RemoveAll(keys);
+            cache.RemoveAll(keys);
+            cache.RemoveAll(keys);
 
-                Assert.AreEqual(0, cache.GetSize());
+            Assert.AreEqual(0, cache.GetSize());
 
-                Assert.Throws<ArgumentNullException>(() => cache.RemoveAll(null));
-                Assert.Throws<IgniteClientException>(() => cache.RemoveAll(new int?[] {1, null}));
-            }
+            Assert.Throws<ArgumentNullException>(() => cache.RemoveAll(null));
         }
 
         /// <summary>
