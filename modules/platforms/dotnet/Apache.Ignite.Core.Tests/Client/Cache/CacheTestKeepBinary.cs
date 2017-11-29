@@ -210,27 +210,22 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
         [Test]
         public void TestGetAndRemove()
         {
-            using (var client = GetClient())
-            {
-                var cache = client.GetCache<int?, int?>(CacheName);
+            var cache = GetBinaryCache();
 
-                Assert.IsFalse(cache.ContainsKey(1));
+            Assert.IsFalse(cache.ContainsKey(1));
 
-                var res = cache.GetAndRemove(1);
-                Assert.IsFalse(res.Success);
-                Assert.IsNull(res.Value);
+            var res = cache.GetAndRemove(1);
+            Assert.IsFalse(res.Success);
+            Assert.IsNull(res.Value);
 
-                Assert.IsFalse(cache.ContainsKey(1));
-                cache[1] = 1;
+            Assert.IsFalse(cache.ContainsKey(1));
+            cache[1] = GetBinaryPerson(1);
 
-                res = cache.GetAndRemove(1);
-                Assert.IsTrue(res.Success);
-                Assert.AreEqual(1, res.Value);
+            res = cache.GetAndRemove(1);
+            Assert.IsTrue(res.Success);
+            Assert.AreEqual(GetBinaryPerson(1), res.Value);
 
-                Assert.IsFalse(cache.ContainsKey(1));
-
-                Assert.Throws<ArgumentNullException>(() => cache.GetAndRemove(null));
-            }
+            Assert.IsFalse(cache.ContainsKey(1));
         }
 
         /// <summary>
@@ -239,17 +234,14 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
         [Test]
         public void TestContainsKey()
         {
-            using (var client = GetClient())
-            {
-                var cache = client.GetCache<int?, int>(CacheName);
+            var cache = Client.GetCache<int, Person>(CacheName).WithKeepBinary<IBinaryObject, int>();
 
-                cache[1] = 1;
+            cache[GetBinaryPerson(25)] = 1;
 
-                Assert.IsTrue(cache.ContainsKey(1));
-                Assert.IsFalse(cache.ContainsKey(2));
+            Assert.IsTrue(cache.ContainsKey(GetBinaryPerson(25)));
+            Assert.IsFalse(cache.ContainsKey(GetBinaryPerson(26)));
 
-                Assert.Throws<ArgumentNullException>(() => cache.ContainsKey(null));
-            }
+            Assert.Throws<ArgumentNullException>(() => cache.ContainsKey(null));
         }
 
         /// <summary>
