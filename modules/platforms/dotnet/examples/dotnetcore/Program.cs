@@ -30,22 +30,23 @@ namespace Apache.Ignite.Examples
         [STAThread]
         public static void Main(string[] args)
         {
-            Console.WriteLine(">>> Welcome to Apache Ignite.NET Examples!");
-            Console.WriteLine(">>> Choose an example to run:");
+            Write("Welcome to Apache Ignite.NET Examples!");
+            Write("Choose an example to run:");
             Console.WriteLine();
-            Console.WriteLine(">>> 1. PutGet");
-            Console.WriteLine(">>> 2. SQL");
-            Console.WriteLine(">>> 3. LINQ");
+            Write("1. Cache put-get");
+            Write("2. SQL");
+            Write("3. LINQ");
             Console.WriteLine();
 
             switch (ReadNumber())
             {
                 case 1:
+                    Write("Starting cache put-get example ...");
                     PutGetExample.Run();
                     break;
             }
 
-            Console.WriteLine("\n>>> Example finished, press any key to exit ...");
+            Write("Example finished, press any key to exit ...");
             Console.ReadKey();
         }
 
@@ -75,9 +76,12 @@ namespace Apache.Ignite.Examples
             }
         }
 
-        private static void Write(string s)
+        /// <summary>
+        /// Writes the string to console.
+        /// </summary>
+        private static void Write(string s = null)
         {
-            Console.WriteLine($">>> {s}");
+            Console.WriteLine(s == null ? null : $">>> {s}");
         }
     }
 }
