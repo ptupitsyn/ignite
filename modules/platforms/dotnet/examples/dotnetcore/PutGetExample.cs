@@ -42,7 +42,7 @@ namespace Apache.Ignite.Examples
         /// </summary>
         public static void Run()
         {
-            var ignite = Ignition.StartFromApplicationConfiguration();
+            var ignite = Ignition.TryGetIgnite() ?? Ignition.StartFromApplicationConfiguration();
             Console.WriteLine();
             Console.WriteLine(">>> Cache put-get example started.");
 

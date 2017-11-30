@@ -18,7 +18,6 @@
 namespace Apache.Ignite.Examples
 {
     using System;
-    using Apache.Ignite.Core;
 
     /// <summary>
     /// Examples selector - program entry point.
@@ -31,24 +30,29 @@ namespace Apache.Ignite.Examples
         [STAThread]
         public static void Main(string[] args)
         {
-            Write("Welcome to Apache Ignite.NET Examples!");
-            Write("Choose an example to run:");
-            Write("1. Cache put-get");
-            Write("2. SQL");
-            Write("3. LINQ");
-
-            switch (ReadNumber())
+            while (true)
             {
-                case 1:
-                    Write("Starting cache put-get example ...");
-                    PutGetExample.Run();
-                    break;
-            }
+                Write("======================================");
+                Write("Welcome to Apache Ignite.NET Examples!");
+                Write("Choose an example to run:");
+                Write("1. Cache put-get");
+                Write("2. SQL");
+                Write("3. LINQ");
+                Write("4. Exit examples");
 
-            Write("Example finished, press any key to exit ...");
-            Console.ReadKey();
-            
-            Ignition.StopAll(true);
+                switch (ReadNumber())
+                {
+                    case 1:
+                        Write("Starting cache put-get example ...");
+                        PutGetExample.Run();
+                        break;
+                    case 4:
+                        return;
+                }
+
+                Write("Example finished, press any key to exit ...");
+                Console.ReadKey();
+            }
         }
 
         /// <summary>
@@ -78,7 +82,7 @@ namespace Apache.Ignite.Examples
         }
 
         /// <summary>
-        /// Writes the string to console.
+        /// Writes string to console.
         /// </summary>
         private static void Write(string s = null) => Console.WriteLine(s == null ? null : $">>> {s}");
     }
