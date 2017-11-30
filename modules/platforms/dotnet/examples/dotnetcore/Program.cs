@@ -46,6 +46,12 @@ namespace Apache.Ignite.Examples
                         Write("Starting cache put-get example ...");
                         PutGetExample.Run();
                         break;
+                    case 2:
+                        Write("Starting SQL example ...");
+                        break;
+                    case 3:
+                        Write("Starting LINQ example ...");
+                        break;
                     case 4:
                         return;
                 }
