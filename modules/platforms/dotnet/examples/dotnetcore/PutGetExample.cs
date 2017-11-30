@@ -31,7 +31,7 @@ namespace Apache.Ignite.Examples
     /// TODO: "dotnet run" - with arg?
     /// TODO: standalone Java node
     /// </summary>
-    public class PutGetExample
+    public static class PutGetExample
     {
         /// <summary>Cache name.</summary>
         private const string CacheName = "dotnet_cache_put_get";
@@ -41,25 +41,17 @@ namespace Apache.Ignite.Examples
         /// </summary>
         public static void Run()
         {
-            using (var ignite = Ignition.StartFromApplicationConfiguration())
-            {
-                Console.WriteLine();
-                Console.WriteLine(">>> Cache put-get example started.");
-
-                // Clean up caches on all nodes before run.
-                ignite.GetOrCreateCache<object, object>(CacheName).Clear();
-
-                PutGet(ignite);
-                PutGetBinary(ignite);
-                PutAllGetAll(ignite);
-                PutAllGetAllBinary(ignite);
-
-                Console.WriteLine();
-            }
-
+            var ignite = Ignition.StartFromApplicationConfiguration();
             Console.WriteLine();
-            Console.WriteLine(">>> Example finished, press any key to exit ...");
-            Console.ReadKey();
+            Console.WriteLine(">>> Cache put-get example started.");
+
+            // Clean up caches on all nodes before run.
+            ignite.GetOrCreateCache<object, object>(CacheName).Clear();
+
+            PutGet(ignite);
+            PutGetBinary(ignite);
+            PutAllGetAll(ignite);
+            PutAllGetAllBinary(ignite);
         }
 
         /// <summary>

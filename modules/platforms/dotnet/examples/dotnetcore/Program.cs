@@ -18,6 +18,7 @@
 namespace Apache.Ignite.Examples
 {
     using System;
+    using Apache.Ignite.Core;
 
     /// <summary>
     /// Examples selector - program entry point.
@@ -32,11 +33,9 @@ namespace Apache.Ignite.Examples
         {
             Write("Welcome to Apache Ignite.NET Examples!");
             Write("Choose an example to run:");
-            Console.WriteLine();
             Write("1. Cache put-get");
             Write("2. SQL");
             Write("3. LINQ");
-            Console.WriteLine();
 
             switch (ReadNumber())
             {
@@ -48,6 +47,8 @@ namespace Apache.Ignite.Examples
 
             Write("Example finished, press any key to exit ...");
             Console.ReadKey();
+            
+            Ignition.StopAll(true);
         }
 
         /// <summary>
@@ -55,7 +56,7 @@ namespace Apache.Ignite.Examples
         /// </summary>
         private static int ReadNumber()
         {
-            Console.WriteLine("Enter a number: ");
+            Write("Enter a number: ");
 
             while (true)
             {
@@ -63,11 +64,11 @@ namespace Apache.Ignite.Examples
 
                 if (!int.TryParse(input, out var id))
                 {
-                    Console.WriteLine("Not a number, try again: ");
+                    Write("Not a number, try again: ");
                 }
                 else if (id < 1 || 3 < id)
                 {
-                    Console.WriteLine("Out of range, try again: ");
+                    Write("Out of range, try again: ");
                 }
                 else
                 {
