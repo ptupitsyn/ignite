@@ -80,9 +80,6 @@ namespace Apache.Ignite.Examples
         /// <summary>
         /// Writes the string to console.
         /// </summary>
-        private static void Write(string s = null)
-        {
-            Console.WriteLine(s == null ? null : $">>> {s}");
-        }
+        private static void Write(string s = null) => Console.WriteLine(s == null ? null : $">>> {s}");
     }
 }

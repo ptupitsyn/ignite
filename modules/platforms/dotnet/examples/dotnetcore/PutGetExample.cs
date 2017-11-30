@@ -19,6 +19,7 @@ namespace Apache.Ignite.Examples
 {
     using System;
     using System.Collections.Generic;
+    using System.Threading.Tasks;
     using Core;
     using Core.Binary;
 
@@ -50,8 +51,7 @@ namespace Apache.Ignite.Examples
 
             PutGet(ignite);
             PutGetBinary(ignite);
-            PutAllGetAll(ignite);
-            PutAllGetAllBinary(ignite);
+            PutGetAsync(ignite).Wait();
         }
 
         /// <summary>
@@ -103,60 +103,24 @@ namespace Apache.Ignite.Examples
         }
 
         /// <summary>
-        /// Execute bulk Put and Get operations.
+        /// Execute individual Put and Get.
         /// </summary>
         /// <param name="ignite">Ignite instance.</param>
-        private static void PutAllGetAll(IIgnite ignite)
+        private static async Task PutGetAsync(IIgnite ignite)
         {
             var cache = ignite.GetCache<int, Organization>(CacheName);
 
-            // Create new Organizations to store in cache.
-            var org1 = new Organization("Microsoft");
-            var org2 = new Organization("Red Cross");
+            // Create new Organization to store in cache.
+            var org = new Organization("Microsoft");
 
-            var map = new Dictionary<int, Organization> { { 1, org1 }, { 2, org2 } };
+            // Put created data entry to cache.
+            await cache.PutAsync(1, org);
 
-            // Put created data entries to cache.
-            cache.PutAll(map);
-
-            // Get recently created organizations as a strongly-typed fully de-serialized instances.
-            var mapFromCache = cache.GetAll(new List<int> { 1, 2 });
+            // Get recently created employee as a strongly-typed fully de-serialized instance.
+            var orgFromCache = await cache.GetAsync(1);
 
             Console.WriteLine();
-            Console.WriteLine(">>> Retrieved organization instances from cache:");
-
-            foreach (var org in mapFromCache)
-                Console.WriteLine(">>>     " + org.Value);
-        }
-
-        /// <summary>
-        /// Execute bulk Put and Get operations getting values in binary format, without de-serializing it.
-        /// </summary>
-        /// <param name="ignite">Ignite instance.</param>
-        private static void PutAllGetAllBinary(IIgnite ignite)
-        {
-            var cache = ignite.GetCache<int, Organization>(CacheName);
-
-            // Create new Organizations to store in cache.
-            var org1 = new Organization("Microsoft");
-            var org2 = new Organization("Red Cross");
-
-            var map = new Dictionary<int, Organization> { { 1, org1 }, { 2, org2 } };
-
-            // Put created data entries to cache.
-            cache.PutAll(map);
-
-            // Create projection that will get values as binary objects.
-            var binaryCache = cache.WithKeepBinary<int, IBinaryObject>();
-
-            // Get recently created organizations as binary objects.
-            var binaryMap = binaryCache.GetAll(new List<int> { 1, 2 });
-
-            Console.WriteLine();
-            Console.WriteLine(">>> Retrieved organization names from binary objects:");
-
-            foreach (var pair in binaryMap)
-                Console.WriteLine(">>>     " + pair.Value.GetField<string>("name"));
+            Console.WriteLine(">>> Retrieved organization instance from cache asynchronously: " + orgFromCache);
         }
     }
 }
