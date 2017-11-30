@@ -39,8 +39,7 @@ namespace Apache.Ignite.Examples
         /// <summary>
         /// Runs the example.
         /// </summary>
-        [STAThread]
-        public static void Main()
+        public static void Run()
         {
             using (var ignite = Ignition.StartFromApplicationConfiguration())
             {
