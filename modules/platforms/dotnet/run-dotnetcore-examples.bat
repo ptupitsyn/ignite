@@ -16,7 +16,6 @@
 ::
 
 :: .NET Core examples runner (see examples/dotnetcore)
-set IGNITE_HOME=%~dp0..\..\..
 set IGNITE_NATIVE_TEST_CLASSPATH=true
 
 pushd .
