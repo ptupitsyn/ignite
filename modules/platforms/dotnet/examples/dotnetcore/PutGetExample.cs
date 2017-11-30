@@ -28,9 +28,6 @@ namespace Apache.Ignite.Examples
     /// with binary values. Note that binary object can be retrieved in
     /// fully-deserialized form or in binary object format using special
     /// cache projection.
-    /// <para />
-    /// TODO: "dotnet run" - with arg?
-    /// TODO: standalone Java node
     /// </summary>
     public static class PutGetExample
     {
