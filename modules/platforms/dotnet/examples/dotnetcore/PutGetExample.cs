@@ -18,7 +18,6 @@
 namespace Apache.Ignite.Examples
 {
     using System;
-    using System.Collections.Generic;
     using System.Threading.Tasks;
     using Core;
     using Core.Binary;
