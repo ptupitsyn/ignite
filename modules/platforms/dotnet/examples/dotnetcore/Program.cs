@@ -76,7 +76,7 @@ namespace Apache.Ignite.Examples
                 {
                     Write("Not a number, try again: ");
                 }
-                else if (id < 1 || 3 < id)
+                else if (id < 1 || 4 < id)
                 {
                     Write("Out of range, try again: ");
                 }
