@@ -43,7 +43,7 @@ namespace Apache.Ignite.Examples
         [STAThread]
         public static void Run()
         {
-            var ignite = Ignition.GetIgnite() ?? Ignition.StartFromApplicationConfiguration();
+            var ignite = Ignition.TryGetIgnite() ?? Ignition.StartFromApplicationConfiguration();
 
             Console.WriteLine();
             Console.WriteLine(">>> Cache LINQ example started.");
