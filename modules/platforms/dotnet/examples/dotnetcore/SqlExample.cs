@@ -133,7 +133,7 @@ namespace Apache.Ignite.Examples
             });
 
             Console.WriteLine();
-            Console.WriteLine(">>> Employees working for " + orgName + ":");
+            Console.WriteLine(">>> Employees working for " + orgName + " (distributed joins):");
 
             foreach (var entry in qry)
                 Console.WriteLine(">>>     " + entry.Value);
