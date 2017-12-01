@@ -19,6 +19,7 @@ namespace Apache.Ignite.Examples
 {
     using System;
     using System.Linq;
+    using System.Runtime.CompilerServices;
     using Apache.Ignite.Core;
     using Apache.Ignite.Core.Cache;
     using Apache.Ignite.Core.Cache.Affinity;
@@ -99,6 +100,9 @@ namespace Apache.Ignite.Examples
 
             foreach (var entry in qry)
                 Console.WriteLine(">>>    " + entry.Value);
+
+            Console.WriteLine();
+            Console.WriteLine(">>> Generated SQL: " + qry.ToCacheQueryable().GetFieldsQuery().Sql);
         }
 
         /// <summary>
@@ -147,6 +151,9 @@ namespace Apache.Ignite.Examples
 
             foreach (var entry in qry)
                 Console.WriteLine(">>>     " + entry.Value);
+
+            Console.WriteLine();
+            Console.WriteLine(">>> Generated SQL: " + qry.ToCacheQueryable().GetFieldsQuery().Sql);
         }
 
         /// <summary>
