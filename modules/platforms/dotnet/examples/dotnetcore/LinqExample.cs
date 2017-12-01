@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-namespace Apache.Ignite.Examples.Datagrid
+namespace Apache.Ignite.Examples
 {
     using System;
     using System.Linq;
@@ -24,7 +24,6 @@ namespace Apache.Ignite.Examples.Datagrid
     using Apache.Ignite.Core.Cache.Affinity;
     using Apache.Ignite.Core.Cache.Configuration;
     using Apache.Ignite.Core.Cache.Query;
-    using Apache.Ignite.ExamplesDll.Binary;
     using Apache.Ignite.Linq;
 
     /// <summary>
@@ -53,7 +52,7 @@ namespace Apache.Ignite.Examples.Datagrid
         private const string EmployeeCacheNameColocated = "dotnet_cache_query_employee_colocated";
 
         [STAThread]
-        public static void Main()
+        public static void Run()
         {
             using (var ignite = Ignition.StartFromApplicationConfiguration())
             {
@@ -103,15 +102,14 @@ namespace Apache.Ignite.Examples.Datagrid
         /// <param name="cache">Cache.</param>
         private static void QueryExample(ICache<int, Employee> cache)
         {
-            const int zip = 94109;
+            const int minSalary = 10000;
 
-            IQueryable<ICacheEntry<int, Employee>> qry =
-                cache.AsCacheQueryable().Where(emp => emp.Value.Address.Zip == zip);
+            var qry = cache.AsCacheQueryable().Where(emp => emp.Value.Salary > minSalary);
 
             Console.WriteLine();
-            Console.WriteLine(">>> Employees with zipcode " + zip + ":");
+            Console.WriteLine($">>> Employees with salary > {minSalary}:");
 
-            foreach (ICacheEntry<int, Employee> entry in qry)
+            foreach (var entry in qry)
                 Console.WriteLine(">>>    " + entry.Value);
         }
 
@@ -121,18 +119,18 @@ namespace Apache.Ignite.Examples.Datagrid
         /// <param name="cache">Cache.</param>
         private static void CompiledQueryExample(ICache<int, Employee> cache)
         {
-            const int zip = 94109;
+            const int minSalary = 10000;
 
             var cache0 = cache.AsCacheQueryable();
 
             // Compile cache query to eliminate LINQ overhead on multiple runs.
             Func<int, IQueryCursor<ICacheEntry<int, Employee>>> qry =
-                CompiledQuery.Compile((int z) => cache0.Where(emp => emp.Value.Address.Zip == z));
+                CompiledQuery.Compile((int ms) => cache0.Where(emp => emp.Value.Salary > ms));
 
             Console.WriteLine();
-            Console.WriteLine(">>> Employees with zipcode {0} using compiled query:", zip);
+            Console.WriteLine($">>> Employees with salary > {minSalary} using compiled query:");
 
-            foreach (ICacheEntry<int, Employee> entry in qry(zip))
+            foreach (var entry in qry(minSalary))
                 Console.WriteLine(">>>    " + entry.Value);
         }
 
@@ -146,10 +144,10 @@ namespace Apache.Ignite.Examples.Datagrid
         {
             const string orgName = "Apache";
 
-            IQueryable<ICacheEntry<AffinityKey, Employee>> employees = employeeCache.AsCacheQueryable();
-            IQueryable<ICacheEntry<int, Organization>> organizations = organizationCache.AsCacheQueryable();
+            var employees = employeeCache.AsCacheQueryable();
+            var organizations = organizationCache.AsCacheQueryable();
 
-            IQueryable<ICacheEntry<AffinityKey, Employee>> qry =
+            var qry =
                 from employee in employees
                 from organization in organizations
                 where employee.Value.OrganizationId == organization.Key && organization.Value.Name == orgName
@@ -159,7 +157,7 @@ namespace Apache.Ignite.Examples.Datagrid
             Console.WriteLine();
             Console.WriteLine(">>> Employees working for " + orgName + ":");
 
-            foreach (ICacheEntry<AffinityKey, Employee> entry in qry)
+            foreach (var entry in qry)
                 Console.WriteLine(">>>     " + entry.Value);
         }
 
@@ -175,10 +173,10 @@ namespace Apache.Ignite.Examples.Datagrid
 
             var queryOptions = new QueryOptions {EnableDistributedJoins = true};
 
-            IQueryable<ICacheEntry<int, Employee>> employees = employeeCache.AsCacheQueryable(queryOptions);
-            IQueryable<ICacheEntry<int, Organization>> organizations = organizationCache.AsCacheQueryable(queryOptions);
+            var employees = employeeCache.AsCacheQueryable(queryOptions);
+            var organizations = organizationCache.AsCacheQueryable(queryOptions);
 
-            IQueryable<ICacheEntry<int, Employee>> qry =
+            var qry =
                 from employee in employees
                 from organization in organizations
                 where employee.Value.OrganizationId == organization.Key && organization.Value.Name == orgName
@@ -188,7 +186,7 @@ namespace Apache.Ignite.Examples.Datagrid
             Console.WriteLine();
             Console.WriteLine(">>> Employees working for " + orgName + ":");
 
-            foreach (ICacheEntry<int, Employee> entry in qry)
+            foreach (var entry in qry)
                 Console.WriteLine(">>>     " + entry.Value);
         }
 
@@ -213,17 +211,8 @@ namespace Apache.Ignite.Examples.Datagrid
         /// <param name="cache">Cache.</param>
         private static void PopulateCache(ICache<int, Organization> cache)
         {
-            cache.Put(1, new Organization(
-                "Apache",
-                new Address("1065 East Hillsdale Blvd, Foster City, CA", 94404),
-                OrganizationType.Private,
-                DateTime.Now));
-
-            cache.Put(2, new Organization(
-                "Microsoft",
-                new Address("1096 Eddy Street, San Francisco, CA", 94109),
-                OrganizationType.Private,
-                DateTime.Now));
+            cache.Put(1, new Organization("Apache"));
+            cache.Put(2, new Organization("Microsoft"));
         }
 
         /// <summary>
@@ -232,54 +221,13 @@ namespace Apache.Ignite.Examples.Datagrid
         /// <param name="cache">Cache.</param>
         private static void PopulateCache(ICache<AffinityKey, Employee> cache)
         {
-            cache.Put(new AffinityKey(1, 1), new Employee(
-                "James Wilson",
-                12500,
-                new Address("1096 Eddy Street, San Francisco, CA", 94109),
-                new[] {"Human Resources", "Customer Service"},
-                1));
-
-            cache.Put(new AffinityKey(2, 1), new Employee(
-                "Daniel Adams",
-                11000,
-                new Address("184 Fidler Drive, San Antonio, TX", 78130),
-                new[] {"Development", "QA"},
-                1));
-
-            cache.Put(new AffinityKey(3, 1), new Employee(
-                "Cristian Moss",
-                12500,
-                new Address("667 Jerry Dove Drive, Florence, SC", 29501),
-                new[] {"Logistics"},
-                1));
-
-            cache.Put(new AffinityKey(4, 2), new Employee(
-                "Allison Mathis",
-                25300,
-                new Address("2702 Freedom Lane, San Francisco, CA", 94109),
-                new[] {"Development"},
-                2));
-
-            cache.Put(new AffinityKey(5, 2), new Employee(
-                "Breana Robbin",
-                6500,
-                new Address("3960 Sundown Lane, Austin, TX", 78130),
-                new[] {"Sales"},
-                2));
-
-            cache.Put(new AffinityKey(6, 2), new Employee(
-                "Philip Horsley",
-                19800,
-                new Address("2803 Elsie Drive, Sioux Falls, SD", 57104),
-                new[] {"Sales"},
-                2));
-
-            cache.Put(new AffinityKey(7, 2), new Employee(
-                "Brian Peters",
-                10600,
-                new Address("1407 Pearlman Avenue, Boston, MA", 12110),
-                new[] {"Development", "QA"},
-                2));
+            cache.Put(new AffinityKey(1, 1), new Employee("James Wilson", 12500, 1));
+            cache.Put(new AffinityKey(2, 1), new Employee("Daniel Adams", 11000, 1));
+            cache.Put(new AffinityKey(3, 1), new Employee("Cristian Moss", 12500, 1));
+            cache.Put(new AffinityKey(4, 2), new Employee("Allison Mathis", 25300, 2));
+            cache.Put(new AffinityKey(5, 2), new Employee("Breana Robbin", 6500, 2));
+            cache.Put(new AffinityKey(6, 2), new Employee("Philip Horsley", 19800, 2));
+            cache.Put(new AffinityKey(7, 2), new Employee("Brian Peters", 10600, 2));
         }
 
         /// <summary>
@@ -288,54 +236,13 @@ namespace Apache.Ignite.Examples.Datagrid
         /// <param name="cache">Cache.</param>
         private static void PopulateCache(ICache<int, Employee> cache)
         {
-            cache.Put(1, new Employee(
-                "James Wilson",
-                12500,
-                new Address("1096 Eddy Street, San Francisco, CA", 94109),
-                new[] {"Human Resources", "Customer Service"},
-                1));
-
-            cache.Put(2, new Employee(
-                "Daniel Adams",
-                11000,
-                new Address("184 Fidler Drive, San Antonio, TX", 78130),
-                new[] {"Development", "QA"},
-                1));
-
-            cache.Put(3, new Employee(
-                "Cristian Moss",
-                12500,
-                new Address("667 Jerry Dove Drive, Florence, SC", 29501),
-                new[] {"Logistics"},
-                1));
-
-            cache.Put(4, new Employee(
-                "Allison Mathis",
-                25300,
-                new Address("2702 Freedom Lane, San Francisco, CA", 94109),
-                new[] {"Development"},
-                2));
-
-            cache.Put(5, new Employee(
-                "Breana Robbin",
-                6500,
-                new Address("3960 Sundown Lane, Austin, TX", 78130),
-                new[] {"Sales"},
-                2));
-
-            cache.Put(6, new Employee(
-                "Philip Horsley",
-                19800,
-                new Address("2803 Elsie Drive, Sioux Falls, SD", 57104),
-                new[] {"Sales"},
-                2));
-
-            cache.Put(7, new Employee(
-                "Brian Peters",
-                10600,
-                new Address("1407 Pearlman Avenue, Boston, MA", 12110),
-                new[] {"Development", "QA"},
-                2));
+            cache.Put(1, new Employee("James Wilson", 12500, 1));
+            cache.Put(2, new Employee("Daniel Adams", 11000, 1));
+            cache.Put(3, new Employee("Cristian Moss", 12500, 1));
+            cache.Put(4, new Employee("Allison Mathis", 25300, 2));
+            cache.Put(5, new Employee("Breana Robbin", 6500, 2));
+            cache.Put(6, new Employee("Philip Horsley", 19800, 2));
+            cache.Put(7, new Employee("Brian Peters", 10600, 2));
         }
     }
 }
