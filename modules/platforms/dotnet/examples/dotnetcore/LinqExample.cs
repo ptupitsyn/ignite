@@ -19,7 +19,6 @@ namespace Apache.Ignite.Examples
 {
     using System;
     using System.Linq;
-    using System.Runtime.CompilerServices;
     using Apache.Ignite.Core;
     using Apache.Ignite.Core.Cache;
     using Apache.Ignite.Core.Cache.Affinity;
