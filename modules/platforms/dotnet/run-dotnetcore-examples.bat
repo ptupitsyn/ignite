@@ -22,6 +22,6 @@ set IGNITE_NATIVE_TEST_CLASSPATH=true
 pushd .
 
 cd examples\dotnetcore
-dotnet run
+dotnet run %*
 
 popd
