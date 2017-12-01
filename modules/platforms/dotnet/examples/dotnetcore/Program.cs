@@ -58,6 +58,7 @@ namespace Apache.Ignite.Examples
                         return;
                 }
 
+				Write();
                 Write("Example finished, press any key to continue ...");
                 Console.ReadKey();
             }

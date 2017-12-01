@@ -73,12 +73,6 @@ namespace Apache.Ignite.Examples
 
             // Run SQL fields query example.
             SqlFieldsQueryExample(employeeCache);
-
-            Console.WriteLine();
-
-            Console.WriteLine();
-            Console.WriteLine(">>> Example finished, press any key to exit ...");
-            Console.ReadKey();
         }
 
         /// <summary>
