@@ -16,6 +16,7 @@
 ::
 
 :: .NET Core examples runner (see examples/dotnetcore)
+:: Build main solution before running examples (build.bat).
 set IGNITE_NATIVE_TEST_CLASSPATH=true
 
 pushd .
