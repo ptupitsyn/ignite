@@ -82,17 +82,17 @@ namespace Apache.Ignite.Examples
         }
 
         /// <summary>
-        /// Queries employees that have provided ZIP code in address.
+        /// Queries employees that have specified salary.
         /// </summary>
         /// <param name="cache">Cache.</param>
         private static void SqlQueryExample(ICache<int, Employee> cache)
         {
-            const int zip = 94109;
+            const int minSalary = 10000;
 
-            var qry = cache.Query(new SqlQuery(typeof(Employee), "zip = ?", zip));
+            var qry = cache.Query(new SqlQuery(typeof(Employee), "salary > ?", minSalary));
 
             Console.WriteLine();
-            Console.WriteLine($">>> Employees with zipcode {zip} (SQL):");
+            Console.WriteLine($">>> Employees with salary > {minSalary} (SQL):");
 
             foreach (var entry in qry)
                 Console.WriteLine(">>>    " + entry.Value);

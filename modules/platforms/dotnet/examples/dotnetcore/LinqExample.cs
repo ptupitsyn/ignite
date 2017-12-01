@@ -28,17 +28,6 @@ namespace Apache.Ignite.Examples
 
     /// <summary>
     /// This example populates cache with sample data and runs several LINQ queries over this data.
-    /// <para />
-    /// 1) Build the project Apache.Ignite.ExamplesDll (select it -> right-click -> Build).
-    ///    Apache.Ignite.ExamplesDll.dll must appear in %IGNITE_HOME%/platforms/dotnet/examples/Apache.Ignite.ExamplesDll/bin/${Platform]/${Configuration} folder.
-    /// 2) Set this class as startup object (Apache.Ignite.Examples project -> right-click -> Properties ->
-    ///     Application -> Startup object);
-    /// 3) Start example (F5 or Ctrl+F5).
-    /// <para />
-    /// This example can be run with standalone Apache Ignite.NET node:
-    /// 1) Run %IGNITE_HOME%/platforms/dotnet/bin/Apache.Ignite.exe:
-    /// Apache.Ignite.exe -configFileName=platforms\dotnet\examples\apache.ignite.examples\app.config -assembly=[path_to_Apache.Ignite.ExamplesDll.dll]
-    /// 2) Start example.
     /// </summary>
     public class LinqExample
     {
@@ -96,7 +85,7 @@ namespace Apache.Ignite.Examples
         }
 
         /// <summary>
-        /// Queries employees that have provided ZIP code in address.
+        /// Queries employees that have specific salary.
         /// </summary>
         /// <param name="cache">Cache.</param>
         private static void QueryExample(ICache<int, Employee> cache)
@@ -113,7 +102,7 @@ namespace Apache.Ignite.Examples
         }
 
         /// <summary>
-        /// Queries employees that have provided ZIP code in address with a compiled query.
+        /// Queries employees that have specific salary with a compiled query.
         /// </summary>
         /// <param name="cache">Cache.</param>
         private static void CompiledQueryExample(ICache<int, Employee> cache)
