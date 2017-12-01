@@ -58,9 +58,6 @@ namespace Apache.Ignite.Examples
         /// <summary>
         /// Returns a string that represents the current object.
         /// </summary>
-        /// <returns>
-        /// A string that represents the current object.
-        /// </returns>
         public override string ToString()
         {
             return $"{typeof(Employee).Name} [{nameof(Name)}={Name}, {nameof(Salary)}={Salary}, " +

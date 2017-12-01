@@ -50,10 +50,6 @@ namespace Apache.Ignite.Examples
         /// <summary>
         /// Returns a string that represents the current object.
         /// </summary>
-        /// <returns>
-        /// A string that represents the current object.
-        /// </returns>
-        /// <filterpriority>2</filterpriority>
         public override string ToString()
         {
             return $"{typeof(Organization).Name} [{nameof(Name)}={Name}, {nameof(LastUpdated)}={LastUpdated}]";
