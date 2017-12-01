@@ -30,6 +30,17 @@ namespace Apache.Ignite.Examples
         [STAThread]
         public static void Main(string[] args)
         {
+            if (args.Length == 1 && args[0] == "--all")
+            {
+                Write("Running all examples unattended ...");
+
+                PutGetExample.Run();
+                SqlExample.Run();
+                LinqExample.Run();
+
+                return;
+            }
+
             while (true)
             {
                 Write("======================================");
@@ -58,7 +69,7 @@ namespace Apache.Ignite.Examples
                         return;
                 }
 
-				Write();
+                Write();
                 Write("Example finished, press any key to continue ...");
                 Console.ReadKey();
             }
