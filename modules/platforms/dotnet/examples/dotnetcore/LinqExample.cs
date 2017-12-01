@@ -198,6 +198,9 @@ namespace Apache.Ignite.Examples
 
             foreach (var row in qry)
                 Console.WriteLine(">>>     [Name=" + row.Name + ", salary=" + row.Salary + ']');
+
+            Console.WriteLine();
+            Console.WriteLine(">>> Generated SQL: " + qry.ToCacheQueryable().GetFieldsQuery().Sql);
         }
 
         /// <summary>
