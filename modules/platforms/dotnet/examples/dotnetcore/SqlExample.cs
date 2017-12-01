@@ -29,7 +29,7 @@ namespace Apache.Ignite.Examples
     /// This example populates cache with sample data and runs several SQL and
     /// full text queries over this data.
     /// </summary>
-    public class QueryExample
+    public class SqlExample
     {
         /// <summary>Organization cache name.</summary>
         private const string OrganizationCacheName = "dotnet_cache_query_organization";
@@ -43,42 +43,38 @@ namespace Apache.Ignite.Examples
         [STAThread]
         public static void Run()
         {
-            using (var ignite = Ignition.GetIgnite() ?? Ignition.StartFromApplicationConfiguration())
-            {
-                Console.WriteLine();
-                Console.WriteLine(">>> Cache query example started.");
+            var ignite = Ignition.GetIgnite() ?? Ignition.StartFromApplicationConfiguration();
 
-                var employeeCache = ignite.GetOrCreateCache<int, Employee>(
-                    new CacheConfiguration(EmployeeCacheName, typeof(Employee)));
+            Console.WriteLine();
+            Console.WriteLine(">>> Cache query example started.");
 
-                var employeeCacheColocated = ignite.GetOrCreateCache<AffinityKey, Employee>(
-                    new CacheConfiguration(EmployeeCacheNameColocated, typeof(Employee)));
+            var employeeCache = ignite.GetOrCreateCache<int, Employee>(
+                new CacheConfiguration(EmployeeCacheName, typeof(Employee)));
 
-                var organizationCache = ignite.GetOrCreateCache<int, Organization>(
-                    new CacheConfiguration(OrganizationCacheName, new QueryEntity(typeof(int), typeof(Organization))));
+            var employeeCacheColocated = ignite.GetOrCreateCache<AffinityKey, Employee>(
+                new CacheConfiguration(EmployeeCacheNameColocated, typeof(Employee)));
 
-                // Populate cache with sample data entries.
-                PopulateCache(employeeCache);
-                PopulateCache(employeeCacheColocated);
-                PopulateCache(organizationCache);
+            var organizationCache = ignite.GetOrCreateCache<int, Organization>(
+                new CacheConfiguration(OrganizationCacheName, new QueryEntity(typeof(int), typeof(Organization))));
 
-                // Run SQL query example.
-                SqlQueryExample(employeeCache);
+            // Populate cache with sample data entries.
+            PopulateCache(employeeCache);
+            PopulateCache(employeeCacheColocated);
+            PopulateCache(organizationCache);
 
-                // Run SQL query with join example.
-                SqlJoinQueryExample(employeeCacheColocated);
+            // Run SQL query example.
+            SqlQueryExample(employeeCache);
 
-                // Run SQL query with distributed join example.
-                SqlDistributedJoinQueryExample(employeeCache);
+            // Run SQL query with join example.
+            SqlJoinQueryExample(employeeCacheColocated);
 
-                // Run SQL fields query example.
-                SqlFieldsQueryExample(employeeCache);
+            // Run SQL query with distributed join example.
+            SqlDistributedJoinQueryExample(employeeCache);
 
-                // Run full text query example.
-                FullTextQueryExample(employeeCache);
+            // Run SQL fields query example.
+            SqlFieldsQueryExample(employeeCache);
 
-                Console.WriteLine();
-            }
+            Console.WriteLine();
 
             Console.WriteLine();
             Console.WriteLine(">>> Example finished, press any key to exit ...");
@@ -156,21 +152,6 @@ namespace Apache.Ignite.Examples
 
             foreach (IList row in qry)
                 Console.WriteLine($">>>     [Name={row[0]}, salary={row[1]}{']'}");
-        }
-
-        /// <summary>
-        /// Queries employees that live in Texas using full-text query API.
-        /// </summary>
-        /// <param name="cache">Cache.</param>
-        private static void FullTextQueryExample(ICache<int, Employee> cache)
-        {
-            var qry = cache.Query(new TextQuery("Employee", "TX"));
-
-            Console.WriteLine();
-            Console.WriteLine(">>> Employees living in Texas:");
-
-            foreach (var entry in qry)
-                Console.WriteLine(">>> " + entry.Value);
         }
 
         /// <summary>

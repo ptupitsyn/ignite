@@ -54,42 +54,41 @@ namespace Apache.Ignite.Examples
         [STAThread]
         public static void Run()
         {
-            using (var ignite = Ignition.StartFromApplicationConfiguration())
-            {
-                Console.WriteLine();
-                Console.WriteLine(">>> Cache LINQ example started.");
+            var ignite = Ignition.GetIgnite() ?? Ignition.StartFromApplicationConfiguration();
 
-                var employeeCache = ignite.GetOrCreateCache<int, Employee>(
-                    new CacheConfiguration(EmployeeCacheName, typeof(Employee)));
+            Console.WriteLine();
+            Console.WriteLine(">>> Cache LINQ example started.");
 
-                var employeeCacheColocated = ignite.GetOrCreateCache<AffinityKey, Employee>(
-                    new CacheConfiguration(EmployeeCacheNameColocated, typeof(Employee)));
+            var employeeCache = ignite.GetOrCreateCache<int, Employee>(
+                new CacheConfiguration(EmployeeCacheName, typeof(Employee)));
 
-                var organizationCache = ignite.GetOrCreateCache<int, Organization>(
-                    new CacheConfiguration(OrganizationCacheName, new QueryEntity(typeof(int), typeof(Organization))));
+            var employeeCacheColocated = ignite.GetOrCreateCache<AffinityKey, Employee>(
+                new CacheConfiguration(EmployeeCacheNameColocated, typeof(Employee)));
 
-                // Populate cache with sample data entries.
-                PopulateCache(employeeCache);
-                PopulateCache(employeeCacheColocated);
-                PopulateCache(organizationCache);
+            var organizationCache = ignite.GetOrCreateCache<int, Organization>(
+                new CacheConfiguration(OrganizationCacheName, new QueryEntity(typeof(int), typeof(Organization))));
 
-                // Run SQL query example.
-                QueryExample(employeeCache);
+            // Populate cache with sample data entries.
+            PopulateCache(employeeCache);
+            PopulateCache(employeeCacheColocated);
+            PopulateCache(organizationCache);
 
-                // Run compiled SQL query example.
-                CompiledQueryExample(employeeCache);
+            // Run SQL query example.
+            QueryExample(employeeCache);
 
-                // Run SQL query with join example.
-                JoinQueryExample(employeeCacheColocated, organizationCache);
+            // Run compiled SQL query example.
+            CompiledQueryExample(employeeCache);
 
-                // Run SQL query with distributed join example.
-                DistributedJoinQueryExample(employeeCache, organizationCache);
+            // Run SQL query with join example.
+            JoinQueryExample(employeeCacheColocated, organizationCache);
 
-                // Run SQL fields query example.
-                FieldsQueryExample(employeeCache);
+            // Run SQL query with distributed join example.
+            DistributedJoinQueryExample(employeeCache, organizationCache);
 
-                Console.WriteLine();
-            }
+            // Run SQL fields query example.
+            FieldsQueryExample(employeeCache);
+
+            Console.WriteLine();
 
             Console.WriteLine();
             Console.WriteLine(">>> Example finished, press any key to exit ...");

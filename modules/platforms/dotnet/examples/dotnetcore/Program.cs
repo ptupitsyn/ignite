@@ -48,9 +48,11 @@ namespace Apache.Ignite.Examples
                         break;
                     case 2:
                         Write("Starting SQL example ...");
+                        SqlExample.Run();
                         break;
                     case 3:
                         Write("Starting LINQ example ...");
+                        LinqExample.Run();
                         break;
                     case 4:
                         return;
