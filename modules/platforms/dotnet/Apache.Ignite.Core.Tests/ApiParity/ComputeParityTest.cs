@@ -33,7 +33,8 @@ namespace Apache.Ignite.Core.Tests.ApiParity
             "withAsync",  // Deprecated.
             "withExecutor",  // Java-specific.
             "localDeployTask",  // Java-specific (classloaders)
-            "undeployTask"  // Java-specific
+            "localTasks",  // Java-specific (classloaders)
+            "undeployTask"  // Java-specific (classloaders)
         };
 
         /** Members that are missing on .NET side and should be added in future. */
