@@ -25,6 +25,17 @@ namespace Apache.Ignite.Core.Tests.ApiParity
     /// </summary>
     public class EventsParityTest
     {
+        /** Members that are missing on .NET side and should be added in future. */
+        private static readonly string[] MissingMembers =
+        {
+            // IGNITE-1683
+            "remoteListen",
+            "remoteListenAsync",
+            "stopRemoteListen",
+            "stopRemoteListenAsync",
+        };
+
+
         /// <summary>
         /// Tests the API parity.
         /// </summary>
@@ -33,7 +44,8 @@ namespace Apache.Ignite.Core.Tests.ApiParity
         {
             ParityTest.CheckInterfaceParity(
                 @"modules\core\src\main\java\org\apache\ignite\IgniteEvents.java",
-                typeof(IEvents));
+                typeof(IEvents),
+                knownMissingMembers: MissingMembers);
         }
     }
 }
