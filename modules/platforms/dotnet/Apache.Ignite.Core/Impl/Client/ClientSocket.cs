@@ -155,6 +155,9 @@ namespace Apache.Ignite.Core.Impl.Client
             // Should we use sock.BeginReceive()?
 
             // What about Java side, we use synchronous operations there? Should we rewrite that to reduce blocking?
+            // How does it even work on Java side, and do we care?
+            
+            // Inherently all APIs are async, but we should provide both versions.
 
             int messageLen;
             var buf = WriteMessage(writeAction, bufSize, out messageLen);

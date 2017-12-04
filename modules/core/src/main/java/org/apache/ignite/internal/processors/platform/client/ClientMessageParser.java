@@ -227,6 +227,8 @@ public class ClientMessageParser implements ClientListenerMessageParser {
      * @return Request.
      */
     public ClientListenerRequest decode(BinaryRawReaderEx reader) {
+        System.out.println("||| decode: " + Thread.currentThread().getId());
+
         short opCode = reader.readShort();
 
         switch (opCode) {
@@ -354,6 +356,8 @@ public class ClientMessageParser implements ClientListenerMessageParser {
 
     /** {@inheritDoc} */
     @Override public byte[] encode(ClientListenerResponse resp) {
+        System.out.println("||| encode: " + Thread.currentThread().getId());
+
         assert resp != null;
 
         BinaryHeapOutputStream outStream = new BinaryHeapOutputStream(32);
