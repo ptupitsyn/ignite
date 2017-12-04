@@ -21,6 +21,7 @@ namespace Apache.Ignite.Core.Tests.ApiParity
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
+    using System.Reflection;
     using System.Text;
     using System.Text.RegularExpressions;
     using Apache.Ignite.Core.Impl.Common;
@@ -56,46 +57,15 @@ namespace Apache.Ignite.Core.Tests.ApiParity
             IEnumerable<string> knownMissingProperties = null,
             Dictionary<string, string> knownMappings = null)
         {
-            var path = Path.Combine(IgniteHome.Resolve(null), javaFilePath);
-
-            Assert.IsTrue(File.Exists(path));
+            var path = GetFullPath(javaFilePath);
 
             var dotNetProperties = type.GetProperties()
-                .ToDictionary(x => x.Name, x => x, StringComparer.OrdinalIgnoreCase);
+                .ToDictionary(x => x.Name, x => (MemberInfo) x, StringComparer.OrdinalIgnoreCase);
 
             var javaProperties = GetJavaProperties(path)
                 .Except(excludedProperties ?? Enumerable.Empty<string>());
 
-            var missingProperties = javaProperties
-                .Where(jp => !GetNameVariants(jp, knownMappings).Any(dotNetProperties.ContainsKey))
-                .ToDictionary(x => x, x => x, StringComparer.OrdinalIgnoreCase);
-
-            var knownMissing = (knownMissingProperties ?? Enumerable.Empty<string>())
-                .ToDictionary(x => x, x => x, StringComparer.OrdinalIgnoreCase);
-
-            var sb = new StringBuilder();
-
-            foreach (var javaMissingProp in missingProperties)
-            {
-                if (!knownMissing.ContainsKey(javaMissingProp.Key))
-                {
-                    sb.AppendFormat("{0}.{1} property is missing in .NET.\n", type.Name, javaMissingProp.Key);
-                }
-            }
-
-            foreach (var dotnetMissingProp in knownMissing)
-            {
-                if (!missingProperties.ContainsKey(dotnetMissingProp.Key))
-                {
-                    sb.AppendFormat("{0}.{1} property is missing in Java, but is specified as known in .NET.\n", 
-                        type.Name, dotnetMissingProp.Key);
-                }
-            }
-
-            if (sb.Length > 0)
-            {
-                Assert.Fail(sb.ToString());
-            }
+            CheckParity(type, knownMissingProperties, knownMappings, javaProperties, dotNetProperties);
         }
 
         /// <summary>
@@ -107,10 +77,7 @@ namespace Apache.Ignite.Core.Tests.ApiParity
             IEnumerable<string> knownMissingMembers = null,
             Dictionary<string, string> knownMappings = null)
         {
-            // TODO: Extract common method, difference is only in GetJavaInterfaceMethods and type.GetMembers()
-            var path = Path.Combine(IgniteHome.Resolve(null), javaFilePath);
-
-            Assert.IsTrue(File.Exists(path));
+            var path = GetFullPath(javaFilePath);
 
             var dotNetMembers = type.GetMembers()
                 .GroupBy(x => x.Name)
@@ -119,6 +86,27 @@ namespace Apache.Ignite.Core.Tests.ApiParity
             var javaMethods = GetJavaInterfaceMethods(path)
                 .Except(excludedMembers ?? Enumerable.Empty<string>());
 
+            CheckParity(type, knownMissingMembers, knownMappings, javaMethods, dotNetMembers);
+        }
+
+        /// <summary>
+        /// Gets the full path.
+        /// </summary>
+        private static string GetFullPath(string javaFilePath)
+        {
+            var path = Path.Combine(IgniteHome.Resolve(null), javaFilePath);
+            Assert.IsTrue(File.Exists(path));
+
+            return path;
+        }
+
+        /// <summary>
+        /// Checks the parity.
+        /// </summary>
+        private static void CheckParity(Type type, IEnumerable<string> knownMissingMembers, 
+            IDictionary<string, string> knownMappings, IEnumerable<string> javaMethods, 
+            IDictionary<string, MemberInfo> dotNetMembers)
+        {
             var missingMembers = javaMethods
                 .Where(jp => !GetNameVariants(jp, knownMappings).Any(dotNetMembers.ContainsKey))
                 .ToDictionary(x => x, x => x, StringComparer.OrdinalIgnoreCase);
@@ -140,7 +128,7 @@ namespace Apache.Ignite.Core.Tests.ApiParity
             {
                 if (!missingMembers.ContainsKey(dotnetMissingProp.Key))
                 {
-                    sb.AppendFormat("{0}.{1} member is missing in Java, but is specified as known in .NET.\n", 
+                    sb.AppendFormat("{0}.{1} member is missing in Java, but is specified as known in .NET.\n",
                         type.Name, dotnetMissingProp.Key);
                 }
             }
