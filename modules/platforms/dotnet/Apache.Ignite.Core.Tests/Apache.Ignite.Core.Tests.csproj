@@ -83,6 +83,7 @@
     <Compile Include="ApiParity\CacheConfigurationParityTest.cs" />
     <Compile Include="ApiParity\QueryEntityConfigurationParityTest.cs" />
     <Compile Include="ApiParity\StreamerParityTest.cs" />
+    <Compile Include="ApiParity\TransactionsParityTest.cs" />
     <Compile Include="AssertExtensions.cs" />
     <Compile Include="Binary\BinaryBuilderSelfTestSimpleName.cs" />
     <Compile Include="Binary\BinaryDateTimeTest.cs" />
