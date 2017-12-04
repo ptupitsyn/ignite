@@ -17,6 +17,7 @@
 
 namespace Apache.Ignite.Core.Tests.ApiParity
 {
+    using System.Collections.Generic;
     using NUnit.Framework;
 
     /// <summary>
@@ -24,6 +25,18 @@ namespace Apache.Ignite.Core.Tests.ApiParity
     /// </summary>
     public class IgniteParityTest
     {
+        /** Methods that are not needed on .NET side. */
+        private static readonly string[] UnneededMethods =
+        {
+            "scheduler",
+        };
+
+        /** Known name mappings. */
+        private static readonly Dictionary<string, string> KnownMappings = new Dictionary<string, string>
+        {
+            {"message", "GetMessaging"}
+        };
+
         /// <summary>
         /// Tests the IIgnite parity.
         /// </summary>
@@ -32,7 +45,9 @@ namespace Apache.Ignite.Core.Tests.ApiParity
         {
             ParityTest.CheckInterfaceParity(
                 @"modules\core\src\main\java\org\apache\ignite\Ignite.java",
-                typeof(IIgnite));
+                typeof(IIgnite),
+                UnneededMethods,
+                knownMappings: KnownMappings);
         }
     }
 }
