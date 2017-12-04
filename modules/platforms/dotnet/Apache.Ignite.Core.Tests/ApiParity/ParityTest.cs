@@ -38,7 +38,8 @@ namespace Apache.Ignite.Core.Tests.ApiParity
 
         /** Interface method regex. */
         private static readonly Regex JavaInterfaceMethodRegex = 
-            new Regex("(@Deprecated)?\\s+public [^=^\r^\n]+ (\\w+)\\(.*?\\);", RegexOptions.Compiled);
+            new Regex("(@Deprecated)?\\s+public [^=^\r^\n]+ (\\w+)\\(.*?\\)",
+                RegexOptions.Compiled | RegexOptions.Singleline);
 
         /** Properties that are not needed on .NET side. */
         private static readonly string[] UnneededMethods =

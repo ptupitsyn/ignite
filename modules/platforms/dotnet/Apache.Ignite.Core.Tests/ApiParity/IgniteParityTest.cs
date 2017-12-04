@@ -29,6 +29,8 @@ namespace Apache.Ignite.Core.Tests.ApiParity
         private static readonly string[] UnneededMethods =
         {
             "scheduler",
+            "close",
+            "executorService"
         };
 
         /** Known name mappings. */
