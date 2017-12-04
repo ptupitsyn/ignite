@@ -35,6 +35,23 @@ namespace Apache.Ignite.Core.Tests.ApiParity
             "fileSystems"
         };
 
+        /** Members that are missing on .NET side and should be added in future. */
+        private static readonly string[] MissingProperties =
+        {
+            // TODO: Tickets
+            "version",
+            "createCaches",
+            "orCreateCaches",
+            "addCacheConfiguration",
+            "destroyCaches",
+            "atomicStamped",
+            "countDownLatch",
+            "semaphore",
+            "reentrantLock",
+            "queue",
+            "set"
+        };
+
         /** Known name mappings. */
         private static readonly Dictionary<string, string> KnownMappings = new Dictionary<string, string>
         {
@@ -52,7 +69,8 @@ namespace Apache.Ignite.Core.Tests.ApiParity
                 @"modules\core\src\main\java\org\apache\ignite\Ignite.java",
                 typeof(IIgnite),
                 UnneededMethods,
-                knownMappings: KnownMappings);
+                MissingProperties,
+                KnownMappings);
         }
     }
 }
