@@ -44,7 +44,7 @@ namespace Apache.Ignite.Core.Impl.Client
         /** Client type code. */
         private const byte ClientType = 2;
 
-        /** Unerlying socket. */
+        /** Underlying socket. */
         private readonly Socket _socket;
 
         /** */
