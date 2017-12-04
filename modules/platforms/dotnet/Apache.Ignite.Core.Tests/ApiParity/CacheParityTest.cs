@@ -57,11 +57,6 @@ namespace Apache.Ignite.Core.Tests.ApiParity
             "localSizeLong",  // IGNITE-6563
         };
 
-        /** Known name mappings. */
-        private static readonly Dictionary<string, string> KnownMappings = new Dictionary<string, string>
-        {
-        };
-
         /// <summary>
         /// Tests the API parity.
         /// </summary>
@@ -72,8 +67,7 @@ namespace Apache.Ignite.Core.Tests.ApiParity
                 @"modules\core\src\main\java\org\apache\ignite\IgniteCache.java",
                 typeof(ICache<,>),
                 UnneededMembers,
-                MissingMembers,
-                KnownMappings);
+                MissingMembers);
         }
     }
 }
