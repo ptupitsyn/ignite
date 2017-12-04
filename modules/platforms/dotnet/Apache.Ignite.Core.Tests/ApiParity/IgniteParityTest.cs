@@ -24,10 +24,15 @@ namespace Apache.Ignite.Core.Tests.ApiParity
     /// </summary>
     public class IgniteParityTest
     {
+        /// <summary>
+        /// Tests the IIgnite parity.
+        /// </summary>
         [Test]
         public void TestIgnite()
         {
-            
+            ParityTest.CheckInterfaceParity(
+                @"modules\core\src\main\java\org\apache\ignite\Ignite.java",
+                typeof(IIgnite));
         }
     }
 }
