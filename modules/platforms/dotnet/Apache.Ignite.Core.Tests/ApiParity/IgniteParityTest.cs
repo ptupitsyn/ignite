@@ -26,7 +26,7 @@ namespace Apache.Ignite.Core.Tests.ApiParity
     public class IgniteParityTest
     {
         /** Methods that are not needed on .NET side. */
-        private static readonly string[] UnneededMethods =
+        private static readonly string[] UnneededMembers =
         {
             "scheduler",
             "close",
@@ -36,7 +36,7 @@ namespace Apache.Ignite.Core.Tests.ApiParity
         };
 
         /** Members that are missing on .NET side and should be added in future. */
-        private static readonly string[] MissingProperties =
+        private static readonly string[] MissingMembers =
         {
             "version", // IGNITE-7101
             
@@ -71,8 +71,8 @@ namespace Apache.Ignite.Core.Tests.ApiParity
             ParityTest.CheckInterfaceParity(
                 @"modules\core\src\main\java\org\apache\ignite\Ignite.java",
                 typeof(IIgnite),
-                UnneededMethods,
-                MissingProperties,
+                UnneededMembers,
+                MissingMembers,
                 KnownMappings);
         }
     }
