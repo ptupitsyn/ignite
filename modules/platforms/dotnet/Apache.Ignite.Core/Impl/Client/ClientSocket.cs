@@ -33,7 +33,7 @@ namespace Apache.Ignite.Core.Impl.Client
     /// <summary>
     /// Wrapper over framework socket for Ignite thin client operations.
     /// </summary>
-    internal class ClientSocket : IDisposable
+    internal sealed class ClientSocket : IDisposable
     {
         /** Current version. */
         private static readonly ClientProtocolVersion CurrentProtocolVersion = new ClientProtocolVersion(1, 0, 0);
@@ -150,6 +150,12 @@ namespace Apache.Ignite.Core.Impl.Client
         /// </summary>
         private static byte[] SendReceive(Socket sock, Action<IBinaryStream> writeAction, int bufSize = 128)
         {
+            // TODO: two ways: sync and async op?
+            // But what if other async ops are in progress?
+            // Should we use sock.BeginReceive()?
+
+            // What about Java side, we use synchronous operations there? Should we rewrite that to reduce blocking?
+
             int messageLen;
             var buf = WriteMessage(writeAction, bufSize, out messageLen);
 
