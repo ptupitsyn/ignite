@@ -34,10 +34,10 @@ namespace Apache.Ignite.Core.Tests.ApiParity
             "localMxBean",
 
             // The following look pointless, same as get, getAll, etc:
-            "entry",
-            "entryAsync",
-            "entries",
-            "entriesAsync"
+            "Entry",
+            "EntryAsync",
+            "Entries",
+            "EntriesAsync"
         };
 
         /** Members that are missing on .NET side and should be added in future. */
