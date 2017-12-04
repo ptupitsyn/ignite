@@ -30,13 +30,16 @@ namespace Apache.Ignite.Core.Tests.ApiParity
         {
             "scheduler",
             "close",
-            "executorService"
+            "executorService",
+            "fileSystem",
+            "fileSystems"
         };
 
         /** Known name mappings. */
         private static readonly Dictionary<string, string> KnownMappings = new Dictionary<string, string>
         {
-            {"message", "GetMessaging"}
+            {"message", "GetMessaging"},
+            {"log", "Logger"}
         };
 
         /// <summary>
