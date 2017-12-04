@@ -34,12 +34,9 @@ namespace Apache.Ignite.Core.Tests.ApiParity
             "withExecutor",  // Java-specific.
             "localDeployTask",  // Java-specific (classloaders)
             "localTasks",  // Java-specific (classloaders)
-            "undeployTask"  // Java-specific (classloaders)
-        };
-
-        /** Members that are missing on .NET side and should be added in future. */
-        private static readonly string[] MissingProperties =
-        {
+            "undeployTask",  // Java-specific (classloaders)
+            "withName",  // Java-specific (classloaders)
+            "activeTaskFutures"
         };
 
         /// <summary>
@@ -51,8 +48,7 @@ namespace Apache.Ignite.Core.Tests.ApiParity
             ParityTest.CheckInterfaceParity(
                 @"modules\core\src\main\java\org\apache\ignite\IgniteCompute.java",
                 typeof(ICompute),
-                UnneededMethods,
-                MissingProperties);
+                UnneededMethods);
         }
     }
 }
