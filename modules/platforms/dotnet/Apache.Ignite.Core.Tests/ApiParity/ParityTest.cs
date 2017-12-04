@@ -113,7 +113,8 @@ namespace Apache.Ignite.Core.Tests.ApiParity
             Assert.IsTrue(File.Exists(path));
 
             var dotNetMembers = type.GetMembers()
-                .ToDictionary(x => x.Name, x => x, StringComparer.OrdinalIgnoreCase);
+                .GroupBy(x => x.Name)
+                .ToDictionary(x => x.Key, x => x.First(), StringComparer.OrdinalIgnoreCase);
 
             var javaMethods = GetJavaInterfaceMethods(path)
                 .Except(excludedMembers ?? Enumerable.Empty<string>());
