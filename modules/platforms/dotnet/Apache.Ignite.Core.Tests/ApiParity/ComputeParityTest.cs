@@ -29,6 +29,10 @@ namespace Apache.Ignite.Core.Tests.ApiParity
         /** Methods that are not needed on .NET side. */
         private static readonly string[] UnneededMethods =
         {
+            "future",  // Deprecated.
+            "withAsync",  // Deprecated.
+            "withExecutor",  // Java-specific.
+            "localDeployTask"  // Java-specific (classloaders)
         };
 
         /** Members that are missing on .NET side and should be added in future. */
@@ -36,23 +40,17 @@ namespace Apache.Ignite.Core.Tests.ApiParity
         {
         };
 
-        /** Known name mappings. */
-        private static readonly Dictionary<string, string> KnownMappings = new Dictionary<string, string>
-        {
-        };
-
         /// <summary>
-        /// Tests the IIgnite parity.
+        /// Tests API parity.
         /// </summary>
         [Test]
-        public void TestIgnite()
+        public void TestCompute()
         {
             ParityTest.CheckInterfaceParity(
                 @"modules\core\src\main\java\org\apache\ignite\IgniteCompute.java",
                 typeof(ICompute),
                 UnneededMethods,
-                MissingProperties,
-                KnownMappings);
+                MissingProperties);
         }
     }
 }
