@@ -70,6 +70,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ApiParity\ClientConnectorConfigurationParityTest.cs" />
+    <Compile Include="ApiParity\ComputeParityTest.cs" />
     <Compile Include="ApiParity\DataRegionConfigurationParityTest.cs" />
     <Compile Include="ApiParity\DataStorageConfigurationParityTest.cs" />
     <Compile Include="ApiParity\IgniteConfigurationParityTest.cs" />
