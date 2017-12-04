@@ -70,6 +70,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ApiParity\BinaryParityTest.cs" />
+    <Compile Include="ApiParity\CacheAffinityParityTest.cs" />
     <Compile Include="ApiParity\CacheParityTest.cs" />
     <Compile Include="ApiParity\ClientConnectorConfigurationParityTest.cs" />
     <Compile Include="ApiParity\ClusterParityTest.cs" />
