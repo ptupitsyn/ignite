@@ -17,7 +17,6 @@
 
 namespace Apache.Ignite.Core.Tests.ApiParity
 {
-    using System.Collections.Generic;
     using Apache.Ignite.Core.Compute;
     using NUnit.Framework;
 

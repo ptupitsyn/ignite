@@ -17,7 +17,7 @@
 
 namespace Apache.Ignite.Core.Tests.ApiParity
 {
-    using Apache.Ignite.Core.Cluster;
+    using System.Collections.Generic;
     using Apache.Ignite.Core.Datastream;
     using NUnit.Framework;
 
@@ -29,8 +29,16 @@ namespace Apache.Ignite.Core.Tests.ApiParity
         /** Members that are not needed on .NET side. */
         private static readonly string[] UnneededMembers =
         {
+            "deployClass"
         };
-        
+
+        /** Known name mappings. */
+        private static readonly Dictionary<string, string> KnownMappings = new Dictionary<string, string>
+        {
+            {"keepBinary", "WithKeepBinary"},
+            {"future", "Task"}
+        };
+
         /// <summary>
         /// Tests the API parity.
         /// </summary>
@@ -40,7 +48,7 @@ namespace Apache.Ignite.Core.Tests.ApiParity
             ParityTest.CheckInterfaceParity(
                 @"modules\core\src\main\java\org\apache\ignite\IgniteDataStreamer.java",
                 typeof(IDataStreamer<,>),
-                UnneededMembers);
+                UnneededMembers, knownMappings: KnownMappings);
         }
     }
 }

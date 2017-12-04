@@ -17,7 +17,6 @@
  
  namespace Apache.Ignite.Core.Tests.ApiParity
 {
-    using Apache.Ignite.Core.Cache;
     using Apache.Ignite.Core.Cluster;
     using NUnit.Framework;
 
