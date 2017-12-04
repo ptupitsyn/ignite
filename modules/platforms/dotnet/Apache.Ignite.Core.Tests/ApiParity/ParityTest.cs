@@ -35,8 +35,12 @@ namespace Apache.Ignite.Core.Tests.ApiParity
         private static readonly Regex JavaPropertyRegex = 
             new Regex("(@Deprecated)?\\s+public [^=^\r^\n]+ (\\w+)\\(\\) {", RegexOptions.Compiled);
 
+        /** Interface method regex. */
+        private static readonly Regex JavaInterfaceMethodRegex = 
+            new Regex("(@Deprecated)?\\s+public [^=^\r^\n]+ (\\w+)\\(.*?\\);", RegexOptions.Compiled);
+
         /** Properties that are not needed on .NET side. */
-        private static readonly string[] UnneededProperties =
+        private static readonly string[] UnneededMethods =
         {
             "toString",
             "hashCode",
@@ -95,6 +99,58 @@ namespace Apache.Ignite.Core.Tests.ApiParity
         }
 
         /// <summary>
+        /// Tests the configuration parity.
+        /// </summary>
+        public static void CheckInterfaceParity(string javaFilePath, 
+            Type type, 
+            IEnumerable<string> excludedMembers = null,
+            IEnumerable<string> knownMissingMembers = null,
+            Dictionary<string, string> knownMappings = null)
+        {
+            // TODO: Extract common method, difference is only in GetJavaInterfaceMethods and type.GetMembers()
+            var path = Path.Combine(IgniteHome.Resolve(null), javaFilePath);
+
+            Assert.IsTrue(File.Exists(path));
+
+            var dotNetMembers = type.GetMembers()
+                .ToDictionary(x => x.Name, x => x, StringComparer.OrdinalIgnoreCase);
+
+            var javaMethods = GetJavaInterfaceMethods(path)
+                .Except(excludedMembers ?? Enumerable.Empty<string>());
+
+            var missingMembers = javaMethods
+                .Where(jp => !GetNameVariants(jp, knownMappings).Any(dotNetMembers.ContainsKey))
+                .ToDictionary(x => x, x => x, StringComparer.OrdinalIgnoreCase);
+
+            var knownMissing = (knownMissingMembers ?? Enumerable.Empty<string>())
+                .ToDictionary(x => x, x => x, StringComparer.OrdinalIgnoreCase);
+
+            var sb = new StringBuilder();
+
+            foreach (var javaMissingProp in missingMembers)
+            {
+                if (!knownMissing.ContainsKey(javaMissingProp.Key))
+                {
+                    sb.AppendFormat("{0}.{1} member is missing in .NET.\n", type.Name, javaMissingProp.Key);
+                }
+            }
+
+            foreach (var dotnetMissingProp in knownMissing)
+            {
+                if (!missingMembers.ContainsKey(dotnetMissingProp.Key))
+                {
+                    sb.AppendFormat("{0}.{1} member is missing in Java, but is specified as known in .NET.\n", 
+                        type.Name, dotnetMissingProp.Key);
+                }
+            }
+
+            if (sb.Length > 0)
+            {
+                Assert.Fail(sb.ToString());
+            }
+        }
+
+        /// <summary>
         /// Gets the java properties from file.
         /// </summary>
         private static IEnumerable<string> GetJavaProperties(string path)
@@ -106,7 +162,21 @@ namespace Apache.Ignite.Core.Tests.ApiParity
                 .Where(m => m.Groups[1].Value == string.Empty)
                 .Select(m => m.Groups[2].Value.Replace("get", ""))
                 .Where(x => !x.Contains(" void "))
-                .Except(UnneededProperties);
+                .Except(UnneededMethods);
+        }
+
+        /// <summary>
+        /// Gets the java interface methods from file.
+        /// </summary>
+        private static IEnumerable<string> GetJavaInterfaceMethods(string path)
+        {
+            var text = File.ReadAllText(path);
+
+            return JavaInterfaceMethodRegex.Matches(text)
+                .OfType<Match>()
+                .Where(m => m.Groups[1].Value == string.Empty)
+                .Select(m => m.Groups[2].Value.Replace("get", ""))
+                .Except(UnneededMethods);
         }
 
         /// <summary>
