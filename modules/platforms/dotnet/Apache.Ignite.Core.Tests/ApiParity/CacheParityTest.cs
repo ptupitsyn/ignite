@@ -29,9 +29,14 @@ namespace Apache.Ignite.Core.Tests.ApiParity
         /** Members that are not needed on .NET side. */
         private static readonly string[] UnneededMembers =
         {
+            // Java-specific.
             "close",
             "mxBean",
             "localMxBean",
+            "indexReadyFuture",
+
+            // No needed, see IIgnite.DestroyCache
+            "destroy",
 
             // The following look pointless, same as get, getAll, etc:
             "Entry",
