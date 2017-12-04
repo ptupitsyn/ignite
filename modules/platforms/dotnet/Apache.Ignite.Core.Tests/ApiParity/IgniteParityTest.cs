@@ -38,23 +38,21 @@ namespace Apache.Ignite.Core.Tests.ApiParity
         /** Members that are missing on .NET side and should be added in future. */
         private static readonly string[] MissingProperties =
         {
-            // TODO: Tickets
-            "version",
+            "version", // IGNITE-7101
+            
+            "createCaches",   // IGNITE-7100
+            "orCreateCaches", // IGNITE-7100
+            "destroyCaches",  // IGNITE-7100
 
-            // IGNITE-7100
-            "createCaches",
-            "orCreateCaches",
-            "destroyCaches",
-
-            "addCacheConfiguration",
+            "addCacheConfiguration", // IGNITE-7102
 
             // Data structures.
             "atomicStamped",
             "countDownLatch",
             "semaphore",
             "reentrantLock",
-            "queue",  // IGNITE-1417
-            "set"  // IGNITE-6834
+            "queue", // IGNITE-1417
+            "set" // IGNITE-6834
         };
 
         /** Known name mappings. */
