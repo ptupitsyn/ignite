@@ -38,7 +38,7 @@ namespace Apache.Ignite.Core.Tests.ApiParity
 
         /** Interface method regex. */
         private static readonly Regex JavaInterfaceMethodRegex = 
-            new Regex("(@Deprecated)?\\s+public [^=^\r^\n]+ (\\w+)\\(.*?\\)",
+            new Regex("(@Deprecated)?\\s+(@Override)?\\s+public [^=^\r^\n]+ (\\w+)\\(.*?\\)",
                 RegexOptions.Compiled | RegexOptions.Singleline);
 
         /** Properties that are not needed on .NET side. */
@@ -165,7 +165,7 @@ namespace Apache.Ignite.Core.Tests.ApiParity
             return JavaInterfaceMethodRegex.Matches(text)
                 .OfType<Match>()
                 .Where(m => m.Groups[1].Value == string.Empty)
-                .Select(m => m.Groups[2].Value.Replace("get", ""))
+                .Select(m => m.Groups[3].Value.Replace("get", ""))
                 .Except(UnneededMethods);
         }
 

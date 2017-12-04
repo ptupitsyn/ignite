@@ -29,8 +29,6 @@ namespace Apache.Ignite.Core.Tests.ApiParity
         /** Methods that are not needed on .NET side. */
         private static readonly string[] UnneededMethods =
         {
-            "future",  // Deprecated.
-            "withAsync",  // Deprecated.
             "withExecutor",  // Java-specific.
             "localDeployTask",  // Java-specific (classloaders)
             "localTasks",  // Java-specific (classloaders)
