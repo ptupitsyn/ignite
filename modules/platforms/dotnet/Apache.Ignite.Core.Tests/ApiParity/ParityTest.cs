@@ -175,6 +175,10 @@ namespace Apache.Ignite.Core.Tests.ApiParity
             IDictionary<string, string> knownMappings)
         {
             yield return javaPropertyName;
+            
+            yield return "get" + javaPropertyName;
+            
+            yield return "is" + javaPropertyName;
 
             yield return javaPropertyName.Replace("PoolSize", "ThreadPoolSize");
 
