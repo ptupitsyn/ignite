@@ -47,10 +47,10 @@ namespace Apache.Ignite.Core.Tests.ApiParity
             "addCacheConfiguration", // IGNITE-7102
 
             // Data structures.
-            "atomicStamped",
-            "countDownLatch",
-            "semaphore",
-            "reentrantLock",
+            "atomicStamped", // IGNITE-7104
+            "countDownLatch", // IGNITE-1418
+            "semaphore", // IGNITE-7103
+            "reentrantLock", // IGNITE-7105
             "queue", // IGNITE-1417
             "set" // IGNITE-6834
         };
