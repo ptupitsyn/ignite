@@ -41,7 +41,11 @@ namespace Apache.Ignite.Core.Tests.ApiParity
             "Entry",
             "EntryAsync",
             "Entries",
-            "EntriesAsync"
+            "EntriesAsync",
+
+            // Questionable methods:
+            "AllOutTx",
+            "AllOutTxAsync"
         };
 
         /** Members that are missing on .NET side and should be added in future. */

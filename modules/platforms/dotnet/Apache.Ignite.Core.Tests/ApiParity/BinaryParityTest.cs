@@ -13,8 +13,8 @@
         /** Known name mappings. */
         private static readonly Dictionary<string, string> KnownMappings = new Dictionary<string, string>
         {
-            {"type", "GetType"},
-            {"types", "GetTypes"}
+            {"type", "GetBinaryType"},
+            {"types", "GetBinaryTypes"}
         };
 
         /// <summary>
