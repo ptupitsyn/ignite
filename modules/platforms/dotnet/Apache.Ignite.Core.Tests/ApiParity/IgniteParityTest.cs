@@ -40,16 +40,21 @@ namespace Apache.Ignite.Core.Tests.ApiParity
         {
             // TODO: Tickets
             "version",
+
+            // IGNITE-7100
             "createCaches",
             "orCreateCaches",
-            "addCacheConfiguration",
             "destroyCaches",
+
+            "addCacheConfiguration",
+
+            // Data structures.
             "atomicStamped",
             "countDownLatch",
             "semaphore",
             "reentrantLock",
-            "queue",
-            "set"
+            "queue",  // IGNITE-1417
+            "set"  // IGNITE-6834
         };
 
         /** Known name mappings. */
