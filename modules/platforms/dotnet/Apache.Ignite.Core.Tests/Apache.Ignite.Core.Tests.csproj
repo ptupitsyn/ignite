@@ -79,6 +79,7 @@
     <Compile Include="ApiParity\DataStorageConfigurationParityTest.cs" />
     <Compile Include="ApiParity\IgniteConfigurationParityTest.cs" />
     <Compile Include="ApiParity\IgniteParityTest.cs" />
+    <Compile Include="ApiParity\MessagingParityTest.cs" />
     <Compile Include="ApiParity\ParityTest.cs" />
     <Compile Include="ApiParity\CacheConfigurationParityTest.cs" />
     <Compile Include="ApiParity\QueryEntityConfigurationParityTest.cs" />
