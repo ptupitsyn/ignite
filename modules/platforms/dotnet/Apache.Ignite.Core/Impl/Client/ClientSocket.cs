@@ -150,14 +150,12 @@ namespace Apache.Ignite.Core.Impl.Client
         /// </summary>
         private static byte[] SendReceive(Socket sock, Action<IBinaryStream> writeAction, int bufSize = 128)
         {
-            // TODO: two ways: sync and async op?
-            // But what if other async ops are in progress?
-            // Should we use sock.BeginReceive()?
-
-            // What about Java side, we use synchronous operations there? Should we rewrite that to reduce blocking?
-            // How does it even work on Java side, and do we care?
-            
-            // Inherently all APIs are async, but we should provide both versions.
+            // TODO 1) Java handles request and response on the same thread. But we don't care about this.
+            // TODO 2) Inherently all APIs are async, but we should provide both versions.
+            // TODO 3) * Use TaskCompletionSource
+            // TODO    * Use BeginSend and BeginReceive
+            // TODO    * Return Task from SendReceive, store a map of current requests by id
+            // TODO    * Store a map of current requests
 
             int messageLen;
             var buf = WriteMessage(writeAction, bufSize, out messageLen);

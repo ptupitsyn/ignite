@@ -356,7 +356,7 @@ public class ClientMessageParser implements ClientListenerMessageParser {
 
     /** {@inheritDoc} */
     @Override public byte[] encode(ClientListenerResponse resp) {
-        System.out.println("||| encode: " + Thread.currentThread().getId());
+        System.out.println("||| encode " + Thread.currentThread().getId());
 
         assert resp != null;
 
