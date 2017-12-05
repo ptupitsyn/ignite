@@ -22,6 +22,7 @@ namespace Apache.Ignite.Core.Impl.Client.Cache
     using System.Diagnostics;
     using System.Diagnostics.CodeAnalysis;
     using System.IO;
+    using System.Threading.Tasks;
     using Apache.Ignite.Core.Binary;
     using Apache.Ignite.Core.Cache;
     using Apache.Ignite.Core.Cache.Configuration;
@@ -138,6 +139,19 @@ namespace Apache.Ignite.Core.Impl.Client.Cache
             IgniteArgumentCheck.NotNull(val, "val");
 
             DoOutOp(ClientOp.CachePut, w =>
+            {
+                w.WriteObjectDetached(key);
+                w.WriteObjectDetached(val);
+            });
+        }
+
+        /** <inheritDoc /> */
+        public Task PutAsync(TK key, TV val)
+        {
+            IgniteArgumentCheck.NotNull(key, "key");
+            IgniteArgumentCheck.NotNull(val, "val");
+
+            return DoOutOpAsync(ClientOp.CachePut, w =>
             {
                 w.WriteObjectDetached(key);
                 w.WriteObjectDetached(val);
@@ -405,33 +419,57 @@ namespace Apache.Ignite.Core.Impl.Client.Cache
         }
 
         /// <summary>
-        /// Does the out in op.
-        /// </summary>
-        private T DoOutInOp<T>(ClientOp opId, Action<BinaryWriter> writeAction,
-            Func<IBinaryStream, T> readFunc)
-        {
-            return _ignite.Socket.DoOutInOp(opId, stream =>
-            {
-                stream.WriteInt(_id);
-                stream.WriteByte(0);  // Flags (skipStore, etc).
-
-                if (writeAction != null)
-                {
-                    var writer = _marsh.StartMarshal(stream);
-
-                    writeAction(writer);
-
-                    _marsh.FinishMarshal(writer);
-                }
-            }, readFunc, HandleError<T>);
-        }
-
-        /// <summary>
         /// Does the out op.
         /// </summary>
         private void DoOutOp(ClientOp opId, Action<BinaryWriter> writeAction = null)
         {
             DoOutInOp<object>(opId, writeAction, null);
+        }
+
+        /// <summary>
+        /// Does the out op.
+        /// </summary>
+        private Task DoOutOpAsync(ClientOp opId, Action<BinaryWriter> writeAction = null)
+        {
+            return DoOutInOpAsync<object>(opId, writeAction, null);
+        }
+
+        /// <summary>
+        /// Does the out in op.
+        /// </summary>
+        private T DoOutInOp<T>(ClientOp opId, Action<BinaryWriter> writeAction,
+            Func<IBinaryStream, T> readFunc)
+        {
+            return _ignite.Socket.DoOutInOp(opId, stream => WriteRequest(writeAction, stream), 
+                readFunc, HandleError<T>);
+        }
+
+        /// <summary>
+        /// Does the out in op.
+        /// </summary>
+        private Task<T> DoOutInOpAsync<T>(ClientOp opId, Action<BinaryWriter> writeAction,
+            Func<IBinaryStream, T> readFunc)
+        {
+            return _ignite.Socket.DoOutInOpAsync(opId, stream => WriteRequest(writeAction, stream), 
+                readFunc, HandleError<T>);
+        }
+
+        /// <summary>
+        /// Writes the request.
+        /// </summary>
+        private void WriteRequest(Action<BinaryWriter> writeAction, IBinaryStream stream)
+        {
+            stream.WriteInt(_id);
+            stream.WriteByte(0); // Flags (skipStore, etc).
+
+            if (writeAction != null)
+            {
+                var writer = _marsh.StartMarshal(stream);
+
+                writeAction(writer);
+
+                _marsh.FinishMarshal(writer);
+            }
         }
 
         /// <summary>

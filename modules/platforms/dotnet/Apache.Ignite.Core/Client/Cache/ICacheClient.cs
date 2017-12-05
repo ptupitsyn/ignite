@@ -19,6 +19,7 @@ namespace Apache.Ignite.Core.Client.Cache
 {
     using System;
     using System.Collections.Generic;
+    using System.Threading.Tasks;
     using Apache.Ignite.Core.Cache;
     using Apache.Ignite.Core.Cache.Query;
 
@@ -42,6 +43,16 @@ namespace Apache.Ignite.Core.Client.Cache
         /// <param name="key">Key with which the specified value is to be associated.</param>
         /// <param name="val">Value to be associated with the specified key.</param>
         void Put(TK key, TV val);
+
+        /// <summary>
+        /// Associates the specified value with the specified key in the cache.
+        /// <para />
+        /// If the cache previously contained a mapping for the key,
+        /// the old value is replaced by the specified value.
+        /// </summary>
+        /// <param name="key">Key with which the specified value is to be associated.</param>
+        /// <param name="val">Value to be associated with the specified key.</param>
+        Task PutAsync(TK key, TV val);
 
         /// <summary>
         /// Retrieves value mapped to the specified key from cache.
