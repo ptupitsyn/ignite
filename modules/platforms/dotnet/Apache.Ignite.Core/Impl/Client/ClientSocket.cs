@@ -248,6 +248,9 @@ namespace Apache.Ignite.Core.Impl.Client
             int messageLen;
             var buf = WriteMessage(writeAction, bufSize, out messageLen);
 
+            Task<int>.Factory.FromAsync((cb, state) => sock.BeginSend(buf, 0, messageLen, SocketFlags.None, cb, state), sock.EndSend, null);
+
+
             //var sent = sock.Send(buf, messageLen, SocketFlags.None);
             sock.BeginSend(buf, 0, messageLen, SocketFlags.None, r =>
             {
