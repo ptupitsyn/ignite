@@ -19,13 +19,14 @@ namespace Apache.Ignite.Core.Impl.Client
 {
     using System.Diagnostics;
     using System.Net.Sockets;
-    using System.Threading.Tasks;
 
     /// <summary>
     /// Socket extension methods.
     /// </summary>
     internal static class SocketExtensions
     {
+        // TODO?
+        /*
         /// <summary>
         /// Sends data asynchronously.
         /// </summary>
@@ -42,6 +43,25 @@ namespace Apache.Ignite.Core.Impl.Client
             return Task<int>.Factory.FromAsync((cb, state) =>
                     socket.BeginSend(buffer, 0, length, SocketFlags.None, cb, state),
                     socket.EndSend, null);
+        }*/
+
+        /// <summary>
+        /// Sends data asynchronously.
+        /// </summary>
+        /// <param name="socket">Socket.</param>
+        /// <param name="buffer">Buffer.</param>
+        /// <param name="length">Length.</param>
+        public static void SendAsync(this Socket socket, byte[] buffer, int length)
+        {
+            Debug.Assert(socket != null);
+            Debug.Assert(buffer != null);
+            Debug.Assert(length > 0 && length <= buffer.Length);
+
+            socket.BeginSend(buffer, 0, length, SocketFlags.None, ar =>
+            {
+                var sent = socket.EndSend(ar);
+                Debug.Assert(sent == (int) ar.AsyncState);
+            }, length);
         }
     }
 }
