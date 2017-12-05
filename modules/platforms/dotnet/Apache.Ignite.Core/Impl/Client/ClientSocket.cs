@@ -211,25 +211,33 @@ namespace Apache.Ignite.Core.Impl.Client
                 var sent = sock.Send(buf, messageLen, SocketFlags.None);
                 Debug.Assert(sent == messageLen);
 
-                buf = new byte[4];
-                var received = sock.Receive(buf);
-                Debug.Assert(received == buf.Length);
+                buf = ReceiveAll(sock, 4);
 
                 using (var stream = new BinaryHeapStream(buf))
                 {
                     var size = stream.ReadInt();
                     
-                    buf = new byte[size];
-                    received = sock.Receive(buf);
-
-                    while (received < size)
-                    {
-                        received += sock.Receive(buf, received, size - received, SocketFlags.None);
-                    }
-
-                    return buf;
+                    return ReceiveAll(sock, size);
                 }
             }
+        }
+
+        /// <summary>
+        /// Receives the data filling provided buffer entirely.
+        /// </summary>
+        private static byte[] ReceiveAll(Socket sock, int size)
+        {
+            // Socket.Receive can return any number of bytes, even 1.
+            // We should repeat Receive calls until required amount of data has been received.
+            var buf = new byte[size];
+            var received = sock.Receive(buf);
+
+            while (received < size)
+            {
+                received += sock.Receive(buf, received, size - received, SocketFlags.None);
+            }
+
+            return buf;
         }
 
         /// <summary>
