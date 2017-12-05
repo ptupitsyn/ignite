@@ -25,6 +25,7 @@ namespace Apache.Ignite.Core.Impl.Client
     using System.Net;
     using System.Net.Sockets;
     using System.Threading;
+    using System.Threading.Tasks;
     using Apache.Ignite.Core.Client;
     using Apache.Ignite.Core.Common;
     using Apache.Ignite.Core.Impl.Binary;
@@ -107,6 +108,51 @@ namespace Apache.Ignite.Core.Impl.Client
         }
 
         /// <summary>
+        /// Performs a send-receive operation.
+        /// </summary>
+        public Task<T> DoOutInOpAsync<T>(ClientOp opId, Action<IBinaryStream> writeAction,
+            Func<IBinaryStream, T> readFunc, Func<ClientStatusCode, string, T> errorFunc = null)
+        {
+            var requestId = Interlocked.Increment(ref _requestId);
+
+            var resTask = SendReceiveAsync(_socket, stream =>
+            {
+                stream.WriteShort((short) opId);
+                stream.WriteLong(requestId);
+
+                if (writeAction != null)
+                {
+                    writeAction(stream);
+                }
+            });
+
+            return resTask.ContinueWith(t =>
+            {
+                using (var stream = new BinaryHeapStream(t.Result))
+                {
+                    var resRequestId = stream.ReadLong();
+                    Debug.Assert(requestId == resRequestId);
+
+                    var statusCode = (ClientStatusCode) stream.ReadInt();
+
+                    if (statusCode == ClientStatusCode.Success)
+                    {
+                        return readFunc != null ? readFunc(stream) : default(T);
+                    }
+
+                    var msg = BinaryUtils.Marshaller.StartUnmarshal(stream).ReadString();
+
+                    if (errorFunc != null)
+                    {
+                        return errorFunc(statusCode, msg);
+                    }
+
+                    throw new IgniteClientException(msg, null, statusCode);
+                }
+            });
+        }
+
+        /// <summary>
         /// Performs client protocol handshake.
         /// </summary>
         private static void Handshake(Socket sock, ClientProtocolVersion version)
@@ -183,6 +229,49 @@ namespace Apache.Ignite.Core.Impl.Client
 
                     return buf;
                 }
+            }
+        }
+
+        /// <summary>
+        /// Sends the request and receives a response.
+        /// </summary>
+        private static Task<byte[]> SendReceiveAsync(Socket sock, Action<IBinaryStream> writeAction, int bufSize = 128)
+        {
+            // TODO 1) Java handles request and response on the same thread. But we don't care about this.
+            // TODO 2) Inherently all APIs are async, but we should provide both versions.
+            // TODO 3) * Use TaskCompletionSource
+            // TODO    * Use BeginSend and BeginReceive
+            // TODO    * Return Task from SendReceive, store a map of current requests by id
+            // TODO    * Store a map of current requests
+            // Sockets are thread safe.
+
+            int messageLen;
+            var buf = WriteMessage(writeAction, bufSize, out messageLen);
+
+            //var sent = sock.Send(buf, messageLen, SocketFlags.None);
+            sock.BeginSend(buf, 0, messageLen, SocketFlags.None, r =>
+            {
+                var sent = sock.EndSend(r);
+                Debug.Assert(sent == messageLen);
+            }, null);
+
+            buf = new byte[4];
+            var received = sock.Receive(buf);
+            Debug.Assert(received == buf.Length);
+
+            using (var stream = new BinaryHeapStream(buf))
+            {
+                var size = stream.ReadInt();
+
+                buf = new byte[size];
+                received = sock.Receive(buf);
+
+                while (received < size)
+                {
+                    received += sock.Receive(buf, received, size - received, SocketFlags.None);
+                }
+
+                return buf;
             }
         }
 
