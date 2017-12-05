@@ -53,8 +53,8 @@ namespace Apache.Ignite.Core.Impl.Client
         private long _requestId;
 
         /** Current async operations, map from request id. */
-        private readonly ConcurrentDictionary<long, TaskCompletionSource<byte[]>> _requests
-            = new ConcurrentDictionary<long, TaskCompletionSource<byte[]>>();
+        private readonly ConcurrentDictionary<long, TaskCompletionSource<BinaryHeapStream>> _requests
+            = new ConcurrentDictionary<long, TaskCompletionSource<BinaryHeapStream>>();
 
         /** Receiver sync root. */
         private readonly object _receiveSyncRoot = new object();
@@ -84,22 +84,44 @@ namespace Apache.Ignite.Core.Impl.Client
 
             Handshake(_socket, version ?? CurrentProtocolVersion);
 
-            _receiveBuf = new byte[4];
-            _receiveMessageLen = 4;
+            // Continuously and asynchronously wait for data from server.
+            WaitForNewMessage();
+        }
+
+        /// <summary>
+        /// Starts waiting for the new message.
+        /// </summary>
+        private void WaitForNewMessage()
+        {
+            WaitForPayload(4, true);
+        }
+
+        /// <summary>
+        /// Starts waiting for the payload of specified size.
+        /// </summary>
+        private void WaitForPayload(int size, bool newMessage = false)
+        {
+            _receiveMessageLen = size;
+            _receiveBuf = new byte[_receiveMessageLen];
             _received = 0;
-            _waitingForNewMessage = true;
+            _waitingForNewMessage = newMessage;
             _socket.BeginReceive(_receiveBuf, 0, _receiveMessageLen, SocketFlags.None, OnReceive, null);
         }
 
+        /// <summary>
+        /// Called when data has been received from socket.
+        /// </summary>
         private void OnReceive(IAsyncResult ar)
         {
+            byte[] response = null;
+
             lock (_receiveSyncRoot)
             {
                 _received += _socket.EndReceive(ar);
 
-                // received += sock.Receive(buf, received, size - received, SocketFlags.None);
                 if (_received < _receiveMessageLen)
                 {
+                    // Got a part of data, continue waiting for the entire message.
                     _socket.BeginReceive(_receiveBuf, _received, _receiveMessageLen - _received, SocketFlags.None,
                         OnReceive, null);
                 }
@@ -108,12 +130,20 @@ namespace Apache.Ignite.Core.Impl.Client
                     if (_waitingForNewMessage)
                     {
                         // Got a new message length in the buffer, start receiving payload
-                        _waitingForNewMessage = false;
+                        Debug.Assert(_received == 4);
+                        Debug.Assert(_receiveBuf.Length == 4);
+
+                        using (var stream = new BinaryHeapStream(_receiveBuf))
+                        {
+                            var size = stream.ReadInt();
+                            WaitForPayload(size);
+                        }
                     }
                     else
                     {
                         // Got the message payload, dispatch corresponding task.
-                        _waitingForNewMessage = true;
+                        response = _receiveBuf;
+                        WaitForNewMessage();
                     }
                 }
                 else
@@ -123,6 +153,33 @@ namespace Apache.Ignite.Core.Impl.Client
                         string.Format("Received unexpected number of bytes. Expected: {0}, got: {1}",
                             _receiveMessageLen, _received));
                 }
+            }
+
+            if (response != null)
+            {
+                // Decode response outside the lock.
+                HandleResponse(response);
+            }
+        }
+
+        /// <summary>
+        /// Handles the response.
+        /// </summary>
+        private void HandleResponse(byte[] response)
+        {
+            using (var stream = new BinaryHeapStream(response))
+            {
+                var requestId = stream.ReadLong();
+
+                TaskCompletionSource<BinaryHeapStream> req;
+                if (!_requests.TryRemove(requestId, out req))
+                {
+                    // Response with unknown id.
+                    // Nothing to do, nowhere to throw an error.
+                    return;
+                }
+
+                req.SetResult(stream);
             }
         }
 
