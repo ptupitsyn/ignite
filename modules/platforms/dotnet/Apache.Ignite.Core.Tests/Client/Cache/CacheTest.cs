@@ -543,6 +543,13 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
                 Assert.AreEqual(res2, res2.Inner.Inner);
                 Assert.IsNotNull(res3.Inner.Inner.Inner);
 
+                // Huge data set.
+                var cache3 = client.GetCache<int, Person>(CacheName);
+                const int count = 30000;
+
+                cache3.PutAll(Enumerable.Range(1, count).ToDictionary(x => x, x => new Person(x)));
+                Assert.AreEqual(count, cache3.GetSize());
+
                 // Nulls.
                 Assert.Throws<ArgumentNullException>(() => cache.PutAll(null));
 
