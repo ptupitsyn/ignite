@@ -89,6 +89,65 @@ namespace Apache.Ignite.Core.Impl.Client
         }
 
         /// <summary>
+        /// Performs a send-receive operation.
+        /// </summary>
+        public T DoOutInOp<T>(ClientOp opId, Action<IBinaryStream> writeAction,
+            Func<IBinaryStream, T> readFunc, Func<ClientStatusCode, string, T> errorFunc = null)
+        {
+            return DoOutInOpAsync(opId, writeAction, readFunc, errorFunc).Result;
+        }
+
+        /// <summary>
+        /// Performs a send-receive operation asynchronously.
+        /// </summary>
+        public Task<T> DoOutInOpAsync<T>(ClientOp opId, Action<IBinaryStream> writeAction,
+            Func<IBinaryStream, T> readFunc, Func<ClientStatusCode, string, T> errorFunc = null)
+        {
+            // Register new request.
+            var requestId = Interlocked.Increment(ref _requestId);
+            var tcs = new TaskCompletionSource<BinaryHeapStream>();
+            var added = _requests.TryAdd(requestId, tcs);
+            Debug.Assert(added);
+
+            // Send request.
+            SendAsync(_socket, stream =>
+            {
+                stream.WriteShort((short) opId);
+                stream.WriteLong(requestId);
+
+                if (writeAction != null)
+                {
+                    writeAction(stream);
+                }
+            });
+
+            // Asynchronously receive response.
+            return tcs.Task.ContinueWith(t =>
+            {
+                var stream = t.Result;
+
+                var resRequestId = stream.ReadLong();
+                Debug.Assert(requestId == resRequestId);
+
+                var statusCode = (ClientStatusCode) stream.ReadInt();
+
+                if (statusCode == ClientStatusCode.Success)
+                {
+                    return readFunc != null ? readFunc(stream) : default(T);
+                }
+
+                var msg = BinaryUtils.Marshaller.StartUnmarshal(stream).ReadString();
+
+                if (errorFunc != null)
+                {
+                    return errorFunc(statusCode, msg);
+                }
+
+                throw new IgniteClientException(msg, null, statusCode);
+            });
+        }
+
+        /// <summary>
         /// Starts waiting for the new message.
         /// </summary>
         private void WaitForNewMessage()
@@ -133,11 +192,8 @@ namespace Apache.Ignite.Core.Impl.Client
                         Debug.Assert(_received == 4);
                         Debug.Assert(_receiveBuf.Length == 4);
 
-                        fixed (byte* buf = _receiveBuf)
-                        {
-                            var size = BinaryHeapStream.ReadInt0(buf);
-                            WaitForPayload(size);
-                        }
+                        var size = GetInt(_receiveBuf);
+                        WaitForPayload(size);
                     }
                     else
                     {
@@ -184,103 +240,13 @@ namespace Apache.Ignite.Core.Impl.Client
         }
 
         /// <summary>
-        /// Performs a send-receive operation.
-        /// </summary>
-        public T DoOutInOp<T>(ClientOp opId, Action<IBinaryStream> writeAction,
-            Func<IBinaryStream, T> readFunc, Func<ClientStatusCode, string, T> errorFunc = null)
-        {
-            var requestId = Interlocked.Increment(ref _requestId);
-
-            var resBytes = SendReceive(_socket, stream =>
-            {
-                stream.WriteShort((short) opId);
-                stream.WriteLong(requestId);
-
-                if (writeAction != null)
-                {
-                    writeAction(stream);
-                }
-            });
-
-            using (var stream = new BinaryHeapStream(resBytes))
-            {
-                var resRequestId = stream.ReadLong();
-                Debug.Assert(requestId == resRequestId);
-
-                var statusCode = (ClientStatusCode) stream.ReadInt();
-
-                if (statusCode == ClientStatusCode.Success)
-                {
-                    return readFunc != null ? readFunc(stream) : default(T);
-                }
-
-                var msg = BinaryUtils.Marshaller.StartUnmarshal(stream).ReadString();
-
-                if (errorFunc != null)
-                {
-                    return errorFunc(statusCode, msg);
-                }
-
-                throw new IgniteClientException(msg, null, statusCode);
-            }
-        }
-
-        /// <summary>
-        /// Performs a send-receive operation.
-        /// </summary>
-        public Task<T> DoOutInOpAsync<T>(ClientOp opId, Action<IBinaryStream> writeAction,
-            Func<IBinaryStream, T> readFunc, Func<ClientStatusCode, string, T> errorFunc = null)
-        {
-            // Register new request.
-            var requestId = Interlocked.Increment(ref _requestId);
-            var tcs = new TaskCompletionSource<BinaryHeapStream>();
-            var added = _requests.TryAdd(requestId, tcs);
-            Debug.Assert(added);
-
-            // Send request.
-            SendAsync(_socket, stream =>
-            {
-                stream.WriteShort((short) opId);
-                stream.WriteLong(requestId);
-
-                if (writeAction != null)
-                {
-                    writeAction(stream);
-                }
-            });
-
-            // Asynchronously receive response.
-            return tcs.Task.ContinueWith(t =>
-            {
-                var stream = t.Result;
-                
-                var resRequestId = stream.ReadLong();
-                Debug.Assert(requestId == resRequestId);
-
-                var statusCode = (ClientStatusCode) stream.ReadInt();
-
-                if (statusCode == ClientStatusCode.Success)
-                {
-                    return readFunc != null ? readFunc(stream) : default(T);
-                }
-
-                var msg = BinaryUtils.Marshaller.StartUnmarshal(stream).ReadString();
-
-                if (errorFunc != null)
-                {
-                    return errorFunc(statusCode, msg);
-                }
-
-                throw new IgniteClientException(msg, null, statusCode);
-            });
-        }
-
-        /// <summary>
         /// Performs client protocol handshake.
         /// </summary>
         private static void Handshake(Socket sock, ClientProtocolVersion version)
         {
-            var res = SendReceive(sock, stream =>
+            // Send request.
+            int messageLen;
+            var buf = WriteMessage(stream =>
             {
                 // Handshake.
                 stream.WriteByte(OpHandshake);
@@ -292,7 +258,15 @@ namespace Apache.Ignite.Core.Impl.Client
 
                 // Client type: platform.
                 stream.WriteByte(ClientType);
-            }, 20);
+            }, 20, out messageLen);
+
+            var sent = sock.Send(buf, messageLen, SocketFlags.None);
+            Debug.Assert(sent == messageLen);
+
+            // Decode response.
+            buf = ReceiveAll(sock, 4);
+            var size = GetInt(buf);
+            var res = ReceiveAll(sock, size);
 
             using (var stream = new BinaryHeapStream(res))
             {
@@ -311,37 +285,6 @@ namespace Apache.Ignite.Core.Impl.Client
                 throw new IgniteClientException(string.Format(
                     "Client handhsake failed: '{0}'. Client version: {1}. Server version: {2}",
                     errMsg, version, serverVersion));
-            }
-        }
-
-        /// <summary>
-        /// Sends the request and receives a response.
-        /// </summary>
-        private static byte[] SendReceive(Socket sock, Action<IBinaryStream> writeAction, int bufSize = 128)
-        {
-            // TODO 1) Java handles request and response on the same thread. But we don't care about this.
-            // TODO 2) Inherently all APIs are async, but we should provide both versions.
-            // TODO 3) * Use TaskCompletionSource
-            // TODO    * Use BeginSend and BeginReceive
-            // TODO    * Return Task from SendReceive, store a map of current requests by id
-            // TODO    * Store a map of current requests
-
-            int messageLen;
-            var buf = WriteMessage(writeAction, bufSize, out messageLen);
-
-            lock (sock)
-            {
-                var sent = sock.Send(buf, messageLen, SocketFlags.None);
-                Debug.Assert(sent == messageLen);
-
-                buf = ReceiveAll(sock, 4);
-
-                using (var stream = new BinaryHeapStream(buf))
-                {
-                    var size = stream.ReadInt();
-                    
-                    return ReceiveAll(sock, size);
-                }
             }
         }
 
@@ -466,6 +409,17 @@ namespace Apache.Ignite.Core.Impl.Client
             }
 
             return Dns.GetHostEntry(host).AddressList.Select(x => new IPEndPoint(x, cfg.Port));
+        }
+
+        /// <summary>
+        /// Gets the int from buffer.
+        /// </summary>
+        private static unsafe int GetInt(byte[] buf)
+        {
+            fixed (byte* b = buf)
+            {
+                return BinaryHeapStream.ReadInt0(b);
+            }
         }
 
         /// <summary>
