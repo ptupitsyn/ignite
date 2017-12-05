@@ -18,6 +18,7 @@
 namespace Apache.Ignite.Core.Impl.Client
 {
     using System;
+    using System.Collections.Concurrent;
     using System.Collections.Generic;
     using System.Diagnostics;
     using System.Diagnostics.CodeAnalysis;
@@ -51,6 +52,25 @@ namespace Apache.Ignite.Core.Impl.Client
         /** */
         private long _requestId;
 
+        /** Current async operations, map from request id. */
+        private readonly ConcurrentDictionary<long, TaskCompletionSource<byte[]>> _requests
+            = new ConcurrentDictionary<long, TaskCompletionSource<byte[]>>();
+
+        /** Receiver sync root. */
+        private readonly object _receiveSyncRoot = new object();
+
+        /** Buffer for currently received message */
+        private byte[] _receiveBuf;
+
+        /** Length of the currently received message. */
+        private int _receiveMessageLen;
+
+        /** Number of received bytes for the current message. */
+        private int _received;
+
+        /** Whether we are waiting for new message (starts with 4-byte length), or receiving message data. */
+        private bool _waitingForNewMessage;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="ClientSocket" /> class.
         /// </summary>
@@ -63,6 +83,47 @@ namespace Apache.Ignite.Core.Impl.Client
             _socket = Connect(clientConfiguration);
 
             Handshake(_socket, version ?? CurrentProtocolVersion);
+
+            _receiveBuf = new byte[4];
+            _receiveMessageLen = 4;
+            _received = 0;
+            _waitingForNewMessage = true;
+            _socket.BeginReceive(_receiveBuf, 0, _receiveMessageLen, SocketFlags.None, OnReceive, null);
+        }
+
+        private void OnReceive(IAsyncResult ar)
+        {
+            lock (_receiveSyncRoot)
+            {
+                _received += _socket.EndReceive(ar);
+
+                // received += sock.Receive(buf, received, size - received, SocketFlags.None);
+                if (_received < _receiveMessageLen)
+                {
+                    _socket.BeginReceive(_receiveBuf, _received, _receiveMessageLen - _received, SocketFlags.None,
+                        OnReceive, null);
+                }
+                else if (_received == _receiveMessageLen)
+                {
+                    if (_waitingForNewMessage)
+                    {
+                        // Got a new message length in the buffer, start receiving payload
+                        _waitingForNewMessage = false;
+                    }
+                    else
+                    {
+                        // Got the message payload, dispatch corresponding task.
+                        _waitingForNewMessage = true;
+                    }
+                }
+                else
+                {
+                    // Invalid situation.
+                    throw new InvalidOperationException(
+                        string.Format("Received unexpected number of bytes. Expected: {0}, got: {1}",
+                            _receiveMessageLen, _received));
+                }
+            }
         }
 
         /// <summary>
@@ -263,6 +324,8 @@ namespace Apache.Ignite.Core.Impl.Client
                 Debug.Assert(t.Result == messageLen);
 
                 // TODO: Use ReceiveAsync
+                // We should probably handle receive globally: continuously call BeginReceive, read data and complete
+                // preserved tasks once data has been accumulated.
 
                 buf = new byte[4];
                 var received = sock.Receive(buf);
