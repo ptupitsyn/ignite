@@ -94,7 +94,22 @@ namespace Apache.Ignite.Core.Impl.Client
         public T DoOutInOp<T>(ClientOp opId, Action<IBinaryStream> writeAction,
             Func<IBinaryStream, T> readFunc, Func<ClientStatusCode, string, T> errorFunc = null)
         {
-            return DoOutInOpAsync(opId, writeAction, readFunc, errorFunc).Result;
+            try
+            {
+                return DoOutInOpAsync(opId, writeAction, readFunc, errorFunc).Result;
+            }
+            catch (AggregateException aex)
+            {
+                // Unwrap inner exception.
+                var inner = aex.InnerException as IgniteClientException;
+
+                if (inner != null)
+                {
+                    throw inner;
+                }
+
+                throw;
+            }
         }
 
         /// <summary>
@@ -125,10 +140,6 @@ namespace Apache.Ignite.Core.Impl.Client
             return tcs.Task.ContinueWith(t =>
             {
                 var stream = t.Result;
-
-                var resRequestId = stream.ReadLong();
-                Debug.Assert(requestId == resRequestId);
-
                 var statusCode = (ClientStatusCode) stream.ReadInt();
 
                 if (statusCode == ClientStatusCode.Success)
