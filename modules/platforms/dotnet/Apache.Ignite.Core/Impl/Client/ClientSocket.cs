@@ -85,6 +85,7 @@ namespace Apache.Ignite.Core.Impl.Client
             Handshake(_socket, version ?? CurrentProtocolVersion);
 
             // Continuously and asynchronously wait for data from server.
+            _socket.Blocking = false;
             WaitForNewMessage();
         }
 
