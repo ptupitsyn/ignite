@@ -111,7 +111,7 @@ namespace Apache.Ignite.Core.Impl.Client
         /// <summary>
         /// Called when data has been received from socket.
         /// </summary>
-        private void OnReceive(IAsyncResult ar)
+        private unsafe void OnReceive(IAsyncResult ar)
         {
             byte[] response = null;
 
@@ -133,9 +133,9 @@ namespace Apache.Ignite.Core.Impl.Client
                         Debug.Assert(_received == 4);
                         Debug.Assert(_receiveBuf.Length == 4);
 
-                        using (var stream = new BinaryHeapStream(_receiveBuf))
+                        fixed (byte* buf = _receiveBuf)
                         {
-                            var size = stream.ReadInt();
+                            var size = BinaryHeapStream.ReadInt0(buf);
                             WaitForPayload(size);
                         }
                     }
