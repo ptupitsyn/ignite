@@ -833,6 +833,41 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
         }
 
         /// <summary>
+        /// Tests interleaved put/get operations.
+        /// </summary>
+        [Test]
+        [Category(TestUtils.CategoryIntensive)]
+        public void TestPutGetAsyncMultithreaded()
+        {
+            const int count = 10000;
+
+            var cache = GetCache<string>();
+            var key = 0;
+
+            TestUtils.RunMultiThreaded(() =>
+            {
+                for (var i = 0; i < count; i++)
+                {
+                    var k = Interlocked.Increment(ref key);
+                    cache.PutAsync(k, k + "_" + Guid.NewGuid());
+                }
+            }, Environment.ProcessorCount * 2);
+
+            key = 0;
+
+            TestUtils.RunMultiThreaded(() =>
+            {
+                for (var i = 0; i < count; i++)
+                {
+                    var k = Interlocked.Increment(ref key);
+                    var val = cache.GetAsync(k).Result;
+
+                    Assert.IsTrue(val.Split('_').First() == k.ToString());
+                }
+            }, Environment.ProcessorCount * 2);
+        }
+
+        /// <summary>
         /// Tests the cache exceptions.
         /// </summary>
         [Test]
