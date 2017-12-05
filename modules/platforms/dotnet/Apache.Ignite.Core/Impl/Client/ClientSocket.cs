@@ -152,6 +152,9 @@ namespace Apache.Ignite.Core.Impl.Client
             _receiveBuf = new byte[_receiveMessageLen];
             _received = 0;
             _waitingForNewMessage = newMessage;
+
+            // TODO: check if data is available before calling BeginReceive?
+            // While loop inside OnReceive to avoid stackOverflow
             _socket.BeginReceive(_receiveBuf, 0, _receiveMessageLen, SocketFlags.None, OnReceive, null);
         }
 
