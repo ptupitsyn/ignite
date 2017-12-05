@@ -39,6 +39,8 @@ namespace Apache.Ignite.Core.Impl.Client
             Debug.Assert(buffer != null);
             Debug.Assert(length > 0 && length <= buffer.Length);
 
+            // TODO: What if buffer exceeds system buffer limit? Add a test with huge PutAll or something.
+
             return Task<int>.Factory.FromAsync((cb, state) =>
                     socket.BeginSend(buffer, 0, length, SocketFlags.None, cb, state),
                     socket.EndSend, null);

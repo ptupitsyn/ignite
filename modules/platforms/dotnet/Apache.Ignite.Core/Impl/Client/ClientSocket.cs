@@ -248,34 +248,33 @@ namespace Apache.Ignite.Core.Impl.Client
             int messageLen;
             var buf = WriteMessage(writeAction, bufSize, out messageLen);
 
-            Task<int>.Factory.FromAsync((cb, state) => sock.BeginSend(buf, 0, messageLen, SocketFlags.None, cb, state), sock.EndSend, null);
+            var sent = sock.SendAsync(buf, messageLen);
 
-
-            //var sent = sock.Send(buf, messageLen, SocketFlags.None);
-            sock.BeginSend(buf, 0, messageLen, SocketFlags.None, r =>
+            return sent.ContinueWith(t =>
             {
-                var sent = sock.EndSend(r);
-                Debug.Assert(sent == messageLen);
-            }, null);
+                Debug.Assert(t.Result == messageLen);
 
-            buf = new byte[4];
-            var received = sock.Receive(buf);
-            Debug.Assert(received == buf.Length);
+                // TODO: Use ReceiveAsync
 
-            using (var stream = new BinaryHeapStream(buf))
-            {
-                var size = stream.ReadInt();
+                buf = new byte[4];
+                var received = sock.Receive(buf);
+                Debug.Assert(received == buf.Length);
 
-                buf = new byte[size];
-                received = sock.Receive(buf);
-
-                while (received < size)
+                using (var stream = new BinaryHeapStream(buf))
                 {
-                    received += sock.Receive(buf, received, size - received, SocketFlags.None);
-                }
+                    var size = stream.ReadInt();
 
-                return buf;
-            }
+                    buf = new byte[size];
+                    received = sock.Receive(buf);
+
+                    while (received < size)
+                    {
+                        received += sock.Receive(buf, received, size - received, SocketFlags.None);
+                    }
+
+                    return buf;
+                }
+            });
         }
 
         /// <summary>
