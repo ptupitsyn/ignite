@@ -94,22 +94,9 @@ namespace Apache.Ignite.Core.Impl.Client
         public T DoOutInOp<T>(ClientOp opId, Action<IBinaryStream> writeAction,
             Func<IBinaryStream, T> readFunc, Func<ClientStatusCode, string, T> errorFunc = null)
         {
-            try
-            {
-                return DoOutInOpAsync(opId, writeAction, readFunc, errorFunc).Result;
-            }
-            catch (AggregateException aex)
-            {
-                // Unwrap inner exception.
-                var inner = aex.InnerException as IgniteClientException;
+            var response = SendRequestAsync(opId, writeAction).Result;
 
-                if (inner != null)
-                {
-                    throw inner;
-                }
-
-                throw;
-            }
+            return DecodeResponse(response, readFunc, errorFunc);
         }
 
         /// <summary>
@@ -118,14 +105,14 @@ namespace Apache.Ignite.Core.Impl.Client
         public Task<T> DoOutInOpAsync<T>(ClientOp opId, Action<IBinaryStream> writeAction,
             Func<IBinaryStream, T> readFunc, Func<ClientStatusCode, string, T> errorFunc = null)
         {
-            return SendRequestAsync<T>(opId, writeAction)
+            return SendRequestAsync(opId, writeAction)
                 .ContinueWith(responseTask => DecodeResponse(responseTask.Result, readFunc, errorFunc));
         }
 
         /// <summary>
         /// Sends the request asynchronously and returns a task for corresponding response.
         /// </summary>
-        private Task<BinaryHeapStream> SendRequestAsync<T>(ClientOp opId, Action<IBinaryStream> writeAction)
+        private Task<BinaryHeapStream> SendRequestAsync(ClientOp opId, Action<IBinaryStream> writeAction)
         {
             // Register new request.
             var requestId = Interlocked.Increment(ref _requestId);
@@ -146,28 +133,6 @@ namespace Apache.Ignite.Core.Impl.Client
             });
             
             return tcs.Task;
-        }
-
-        /// <summary>
-        /// Decodes the response.
-        /// </summary>
-        private static T DecodeResponse<T>(BinaryHeapStream stream, Func<IBinaryStream, T> readFunc, Func<ClientStatusCode, string, T> errorFunc)
-        {
-            var statusCode = (ClientStatusCode) stream.ReadInt();
-
-            if (statusCode == ClientStatusCode.Success)
-            {
-                return readFunc != null ? readFunc(stream) : default(T);
-            }
-
-            var msg = BinaryUtils.Marshaller.StartUnmarshal(stream).ReadString();
-
-            if (errorFunc != null)
-            {
-                return errorFunc(statusCode, msg);
-            }
-
-            throw new IgniteClientException(msg, null, statusCode);
         }
 
         /// <summary>
@@ -193,7 +158,7 @@ namespace Apache.Ignite.Core.Impl.Client
         /// <summary>
         /// Called when data has been received from socket.
         /// </summary>
-        private unsafe void OnReceive(IAsyncResult ar)
+        private void OnReceive(IAsyncResult ar)
         {
             byte[] response = null;
 
@@ -260,6 +225,29 @@ namespace Apache.Ignite.Core.Impl.Client
 
                 req.SetResult(stream);
             }
+        }
+
+        /// <summary>
+        /// Decodes the response that we got from <see cref="HandleResponse"/>.
+        /// </summary>
+        private static T DecodeResponse<T>(BinaryHeapStream stream, Func<IBinaryStream, T> readFunc, 
+            Func<ClientStatusCode, string, T> errorFunc)
+        {
+            var statusCode = (ClientStatusCode)stream.ReadInt();
+
+            if (statusCode == ClientStatusCode.Success)
+            {
+                return readFunc != null ? readFunc(stream) : default(T);
+            }
+
+            var msg = BinaryUtils.Marshaller.StartUnmarshal(stream).ReadString();
+
+            if (errorFunc != null)
+            {
+                return errorFunc(statusCode, msg);
+            }
+
+            throw new IgniteClientException(msg, null, statusCode);
         }
 
         /// <summary>
