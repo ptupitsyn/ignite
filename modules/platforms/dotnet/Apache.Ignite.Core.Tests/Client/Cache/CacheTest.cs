@@ -839,9 +839,9 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
         [Category(TestUtils.CategoryIntensive)]
         public void TestPutGetAsyncMultithreaded()
         {
-            const int count = 50000;
+            const int count = 50;
 
-            var cache = GetCache<string>();
+            var cache = GetClientCache<string>();
             var key = 0;
 
             TestUtils.RunMultiThreaded(() =>
