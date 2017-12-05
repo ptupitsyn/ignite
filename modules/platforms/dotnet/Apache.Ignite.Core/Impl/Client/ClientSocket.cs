@@ -118,13 +118,22 @@ namespace Apache.Ignite.Core.Impl.Client
         public Task<T> DoOutInOpAsync<T>(ClientOp opId, Action<IBinaryStream> writeAction,
             Func<IBinaryStream, T> readFunc, Func<ClientStatusCode, string, T> errorFunc = null)
         {
+            return SendRequestAsync<T>(opId, writeAction)
+                .ContinueWith(responseTask => DecodeResponse(responseTask.Result, readFunc, errorFunc));
+        }
+
+        /// <summary>
+        /// Sends the request asynchronously and returns a task for corresponding response.
+        /// </summary>
+        private Task<BinaryHeapStream> SendRequestAsync<T>(ClientOp opId, Action<IBinaryStream> writeAction)
+        {
             // Register new request.
             var requestId = Interlocked.Increment(ref _requestId);
             var tcs = new TaskCompletionSource<BinaryHeapStream>();
             var added = _requests.TryAdd(requestId, tcs);
             Debug.Assert(added);
 
-            // Send request.
+            // Send.
             SendAsync(_socket, stream =>
             {
                 stream.WriteShort((short) opId);
@@ -135,27 +144,30 @@ namespace Apache.Ignite.Core.Impl.Client
                     writeAction(stream);
                 }
             });
+            
+            return tcs.Task;
+        }
 
-            // Asynchronously receive response.
-            return tcs.Task.ContinueWith(t =>
+        /// <summary>
+        /// Decodes the response.
+        /// </summary>
+        private static T DecodeResponse<T>(BinaryHeapStream stream, Func<IBinaryStream, T> readFunc, Func<ClientStatusCode, string, T> errorFunc)
+        {
+            var statusCode = (ClientStatusCode) stream.ReadInt();
+
+            if (statusCode == ClientStatusCode.Success)
             {
-                var stream = t.Result;
-                var statusCode = (ClientStatusCode) stream.ReadInt();
+                return readFunc != null ? readFunc(stream) : default(T);
+            }
 
-                if (statusCode == ClientStatusCode.Success)
-                {
-                    return readFunc != null ? readFunc(stream) : default(T);
-                }
+            var msg = BinaryUtils.Marshaller.StartUnmarshal(stream).ReadString();
 
-                var msg = BinaryUtils.Marshaller.StartUnmarshal(stream).ReadString();
+            if (errorFunc != null)
+            {
+                return errorFunc(statusCode, msg);
+            }
 
-                if (errorFunc != null)
-                {
-                    return errorFunc(statusCode, msg);
-                }
-
-                throw new IgniteClientException(msg, null, statusCode);
-            });
+            throw new IgniteClientException(msg, null, statusCode);
         }
 
         /// <summary>
