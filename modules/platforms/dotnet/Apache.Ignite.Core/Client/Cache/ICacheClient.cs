@@ -64,6 +64,19 @@ namespace Apache.Ignite.Core.Client.Cache
 
         /// <summary>
         /// Retrieves value mapped to the specified key from cache.
+        ///
+        /// If the value is not present in cache, then it will be looked up from swap storage. If
+        /// it's not present in swap, or if swap is disable, and if read-through is allowed, value
+        /// will be loaded from persistent store.
+        /// This method is transactional and will enlist the entry into ongoing transaction if there is one.
+        /// </summary>
+        /// <param name="key">Key.</param>
+        /// <returns>Value.</returns>
+        /// <exception cref="KeyNotFoundException">If the key is not present in the cache.</exception>
+        Task<TV> GetAsync(TK key);
+
+        /// <summary>
+        /// Retrieves value mapped to the specified key from cache.
         /// </summary>
         /// <param name="key">Key.</param>
         /// <param name="value">When this method returns, the value associated with the specified key,

@@ -100,6 +100,14 @@ namespace Apache.Ignite.Core.Impl.Client.Cache
         }
 
         /** <inheritDoc /> */
+        public Task<TV> GetAsync(TK key)
+        {
+            IgniteArgumentCheck.NotNull(key, "key");
+
+            return DoOutInOpAsync(ClientOp.CacheGet, w => w.WriteObject(key), UnmarshalNotNull<TV>);
+        }
+
+        /** <inheritDoc /> */
         public bool TryGet(TK key, out TV value)
         {
             IgniteArgumentCheck.NotNull(key, "key");
