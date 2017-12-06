@@ -80,6 +80,7 @@
     <Compile Include="ApiParity\DataRegionConfigurationParityTest.cs" />
     <Compile Include="ApiParity\DataRegionMetricsParityTest.cs" />
     <Compile Include="ApiParity\DataStorageConfigurationParityTest.cs" />
+    <Compile Include="ApiParity\DataStorageMetricsParityTest.cs" />
     <Compile Include="ApiParity\EventsParityTest.cs" />
     <Compile Include="ApiParity\IgniteConfigurationParityTest.cs" />
     <Compile Include="ApiParity\IgniteParityTest.cs" />
