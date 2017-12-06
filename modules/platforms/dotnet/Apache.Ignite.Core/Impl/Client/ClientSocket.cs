@@ -152,7 +152,22 @@ namespace Apache.Ignite.Core.Impl.Client
                 return;
             }
 
-            // TODO: Catch DisposedException or use a lock
+            try
+            {
+                OnReceiveLoop(ar);
+            }
+            catch (ObjectDisposedException)
+            {
+                // Ignore. Dispose can happen concurrently.
+                // TODO this is dirty
+            }
+        }
+
+        /// <summary>
+        /// Called when data has been received from socket.
+        /// </summary>
+        private void OnReceiveLoop(IAsyncResult ar)
+        {
             while (true)
             {
                 _received += _socket.EndReceive(ar);
