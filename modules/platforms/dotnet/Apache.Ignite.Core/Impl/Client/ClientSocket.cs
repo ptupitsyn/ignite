@@ -109,6 +109,9 @@ namespace Apache.Ignite.Core.Impl.Client
         public T DoOutInOp<T>(ClientOp opId, Action<IBinaryStream> writeAction,
             Func<IBinaryStream, T> readFunc, Func<ClientStatusCode, string, T> errorFunc = null)
         {
+            // TODO: Send the request synchronously.
+            // Perform blocking Receive in a loop until we get the proper response.
+
             var response = SendRequestAsync(opId, writeAction).Result;
 
             // Decode on current thread for proper exception handling.
@@ -364,16 +367,7 @@ namespace Apache.Ignite.Core.Impl.Client
             Debug.Assert(added);
 
             // Send.
-            SendAsync(_socket, stream =>
-            {
-                stream.WriteShort((short)opId);
-                stream.WriteLong(requestId);
-
-                if (writeAction != null)
-                {
-                    writeAction(stream);
-                }
-            });
+            SendAsync(_socket, writeAction, opId, requestId);
 
             return req.CompletionSource.Task;
         }
@@ -381,12 +375,14 @@ namespace Apache.Ignite.Core.Impl.Client
         /// <summary>
         /// Sends the request and receives a response.
         /// </summary>
-        private static void SendAsync(Socket sock, Action<IBinaryStream> writeAction, int bufSize = 128)
+        private static void SendAsync(Socket sock, Action<IBinaryStream> writeAction, ClientOp opId, long requestId, 
+            int bufSize = 128)
         {
             int messageLen;
-            var buf = WriteMessage(writeAction, bufSize, out messageLen);
+            var buf = WriteMessage(writeAction, opId, requestId, bufSize, out messageLen);
 
             // TODO: SendAsync does not seem to be faster.
+            // It also causes more allocations.
             //var e = new SocketAsyncEventArgs();
             //e.SetBuffer(buf, 0, messageLen);
             //var sent = sock.SendAsync(e);
@@ -407,13 +403,29 @@ namespace Apache.Ignite.Core.Impl.Client
             using (var stream = new BinaryHeapStream(bufSize))
             {
                 stream.WriteInt(0); // Reserve message size.
-
                 writeAction(stream);
-
                 stream.WriteInt(0, stream.Position - 4); // Write message size.
 
                 messageLen = stream.Position;
+                return stream.GetArray();
+            }
+        }
 
+        /// <summary>
+        /// Writes the message to a byte array.
+        /// </summary>
+        private static byte[] WriteMessage(Action<IBinaryStream> writeAction, ClientOp opId, long requestId, 
+            int bufSize, out int messageLen)
+        {
+            using (var stream = new BinaryHeapStream(bufSize))
+            {
+                stream.WriteInt(0); // Reserve message size.
+                stream.WriteShort((short) opId);
+                stream.WriteLong(requestId);
+                writeAction(stream);
+                stream.WriteInt(0, stream.Position - 4); // Write message size.
+
+                messageLen = stream.Position;
                 return stream.GetArray();
             }
         }
