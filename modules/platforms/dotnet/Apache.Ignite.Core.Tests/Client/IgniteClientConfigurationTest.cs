@@ -37,6 +37,7 @@ namespace Apache.Ignite.Core.Tests.Client
             Assert.AreEqual(IgniteClientConfiguration.DefaultSocketBufferSize, cfg.SocketReceiveBufferSize);
             Assert.AreEqual(IgniteClientConfiguration.DefaultSocketBufferSize, cfg.SocketSendBufferSize);
             Assert.AreEqual(IgniteClientConfiguration.DefaultTcpNoDelay, cfg.TcpNoDelay);
+            Assert.AreEqual(IgniteClientConfiguration.DefaultSocketTimeout, cfg.SocketTimeout);
         }
     }
 }
