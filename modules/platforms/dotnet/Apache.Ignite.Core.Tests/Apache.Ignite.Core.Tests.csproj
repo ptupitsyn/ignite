@@ -78,6 +78,7 @@
     <Compile Include="ApiParity\ClusterParityTest.cs" />
     <Compile Include="ApiParity\ComputeParityTest.cs" />
     <Compile Include="ApiParity\DataRegionConfigurationParityTest.cs" />
+    <Compile Include="ApiParity\DataRegionMetricsParityTest.cs" />
     <Compile Include="ApiParity\DataStorageConfigurationParityTest.cs" />
     <Compile Include="ApiParity\EventsParityTest.cs" />
     <Compile Include="ApiParity\IgniteConfigurationParityTest.cs" />
