@@ -186,11 +186,23 @@ namespace Apache.Ignite.Core.Tests.Client
             ignite.Dispose();
 
             var ex = Assert.Throws<AggregateException>(() => putGetTask.Wait());
-            Console.WriteLine(ex.ToString());
-            var clientEx = ex.InnerException as IgniteClientException;
+            var baseEx = ex.GetBaseException();
+            
+            var clientEx = baseEx as IgniteClientException;
+            var timeoutEx = baseEx as TimeoutException;
 
-            Assert.IsNotNull(clientEx);
-            Assert.AreEqual("", clientEx.Message);
+            if (clientEx != null)
+            {
+                Assert.AreEqual("", clientEx.Message);
+            }
+            else if (timeoutEx != null)
+            {
+                Assert.AreEqual("", timeoutEx.Message);
+            }
+            else
+            {
+                Assert.Fail("Unexpected exception: " + ex);
+            }
         }
 
         /// <summary>
