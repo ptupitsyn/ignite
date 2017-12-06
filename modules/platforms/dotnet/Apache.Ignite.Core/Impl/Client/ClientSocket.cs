@@ -240,20 +240,18 @@ namespace Apache.Ignite.Core.Impl.Client
         /// </summary>
         private void HandleResponse(byte[] response)
         {
-            using (var stream = new BinaryHeapStream(response))
+            var stream = new BinaryHeapStream(response);
+            var requestId = stream.ReadLong();
+
+            Request req;
+            if (!_requests.TryRemove(requestId, out req))
             {
-                var requestId = stream.ReadLong();
-
-                Request req;
-                if (!_requests.TryRemove(requestId, out req))
-                {
-                    // Response with unknown id.
-                    // Nothing to do, nowhere to throw an error.
-                    return;
-                }
-
-                req.CompletionSource.TrySetResult(stream);
+                // Response with unknown id.
+                // Nothing to do, nowhere to throw an error.
+                return;
             }
+
+            req.CompletionSource.TrySetResult(stream);
         }
 
         /// <summary>
@@ -367,32 +365,16 @@ namespace Apache.Ignite.Core.Impl.Client
             Debug.Assert(added);
 
             // Send.
-            SendAsync(_socket, writeAction, opId, requestId);
-
-            return req.CompletionSource.Task;
-        }
-
-        /// <summary>
-        /// Sends the request and receives a response.
-        /// </summary>
-        private static void SendAsync(Socket sock, Action<IBinaryStream> writeAction, ClientOp opId, long requestId, 
-            int bufSize = 128)
-        {
             int messageLen;
-            var buf = WriteMessage(writeAction, opId, requestId, bufSize, out messageLen);
+            var buf = WriteMessage(writeAction, opId, requestId, 128, out messageLen);
 
-            // TODO: SendAsync does not seem to be faster.
-            // It also causes more allocations.
-            //var e = new SocketAsyncEventArgs();
-            //e.SetBuffer(buf, 0, messageLen);
-            //var sent = sock.SendAsync(e);
-            //Debug.Assert(sent);
-
-            sock.BeginSend(buf, 0, messageLen, SocketFlags.None, ar =>
+            _socket.BeginSend(buf, 0, messageLen, SocketFlags.None, ar =>
             {
-                var sent = sock.EndSend(ar);
+                var sent = _socket.EndSend(ar);
                 Debug.Assert(sent == (int)ar.AsyncState);
             }, messageLen);
+
+            return req.CompletionSource.Task;
         }
 
         /// <summary>
@@ -400,34 +382,33 @@ namespace Apache.Ignite.Core.Impl.Client
         /// </summary>
         private static byte[] WriteMessage(Action<IBinaryStream> writeAction, int bufSize, out int messageLen)
         {
-            using (var stream = new BinaryHeapStream(bufSize))
-            {
-                stream.WriteInt(0); // Reserve message size.
-                writeAction(stream);
-                stream.WriteInt(0, stream.Position - 4); // Write message size.
+            var stream = new BinaryHeapStream(bufSize);
 
-                messageLen = stream.Position;
-                return stream.GetArray();
-            }
+            stream.WriteInt(0); // Reserve message size.
+            writeAction(stream);
+            stream.WriteInt(0, stream.Position - 4); // Write message size.
+
+            messageLen = stream.Position;
+            return stream.GetArray();
         }
 
         /// <summary>
         /// Writes the message to a byte array.
         /// </summary>
-        private static byte[] WriteMessage(Action<IBinaryStream> writeAction, ClientOp opId, long requestId, 
+        private static byte[] WriteMessage(Action<IBinaryStream> writeAction, ClientOp opId, long requestId,
             int bufSize, out int messageLen)
         {
-            using (var stream = new BinaryHeapStream(bufSize))
-            {
-                stream.WriteInt(0); // Reserve message size.
-                stream.WriteShort((short) opId);
-                stream.WriteLong(requestId);
-                writeAction(stream);
-                stream.WriteInt(0, stream.Position - 4); // Write message size.
+            var stream = new BinaryHeapStream(bufSize);
 
-                messageLen = stream.Position;
-                return stream.GetArray();
-            }
+            stream.WriteInt(0); // Reserve message size.
+            stream.WriteShort((short) opId);
+            stream.WriteLong(requestId);
+            writeAction(stream);
+            stream.WriteInt(0, stream.Position - 4); // Write message size.
+
+            messageLen = stream.Position;
+
+            return stream.GetArray();
         }
 
         /// <summary>
