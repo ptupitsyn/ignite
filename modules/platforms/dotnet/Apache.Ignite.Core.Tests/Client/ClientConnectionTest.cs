@@ -194,6 +194,15 @@ namespace Apache.Ignite.Core.Tests.Client
         }
 
         /// <summary>
+        /// Tests the operation timeout.
+        /// </summary>
+        [Test]
+        public void TestOperationTimeout()
+        {
+            // TODO ?
+        }
+
+        /// <summary>
         /// Starts the client.
         /// </summary>
         private static IIgniteClient StartClient()
