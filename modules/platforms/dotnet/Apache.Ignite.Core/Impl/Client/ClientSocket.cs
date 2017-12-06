@@ -160,9 +160,13 @@ namespace Apache.Ignite.Core.Impl.Client
             {
                 // Socket failure (connection dropped, etc).
                 // Propagate to all pending requests.
-                foreach (var req in _requests)
+                foreach (var reqId in _requests.Keys.ToArray())
                 {
-                    req.Value.SetException(ex);
+                    TaskCompletionSource<BinaryHeapStream> req;
+                    if (_requests.TryRemove(reqId, out req))
+                    {
+                        req.SetException(ex);
+                    }
                 }
             }
         }
