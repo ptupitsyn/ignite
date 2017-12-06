@@ -25,6 +25,7 @@ namespace Apache.Ignite.Core.Impl.Client
     using System.Linq;
     using System.Net;
     using System.Net.Sockets;
+    using System.Runtime.Remoting.Messaging;
     using System.Threading;
     using System.Threading.Tasks;
     using Apache.Ignite.Core.Client;
@@ -67,6 +68,9 @@ namespace Apache.Ignite.Core.Impl.Client
 
         /** Whether we are waiting for new message (starts with 4-byte length), or receiving message data. */
         private volatile bool _waitingForNewMessage;
+
+        /** Disposed flag. */
+        private volatile bool _disposed;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ClientSocket" /> class.
@@ -128,7 +132,21 @@ namespace Apache.Ignite.Core.Impl.Client
             _received = 0;
             _waitingForNewMessage = newMessage;
 
-            return _socket.BeginReceive(_receiveBuf, 0, _receiveMessageLen, SocketFlags.None, OnReceive, null);
+            return BeginReceive();
+        }
+
+        /// <summary>
+        /// Begins to asynchronously receive data from a connected System.Net.Sockets.Socket.
+        /// </summary>
+        private IAsyncResult BeginReceive()
+        {
+            if (_disposed)
+            {
+                return null;
+            }
+
+            return _socket.BeginReceive(_receiveBuf, _received, _receiveMessageLen - _received,
+                SocketFlags.None, OnReceive, null);
         }
 
         /// <summary>
@@ -150,8 +168,7 @@ namespace Apache.Ignite.Core.Impl.Client
                 if (_received < _receiveMessageLen)
                 {
                     // Got a part of data, continue waiting for the entire message.
-                    ar = _socket.BeginReceive(_receiveBuf, _received, _receiveMessageLen - _received,
-                        SocketFlags.None, OnReceive, null);
+                    ar = BeginReceive();
                 }
                 else if (_received == _receiveMessageLen)
                 {
@@ -180,8 +197,7 @@ namespace Apache.Ignite.Core.Impl.Client
                             _receiveMessageLen, _received));
                 }
 
-                // ReSharper disable once PossibleNullReferenceException (looks wrong)
-                if (!ar.CompletedSynchronously)
+                if (ar == null || !ar.CompletedSynchronously)
                 {
                     return;
                 }
@@ -457,6 +473,7 @@ namespace Apache.Ignite.Core.Impl.Client
             Justification = "There is no finalizer.")]
         public void Dispose()
         {
+            _disposed = true;
             _socket.Dispose();
         }
     }
