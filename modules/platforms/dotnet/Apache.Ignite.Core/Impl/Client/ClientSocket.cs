@@ -368,11 +368,13 @@ namespace Apache.Ignite.Core.Impl.Client
             int messageLen;
             var buf = WriteMessage(writeAction, opId, requestId, 128, out messageLen);
 
-            _socket.BeginSend(buf, 0, messageLen, SocketFlags.None, ar =>
-            {
-                var sent = _socket.EndSend(ar);
-                Debug.Assert(sent == (int)ar.AsyncState);
-            }, messageLen);
+            // TODO
+            _socket.Send(buf, 0, messageLen, SocketFlags.None);
+            //_socket.BeginSend(buf, 0, messageLen, SocketFlags.None, ar =>
+            //{
+            //    var sent = _socket.EndSend(ar);
+            //    Debug.Assert(sent == (int)ar.AsyncState);
+            //}, messageLen);
 
             return req.CompletionSource.Task;
         }
