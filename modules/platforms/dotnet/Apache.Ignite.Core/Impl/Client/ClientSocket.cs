@@ -161,6 +161,7 @@ namespace Apache.Ignite.Core.Impl.Client
             {
                 // Socket failure (connection dropped, etc).
                 // Propagate to all pending requests.
+                // Note that this does not include request decoding exceptions (TODO: add test).
                 _socket.Dispose();
                 EndRequestsWithError(ex);
 
