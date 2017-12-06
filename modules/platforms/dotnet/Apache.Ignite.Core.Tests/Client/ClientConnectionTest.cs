@@ -21,6 +21,7 @@ namespace Apache.Ignite.Core.Tests.Client
     using System.Linq;
     using System.Net;
     using System.Net.Sockets;
+    using System.Threading.Tasks;
     using Apache.Ignite.Core.Client;
     using Apache.Ignite.Core.Configuration;
     using NUnit.Framework;
@@ -162,7 +163,29 @@ namespace Apache.Ignite.Core.Tests.Client
         [Test]
         public void TestServerDisconnect()
         {
-            // TODO
+            var ignite = Ignition.Start(TestUtils.GetTestConfiguration());
+
+            var putGetTask = Task.Factory.StartNew(() =>
+            {
+                using (var client = StartClient())
+                {
+                    var cache = client.GetOrCreateCache<int, int>("foo");
+
+                    for (var i = 0; i < 100000; i++)
+                    {
+                        cache[i] = i;
+                        Assert.AreEqual(i, cache.GetAsync(i).Result);
+                    }
+                }
+            });
+
+            ignite.Dispose();
+
+            var ex = Assert.Throws<AggregateException>(() => putGetTask.Wait());
+            var clientEx = ex.InnerException as IgniteClientException;
+
+            Assert.IsNotNull(clientEx);
+            Assert.AreEqual("", clientEx.Message);
         }
 
         /// <summary>
