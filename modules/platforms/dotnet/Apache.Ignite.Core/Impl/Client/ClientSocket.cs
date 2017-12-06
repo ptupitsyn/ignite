@@ -56,20 +56,17 @@ namespace Apache.Ignite.Core.Impl.Client
         private readonly ConcurrentDictionary<long, TaskCompletionSource<BinaryHeapStream>> _requests
             = new ConcurrentDictionary<long, TaskCompletionSource<BinaryHeapStream>>();
 
-        /** Receiver sync root. */
-        private readonly object _receiveSyncRoot = new object();
-
         /** Buffer for currently received message */
-        private byte[] _receiveBuf;
+        private volatile byte[] _receiveBuf;
 
         /** Length of the currently received message. */
-        private int _receiveMessageLen;
+        private volatile int _receiveMessageLen;
 
         /** Number of received bytes for the current message. */
-        private int _received;
+        private volatile int _received;
 
         /** Whether we are waiting for new message (starts with 4-byte length), or receiving message data. */
-        private bool _waitingForNewMessage;
+        private volatile bool _waitingForNewMessage;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ClientSocket" /> class.
@@ -147,50 +144,39 @@ namespace Apache.Ignite.Core.Impl.Client
 
             while (true)
             {
-                byte[] response = null;
+                _received += _socket.EndReceive(ar);
 
-                // TODO: Do we need a lock? Only one callback works at a time.
-                //lock (_receiveSyncRoot)
+                if (_received < _receiveMessageLen)
                 {
-                    _received += _socket.EndReceive(ar);
-
-                    if (_received < _receiveMessageLen)
+                    // Got a part of data, continue waiting for the entire message.
+                    ar = _socket.BeginReceive(_receiveBuf, _received, _receiveMessageLen - _received,
+                        SocketFlags.None, OnReceive, null);
+                }
+                else if (_received == _receiveMessageLen)
+                {
+                    if (_waitingForNewMessage)
                     {
-                        // Got a part of data, continue waiting for the entire message.
-                        ar = _socket.BeginReceive(_receiveBuf, _received, _receiveMessageLen - _received, 
-                            SocketFlags.None, OnReceive, null);
-                    }
-                    else if (_received == _receiveMessageLen)
-                    {
-                        if (_waitingForNewMessage)
-                        {
-                            // Got a new message length in the buffer, start receiving payload.
-                            Debug.Assert(_received == 4);
-                            Debug.Assert(_receiveBuf.Length == 4);
+                        // Got a new message length in the buffer, start receiving payload.
+                        Debug.Assert(_received == 4);
+                        Debug.Assert(_receiveBuf.Length == 4);
 
-                            var size = GetInt(_receiveBuf);
-                            ar = WaitForPayload(size);
-                        }
-                        else
-                        {
-                            // Got the message payload, dispatch corresponding task.
-                            response = _receiveBuf;
-                            ar = WaitForNewMessage();
-                        }
+                        var size = GetInt(_receiveBuf);
+                        ar = WaitForPayload(size);
                     }
                     else
                     {
-                        // Invalid situation.
-                        throw new InvalidOperationException(
-                            string.Format("Received unexpected number of bytes. Expected: {0}, got: {1}",
-                                _receiveMessageLen, _received));
+                        // Got the message payload, dispatch corresponding task.
+                        HandleResponse(_receiveBuf);
+
+                        ar = WaitForNewMessage();
                     }
                 }
-
-                if (response != null)
+                else
                 {
-                    // Decode response outside the lock.
-                    HandleResponse(response);
+                    // Invalid situation.
+                    throw new InvalidOperationException(
+                        string.Format("Received unexpected number of bytes. Expected: {0}, got: {1}",
+                            _receiveMessageLen, _received));
                 }
 
                 // ReSharper disable once PossibleNullReferenceException (looks wrong)
