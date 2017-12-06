@@ -186,6 +186,7 @@ namespace Apache.Ignite.Core.Tests.Client
             ignite.Dispose();
 
             var ex = Assert.Throws<AggregateException>(() => putGetTask.Wait());
+            Console.WriteLine(ex.ToString());
             var clientEx = ex.InnerException as IgniteClientException;
 
             Assert.IsNotNull(clientEx);
