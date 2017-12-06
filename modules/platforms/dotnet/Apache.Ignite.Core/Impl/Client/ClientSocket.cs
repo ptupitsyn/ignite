@@ -160,14 +160,8 @@ namespace Apache.Ignite.Core.Impl.Client
             {
                 // Socket failure (connection dropped, etc).
                 // Propagate to all pending requests.
-                foreach (var reqId in _requests.Keys.ToArray())
-                {
-                    TaskCompletionSource<BinaryHeapStream> req;
-                    if (_requests.TryRemove(reqId, out req))
-                    {
-                        req.SetException(ex);
-                    }
-                }
+                _socket.Dispose();
+                EndRequestsWithError(ex);
             }
         }
 
@@ -482,6 +476,24 @@ namespace Apache.Ignite.Core.Impl.Client
         }
 
         /// <summary>
+        /// Closes the socket and completes all pending requests with an error.
+        /// </summary>
+        private void EndRequestsWithError(Exception ex)
+        {
+            while (!_requests.IsEmpty)
+            {
+                foreach (var reqId in _requests.Keys.ToArray())
+                {
+                    TaskCompletionSource<BinaryHeapStream> req;
+                    if (_requests.TryRemove(reqId, out req))
+                    {
+                        req.SetException(ex);
+                    }
+                }
+            }
+        }
+
+        /// <summary>
         /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
         /// </summary>
         [SuppressMessage("Microsoft.Usage", "CA1816:CallGCSuppressFinalizeCorrectly",
@@ -489,6 +501,8 @@ namespace Apache.Ignite.Core.Impl.Client
         public void Dispose()
         {
             _socket.Dispose();
+
+            EndRequestsWithError(new ObjectDisposedException(typeof(ClientSocket).FullName));
         }
     }
 }
