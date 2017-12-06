@@ -162,6 +162,8 @@ namespace Apache.Ignite.Core.Impl.Client
                 // Propagate to all pending requests.
                 _socket.Dispose();
                 EndRequestsWithError(ex);
+
+                // TODO: Preserve exception and throw for any new requests.
             }
         }
 
