@@ -110,6 +110,7 @@ namespace Apache.Ignite.Core.Impl.Client
             Func<IBinaryStream, T> readFunc, Func<ClientStatusCode, string, T> errorFunc = null)
         {
             // TODO: Send the request synchronously.
+            // TODO: Change BeginReceive to a dedicated thread?
             // Perform blocking Receive in a loop until we get the proper response.
 
             var response = SendRequestAsync(opId, writeAction).Result;
