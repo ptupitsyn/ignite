@@ -21,6 +21,7 @@ namespace Apache.Ignite.Core.Tests.Client
     using System.Linq;
     using System.Net;
     using System.Net.Sockets;
+    using System.Threading;
     using System.Threading.Tasks;
     using Apache.Ignite.Core.Client;
     using Apache.Ignite.Core.Configuration;
@@ -163,6 +164,7 @@ namespace Apache.Ignite.Core.Tests.Client
         [Test]
         public void TestServerDisconnect()
         {
+            var evt = new ManualResetEventSlim();
             var ignite = Ignition.Start(TestUtils.GetTestConfiguration());
 
             var putGetTask = Task.Factory.StartNew(() =>
@@ -170,6 +172,7 @@ namespace Apache.Ignite.Core.Tests.Client
                 using (var client = StartClient())
                 {
                     var cache = client.GetOrCreateCache<int, int>("foo");
+                    evt.Set();
 
                     for (var i = 0; i < 100000; i++)
                     {
@@ -179,6 +182,7 @@ namespace Apache.Ignite.Core.Tests.Client
                 }
             });
 
+            evt.Wait();
             ignite.Dispose();
 
             var ex = Assert.Throws<AggregateException>(() => putGetTask.Wait());
