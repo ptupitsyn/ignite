@@ -68,6 +68,9 @@ namespace Apache.Ignite.Core.Impl.Client
         /** Whether we are waiting for new message (starts with 4-byte length), or receiving message data. */
         private volatile bool _waitingForNewMessage;
 
+        /** Socket failure exception. */
+        private volatile Exception _exception;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="ClientSocket" /> class.
         /// </summary>
@@ -162,10 +165,9 @@ namespace Apache.Ignite.Core.Impl.Client
                 // Socket failure (connection dropped, etc).
                 // Propagate to all pending requests.
                 // Note that this does not include request decoding exceptions (TODO: add test).
+                _exception = new IgniteClientException("Socket communication failed", ex);
                 _socket.Dispose();
-                EndRequestsWithError(ex);
-
-                // TODO: Preserve exception and throw for any new requests.
+                EndRequestsWithError();
             }
         }
 
@@ -338,6 +340,13 @@ namespace Apache.Ignite.Core.Impl.Client
         /// </summary>
         private Task<BinaryHeapStream> SendRequestAsync(ClientOp opId, Action<IBinaryStream> writeAction)
         {
+            var ex = _exception;
+
+            if (ex != null)
+            {
+                throw ex;
+            }
+
             // Register new request.
             var requestId = Interlocked.Increment(ref _requestId);
             var tcs = new TaskCompletionSource<BinaryHeapStream>();
@@ -482,8 +491,11 @@ namespace Apache.Ignite.Core.Impl.Client
         /// <summary>
         /// Closes the socket and completes all pending requests with an error.
         /// </summary>
-        private void EndRequestsWithError(Exception ex)
+        private void EndRequestsWithError()
         {
+            var ex = _exception;
+            Debug.Assert(ex != null);
+
             while (!_requests.IsEmpty)
             {
                 foreach (var reqId in _requests.Keys.ToArray())
@@ -504,9 +516,11 @@ namespace Apache.Ignite.Core.Impl.Client
             Justification = "There is no finalizer.")]
         public void Dispose()
         {
+            _exception = new ObjectDisposedException(typeof(ClientSocket).FullName);
+
             _socket.Dispose();
 
-            EndRequestsWithError(new ObjectDisposedException(typeof(ClientSocket).FullName));
+            EndRequestsWithError();
         }
     }
 }
