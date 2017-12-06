@@ -97,6 +97,8 @@ namespace Apache.Ignite.Core.Impl.Client
         {
             var response = SendRequestAsync(opId, writeAction).Result;
 
+            // Decode on current thread for proper exception handling.
+            // We could call DoOutInOpAsync, but it wraps exceptions in AggregateException.
             return DecodeResponse(response, readFunc, errorFunc);
         }
 
@@ -276,6 +278,9 @@ namespace Apache.Ignite.Core.Impl.Client
         /// </summary>
         private static void Handshake(Socket sock, ClientProtocolVersion version)
         {
+            // Perform handshake in blocking mode for simplicity.
+            sock.Blocking = true;
+
             // Send request.
             int messageLen;
             var buf = WriteMessage(stream =>
@@ -291,6 +296,8 @@ namespace Apache.Ignite.Core.Impl.Client
                 // Client type: platform.
                 stream.WriteByte(ClientType);
             }, 20, out messageLen);
+
+            Debug.Assert(messageLen == 20);
 
             var sent = sock.Send(buf, messageLen, SocketFlags.None);
             Debug.Assert(sent == messageLen);
