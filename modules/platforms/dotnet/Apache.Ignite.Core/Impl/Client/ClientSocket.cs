@@ -83,7 +83,8 @@ namespace Apache.Ignite.Core.Impl.Client
 
             // Continuously and asynchronously wait for data from server.
             _socket.Blocking = false;
-            WaitForNewMessage();
+            var ar = WaitForNewMessage();
+            Debug.Assert(!ar.CompletedSynchronously);
         }
 
         /// <summary>
