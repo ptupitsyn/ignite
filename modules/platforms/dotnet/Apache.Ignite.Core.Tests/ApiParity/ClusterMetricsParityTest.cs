@@ -17,47 +17,30 @@
 
 namespace Apache.Ignite.Core.Tests.ApiParity
 {
-    using System.Collections.Generic;
-    using Apache.Ignite.Core.Cache;
+    using Apache.Ignite.Core.Cluster;
     using NUnit.Framework;
 
     /// <summary>
-    /// Tests that <see cref="ICacheMetrics"/> has all APIs from Java Ignite interface.
+    /// Tests that <see cref="IClusterMetrics"/> has all APIs from Java Ignite interface.
     /// </summary>
-    public class CacheMetricsParityTest
+    public class ClusterMetricsParityTest
     {
-        /** Known name mappings. */
-        private static readonly Dictionary<string, string> KnownMappings = new Dictionary<string, string>
-        {
-            {"name", "CacheName"}
-        };
-
         /** Properties that are missing on .NET side. */
         private static readonly string[] MissingProperties =
         {
-            // IGNITE-7126
-            "HeapEntriesCount",
-            "TotalPartitionsCount",
-            "RebalancingPartitionsCount",
-            "KeysToRebalanceLeft",
-            "RebalancingKeysRate",
-            "RebalancingBytesRate",
-            "isValidForReading",
-            "isValidForWriting",
-            "EstimatedRebalancingFinishTime",
-            "RebalancingStartTime"
+            // IGNITE-7127
+            "TotalJobsExecutionTime"
         };
 
         /// <summary>
         /// Tests the API parity.
         /// </summary>
         [Test]
-        public void TestCacheMetrics()
+        public void TestClusterMetrics()
         {
             ParityTest.CheckInterfaceParity(
-                @"modules\core\src\main\java\org\apache\ignite\cache\CacheMetrics.java",
-                typeof(ICacheMetrics),
-                knownMappings: KnownMappings,
+                @"modules\core\src\main\java\org\apache\ignite\cluster\ClusterMetrics.java",
+                typeof(IClusterMetrics),
                 knownMissingMembers: MissingProperties);
         }
     }
