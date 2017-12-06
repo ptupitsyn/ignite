@@ -99,7 +99,6 @@ namespace Apache.Ignite.Core.Impl.Client
             }
 
             // Continuously and asynchronously wait for data from server.
-            _socket.Blocking = false;
             var ar = WaitForNewMessage();
             Debug.Assert(!ar.CompletedSynchronously);
         }
@@ -282,9 +281,6 @@ namespace Apache.Ignite.Core.Impl.Client
         /// </summary>
         private static void Handshake(Socket sock, ClientProtocolVersion version)
         {
-            // Perform handshake in blocking mode for simplicity.
-            sock.Blocking = true;
-
             // Send request.
             int messageLen;
             var buf = WriteMessage(stream =>
@@ -326,7 +322,7 @@ namespace Apache.Ignite.Core.Impl.Client
                 var errMsg = BinaryUtils.Marshaller.Unmarshal<string>(stream);
 
                 throw new IgniteClientException(string.Format(
-                    "Client handhsake failed: '{0}'. Client version: {1}. Server version: {2}",
+                    "Client handshake failed: '{0}'. Client version: {1}. Server version: {2}",
                     errMsg, version, serverVersion));
             }
         }
