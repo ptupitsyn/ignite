@@ -106,6 +106,7 @@ namespace Apache.Ignite.Core.Impl.Client
         public Task<T> DoOutInOpAsync<T>(ClientOp opId, Action<IBinaryStream> writeAction,
             Func<IBinaryStream, T> readFunc, Func<ClientStatusCode, string, T> errorFunc = null)
         {
+            // TODO: Does decode happen in OnReceive thread or not? Can we improve parallelism?
             return SendRequestAsync(opId, writeAction)
                 .ContinueWith(responseTask => DecodeResponse(responseTask.Result, readFunc, errorFunc));
         }
