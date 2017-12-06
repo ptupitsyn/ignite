@@ -69,6 +69,9 @@ namespace Apache.Ignite.Core.Impl.Client
         /** Whether we are waiting for new message (starts with 4-byte length), or receiving message data. */
         private volatile bool _waitingForNewMessage;
 
+        /** Disposed flag. */
+        private volatile bool _disposed;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="ClientSocket" /> class.
         /// </summary>
@@ -137,16 +140,13 @@ namespace Apache.Ignite.Core.Impl.Client
         /// </summary>
         private IAsyncResult BeginReceive()
         {
-            try
+            if (_disposed)
             {
-                return _socket.BeginReceive(_receiveBuf, _received, _receiveMessageLen - _received,
-                    SocketFlags.None, OnReceive, null);
-            }
-            catch (ObjectDisposedException)
-            {
-                // Dispose can happen concurrently.
                 return null;
             }
+
+            return _socket.BeginReceive(_receiveBuf, _received, _receiveMessageLen - _received,
+                SocketFlags.None, OnReceive, null);
         }
 
         /// <summary>
@@ -473,6 +473,7 @@ namespace Apache.Ignite.Core.Impl.Client
             Justification = "There is no finalizer.")]
         public void Dispose()
         {
+            _disposed = true;
             _socket.Dispose();
         }
     }
