@@ -49,12 +49,18 @@ namespace Apache.Ignite.Core.Impl.Client
         /** Underlying socket. */
         private readonly Socket _socket;
 
-        /** Request id generator. */
-        private long _requestId;
+        /** Operation timeout. */
+        private readonly TimeSpan _timeout;
+
+        /** Request timeout checker. */
+        private readonly Timer _timeoutCheckTimer;
 
         /** Current async operations, map from request id. */
-        private readonly ConcurrentDictionary<long, TaskCompletionSource<BinaryHeapStream>> _requests
-            = new ConcurrentDictionary<long, TaskCompletionSource<BinaryHeapStream>>();
+        private readonly ConcurrentDictionary<long, Request> _requests
+            = new ConcurrentDictionary<long, Request>();
+
+        /** Request id generator. */
+        private long _requestId;
 
         /** Buffer for currently received message */
         private volatile byte[] _receiveBuf;
@@ -80,9 +86,17 @@ namespace Apache.Ignite.Core.Impl.Client
         {
             Debug.Assert(clientConfiguration != null);
 
+            _timeout = clientConfiguration.SocketTimeout;
+
             _socket = Connect(clientConfiguration);
 
             Handshake(_socket, version ?? CurrentProtocolVersion);
+
+            // Check periodically if any request has timed out.
+            if (_timeout > TimeSpan.Zero)
+            {
+                _timeoutCheckTimer = new Timer(CheckTimeouts, null, _timeout, TimeSpan.FromMilliseconds(100));
+            }
 
             // Continuously and asynchronously wait for data from server.
             _socket.Blocking = false;
@@ -228,7 +242,7 @@ namespace Apache.Ignite.Core.Impl.Client
             {
                 var requestId = stream.ReadLong();
 
-                TaskCompletionSource<BinaryHeapStream> req;
+                Request req;
                 if (!_requests.TryRemove(requestId, out req))
                 {
                     // Response with unknown id.
@@ -236,7 +250,7 @@ namespace Apache.Ignite.Core.Impl.Client
                     return;
                 }
 
-                req.SetResult(stream);
+                req.CompletionSource.TrySetResult(stream);
             }
         }
 
@@ -349,8 +363,8 @@ namespace Apache.Ignite.Core.Impl.Client
 
             // Register new request.
             var requestId = Interlocked.Increment(ref _requestId);
-            var tcs = new TaskCompletionSource<BinaryHeapStream>();
-            var added = _requests.TryAdd(requestId, tcs);
+            var req = new Request();
+            var added = _requests.TryAdd(requestId, req);
             Debug.Assert(added);
 
             // Send.
@@ -365,7 +379,7 @@ namespace Apache.Ignite.Core.Impl.Client
                 }
             });
 
-            return tcs.Task;
+            return req.CompletionSource.Task;
         }
 
         /// <summary>
@@ -478,6 +492,25 @@ namespace Apache.Ignite.Core.Impl.Client
         }
 
         /// <summary>
+        /// Checks if any of the current requests timed out.
+        /// </summary>
+        private void CheckTimeouts(object _)
+        {
+            foreach (var pair in _requests)
+            {
+                var req = pair.Value;
+                
+                if (req.Duration > _timeout)
+                {
+                    req.CompletionSource.TrySetException(
+                        new TimeoutException("Ignite thin client operation has timed out."));
+
+                    _requests.TryRemove(pair.Key, out req);
+                }
+            }
+        }
+
+        /// <summary>
         /// Gets the int from buffer.
         /// </summary>
         private static unsafe int GetInt(byte[] buf)
@@ -500,10 +533,10 @@ namespace Apache.Ignite.Core.Impl.Client
             {
                 foreach (var reqId in _requests.Keys.ToArray())
                 {
-                    TaskCompletionSource<BinaryHeapStream> req;
+                    Request req;
                     if (_requests.TryRemove(reqId, out req))
                     {
-                        req.SetException(ex);
+                        req.CompletionSource.TrySetException(ex);
                     }
                 }
             }
@@ -520,7 +553,46 @@ namespace Apache.Ignite.Core.Impl.Client
 
             _socket.Dispose();
 
+            _timeoutCheckTimer.Dispose();
+
             EndRequestsWithError();
+        }
+
+        /// <summary>
+        /// Represents a request.
+        /// </summary>
+        private class Request
+        {
+            /** */
+            private readonly TaskCompletionSource<BinaryHeapStream> _completionSource;
+
+            /** */
+            private readonly DateTime _startTime;
+
+            /// <summary>
+            /// Initializes a new instance of the <see cref="Request"/> class.
+            /// </summary>
+            public Request()
+            {
+                _completionSource = new TaskCompletionSource<BinaryHeapStream>();
+                _startTime = DateTime.Now;
+            }
+
+            /// <summary>
+            /// Gets the completion source.
+            /// </summary>
+            public TaskCompletionSource<BinaryHeapStream> CompletionSource
+            {
+                get { return _completionSource; }
+            }
+
+            /// <summary>
+            /// Gets the duration.
+            /// </summary>
+            public TimeSpan Duration
+            {
+                get { return DateTime.Now - _startTime; }
+            }
         }
     }
 }

@@ -87,7 +87,7 @@ namespace Apache.Ignite.Core.Client
         public int SocketReceiveBufferSize { get; set; }
 
         /// <summary>
-        /// Gets or sets the socket timeout.
+        /// Gets or sets the socket operation timeout. Zero or negative means infinite timeout.
         /// </summary>
         [DefaultValue(typeof(TimeSpan), "00:00:05")]
         public TimeSpan SocketTimeout { get; set; }
