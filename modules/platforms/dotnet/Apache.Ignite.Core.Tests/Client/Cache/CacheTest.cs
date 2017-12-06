@@ -868,6 +868,15 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
         }
 
         /// <summary>
+        /// Tests that long operation completes later than short operation.
+        /// </summary>
+        [Test]
+        public void TestAsyncCompletionOrder()
+        {
+            // TODO
+        }
+
+        /// <summary>
         /// Tests the cache exceptions.
         /// </summary>
         [Test]
