@@ -25,7 +25,6 @@ namespace Apache.Ignite.Core.Impl.Client
     using System.Linq;
     using System.Net;
     using System.Net.Sockets;
-    using System.Runtime.Remoting.Messaging;
     using System.Threading;
     using System.Threading.Tasks;
     using Apache.Ignite.Core.Client;
@@ -50,7 +49,7 @@ namespace Apache.Ignite.Core.Impl.Client
         /** Underlying socket. */
         private readonly Socket _socket;
 
-        /** */
+        /** Request id generator. */
         private long _requestId;
 
         /** Current async operations, map from request id. */
@@ -68,9 +67,6 @@ namespace Apache.Ignite.Core.Impl.Client
 
         /** Whether we are waiting for new message (starts with 4-byte length), or receiving message data. */
         private volatile bool _waitingForNewMessage;
-
-        /** Disposed flag. */
-        private volatile bool _disposed;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ClientSocket" /> class.
@@ -140,11 +136,6 @@ namespace Apache.Ignite.Core.Impl.Client
         /// </summary>
         private IAsyncResult BeginReceive()
         {
-            if (_disposed)
-            {
-                return null;
-            }
-
             return _socket.BeginReceive(_receiveBuf, _received, _receiveMessageLen - _received,
                 SocketFlags.None, OnReceive, null);
         }
@@ -161,6 +152,7 @@ namespace Apache.Ignite.Core.Impl.Client
                 return;
             }
 
+            // TODO: Catch DisposedException or use a lock
             while (true)
             {
                 _received += _socket.EndReceive(ar);
@@ -473,7 +465,6 @@ namespace Apache.Ignite.Core.Impl.Client
             Justification = "There is no finalizer.")]
         public void Dispose()
         {
-            _disposed = true;
             _socket.Dispose();
         }
     }
