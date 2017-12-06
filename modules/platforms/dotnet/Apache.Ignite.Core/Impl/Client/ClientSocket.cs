@@ -113,32 +113,6 @@ namespace Apache.Ignite.Core.Impl.Client
         }
 
         /// <summary>
-        /// Sends the request asynchronously and returns a task for corresponding response.
-        /// </summary>
-        private Task<BinaryHeapStream> SendRequestAsync(ClientOp opId, Action<IBinaryStream> writeAction)
-        {
-            // Register new request.
-            var requestId = Interlocked.Increment(ref _requestId);
-            var tcs = new TaskCompletionSource<BinaryHeapStream>();
-            var added = _requests.TryAdd(requestId, tcs);
-            Debug.Assert(added);
-
-            // Send.
-            SendAsync(_socket, stream =>
-            {
-                stream.WriteShort((short) opId);
-                stream.WriteLong(requestId);
-
-                if (writeAction != null)
-                {
-                    writeAction(stream);
-                }
-            });
-            
-            return tcs.Task;
-        }
-
-        /// <summary>
         /// Starts waiting for the new message.
         /// </summary>
         private IAsyncResult WaitForNewMessage()
@@ -156,8 +130,6 @@ namespace Apache.Ignite.Core.Impl.Client
             _received = 0;
             _waitingForNewMessage = newMessage;
 
-            // TODO: check if data is available before calling BeginReceive?
-            // While loop inside OnReceive to avoid stackOverflow
             return _socket.BeginReceive(_receiveBuf, 0, _receiveMessageLen, SocketFlags.None, OnReceive, null);
         }
 
@@ -178,7 +150,7 @@ namespace Apache.Ignite.Core.Impl.Client
                 byte[] response = null;
 
                 // TODO: Do we need a lock? Only one callback works at a time.
-                lock (_receiveSyncRoot)
+                //lock (_receiveSyncRoot)
                 {
                     _received += _socket.EndReceive(ar);
 
@@ -295,9 +267,9 @@ namespace Apache.Ignite.Core.Impl.Client
 
                 // Client type: platform.
                 stream.WriteByte(ClientType);
-            }, 20, out messageLen);
+            }, 12, out messageLen);
 
-            Debug.Assert(messageLen == 20);
+            Debug.Assert(messageLen == 12);
 
             var sent = sock.Send(buf, messageLen, SocketFlags.None);
             Debug.Assert(sent == messageLen);
@@ -343,6 +315,32 @@ namespace Apache.Ignite.Core.Impl.Client
             }
 
             return buf;
+        }
+
+        /// <summary>
+        /// Sends the request asynchronously and returns a task for corresponding response.
+        /// </summary>
+        private Task<BinaryHeapStream> SendRequestAsync(ClientOp opId, Action<IBinaryStream> writeAction)
+        {
+            // Register new request.
+            var requestId = Interlocked.Increment(ref _requestId);
+            var tcs = new TaskCompletionSource<BinaryHeapStream>();
+            var added = _requests.TryAdd(requestId, tcs);
+            Debug.Assert(added);
+
+            // Send.
+            SendAsync(_socket, stream =>
+            {
+                stream.WriteShort((short)opId);
+                stream.WriteLong(requestId);
+
+                if (writeAction != null)
+                {
+                    writeAction(stream);
+                }
+            });
+
+            return tcs.Task;
         }
 
         /// <summary>
