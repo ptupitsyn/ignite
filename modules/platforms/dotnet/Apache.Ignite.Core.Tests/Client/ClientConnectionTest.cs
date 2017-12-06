@@ -157,6 +157,15 @@ namespace Apache.Ignite.Core.Tests.Client
         }
 
         /// <summary>
+        /// Tests that we get a proper exception when server disconnects (node shutdown, network issues, etc).
+        /// </summary>
+        [Test]
+        public void TestServerDisconnect()
+        {
+            // TODO
+        }
+
+        /// <summary>
         /// Starts the client.
         /// </summary>
         private static IIgniteClient StartClient()
