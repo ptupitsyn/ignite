@@ -17,6 +17,7 @@
 
 namespace Apache.Ignite.Core.Tests.ApiParity
 {
+    using System.Collections.Generic;
     using Apache.Ignite.Core.Cache;
     using NUnit.Framework;
 
@@ -25,6 +26,25 @@ namespace Apache.Ignite.Core.Tests.ApiParity
     /// </summary>
     public class CacheMetricsParityTest
     {
+        /** Known name mappings. */
+        private static readonly Dictionary<string, string> KnownMappings = new Dictionary<string, string>
+        {
+            {"name", "CacheName"}
+        };
+
+        /** Properties that are missing on .NET side. */
+        private static readonly string[] MissingProperties =
+        {
+            "HeapEntriesCount",
+            "TotalPartitionsCount",
+            "RebalancingPartitionsCount",
+            "KeysToRebalanceLeft",
+            "RebalancingKeysRate",
+            "RebalancingBytesRate",
+            "isValidForReading",
+            "isValidForWriting"
+        };
+
         /// <summary>
         /// Tests the API parity.
         /// </summary>
@@ -33,7 +53,9 @@ namespace Apache.Ignite.Core.Tests.ApiParity
         {
             ParityTest.CheckInterfaceParity(
                 @"modules\core\src\main\java\org\apache\ignite\cache\CacheMetrics.java",
-                typeof(ICacheMetrics));
+                typeof(ICacheMetrics),
+                knownMappings: KnownMappings,
+                knownMissingMembers: MissingProperties);
         }
     }
 }
