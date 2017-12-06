@@ -15,19 +15,22 @@
  * limitations under the License.
  */
 
-package org.apache.ignite.internal.processors.cache.datastructures.partitioned;
+page-queries {
+    .docs-content > header {
+        margin: 0;
+        margin-bottom: 30px;
 
-import org.apache.ignite.cache.CacheAtomicityMode;
+        display: flex;
+        flex-direction: row;
+        align-items: center;
 
-import static org.apache.ignite.cache.CacheAtomicityMode.ATOMIC;
+        h1 {
+        	margin: 0;
+        	margin-right: 8px;
+        }
+    }
 
-/**
- *
- */
-public class GridCachePartitionedAtomicQueueCreateMultiNodeSelfTest
-    extends GridCachePartitionedQueueCreateMultiNodeSelfTest {
-    /** {@inheritDoc} */
-    @Override protected CacheAtomicityMode collectionCacheAtomicityMode() {
-        return ATOMIC;
+    .affix + .block-information {
+        margin-top: 90px;
     }
 }

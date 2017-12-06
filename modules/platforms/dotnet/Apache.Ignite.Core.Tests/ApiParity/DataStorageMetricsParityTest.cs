@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
@@ -15,19 +15,24 @@
  * limitations under the License.
  */
 
-package org.apache.ignite.internal.processors.cache.datastructures.partitioned;
+namespace Apache.Ignite.Core.Tests.ApiParity
+{
+    using NUnit.Framework;
 
-import org.apache.ignite.cache.CacheAtomicityMode;
-
-import static org.apache.ignite.cache.CacheAtomicityMode.ATOMIC;
-
-/**
- *
- */
-public class GridCachePartitionedAtomicQueueCreateMultiNodeSelfTest
-    extends GridCachePartitionedQueueCreateMultiNodeSelfTest {
-    /** {@inheritDoc} */
-    @Override protected CacheAtomicityMode collectionCacheAtomicityMode() {
-        return ATOMIC;
+    /// <summary>
+    /// Tests that <see cref="IDataStorageMetrics"/> has all APIs from Java Ignite interface.
+    /// </summary>
+    public class DataStorageMetricsParityTest
+    {
+        /// <summary>
+        /// Tests the API parity.
+        /// </summary>
+        [Test]
+        public void TestDataStorageMetrics()
+        {
+            ParityTest.CheckInterfaceParity(
+                @"modules\core\src\main\java\org\apache\ignite\DataStorageMetrics.java",
+                typeof(IDataStorageMetrics));
+        }
     }
 }
