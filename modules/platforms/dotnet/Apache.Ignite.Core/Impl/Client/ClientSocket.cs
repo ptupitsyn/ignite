@@ -156,10 +156,14 @@ namespace Apache.Ignite.Core.Impl.Client
             {
                 OnReceiveLoop(ar);
             }
-            catch (ObjectDisposedException)
+            catch (Exception ex)
             {
-                // Ignore. Dispose can happen concurrently.
-                // TODO this is dirty
+                // Socket failure (connection dropped, etc).
+                // Propagate to all pending requests.
+                foreach (var req in _requests)
+                {
+                    req.Value.SetException(ex);
+                }
             }
         }
 
