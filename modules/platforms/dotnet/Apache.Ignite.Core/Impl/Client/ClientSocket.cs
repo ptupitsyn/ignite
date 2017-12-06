@@ -386,10 +386,16 @@ namespace Apache.Ignite.Core.Impl.Client
             int messageLen;
             var buf = WriteMessage(writeAction, bufSize, out messageLen);
 
+            // TODO: SendAsync does not seem to be faster.
+            //var e = new SocketAsyncEventArgs();
+            //e.SetBuffer(buf, 0, messageLen);
+            //var sent = sock.SendAsync(e);
+            //Debug.Assert(sent);
+
             sock.BeginSend(buf, 0, messageLen, SocketFlags.None, ar =>
             {
                 var sent = sock.EndSend(ar);
-                Debug.Assert(sent == (int) ar.AsyncState);
+                Debug.Assert(sent == (int)ar.AsyncState);
             }, messageLen);
         }
 
