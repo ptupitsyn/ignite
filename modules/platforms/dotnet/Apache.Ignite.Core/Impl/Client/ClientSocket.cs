@@ -164,6 +164,9 @@ namespace Apache.Ignite.Core.Impl.Client
         /// </summary>
         private void OnReceive(IAsyncResult ar)
         {
+            // TODO:
+            // if (ar.CompletedSynchronously) - ???
+
             byte[] response = null;
 
             lock (_receiveSyncRoot)
