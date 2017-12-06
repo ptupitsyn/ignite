@@ -128,7 +128,7 @@ namespace Apache.Ignite.Core.Tests.Client
 
                 Assert.AreEqual(ClientStatusCode.Fail, ex.StatusCode);
 
-                Assert.AreEqual("Client handhsake failed: 'Unsupported version.'. " +
+                Assert.AreEqual("Client handshake failed: 'Unsupported version.'. " +
                                 "Client version: -1.-1.-1. Server version: 1.0.0", ex.Message);
             }
         }
