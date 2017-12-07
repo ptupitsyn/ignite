@@ -55,6 +55,9 @@ namespace Apache.Ignite.Core.Impl.Client
         /** Request timeout checker. */
         private readonly Timer _timeoutCheckTimer;
 
+        /** Callback checker guard. */
+        private volatile bool _checkingTimeouts;
+
         /** Current async operations, map from request id. */
         private readonly ConcurrentDictionary<long, Request> _requests
             = new ConcurrentDictionary<long, Request>();
@@ -90,7 +93,8 @@ namespace Apache.Ignite.Core.Impl.Client
             // Check periodically if any request has timed out.
             if (_timeout > TimeSpan.Zero)
             {
-                _timeoutCheckTimer = new Timer(CheckTimeouts, null, _timeout, TimeSpan.FromMilliseconds(100));
+                // Minimum Socket timeout is 500ms.
+                _timeoutCheckTimer = new Timer(CheckTimeouts, null, _timeout, TimeSpan.FromMilliseconds(500));
             }
 
             // Continuously and asynchronously wait for data from server.
@@ -467,21 +471,36 @@ namespace Apache.Ignite.Core.Impl.Client
         /// </summary>
         private void CheckTimeouts(object _)
         {
-            if (_exception != null)
+            if (_checkingTimeouts)
             {
-                _timeoutCheckTimer.Dispose();
+                return;
             }
 
-            foreach (var pair in _requests)
-            {
-                var req = pair.Value;
-                
-                if (req.Duration > _timeout)
-                {
-                    req.CompletionSource.TrySetException(new SocketException((int) SocketError.TimedOut));
+            _checkingTimeouts = true;
 
-                    _requests.TryRemove(pair.Key, out req);
+            try
+            {
+                if (_exception != null)
+                {
+                    _timeoutCheckTimer.Dispose();
                 }
+
+                foreach (var pair in _requests)
+                {
+                    var req = pair.Value;
+
+                    if (req.Duration > _timeout)
+                    {
+                        Console.WriteLine(req.Duration);
+                        req.CompletionSource.TrySetException(new SocketException((int)SocketError.TimedOut));
+
+                        _requests.TryRemove(pair.Key, out req);
+                    }
+                }
+            }
+            finally
+            {
+                _checkingTimeouts = false;
             }
         }
 
