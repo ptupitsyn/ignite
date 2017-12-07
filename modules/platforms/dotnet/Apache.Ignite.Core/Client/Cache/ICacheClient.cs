@@ -209,6 +209,12 @@ namespace Apache.Ignite.Core.Client.Cache
         void PutAll(IEnumerable<KeyValuePair<TK, TV>> vals);
 
         /// <summary>
+        /// Stores given key-value pairs in cache.
+        /// </summary>
+        /// <param name="vals">Key-value pairs to store in cache.</param>
+        Task PutAllAsync(IEnumerable<KeyValuePair<TK, TV>> vals);
+
+        /// <summary>
         /// Clears the contents of the cache, without notifying listeners or CacheWriters.
         /// </summary>
         void Clear();

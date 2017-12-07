@@ -323,6 +323,14 @@ namespace Apache.Ignite.Core.Impl.Client.Cache
         }
 
         /** <inheritDoc /> */
+        public Task PutAllAsync(IEnumerable<KeyValuePair<TK, TV>> vals)
+        {
+            IgniteArgumentCheck.NotNull(vals, "vals");
+
+            return DoOutOpAsync(ClientOp.CachePutAll, w => w.WriteDictionary(vals));
+        }
+
+        /** <inheritDoc /> */
         public void Clear()
         {
             DoOutOp(ClientOp.CacheClear);
