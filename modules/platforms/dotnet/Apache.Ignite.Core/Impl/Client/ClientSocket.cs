@@ -106,7 +106,7 @@ namespace Apache.Ignite.Core.Impl.Client
             {
                 // If there are no pending async requests, we can execute this operation synchronously,
                 // which is more efficient.
-                if (!_listenerEvent.IsSet)
+                if (_requests.IsEmpty)
                 {
                     var requestId = SendRequest(opId, writeAction);
 
@@ -298,24 +298,23 @@ namespace Apache.Ignite.Core.Impl.Client
             }
 
             // Register new request.
-            var requestId = Interlocked.Increment(ref _requestId);
-            var req = new Request();
-            var added = _requests.TryAdd(requestId, req);
-            Debug.Assert(added);
-
-            // Send.
-            int messageLen;
-            var buf = WriteMessage(writeAction, opId, requestId, 128, out messageLen);
-
             // TODO: This lock kills async throughput
             // Try ReaderWriterLockSlim instead, where sync request in a writer lock.
             lock (_syncRoot)
             {
+                var requestId = Interlocked.Increment(ref _requestId);
+                var req = new Request();
+                var added = _requests.TryAdd(requestId, req);
+                Debug.Assert(added);
+
+                // Send.
+                int messageLen;
+                var buf = WriteMessage(writeAction, opId, requestId, 128, out messageLen);
+
                 _socket.Send(buf, 0, messageLen, SocketFlags.None);
                 _listenerEvent.Set();
+                return req.CompletionSource.Task;
             }
-
-            return req.CompletionSource.Task;
         }
 
         /// <summary>
