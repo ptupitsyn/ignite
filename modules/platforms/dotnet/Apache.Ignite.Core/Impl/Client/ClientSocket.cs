@@ -68,6 +68,9 @@ namespace Apache.Ignite.Core.Impl.Client
         /** Locker. */
         private readonly object _syncRoot = new object();
 
+        /** */
+        private readonly ManualResetEventSlim _listenerEvent = new ManualResetEventSlim();
+
         /// <summary>
         /// Initializes a new instance of the <see cref="ClientSocket" /> class.
         /// </summary>
@@ -99,12 +102,11 @@ namespace Apache.Ignite.Core.Impl.Client
         public T DoOutInOp<T>(ClientOp opId, Action<IBinaryStream> writeAction,
             Func<IBinaryStream, T> readFunc, Func<ClientStatusCode, string, T> errorFunc = null)
         {
-            // If there are no pending async requests, we can execute this operation synchronously,
-            // which is more efficient.
-            // TODO: TryEnter is very expensive. Can we do away with CompareExchange?
-            if (Monitor.TryEnter(_syncRoot))
+            lock (_syncRoot)
             {
-                try
+                // If there are no pending async requests, we can execute this operation synchronously,
+                // which is more efficient.
+                if (!_listenerEvent.IsSet)
                 {
                     var requestId = SendRequest(opId, writeAction);
 
@@ -115,12 +117,8 @@ namespace Apache.Ignite.Core.Impl.Client
                     Debug.Assert(responseId == requestId);
                     return DecodeResponse(stream, readFunc, errorFunc);
                 }
-                finally 
-                {
-                    Monitor.Exit(_syncRoot);
-                }
             }
-            
+
             // Fallback to async mechanism.
             var response = SendRequestAsync(opId, writeAction).Result;
             return DecodeResponse(response, readFunc, errorFunc);
@@ -141,31 +139,29 @@ namespace Apache.Ignite.Core.Impl.Client
         /// </summary>
         private void WaitForMessages()
         {
-            lock (_syncRoot)
+            // Null exception means active socket.
+            while (_exception == null)
             {
-                // Null exception means active socket.
-                while (_exception == null)
+                // Do not call Receive if there are no async requests pending.
+                while (_requests.IsEmpty)
                 {
-                    // Do not call Receive if there are no async requests pending.
-                    while (_requests.IsEmpty)
-                    {
-                        Monitor.Wait(_syncRoot);
-                    }
+                    _listenerEvent.Wait();
+                    _listenerEvent.Reset();
+                }
 
-                    try
-                    {
-                        var msg = Receive(_socket);
-                        HandleResponse(msg);
-                    }
-                    catch (Exception ex)
-                    {
-                        // Socket failure (connection dropped, etc).
-                        // Propagate to all pending requests.
-                        // Note that this does not include request decoding exceptions (TODO: add test).
-                        _exception = new IgniteClientException("Socket communication failed.", ex);
-                        _socket.Dispose();
-                        EndRequestsWithError();
-                    }
+                try
+                {
+                    var msg = Receive(_socket);
+                    HandleResponse(msg);
+                }
+                catch (Exception ex)
+                {
+                    // Socket failure (connection dropped, etc).
+                    // Propagate to all pending requests.
+                    // Note that this does not include request decoding exceptions (TODO: add test).
+                    _exception = new IgniteClientException("Socket communication failed.", ex);
+                    _socket.Dispose();
+                    EndRequestsWithError();
                 }
             }
         }
@@ -307,19 +303,15 @@ namespace Apache.Ignite.Core.Impl.Client
             var added = _requests.TryAdd(requestId, req);
             Debug.Assert(added);
 
-            // Signal response reader if needed.
-            // TODO: TryEnter is very expensive.
-            if (Monitor.TryEnter(_syncRoot))
-            {
-                Monitor.Pulse(_syncRoot);
-                Monitor.Exit(_syncRoot);
-            }
-
             // Send.
             int messageLen;
             var buf = WriteMessage(writeAction, opId, requestId, 128, out messageLen);
 
-            _socket.Send(buf, 0, messageLen, SocketFlags.None);
+            lock (_syncRoot)
+            {
+                _socket.Send(buf, 0, messageLen, SocketFlags.None);
+                _listenerEvent.Set();
+            }
 
             return req.CompletionSource.Task;
         }
