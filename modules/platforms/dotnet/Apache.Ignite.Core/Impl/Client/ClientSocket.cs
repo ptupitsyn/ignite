@@ -389,6 +389,7 @@ namespace Apache.Ignite.Core.Impl.Client
                     var socket = new Socket(ipEndPoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp)
                     {
                         NoDelay = cfg.TcpNoDelay,
+                        Blocking = true,
                         SendTimeout = (int) cfg.SocketTimeout.TotalMilliseconds,
                         ReceiveTimeout = (int) cfg.SocketTimeout.TotalMilliseconds
                     };
