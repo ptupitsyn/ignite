@@ -145,11 +145,11 @@ namespace Apache.Ignite.Core.Impl.Client
                 while (_exception == null)
                 {
                     // Do not call Receive if there are no async requests pending.
-                    //while (_requests.IsEmpty)
-                    //{
-                    //    _listenerEvent.Wait();
-                    //    _listenerEvent.Reset();
-                    //}
+                    while (_requests.IsEmpty)
+                    {
+                        _listenerEvent.Wait();
+                        _listenerEvent.Reset();
+                    }
 
                     var msg = ReceiveMessage(_socket);
                     HandleResponse(msg);

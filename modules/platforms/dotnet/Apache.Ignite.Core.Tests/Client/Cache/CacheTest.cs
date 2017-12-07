@@ -849,7 +849,16 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
                 for (var i = 0; i < count; i++)
                 {
                     var k = Interlocked.Increment(ref key);
-                    cache.PutAsync(k, k + "_" + Guid.NewGuid());
+                    var v = k + "_" + Guid.NewGuid();
+
+                    if (k % 3 == 0)
+                    {
+                        cache.Put(k, v);
+                    }
+                    else
+                    {
+                        cache.PutAsync(k, v);
+                    }
                 }
             }, Environment.ProcessorCount * 2);
 
@@ -860,7 +869,7 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
                 for (var i = 0; i < count; i++)
                 {
                     var k = Interlocked.Increment(ref key);
-                    var val = cache.GetAsync(k).Result;
+                    var val = k % 3 == 0 ? cache.Get(k) : cache.GetAsync(k).Result;
 
                     Assert.IsTrue(val.Split('_').First() == k.ToString());
                 }
