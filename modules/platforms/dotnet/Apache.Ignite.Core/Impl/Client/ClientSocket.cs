@@ -105,12 +105,10 @@ namespace Apache.Ignite.Core.Impl.Client
             CheckException();
 
             // Encode.
-            var requestId = Interlocked.Increment(ref _requestId);
-            int messageLen;
-            var buf = WriteMessage(writeAction, opId, requestId, 128, out messageLen);
-
+            var reqMsg = WriteMessage(writeAction, opId, 128);
+            
             // Send.
-            var response = SendRequest(buf, messageLen, requestId);
+            var response = SendRequest(ref reqMsg);
 
             // Decode.
             return DecodeResponse(response, readFunc, errorFunc);
@@ -125,12 +123,10 @@ namespace Apache.Ignite.Core.Impl.Client
             CheckException();
 
             // Encode.
-            var requestId = Interlocked.Increment(ref _requestId);
-            int messageLen;
-            var buf = WriteMessage(writeAction, opId, requestId, 128, out messageLen);
+            var reqMsg = WriteMessage(writeAction, opId, 128);
 
             // Send.
-            var task = SendRequestAsync(buf, messageLen, requestId);
+            var task = SendRequestAsync(ref reqMsg);
 
             // Decode.
             return task.ContinueWith(responseTask => DecodeResponse(responseTask.Result, readFunc, errorFunc));
@@ -290,7 +286,7 @@ namespace Apache.Ignite.Core.Impl.Client
         /// <summary>
         /// Sends the request synchronously.
         /// </summary>
-        private BinaryHeapStream SendRequest(byte[] buf, int messageLen, long requestId)
+        private BinaryHeapStream SendRequest(ref RequestMessage reqMsg)
         {
             if (_sendRequestLock.TryEnterWriteLock(1))
             {
@@ -300,12 +296,12 @@ namespace Apache.Ignite.Core.Impl.Client
                     // which is more efficient.
                     if (_requests.IsEmpty)
                     {
-                        _socket.Send(buf, 0, messageLen, SocketFlags.None);
+                        _socket.Send(reqMsg.Buffer, 0, reqMsg.Length, SocketFlags.None);
 
-                        var msg = ReceiveMessage(_socket);
-                        var response = new BinaryHeapStream(msg);
+                        var respMsg = ReceiveMessage(_socket);
+                        var response = new BinaryHeapStream(respMsg);
                         var responseId = response.ReadLong();
-                        Debug.Assert(responseId == requestId);
+                        Debug.Assert(responseId == reqMsg.Id);
 
                         return response;
                     }
@@ -317,24 +313,24 @@ namespace Apache.Ignite.Core.Impl.Client
             }
 
             // Fallback to async mechanism.
-            return SendRequestAsync(buf, messageLen, requestId).Result;
+            return SendRequestAsync(ref reqMsg).Result;
         }
 
         /// <summary>
         /// Sends the request asynchronously and returns a task for corresponding response.
         /// </summary>
-        private Task<BinaryHeapStream> SendRequestAsync(byte[] buf, int messageLen, long requestId)
+        private Task<BinaryHeapStream> SendRequestAsync(ref RequestMessage reqMsg)
         {
             _sendRequestLock.EnterReadLock();
             try
             {
                 // Register.
                 var req = new Request();
-                var added = _requests.TryAdd(requestId, req);
+                var added = _requests.TryAdd(reqMsg.Id, req);
                 Debug.Assert(added);
 
                 // Send.
-                _socket.Send(buf, 0, messageLen, SocketFlags.None);
+                _socket.Send(reqMsg.Buffer, 0, reqMsg.Length, SocketFlags.None);
                 _listenerEvent.Set();
                 return req.CompletionSource.Task;
             }
@@ -362,9 +358,9 @@ namespace Apache.Ignite.Core.Impl.Client
         /// <summary>
         /// Writes the message to a byte array.
         /// </summary>
-        private static byte[] WriteMessage(Action<IBinaryStream> writeAction, ClientOp opId, long requestId,
-            int bufSize, out int messageLen)
+        private RequestMessage WriteMessage(Action<IBinaryStream> writeAction, ClientOp opId, int bufSize)
         {
+            var requestId = Interlocked.Increment(ref _requestId);
             var stream = new BinaryHeapStream(bufSize);
 
             stream.WriteInt(0); // Reserve message size.
@@ -373,9 +369,7 @@ namespace Apache.Ignite.Core.Impl.Client
             writeAction(stream);
             stream.WriteInt(0, stream.Position - 4); // Write message size.
 
-            messageLen = stream.Position;
-
-            return stream.GetArray();
+            return new RequestMessage(requestId, stream.GetArray(), stream.Position);
         }
 
         /// <summary>
@@ -569,6 +563,31 @@ namespace Apache.Ignite.Core.Impl.Client
             public TimeSpan Duration
             {
                 get { return DateTime.Now - _startTime; }
+            }
+        }
+
+        /// <summary>
+        /// Represents a request message.
+        /// </summary>
+        private struct RequestMessage
+        {
+            /** */
+            public readonly long Id;
+
+            /** */
+            public readonly byte[] Buffer;
+
+            /** */
+            public readonly int Length;
+
+            /// <summary>
+            /// Initializes a new instance of the <see cref="RequestMessage"/> struct.
+            /// </summary>
+            public RequestMessage(long id, byte[] buffer, int length)
+            {
+                Id = id;
+                Length = length;
+                Buffer = buffer;
             }
         }
     }
