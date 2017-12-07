@@ -217,7 +217,9 @@ namespace Apache.Ignite.Core.Tests.Client
             var cache = client.CreateCache<int, string>("s");
 
             // Async.
-            var aex = Assert.Throws<AggregateException>(() => cache.PutAllAsync(data).Wait());
+            var task = cache.PutAllAsync(data);
+            Assert.IsFalse(task.IsCompleted);
+            var aex = Assert.Throws<AggregateException>(() => task.Wait());
             Assert.AreEqual(SocketError.TimedOut, ((SocketException) aex.GetBaseException()).SocketErrorCode);
 
             // Sync (reconnect for clean state).

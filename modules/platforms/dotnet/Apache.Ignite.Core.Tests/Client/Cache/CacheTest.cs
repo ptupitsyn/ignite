@@ -185,6 +185,20 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
         }
 
         /// <summary>
+        /// Tests the GetAsync method.
+        /// </summary>
+        [Test]
+        public void TestGetAsync()
+        {
+            var cache = GetClientCache<int>();
+            cache[1] = 1;
+
+            Assert.AreEqual(1, cache.GetAsync(1).Result);
+
+            var ex = Assert.Throws<AggregateException>(() => cache.GetAsync(-1));
+        }
+
+        /// <summary>
         /// Tests the TryGet method.
         /// </summary>
         [Test]
