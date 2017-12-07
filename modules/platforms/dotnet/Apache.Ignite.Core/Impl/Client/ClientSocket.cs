@@ -308,6 +308,7 @@ namespace Apache.Ignite.Core.Impl.Client
             var buf = WriteMessage(writeAction, opId, requestId, 128, out messageLen);
 
             // TODO: This lock kills async throughput
+            // Try ReaderWriterLockSlim instead, where sync request in a writer lock.
             lock (_syncRoot)
             {
                 _socket.Send(buf, 0, messageLen, SocketFlags.None);
