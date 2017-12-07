@@ -66,7 +66,8 @@ namespace Apache.Ignite.Core.Impl.Client
         private volatile Exception _exception;
 
         /** Locker. */
-        private readonly ReaderWriterLockSlim _sendRequestLock = new ReaderWriterLockSlim(LockRecursionPolicy.NoRecursion);
+        private readonly ReaderWriterLockSlim _sendRequestLock = 
+            new ReaderWriterLockSlim(LockRecursionPolicy.NoRecursion);
 
         /** */
         private readonly ManualResetEventSlim _listenerEvent = new ManualResetEventSlim();
