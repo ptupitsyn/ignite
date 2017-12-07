@@ -102,33 +102,17 @@ namespace Apache.Ignite.Core.Impl.Client
         public T DoOutInOp<T>(ClientOp opId, Action<IBinaryStream> writeAction,
             Func<IBinaryStream, T> readFunc, Func<ClientStatusCode, string, T> errorFunc = null)
         {
-            // TODO: Encode/decode outside the lock
-            if (_sendRequestLock.TryEnterWriteLock(1))
-            {
-                try
-                {
-                    // If there are no pending async requests, we can execute this operation synchronously,
-                    // which is more efficient.
-                    if (_requests.IsEmpty)
-                    {
-                        var requestId = SendRequest(opId, writeAction);
+            CheckException();
 
-                        var msg = ReceiveMessage(_socket);
-                        var stream = new BinaryHeapStream(msg);
-                        var responseId = stream.ReadLong();
+            // Encode.
+            var requestId = Interlocked.Increment(ref _requestId);
+            int messageLen;
+            var buf = WriteMessage(writeAction, opId, requestId, 128, out messageLen);
 
-                        Debug.Assert(responseId == requestId);
-                        return DecodeResponse(stream, readFunc, errorFunc);
-                    }
-                }
-                finally 
-                {
-                    _sendRequestLock.ExitWriteLock();
-                }
-            }
+            // Send.
+            var response = SendRequest(buf, messageLen, requestId);
 
-            // Fallback to async mechanism.
-            var response = SendRequestAsync(opId, writeAction).Result;
+            // Decode.
             return DecodeResponse(response, readFunc, errorFunc);
         }
 
@@ -138,8 +122,18 @@ namespace Apache.Ignite.Core.Impl.Client
         public Task<T> DoOutInOpAsync<T>(ClientOp opId, Action<IBinaryStream> writeAction,
             Func<IBinaryStream, T> readFunc, Func<ClientStatusCode, string, T> errorFunc = null)
         {
-            return SendRequestAsync(opId, writeAction)
-                .ContinueWith(responseTask => DecodeResponse(responseTask.Result, readFunc, errorFunc));
+            CheckException();
+
+            // Encode.
+            var requestId = Interlocked.Increment(ref _requestId);
+            int messageLen;
+            var buf = WriteMessage(writeAction, opId, requestId, 128, out messageLen);
+
+            // Send.
+            var task = SendRequestAsync(buf, messageLen, requestId);
+
+            // Decode.
+            return task.ContinueWith(responseTask => DecodeResponse(responseTask.Result, readFunc, errorFunc));
         }
 
         /// <summary>
@@ -294,62 +288,60 @@ namespace Apache.Ignite.Core.Impl.Client
         }
 
         /// <summary>
-        /// Sends the request asynchronously and returns a task for corresponding response.
+        /// Sends the request synchronously.
         /// </summary>
-        private Task<BinaryHeapStream> SendRequestAsync(ClientOp opId, Action<IBinaryStream> writeAction)
+        private BinaryHeapStream SendRequest(byte[] buf, int messageLen, long requestId)
         {
-            var ex = _exception;
-
-            if (ex != null)
+            if (_sendRequestLock.TryEnterWriteLock(1))
             {
-                throw ex;
+                try
+                {
+                    // If there are no pending async requests, we can execute this operation synchronously,
+                    // which is more efficient.
+                    if (_requests.IsEmpty)
+                    {
+                        _socket.Send(buf, 0, messageLen, SocketFlags.None);
+
+                        var msg = ReceiveMessage(_socket);
+                        var response = new BinaryHeapStream(msg);
+                        var responseId = response.ReadLong();
+                        Debug.Assert(responseId == requestId);
+
+                        return response;
+                    }
+                }
+                finally
+                {
+                    _sendRequestLock.ExitWriteLock();
+                }
             }
 
-            // Register new request.
-            _sendRequestLock.EnterReadLock();
-            try
-            {
-                var requestId = Interlocked.Increment(ref _requestId);
-                var req = new Request();
-                var added = _requests.TryAdd(requestId, req);
-                Debug.Assert(added);
-
-                // Send.
-                int messageLen;
-                var buf = WriteMessage(writeAction, opId, requestId, 128, out messageLen);
-
-                _socket.Send(buf, 0, messageLen, SocketFlags.None);
-                _listenerEvent.Set();
-                return req.CompletionSource.Task;
-            }
-            finally 
-            {
-                _sendRequestLock.ExitReadLock();
-            }
+            // Fallback to async mechanism.
+            return SendRequestAsync(buf, messageLen, requestId).Result;
         }
 
         /// <summary>
         /// Sends the request asynchronously and returns a task for corresponding response.
         /// </summary>
-        private long SendRequest(ClientOp opId, Action<IBinaryStream> writeAction)
+        private Task<BinaryHeapStream> SendRequestAsync(byte[] buf, int messageLen, long requestId)
         {
-            var ex = _exception;
-
-            if (ex != null)
+            _sendRequestLock.EnterReadLock();
+            try
             {
-                throw ex;
+                // Register.
+                var req = new Request();
+                var added = _requests.TryAdd(requestId, req);
+                Debug.Assert(added);
+
+                // Send.
+                _socket.Send(buf, 0, messageLen, SocketFlags.None);
+                _listenerEvent.Set();
+                return req.CompletionSource.Task;
             }
-
-            // Register new request.
-            var requestId = Interlocked.Increment(ref _requestId);
-
-            // Send.
-            int messageLen;
-            var buf = WriteMessage(writeAction, opId, requestId, 128, out messageLen);
-
-            _socket.Send(buf, 0, messageLen, SocketFlags.None);
-
-            return requestId;
+            finally
+            {
+                _sendRequestLock.ExitReadLock();
+            }
         }
 
         /// <summary>
@@ -490,6 +482,19 @@ namespace Apache.Ignite.Core.Impl.Client
             fixed (byte* b = buf)
             {
                 return BinaryHeapStream.ReadInt0(b);
+            }
+        }
+
+        /// <summary>
+        /// Checks the exception.
+        /// </summary>
+        private void CheckException()
+        {
+            var ex = _exception;
+
+            if (ex != null)
+            {
+                throw ex;
             }
         }
 
