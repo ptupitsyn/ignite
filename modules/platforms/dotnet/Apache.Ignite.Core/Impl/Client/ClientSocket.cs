@@ -145,11 +145,11 @@ namespace Apache.Ignite.Core.Impl.Client
                 while (_exception == null)
                 {
                     // Do not call Receive if there are no async requests pending.
-                    while (_requests.IsEmpty)
-                    {
-                        _listenerEvent.Wait();
-                        _listenerEvent.Reset();
-                    }
+                    //while (_requests.IsEmpty)
+                    //{
+                    //    _listenerEvent.Wait();
+                    //    _listenerEvent.Reset();
+                    //}
 
                     var msg = ReceiveMessage(_socket);
                     HandleResponse(msg);
@@ -307,6 +307,7 @@ namespace Apache.Ignite.Core.Impl.Client
             int messageLen;
             var buf = WriteMessage(writeAction, opId, requestId, 128, out messageLen);
 
+            // TODO: This lock kills async throughput
             lock (_syncRoot)
             {
                 _socket.Send(buf, 0, messageLen, SocketFlags.None);
