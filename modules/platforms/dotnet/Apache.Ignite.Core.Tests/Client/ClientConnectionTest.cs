@@ -206,7 +206,24 @@ namespace Apache.Ignite.Core.Tests.Client
         [Test]
         public void TestOperationTimeout()
         {
-            // TODO ?
+            Ignition.Start(TestUtils.GetTestConfiguration());
+            
+            var cfg = GetClientConfiguration();
+            cfg.SocketTimeout = TimeSpan.FromMilliseconds(500);
+
+            using (var client = Ignition.StartClient(cfg))
+            {
+                var cache = client.CreateCache<int, string>("s");
+                var bigString = new string('f', 10000);
+                var data = Enumerable.Range(1, 100000).ToDictionary(x => x, x => bigString);
+                
+                // Sync.
+                var ex = Assert.Throws<SocketException>(() => cache.PutAll(data));
+                Assert.AreEqual(SocketError.TimedOut, ex.SocketErrorCode);
+
+                // Async.
+                // TODO: reconnect socket
+            }
         }
 
         /// <summary>

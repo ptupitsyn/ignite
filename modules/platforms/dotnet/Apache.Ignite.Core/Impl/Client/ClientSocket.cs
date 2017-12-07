@@ -476,8 +476,7 @@ namespace Apache.Ignite.Core.Impl.Client
                 
                 if (req.Duration > _timeout)
                 {
-                    req.CompletionSource.TrySetException(
-                        new TimeoutException("Ignite thin client operation has timed out."));
+                    req.CompletionSource.TrySetException(new SocketException((int) SocketError.TimedOut));
 
                     _requests.TryRemove(pair.Key, out req);
                 }
