@@ -156,8 +156,8 @@ namespace Apache.Ignite.Core.Impl.Client
             catch (Exception ex)
             {
                 // Socket failure (connection dropped, etc).
-                // Propagate to all pending requests.
-                // Note that this does not include request decoding exceptions (TODO: add test).
+                // Close socket and all pending requests.
+                // Note that this does not include request decoding exceptions (failed request, invalid data, etc).
                 _exception = new IgniteClientException("Socket communication failed.", ex);
                 _socket.Dispose();
                 EndRequestsWithError();
