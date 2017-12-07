@@ -82,7 +82,7 @@ namespace Apache.Ignite.Core.Impl.Client
         /// </summary>
         /// <param name="clientConfiguration">The client configuration.</param>
         /// <param name="version">Protocol version.</param>
-        public ClientSocket(IgniteClientConfiguration clientConfiguration, ClientProtocolVersion? version = null)
+        public ClientSocket2(IgniteClientConfiguration clientConfiguration, ClientProtocolVersion? version = null)
         {
             Debug.Assert(clientConfiguration != null);
 

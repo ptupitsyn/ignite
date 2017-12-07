@@ -62,18 +62,6 @@ namespace Apache.Ignite.Core.Impl.Client
         /** Request id generator. */
         private long _requestId;
 
-        /** Buffer for currently received message */
-        private volatile byte[] _receiveBuf;
-
-        /** Length of the currently received message. */
-        private volatile int _receiveMessageLen;
-
-        /** Number of received bytes for the current message. */
-        private volatile int _received;
-
-        /** Whether we are waiting for new message (starts with 4-byte length), or receiving message data. */
-        private volatile bool _waitingForNewMessage;
-
         /** Socket failure exception. */
         private volatile Exception _exception;
 
@@ -99,8 +87,7 @@ namespace Apache.Ignite.Core.Impl.Client
             }
 
             // Continuously and asynchronously wait for data from server.
-            var ar = WaitForNewMessage();
-            Debug.Assert(!ar.CompletedSynchronously);
+            ThreadPool.QueueUserWorkItem(o => WaitForMessages());
         }
 
         /// <summary>
@@ -135,104 +122,24 @@ namespace Apache.Ignite.Core.Impl.Client
         /// <summary>
         /// Starts waiting for the new message.
         /// </summary>
-        private IAsyncResult WaitForNewMessage()
+        private void WaitForMessages()
         {
-            return WaitForPayload(4, true);
-        }
-
-        /// <summary>
-        /// Starts waiting for the payload of specified size.
-        /// </summary>
-        private IAsyncResult WaitForPayload(int size, bool newMessage = false)
-        {
-            _receiveMessageLen = size;
-            _receiveBuf = new byte[_receiveMessageLen];
-            _received = 0;
-            _waitingForNewMessage = newMessage;
-
-            return BeginReceive();
-        }
-
-        /// <summary>
-        /// Begins to asynchronously receive data from a connected System.Net.Sockets.Socket.
-        /// </summary>
-        private IAsyncResult BeginReceive()
-        {
-            return _socket.BeginReceive(_receiveBuf, _received, _receiveMessageLen - _received,
-                SocketFlags.None, OnReceive, null);
-        }
-
-        /// <summary>
-        /// Called when data has been received from socket.
-        /// </summary>
-        private void OnReceive(IAsyncResult ar)
-        {
-            if (ar.CompletedSynchronously)
+            while (_exception == null)
             {
-                // Avoid stack overflow caused by recursive OnReceive calls.
-                // Synchronous completion is handled in a loop below.
-                return;
-            }
-
-            try
-            {
-                OnReceiveLoop(ar);
-            }
-            catch (Exception ex)
-            {
-                // Socket failure (connection dropped, etc).
-                // Propagate to all pending requests.
-                // Note that this does not include request decoding exceptions (TODO: add test).
-                _exception = new IgniteClientException("Socket communication failed.", ex);
-                _socket.Dispose();
-                EndRequestsWithError();
-            }
-        }
-
-        /// <summary>
-        /// Called when data has been received from socket.
-        /// </summary>
-        private void OnReceiveLoop(IAsyncResult ar)
-        {
-            while (true)
-            {
-                _received += _socket.EndReceive(ar);
-
-                if (_received < _receiveMessageLen)
+                try
                 {
-                    // Got a part of data, continue waiting for the entire message.
-                    ar = BeginReceive();
+                    var size = GetInt(ReceiveAll(_socket, 4));
+                    var msg = ReceiveAll(_socket, size);
+                    HandleResponse(msg);
                 }
-                else if (_received == _receiveMessageLen)
+                catch (Exception ex)
                 {
-                    if (_waitingForNewMessage)
-                    {
-                        // Got a new message length in the buffer, start receiving payload.
-                        Debug.Assert(_received == 4);
-                        Debug.Assert(_receiveBuf.Length == 4);
-
-                        var size = GetInt(_receiveBuf);
-                        ar = WaitForPayload(size);
-                    }
-                    else
-                    {
-                        // Got the message payload, dispatch corresponding task.
-                        HandleResponse(_receiveBuf);
-
-                        ar = WaitForNewMessage();
-                    }
-                }
-                else
-                {
-                    // Invalid situation.
-                    throw new InvalidOperationException(
-                        string.Format("Received unexpected number of bytes. Expected: {0}, got: {1}",
-                            _receiveMessageLen, _received));
-                }
-
-                if (ar == null || !ar.CompletedSynchronously)
-                {
-                    return;
+                    // Socket failure (connection dropped, etc).
+                    // Propagate to all pending requests.
+                    // Note that this does not include request decoding exceptions (TODO: add test).
+                    _exception = new IgniteClientException("Socket communication failed.", ex);
+                    _socket.Dispose();
+                    EndRequestsWithError();
                 }
             }
         }
