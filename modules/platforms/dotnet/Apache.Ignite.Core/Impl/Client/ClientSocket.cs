@@ -110,7 +110,7 @@ namespace Apache.Ignite.Core.Impl.Client
                 {
                     var requestId = SendRequest(opId, writeAction);
 
-                    var msg = Receive(_socket);
+                    var msg = ReceiveMessage(_socket);
                     var stream = new BinaryHeapStream(msg);
                     var responseId = stream.ReadLong();
 
@@ -151,7 +151,7 @@ namespace Apache.Ignite.Core.Impl.Client
                         _listenerEvent.Reset();
                     }
 
-                    var msg = Receive(_socket);
+                    var msg = ReceiveMessage(_socket);
                     HandleResponse(msg);
                 }
             }
@@ -235,7 +235,7 @@ namespace Apache.Ignite.Core.Impl.Client
             Debug.Assert(sent == messageLen);
 
             // Decode response.
-            var res = Receive(sock);
+            var res = ReceiveMessage(sock);
 
             using (var stream = new BinaryHeapStream(res))
             {
@@ -260,17 +260,17 @@ namespace Apache.Ignite.Core.Impl.Client
         /// <summary>
         /// Receives a message from socket.
         /// </summary>
-        private static byte[] Receive(Socket sock)
+        private static byte[] ReceiveMessage(Socket sock)
         {
-            var size = GetInt(ReceiveAll(sock, 4));
-            var msg = ReceiveAll(sock, size);
+            var size = GetInt(ReceiveBytes(sock, 4));
+            var msg = ReceiveBytes(sock, size);
             return msg;
         }
 
         /// <summary>
         /// Receives the data filling provided buffer entirely.
         /// </summary>
-        private static byte[] ReceiveAll(Socket sock, int size)
+        private static byte[] ReceiveBytes(Socket sock, int size)
         {
             // Socket.Receive can return any number of bytes, even 1.
             // We should repeat Receive calls until required amount of data has been received.
