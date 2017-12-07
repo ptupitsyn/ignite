@@ -291,7 +291,7 @@ namespace Apache.Ignite.Core.Impl.Client
         {
             // If there are no pending async requests, we can execute this operation synchronously,
             // which is more efficient.
-            if (_sendRequestLock.TryEnterWriteLock(1))
+            if (_sendRequestLock.TryEnterWriteLock(0))
             {
                 try
                 {
