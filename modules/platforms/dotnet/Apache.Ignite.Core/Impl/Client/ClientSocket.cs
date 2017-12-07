@@ -87,7 +87,7 @@ namespace Apache.Ignite.Core.Impl.Client
             }
 
             // Continuously and asynchronously wait for data from server.
-            ThreadPool.QueueUserWorkItem(o => WaitForMessages());
+            //ThreadPool.QueueUserWorkItem(o => WaitForMessages());
         }
 
         /// <summary>
