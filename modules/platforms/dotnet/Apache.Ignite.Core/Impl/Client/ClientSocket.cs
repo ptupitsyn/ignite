@@ -66,7 +66,7 @@ namespace Apache.Ignite.Core.Impl.Client
         private volatile Exception _exception;
 
         /** Locker. */
-        private readonly object _syncRoot = new object();
+        private readonly ReaderWriterLockSlim _sendRequestLock = new ReaderWriterLockSlim(LockRecursionPolicy.NoRecursion);
 
         /** */
         private readonly ManualResetEventSlim _listenerEvent = new ManualResetEventSlim();
@@ -102,20 +102,28 @@ namespace Apache.Ignite.Core.Impl.Client
         public T DoOutInOp<T>(ClientOp opId, Action<IBinaryStream> writeAction,
             Func<IBinaryStream, T> readFunc, Func<ClientStatusCode, string, T> errorFunc = null)
         {
-            lock (_syncRoot)
+            // TODO: Encode/decode outside the lock
+            if (_sendRequestLock.TryEnterWriteLock(1))
             {
-                // If there are no pending async requests, we can execute this operation synchronously,
-                // which is more efficient.
-                if (_requests.IsEmpty)
+                try
                 {
-                    var requestId = SendRequest(opId, writeAction);
+                    // If there are no pending async requests, we can execute this operation synchronously,
+                    // which is more efficient.
+                    if (_requests.IsEmpty)
+                    {
+                        var requestId = SendRequest(opId, writeAction);
 
-                    var msg = ReceiveMessage(_socket);
-                    var stream = new BinaryHeapStream(msg);
-                    var responseId = stream.ReadLong();
+                        var msg = ReceiveMessage(_socket);
+                        var stream = new BinaryHeapStream(msg);
+                        var responseId = stream.ReadLong();
 
-                    Debug.Assert(responseId == requestId);
-                    return DecodeResponse(stream, readFunc, errorFunc);
+                        Debug.Assert(responseId == requestId);
+                        return DecodeResponse(stream, readFunc, errorFunc);
+                    }
+                }
+                finally 
+                {
+                    _sendRequestLock.ExitWriteLock();
                 }
             }
 
@@ -298,9 +306,8 @@ namespace Apache.Ignite.Core.Impl.Client
             }
 
             // Register new request.
-            // TODO: This lock kills async throughput
-            // Try ReaderWriterLockSlim instead, where sync request in a writer lock.
-            lock (_syncRoot)
+            _sendRequestLock.EnterReadLock();
+            try
             {
                 var requestId = Interlocked.Increment(ref _requestId);
                 var req = new Request();
@@ -314,6 +321,10 @@ namespace Apache.Ignite.Core.Impl.Client
                 _socket.Send(buf, 0, messageLen, SocketFlags.None);
                 _listenerEvent.Set();
                 return req.CompletionSource.Task;
+            }
+            finally 
+            {
+                _sendRequestLock.ExitReadLock();
             }
         }
 
