@@ -206,24 +206,28 @@ namespace Apache.Ignite.Core.Tests.Client
         [Test]
         public void TestOperationTimeout()
         {
+            var bigString = new string('f', 10000);
+            var data = Enumerable.Range(1, 100000).ToDictionary(x => x, x => bigString);
+
             Ignition.Start(TestUtils.GetTestConfiguration());
-            
+
             var cfg = GetClientConfiguration();
             cfg.SocketTimeout = TimeSpan.FromMilliseconds(500);
+            var client = Ignition.StartClient(cfg);
+            var cache = client.CreateCache<int, string>("s");
 
-            using (var client = Ignition.StartClient(cfg))
-            {
-                var cache = client.CreateCache<int, string>("s");
-                var bigString = new string('f', 10000);
-                var data = Enumerable.Range(1, 100000).ToDictionary(x => x, x => bigString);
-                
-                // Sync.
-                var ex = Assert.Throws<SocketException>(() => cache.PutAll(data));
-                Assert.AreEqual(SocketError.TimedOut, ex.SocketErrorCode);
+            // Async.
+            var aex = Assert.Throws<AggregateException>(() => cache.PutAllAsync(data).Wait());
+            Assert.AreEqual(SocketError.TimedOut, ((SocketException) aex.GetBaseException()).SocketErrorCode);
 
-                // Async.
-                // TODO: reconnect socket
-            }
+            // Socket still works.
+            Assert.AreEqual(cache.Name, cache.GetConfiguration().Name);
+
+            // Sync (reconnect for clean state).
+            client = Ignition.StartClient(cfg);
+            cache = client.GetCache<int, string>("s");
+            var ex = Assert.Throws<SocketException>(() => cache.PutAll(data));
+            Assert.AreEqual(SocketError.TimedOut, ex.SocketErrorCode);
         }
 
         /// <summary>
