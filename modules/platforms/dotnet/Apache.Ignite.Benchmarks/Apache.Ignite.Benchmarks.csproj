@@ -70,6 +70,7 @@
     <Compile Include="Result\BenchmarkFileResultWriter.cs" />
     <Compile Include="Result\IBenchmarkResultWriter.cs" />
     <Compile Include="ThinClient\ThinClientGetBenchmark.cs" />
+    <Compile Include="ThinClient\ThinClientPutAsyncBenchmark.cs" />
     <Compile Include="ThinClient\ThinClientPutBenchmark.cs" />
   </ItemGroup>
   <ItemGroup>
