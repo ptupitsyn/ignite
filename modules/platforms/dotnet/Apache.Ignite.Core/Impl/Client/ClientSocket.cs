@@ -93,7 +93,7 @@ namespace Apache.Ignite.Core.Impl.Client
             }
 
             // Continuously and asynchronously wait for data from server.
-            ThreadPool.QueueUserWorkItem(o => WaitForMessages());
+            Task.Factory.StartNew(WaitForMessages);
         }
 
         /// <summary>
@@ -139,30 +139,30 @@ namespace Apache.Ignite.Core.Impl.Client
         /// </summary>
         private void WaitForMessages()
         {
-            // Null exception means active socket.
-            while (_exception == null)
+            try
             {
-                // Do not call Receive if there are no async requests pending.
-                while (_requests.IsEmpty)
+                // Null exception means active socket.
+                while (_exception == null)
                 {
-                    _listenerEvent.Wait();
-                    _listenerEvent.Reset();
-                }
+                    // Do not call Receive if there are no async requests pending.
+                    while (_requests.IsEmpty)
+                    {
+                        _listenerEvent.Wait();
+                        _listenerEvent.Reset();
+                    }
 
-                try
-                {
                     var msg = Receive(_socket);
                     HandleResponse(msg);
                 }
-                catch (Exception ex)
-                {
-                    // Socket failure (connection dropped, etc).
-                    // Propagate to all pending requests.
-                    // Note that this does not include request decoding exceptions (TODO: add test).
-                    _exception = new IgniteClientException("Socket communication failed.", ex);
-                    _socket.Dispose();
-                    EndRequestsWithError();
-                }
+            }
+            catch (Exception ex)
+            {
+                // Socket failure (connection dropped, etc).
+                // Propagate to all pending requests.
+                // Note that this does not include request decoding exceptions (TODO: add test).
+                _exception = new IgniteClientException("Socket communication failed.", ex);
+                _socket.Dispose();
+                EndRequestsWithError();
             }
         }
 
