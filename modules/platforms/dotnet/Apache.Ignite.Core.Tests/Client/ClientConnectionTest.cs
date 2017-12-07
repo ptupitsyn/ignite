@@ -189,18 +189,16 @@ namespace Apache.Ignite.Core.Tests.Client
             var baseEx = ex.GetBaseException();
             
             var clientEx = baseEx as IgniteClientException;
-            var timeoutEx = baseEx as TimeoutException;
+            var socketEx = baseEx as SocketException;
 
             if (clientEx != null)
             {
                 Assert.AreEqual("Socket communication failed.", clientEx.Message);
-                
-                var socketEx = clientEx.InnerException as SocketException;
-                Assert.IsNotNull(socketEx, "Unexpected inner:" + clientEx.InnerException);
             }
-            else if (timeoutEx != null)
+            else if (socketEx != null)
             {
-                Assert.AreEqual("Ignite thin client operation has timed out.", timeoutEx.Message);
+                Assert.AreEqual("An established connection was aborted by the software in your host machine", 
+                    socketEx.Message);
             }
             else
             {
