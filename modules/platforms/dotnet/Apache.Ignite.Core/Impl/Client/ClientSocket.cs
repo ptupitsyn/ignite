@@ -101,6 +101,7 @@ namespace Apache.Ignite.Core.Impl.Client
         {
             // If there are no pending async requests, we can execute this operation synchronously,
             // which is more efficient.
+            // TODO: TryEnter is very expensive. Can we do away with CompareExchange?
             if (Monitor.TryEnter(_syncRoot))
             {
                 try
@@ -307,6 +308,7 @@ namespace Apache.Ignite.Core.Impl.Client
             Debug.Assert(added);
 
             // Signal response reader if needed.
+            // TODO: TryEnter is very expensive.
             if (Monitor.TryEnter(_syncRoot))
             {
                 Monitor.Pulse(_syncRoot);
@@ -317,13 +319,7 @@ namespace Apache.Ignite.Core.Impl.Client
             int messageLen;
             var buf = WriteMessage(writeAction, opId, requestId, 128, out messageLen);
 
-            // TODO
             _socket.Send(buf, 0, messageLen, SocketFlags.None);
-            //_socket.BeginSend(buf, 0, messageLen, SocketFlags.None, ar =>
-            //{
-            //    var sent = _socket.EndSend(ar);
-            //    Debug.Assert(sent == (int)ar.AsyncState);
-            //}, messageLen);
 
             return req.CompletionSource.Task;
         }
