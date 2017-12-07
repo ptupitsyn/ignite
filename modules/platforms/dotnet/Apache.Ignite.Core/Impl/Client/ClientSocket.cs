@@ -288,12 +288,12 @@ namespace Apache.Ignite.Core.Impl.Client
         /// </summary>
         private BinaryHeapStream SendRequest(ref RequestMessage reqMsg)
         {
+            // If there are no pending async requests, we can execute this operation synchronously,
+            // which is more efficient.
             if (_sendRequestLock.TryEnterWriteLock(1))
             {
                 try
                 {
-                    // If there are no pending async requests, we can execute this operation synchronously,
-                    // which is more efficient.
                     if (_requests.IsEmpty)
                     {
                         _socket.Send(reqMsg.Buffer, 0, reqMsg.Length, SocketFlags.None);
