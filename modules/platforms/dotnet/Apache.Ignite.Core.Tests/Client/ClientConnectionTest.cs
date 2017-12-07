@@ -220,9 +220,6 @@ namespace Apache.Ignite.Core.Tests.Client
             var aex = Assert.Throws<AggregateException>(() => cache.PutAllAsync(data).Wait());
             Assert.AreEqual(SocketError.TimedOut, ((SocketException) aex.GetBaseException()).SocketErrorCode);
 
-            // Socket still works.
-            Assert.AreEqual(cache.Name, cache.GetConfiguration().Name);
-
             // Sync (reconnect for clean state).
             client = Ignition.StartClient(cfg);
             cache = client.GetCache<int, string>("s");

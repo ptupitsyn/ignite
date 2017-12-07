@@ -270,6 +270,8 @@ namespace Apache.Ignite.Core.Impl.Client
         /// </summary>
         private byte[] ReceiveBytes(int size)
         {
+            Debug.Assert(size > 0);
+
             // Socket.Receive can return any number of bytes, even 1.
             // We should repeat Receive calls until required amount of data has been received.
             var buf = new byte[size];
