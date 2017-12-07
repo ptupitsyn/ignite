@@ -96,16 +96,14 @@ namespace Apache.Ignite.Core.Impl.Client
         public T DoOutInOp<T>(ClientOp opId, Action<IBinaryStream> writeAction,
             Func<IBinaryStream, T> readFunc, Func<ClientStatusCode, string, T> errorFunc = null)
         {
-            // TODO: Send the request synchronously.
-            // TODO: Change BeginReceive to a dedicated thread which calls Receive in blocking mode
-            // TODO: In this method simply call Receive and see if we get the correct response right away?
-            // Or see if a dumb solution with task will work as good as we need it to.
+            var requestId = SendRequest(opId, writeAction);
 
-            var response = SendRequestAsync(opId, writeAction).Result;
+            var msg = Receive(_socket);
+            var stream = new BinaryHeapStream(msg);
+            var responseId = stream.ReadLong();
 
-            // Decode on current thread for proper exception handling.
-            // We could call DoOutInOpAsync, but it wraps exceptions in AggregateException.
-            return DecodeResponse(response, readFunc, errorFunc);
+            Debug.Assert(responseId == requestId);
+            return DecodeResponse(stream, readFunc, errorFunc);
         }
 
         /// <summary>
@@ -114,7 +112,6 @@ namespace Apache.Ignite.Core.Impl.Client
         public Task<T> DoOutInOpAsync<T>(ClientOp opId, Action<IBinaryStream> writeAction,
             Func<IBinaryStream, T> readFunc, Func<ClientStatusCode, string, T> errorFunc = null)
         {
-            // TODO: Does decode happen in OnReceive thread or not? Can we improve parallelism?
             return SendRequestAsync(opId, writeAction)
                 .ContinueWith(responseTask => DecodeResponse(responseTask.Result, readFunc, errorFunc));
         }
@@ -128,8 +125,7 @@ namespace Apache.Ignite.Core.Impl.Client
             {
                 try
                 {
-                    var size = GetInt(ReceiveAll(_socket, 4));
-                    var msg = ReceiveAll(_socket, size);
+                    var msg = Receive(_socket);
                     HandleResponse(msg);
                 }
                 catch (Exception ex)
@@ -213,9 +209,7 @@ namespace Apache.Ignite.Core.Impl.Client
             Debug.Assert(sent == messageLen);
 
             // Decode response.
-            buf = ReceiveAll(sock, 4);
-            var size = GetInt(buf);
-            var res = ReceiveAll(sock, size);
+            var res = Receive(sock);
 
             using (var stream = new BinaryHeapStream(res))
             {
@@ -235,6 +229,16 @@ namespace Apache.Ignite.Core.Impl.Client
                     "Client handshake failed: '{0}'. Client version: {1}. Server version: {2}",
                     errMsg, version, serverVersion));
             }
+        }
+
+        /// <summary>
+        /// Receives a message from socket.
+        /// </summary>
+        private static byte[] Receive(Socket sock)
+        {
+            var size = GetInt(ReceiveAll(sock, 4));
+            var msg = ReceiveAll(sock, size);
+            return msg;
         }
 
         /// <summary>
@@ -286,6 +290,30 @@ namespace Apache.Ignite.Core.Impl.Client
             //}, messageLen);
 
             return req.CompletionSource.Task;
+        }
+
+        /// <summary>
+        /// Sends the request asynchronously and returns a task for corresponding response.
+        /// </summary>
+        private long SendRequest(ClientOp opId, Action<IBinaryStream> writeAction)
+        {
+            var ex = _exception;
+
+            if (ex != null)
+            {
+                throw ex;
+            }
+
+            // Register new request.
+            var requestId = Interlocked.Increment(ref _requestId);
+
+            // Send.
+            int messageLen;
+            var buf = WriteMessage(writeAction, opId, requestId, 128, out messageLen);
+
+            _socket.Send(buf, 0, messageLen, SocketFlags.None);
+
+            return requestId;
         }
 
         /// <summary>
