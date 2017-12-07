@@ -193,9 +193,18 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
             var cache = GetClientCache<int>();
             cache[1] = 1;
 
+            // Existing key.
             Assert.AreEqual(1, cache.GetAsync(1).Result);
 
-            var ex = Assert.Throws<AggregateException>(() => cache.GetAsync(-1));
+            // Missing key.
+            cache.Remove(1);
+            var aex = Assert.Throws<AggregateException>(() => cache.GetAsync(1).Wait());
+            Assert.IsInstanceOf<KeyNotFoundException>(aex.InnerException);
+
+            // Incorrect data type.
+            GetClientCache<Person>().PutAsync(1, new Person(1)).Wait();
+            aex = Assert.Throws<AggregateException>(() => cache.GetAsync(1).Wait());
+            Assert.IsInstanceOf<InvalidCastException>(aex.InnerException);
         }
 
         /// <summary>
