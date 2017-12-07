@@ -162,7 +162,7 @@ namespace Apache.Ignite.Core.Tests.Client
         /// Tests that we get a proper exception when server disconnects (node shutdown, network issues, etc).
         /// </summary>
         [Test]
-        public void TestServerDisconnect()
+        public void TestServerConnectionAborted()
         {
             var evt = new ManualResetEventSlim();
             var ignite = Ignition.Start(TestUtils.GetTestConfiguration());
