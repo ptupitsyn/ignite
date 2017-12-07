@@ -20,6 +20,7 @@ namespace Apache.Ignite.Core.Impl.Client
     using System;
     using System.Collections.Concurrent;
     using System.Collections.Generic;
+    using System.ComponentModel.Design;
     using System.Diagnostics;
     using System.Diagnostics.CodeAnalysis;
     using System.Linq;
@@ -85,7 +86,7 @@ namespace Apache.Ignite.Core.Impl.Client
 
             _socket = Connect(clientConfiguration);
 
-            Handshake(_socket, version ?? CurrentProtocolVersion);
+            Handshake(version ?? CurrentProtocolVersion);
 
             // Check periodically if any request has timed out.
             if (_timeout > TimeSpan.Zero)
@@ -150,7 +151,7 @@ namespace Apache.Ignite.Core.Impl.Client
                         _listenerEvent.Reset();
                     }
 
-                    var msg = ReceiveMessage(_socket);
+                    var msg = ReceiveMessage();
                     HandleResponse(msg);
                 }
             }
@@ -210,7 +211,7 @@ namespace Apache.Ignite.Core.Impl.Client
         /// <summary>
         /// Performs client protocol handshake.
         /// </summary>
-        private static void Handshake(Socket sock, ClientProtocolVersion version)
+        private void Handshake(ClientProtocolVersion version)
         {
             // Send request.
             int messageLen;
@@ -230,11 +231,11 @@ namespace Apache.Ignite.Core.Impl.Client
 
             Debug.Assert(messageLen == 12);
 
-            var sent = sock.Send(buf, messageLen, SocketFlags.None);
+            var sent = _socket.Send(buf, messageLen, SocketFlags.None);
             Debug.Assert(sent == messageLen);
 
             // Decode response.
-            var res = ReceiveMessage(sock);
+            var res = ReceiveMessage();
 
             using (var stream = new BinaryHeapStream(res))
             {
@@ -259,26 +260,28 @@ namespace Apache.Ignite.Core.Impl.Client
         /// <summary>
         /// Receives a message from socket.
         /// </summary>
-        private static byte[] ReceiveMessage(Socket sock)
+        private byte[] ReceiveMessage()
         {
-            var size = GetInt(ReceiveBytes(sock, 4));
-            var msg = ReceiveBytes(sock, size);
+            var size = GetInt(ReceiveBytes(4));
+            var msg = ReceiveBytes(size);
             return msg;
         }
 
         /// <summary>
         /// Receives the data filling provided buffer entirely.
         /// </summary>
-        private static byte[] ReceiveBytes(Socket sock, int size)
+        private byte[] ReceiveBytes(int size)
         {
             // Socket.Receive can return any number of bytes, even 1.
             // We should repeat Receive calls until required amount of data has been received.
             var buf = new byte[size];
-            var received = sock.Receive(buf);
+            var received = _socket.Receive(buf);
 
             while (received < size)
             {
-                received += sock.Receive(buf, received, size - received, SocketFlags.None);
+                CheckException();
+
+                received += _socket.Receive(buf, received, size - received, SocketFlags.None);
             }
 
             return buf;
@@ -299,7 +302,7 @@ namespace Apache.Ignite.Core.Impl.Client
                     {
                         _socket.Send(reqMsg.Buffer, 0, reqMsg.Length, SocketFlags.None);
 
-                        var respMsg = ReceiveMessage(_socket);
+                        var respMsg = ReceiveMessage();
                         var response = new BinaryHeapStream(respMsg);
                         var responseId = response.ReadLong();
                         Debug.Assert(responseId == reqMsg.Id);
@@ -491,6 +494,11 @@ namespace Apache.Ignite.Core.Impl.Client
             if (ex != null)
             {
                 throw ex;
+            }
+
+            if (!_socket.Connected)
+            {
+                throw new IgniteClientException("Thin client socket has been disconnected.");
             }
         }
 
