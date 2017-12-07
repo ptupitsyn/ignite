@@ -131,6 +131,7 @@
     <Compile Include="Impl\Client\Cache\Query\StatementType.cs" />
     <Compile Include="Client\ClientStatusCode.cs" />
     <Compile Include="Events\LocalEventListener.cs" />
+    <Compile Include="Impl\Client\ClientSocket2.cs" />
     <Compile Include="Impl\DataStorageMetrics.cs" />
     <Compile Include="Impl\IIgniteInternal.cs" />
     <Compile Include="Impl\Client\Cache\CacheClient.cs" />
