@@ -105,7 +105,7 @@ namespace Apache.Ignite.Core.Impl.Client
             CheckException();
 
             // Encode.
-            var reqMsg = WriteMessage(writeAction, opId, 128);
+            var reqMsg = WriteMessage(writeAction, opId);
             
             // Send.
             var response = SendRequest(ref reqMsg);
@@ -123,7 +123,7 @@ namespace Apache.Ignite.Core.Impl.Client
             CheckException();
 
             // Encode.
-            var reqMsg = WriteMessage(writeAction, opId, 128);
+            var reqMsg = WriteMessage(writeAction, opId);
 
             // Send.
             var task = SendRequestAsync(ref reqMsg);
@@ -358,10 +358,10 @@ namespace Apache.Ignite.Core.Impl.Client
         /// <summary>
         /// Writes the message to a byte array.
         /// </summary>
-        private RequestMessage WriteMessage(Action<IBinaryStream> writeAction, ClientOp opId, int bufSize)
+        private RequestMessage WriteMessage(Action<IBinaryStream> writeAction, ClientOp opId)
         {
             var requestId = Interlocked.Increment(ref _requestId);
-            var stream = new BinaryHeapStream(bufSize);
+            var stream = new BinaryHeapStream(256);
 
             stream.WriteInt(0); // Reserve message size.
             stream.WriteShort((short) opId);
