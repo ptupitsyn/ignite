@@ -188,17 +188,11 @@ namespace Apache.Ignite.Core.Tests.Client
             var ex = Assert.Throws<AggregateException>(() => putGetTask.Wait());
             var baseEx = ex.GetBaseException();
             
-            var clientEx = baseEx as IgniteClientException;
             var socketEx = baseEx as SocketException;
 
-            if (clientEx != null)
+            if (socketEx != null)
             {
-                Assert.AreEqual("Socket communication failed.", clientEx.Message);
-            }
-            else if (socketEx != null)
-            {
-                Assert.AreEqual("An established connection was aborted by the software in your host machine", 
-                    socketEx.Message);
+                Assert.AreEqual(SocketError.ConnectionAborted, socketEx.SocketErrorCode);
             }
             else
             {

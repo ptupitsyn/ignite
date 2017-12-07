@@ -282,7 +282,7 @@ namespace Apache.Ignite.Core.Impl.Client
                 if (res == 0)
                 {
                     // Disconnected.
-                    _exception = _exception ?? new IgniteClientException("Socket communication failed.");
+                    _exception = _exception ?? new SocketException((int) SocketError.ConnectionAborted);
                     Dispose();
                     CheckException();
                 }
