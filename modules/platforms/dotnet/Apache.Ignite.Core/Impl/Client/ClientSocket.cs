@@ -20,7 +20,6 @@ namespace Apache.Ignite.Core.Impl.Client
     using System;
     using System.Collections.Concurrent;
     using System.Collections.Generic;
-    using System.ComponentModel.Design;
     using System.Diagnostics;
     using System.Diagnostics.CodeAnalysis;
     using System.Linq;
@@ -161,8 +160,7 @@ namespace Apache.Ignite.Core.Impl.Client
                 // Close socket and all pending requests.
                 // Note that this does not include request decoding exceptions (failed request, invalid data, etc).
                 _exception = new IgniteClientException("Socket communication failed.", ex);
-                _socket.Dispose();
-                EndRequestsWithError();
+                Dispose();
             }
         }
 
@@ -279,9 +277,17 @@ namespace Apache.Ignite.Core.Impl.Client
 
             while (received < size)
             {
-                CheckException();
+                var res = _socket.Receive(buf, received, size - received, SocketFlags.None);
 
-                received += _socket.Receive(buf, received, size - received, SocketFlags.None);
+                if (res == 0)
+                {
+                    // Disconnected.
+                    _exception = _exception ?? new IgniteClientException("Socket communication failed.");
+                    Dispose();
+                    CheckException();
+                }
+
+                received += res;
             }
 
             return buf;
@@ -459,6 +465,11 @@ namespace Apache.Ignite.Core.Impl.Client
         /// </summary>
         private void CheckTimeouts(object _)
         {
+            if (_exception != null)
+            {
+                _timeoutCheckTimer.Dispose();
+            }
+
             foreach (var pair in _requests)
             {
                 var req = pair.Value;
@@ -495,11 +506,6 @@ namespace Apache.Ignite.Core.Impl.Client
             {
                 throw ex;
             }
-
-            if (!_socket.Connected)
-            {
-                throw new IgniteClientException("Thin client socket has been disconnected.");
-            }
         }
 
         /// <summary>
@@ -530,12 +536,8 @@ namespace Apache.Ignite.Core.Impl.Client
             Justification = "There is no finalizer.")]
         public void Dispose()
         {
-            _exception = new ObjectDisposedException(typeof(ClientSocket).FullName);
-
+            _exception = _exception ?? new ObjectDisposedException(typeof(ClientSocket).FullName);
             _socket.Dispose();
-
-            _timeoutCheckTimer.Dispose();
-
             EndRequestsWithError();
         }
 
