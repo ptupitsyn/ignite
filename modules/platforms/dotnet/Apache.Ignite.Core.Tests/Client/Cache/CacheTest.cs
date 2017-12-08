@@ -848,7 +848,7 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
         {
             var cache = GetClientCache<int>();
 
-            var t1 = cache.PutAllAsync(Enumerable.Range(1, 10000).ToDictionary(x => x, x => x));
+            var t1 = cache.PutAllAsync(Enumerable.Range(1, 100000).ToDictionary(x => x, x => x));
             var t2 = cache.PutAsync(-1, -1);
 
             t2.Wait();
