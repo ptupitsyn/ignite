@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
+// ReSharper disable UnusedParameter.Global
 namespace Apache.Ignite.Core.Client.Cache
 {
     using System;
