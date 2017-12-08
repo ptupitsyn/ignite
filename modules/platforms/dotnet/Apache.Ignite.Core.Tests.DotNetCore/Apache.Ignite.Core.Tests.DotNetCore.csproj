@@ -81,6 +81,7 @@
     <Compile Include="..\Apache.Ignite.Core.Tests\Log\CustomLoggerTest.cs" Link="Log\CustomLoggerTest.cs" />
     <Compile Include="..\Apache.Ignite.Core.Tests\MessagingTest.cs" Link="Common\MessagingTest.cs" />
     <Compile Include="..\Apache.Ignite.Core.Tests\Query\BinarizablePerson.cs" Link="Cache\Query\BinarizablePerson.cs" />
+    <Compile Include="..\Apache.Ignite.Core.Tests\TaskExtensions.cs" Link="Common\TaskExtensions.cs" />
     <Compile Include="..\Apache.Ignite.Core.Tests\TestUtils.Common.cs" Link="Common\TestUtils.Common.cs" />
   </ItemGroup>
 
