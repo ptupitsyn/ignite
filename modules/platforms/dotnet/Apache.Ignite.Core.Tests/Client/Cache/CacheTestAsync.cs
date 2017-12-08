@@ -29,7 +29,7 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
         /** <inheritdoc /> */
         protected override ICacheClient<TK, TV> GetClientCache<TK, TV>(string cacheName = CacheName)
         {
-            return new CacheClientAsyncWrapper<TK, TV>(base.GetClientCache<TK, TV>());
+            return new CacheClientAsyncWrapper<TK, TV>(base.GetClientCache<TK, TV>(cacheName));
         }
     }
 }
