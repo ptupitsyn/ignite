@@ -188,7 +188,6 @@ namespace Apache.Ignite.Core.Tests.Client
 
             var ex = Assert.Throws<AggregateException>(() => putGetTask.Wait());
             var baseEx = ex.GetBaseException();
-            
             var socketEx = baseEx as SocketException;
 
             if (socketEx != null)

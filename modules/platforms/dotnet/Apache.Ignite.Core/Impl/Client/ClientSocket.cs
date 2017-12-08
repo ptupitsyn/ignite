@@ -170,7 +170,7 @@ namespace Apache.Ignite.Core.Impl.Client
                 // Socket failure (connection dropped, etc).
                 // Close socket and all pending requests.
                 // Note that this does not include request decoding exceptions (failed request, invalid data, etc).
-                _exception = new IgniteClientException("Socket communication failed.", ex);
+                _exception = ex;
                 Dispose();
             }
         }
