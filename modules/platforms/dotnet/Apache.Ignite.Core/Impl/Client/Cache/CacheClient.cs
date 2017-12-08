@@ -284,7 +284,10 @@ namespace Apache.Ignite.Core.Impl.Client.Cache
         /** <inheritDoc /> */
         public Task<CacheResult<TV>> GetAndRemoveAsync(TK key)
         {
-            throw new NotImplementedException();
+            IgniteArgumentCheck.NotNull(key, "key");
+
+            return DoOutInOpAsync(ClientOp.CacheGetAndRemove, w => w.WriteObjectDetached(key),
+                UnmarshalCacheResult<TV>);
         }
 
         /** <inheritDoc /> */
@@ -299,7 +302,10 @@ namespace Apache.Ignite.Core.Impl.Client.Cache
         /** <inheritDoc /> */
         public Task<bool> PutIfAbsentAsync(TK key, TV val)
         {
-            throw new NotImplementedException();
+            IgniteArgumentCheck.NotNull(key, "key");
+            IgniteArgumentCheck.NotNull(val, "val");
+
+            return DoOutInOpAsync(ClientOp.CachePutIfAbsent, w => WriteKeyVal(w, key, val), s => s.ReadBool());
         }
 
         /** <inheritDoc /> */
@@ -315,7 +321,11 @@ namespace Apache.Ignite.Core.Impl.Client.Cache
         /** <inheritDoc /> */
         public Task<CacheResult<TV>> GetAndPutIfAbsentAsync(TK key, TV val)
         {
-            throw new NotImplementedException();
+            IgniteArgumentCheck.NotNull(key, "key");
+            IgniteArgumentCheck.NotNull(val, "val");
+
+            return DoOutInOpAsync(ClientOp.CacheGetAndPutIfAbsent, w => WriteKeyVal(w, key, val),
+                UnmarshalCacheResult<TV>);
         }
 
         /** <inheritDoc /> */
@@ -330,7 +340,10 @@ namespace Apache.Ignite.Core.Impl.Client.Cache
         /** <inheritDoc /> */
         public Task<bool> ReplaceAsync(TK key, TV val)
         {
-            throw new NotImplementedException();
+            IgniteArgumentCheck.NotNull(key, "key");
+            IgniteArgumentCheck.NotNull(val, "val");
+
+            return DoOutInOpAsync(ClientOp.CacheReplace, w => WriteKeyVal(w, key, val), s => s.ReadBool());
         }
 
         /** <inheritDoc /> */
@@ -351,7 +364,16 @@ namespace Apache.Ignite.Core.Impl.Client.Cache
         /** <inheritDoc /> */
         public Task<bool> ReplaceAsync(TK key, TV oldVal, TV newVal)
         {
-            throw new NotImplementedException();
+            IgniteArgumentCheck.NotNull(key, "key");
+            IgniteArgumentCheck.NotNull(oldVal, "oldVal");
+            IgniteArgumentCheck.NotNull(newVal, "newVal");
+
+            return DoOutInOpAsync(ClientOp.CacheReplaceIfEquals, w =>
+            {
+                w.WriteObjectDetached(key);
+                w.WriteObjectDetached(oldVal);
+                w.WriteObjectDetached(newVal);
+            }, s => s.ReadBool());
         }
 
         /** <inheritDoc /> */
@@ -379,7 +401,7 @@ namespace Apache.Ignite.Core.Impl.Client.Cache
         /** <inheritDoc /> */
         public Task ClearAsync()
         {
-            throw new NotImplementedException();
+            return DoOutOpAsync(ClientOp.CacheClear);
         }
 
         /** <inheritDoc /> */
@@ -393,7 +415,9 @@ namespace Apache.Ignite.Core.Impl.Client.Cache
         /** <inheritDoc /> */
         public Task ClearAsync(TK key)
         {
-            throw new NotImplementedException();
+            IgniteArgumentCheck.NotNull(key, "key");
+
+            return DoOutOpAsync(ClientOp.CacheClearKey, w => w.WriteObjectDetached(key));
         }
 
         /** <inheritDoc /> */
@@ -407,7 +431,9 @@ namespace Apache.Ignite.Core.Impl.Client.Cache
         /** <inheritDoc /> */
         public Task ClearAllAsync(IEnumerable<TK> keys)
         {
-            throw new NotImplementedException();
+            IgniteArgumentCheck.NotNull(keys, "keys");
+
+            return DoOutOpAsync(ClientOp.CacheClearKeys, w => w.WriteEnumerable(keys));
         }
 
         /** <inheritDoc /> */
@@ -421,7 +447,9 @@ namespace Apache.Ignite.Core.Impl.Client.Cache
         /** <inheritDoc /> */
         public Task<bool> RemoveAsync(TK key)
         {
-            throw new NotImplementedException();
+            IgniteArgumentCheck.NotNull(key, "key");
+
+            return DoOutInOpAsync(ClientOp.CacheRemoveKey, w => w.WriteObjectDetached(key), r => r.ReadBool());
         }
 
         /** <inheritDoc /> */
@@ -436,7 +464,10 @@ namespace Apache.Ignite.Core.Impl.Client.Cache
         /** <inheritDoc /> */
         public Task<bool> RemoveAsync(TK key, TV val)
         {
-            throw new NotImplementedException();
+            IgniteArgumentCheck.NotNull(key, "key");
+            IgniteArgumentCheck.NotNull(val, "val");
+
+            return DoOutInOpAsync(ClientOp.CacheRemoveIfEquals, w => WriteKeyVal(w, key, val), r => r.ReadBool());
         }
 
         /** <inheritDoc /> */
@@ -450,7 +481,9 @@ namespace Apache.Ignite.Core.Impl.Client.Cache
         /** <inheritDoc /> */
         public Task RemoveAllAsync(IEnumerable<TK> keys)
         {
-            throw new NotImplementedException();
+            IgniteArgumentCheck.NotNull(keys, "keys");
+
+            return DoOutOpAsync(ClientOp.CacheRemoveKeys, w => w.WriteEnumerable(keys));
         }
 
         /** <inheritDoc /> */
@@ -462,7 +495,7 @@ namespace Apache.Ignite.Core.Impl.Client.Cache
         /** <inheritDoc /> */
         public Task RemoveAllAsync()
         {
-            throw new NotImplementedException();
+            return DoOutOpAsync(ClientOp.CacheRemoveAll);
         }
 
         /** <inheritDoc /> */
@@ -474,7 +507,7 @@ namespace Apache.Ignite.Core.Impl.Client.Cache
         /** <inheritDoc /> */
         public Task<long> GetSizeAsync(params CachePeekMode[] modes)
         {
-            throw new NotImplementedException();
+            return DoOutInOpAsync(ClientOp.CacheGetSize, w => WritePeekModes(modes, w), s => s.ReadLong());
         }
 
         /** <inheritDoc /> */
