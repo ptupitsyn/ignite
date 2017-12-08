@@ -30,7 +30,7 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
     /// <summary>
     /// Thin client cache test.
     /// </summary>
-    public sealed class CacheTest : ClientTestBase
+    public class CacheTest : ClientTestBase
     {
         /// <summary>
         /// Tests the cache put / get with primitive data types.
