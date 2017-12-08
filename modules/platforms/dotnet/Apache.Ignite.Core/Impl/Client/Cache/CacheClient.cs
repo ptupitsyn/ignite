@@ -122,7 +122,9 @@ namespace Apache.Ignite.Core.Impl.Client.Cache
         /** <inheritDoc /> */
         public Task<CacheResult<TV>> TryGetAsync(TK key)
         {
-            throw new NotImplementedException();
+            IgniteArgumentCheck.NotNull(key, "key");
+
+            return DoOutInOpAsync(ClientOp.CacheGet, w => w.WriteObject(key), UnmarshalCacheResult<TV>);
         }
 
         /** <inheritDoc /> */
@@ -136,6 +138,8 @@ namespace Apache.Ignite.Core.Impl.Client.Cache
         /** <inheritDoc /> */
         public Task<ICollection<ICacheEntry<TK, TV>>> GetAllAsync(IEnumerable<TK> keys)
         {
+            IgniteArgumentCheck.NotNull(keys, "keys");
+
             return DoOutInOpAsync(ClientOp.CacheGetAll, w => w.WriteEnumerable(keys), s => ReadCacheEntries(s));
         }
 
