@@ -564,11 +564,11 @@ namespace Apache.Ignite.Core.Impl.Client
         public void Dispose()
         {
             _exception = _exception ?? new ObjectDisposedException(typeof(ClientSocket).FullName);
+            EndRequestsWithError();
+            _socket.Dispose();
             _listenerEvent.Set();
             _listenerEvent.Dispose();
-            _socket.Dispose();
             _timeoutCheckTimer.Dispose();
-            EndRequestsWithError();
         }
 
         /// <summary>
