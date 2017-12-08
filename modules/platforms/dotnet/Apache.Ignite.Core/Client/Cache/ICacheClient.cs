@@ -374,9 +374,20 @@ namespace Apache.Ignite.Core.Client.Cache
         void RemoveAll(IEnumerable<TK> keys);
 
         /// <summary>
+        /// Removes given key mappings from cache, notifying listeners and cache writers.
+        /// </summary>
+        /// <param name="keys">Keys to be removed from cache.</param>
+        Task RemoveAllAsync(IEnumerable<TK> keys);
+
+        /// <summary>
         /// Removes all mappings from cache, notifying listeners and cache writers.
         /// </summary>
         void RemoveAll();
+
+        /// <summary>
+        /// Removes all mappings from cache, notifying listeners and cache writers.
+        /// </summary>
+        Task RemoveAllAsync();
 
         /// <summary>
         /// Gets the number of all entries cached across all nodes.
@@ -386,6 +397,15 @@ namespace Apache.Ignite.Core.Client.Cache
         /// <param name="modes">Optional peek modes. If not provided, then total cache size is returned.</param>
         /// <returns>Cache size across all nodes.</returns>
         long GetSize(params CachePeekMode[] modes);
+
+        /// <summary>
+        /// Gets the number of all entries cached across all nodes.
+        /// <para />
+        /// NOTE: this operation is distributed and will query all participating nodes for their cache sizes.
+        /// </summary>
+        /// <param name="modes">Optional peek modes. If not provided, then total cache size is returned.</param>
+        /// <returns>Cache size across all nodes.</returns>
+        Task<long> GetSizeAsync(params CachePeekMode[] modes);
 
         /// <summary>
         /// Gets the cache configuration.
