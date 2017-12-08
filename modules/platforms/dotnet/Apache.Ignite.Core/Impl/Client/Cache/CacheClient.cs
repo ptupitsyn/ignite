@@ -85,12 +85,6 @@ namespace Apache.Ignite.Core.Impl.Client.Cache
         }
 
         /** <inheritDoc /> */
-        public Task<ICollection<ICacheEntry<TK, TV>>> GetAllAsync(IEnumerable<TK> keys)
-        {
-            throw new NotImplementedException();
-        }
-
-        /** <inheritDoc /> */
         public TV this[TK key]
         {
             get { return Get(key); }
@@ -136,20 +130,13 @@ namespace Apache.Ignite.Core.Impl.Client.Cache
         {
             IgniteArgumentCheck.NotNull(keys, "keys");
 
-            return DoOutInOp(ClientOp.CacheGetAll, w => w.WriteEnumerable(keys), stream =>
-            {
-                var reader = _marsh.StartUnmarshal(stream, _keepBinary);
+            return DoOutInOp(ClientOp.CacheGetAll, w => w.WriteEnumerable(keys), s => ReadCacheEntries(s));
+        }
 
-                var cnt = reader.ReadInt();
-                var res = new List<ICacheEntry<TK, TV>>(cnt);
-
-                for (var i = 0; i < cnt; i++)
-                {
-                    res.Add(new CacheEntry<TK, TV>(reader.ReadObject<TK>(), reader.ReadObject<TV>()));
-                }
-
-                return res;
-            });
+        /** <inheritDoc /> */
+        public Task<ICollection<ICacheEntry<TK, TV>>> GetAllAsync(IEnumerable<TK> keys)
+        {
+            return DoOutInOpAsync(ClientOp.CacheGetAll, w => w.WriteEnumerable(keys), s => ReadCacheEntries(s));
         }
 
         /** <inheritDoc /> */
@@ -785,6 +772,24 @@ namespace Apache.Ignite.Core.Impl.Client.Cache
                     w.WriteByte(val);
                 }
             }
+        }
+
+        /// <summary>
+        /// Reads the cache entries.
+        /// </summary>
+        private ICollection<ICacheEntry<TK, TV>> ReadCacheEntries(IBinaryStream stream)
+        {
+            var reader = _marsh.StartUnmarshal(stream, _keepBinary);
+
+            var cnt = reader.ReadInt();
+            var res = new List<ICacheEntry<TK, TV>>(cnt);
+
+            for (var i = 0; i < cnt; i++)
+            {
+                res.Add(new CacheEntry<TK, TV>(reader.ReadObject<TK>(), reader.ReadObject<TV>()));
+            }
+
+            return res;
         }
     }
 }
