@@ -18,6 +18,7 @@
 namespace Apache.Ignite.Core.Tests.Client
 {
     using System;
+    using System.Collections.Generic;
     using System.Linq;
     using System.Net;
     using System.Net.Sockets;
@@ -227,6 +228,37 @@ namespace Apache.Ignite.Core.Tests.Client
             cache = client.GetCache<int, string>("s");
             var ex = Assert.Throws<SocketException>(() => cache.PutAll(data));
             Assert.AreEqual(SocketError.TimedOut, ex.SocketErrorCode);
+        }
+
+        /// <summary>
+        /// Tests the client dispose while operations are in progress.
+        /// </summary>
+        [Test]
+        public void TestClientDisposeWhileOperationsAreInProgress()
+        {
+            Ignition.Start(TestUtils.GetTestConfiguration());
+
+            var ops = new List<Task>();
+
+            using (var client = StartClient())
+            {
+                var cache = client.GetOrCreateCache<int, int>("foo");
+                for (var i = 0; i < 10000; i++)
+                {
+                    ops.Add(cache.PutAsync(i, i));
+                }
+            }
+
+            var completed = ops.Count(x => x.Status == TaskStatus.RanToCompletion);
+            Assert.Greater(completed, 0, "Some tasks should have completed.");
+
+            var failed = ops.Where(x => x.Status == TaskStatus.Faulted).ToArray();
+            Assert.IsTrue(failed.Any(), "Some tasks should have failed.");
+
+            foreach (var task in failed)
+            {
+                Assert.IsInstanceOf<ObjectDisposedException>(task.Exception);
+            }
         }
 
         /// <summary>
