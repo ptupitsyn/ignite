@@ -149,11 +149,7 @@ namespace Apache.Ignite.Core.Impl.Client.Cache
             IgniteArgumentCheck.NotNull(key, "key");
             IgniteArgumentCheck.NotNull(val, "val");
 
-            DoOutOp(ClientOp.CachePut, w =>
-            {
-                w.WriteObjectDetached(key);
-                w.WriteObjectDetached(val);
-            });
+            DoOutOp(ClientOp.CachePut, w => WriteKeyVal(w, key, val));
         }
 
         /** <inheritDoc /> */
@@ -162,11 +158,7 @@ namespace Apache.Ignite.Core.Impl.Client.Cache
             IgniteArgumentCheck.NotNull(key, "key");
             IgniteArgumentCheck.NotNull(val, "val");
 
-            return DoOutOpAsync(ClientOp.CachePut, w =>
-            {
-                w.WriteObjectDetached(key);
-                w.WriteObjectDetached(val);
-            });
+            return DoOutOpAsync(ClientOp.CachePut, w => WriteKeyVal(w, key, val));
         }
 
         /** <inheritDoc /> */
@@ -180,7 +172,9 @@ namespace Apache.Ignite.Core.Impl.Client.Cache
         /** <inheritDoc /> */
         public Task<bool> ContainsKeyAsync(TK key)
         {
-            throw new NotImplementedException();
+            IgniteArgumentCheck.NotNull(key, "key");
+
+            return DoOutInOpAsync(ClientOp.CacheContainsKey, w => w.WriteObjectDetached(key), r => r.ReadBool());
         }
 
         /** <inheritDoc /> */
@@ -194,7 +188,9 @@ namespace Apache.Ignite.Core.Impl.Client.Cache
         /** <inheritDoc /> */
         public Task<bool> ContainsKeysAsync(IEnumerable<TK> keys)
         {
-            throw new NotImplementedException();
+            IgniteArgumentCheck.NotNull(keys, "keys");
+
+            return DoOutInOpAsync(ClientOp.CacheContainsKeys, w => w.WriteEnumerable(keys), r => r.ReadBool());
         }
 
         /** <inheritDoc /> */
@@ -246,17 +242,16 @@ namespace Apache.Ignite.Core.Impl.Client.Cache
             IgniteArgumentCheck.NotNull(key, "key");
             IgniteArgumentCheck.NotNull(val, "val");
 
-            return DoOutInOp(ClientOp.CacheGetAndPut, w =>
-            {
-                w.WriteObjectDetached(key);
-                w.WriteObjectDetached(val);
-            }, UnmarshalCacheResult<TV>);
+            return DoOutInOp(ClientOp.CacheGetAndPut, w => WriteKeyVal(w, key, val), UnmarshalCacheResult<TV>);
         }
 
         /** <inheritDoc /> */
         public Task<CacheResult<TV>> GetAndPutAsync(TK key, TV val)
         {
-            throw new NotImplementedException();
+            IgniteArgumentCheck.NotNull(key, "key");
+            IgniteArgumentCheck.NotNull(val, "val");
+
+            return DoOutInOpAsync(ClientOp.CacheGetAndPut, w => WriteKeyVal(w, key, val), UnmarshalCacheResult<TV>);
         }
 
         /** <inheritDoc /> */
@@ -265,17 +260,16 @@ namespace Apache.Ignite.Core.Impl.Client.Cache
             IgniteArgumentCheck.NotNull(key, "key");
             IgniteArgumentCheck.NotNull(val, "val");
 
-            return DoOutInOp(ClientOp.CacheGetAndReplace, w =>
-            {
-                w.WriteObjectDetached(key);
-                w.WriteObjectDetached(val);
-            }, UnmarshalCacheResult<TV>);
+            return DoOutInOp(ClientOp.CacheGetAndReplace, w => WriteKeyVal(w, key, val), UnmarshalCacheResult<TV>);
         }
 
         /** <inheritDoc /> */
         public Task<CacheResult<TV>> GetAndReplaceAsync(TK key, TV val)
         {
-            throw new NotImplementedException();
+            IgniteArgumentCheck.NotNull(key, "key");
+            IgniteArgumentCheck.NotNull(val, "val");
+
+            return DoOutInOpAsync(ClientOp.CacheGetAndReplace, w => WriteKeyVal(w, key, val), UnmarshalCacheResult<TV>);
         }
 
         /** <inheritDoc /> */
@@ -299,11 +293,7 @@ namespace Apache.Ignite.Core.Impl.Client.Cache
             IgniteArgumentCheck.NotNull(key, "key");
             IgniteArgumentCheck.NotNull(val, "val");
 
-            return DoOutInOp(ClientOp.CachePutIfAbsent, w =>
-            {
-                w.WriteObjectDetached(key);
-                w.WriteObjectDetached(val);
-            }, s => s.ReadBool());
+            return DoOutInOp(ClientOp.CachePutIfAbsent, w => WriteKeyVal(w, key, val), s => s.ReadBool());
         }
 
         /** <inheritDoc /> */
@@ -318,11 +308,8 @@ namespace Apache.Ignite.Core.Impl.Client.Cache
             IgniteArgumentCheck.NotNull(key, "key");
             IgniteArgumentCheck.NotNull(val, "val");
 
-            return DoOutInOp(ClientOp.CacheGetAndPutIfAbsent, w =>
-            {
-                w.WriteObjectDetached(key);
-                w.WriteObjectDetached(val);
-            }, UnmarshalCacheResult<TV>);
+            return DoOutInOp(ClientOp.CacheGetAndPutIfAbsent, w => WriteKeyVal(w, key, val),
+                UnmarshalCacheResult<TV>);
         }
 
         /** <inheritDoc /> */
@@ -337,11 +324,7 @@ namespace Apache.Ignite.Core.Impl.Client.Cache
             IgniteArgumentCheck.NotNull(key, "key");
             IgniteArgumentCheck.NotNull(val, "val");
 
-            return DoOutInOp(ClientOp.CacheReplace, w =>
-            {
-                w.WriteObjectDetached(key);
-                w.WriteObjectDetached(val);
-            }, s => s.ReadBool());
+            return DoOutInOp(ClientOp.CacheReplace, w => WriteKeyVal(w, key, val), s => s.ReadBool());
         }
 
         /** <inheritDoc /> */
@@ -447,11 +430,7 @@ namespace Apache.Ignite.Core.Impl.Client.Cache
             IgniteArgumentCheck.NotNull(key, "key");
             IgniteArgumentCheck.NotNull(val, "val");
 
-            return DoOutInOp(ClientOp.CacheRemoveIfEquals, w =>
-            {
-                w.WriteObjectDetached(key);
-                w.WriteObjectDetached(val);
-            }, r => r.ReadBool());
+            return DoOutInOp(ClientOp.CacheRemoveIfEquals, w => WriteKeyVal(w, key, val), r => r.ReadBool());
         }
 
         /** <inheritDoc /> */
@@ -794,6 +773,15 @@ namespace Apache.Ignite.Core.Impl.Client.Cache
             }
 
             return res;
+        }
+
+        /// <summary>
+        /// Writes key and value.
+        /// </summary>
+        private static void WriteKeyVal(BinaryWriter w, TK key, TV val)
+        {
+            w.WriteObjectDetached(key);
+            w.WriteObjectDetached(val);
         }
     }
 }
