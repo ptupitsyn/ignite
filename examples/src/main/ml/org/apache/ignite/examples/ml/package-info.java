@@ -15,13 +15,8 @@
  * limitations under the License.
  */
 
-import angular from 'angular';
-
-import directive from './directive';
-import service from './service';
-import './style.scss';
-
-export default angular
-    .module('ignite-console.ignite-icon', [])
-    .service('IgniteIcon', service)
-    .directive('igniteIcon', directive);
+/**
+ * <!-- Package description. -->
+ * Machine learning examples.
+ */
+package org.apache.ignite.examples.ml;

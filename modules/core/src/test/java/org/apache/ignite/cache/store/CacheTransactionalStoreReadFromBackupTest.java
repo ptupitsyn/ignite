@@ -15,13 +15,18 @@
  * limitations under the License.
  */
 
-import angular from 'angular';
+package org.apache.ignite.cache.store;
 
-import directive from './directive';
-import service from './service';
-import './style.scss';
+import org.apache.ignite.cache.CacheAtomicityMode;
 
-export default angular
-    .module('ignite-console.ignite-icon', [])
-    .service('IgniteIcon', service)
-    .directive('igniteIcon', directive);
+import static org.apache.ignite.cache.CacheAtomicityMode.TRANSACTIONAL;
+
+/**
+ *
+ */
+public class CacheTransactionalStoreReadFromBackupTest extends CacheStoreReadFromBackupTest {
+    /** {@inheritDoc} */
+    @Override protected CacheAtomicityMode atomicityMode() {
+        return TRANSACTIONAL;
+    }
+}
