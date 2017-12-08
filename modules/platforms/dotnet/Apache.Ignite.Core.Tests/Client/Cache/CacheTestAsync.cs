@@ -27,7 +27,7 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
     public sealed class CacheTestAsync : CacheTest
     {
         /** <inheritdoc /> */
-        protected override ICacheClient<TK, TV> GetClientCache<TK, TV>()
+        protected override ICacheClient<TK, TV> GetClientCache<TK, TV>(string cacheName = CacheName)
         {
             return new CacheClientAsyncWrapper<TK, TV>(base.GetClientCache<TK, TV>());
         }

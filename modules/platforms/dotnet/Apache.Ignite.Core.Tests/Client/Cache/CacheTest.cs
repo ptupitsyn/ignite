@@ -855,17 +855,14 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
         [Test]
         public void TestExceptions()
         {
-            using (var client = GetClient())
-            {
-                // Getting the cache instance does not throw.
-                var cache = client.GetCache<int, int>("foobar");
+            // Getting the cache instance does not throw.
+            var cache = GetClientCache<int, int>("foobar");
 
-                // Accessing non-existent cache throws.
-                var ex = Assert.Throws<IgniteClientException>(() => cache.Put(1, 1));
+            // Accessing non-existent cache throws.
+            var ex = Assert.Throws<IgniteClientException>(() => cache.Put(1, 1));
 
-                Assert.AreEqual("Cache doesn't exist: foobar", ex.Message);
-                Assert.AreEqual(ClientStatusCode.CacheDoesNotExist, ex.StatusCode);
-            }
+            Assert.AreEqual("Cache doesn't exist: foobar", ex.Message);
+            Assert.AreEqual(ClientStatusCode.CacheDoesNotExist, ex.StatusCode);
         }
 
         /// <summary>
