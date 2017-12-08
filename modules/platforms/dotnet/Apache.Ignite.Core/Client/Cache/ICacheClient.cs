@@ -64,11 +64,6 @@ namespace Apache.Ignite.Core.Client.Cache
 
         /// <summary>
         /// Retrieves value mapped to the specified key from cache.
-        ///
-        /// If the value is not present in cache, then it will be looked up from swap storage. If
-        /// it's not present in swap, or if swap is disable, and if read-through is allowed, value
-        /// will be loaded from persistent store.
-        /// This method is transactional and will enlist the entry into ongoing transaction if there is one.
         /// </summary>
         /// <param name="key">Key.</param>
         /// <returns>Value.</returns>
@@ -88,11 +83,27 @@ namespace Apache.Ignite.Core.Client.Cache
         bool TryGet(TK key, out TV value);
 
         /// <summary>
+        /// Retrieves value mapped to the specified key from cache.
+        /// </summary>
+        /// <param name="key">Key.</param>
+        /// <returns>
+        /// <see cref="CacheResult{T}"/> containing a bool success flag and a value.
+        /// </returns>
+        Task<CacheResult<TV>> TryGetAsync(TK key);
+
+        /// <summary>
         /// Retrieves values mapped to the specified keys from cache.
         /// </summary>
         /// <param name="keys">Keys.</param>
         /// <returns>Map of key-value pairs.</returns>
         ICollection<ICacheEntry<TK, TV>> GetAll(IEnumerable<TK> keys);
+
+        /// <summary>
+        /// Retrieves values mapped to the specified keys from cache.
+        /// </summary>
+        /// <param name="keys">Keys.</param>
+        /// <returns>Map of key-value pairs.</returns>
+        Task<ICollection<ICacheEntry<TK, TV>>> GetAllAsync(IEnumerable<TK> keys);
 
         /// <summary>
         /// Gets or sets a cache value with the specified key.
@@ -111,11 +122,25 @@ namespace Apache.Ignite.Core.Client.Cache
         bool ContainsKey(TK key);
 
         /// <summary>
+        /// Check if cache contains mapping for this key.
+        /// </summary>
+        /// <param name="key">Key.</param>
+        /// <returns>True if cache contains mapping for this key.</returns>
+        Task<bool> ContainsKeyAsync(TK key);
+
+        /// <summary>
         /// Check if cache contains mapping for these keys.
         /// </summary>
         /// <param name="keys">Keys.</param>
         /// <returns>True if cache contains mapping for all these keys.</returns>
         bool ContainsKeys(IEnumerable<TK> keys);
+
+        /// <summary>
+        /// Check if cache contains mapping for these keys.
+        /// </summary>
+        /// <param name="keys">Keys.</param>
+        /// <returns>True if cache contains mapping for all these keys.</returns>
+        Task<bool> ContainsKeysAsync(IEnumerable<TK> keys);
 
         /// <summary>
         /// Executes a Scan query.
@@ -150,6 +175,17 @@ namespace Apache.Ignite.Core.Client.Cache
         CacheResult<TV> GetAndPut(TK key, TV val);
 
         /// <summary>
+        /// Associates the specified value with the specified key in this cache,
+        /// returning an existing value if one existed.
+        /// </summary>
+        /// <param name="key">Key with which the specified value is to be associated.</param>
+        /// <param name="val">Value to be associated with the specified key.</param>
+        /// <returns>
+        /// The value associated with the key at the start of the operation.
+        /// </returns>
+        Task<CacheResult<TV>> GetAndPutAsync(TK key, TV val);
+
+        /// <summary>
         /// Atomically replaces the value for a given key if and only if there is a value currently mapped by the key.
         /// </summary>
         /// <param name="key">Key with which the specified value is to be associated.</param>
@@ -160,11 +196,28 @@ namespace Apache.Ignite.Core.Client.Cache
         CacheResult<TV> GetAndReplace(TK key, TV val);
 
         /// <summary>
+        /// Atomically replaces the value for a given key if and only if there is a value currently mapped by the key.
+        /// </summary>
+        /// <param name="key">Key with which the specified value is to be associated.</param>
+        /// <param name="val">Value to be associated with the specified key.</param>
+        /// <returns>
+        /// The previous value associated with the specified key.
+        /// </returns>
+        Task<CacheResult<TV>> GetAndReplaceAsync(TK key, TV val);
+
+        /// <summary>
         /// Atomically removes the entry for a key only if currently mapped to some value.
         /// </summary>
         /// <param name="key">Key with which the specified value is associated.</param>
         /// <returns>The value if one existed.</returns>
         CacheResult<TV> GetAndRemove(TK key);
+
+        /// <summary>
+        /// Atomically removes the entry for a key only if currently mapped to some value.
+        /// </summary>
+        /// <param name="key">Key with which the specified value is associated.</param>
+        /// <returns>The value if one existed.</returns>
+        Task<CacheResult<TV>> GetAndRemoveAsync(TK key);
 
         /// <summary>
         /// Atomically associates the specified key with the given value if it is not already associated with a value.
@@ -175,6 +228,14 @@ namespace Apache.Ignite.Core.Client.Cache
         bool PutIfAbsent(TK key, TV val);
 
         /// <summary>
+        /// Atomically associates the specified key with the given value if it is not already associated with a value.
+        /// </summary>
+        /// <param name="key">Key with which the specified value is to be associated.</param>
+        /// <param name="val">Value to be associated with the specified key.</param>
+        /// <returns>True if a value was set.</returns>
+        Task<bool> PutIfAbsentAsync(TK key, TV val);
+
+        /// <summary>
         /// Stores given key-value pair in cache only if cache had no previous mapping for it.
         /// </summary>
         /// <param name="key">Key to store in cache.</param>
@@ -183,6 +244,16 @@ namespace Apache.Ignite.Core.Client.Cache
         /// Previously contained value regardless of whether put happened or not.
         /// </returns>
         CacheResult<TV> GetAndPutIfAbsent(TK key, TV val);
+
+        /// <summary>
+        /// Stores given key-value pair in cache only if cache had no previous mapping for it.
+        /// </summary>
+        /// <param name="key">Key to store in cache.</param>
+        /// <param name="val">Value to be associated with the given key.</param>
+        /// <returns>
+        /// Previously contained value regardless of whether put happened or not.
+        /// </returns>
+        Task<CacheResult<TV>> GetAndPutIfAbsentAsync(TK key, TV val);
 
         /// <summary>
         /// Stores given key-value pair in cache only if there is a previous mapping for it.
