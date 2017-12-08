@@ -88,7 +88,7 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
         /** <inheritDoc /> */
         public ICollection<ICacheEntry<TK, TV>> GetAll(IEnumerable<TK> keys)
         {
-            return _cache.GetAll(keys);
+            return _cache.GetAllAsync(keys).GetResult();
         }
 
         /** <inheritDoc /> */
@@ -107,7 +107,7 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
         /** <inheritDoc /> */
         public bool ContainsKey(TK key)
         {
-            return _cache.ContainsKey(key);
+            return _cache.ContainsKeyAsync(key).GetResult();
         }
 
         /** <inheritDoc /> */
@@ -119,7 +119,7 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
         /** <inheritDoc /> */
         public bool ContainsKeys(IEnumerable<TK> keys)
         {
-            return _cache.ContainsKeys(keys);
+            return _cache.ContainsKeysAsync(keys).GetResult();
         }
 
         /** <inheritDoc /> */
@@ -149,7 +149,7 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
         /** <inheritDoc /> */
         public CacheResult<TV> GetAndPut(TK key, TV val)
         {
-            return _cache.GetAndPut(key, val);
+            return _cache.GetAndPutAsync(key, val).GetResult();
         }
 
         /** <inheritDoc /> */
@@ -161,7 +161,7 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
         /** <inheritDoc /> */
         public CacheResult<TV> GetAndReplace(TK key, TV val)
         {
-            return _cache.GetAndReplace(key, val);
+            return _cache.GetAndReplaceAsync(key, val).GetResult();
         }
 
         /** <inheritDoc /> */
@@ -173,7 +173,7 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
         /** <inheritDoc /> */
         public CacheResult<TV> GetAndRemove(TK key)
         {
-            return _cache.GetAndRemove(key);
+            return _cache.GetAndRemoveAsync(key).GetResult();
         }
 
         /** <inheritDoc /> */
@@ -185,7 +185,7 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
         /** <inheritDoc /> */
         public bool PutIfAbsent(TK key, TV val)
         {
-            return _cache.PutIfAbsent(key, val);
+            return _cache.PutIfAbsentAsync(key, val).GetResult();
         }
 
         /** <inheritDoc /> */
@@ -197,7 +197,7 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
         /** <inheritDoc /> */
         public CacheResult<TV> GetAndPutIfAbsent(TK key, TV val)
         {
-            return _cache.GetAndPutIfAbsent(key, val);
+            return _cache.GetAndPutIfAbsentAsync(key, val).GetResult();
         }
 
         /** <inheritDoc /> */
@@ -209,7 +209,7 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
         /** <inheritDoc /> */
         public bool Replace(TK key, TV val)
         {
-            return _cache.Replace(key, val);
+            return _cache.ReplaceAsync(key, val).GetResult();
         }
 
         /** <inheritDoc /> */
@@ -221,7 +221,7 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
         /** <inheritDoc /> */
         public bool Replace(TK key, TV oldVal, TV newVal)
         {
-            return _cache.Replace(key, oldVal, newVal);
+            return _cache.ReplaceAsync(key, oldVal, newVal).GetResult();
         }
 
         /** <inheritDoc /> */
@@ -233,7 +233,7 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
         /** <inheritDoc /> */
         public void PutAll(IEnumerable<KeyValuePair<TK, TV>> vals)
         {
-            _cache.PutAll(vals);
+            _cache.PutAllAsync(vals).WaitResult();
         }
 
         /** <inheritDoc /> */
@@ -245,7 +245,7 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
         /** <inheritDoc /> */
         public void Clear()
         {
-            _cache.Clear();
+            _cache.ClearAsync().WaitResult();
         }
 
         /** <inheritDoc /> */
@@ -257,7 +257,7 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
         /** <inheritDoc /> */
         public void Clear(TK key)
         {
-            _cache.Clear(key);
+            _cache.ClearAsync(key).WaitResult();
         }
 
         /** <inheritDoc /> */
@@ -269,7 +269,7 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
         /** <inheritDoc /> */
         public void ClearAll(IEnumerable<TK> keys)
         {
-            _cache.ClearAll(keys);
+            _cache.ClearAllAsync(keys).WaitResult();
         }
 
         /** <inheritDoc /> */
@@ -281,7 +281,7 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
         /** <inheritDoc /> */
         public bool Remove(TK key)
         {
-            return _cache.Remove(key);
+            return _cache.RemoveAsync(key).GetResult();
         }
 
         /** <inheritDoc /> */
@@ -293,7 +293,7 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
         /** <inheritDoc /> */
         public bool Remove(TK key, TV val)
         {
-            return _cache.Remove(key, val);
+            return _cache.RemoveAsync(key, val).GetResult();
         }
 
         /** <inheritDoc /> */
@@ -305,7 +305,7 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
         /** <inheritDoc /> */
         public void RemoveAll(IEnumerable<TK> keys)
         {
-            _cache.RemoveAll(keys);
+            _cache.RemoveAllAsync(keys).WaitResult();
         }
 
         /** <inheritDoc /> */
@@ -317,7 +317,7 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
         /** <inheritDoc /> */
         public void RemoveAll()
         {
-            _cache.RemoveAll();
+            _cache.RemoveAllAsync().WaitResult();
         }
 
         /** <inheritDoc /> */
@@ -329,7 +329,7 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
         /** <inheritDoc /> */
         public long GetSize(params CachePeekMode[] modes)
         {
-            return _cache.GetSize(modes);
+            return _cache.GetSizeAsync(modes).GetResult();
         }
 
         /** <inheritDoc /> */
