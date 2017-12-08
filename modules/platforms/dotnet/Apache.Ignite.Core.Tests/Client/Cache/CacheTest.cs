@@ -846,7 +846,15 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
         [Test]
         public void TestAsyncCompletionOrder()
         {
-            // TODO
+            var cache = GetClientCache<int>();
+
+            var t1 = cache.PutAllAsync(Enumerable.Range(1, 10000).ToDictionary(x => x, x => x));
+            var t2 = cache.PutAsync(-1, -1);
+
+            t2.Wait();
+            Assert.IsFalse(t1.IsCompleted);
+
+            t2.Wait();
         }
 
         /// <summary>
