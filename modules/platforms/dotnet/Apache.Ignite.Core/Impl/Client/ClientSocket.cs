@@ -107,8 +107,6 @@ namespace Apache.Ignite.Core.Impl.Client
         public T DoOutInOp<T>(ClientOp opId, Action<IBinaryStream> writeAction,
             Func<IBinaryStream, T> readFunc, Func<ClientStatusCode, string, T> errorFunc = null)
         {
-            CheckException();
-
             // Encode.
             var reqMsg = WriteMessage(writeAction, opId);
             
@@ -125,8 +123,6 @@ namespace Apache.Ignite.Core.Impl.Client
         public Task<T> DoOutInOpAsync<T>(ClientOp opId, Action<IBinaryStream> writeAction,
             Func<IBinaryStream, T> readFunc, Func<ClientStatusCode, string, T> errorFunc = null)
         {
-            CheckException();
-
             // Encode.
             var reqMsg = WriteMessage(writeAction, opId);
 
@@ -317,6 +313,8 @@ namespace Apache.Ignite.Core.Impl.Client
             {
                 try
                 {
+                    CheckException();
+
                     if (_requests.IsEmpty)
                     {
                         _socket.Send(reqMsg.Buffer, 0, reqMsg.Length, SocketFlags.None);
@@ -347,6 +345,8 @@ namespace Apache.Ignite.Core.Impl.Client
             _sendRequestLock.EnterReadLock();
             try
             {
+                CheckException();
+
                 // Register.
                 var req = new Request();
                 var added = _requests.TryAdd(reqMsg.Id, req);
@@ -569,11 +569,6 @@ namespace Apache.Ignite.Core.Impl.Client
             _socket.Dispose();
             _timeoutCheckTimer.Dispose();
             EndRequestsWithError();
-
-            _sendRequestLock.TryEnterWriteLock(-1);
-            // TODO
-            //_sendRequestLock.ExitWriteLock();
-            _sendRequestLock.Dispose();
         }
 
         /// <summary>
