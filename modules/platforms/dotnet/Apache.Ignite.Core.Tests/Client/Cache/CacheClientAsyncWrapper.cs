@@ -50,7 +50,7 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
         /** <inheritDoc /> */
         public void Put(TK key, TV val)
         {
-            _cache.Put(key, val);
+            _cache.PutAsync(key, val).WaitResult();
         }
 
         /** <inheritDoc /> */
@@ -62,7 +62,7 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
         /** <inheritDoc /> */
         public TV Get(TK key)
         {
-            return _cache.Get(key);
+            return _cache.GetAsync(key).GetResult();
         }
 
         /** <inheritDoc /> */
@@ -74,7 +74,9 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
         /** <inheritDoc /> */
         public bool TryGet(TK key, out TV value)
         {
-            return _cache.TryGet(key, out value);
+            var res = _cache.TryGetAsync(key).GetResult();
+            value = res.Value;
+            return res.Success;
         }
 
         /** <inheritDoc /> */
@@ -346,38 +348,6 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
         public ICacheClient<TK1, TV1> WithKeepBinary<TK1, TV1>()
         {
             return _cache.WithKeepBinary<TK1, TV1>();
-        }
-
-        /// <summary>
-        /// Waits the result of a task, unwraps exceptions.
-        /// </summary>
-        /// <param name="task">The task.</param>
-        private static void WaitResult(Task task)
-        {
-            // TODO ext method
-            try
-            {
-                task.Wait();
-            }
-            catch (AggregateException ex)
-            {
-                throw ex.InnerException ?? ex;
-            }
-        }
-
-        /// <summary>
-        /// Gets the result of a task, unwraps exceptions.
-        /// </summary>
-        private static T GetResult<T>(Task<T> task)
-        {
-            try
-            {
-                return task.Result;
-            }
-            catch (Exception ex)
-            {
-                throw ex.InnerException ?? ex;
-            }
         }
     }
 }
