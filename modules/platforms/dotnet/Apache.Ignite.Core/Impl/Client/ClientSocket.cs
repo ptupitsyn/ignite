@@ -150,7 +150,14 @@ namespace Apache.Ignite.Core.Impl.Client
                     // Do not call Receive if there are no async requests pending.
                     while (_requests.IsEmpty)
                     {
-                        _listenerEvent.Wait();
+                        // Wait with a timeout so we check for disposed state periodically.
+                        _listenerEvent.Wait(1000);
+
+                        if (_exception != null)
+                        {
+                            return;
+                        }
+
                         _listenerEvent.Reset();
                     }
 
@@ -557,7 +564,11 @@ namespace Apache.Ignite.Core.Impl.Client
         public void Dispose()
         {
             _exception = _exception ?? new ObjectDisposedException(typeof(ClientSocket).FullName);
+            _listenerEvent.Set();
+            _listenerEvent.Dispose();
             _socket.Dispose();
+            _timeoutCheckTimer.Dispose();
+            _sendRequestLock.Dispose();
             EndRequestsWithError();
         }
 
