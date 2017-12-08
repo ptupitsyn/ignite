@@ -264,6 +264,14 @@ namespace Apache.Ignite.Core.Client.Cache
         bool Replace(TK key, TV val);
 
         /// <summary>
+        /// Stores given key-value pair in cache only if there is a previous mapping for it.
+        /// </summary>
+        /// <param name="key">Key to store in cache.</param>
+        /// <param name="val">Value to be associated with the given key.</param>
+        /// <returns>True if the value was replaced.</returns>
+        Task<bool> ReplaceAsync(TK key, TV val);
+
+        /// <summary>
         /// Stores given key-value pair in cache only if only if the previous value is equal to the
         /// old value passed as argument.
         /// </summary>
@@ -272,6 +280,16 @@ namespace Apache.Ignite.Core.Client.Cache
         /// <param name="newVal">Value to be associated with the given key.</param>
         /// <returns>True if replace happened, false otherwise.</returns>
         bool Replace(TK key, TV oldVal, TV newVal);
+
+        /// <summary>
+        /// Stores given key-value pair in cache only if only if the previous value is equal to the
+        /// old value passed as argument.
+        /// </summary>
+        /// <param name="key">Key to store in cache.</param>
+        /// <param name="oldVal">Old value to match.</param>
+        /// <param name="newVal">Value to be associated with the given key.</param>
+        /// <returns>True if replace happened, false otherwise.</returns>
+        Task<bool> ReplaceAsync(TK key, TV oldVal, TV newVal);
 
         /// <summary>
         /// Stores given key-value pairs in cache.
@@ -291,16 +309,33 @@ namespace Apache.Ignite.Core.Client.Cache
         void Clear();
 
         /// <summary>
+        /// Clears the contents of the cache, without notifying listeners or CacheWriters.
+        /// </summary>
+        Task ClearAsync();
+
+        /// <summary>
         /// Clear entry from the cache, without notifying listeners or CacheWriters.
         /// </summary>
         /// <param name="key">Key to clear.</param>
         void Clear(TK key);
 
         /// <summary>
+        /// Clear entry from the cache, without notifying listeners or CacheWriters.
+        /// </summary>
+        /// <param name="key">Key to clear.</param>
+        Task ClearAsync(TK key);
+
+        /// <summary>
         /// Clear entries from the cache, without notifying listeners or CacheWriters.
         /// </summary>
         /// <param name="keys">Keys to clear.</param>
         void ClearAll(IEnumerable<TK> keys);
+
+        /// <summary>
+        /// Clear entries from the cache, without notifying listeners or CacheWriters.
+        /// </summary>
+        /// <param name="keys">Keys to clear.</param>
+        Task ClearAllAsync(IEnumerable<TK> keys);
 
         /// <summary>
         /// Removes given key mapping from cache, notifying listeners and cache writers.
@@ -310,12 +345,27 @@ namespace Apache.Ignite.Core.Client.Cache
         bool Remove(TK key);
 
         /// <summary>
+        /// Removes given key mapping from cache, notifying listeners and cache writers.
+        /// </summary>
+        /// <param name="key">Key to remove.</param>
+        /// <returns>True if entry was removed, false otherwise.</returns>
+        Task<bool> RemoveAsync(TK key);
+
+        /// <summary>
         /// Removes given key mapping from cache if one exists and value is equal to the passed in value.
         /// </summary>
         /// <param name="key">Key whose mapping is to be removed from cache.</param>
         /// <param name="val">Value to match against currently cached value.</param>
         /// <returns>True if entry was removed, false otherwise.</returns>
         bool Remove(TK key, TV val);
+
+        /// <summary>
+        /// Removes given key mapping from cache if one exists and value is equal to the passed in value.
+        /// </summary>
+        /// <param name="key">Key whose mapping is to be removed from cache.</param>
+        /// <param name="val">Value to match against currently cached value.</param>
+        /// <returns>True if entry was removed, false otherwise.</returns>
+        Task<bool> RemoveAsync(TK key, TV val);
 
         /// <summary>
         /// Removes given key mappings from cache, notifying listeners and cache writers.
