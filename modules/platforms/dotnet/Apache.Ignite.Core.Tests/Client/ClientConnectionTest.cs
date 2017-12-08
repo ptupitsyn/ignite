@@ -242,7 +242,7 @@ namespace Apache.Ignite.Core.Tests.Client
             using (var client = StartClient())
             {
                 var cache = client.GetOrCreateCache<int, int>("foo");
-                for (var i = 0; i < 10000; i++)
+                for (var i = 0; i < 100000; i++)
                 {
                     ops.Add(cache.PutAsync(i, i));
                 }
