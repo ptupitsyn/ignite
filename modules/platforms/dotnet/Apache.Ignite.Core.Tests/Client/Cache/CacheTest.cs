@@ -241,30 +241,27 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
         [Test]
         public void TestGetAll()
         {
-            using (var client = GetClient())
-            {
-                var cache = client.GetCache<int?, int>(CacheName);
+            var cache = GetClientCache<int?, int>();
 
-                cache[1] = 1;
-                cache[2] = 2;
-                cache[3] = 3;
+            cache[1] = 1;
+            cache[2] = 2;
+            cache[3] = 3;
 
-                var res = cache.GetAll(new int?[] {1}).Single();
-                Assert.AreEqual(1, res.Key);
-                Assert.AreEqual(1, res.Value);
+            var res = cache.GetAll(new int?[] {1}).Single();
+            Assert.AreEqual(1, res.Key);
+            Assert.AreEqual(1, res.Value);
 
-                res = cache.GetAll(new int?[] {1, -1}).Single();
-                Assert.AreEqual(1, res.Key);
-                Assert.AreEqual(1, res.Value);
+            res = cache.GetAll(new int?[] {1, -1}).Single();
+            Assert.AreEqual(1, res.Key);
+            Assert.AreEqual(1, res.Value);
 
-                CollectionAssert.AreEquivalent(new[] {1, 2, 3},
-                    cache.GetAll(new int?[] {1, 2, 3}).Select(x => x.Value));
+            CollectionAssert.AreEquivalent(new[] {1, 2, 3},
+                cache.GetAll(new int?[] {1, 2, 3}).Select(x => x.Value));
 
-                Assert.Throws<ArgumentNullException>(() => cache.GetAll(null));
+            Assert.Throws<ArgumentNullException>(() => cache.GetAll(null));
 
-                Assert.Throws<IgniteClientException>(() => cache.GetAll(new int?[] {1, null}));
-                Assert.Throws<IgniteClientException>(() => cache.GetAll(new int?[] {null}));
-            }
+            Assert.Throws<IgniteClientException>(() => cache.GetAll(new int?[] {1, null}));
+            Assert.Throws<IgniteClientException>(() => cache.GetAll(new int?[] {null}));
         }
 
         /// <summary>
@@ -273,27 +270,24 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
         [Test]
         public void TestGetAndPut()
         {
-            using (var client = GetClient())
-            {
-                var cache = client.GetCache<int?, int?>(CacheName);
+            var cache = GetClientCache<int?, int?>();
 
-                Assert.IsFalse(cache.ContainsKey(1));
+            Assert.IsFalse(cache.ContainsKey(1));
 
-                var res = cache.GetAndPut(1, 1);
-                Assert.IsFalse(res.Success);
-                Assert.IsNull(res.Value);
+            var res = cache.GetAndPut(1, 1);
+            Assert.IsFalse(res.Success);
+            Assert.IsNull(res.Value);
 
-                Assert.IsTrue(cache.ContainsKey(1));
+            Assert.IsTrue(cache.ContainsKey(1));
 
-                res = cache.GetAndPut(1, 2);
-                Assert.IsTrue(res.Success);
-                Assert.AreEqual(1, res.Value);
+            res = cache.GetAndPut(1, 2);
+            Assert.IsTrue(res.Success);
+            Assert.AreEqual(1, res.Value);
 
-                Assert.AreEqual(2, cache[1]);
+            Assert.AreEqual(2, cache[1]);
 
-                Assert.Throws<ArgumentNullException>(() => cache.GetAndPut(1, null));
-                Assert.Throws<ArgumentNullException>(() => cache.GetAndPut(null, 1));
-            }
+            Assert.Throws<ArgumentNullException>(() => cache.GetAndPut(1, null));
+            Assert.Throws<ArgumentNullException>(() => cache.GetAndPut(null, 1));
         }
 
         /// <summary>
@@ -302,28 +296,25 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
         [Test]
         public void TestGetAndReplace()
         {
-            using (var client = GetClient())
-            {
-                var cache = client.GetCache<int?, int?>(CacheName);
+            var cache = GetClientCache<int?, int?>();
 
-                Assert.IsFalse(cache.ContainsKey(1));
+            Assert.IsFalse(cache.ContainsKey(1));
 
-                var res = cache.GetAndReplace(1, 1);
-                Assert.IsFalse(res.Success);
-                Assert.IsNull(res.Value);
+            var res = cache.GetAndReplace(1, 1);
+            Assert.IsFalse(res.Success);
+            Assert.IsNull(res.Value);
 
-                Assert.IsFalse(cache.ContainsKey(1));
-                cache[1] = 1;
+            Assert.IsFalse(cache.ContainsKey(1));
+            cache[1] = 1;
 
-                res = cache.GetAndReplace(1, 2);
-                Assert.IsTrue(res.Success);
-                Assert.AreEqual(1, res.Value);
+            res = cache.GetAndReplace(1, 2);
+            Assert.IsTrue(res.Success);
+            Assert.AreEqual(1, res.Value);
 
-                Assert.AreEqual(2, cache[1]);
+            Assert.AreEqual(2, cache[1]);
 
-                Assert.Throws<ArgumentNullException>(() => cache.GetAndReplace(1, null));
-                Assert.Throws<ArgumentNullException>(() => cache.GetAndReplace(null, 1));
-            }
+            Assert.Throws<ArgumentNullException>(() => cache.GetAndReplace(1, null));
+            Assert.Throws<ArgumentNullException>(() => cache.GetAndReplace(null, 1));
         }
 
         /// <summary>
@@ -332,27 +323,24 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
         [Test]
         public void TestGetAndRemove()
         {
-            using (var client = GetClient())
-            {
-                var cache = client.GetCache<int?, int?>(CacheName);
+            var cache = GetClientCache<int?, int?>();
 
-                Assert.IsFalse(cache.ContainsKey(1));
+            Assert.IsFalse(cache.ContainsKey(1));
 
-                var res = cache.GetAndRemove(1);
-                Assert.IsFalse(res.Success);
-                Assert.IsNull(res.Value);
+            var res = cache.GetAndRemove(1);
+            Assert.IsFalse(res.Success);
+            Assert.IsNull(res.Value);
 
-                Assert.IsFalse(cache.ContainsKey(1));
-                cache[1] = 1;
+            Assert.IsFalse(cache.ContainsKey(1));
+            cache[1] = 1;
 
-                res = cache.GetAndRemove(1);
-                Assert.IsTrue(res.Success);
-                Assert.AreEqual(1, res.Value);
+            res = cache.GetAndRemove(1);
+            Assert.IsTrue(res.Success);
+            Assert.AreEqual(1, res.Value);
 
-                Assert.IsFalse(cache.ContainsKey(1));
+            Assert.IsFalse(cache.ContainsKey(1));
 
-                Assert.Throws<ArgumentNullException>(() => cache.GetAndRemove(null));
-            }
+            Assert.Throws<ArgumentNullException>(() => cache.GetAndRemove(null));
         }
 
         /// <summary>
@@ -361,17 +349,14 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
         [Test]
         public void TestContainsKey()
         {
-            using (var client = GetClient())
-            {
-                var cache = client.GetCache<int?, int>(CacheName);
+            var cache = GetClientCache<int?, int>();
 
-                cache[1] = 1;
+            cache[1] = 1;
 
-                Assert.IsTrue(cache.ContainsKey(1));
-                Assert.IsFalse(cache.ContainsKey(2));
+            Assert.IsTrue(cache.ContainsKey(1));
+            Assert.IsFalse(cache.ContainsKey(2));
 
-                Assert.Throws<ArgumentNullException>(() => cache.ContainsKey(null));
-            }
+            Assert.Throws<ArgumentNullException>(() => cache.ContainsKey(null));
         }
 
         /// <summary>
@@ -380,27 +365,24 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
         [Test]
         public void TestContainsKeys()
         {
-            using (var client = GetClient())
-            {
-                var cache = client.GetCache<int, int>(CacheName);
+            var cache = GetClientCache<int, int>();
 
-                cache[1] = 1;
-                cache[2] = 2;
-                cache[3] = 3;
+            cache[1] = 1;
+            cache[2] = 2;
+            cache[3] = 3;
 
-                Assert.IsTrue(cache.ContainsKeys(new[] {1}));
-                Assert.IsTrue(cache.ContainsKeys(new[] {1, 2}));
-                Assert.IsTrue(cache.ContainsKeys(new[] {2, 1}));
-                Assert.IsTrue(cache.ContainsKeys(new[] {1, 2, 3}));
-                Assert.IsTrue(cache.ContainsKeys(new[] {1, 3, 2}));
+            Assert.IsTrue(cache.ContainsKeys(new[] {1}));
+            Assert.IsTrue(cache.ContainsKeys(new[] {1, 2}));
+            Assert.IsTrue(cache.ContainsKeys(new[] {2, 1}));
+            Assert.IsTrue(cache.ContainsKeys(new[] {1, 2, 3}));
+            Assert.IsTrue(cache.ContainsKeys(new[] {1, 3, 2}));
 
-                Assert.IsFalse(cache.ContainsKeys(new[] {0}));
-                Assert.IsFalse(cache.ContainsKeys(new[] {0, 1}));
-                Assert.IsFalse(cache.ContainsKeys(new[] {1, 0}));
-                Assert.IsFalse(cache.ContainsKeys(new[] {1, 2, 3, 0}));
+            Assert.IsFalse(cache.ContainsKeys(new[] {0}));
+            Assert.IsFalse(cache.ContainsKeys(new[] {0, 1}));
+            Assert.IsFalse(cache.ContainsKeys(new[] {1, 0}));
+            Assert.IsFalse(cache.ContainsKeys(new[] {1, 2, 3, 0}));
 
-                Assert.Throws<ArgumentNullException>(() => cache.ContainsKeys(null));
-            }
+            Assert.Throws<ArgumentNullException>(() => cache.ContainsKeys(null));
         }
 
         /// <summary>
@@ -409,23 +391,20 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
         [Test]
         public void TestPutIfAbsent()
         {
-            using (var client = GetClient())
-            {
-                var cache = client.GetCache<int?, int?>(CacheName);
+            var cache = GetClientCache<int?, int?>();
 
-                Assert.IsFalse(cache.ContainsKey(1));
+            Assert.IsFalse(cache.ContainsKey(1));
 
-                var res = cache.PutIfAbsent(1, 1);
-                Assert.IsTrue(res);
-                Assert.AreEqual(1, cache[1]);
+            var res = cache.PutIfAbsent(1, 1);
+            Assert.IsTrue(res);
+            Assert.AreEqual(1, cache[1]);
 
-                res = cache.PutIfAbsent(1, 2);
-                Assert.IsFalse(res);
-                Assert.AreEqual(1, cache[1]);
+            res = cache.PutIfAbsent(1, 2);
+            Assert.IsFalse(res);
+            Assert.AreEqual(1, cache[1]);
 
-                Assert.Throws<ArgumentNullException>(() => cache.PutIfAbsent(null, 1));
-                Assert.Throws<ArgumentNullException>(() => cache.PutIfAbsent(1, null));
-            }
+            Assert.Throws<ArgumentNullException>(() => cache.PutIfAbsent(null, 1));
+            Assert.Throws<ArgumentNullException>(() => cache.PutIfAbsent(1, null));
         }
 
         /// <summary>
@@ -434,25 +413,22 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
         [Test]
         public void TestGetAndPutIfAbsent()
         {
-            using (var client = GetClient())
-            {
-                var cache = client.GetCache<int?, int?>(CacheName);
+            var cache = GetClientCache<int?, int?>();
 
-                Assert.IsFalse(cache.ContainsKey(1));
+            Assert.IsFalse(cache.ContainsKey(1));
 
-                var res = cache.GetAndPutIfAbsent(1, 1);
-                Assert.IsFalse(res.Success);
-                Assert.IsNull(res.Value);
-                Assert.AreEqual(1, cache[1]);
+            var res = cache.GetAndPutIfAbsent(1, 1);
+            Assert.IsFalse(res.Success);
+            Assert.IsNull(res.Value);
+            Assert.AreEqual(1, cache[1]);
 
-                res = cache.GetAndPutIfAbsent(1, 2);
-                Assert.IsTrue(res.Success);
-                Assert.AreEqual(1, res.Value);
-                Assert.AreEqual(1, cache[1]);
+            res = cache.GetAndPutIfAbsent(1, 2);
+            Assert.IsTrue(res.Success);
+            Assert.AreEqual(1, res.Value);
+            Assert.AreEqual(1, cache[1]);
 
-                Assert.Throws<ArgumentNullException>(() => cache.GetAndPutIfAbsent(null, 1));
-                Assert.Throws<ArgumentNullException>(() => cache.GetAndPutIfAbsent(1, null));
-            }
+            Assert.Throws<ArgumentNullException>(() => cache.GetAndPutIfAbsent(null, 1));
+            Assert.Throws<ArgumentNullException>(() => cache.GetAndPutIfAbsent(1, null));
         }
 
         /// <summary>
@@ -461,25 +437,22 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
         [Test]
         public void TestReplace()
         {
-            using (var client = GetClient())
-            {
-                var cache = client.GetCache<int?, int?>(CacheName);
+            var cache = GetClientCache<int?, int?>();
 
-                Assert.IsFalse(cache.ContainsKey(1));
+            Assert.IsFalse(cache.ContainsKey(1));
 
-                var res = cache.Replace(1, 1);
-                Assert.IsFalse(res);
-                Assert.IsFalse(cache.ContainsKey(1));
+            var res = cache.Replace(1, 1);
+            Assert.IsFalse(res);
+            Assert.IsFalse(cache.ContainsKey(1));
 
-                cache[1] = 1;
+            cache[1] = 1;
 
-                res = cache.Replace(1, 2);
-                Assert.IsTrue(res);
-                Assert.AreEqual(2, cache[1]);
+            res = cache.Replace(1, 2);
+            Assert.IsTrue(res);
+            Assert.AreEqual(2, cache[1]);
 
-                Assert.Throws<ArgumentNullException>(() => cache.Replace(null, 1));
-                Assert.Throws<ArgumentNullException>(() => cache.Replace(1, null));
-            }
+            Assert.Throws<ArgumentNullException>(() => cache.Replace(null, 1));
+            Assert.Throws<ArgumentNullException>(() => cache.Replace(1, null));
         }
 
         /// <summary>
@@ -488,30 +461,27 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
         [Test]
         public void TestReplaceIfEquals()
         {
-            using (var client = GetClient())
-            {
-                var cache = client.GetCache<int?, int?>(CacheName);
+            var cache = GetClientCache<int?, int?>();
 
-                Assert.IsFalse(cache.ContainsKey(1));
+            Assert.IsFalse(cache.ContainsKey(1));
 
-                var res = cache.Replace(1, 1, 2);
-                Assert.IsFalse(res);
-                Assert.IsFalse(cache.ContainsKey(1));
+            var res = cache.Replace(1, 1, 2);
+            Assert.IsFalse(res);
+            Assert.IsFalse(cache.ContainsKey(1));
 
-                cache[1] = 1;
+            cache[1] = 1;
 
-                res = cache.Replace(1, -1, 2);
-                Assert.IsFalse(res);
-                Assert.AreEqual(1, cache[1]);
+            res = cache.Replace(1, -1, 2);
+            Assert.IsFalse(res);
+            Assert.AreEqual(1, cache[1]);
 
-                res = cache.Replace(1, 1, 2);
-                Assert.IsTrue(res);
-                Assert.AreEqual(2, cache[1]);
+            res = cache.Replace(1, 1, 2);
+            Assert.IsTrue(res);
+            Assert.AreEqual(2, cache[1]);
 
-                Assert.Throws<ArgumentNullException>(() => cache.Replace(null, 1, 1));
-                Assert.Throws<ArgumentNullException>(() => cache.Replace(1, null, 1));
-                Assert.Throws<ArgumentNullException>(() => cache.Replace(1, 1, null));
-            }
+            Assert.Throws<ArgumentNullException>(() => cache.Replace(null, 1, 1));
+            Assert.Throws<ArgumentNullException>(() => cache.Replace(1, null, 1));
+            Assert.Throws<ArgumentNullException>(() => cache.Replace(1, 1, null));
         }
 
         /// <summary>
@@ -523,7 +493,7 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
             using (var client = GetClient())
             {
                 // Primitives.
-                var cache = client.GetCache<int?, int?>(CacheName);
+                var cache = GetClientCache<int?, int?>();
 
                 cache.PutAll(Enumerable.Range(1, 3).ToDictionary(x => (int?) x, x => (int?) x + 1));
 
@@ -585,18 +555,15 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
         [Test]
         public void TestClear()
         {
-            using (var client = GetClient())
-            {
-                var cache = client.GetCache<int?, int?>(CacheName);
+            var cache = GetClientCache<int?, int?>();
 
-                cache[1] = 1;
-                cache[2] = 2;
+            cache[1] = 1;
+            cache[2] = 2;
 
-                cache.Clear();
+            cache.Clear();
 
-                Assert.IsFalse(cache.ContainsKey(1));
-                Assert.IsFalse(cache.ContainsKey(2));
-            }
+            Assert.IsFalse(cache.ContainsKey(1));
+            Assert.IsFalse(cache.ContainsKey(2));
         }
 
         /// <summary>
@@ -605,23 +572,20 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
         [Test]
         public void TestClearKey()
         {
-            using (var client = GetClient())
-            {
-                var cache = client.GetCache<int?, int?>(CacheName);
+            var cache = GetClientCache<int?, int?>();
 
-                cache[1] = 1;
-                cache[2] = 2;
+            cache[1] = 1;
+            cache[2] = 2;
 
-                cache.Clear(1);
-                Assert.IsFalse(cache.ContainsKey(1));
-                Assert.IsTrue(cache.ContainsKey(2));
+            cache.Clear(1);
+            Assert.IsFalse(cache.ContainsKey(1));
+            Assert.IsTrue(cache.ContainsKey(2));
 
-                cache.Clear(2);
-                Assert.IsFalse(cache.ContainsKey(1));
-                Assert.IsFalse(cache.ContainsKey(2));
+            cache.Clear(2);
+            Assert.IsFalse(cache.ContainsKey(1));
+            Assert.IsFalse(cache.ContainsKey(2));
 
-                Assert.Throws<ArgumentNullException>(() => cache.Clear(null));
-            }
+            Assert.Throws<ArgumentNullException>(() => cache.Clear(null));
         }
 
         /// <summary>
@@ -630,22 +594,19 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
         [Test]
         public void TestClearAll()
         {
-            using (var client = GetClient())
-            {
-                var cache = client.GetCache<int?, int?>(CacheName);
+            var cache = GetClientCache<int?, int?>();
 
-                cache[1] = 1;
-                cache[2] = 2;
-                cache[3] = 3;
+            cache[1] = 1;
+            cache[2] = 2;
+            cache[3] = 3;
 
-                cache.ClearAll(new int?[] {1, 3});
-                Assert.IsFalse(cache.ContainsKey(1));
-                Assert.IsTrue(cache.ContainsKey(2));
-                Assert.IsFalse(cache.ContainsKey(3));
+            cache.ClearAll(new int?[] {1, 3});
+            Assert.IsFalse(cache.ContainsKey(1));
+            Assert.IsTrue(cache.ContainsKey(2));
+            Assert.IsFalse(cache.ContainsKey(3));
 
-                Assert.Throws<ArgumentNullException>(() => cache.ClearAll(null));
-                Assert.Throws<IgniteClientException>(() => cache.ClearAll(new int?[] {null, 1}));
-            }
+            Assert.Throws<ArgumentNullException>(() => cache.ClearAll(null));
+            Assert.Throws<IgniteClientException>(() => cache.ClearAll(new int?[] {null, 1}));
         }
 
         /// <summary>
@@ -654,28 +615,25 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
         [Test]
         public void TestRemove()
         {
-            using (var client = GetClient())
-            {
-                var cache = client.GetCache<int?, int?>(CacheName);
+            var cache = GetClientCache<int?, int?>();
 
-                cache[1] = 1;
-                cache[2] = 2;
+            cache[1] = 1;
+            cache[2] = 2;
 
-                var res = cache.Remove(1);
-                Assert.IsTrue(res);
-                Assert.IsFalse(cache.ContainsKey(1));
-                Assert.IsTrue(cache.ContainsKey(2));
+            var res = cache.Remove(1);
+            Assert.IsTrue(res);
+            Assert.IsFalse(cache.ContainsKey(1));
+            Assert.IsTrue(cache.ContainsKey(2));
 
-                res = cache.Remove(2);
-                Assert.IsTrue(res);
-                Assert.IsFalse(cache.ContainsKey(1));
-                Assert.IsFalse(cache.ContainsKey(2));
+            res = cache.Remove(2);
+            Assert.IsTrue(res);
+            Assert.IsFalse(cache.ContainsKey(1));
+            Assert.IsFalse(cache.ContainsKey(2));
 
-                res = cache.Remove(-1);
-                Assert.IsFalse(res);
+            res = cache.Remove(-1);
+            Assert.IsFalse(res);
 
-                Assert.Throws<ArgumentNullException>(() => cache.Remove(null));
-            }
+            Assert.Throws<ArgumentNullException>(() => cache.Remove(null));
         }
 
         /// <summary>
@@ -684,35 +642,32 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
         [Test]
         public void TestRemoveKeyVal()
         {
-            using (var client = GetClient())
-            {
-                var cache = client.GetCache<int?, int?>(CacheName);
+            var cache = GetClientCache<int?, int?>();
 
-                cache[1] = 1;
-                cache[2] = 2;
+            cache[1] = 1;
+            cache[2] = 2;
 
-                var res = cache.Remove(1, 0);
-                Assert.IsFalse(res);
+            var res = cache.Remove(1, 0);
+            Assert.IsFalse(res);
 
-                res = cache.Remove(0, 0);
-                Assert.IsFalse(res);
+            res = cache.Remove(0, 0);
+            Assert.IsFalse(res);
 
-                res = cache.Remove(1, 1);
-                Assert.IsTrue(res);
-                Assert.IsFalse(cache.ContainsKey(1));
-                Assert.IsTrue(cache.ContainsKey(2));
+            res = cache.Remove(1, 1);
+            Assert.IsTrue(res);
+            Assert.IsFalse(cache.ContainsKey(1));
+            Assert.IsTrue(cache.ContainsKey(2));
 
-                res = cache.Remove(2, 2);
-                Assert.IsTrue(res);
-                Assert.IsFalse(cache.ContainsKey(1));
-                Assert.IsFalse(cache.ContainsKey(2));
+            res = cache.Remove(2, 2);
+            Assert.IsTrue(res);
+            Assert.IsFalse(cache.ContainsKey(1));
+            Assert.IsFalse(cache.ContainsKey(2));
 
-                res = cache.Remove(2, 2);
-                Assert.IsFalse(res);
+            res = cache.Remove(2, 2);
+            Assert.IsFalse(res);
 
-                Assert.Throws<ArgumentNullException>(() => cache.Remove(1, null));
-                Assert.Throws<ArgumentNullException>(() => cache.Remove(null, 1));
-            }
+            Assert.Throws<ArgumentNullException>(() => cache.Remove(1, null));
+            Assert.Throws<ArgumentNullException>(() => cache.Remove(null, 1));
         }
 
         /// <summary>
@@ -721,27 +676,24 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
         [Test]
         public void TestRemoveReys()
         {
-            using (var client = GetClient())
-            {
-                var cache = client.GetCache<int?, int?>(CacheName);
-                var keys = Enumerable.Range(1, 10).Cast<int?>().ToArray();
+            var cache = GetClientCache<int?, int?>();
+            var keys = Enumerable.Range(1, 10).Cast<int?>().ToArray();
 
-                cache.PutAll(keys.ToDictionary(x => x, x => x));
+            cache.PutAll(keys.ToDictionary(x => x, x => x));
 
-                cache.RemoveAll(keys.Skip(2));
-                CollectionAssert.AreEquivalent(keys.Take(2), cache.GetAll(keys).Select(x => x.Key));
+            cache.RemoveAll(keys.Skip(2));
+            CollectionAssert.AreEquivalent(keys.Take(2), cache.GetAll(keys).Select(x => x.Key));
 
-                cache.RemoveAll(new int?[] {1});
-                Assert.AreEqual(2, cache.GetAll(keys).Single().Value);
+            cache.RemoveAll(new int?[] {1});
+            Assert.AreEqual(2, cache.GetAll(keys).Single().Value);
 
-                cache.RemoveAll(keys);
-                cache.RemoveAll(keys);
+            cache.RemoveAll(keys);
+            cache.RemoveAll(keys);
 
-                Assert.AreEqual(0, cache.GetSize());
+            Assert.AreEqual(0, cache.GetSize());
 
-                Assert.Throws<ArgumentNullException>(() => cache.RemoveAll(null));
-                Assert.Throws<IgniteClientException>(() => cache.RemoveAll(new int?[] {1, null}));
-            }
+            Assert.Throws<ArgumentNullException>(() => cache.RemoveAll(null));
+            Assert.Throws<IgniteClientException>(() => cache.RemoveAll(new int?[] {1, null}));
         }
 
         /// <summary>
