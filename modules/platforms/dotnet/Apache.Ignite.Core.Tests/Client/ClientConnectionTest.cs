@@ -246,6 +246,7 @@ namespace Apache.Ignite.Core.Tests.Client
                 {
                     ops.Add(cache.PutAsync(i, i));
                 }
+                ops.First().Wait();
             }
 
             var completed = ops.Count(x => x.Status == TaskStatus.RanToCompletion);
@@ -256,8 +257,11 @@ namespace Apache.Ignite.Core.Tests.Client
 
             foreach (var task in failed)
             {
-                Assert.IsNotNull(task.Exception);
-                Assert.IsInstanceOf<ObjectDisposedException>(task.Exception.GetBaseException());
+                var ex = task.Exception;
+                Assert.IsNotNull(ex);
+                var baseEx = ex.GetBaseException();
+                Assert.IsNotNull((object) (baseEx as SocketException) ?? baseEx as ObjectDisposedException, 
+                    ex.ToString());
             }
         }
 
