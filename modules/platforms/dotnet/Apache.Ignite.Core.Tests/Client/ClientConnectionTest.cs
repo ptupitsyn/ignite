@@ -257,7 +257,8 @@ namespace Apache.Ignite.Core.Tests.Client
 
             foreach (var task in failed)
             {
-                Assert.IsInstanceOf<ObjectDisposedException>(task.Exception);
+                Assert.IsNotNull(task.Exception);
+                Assert.IsInstanceOf<ObjectDisposedException>(task.Exception.GetBaseException());
             }
         }
 
