@@ -871,6 +871,7 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
             {
                 for (var i = 0; i < count; i++)
                 {
+                    // ReSharper disable once AccessToModifiedClosure
                     var k = Interlocked.Increment(ref key);
                     var v = k + "_" + Guid.NewGuid();
 
