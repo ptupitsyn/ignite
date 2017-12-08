@@ -354,6 +354,7 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
         /// <param name="task">The task.</param>
         private static void WaitResult(Task task)
         {
+            // TODO ext method
             try
             {
                 task.Wait();
