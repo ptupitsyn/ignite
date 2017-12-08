@@ -38,32 +38,29 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
         [Test]
         public void TestPutGetPrimitives()
         {
-            using (var client = GetClient())
-            {
-                GetCache<string>().Put(1, "foo");
+            GetCache<string>().Put(1, "foo");
 
-                var clientCache = client.GetCache<int?, string>(CacheName);
+            var clientCache = GetClientCache<int?, string>();
 
-                clientCache.Put(2, "bar");
-                clientCache[3] = "baz";
+            clientCache.Put(2, "bar");
+            clientCache[3] = "baz";
 
-                // Existing key.
-                Assert.AreEqual("foo", clientCache.Get(1));
-                Assert.AreEqual("foo", clientCache[1]);
-                Assert.AreEqual("bar", clientCache[2]);
-                Assert.AreEqual("baz", clientCache[3]);
+            // Existing key.
+            Assert.AreEqual("foo", clientCache.Get(1));
+            Assert.AreEqual("foo", clientCache[1]);
+            Assert.AreEqual("bar", clientCache[2]);
+            Assert.AreEqual("baz", clientCache[3]);
 
-                // Missing key.
-                Assert.Throws<KeyNotFoundException>(() => clientCache.Get(-1));
+            // Missing key.
+            Assert.Throws<KeyNotFoundException>(() => clientCache.Get(-1));
 
-                // Null key.
-                Assert.Throws<ArgumentNullException>(() => clientCache.Get(null));
+            // Null key.
+            Assert.Throws<ArgumentNullException>(() => clientCache.Get(null));
 
-                // Null vs 0.
-                var intCache = client.GetCache<int?, int?>(CacheName);
-                intCache.Put(1, 0);
-                Assert.AreEqual(0, intCache.Get(1));
-            }
+            // Null vs 0.
+            var intCache = GetClientCache<int?, int?>();
+            intCache.Put(1, 0);
+            Assert.AreEqual(0, intCache.Get(1));
         }
 
         /// <summary>
@@ -72,14 +69,11 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
         [Test]
         public void TestPutGetEmptyObject()
         {
-            using (var client = GetClient())
-            {
-                var serverCache = GetCache<EmptyObject>();
-                var clientCache = client.GetCache<int, EmptyObject>(CacheName);
+            var serverCache = GetCache<EmptyObject>();
+            var clientCache = GetClientCache<EmptyObject>();
 
-                serverCache.Put(1, new EmptyObject());
-                Assert.IsNotNull(clientCache.Get(1));
-            }
+            serverCache.Put(1, new EmptyObject());
+            Assert.IsNotNull(clientCache.Get(1));
         }
 
         /// <summary>
@@ -213,35 +207,32 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
         [Test]
         public void TestTryGet()
         {
-            using (var client = GetClient())
-            {
-                var cache = client.GetCache<int?, int>(CacheName);
+            var cache = GetClientCache<int?, int>();
 
-                cache[1] = 0;
-                cache[2] = 2;
+            cache[1] = 0;
+            cache[2] = 2;
 
-                // Non-existent key.
-                int res;
-                var success = cache.TryGet(0, out res);
+            // Non-existent key.
+            int res;
+            var success = cache.TryGet(0, out res);
 
-                Assert.AreEqual(0, res);
-                Assert.IsFalse(success);
+            Assert.AreEqual(0, res);
+            Assert.IsFalse(success);
 
-                // Key with default value.
-                success = cache.TryGet(1, out res);
+            // Key with default value.
+            success = cache.TryGet(1, out res);
 
-                Assert.AreEqual(0, res);
-                Assert.IsTrue(success);
+            Assert.AreEqual(0, res);
+            Assert.IsTrue(success);
 
-                // Key with custom value.
-                success = cache.TryGet(2, out res);
+            // Key with custom value.
+            success = cache.TryGet(2, out res);
 
-                Assert.AreEqual(2, res);
-                Assert.IsTrue(success);
+            Assert.AreEqual(2, res);
+            Assert.IsTrue(success);
 
-                // Null key.
-                Assert.Throws<ArgumentNullException>(() => cache.TryGet(null, out res));
-            }
+            // Null key.
+            Assert.Throws<ArgumentNullException>(() => cache.TryGet(null, out res));
         }
 
         /// <summary>

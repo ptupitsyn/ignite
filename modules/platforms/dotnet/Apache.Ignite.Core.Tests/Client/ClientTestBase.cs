@@ -112,6 +112,14 @@ namespace Apache.Ignite.Core.Tests.Client
         }
 
         /// <summary>
+        /// Gets the client cache.
+        /// </summary>
+        protected ICacheClient<TK, TV> GetClientCache<TK, TV>()
+        {
+            return Client.GetCache<TK, TV>(CacheName);
+        }
+
+        /// <summary>
         /// Gets the client.
         /// </summary>
         protected IIgniteClient GetClient()
