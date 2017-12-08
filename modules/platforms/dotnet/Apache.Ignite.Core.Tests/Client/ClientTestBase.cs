@@ -116,7 +116,7 @@ namespace Apache.Ignite.Core.Tests.Client
         /// </summary>
         protected virtual ICacheClient<TK, TV> GetClientCache<TK, TV>(string cacheName = CacheName)
         {
-            return Client.GetCache<TK, TV>(CacheName);
+            return Client.GetCache<TK, TV>(cacheName ?? CacheName);
         }
 
         /// <summary>
