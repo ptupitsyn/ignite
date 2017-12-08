@@ -721,38 +721,35 @@ namespace Apache.Ignite.Core.Tests.Client.Cache
         [Test]
         public void TestGetSize()
         {
-            using (var client = GetClient())
-            {
-                var cache = client.GetCache<int, int>(CacheName);
+            var cache = GetClientCache<int>();
 
-                Assert.AreEqual(0, cache.GetSize());
-                Assert.AreEqual(0, cache.GetSize(CachePeekMode.All));
-                Assert.AreEqual(0, cache.GetSize(CachePeekMode.Backup));
-                Assert.AreEqual(0, cache.GetSize(CachePeekMode.Near));
-                Assert.AreEqual(0, cache.GetSize(CachePeekMode.Offheap));
-                Assert.AreEqual(0, cache.GetSize(CachePeekMode.Onheap));
-                Assert.AreEqual(0, cache.GetSize(CachePeekMode.Primary));
+            Assert.AreEqual(0, cache.GetSize());
+            Assert.AreEqual(0, cache.GetSize(CachePeekMode.All));
+            Assert.AreEqual(0, cache.GetSize(CachePeekMode.Backup));
+            Assert.AreEqual(0, cache.GetSize(CachePeekMode.Near));
+            Assert.AreEqual(0, cache.GetSize(CachePeekMode.Offheap));
+            Assert.AreEqual(0, cache.GetSize(CachePeekMode.Onheap));
+            Assert.AreEqual(0, cache.GetSize(CachePeekMode.Primary));
 
-                cache[1] = 1;
-                
-                Assert.AreEqual(1, cache.GetSize());
-                Assert.AreEqual(1, cache.GetSize(CachePeekMode.All));
-                Assert.AreEqual(0, cache.GetSize(CachePeekMode.Backup));
-                Assert.AreEqual(0, cache.GetSize(CachePeekMode.Near));
-                Assert.AreEqual(1, cache.GetSize(CachePeekMode.Offheap));
-                Assert.AreEqual(0, cache.GetSize(CachePeekMode.Onheap));
-                Assert.AreEqual(1, cache.GetSize(CachePeekMode.Primary));
+            cache[1] = 1;
 
-                cache.PutAll(Enumerable.Range(1, 100).ToDictionary(x => x, x => x));
-                
-                Assert.AreEqual(100, cache.GetSize());
-                Assert.AreEqual(100, cache.GetSize(CachePeekMode.All));
-                Assert.AreEqual(0, cache.GetSize(CachePeekMode.Backup));
-                Assert.AreEqual(0, cache.GetSize(CachePeekMode.Near));
-                Assert.AreEqual(100, cache.GetSize(CachePeekMode.Offheap));
-                Assert.AreEqual(0, cache.GetSize(CachePeekMode.Onheap));
-                Assert.AreEqual(100, cache.GetSize(CachePeekMode.Primary));
-            }
+            Assert.AreEqual(1, cache.GetSize());
+            Assert.AreEqual(1, cache.GetSize(CachePeekMode.All));
+            Assert.AreEqual(0, cache.GetSize(CachePeekMode.Backup));
+            Assert.AreEqual(0, cache.GetSize(CachePeekMode.Near));
+            Assert.AreEqual(1, cache.GetSize(CachePeekMode.Offheap));
+            Assert.AreEqual(0, cache.GetSize(CachePeekMode.Onheap));
+            Assert.AreEqual(1, cache.GetSize(CachePeekMode.Primary));
+
+            cache.PutAll(Enumerable.Range(1, 100).ToDictionary(x => x, x => x));
+
+            Assert.AreEqual(100, cache.GetSize());
+            Assert.AreEqual(100, cache.GetSize(CachePeekMode.All));
+            Assert.AreEqual(0, cache.GetSize(CachePeekMode.Backup));
+            Assert.AreEqual(0, cache.GetSize(CachePeekMode.Near));
+            Assert.AreEqual(100, cache.GetSize(CachePeekMode.Offheap));
+            Assert.AreEqual(0, cache.GetSize(CachePeekMode.Onheap));
+            Assert.AreEqual(100, cache.GetSize(CachePeekMode.Primary));
         }
 
         /// <summary>
