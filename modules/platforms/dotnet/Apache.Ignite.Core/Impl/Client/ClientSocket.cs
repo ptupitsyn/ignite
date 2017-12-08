@@ -568,8 +568,12 @@ namespace Apache.Ignite.Core.Impl.Client
             _listenerEvent.Dispose();
             _socket.Dispose();
             _timeoutCheckTimer.Dispose();
-            _sendRequestLock.Dispose();
             EndRequestsWithError();
+
+            _sendRequestLock.TryEnterWriteLock(-1);
+            // TODO
+            //_sendRequestLock.ExitWriteLock();
+            _sendRequestLock.Dispose();
         }
 
         /// <summary>
