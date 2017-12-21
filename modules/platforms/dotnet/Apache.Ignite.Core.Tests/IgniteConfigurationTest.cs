@@ -568,6 +568,8 @@ namespace Apache.Ignite.Core.Tests
             Assert.AreEqual(DataStorageConfiguration.DefaultSystemRegionMaxSize, cfg.SystemRegionMaxSize);
             Assert.AreEqual(DataStorageConfiguration.DefaultPageSize, cfg.PageSize);
             Assert.AreEqual(DataStorageConfiguration.DefaultConcurrencyLevel, cfg.ConcurrencyLevel);
+            Assert.AreEqual(DataStorageConfiguration.DefaultWalAutoArchiveAfterInactivity, 
+                cfg.WalAutoArchiveAfterInactivity);
         }
 
         /// <summary>
