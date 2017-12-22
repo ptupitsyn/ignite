@@ -187,7 +187,7 @@ namespace Apache.Ignite.Core.Impl.Client.Cache
         /// <summary>
         /// Writes the specified config.
         /// </summary>
-        public static void Write(IBinaryStream stream, CacheClientConfiguration cfg)
+        public static void Write(IBinaryStream stream, CacheClientConfiguration cfg, bool skipCodes = false)
         {
             Debug.Assert(stream != null);
             Debug.Assert(cfg != null);
@@ -196,9 +196,15 @@ namespace Apache.Ignite.Core.Impl.Client.Cache
             var writer = BinaryUtils.Marshaller.StartMarshal(stream);
             var pos = writer.Stream.Position;
             writer.WriteInt(0);  // Reserve for length.
-            writer.WriteShort(PropertyCount);  // Property count.
 
-            Action<Op> code = o => writer.WriteShort((short) o);
+            if (!skipCodes)
+            {
+                writer.WriteShort(PropertyCount); // Property count.
+            }
+
+            var code = skipCodes
+                ? (Action<Op>) (o => { })
+                : o => writer.WriteShort((short) o);
 
             code(Op.AtomicityMode);
             writer.WriteInt((int)cfg.AtomicityMode);
