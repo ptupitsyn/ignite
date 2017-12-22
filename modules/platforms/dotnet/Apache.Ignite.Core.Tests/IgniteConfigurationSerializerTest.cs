@@ -307,6 +307,7 @@ namespace Apache.Ignite.Core.Tests
             Assert.AreEqual(16, ds.WalSegments);
             Assert.AreEqual(17, ds.WalSegmentSize);
             Assert.AreEqual("wal-store", ds.WalPath);
+            Assert.AreEqual(TimeSpan.FromSeconds(18), ds.WalAutoArchiveAfterInactivity);
             Assert.IsTrue(ds.WriteThrottlingEnabled);
 
             var dr = ds.DataRegionConfigurations.Single();
