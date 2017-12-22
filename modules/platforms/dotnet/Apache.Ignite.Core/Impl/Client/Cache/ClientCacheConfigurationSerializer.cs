@@ -33,7 +33,7 @@ namespace Apache.Ignite.Core.Impl.Client.Cache
     internal static class ClientCacheConfigurationSerializer
     {
         /** */
-        private enum Op
+        private enum Op : short
         {
             AtomicityMode = 0, 
             Backups = 1, 
@@ -194,43 +194,106 @@ namespace Apache.Ignite.Core.Impl.Client.Cache
             var pos = writer.Stream.Position;
             writer.WriteInt(0);  // Reserve for length.
 
+            Action<Op> code = o => writer.WriteShort((short) o);
+
+            code(Op.AtomicityMode);
             writer.WriteInt((int)cfg.AtomicityMode);
+            
+            code(Op.Backups);
             writer.WriteInt(cfg.Backups);
+            
+            code(Op.CacheMode);
             writer.WriteInt((int)cfg.CacheMode);
+            
+            code(Op.CopyOnRead);
             writer.WriteBoolean(cfg.CopyOnRead);
+            
+            code(Op.DataRegionName);
             writer.WriteString(cfg.DataRegionName);
+            
+            code(Op.EagerTtl);
             writer.WriteBoolean(cfg.EagerTtl);
+            
+            code(Op.StatisticsEnabled);
             writer.WriteBoolean(cfg.EnableStatistics);
+            
+            code(Op.GroupName);
             writer.WriteString(cfg.GroupName);
+            
+            code(Op.Invalidate);
             writer.WriteBoolean(cfg.Invalidate);
+
+            code(Op.DefaultLockTimeout);
             writer.WriteTimeSpanAsLong(cfg.LockTimeout);
+
+            code(Op.MaxConcurrentAsyncOperations);
             writer.WriteInt(cfg.MaxConcurrentAsyncOperations);
+
+            code(Op.MaxQueryIteratorsCount);
             writer.WriteInt(cfg.MaxQueryIteratorsCount);
+
+            code(Op.Name);
             writer.WriteString(cfg.Name);
+            
+            code(Op.OnheapCacheEnabled);
             writer.WriteBoolean(cfg.OnheapCacheEnabled);
+            
+            code(Op.PartitionLossPolicy);
             writer.WriteInt((int)cfg.PartitionLossPolicy);
+            
+            code(Op.QueryDetailMetricsSize);
             writer.WriteInt(cfg.QueryDetailMetricsSize);
+            
+            code(Op.QueryParallelism);
             writer.WriteInt(cfg.QueryParallelism);
+            
+            code(Op.ReadFromBackup);
             writer.WriteBoolean(cfg.ReadFromBackup);
+            
+            code(Op.RebalanceBatchSize);
             writer.WriteInt(cfg.RebalanceBatchSize);
+            
+            code(Op.RebalanceBatchesPrefetchCount);
             writer.WriteLong(cfg.RebalanceBatchesPrefetchCount);
+            
+            code(Op.RebalanceDelay);
             writer.WriteTimeSpanAsLong(cfg.RebalanceDelay);
+            
+            code(Op.RebalanceMode);
             writer.WriteInt((int)cfg.RebalanceMode);
+            
+            code(Op.RebalanceOrder);
             writer.WriteInt(cfg.RebalanceOrder);
+            
+            code(Op.RebalanceThrottle);
             writer.WriteTimeSpanAsLong(cfg.RebalanceThrottle);
+            
+            code(Op.RebalanceTimeout);
             writer.WriteTimeSpanAsLong(cfg.RebalanceTimeout);
+            
+            code(Op.SqlEscapeAll);
             writer.WriteBoolean(cfg.SqlEscapeAll);
+            
+            code(Op.SqlIndexMaxInlineSize);
             writer.WriteInt(cfg.SqlIndexMaxInlineSize);
+            
+            code(Op.SqlSchema);
             writer.WriteString(cfg.SqlSchema);
+            
+            code(Op.WriteSynchronizationMode);
             writer.WriteInt((int)cfg.WriteSynchronizationMode);
 
+            code(Op.KeyConfiguration);
             writer.WriteCollectionRaw(cfg.KeyConfiguration);
+            
+            code(Op.QueryEntities);
             writer.WriteCollectionRaw(cfg.QueryEntities);
 
             // Write length (so that part of the config can be skipped).
             var len = writer.Stream.Position - pos - 4;
             writer.Stream.WriteInt(pos, len);
         }
+        
         /// <summary>
         /// Reads the config.
         /// </summary>
