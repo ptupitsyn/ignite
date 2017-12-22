@@ -225,6 +225,7 @@ namespace Apache.Ignite.Core.Configuration
             SystemRegionMaxSize = reader.ReadLong();
             PageSize = reader.ReadInt();
             ConcurrencyLevel = reader.ReadInt();
+            WalAutoArchiveAfterInactivity = reader.ReadLongAsTimespan();
 
             var count = reader.ReadInt();
 
@@ -275,6 +276,7 @@ namespace Apache.Ignite.Core.Configuration
             writer.WriteLong(SystemRegionMaxSize);
             writer.WriteInt(PageSize);
             writer.WriteInt(ConcurrencyLevel);
+            writer.WriteTimeSpanAsLong(WalAutoArchiveAfterInactivity);
 
             if (DataRegionConfigurations != null)
             {
