@@ -32,6 +32,42 @@ namespace Apache.Ignite.Core.Impl.Client.Cache
     /// </summary>
     internal static class ClientCacheConfigurationSerializer
     {
+        /** */
+        private enum Op
+        {
+            AtomicityMode = 0, 
+            Backups = 1, 
+            CacheMode = 2, 
+            CopyOnRead = 3, 
+            DataRegionName = 4, 
+            EagerTtl = 5, 
+            StatisticsEnabled = 6, 
+            GroupName = 7, 
+            Invalidate = 8, 
+            DefaultLockTimeout = 9, 
+            MaxConcurrentAsyncOperations = 10, 
+            MaxQueryIteratorsCount = 11, 
+            Name = 12, 
+            OnheapCacheEnabled = 13, 
+            PartitionLossPolicy = 14, 
+            QueryDetailMetricsSize = 15, 
+            QueryParallelism = 16, 
+            ReadFromBackup = 17, 
+            RebalanceBatchSize = 18, 
+            RebalanceBatchesPrefetchCount = 19, 
+            RebalanceDelay = 20, 
+            RebalanceMode = 21, 
+            RebalanceOrder = 22, 
+            RebalanceThrottle = 23, 
+            RebalanceTimeout = 24, 
+            SqlEscapeAll = 25, 
+            SqlIndexMaxInlineSize = 26, 
+            SqlSchema = 27, 
+            WriteSynchronizationMode = 28, 
+            KeyConfiguration = 29, 
+            QueryEntities = 30
+        }
+        
         /// <summary>
         /// Copies one cache configuration to another.
         /// </summary>
