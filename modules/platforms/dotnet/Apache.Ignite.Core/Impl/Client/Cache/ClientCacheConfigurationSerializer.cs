@@ -32,7 +32,7 @@ namespace Apache.Ignite.Core.Impl.Client.Cache
     /// </summary>
     internal static class ClientCacheConfigurationSerializer
     {
-        /** */
+        /** Config property opcodes. */
         private enum Op : short
         {
             AtomicityMode = 0, 
@@ -67,6 +67,9 @@ namespace Apache.Ignite.Core.Impl.Client.Cache
             KeyConfiguration = 29, 
             QueryEntities = 30
         }
+
+        /** Property count. */
+        private static readonly short PropertyCount = (short) Enum.GetValues(typeof(Op)).Length;
         
         /// <summary>
         /// Copies one cache configuration to another.
@@ -193,6 +196,7 @@ namespace Apache.Ignite.Core.Impl.Client.Cache
             var writer = BinaryUtils.Marshaller.StartMarshal(stream);
             var pos = writer.Stream.Position;
             writer.WriteInt(0);  // Reserve for length.
+            writer.WriteShort(PropertyCount);  // Property count.
 
             Action<Op> code = o => writer.WriteShort((short) o);
 

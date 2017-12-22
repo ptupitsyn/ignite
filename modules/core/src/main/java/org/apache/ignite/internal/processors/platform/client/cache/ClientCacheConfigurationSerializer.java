@@ -212,7 +212,112 @@ public class ClientCacheConfigurationSerializer {
     static CacheConfiguration read(BinaryRawReader reader) {
         reader.readInt();  // Skip length.
 
-        CacheConfiguration cfg = new CacheConfiguration()
+        short propCnt = reader.readShort();
+
+        CacheConfiguration cfg = new CacheConfiguration();
+
+        for (int i = 0; i < propCnt; i++) {
+            short code = reader.readShort();
+
+            switch (code) {
+                case ATOMICITY_MODE:
+                    cfg.setAtomicityMode(CacheAtomicityMode.fromOrdinal(reader.readInt()));
+                    break;
+
+                case BACKUPS:
+                    break;
+
+                case CACHE_MODE:
+                    break;
+
+                case COPY_ON_READ:
+                    break;
+
+                case DATA_REGION_NAME:
+                    break;
+
+                case EAGER_TTL:
+                    break;
+
+                case STATISTICS_ENABLED:
+                    break;
+
+                case GROUP_NAME:
+                    break;
+
+                case INVALIDATE:
+                    break;
+
+                case DEFAULT_LOCK_TIMEOUT:
+                    break;
+
+                case MAX_CONCURRENT_ASYNC_OPERATIONS:
+                    break;
+
+                case MAX_QUERY_ITERATORS_COUNT:
+                    break;
+
+                case NAME:
+                    break;
+
+                case ONHEAP_CACHE_ENABLED:
+                    break;
+
+                case PARTITION_LOSS_POLICY:
+                    break;
+
+                case QUERY_DETAIL_METRICS_SIZE:
+                    break;
+
+                case QUERY_PARALLELISM:
+                    break;
+
+                case READ_FROM_BACKUP:
+                    break;
+
+                case REBALANCE_BATCH_SIZE:
+                    break;
+
+                case REBALANCE_BATCHES_PREFETCH_COUNT:
+                    break;
+
+                case REBALANCE_DELAY:
+                    break;
+
+                case REBALANCE_MODE:
+                    break;
+
+                case REBALANCE_ORDER:
+                    break;
+
+                case REBALANCE_THROTTLE:
+                    break;
+
+                case REBALANCE_TIMEOUT:
+                    break;
+
+                case SQL_ESCAPE_ALL:
+                    break;
+
+                case SQL_INDEX_MAX_INLINE_SIZE:
+                    break;
+
+                case SQL_SCHEMA:
+                    break;
+
+                case WRITE_SYNCHRONIZATION_MODE:
+                    break;
+
+                case KEY_CONFIGURATION:
+                    break;
+
+                case QUERY_ENTITIES:
+                    break;
+
+            }
+        }
+
+        cfg
                 .setAtomicityMode(CacheAtomicityMode.fromOrdinal(reader.readInt()))
                 .setBackups(reader.readInt())
                 .setCacheMode(CacheMode.fromOrdinal(reader.readInt()))
