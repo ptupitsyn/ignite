@@ -285,7 +285,8 @@ namespace Apache.Ignite.Core.Tests.Client
                 }
             };
 
-            Ignition.Start(cfg);
+            var ignite = Ignition.Start(cfg);
+            Assert.AreEqual(100, ignite.GetConfiguration().ClientConnectorConfiguration.IdleTimeout.TotalMilliseconds);
 
             using (var client = StartClient())
             {
@@ -293,10 +294,10 @@ namespace Apache.Ignite.Core.Tests.Client
                 cache[1] = 1;
                 Assert.AreEqual(1, cache[1]);
                 
-                Thread.Sleep(50);
+                Thread.Sleep(90);
                 Assert.AreEqual(1, cache[1]);
                 
-                Thread.Sleep(150);
+                Thread.Sleep(900);
                 Assert.AreEqual(1, cache[1]);
             }
         }
