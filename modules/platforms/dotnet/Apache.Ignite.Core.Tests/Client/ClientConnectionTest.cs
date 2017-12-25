@@ -272,6 +272,36 @@ namespace Apache.Ignite.Core.Tests.Client
         }
 
         /// <summary>
+        /// Tests the <see cref="ClientConnectorConfiguration.IdleTimeout"/> property.
+        /// </summary>
+        [Test]
+        public void TestIdleTimeout()
+        {
+            var cfg = new IgniteConfiguration(TestUtils.GetTestConfiguration())
+            {
+                ClientConnectorConfiguration = new ClientConnectorConfiguration
+                {
+                    IdleTimeout = TimeSpan.FromMilliseconds(100)
+                }
+            };
+
+            Ignition.Start(cfg);
+
+            using (var client = StartClient())
+            {
+                var cache = client.GetOrCreateCache<int, int>("foo");
+                cache[1] = 1;
+                Assert.AreEqual(1, cache[1]);
+                
+                Thread.Sleep(50);
+                Assert.AreEqual(1, cache[1]);
+                
+                Thread.Sleep(150);
+                Assert.AreEqual(1, cache[1]);
+            }
+        }
+
+        /// <summary>
         /// Starts the client.
         /// </summary>
         private static IIgniteClient StartClient()
