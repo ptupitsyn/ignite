@@ -275,6 +275,7 @@ namespace Apache.Ignite.Core.Tests.Client
         /// Tests the <see cref="ClientConnectorConfiguration.IdleTimeout"/> property.
         /// </summary>
         [Test]
+        [Category(TestUtils.CategoryIntensive)]
         public void TestIdleTimeout()
         {
             var cfg = new IgniteConfiguration(TestUtils.GetTestConfiguration())
@@ -297,8 +298,10 @@ namespace Apache.Ignite.Core.Tests.Client
                 Thread.Sleep(90);
                 Assert.AreEqual(1, cache[1]);
                 
-                Thread.Sleep(900);
-                Assert.AreEqual(1, cache[1]);
+                // Idle check frequency is 2 seconds.
+                Thread.Sleep(4000);
+                var ex = Assert.Throws<SocketException>(() => cache.Get(1));
+                Assert.AreEqual(SocketError.ConnectionAborted, ex.SocketErrorCode);
             }
         }
 
