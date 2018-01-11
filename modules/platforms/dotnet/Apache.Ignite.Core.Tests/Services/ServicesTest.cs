@@ -30,7 +30,6 @@ namespace Apache.Ignite.Core.Tests.Services
     using Apache.Ignite.Core.Common;
     using Apache.Ignite.Core.Resource;
     using Apache.Ignite.Core.Services;
-    using Apache.Ignite.Core.Tests.Compute;
     using NUnit.Framework;
 
     /// <summary>
@@ -72,7 +71,6 @@ namespace Apache.Ignite.Core.Tests.Services
         public void SetUp()
         {
             StartGrids();
-            EventsTestHelper.ListenResult = true;
         }
 
         /// <summary>
@@ -96,8 +94,6 @@ namespace Apache.Ignite.Core.Tests.Services
             }
             finally
             {
-                EventsTestHelper.AssertFailures();
-
                 if (TestContext.CurrentContext.Test.Name.StartsWith("TestEventTypes"))
                     StopGrids(); // clean events for other tests
             }
@@ -888,14 +884,16 @@ namespace Apache.Ignite.Core.Tests.Services
         /// </summary>
         private IgniteConfiguration GetConfiguration(string springConfigUrl)
         {
+#if !NETCOREAPP2_0
             if (!CompactFooter)
-                springConfigUrl = ComputeApiTestFullFooter.ReplaceFooterSetting(springConfigUrl);
+            {
+                springConfigUrl = Compute.ComputeApiTestFullFooter.ReplaceFooterSetting(springConfigUrl);
+            }
+#endif
 
-            return new IgniteConfiguration
+            return new IgniteConfiguration(TestUtils.GetTestConfiguration())
             {
                 SpringConfigUrl = springConfigUrl,
-                JvmClasspath = TestUtils.CreateTestClasspath(),
-                JvmOptions = TestUtils.TestJavaOptions(),
                 BinaryConfiguration = new BinaryConfiguration(
                     typeof (TestIgniteServiceBinarizable),
                     typeof (TestIgniteServiceBinarizableErr),
