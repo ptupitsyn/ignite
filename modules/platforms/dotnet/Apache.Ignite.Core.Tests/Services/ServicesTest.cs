@@ -347,8 +347,7 @@ namespace Apache.Ignite.Core.Tests.Services
 
             // .. but setter does not
             var ex = Assert.Throws<ServiceInvocationException>(() => { prx.TestProperty = new object(); });
-            Assert.IsNotNull(ex.InnerException);
-            Assert.AreEqual("Specified cast is not valid.", ex.InnerException.Message);
+            Assert.IsInstanceOf<InvalidCastException>(ex.InnerException);
         }
 
         /// <summary>
@@ -837,9 +836,9 @@ namespace Apache.Ignite.Core.Tests.Services
             if (Grid1 != null)
                 return;
 
-            Grid1 = Ignition.Start(GetConfiguration("config\\compute\\compute-grid1.xml"));
-            Grid2 = Ignition.Start(GetConfiguration("config\\compute\\compute-grid2.xml"));
-            Grid3 = Ignition.Start(GetConfiguration("config\\compute\\compute-grid3.xml"));
+            Grid1 = Ignition.Start(GetConfiguration("Config\\Compute\\compute-grid1.xml"));
+            Grid2 = Ignition.Start(GetConfiguration("Config\\Compute\\compute-grid2.xml"));
+            Grid3 = Ignition.Start(GetConfiguration("Config\\Compute\\compute-grid3.xml"));
 
             Grids = new[] { Grid1, Grid2, Grid3 };
         }
