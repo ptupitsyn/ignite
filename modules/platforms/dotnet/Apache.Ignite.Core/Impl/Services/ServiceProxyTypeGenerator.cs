@@ -40,7 +40,7 @@ namespace Apache.Ignite.Core.Impl.Services
         /// <summary>
         /// Generates the proxy for specified service type.
         /// </summary>
-        public static ProxyTypeGenerationResult Generate(Type serviceType)
+        public static Tuple<Type, MethodInfo[]> Generate(Type serviceType)
         {
             Debug.Assert(serviceType != null);
             Debug.Assert(serviceType.FullName != null);
@@ -66,7 +66,7 @@ namespace Apache.Ignite.Core.Impl.Services
             }
 
             var type = proxyType.CreateType();
-            return new ProxyTypeGenerationResult(type, buildContext.Methods);
+            return Tuple.Create(type, buildContext.Methods);
         }
 
         /// <summary>

@@ -51,7 +51,7 @@ namespace Apache.Ignite.Core.Impl.Services
         {
             // Generate proxy class
             var result = ServiceProxyTypeGenerator.Generate(typeof(T));
-            var typeCtr = result.Type.GetConstructor(new[] { typeof(ProxyAction), typeof(MethodInfo[]) });
+            var typeCtr = result.Item1.GetConstructor(new[] { typeof(ProxyAction), typeof(MethodInfo[]) });
             Debug.Assert(typeCtr != null);
 
             // Generate method that creates proxy class instance.
@@ -59,7 +59,7 @@ namespace Apache.Ignite.Core.Impl.Services
             var action = Expression.Parameter(typeof(ProxyAction));
 
             // Call constructor and pass action parameter and array of methods.
-            var ctr = Expression.New(typeCtr, action, Expression.Constant(result.Methods));
+            var ctr = Expression.New(typeCtr, action, Expression.Constant(result.Item2));
             var lambda = Expression.Lambda<Func<ProxyAction, T>>(ctr, action);
 
             return lambda.Compile();
