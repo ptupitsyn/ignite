@@ -28,10 +28,13 @@ namespace Apache.Ignite.Core.Impl.Services
     /// </summary>
     internal static class ServiceProxyTypeGenerator
     {
+        /** */
         private static readonly Type ActionType = typeof(ProxyAction);
 
+        /** */
         private static readonly MethodInfo InvokeMethod = ActionType.GetMethod("Invoke");
 
+        /** */
         private static readonly ModuleBuilder ModuleBuilder = CreateModuleBuilder();
 
         /// <summary>
@@ -48,7 +51,9 @@ namespace Apache.Ignite.Core.Impl.Services
 
             var buildContext = new ProxyBuildContext(proxyType, serviceType);
             if (!isClass)
+            {
                 proxyType.AddInterfaceImplementation(serviceType);
+            }
 
             GenerateFields(buildContext);
             GenerateStaticConstructor(buildContext);
@@ -56,7 +61,9 @@ namespace Apache.Ignite.Core.Impl.Services
 
             buildContext.Methods = ServiceMethodHelper.GetVirtualMethods(buildContext.ServiceType);
             for (var i = 0; i < buildContext.Methods.Length; i++)
+            {
                 GenerateMethod(buildContext, i);
+            }
 
             var type = proxyType.CreateType();
             return new ProxyTypeGenerationResult(type, buildContext.Methods);
@@ -82,6 +89,9 @@ namespace Apache.Ignite.Core.Impl.Services
             return assemblyBuilder.DefineDynamicModule(name);
         }
 
+        /// <summary>
+        /// Generates readonly fields: action and method array.
+        /// </summary>
         private static void GenerateFields(ProxyBuildContext buildContext)
         {
             //static field - empty object array to optimize calls without parameters
@@ -95,6 +105,9 @@ namespace Apache.Ignite.Core.Impl.Services
                 FieldAttributes.Private | FieldAttributes.InitOnly);
         }
 
+        /// <summary>
+        /// Generates the static constructor (type initializer).
+        /// </summary>
         private static void GenerateStaticConstructor(ProxyBuildContext buildContext)
         {
             var cb = buildContext.ProxyType.DefineConstructor(
@@ -109,6 +122,9 @@ namespace Apache.Ignite.Core.Impl.Services
             gen.Emit(OpCodes.Ret);
         }
 
+        /// <summary>
+        /// Generates the constructor which calls base class (when necessary) and initializes fields.
+        /// </summary>
         private static void GenerateConstructor(ProxyBuildContext buildContext)
         {
             var baseType = buildContext.ServiceType;
@@ -124,19 +140,20 @@ namespace Apache.Ignite.Core.Impl.Services
                         "Service proxy does not support base types without parameterless constructor: " +
                         baseType.FullName);
             }
+
             var cb = buildContext.ProxyType.DefineConstructor(MethodAttributes.Public, CallingConventions.HasThis,
                 new[] {ActionType, typeof(MethodInfo[])});
             var gen = cb.GetILGenerator();
 
             if (isClass)
             {
-                //load "this"
+                // Load "this".
                 gen.Emit(OpCodes.Ldarg_0);
-                //call base constructor
+                // Call base constructor.
                 gen.Emit(OpCodes.Call, baseCtr);
             }
 
-            //assign parameters to fields
+            // Assign parameters to fields.
             gen.Emit(OpCodes.Ldarg_0);
             gen.Emit(OpCodes.Ldarg_1);
             gen.Emit(OpCodes.Stfld, buildContext.ActionField);
@@ -148,6 +165,9 @@ namespace Apache.Ignite.Core.Impl.Services
             gen.Emit(OpCodes.Ret);
         }
 
+        /// <summary>
+        /// Generates the overriding method which delegates to ProxyAction.
+        /// </summary>
         private static void GenerateMethod(ProxyBuildContext buildContext, int methodIndex)
         {
             var method = buildContext.Methods[methodIndex];
@@ -166,51 +186,58 @@ namespace Apache.Ignite.Core.Impl.Services
                 buildContext.ProxyType.DefineMethod(method.Name, attributes, method.ReturnType, parameterTypes);
             var gen = methodBuilder.GetILGenerator();
 
-            //prepare arguments for action invocation
+            // Prepare arguments for action invocation.
 
-            //load action field
+            // Load action field.
             gen.Emit(OpCodes.Ldarg_0);
             gen.Emit(OpCodes.Ldfld, buildContext.ActionField);
 
-            //load methods array field
+            // Load methods array field.
             gen.Emit(OpCodes.Ldarg_0);
             gen.Emit(OpCodes.Ldfld, buildContext.MethodsField);
-            //load index of method
+            
+            // Load index of method.
             gen.Emit(OpCodes.Ldc_I4, methodIndex);
-            //load element
+            
+            // Load array element.
             gen.Emit(OpCodes.Ldelem_Ref);
 
             if (parameters.Length > 0)
             {
-                //create array for action's parameters
+                // Create array for action's parameters.
                 gen.Emit(OpCodes.Ldc_I4, parameters.Length);
                 gen.Emit(OpCodes.Newarr, typeof(object));
 
-                //fill array
-                //load call arguments
+                // Fill array.
+                // Load call arguments.
                 for (var i = 0; i < parameters.Length; i++)
                 {
                     gen.Emit(OpCodes.Dup);
-                    //parameter's index in array
+                    
+                    // Parameter's index in array.
                     gen.Emit(OpCodes.Ldc_I4, i);
-                    //parameter's value
+                    
+                    // Parameter's value.
                     gen.Emit(OpCodes.Ldarg, i + 1);
                     if (parameterTypes[i].IsValueType)
+                    {
                         gen.Emit(OpCodes.Box, parameterTypes[i]);
-                    //set array's element
+                    }
+
+                    // Set array's element
                     gen.Emit(OpCodes.Stelem_Ref);
                 }
             }
             else
             {
-                //load static empty parameters field
+                // Load static empty parameters field.
                 gen.Emit(OpCodes.Ldsfld, buildContext.EmptyParametersField);
             }
 
-            //call action method
+            // Call action method.
             gen.Emit(OpCodes.Callvirt, InvokeMethod);
 
-            //load result
+            // Load result.
             if (method.ReturnType != typeof(void))
             {
                 if (method.ReturnType.IsValueType)
@@ -218,29 +245,35 @@ namespace Apache.Ignite.Core.Impl.Services
             }
             else
             {
-                //method should not return result. so, remove result from stack
+                // Method should not return result, so remove result from stack.
                 gen.Emit(OpCodes.Pop);
             }
             //exit
             gen.Emit(OpCodes.Ret);
         }
 
+        /// <summary>
+        /// Proxy build state.
+        /// </summary>
         private class ProxyBuildContext
         {
+            /// <summary>
+            /// Initializes a new instance of the <see cref="ProxyBuildContext"/> class.
+            /// </summary>
             public ProxyBuildContext(TypeBuilder proxyType, Type serviceType)
             {
                 ProxyType = proxyType;
                 ServiceType = serviceType;
             }
 
-            public TypeBuilder ProxyType { get; private set; }
-            public Type ServiceType { get; private set; }
+            /** */ public TypeBuilder ProxyType { get; private set; }
+            /** */ public Type ServiceType { get; private set; }
 
-            public FieldBuilder MethodsField { get; set; }
-            public FieldBuilder EmptyParametersField { get; set; }
-            public FieldBuilder ActionField { get; set; }
+            /** */ public FieldBuilder MethodsField { get; set; }
+            /** */ public FieldBuilder EmptyParametersField { get; set; }
+            /** */ public FieldBuilder ActionField { get; set; }
 
-            public MethodInfo[] Methods { get; set; }
+            /** */ public MethodInfo[] Methods { get; set; }
         }
     }
 }
