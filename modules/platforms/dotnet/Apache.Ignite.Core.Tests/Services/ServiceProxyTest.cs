@@ -190,7 +190,9 @@ namespace Apache.Ignite.Core.Tests.Services
                             "can't resolve ambiguity.", ex.Message);
         }
 
-#if !NETCOREAPP2_0
+        /// <summary>
+        /// Tests the exception.
+        /// </summary>
         [Test]
         public void TestException()
         {
@@ -211,7 +213,6 @@ namespace Apache.Ignite.Core.Tests.Services
 
             Assert.Throws<ServiceInvocationException>(() => prx.CustomExceptionMethod());
         }
-#endif
 
         [Test]
         public void TestBinarizableMarshallingException()
@@ -572,6 +573,7 @@ namespace Apache.Ignite.Core.Tests.Services
             /** <inheritdoc /> */
             public override int GetHashCode()
             {
+                // ReSharper disable once NonReadonlyMemberInGetHashCode
                 return IntProp.GetHashCode();
             }
 
