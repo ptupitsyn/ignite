@@ -43,10 +43,10 @@ namespace Apache.Ignite.Core.Impl.Services
         public static ProxyTypeGenerationResult Generate(Type serviceType)
         {
             Debug.Assert(serviceType != null);
+            Debug.Assert(serviceType.FullName != null);
 
             var isClass = serviceType.IsClass;
-            var proxyType = ModuleBuilder.DefineType(
-                string.Format("{0}", serviceType.FullName),
+            var proxyType = ModuleBuilder.DefineType(serviceType.FullName,
                 TypeAttributes.Class, isClass ? serviceType : null);
 
             var buildContext = new ProxyBuildContext(proxyType, serviceType);
