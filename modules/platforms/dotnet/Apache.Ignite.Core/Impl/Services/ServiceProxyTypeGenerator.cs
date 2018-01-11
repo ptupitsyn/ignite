@@ -94,13 +94,15 @@ namespace Apache.Ignite.Core.Impl.Services
         /// </summary>
         private static void GenerateFields(ProxyBuildContext buildContext)
         {
-            //static field - empty object array to optimize calls without parameters
-            buildContext.EmptyParametersField = buildContext.ProxyType.DefineField("_emptyParameters", typeof(object[]),
-                FieldAttributes.Static | FieldAttributes.Private | FieldAttributes.InitOnly);
-            //instance field for function to invoke
+            // Static field - empty object array to optimize calls without parameters.
+            buildContext.EmptyParametersField = buildContext.ProxyType.DefineField("_emptyParameters",
+                typeof(object[]), FieldAttributes.Static | FieldAttributes.Private | FieldAttributes.InitOnly);
+            
+            // Instance field for function to invoke.
             buildContext.ActionField = buildContext.ProxyType.DefineField("_action", ActionType,
                 FieldAttributes.Private | FieldAttributes.InitOnly);
-            //field - array with methods of service's type
+
+            // Field - array with methods of service's type.
             buildContext.MethodsField = buildContext.ProxyType.DefineField("_methods", typeof(MethodInfo[]),
                 FieldAttributes.Private | FieldAttributes.InitOnly);
         }
