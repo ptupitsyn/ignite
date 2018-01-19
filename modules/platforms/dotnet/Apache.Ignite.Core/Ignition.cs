@@ -150,9 +150,9 @@ namespace Apache.Ignite.Core
         /// <returns>Started Ignite.</returns>
         public static IIgnite StartFromApplicationConfiguration(string sectionName)
         {
-            var section = IgniteConfigurationManager.GetIgniteConfigurationSection(sectionName);
+            var configuration = IgniteConfigurationManager.GetIgniteConfiguration(sectionName);
 
-            return Start(section.IgniteConfiguration);
+            return Start(configuration);
         }
 
         /// <summary>
@@ -164,54 +164,9 @@ namespace Apache.Ignite.Core
         /// <returns>Started Ignite.</returns>
         public static IIgnite StartFromApplicationConfiguration(string sectionName, string configPath)
         {
-            var section = GetConfigurationSection<IgniteConfigurationSection>(sectionName, configPath);
+            var configuration = IgniteConfigurationManager.GetIgniteConfiguration(sectionName, configPath);
 
-            if (section.IgniteConfiguration == null)
-            {
-                throw new ConfigurationErrorsException(
-                    string.Format("{0} with name '{1}' in file '{2}' is defined in <configSections>, " +
-                                  "but not present in configuration.",
-                        typeof(IgniteConfigurationSection).Name, sectionName, configPath));
-            }
-
-            return Start(section.IgniteConfiguration);
-        }
-
-        /// <summary>
-        /// Gets the configuration section.
-        /// </summary>
-        private static T GetConfigurationSection<T>(string sectionName, string configPath)
-            where T : ConfigurationSection
-        {
-            IgniteArgumentCheck.NotNullOrEmpty(sectionName, "sectionName");
-            IgniteArgumentCheck.NotNullOrEmpty(configPath, "configPath");
-
-            var fileMap = GetConfigMap(configPath);
-            var config = ConfigurationManager.OpenMappedExeConfiguration(fileMap, ConfigurationUserLevel.None);
-
-            var section = config.GetSection(sectionName) as T;
-
-            if (section == null)
-            {
-                throw new ConfigurationErrorsException(
-                    string.Format("Could not find {0} with name '{1}' in file '{2}'",
-                        typeof(T).Name, sectionName, configPath));
-            }
-
-            return section;
-        }
-
-        /// <summary>
-        /// Gets the configuration file map.
-        /// </summary>
-        private static ExeConfigurationFileMap GetConfigMap(string fileName)
-        {
-            var fullFileName = Path.GetFullPath(fileName);
-
-            if (!File.Exists(fullFileName))
-                throw new ConfigurationErrorsException("Specified config file does not exist: " + fileName);
-
-            return new ExeConfigurationFileMap { ExeConfigFilename = fullFileName };
+            return Start(configuration);
         }
 
         /// <summary>
