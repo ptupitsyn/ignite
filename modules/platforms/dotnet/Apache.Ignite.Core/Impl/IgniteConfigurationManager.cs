@@ -17,10 +17,38 @@
 
 namespace Apache.Ignite.Core.Impl
 {
+    using System.Configuration;
+    using Apache.Ignite.Core.Impl.Common;
+
     /// <summary>
     /// Provides access to <see cref="IgniteConfigurationSection"/> in config files.
     /// </summary>
-    internal class IgniteConfigurationManager
+    internal static class IgniteConfigurationManager
     {
+        /// <summary>
+        /// Gets the ignite configuration section.
+        /// </summary>
+        public static IgniteConfigurationSection GetIgniteConfigurationSection(string sectionName)
+        {
+            IgniteArgumentCheck.NotNullOrEmpty(sectionName, "sectionName");
+
+            var section = ConfigurationManager.GetSection(sectionName) as IgniteConfigurationSection;
+
+            if (section == null)
+            {
+                throw new ConfigurationErrorsException(string.Format("Could not find {0} with name '{1}'",
+                    typeof(IgniteConfigurationSection).Name, sectionName));
+            }
+
+            if (section.IgniteConfiguration == null)
+            {
+                throw new ConfigurationErrorsException(
+                    string.Format("{0} with name '{1}' is defined in <configSections>, " +
+                                  "but not present in configuration.",
+                        typeof(IgniteConfigurationSection).Name, sectionName));
+            }
+
+            return section;
+        }
     }
 }
