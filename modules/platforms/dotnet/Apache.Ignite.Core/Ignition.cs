@@ -19,7 +19,6 @@ namespace Apache.Ignite.Core
 {
     using System;
     using System.Collections.Generic;
-    using System.Configuration;
     using System.Diagnostics.CodeAnalysis;
     using System.IO;
     using System.Linq;
@@ -746,25 +745,9 @@ namespace Apache.Ignite.Core
         /// <returns>Ignite client instance.</returns>
         public static IIgniteClient StartClient(string sectionName)
         {
-            IgniteArgumentCheck.NotNullOrEmpty(sectionName, "sectionName");
+            var configuration = IgniteConfigurationManager.GetIgniteClientConfiguration(sectionName);
 
-            var section = ConfigurationManager.GetSection(sectionName) as IgniteClientConfigurationSection;
-
-            if (section == null)
-            {
-                throw new ConfigurationErrorsException(string.Format("Could not find {0} with name '{1}'.",
-                    typeof(IgniteClientConfigurationSection).Name, sectionName));
-            }
-
-            if (section.IgniteClientConfiguration == null)
-            {
-                throw new ConfigurationErrorsException(
-                    string.Format("{0} with name '{1}' is defined in <configSections>, " +
-                                  "but not present in configuration.",
-                        typeof(IgniteClientConfigurationSection).Name, sectionName));
-            }
-
-            return StartClient(section.IgniteClientConfiguration);
+            return StartClient(configuration);
         }
 
         /// <summary>
@@ -776,17 +759,9 @@ namespace Apache.Ignite.Core
         /// <returns>Started Ignite.</returns>
         public static IIgniteClient StartClient(string sectionName, string configPath)
         {
-            var section = GetConfigurationSection<IgniteClientConfigurationSection>(sectionName, configPath);
+            var configuration = IgniteConfigurationManager.GetIgniteClientConfiguration(sectionName, configPath);
 
-            if (section.IgniteClientConfiguration == null)
-            {
-                throw new ConfigurationErrorsException(
-                    string.Format("{0} with name '{1}' in file '{2}' is defined in <configSections>, " +
-                                  "but not present in configuration.",
-                        typeof(IgniteClientConfigurationSection).Name, sectionName, configPath));
-            }
-
-            return StartClient(section.IgniteClientConfiguration);
+            return StartClient(configuration);
         }
 
         /// <summary>

@@ -19,6 +19,7 @@ namespace Apache.Ignite.Core.Impl
 {
     using System.Configuration;
     using System.IO;
+    using Apache.Ignite.Core.Client;
     using Apache.Ignite.Core.Impl.Common;
 
     /// <summary>
@@ -57,9 +58,6 @@ namespace Apache.Ignite.Core.Impl
         /// </summary>
         public static IgniteConfiguration GetIgniteConfiguration(string sectionName, string configPath)
         {
-            IgniteArgumentCheck.NotNullOrEmpty(sectionName, "sectionName");
-            IgniteArgumentCheck.NotNullOrEmpty(sectionName, "configPath");
-
             var section = GetConfigurationSection<IgniteConfigurationSection>(sectionName, configPath);
 
             if (section.IgniteConfiguration == null)
@@ -71,6 +69,50 @@ namespace Apache.Ignite.Core.Impl
             }
 
             return section.IgniteConfiguration;
+        }
+
+        /// <summary>
+        /// Gets the ignite client configuration.
+        /// </summary>
+        public static IgniteClientConfiguration GetIgniteClientConfiguration(string sectionName)
+        {
+            IgniteArgumentCheck.NotNullOrEmpty(sectionName, "sectionName");
+
+            var section = ConfigurationManager.GetSection(sectionName) as IgniteClientConfigurationSection;
+
+            if (section == null)
+            {
+                throw new ConfigurationErrorsException(string.Format("Could not find {0} with name '{1}'.",
+                    typeof(IgniteClientConfigurationSection).Name, sectionName));
+            }
+
+            if (section.IgniteClientConfiguration == null)
+            {
+                throw new ConfigurationErrorsException(
+                    string.Format("{0} with name '{1}' is defined in <configSections>, " +
+                                  "but not present in configuration.",
+                        typeof(IgniteClientConfigurationSection).Name, sectionName));
+            }
+
+            return section.IgniteClientConfiguration;
+        }
+
+        /// <summary>
+        /// Gets the ignite client configuration.
+        /// </summary>
+        public static IgniteClientConfiguration GetIgniteClientConfiguration(string sectionName, string configPath)
+        {
+            var section = GetConfigurationSection<IgniteClientConfigurationSection>(sectionName, configPath);
+
+            if (section.IgniteClientConfiguration == null)
+            {
+                throw new ConfigurationErrorsException(
+                    string.Format("{0} with name '{1}' in file '{2}' is defined in <configSections>, " +
+                                  "but not present in configuration.",
+                        typeof(IgniteClientConfigurationSection).Name, sectionName, configPath));
+            }
+
+            return section.IgniteClientConfiguration;
         }
 
         /// <summary>
@@ -109,9 +151,5 @@ namespace Apache.Ignite.Core.Impl
 
             return new ExeConfigurationFileMap { ExeConfigFilename = fullFileName };
         }
-
-
-
-
     }
 }
