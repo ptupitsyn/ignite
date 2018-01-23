@@ -818,6 +818,24 @@ namespace Apache.Ignite.Core.Impl
         }
 
         /** <inheritdoc /> */
+        public void DisableWal(string cacheName)
+        {
+            throw new NotImplementedException();
+        }
+
+        /** <inheritdoc /> */
+        public void EnableWal(string cacheName)
+        {
+            throw new NotImplementedException();
+        }
+
+        /** <inheritdoc /> */
+        public bool IsWalEnabled(string cacheName)
+        {
+            throw new NotImplementedException();
+        }
+
+        /** <inheritdoc /> */
 #pragma warning disable 618
         public IPersistentStoreMetrics GetPersistentStoreMetrics()
         {
