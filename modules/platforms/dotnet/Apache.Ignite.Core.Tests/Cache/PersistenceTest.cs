@@ -282,13 +282,12 @@ namespace Apache.Ignite.Core.Tests.Cache
         {
             using (var ignite = Ignition.Start(GetPersistentConfiguration()))
             {
-                var cache = ignite.CreateCache<int, int>("foo");
-                cache[1] = 1;
-
                 var cluster = ignite.GetCluster();
+                cluster.SetActive(true);
 
+                var cache = ignite.CreateCache<int, int>("foo");
                 Assert.IsTrue(cluster.IsWalEnabled(cache.Name));
-                Assert.IsTrue(cluster.IsWalEnabled("bar"));
+                cache[1] = 1;
 
                 cluster.DisableWal(cache.Name);
                 Assert.IsFalse(cluster.IsWalEnabled(cache.Name));
@@ -299,6 +298,16 @@ namespace Apache.Ignite.Core.Tests.Cache
 
                 Assert.AreEqual(1, cache[1]);
                 Assert.AreEqual(2, cache[2]);
+
+                // Check exceptions.
+                var ex = Assert.Throws<IgniteException>(() => cluster.IsWalEnabled("bar"));
+                Assert.AreEqual("Cache not found: bar", ex.Message);
+
+                ex = Assert.Throws<IgniteException>(() => cluster.DisableWal("bar"));
+                Assert.AreEqual("Cache doesn't exist: bar", ex.Message);
+
+                ex = Assert.Throws<IgniteException>(() => cluster.EnableWal("bar"));
+                Assert.AreEqual("Cache doesn't exist: bar", ex.Message);
             }
         }
 
