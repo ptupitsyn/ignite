@@ -275,6 +275,34 @@ namespace Apache.Ignite.Core.Tests.Cache
         }
 
         /// <summary>
+        /// Tests the wal disable/enable functionality.
+        /// </summary>
+        [Test]
+        public void TestWalDisableEnable()
+        {
+            using (var ignite = Ignition.Start(GetPersistentConfiguration()))
+            {
+                var cache = ignite.CreateCache<int, int>("foo");
+                cache[1] = 1;
+
+                var cluster = ignite.GetCluster();
+
+                Assert.IsTrue(cluster.IsWalEnabled(cache.Name));
+                Assert.IsTrue(cluster.IsWalEnabled("bar"));
+
+                cluster.DisableWal(cache.Name);
+                Assert.IsFalse(cluster.IsWalEnabled(cache.Name));
+                cache[2] = 2;
+
+                cluster.EnableWal(cache.Name);
+                Assert.IsTrue(cluster.IsWalEnabled(cache.Name));
+
+                Assert.AreEqual(1, cache[1]);
+                Assert.AreEqual(2, cache[2]);
+            }
+        }
+
+        /// <summary>
         /// Checks active state.
         /// </summary>
         private static void CheckIsActive(IIgnite ignite, bool isActive)
