@@ -22,7 +22,7 @@
 # Usage: ./update-versions 2.6.0
 #
 
-if [ $1 -eq 0 ]
+if [ $# -eq 0 ]
   then
     echo "Version not specified"
 fi
