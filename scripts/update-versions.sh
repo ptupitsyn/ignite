@@ -24,3 +24,4 @@
 
 echo Updating versions to $1 with Maven...
 mvn validate -P update-versions -D new.ignite.version=$1
+mvn validate versions:set -DnewVersion=$1 -Dnew.ignite.version=$1 -Pupdate-versions,all-java,all-scala,all-other -DgenerateBackupPoms=false -DgroupId=* -DartifactId=* -DoldVersion=* -DprocessDependencies=false
