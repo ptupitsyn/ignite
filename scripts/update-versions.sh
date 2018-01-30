@@ -25,6 +25,7 @@
 if [ $# -eq 0 ]
   then
     echo "Version not specified"
+    exit 1
 fi
 
 echo Updating Java versions to $1 with Maven...
