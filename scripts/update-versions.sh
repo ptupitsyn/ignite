@@ -19,7 +19,7 @@
 #
 # Updates Ignite version in Java pom files, .NET AssemblyInfo files, C++ configure files.
 # Run in Ignite sources root directory.
+# Usage: ./update-versions 2.6.0
 #
 
-$ver = "2.5.0"
-mvn validate -P update-versions -D new.ignite.version=2.5.0
+mvn validate -P update-versions -D new.ignite.version=$1
