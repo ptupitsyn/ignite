@@ -22,6 +22,8 @@
 # Usage: ./update-versions 2.6.0
 #
 
-echo Updating versions to $1 with Maven...
-# mvn validate -P update-versions -D new.ignite.version=$1
-mvn validate versions:set -DnewVersion=$1 -Dnew.ignite.version=$1 -Pupdate-versions,all-java,all-scala,all-other -DgenerateBackupPoms=false -DgroupId=* -DartifactId=* -DoldVersion=* -DprocessDependencies=false
+echo Updating Java versions to $1 with Maven...
+mvn versions:set -DnewVersion=$1 -Pall-java,all-scala,all-other -DgenerateBackupPoms=false -DgroupId=* -DartifactId=* -DoldVersion=* -DprocessDependencies=false
+
+echo Updating .NET & C++ versions to $1 with Maven...
+mvn validate -P update-versions -D new.ignite.version=$1
