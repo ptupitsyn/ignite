@@ -22,9 +22,4 @@
 #
 
 $ver = "2.5.0"
-
-# Java: update pom.xml
-# TODO
-
-# .NET: update AssemblyInfo files.
-find . -name "AssemblyInfo.cs" | xargs sed -i 's/"[0-9]\.[0-9]\.0/2.5.0/g'
+mvn validate -P update-versions -D new.ignite.version=2.5.0
