@@ -22,4 +22,5 @@
 # Usage: ./update-versions 2.6.0
 #
 
+echo Updating versions to $1 with Maven...
 mvn validate -P update-versions -D new.ignite.version=$1
