@@ -27,4 +27,4 @@ $ver = "2.5.0"
 # TODO
 
 # .NET: update AssemblyInfo files.
-grep -r --include "AssemblyInfo.cs" | xargs sed -i 's/[0-9]\.[0-9]\.0\./2.5.0'
+find . -name "AssemblyInfo.cs" | xargs sed -i 's/[0-9]\.[0-9]\.0\./2.5.0'
