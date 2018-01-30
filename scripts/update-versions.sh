@@ -22,6 +22,11 @@
 # Usage: ./update-versions 2.6.0
 #
 
+if [ $1 -eq 0 ]
+  then
+    echo "Version not specified"
+fi
+
 echo Updating Java versions to $1 with Maven...
 mvn versions:set -DnewVersion=$1 -Pall-java,all-scala,all-other -DgenerateBackupPoms=false -DgroupId=* -DartifactId=* -DoldVersion=* -DprocessDependencies=false
 
