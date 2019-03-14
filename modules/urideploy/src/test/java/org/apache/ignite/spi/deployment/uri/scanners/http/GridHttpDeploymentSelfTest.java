@@ -17,9 +17,10 @@
 
 package org.apache.ignite.spi.deployment.uri.scanners.http;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
-import javax.servlet.http.HttpServletResponse;
 import org.apache.ignite.internal.util.typedef.internal.U;
 import org.apache.ignite.spi.deployment.uri.GridUriDeploymentAbstractSelfTest;
 import org.apache.ignite.spi.deployment.uri.UriDeploymentSpi;
@@ -29,17 +30,42 @@ import org.apache.ignite.testframework.junits.spi.GridSpiTestConfig;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.server.handler.ResourceHandler;
-import org.eclipse.jetty.util.resource.Resource;
-
-import static org.eclipse.jetty.http.HttpHeader.LAST_MODIFIED;
+import org.junit.Test;
 
 /**
  * Test http scanner.
  */
 @GridSpiTest(spi = UriDeploymentSpi.class, group = "Deployment SPI")
 public class GridHttpDeploymentSelfTest extends GridUriDeploymentAbstractSelfTest {
+    /** Frequency */
+    private static final int FREQ = 5000;
+
+    /** */
+    public static final String LIBS_GAR = "libs-file.gar";
+
+    /** */
+    public static final String CLASSES_GAR = "classes-file.gar";
+
+    /** */
+    public static final String ALL_GAR = "file.gar";
+
+    /** Gar-file which contains libs. */
+    public static final String LIBS_GAR_FILE_PATH = U.resolveIgnitePath(
+        GridTestProperties.getProperty("ant.urideployment.gar.libs-file")).getPath();
+
+    /** Gar-file which contains classes (cannot be used without libs). */
+    public static final String CLASSES_GAR_FILE_PATH = U.resolveIgnitePath(
+        GridTestProperties.getProperty("ant.urideployment.gar.classes-file")).getPath();
+
+    /** Gar-file which caontains both libs and classes. */
+    public static final String ALL_GAR_FILE_PATH = U.resolveIgnitePath(
+        GridTestProperties.getProperty("ant.urideployment.gar.file")).getPath();
+
     /** Jetty. */
-    private Server srv;
+    private static Server srv;
+
+    /** Resource base. */
+    private static String rsrcBase;
 
     /** {@inheritDoc} */
     @Override protected void beforeSpiStarted() throws Exception {
@@ -51,17 +77,15 @@ public class GridHttpDeploymentSelfTest extends GridUriDeploymentAbstractSelfTes
 
         srv.addConnector(conn);
 
-        ResourceHandler hnd = new ResourceHandler() {
-            @Override protected void doResponseHeaders(HttpServletResponse resp, Resource res, String mimeTyp) {
-                super.doResponseHeaders(resp, res, mimeTyp);
-
-                resp.setDateHeader(LAST_MODIFIED.asString(), res.lastModified());
-            }
-        };
+        ResourceHandler hnd = new ResourceHandler();
 
         hnd.setDirectoriesListed(true);
-        hnd.setResourceBase(
-            U.resolveIgnitePath(GridTestProperties.getProperty("ant.urideployment.gar.path")).getPath());
+
+        File resourseBaseDir = U.resolveIgnitePath(GridTestProperties.getProperty("ant.urideployment.gar.path.tmp"));
+
+        rsrcBase = resourseBaseDir.getPath();
+
+        hnd.setResourceBase(rsrcBase);
 
         srv.setHandler(hnd);
 
@@ -82,11 +106,59 @@ public class GridHttpDeploymentSelfTest extends GridUriDeploymentAbstractSelfTes
     }
 
     /**
-     * @throws Exception if failed.
+     * @throws Exception If failed.
      */
-    public void testDeployment() throws Exception {
-        checkTask("org.apache.ignite.spi.deployment.uri.tasks.GridUriDeploymentTestTask3");
-        checkTask("GridUriDeploymentTestWithNameTask3");
+    @Test
+    public void testDeployUndeploy2Files() throws Exception {
+        String taskName = "org.apache.ignite.spi.deployment.uri.tasks.GridUriDeploymentTestTask3";
+
+        checkNoTask(taskName);
+
+        try {
+            copyToResourceBase(LIBS_GAR_FILE_PATH, LIBS_GAR);
+
+            copyToResourceBase(CLASSES_GAR_FILE_PATH, CLASSES_GAR);
+
+            waitForTask(taskName, true, FREQ + 3000);
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
+        finally {
+            deleteFromResourceBase(LIBS_GAR);
+            deleteFromResourceBase(CLASSES_GAR);
+
+            waitForTask(taskName, false, FREQ + 3000);
+        }
+    }
+
+    /**
+     * @throws Exception If failed.
+     */
+    @Test
+    public void testSameContantFiles() throws Exception {
+        String taskName = "org.apache.ignite.spi.deployment.uri.tasks.GridUriDeploymentTestTask3";
+
+        checkNoTask(taskName);
+
+        try {
+            copyToResourceBase(ALL_GAR_FILE_PATH, ALL_GAR);
+
+            waitForTask(taskName, true, FREQ + 3000);
+
+            copyToResourceBase(ALL_GAR_FILE_PATH, "file-copy.gar");
+
+            waitForTask(taskName, true, FREQ + 3000);
+        }
+        catch (Throwable e) {
+            e.printStackTrace();
+        }
+        finally {
+            deleteFromResourceBase(ALL_GAR);
+            deleteFromResourceBase("file-copy.gar");
+
+            waitForTask(taskName, false, FREQ + 3000);
+        }
     }
 
     /**
@@ -94,6 +166,35 @@ public class GridHttpDeploymentSelfTest extends GridUriDeploymentAbstractSelfTes
      */
     @GridSpiTestConfig
     public List<String> getUriList() {
-        return Collections.singletonList("http://freq=5000@localhost:8080/");
+        return Collections.singletonList("http://freq="+FREQ+"@localhost:8080/");
+    }
+
+    /**
+     * @param fileName File name.
+     */
+    private void deleteFromResourceBase(String fileName) {
+        File file = new File(rsrcBase + '/' + fileName);
+
+        if (!file.delete())
+            U.warn(log, "Could not delete file: " + file);
+    }
+
+    /**
+     * @param path Path to the file which should be copied.
+     * @param newFileName New file name.
+     * @throws IOException If exception.
+     */
+    private void copyToResourceBase(String path, String newFileName) throws IOException {
+        File file = new File(path);
+
+        assert file.exists() : "Test file not found [path=" + path + ']';
+
+        File newFile = new File(rsrcBase + '/' + newFileName);
+
+        assert !newFile.exists();
+
+        U.copy(file, newFile, false);
+
+        assert newFile.exists();
     }
 }

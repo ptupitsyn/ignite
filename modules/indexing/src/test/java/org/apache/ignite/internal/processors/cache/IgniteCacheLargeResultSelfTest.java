@@ -19,15 +19,14 @@ package org.apache.ignite.internal.processors.cache;
 
 import java.util.List;
 import org.apache.ignite.IgniteCache;
+import org.apache.ignite.IgniteDataStreamer;
 import org.apache.ignite.cache.CacheWriteSynchronizationMode;
 import org.apache.ignite.cache.query.QueryCursor;
 import org.apache.ignite.cache.query.SqlFieldsQuery;
 import org.apache.ignite.configuration.CacheConfiguration;
 import org.apache.ignite.configuration.IgniteConfiguration;
-import org.apache.ignite.spi.discovery.tcp.TcpDiscoverySpi;
-import org.apache.ignite.spi.discovery.tcp.ipfinder.TcpDiscoveryIpFinder;
-import org.apache.ignite.spi.discovery.tcp.ipfinder.vm.TcpDiscoveryVmIpFinder;
 import org.apache.ignite.testframework.junits.common.GridCommonAbstractTest;
+import org.junit.Test;
 
 import static org.apache.ignite.cache.CacheAtomicityMode.TRANSACTIONAL;
 import static org.apache.ignite.cache.CacheMode.PARTITIONED;
@@ -35,25 +34,15 @@ import static org.apache.ignite.cache.CacheMode.PARTITIONED;
 /**
  */
 public class IgniteCacheLargeResultSelfTest extends GridCommonAbstractTest {
-    /** */
-    private static TcpDiscoveryIpFinder ipFinder = new TcpDiscoveryVmIpFinder(true);
-
     /** {@inheritDoc} */
-    @Override protected IgniteConfiguration getConfiguration(String gridName) throws Exception {
-        IgniteConfiguration cfg = super.getConfiguration(gridName);
-
-        TcpDiscoverySpi disco = new TcpDiscoverySpi();
-
-        disco.setIpFinder(ipFinder);
-
-        cfg.setDiscoverySpi(disco);
+    @Override protected IgniteConfiguration getConfiguration(String igniteInstanceName) throws Exception {
+        IgniteConfiguration cfg = super.getConfiguration(igniteInstanceName);
 
         CacheConfiguration<?,?> cacheCfg = defaultCacheConfiguration();
 
         cacheCfg.setCacheMode(PARTITIONED);
         cacheCfg.setAtomicityMode(TRANSACTIONAL);
         cacheCfg.setWriteSynchronizationMode(CacheWriteSynchronizationMode.FULL_SYNC);
-        cacheCfg.setSwapEnabled(false);
         cacheCfg.setBackups(1);
         cacheCfg.setIndexedTypes(
             Integer.class, Integer.class
@@ -69,21 +58,23 @@ public class IgniteCacheLargeResultSelfTest extends GridCommonAbstractTest {
         startGridsMultiThreaded(3);
     }
 
-    /** {@inheritDoc} */
-    @Override protected void afterTestsStopped() throws Exception {
-        stopAllGrids();
-    }
-
     /**
      */
+    @Test
     public void testLargeResult() {
         // Fill cache.
-        IgniteCache<Integer,Integer> c = ignite(0).cache(null);
+        try (IgniteDataStreamer<Integer, Integer> streamer = ignite(0).dataStreamer(DEFAULT_CACHE_NAME)) {
+            streamer.perNodeBufferSize(20000);
 
-        for (int i = 0; i < 50_000; i++)  // default max merge table size is 10000
-            c.put(i, i);
+            for (int i = 0; i < 50_000; i++)  // default max merge table size is 10000
+                streamer.addData(i, i);
 
-        try(QueryCursor<List<?>> res = c.query(
+            streamer.flush();
+        }
+
+        IgniteCache<Integer, Integer> cache = ignite(0).cache(DEFAULT_CACHE_NAME);
+
+        try(QueryCursor<List<?>> res = cache.query(
             new SqlFieldsQuery("select _val from Integer where _key between ? and ?")
                 .setArgs(10_000, 40_000))){
 

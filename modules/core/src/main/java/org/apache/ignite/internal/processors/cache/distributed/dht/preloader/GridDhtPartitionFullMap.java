@@ -27,12 +27,12 @@ import java.util.Map;
 import java.util.UUID;
 import org.apache.ignite.internal.util.typedef.internal.S;
 import org.apache.ignite.internal.util.typedef.internal.U;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Full partition map.
  */
-public class GridDhtPartitionFullMap extends HashMap<UUID, GridDhtPartitionMap>
-    implements Comparable<GridDhtPartitionFullMap>, Externalizable {
+public class GridDhtPartitionFullMap extends HashMap<UUID, GridDhtPartitionMap> implements Comparable<GridDhtPartitionFullMap>, Externalizable {
     /** */
     private static final long serialVersionUID = 0L;
 
@@ -80,10 +80,13 @@ public class GridDhtPartitionFullMap extends HashMap<UUID, GridDhtPartitionMap>
         for (Map.Entry<UUID, GridDhtPartitionMap> e : m.entrySet()) {
             GridDhtPartitionMap part = e.getValue();
 
-            if (onlyActive)
-                put(e.getKey(), new GridDhtPartitionMap(part.nodeId(), part.updateSequence(), part.map(), true));
-            else
-                put(e.getKey(), part);
+            GridDhtPartitionMap cpy = new GridDhtPartitionMap(part.nodeId(),
+                part.updateSequence(),
+                part.topologyVersion(),
+                part.map(),
+                onlyActive);
+
+            put(e.getKey(), cpy);
         }
     }
 
@@ -135,6 +138,31 @@ public class GridDhtPartitionFullMap extends HashMap<UUID, GridDhtPartitionMap>
     }
 
     /**
+     * @param fullMap Map.
+     * @return {@code True} if this map and given map contain the same data.
+     */
+    public boolean partitionStateEquals(GridDhtPartitionFullMap fullMap) {
+        if (size() != fullMap.size())
+            return false;
+
+        for (Map.Entry<UUID, GridDhtPartitionMap> e : entrySet()) {
+            GridDhtPartitionMap m = fullMap.get(e.getKey());
+
+            if (m == null || !m.map().equals(e.getValue().map()))
+                return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * @param updateSeq New update sequence value.
+     */
+    public void newUpdateSequence(long updateSeq) {
+        this.updateSeq = updateSeq;
+    }
+
+    /**
      * @param updateSeq New update sequence value.
      * @return Old update sequence value.
      */
@@ -147,27 +175,6 @@ public class GridDhtPartitionFullMap extends HashMap<UUID, GridDhtPartitionMap>
         this.updateSeq = updateSeq;
 
         return old;
-    }
-
-    /** {@inheritDoc} */
-    @Override public int compareTo(GridDhtPartitionFullMap o) {
-        assert nodeId == null || (nodeOrder != o.nodeOrder && !nodeId.equals(o.nodeId)) ||
-            (nodeOrder == o.nodeOrder && nodeId.equals(o.nodeId)): "Inconsistent node order and ID [id1=" + nodeId +
-                ", order1=" + nodeOrder + ", id2=" + o.nodeId + ", order2=" + o.nodeOrder + ']';
-
-        if (nodeId == null && o.nodeId != null)
-            return -1;
-        else if (nodeId != null && o.nodeId == null)
-            return 1;
-        else if (nodeId == null && o.nodeId == null)
-            return 0;
-
-        int res = Long.compare(nodeOrder, o.nodeOrder);
-
-        if (res == 0)
-            res = Long.compare(updateSeq, o.updateSeq);
-
-        return res;
     }
 
     /** {@inheritDoc} */
@@ -244,5 +251,12 @@ public class GridDhtPartitionFullMap extends HashMap<UUID, GridDhtPartitionMap>
     /** {@inheritDoc} */
     @Override public String toString() {
         return S.toString(GridDhtPartitionFullMap.class, this, "size", size());
+    }
+
+    /** {@inheritDoc} */
+    @Override public int compareTo(@NotNull GridDhtPartitionFullMap o) {
+        assert nodeId.equals(o.nodeId);
+
+        return Long.compare(updateSeq, o.updateSeq);
     }
 }

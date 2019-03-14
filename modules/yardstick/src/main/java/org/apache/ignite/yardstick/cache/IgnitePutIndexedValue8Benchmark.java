@@ -24,9 +24,11 @@ import org.apache.ignite.yardstick.cache.model.Person8;
 /**
  * Ignite benchmark that performs put operations for entity with indexed fields.
  */
-public class IgnitePutIndexedValue8Benchmark extends IgniteCacheAbstractBenchmark {
+public class IgnitePutIndexedValue8Benchmark extends IgniteCacheAbstractBenchmark<Integer, Object> {
     /** {@inheritDoc} */
     @Override public boolean test(Map<Object, Object> ctx) throws Exception {
+        IgniteCache<Integer, Object> cache = cacheForOperation();
+
         int key = nextRandom(args.range());
 
         cache.put(key, new Person8(key));

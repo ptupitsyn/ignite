@@ -34,6 +34,16 @@ public final class IgniteNodeAttributes {
     public static final String ATTR_MARSHALLER = ATTR_PREFIX + ".marshaller";
 
     /** Internal attribute name constant. */
+    public static final String ATTR_MARSHALLER_USE_DFLT_SUID = ATTR_PREFIX + ".marshaller.useDefaultSUID";
+
+    /** Attribute for marshaller compact footers. */
+    public static final String ATTR_MARSHALLER_COMPACT_FOOTER = ATTR_PREFIX + ".marshaller.compactFooter";
+
+    /** Internal attribute constant that controls which String serialization version to use. */
+    public static final String ATTR_MARSHALLER_USE_BINARY_STRING_SER_VER_2 = ATTR_PREFIX +
+        ".marshaller.utf8SerializationVer2";
+
+    /** Internal attribute name constant. */
     public static final String ATTR_JIT_NAME = ATTR_PREFIX + ".jit.name";
 
     /** Internal attribute name constant. */
@@ -43,7 +53,15 @@ public final class IgniteNodeAttributes {
     public static final String ATTR_USER_NAME = ATTR_PREFIX + ".user.name";
 
     /** Internal attribute name constant. */
-    public static final String ATTR_GRID_NAME = ATTR_PREFIX + ".ignite.name";
+    public static final String ATTR_IGNITE_INSTANCE_NAME = ATTR_PREFIX + ".ignite.name";
+
+    /**
+     * Internal attribute name constant.
+     *
+     * @deprecated Use {@link #ATTR_IGNITE_INSTANCE_NAME}.
+     */
+    @Deprecated
+    public static final String ATTR_GRID_NAME = ATTR_IGNITE_INSTANCE_NAME;
 
     /** Deployment mode. */
     public static final String ATTR_DEPLOYMENT_MODE = ATTR_PREFIX + ".ignite.dep.mode";
@@ -62,9 +80,6 @@ public final class IgniteNodeAttributes {
 
     /** Internal attribute name constant. */
     public static final String ATTR_IGFS = ATTR_PREFIX + ".igfs";
-
-    /** Internal attribute name constant. */
-    public static final String ATTR_MONGO = ATTR_PREFIX + ".mongo";
 
     /** Internal attribute name constant. */
     public static final String ATTR_DAEMON = ATTR_PREFIX + ".daemon";
@@ -102,8 +117,17 @@ public final class IgniteNodeAttributes {
     /** Internal attribute name constant. */
     public static final String ATTR_MACS = ATTR_PREFIX + ".macs";
 
+    /** Allows to override {@link #ATTR_MACS} by adding this attribute in the user attributes. */
+    public static final String ATTR_MACS_OVERRIDE = "override." + ATTR_MACS;
+
     /** Internal attribute name constant. */
     public static final String ATTR_PHY_RAM = ATTR_PREFIX + ".phy.ram";
+
+    /** Internal attribute name constant. */
+    public static final String ATTR_OFFHEAP_SIZE = ATTR_PREFIX + ".offheap.size";
+
+    /** Internal attribute name constant. */
+    public static final String ATTR_DATA_REGIONS_OFFHEAP_SIZE = ATTR_PREFIX + ".data.regions.offheap.size";
 
     /** Internal attribute name constant. */
     public static final String ATTR_JVM_PID = ATTR_PREFIX + ".jvm.pid";
@@ -126,6 +150,9 @@ public final class IgniteNodeAttributes {
     /** Security subject for authenticated node. */
     public static final String ATTR_SECURITY_SUBJECT = ATTR_PREFIX + ".security.subject";
 
+    /** V2 security subject for authenticated node. */
+    public static final String ATTR_SECURITY_SUBJECT_V2 = ATTR_PREFIX + ".security.subject.v2";
+
     /** Client mode flag. */
     public static final String ATTR_CLIENT_MODE = ATTR_PREFIX + ".cache.client";
 
@@ -134,6 +161,56 @@ public final class IgniteNodeAttributes {
 
     /** Node consistent id. */
     public static final String ATTR_NODE_CONSISTENT_ID = ATTR_PREFIX + ".consistent.id";
+
+    /** Binary protocol version. */
+    public static final String ATTR_BINARY_PROTO_VER = ATTR_PREFIX + ".binary.proto.ver";
+
+    /** Update notifier enabled. */
+    public static final String ATTR_UPDATE_NOTIFIER_ENABLED = ATTR_PREFIX + ".update.notifier.enabled";
+
+    /** Binary configuration. */
+    public static final String ATTR_BINARY_CONFIGURATION = ATTR_PREFIX + ".binary.config";
+
+    /** Late affinity assignment mode. */
+    public static final String ATTR_LATE_AFFINITY_ASSIGNMENT = ATTR_PREFIX + ".cache.lateAffinity";
+
+    /** Late affinity assignment mode. */
+    public static final String ATTR_ACTIVE_ON_START = ATTR_PREFIX + ".active.on.start";
+
+    /** Ignite security compatibility mode. */
+    public static final String ATTR_SECURITY_COMPATIBILITY_MODE = ATTR_PREFIX + ".security.compatibility.enabled";
+
+    /** */
+    public static final String ATTR_DATA_STREAMER_POOL_SIZE = ATTR_PREFIX + ".data.streamer.pool.size";
+
+    /** Memory configuration. */
+    @Deprecated
+    public static final String ATTR_MEMORY_CONFIG = ATTR_PREFIX + ".memory";
+
+    /** Data storage configuration. */
+    public static final String ATTR_DATA_STORAGE_CONFIG = ATTR_PREFIX + ".data.storage.config";
+
+    /** User authentication enabled flag. */
+    public static final String ATTR_AUTHENTICATION_ENABLED = ATTR_PREFIX + ".authentication.enabled";
+
+    /** Encryption master key digest. */
+    public static final String ATTR_ENCRYPTION_MASTER_KEY_DIGEST = ATTR_PREFIX + ".master.key.digest";
+
+    /** Rebalance thread pool size. */
+    public static final String ATTR_REBALANCE_POOL_SIZE = ATTR_PREFIX + ".rebalance.pool.size";
+
+    /** Internal attribute name constant. */
+    public static final String ATTR_DYNAMIC_CACHE_START_ROLLBACK_SUPPORTED = ATTR_PREFIX + ".dynamic.cache.start.rollback.supported";
+
+    /** Internal attribute indicates that incoming cache requests should be validated on primary node as well. */
+    public static final String ATTR_VALIDATE_CACHE_REQUESTS = ATTR_CACHE + ".validate.cache.requests";
+
+    /** Supported features. */
+    public static final String ATTR_IGNITE_FEATURES = ATTR_PREFIX + ".features";
+
+    /** Ignite services processor mode. */
+    public static final String ATTR_EVENT_DRIVEN_SERVICE_PROCESSOR_ENABLED = ATTR_PREFIX +
+        ".event.driven.service.processor.enabled";
 
     /**
      * Enforces singleton.

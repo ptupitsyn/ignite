@@ -33,7 +33,6 @@ import org.apache.ignite.internal.util.typedef.internal.U;
 import org.apache.ignite.lang.IgniteInClosure;
 import org.apache.ignite.plugin.extensions.communication.Message;
 import org.apache.ignite.plugin.extensions.communication.MessageFormatter;
-import org.jetbrains.annotations.Nullable;
 
 /**
  *
@@ -49,6 +48,7 @@ public class GridShmemCommunicationClient extends GridAbstractCommunicationClien
     private final MessageFormatter formatter;
 
     /**
+     * @param connIdx Connection index.
      * @param metricsLsnr Metrics listener.
      * @param port Shared memory IPC server port.
      * @param connTimeout Connection timeout.
@@ -56,14 +56,15 @@ public class GridShmemCommunicationClient extends GridAbstractCommunicationClien
      * @param formatter Message formatter.
      * @throws IgniteCheckedException If failed.
      */
-    public GridShmemCommunicationClient(GridNioMetricsListener metricsLsnr,
+    public GridShmemCommunicationClient(
+        int connIdx,
+        GridNioMetricsListener metricsLsnr,
         int port,
         long connTimeout,
         IgniteLogger log,
         MessageFormatter formatter)
-        throws IgniteCheckedException
-    {
-        super(metricsLsnr);
+        throws IgniteCheckedException {
+        super(connIdx, metricsLsnr);
 
         assert metricsLsnr != null;
         assert port > 0 && port < 0xffff;
@@ -120,16 +121,17 @@ public class GridShmemCommunicationClient extends GridAbstractCommunicationClien
     }
 
     /** {@inheritDoc} */
-    @Override public synchronized boolean sendMessage(@Nullable UUID nodeId, Message msg,
-        IgniteInClosure<IgniteException> closure)
-        throws IgniteCheckedException {
+    @Override public synchronized boolean sendMessage(UUID nodeId, Message msg,
+        IgniteInClosure<IgniteException> c) throws IgniteCheckedException {
+        assert nodeId != null;
+
         if (closed())
             throw new IgniteCheckedException("Communication client was closed: " + this);
 
         assert writeBuf.hasArray();
 
         try {
-            int cnt = U.writeMessageFully(msg, shmem.outputStream(), writeBuf, formatter.writer());
+            int cnt = U.writeMessageFully(msg, shmem.outputStream(), writeBuf, formatter.writer(nodeId));
 
             metricsLsnr.onBytesSent(cnt);
         }
@@ -139,8 +141,8 @@ public class GridShmemCommunicationClient extends GridAbstractCommunicationClien
 
         markUsed();
 
-        if (closure != null)
-            closure.apply(null);
+        if (c != null)
+            c.apply(null);
 
         return false;
     }

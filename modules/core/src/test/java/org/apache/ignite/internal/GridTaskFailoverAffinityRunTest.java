@@ -22,17 +22,16 @@ import java.util.Collection;
 import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
-import org.apache.ignite.IgniteCompute;
 import org.apache.ignite.IgniteException;
 import org.apache.ignite.configuration.CacheConfiguration;
 import org.apache.ignite.configuration.IgniteConfiguration;
 import org.apache.ignite.lang.IgniteCallable;
 import org.apache.ignite.lang.IgniteFuture;
+import org.apache.ignite.spi.communication.tcp.TcpCommunicationSpi;
 import org.apache.ignite.spi.discovery.tcp.TcpDiscoverySpi;
-import org.apache.ignite.spi.discovery.tcp.ipfinder.TcpDiscoveryIpFinder;
-import org.apache.ignite.spi.discovery.tcp.ipfinder.vm.TcpDiscoveryVmIpFinder;
 import org.apache.ignite.testframework.GridTestUtils;
 import org.apache.ignite.testframework.junits.common.GridCommonAbstractTest;
+import org.junit.Test;
 
 import static org.apache.ignite.cache.CacheAtomicityMode.ATOMIC;
 import static org.apache.ignite.cache.CacheMode.PARTITIONED;
@@ -43,18 +42,15 @@ import static org.apache.ignite.cache.CacheRebalanceMode.SYNC;
  */
 public class GridTaskFailoverAffinityRunTest extends GridCommonAbstractTest {
     /** */
-    private static TcpDiscoveryIpFinder ipFinder = new TcpDiscoveryVmIpFinder(true);
-
-    /** */
     private boolean clientMode;
 
     /** {@inheritDoc} */
-    @Override protected IgniteConfiguration getConfiguration(String gridName) throws Exception {
-        IgniteConfiguration cfg = super.getConfiguration(gridName);
+    @Override protected IgniteConfiguration getConfiguration(String igniteInstanceName) throws Exception {
+        IgniteConfiguration cfg = super.getConfiguration(igniteInstanceName);
 
-        ((TcpDiscoverySpi)cfg.getDiscoverySpi()).setIpFinder(ipFinder);
+        ((TcpCommunicationSpi)cfg.getCommunicationSpi()).setSharedMemoryPort(-1);
 
-        boolean client = clientMode && gridName.equals(getTestGridName(0));
+        boolean client = clientMode && igniteInstanceName.equals(getTestIgniteInstanceName(0));
 
         if (client) {
             cfg.setClientMode(true);
@@ -62,7 +58,7 @@ public class GridTaskFailoverAffinityRunTest extends GridCommonAbstractTest {
             ((TcpDiscoverySpi)cfg.getDiscoverySpi()).setForceServerMode(true);
         }
 
-        CacheConfiguration ccfg = new CacheConfiguration();
+        CacheConfiguration ccfg = new CacheConfiguration(DEFAULT_CACHE_NAME);
 
         ccfg.setCacheMode(PARTITIONED);
         ccfg.setBackups(1);
@@ -84,6 +80,7 @@ public class GridTaskFailoverAffinityRunTest extends GridCommonAbstractTest {
     /**
      * @throws Exception If failed.
      */
+    @Test
     public void testNodeRestart() throws Exception {
         clientMode = false;
 
@@ -93,6 +90,7 @@ public class GridTaskFailoverAffinityRunTest extends GridCommonAbstractTest {
     /**
      * @throws Exception If failed.
      */
+    @Test
     public void testNodeRestartClient() throws Exception {
         clientMode = true;
 
@@ -107,17 +105,17 @@ public class GridTaskFailoverAffinityRunTest extends GridCommonAbstractTest {
 
         assertEquals((Boolean)clientMode, grid(0).configuration().isClientMode());
 
-        IgniteCompute comp = grid(0).compute().withAsync();
-
         final AtomicBoolean stop = new AtomicBoolean();
 
         final AtomicInteger gridIdx = new AtomicInteger(1);
+
+        final long stopTime = System.currentTimeMillis() + 60_000;
 
         IgniteInternalFuture<?> fut = GridTestUtils.runMultiThreadedAsync(new Callable<Object>() {
             @Override public Object call() throws Exception {
                 int grid = gridIdx.getAndIncrement();
 
-                while (!stop.get()) {
+                while (!stop.get() && System.currentTimeMillis() < stopTime) {
                     stopGrid(grid);
 
                     startGrid(grid);
@@ -128,15 +126,11 @@ public class GridTaskFailoverAffinityRunTest extends GridCommonAbstractTest {
         }, 2, "restart-thread");
 
         try {
-            long stopTime = System.currentTimeMillis() + 60_000;
-
             while (System.currentTimeMillis() < stopTime) {
                 Collection<IgniteFuture<?>> futs = new ArrayList<>(1000);
 
                 for (int i = 0; i < 1000; i++) {
-                    comp.affinityCall(null, i, new TestJob());
-
-                    IgniteFuture<?> fut0 = comp.future();
+                    IgniteFuture<?> fut0 = grid(0).compute().affinityCallAsync(DEFAULT_CACHE_NAME, i, new TestJob());
 
                     assertNotNull(fut0);
 

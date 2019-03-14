@@ -19,17 +19,18 @@ package org.apache.ignite.internal.processors.cache;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.Callable;
 import org.apache.ignite.Ignite;
 import org.apache.ignite.IgniteCache;
+import org.apache.ignite.IgniteException;
 import org.apache.ignite.cache.CacheMode;
 import org.apache.ignite.configuration.CacheConfiguration;
 import org.apache.ignite.configuration.IgniteConfiguration;
 import org.apache.ignite.configuration.NearCacheConfiguration;
-import org.apache.ignite.spi.discovery.tcp.TcpDiscoverySpi;
-import org.apache.ignite.spi.discovery.tcp.ipfinder.TcpDiscoveryIpFinder;
-import org.apache.ignite.spi.discovery.tcp.ipfinder.vm.TcpDiscoveryVmIpFinder;
+import org.apache.ignite.testframework.GridTestUtils;
 import org.apache.ignite.testframework.junits.common.GridCommonAbstractTest;
 import org.apache.ignite.transactions.Transaction;
+import org.junit.Test;
 
 import static org.apache.ignite.cache.CacheAtomicityMode.TRANSACTIONAL;
 import static org.apache.ignite.transactions.TransactionConcurrency.PESSIMISTIC;
@@ -39,9 +40,6 @@ import static org.apache.ignite.transactions.TransactionIsolation.REPEATABLE_REA
  * Test cache operations with daemon node.
  */
 public abstract class GridCacheDaemonNodeAbstractSelfTest extends GridCommonAbstractTest {
-    /** */
-    private static TcpDiscoveryIpFinder ipFinder = new TcpDiscoveryVmIpFinder(true);
-
     /** Daemon flag. */
     protected boolean daemon;
 
@@ -53,16 +51,10 @@ public abstract class GridCacheDaemonNodeAbstractSelfTest extends GridCommonAbst
     }
 
     /** {@inheritDoc} */
-    @Override protected IgniteConfiguration getConfiguration(String gridName) throws Exception {
-        IgniteConfiguration c = super.getConfiguration(gridName);
+    @Override protected IgniteConfiguration getConfiguration(String igniteInstanceName) throws Exception {
+        IgniteConfiguration c = super.getConfiguration(igniteInstanceName);
 
         c.setDaemon(daemon);
-
-        TcpDiscoverySpi disco = new TcpDiscoverySpi();
-
-        disco.setIpFinder(ipFinder);
-
-        c.setDiscoverySpi(disco);
 
         c.setConnectorConfiguration(null);
 
@@ -87,6 +79,7 @@ public abstract class GridCacheDaemonNodeAbstractSelfTest extends GridCommonAbst
     /**
      * @throws Exception If failed.
      */
+    @Test
     public void testImplicit() throws Exception {
         try {
             startGridsMultiThreaded(3);
@@ -95,7 +88,7 @@ public abstract class GridCacheDaemonNodeAbstractSelfTest extends GridCommonAbst
 
             startGrid(4);
 
-            IgniteCache<Integer, Integer> cache = grid(0).cache(null);
+            IgniteCache<Integer, Integer> cache = grid(0).cache(DEFAULT_CACHE_NAME);
 
             for (int i = 0; i < 30; i++)
                 cache.put(i, i);
@@ -118,6 +111,7 @@ public abstract class GridCacheDaemonNodeAbstractSelfTest extends GridCommonAbst
     /**
      * @throws Exception If failed.
      */
+    @Test
     public void testExplicit() throws Exception {
         try {
             startGridsMultiThreaded(3);
@@ -126,7 +120,7 @@ public abstract class GridCacheDaemonNodeAbstractSelfTest extends GridCommonAbst
 
             startGrid(4);
 
-            IgniteCache<Integer, Integer> cache = grid(0).cache(null);
+            IgniteCache<Integer, Integer> cache = grid(0).cache(DEFAULT_CACHE_NAME);
 
             for (int i = 0; i < 30; i++) {
                 try (Transaction tx = ignite(0).transactions().txStart(PESSIMISTIC, REPEATABLE_READ)) {
@@ -159,6 +153,7 @@ public abstract class GridCacheDaemonNodeAbstractSelfTest extends GridCommonAbst
      *
      * @throws Exception If failed.
      */
+    @Test
     public void testMapKeyToNode() throws Exception {
         try {
             // Start normal nodes.
@@ -167,14 +162,20 @@ public abstract class GridCacheDaemonNodeAbstractSelfTest extends GridCommonAbst
             // Start daemon node.
             daemon = true;
 
-            Ignite g2 = startGrid(4);
+            final Ignite g2 = startGrid(4);
 
             for (long i = 0; i < Integer.MAX_VALUE; i = (i << 1) + 1) {
                 // Call mapKeyToNode for normal node.
-                assertNotNull(g1.cluster().mapKeyToNode(null, i));
+                assertNotNull(g1.<Long>affinity(DEFAULT_CACHE_NAME).mapKeyToNode(i));
 
                 // Call mapKeyToNode for daemon node.
-                assertNull(g2.cluster().mapKeyToNode(null, i));
+                final long i0 = i;
+
+                GridTestUtils.assertThrows(log, new Callable<Object>() {
+                    @Override public Object call() throws Exception {
+                        return g2.<Long>affinity(DEFAULT_CACHE_NAME).mapKeyToNode(i0);
+                    }
+                }, IgniteException.class, "Failed to find cache");
             }
         }
         finally {

@@ -18,19 +18,12 @@
 package org.apache.ignite.internal.util;
 
 import java.util.Arrays;
-import sun.misc.Unsafe;
 
 /**
  * Lightweight identity hash table which maps objects to integer handles,
  * assigned in ascending order.
  */
 public class GridHandleTable {
-    /** */
-    private static final Unsafe UNSAFE = GridUnsafe.unsafe();
-
-    /** */
-    private static final long intArrOff = UNSAFE.arrayBaseOffset(int[].class);
-
     /** Number of mappings in table/next available handle. */
     private int size;
 
@@ -97,8 +90,11 @@ public class GridHandleTable {
         if (size >= next.length)
             growEntries();
 
-        if (size >= threshold)
+        if (size >= threshold) {
             growSpine();
+
+            idx = hash(obj) % spine.length;
+        }
 
         insert(obj, size, idx);
 
@@ -111,8 +107,8 @@ public class GridHandleTable {
      * Resets table to its initial (empty) state.
      */
     public void clear() {
-        UNSAFE.copyMemory(spineEmpty, intArrOff, spine, intArrOff, spineEmpty.length << 2);
-        UNSAFE.copyMemory(nextEmpty, intArrOff, next, intArrOff, nextEmpty.length << 2);
+        System.arraycopy(spineEmpty, 0, spine, 0, spineEmpty.length);
+        System.arraycopy(nextEmpty, 0, next, 0, nextEmpty.length);
 
         Arrays.fill(objs, null);
 
@@ -153,7 +149,7 @@ public class GridHandleTable {
 
         Arrays.fill(spineEmpty, -1);
 
-        UNSAFE.copyMemory(spineEmpty, intArrOff, spine, intArrOff, spineEmpty.length << 2);
+        System.arraycopy(spineEmpty, 0, spine, 0, spineEmpty.length);
 
         for (int i = 0; i < this.size; i++) {
             Object obj = objs[i];
@@ -171,7 +167,7 @@ public class GridHandleTable {
         int newLen = (next.length << 1) + 1;
         int[] newNext = new int[newLen];
 
-        UNSAFE.copyMemory(next, intArrOff, newNext, intArrOff, size << 2);
+        System.arraycopy(next, 0, newNext, 0, size);
 
         next = newNext;
         nextEmpty = new int[newLen];

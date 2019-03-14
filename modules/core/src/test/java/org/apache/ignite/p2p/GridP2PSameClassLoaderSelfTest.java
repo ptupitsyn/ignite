@@ -23,10 +23,12 @@ import java.net.URLClassLoader;
 import org.apache.ignite.Ignite;
 import org.apache.ignite.configuration.DeploymentMode;
 import org.apache.ignite.configuration.IgniteConfiguration;
-import org.apache.ignite.spi.discovery.tcp.TcpDiscoverySpi;
+import org.apache.ignite.internal.util.typedef.PA;
+import org.apache.ignite.testframework.GridTestUtils;
 import org.apache.ignite.testframework.config.GridTestProperties;
 import org.apache.ignite.testframework.junits.common.GridCommonAbstractTest;
 import org.apache.ignite.testframework.junits.common.GridCommonTest;
+import org.junit.Test;
 
 /**
  * Test P2P deployment tasks which loaded from different class loaders.
@@ -60,12 +62,11 @@ public class GridP2PSameClassLoaderSelfTest extends GridCommonAbstractTest {
     }
 
     /** {@inheritDoc} */
-    @Override protected IgniteConfiguration getConfiguration(String gridName) throws Exception {
-        IgniteConfiguration cfg = super.getConfiguration(gridName);
+    @Override protected IgniteConfiguration getConfiguration(String igniteInstanceName) throws Exception {
+        IgniteConfiguration cfg = super.getConfiguration(igniteInstanceName);
 
         cfg.setDeploymentMode(depMode);
-
-        ((TcpDiscoverySpi)cfg.getDiscoverySpi()).setHeartbeatFrequency(500);
+        cfg.setMetricsUpdateFrequency(500);
 
         cfg.setCacheConfiguration();
 
@@ -74,16 +75,20 @@ public class GridP2PSameClassLoaderSelfTest extends GridCommonAbstractTest {
 
     /**
      * Test.
-     * @param isIsolatedDifferentTask Isolated different task flag.
-     * @param isIsolatedDifferentNode Isolated different mode flag.
      * @throws Exception if error occur
      */
     @SuppressWarnings({"unchecked"})
-    private void processTest(boolean isIsolatedDifferentTask, boolean isIsolatedDifferentNode) throws Exception {
+    private void processTest() throws Exception {
         try {
-            Ignite ignite1 = startGrid(1);
+            final Ignite ignite1 = startGrid(1);
             Ignite ignite2 = startGrid(2);
             Ignite ignite3 = startGrid(3);
+
+            assert GridTestUtils.waitForCondition(new PA() {
+                @Override public boolean apply() {
+                    return ignite1.cluster().nodes().size() == 3;
+                }
+            }, 20000L);
 
             Class task1 = CLASS_LOADER.loadClass(TEST_TASK1_NAME);
             Class task2 = CLASS_LOADER.loadClass(TEST_TASK2_NAME);
@@ -111,10 +116,11 @@ public class GridP2PSameClassLoaderSelfTest extends GridCommonAbstractTest {
      *
      * @throws Exception if error occur.
      */
+    @Test
     public void testPrivateMode() throws Exception {
         depMode = DeploymentMode.PRIVATE;
 
-        processTest(true, true);
+        processTest();
     }
 
     /**
@@ -122,10 +128,11 @@ public class GridP2PSameClassLoaderSelfTest extends GridCommonAbstractTest {
      *
      * @throws Exception if error occur.
      */
+    @Test
     public void testIsolatedMode() throws Exception {
         depMode = DeploymentMode.ISOLATED;
 
-        processTest(false, true);
+        processTest();
     }
 
     /**
@@ -133,10 +140,11 @@ public class GridP2PSameClassLoaderSelfTest extends GridCommonAbstractTest {
      *
      * @throws Exception if error occur.
      */
+    @Test
     public void testContinuousMode() throws Exception {
         depMode = DeploymentMode.CONTINUOUS;
 
-        processTest(false, false);
+        processTest();
     }
 
     /**
@@ -144,10 +152,11 @@ public class GridP2PSameClassLoaderSelfTest extends GridCommonAbstractTest {
      *
      * @throws Exception if error occur.
      */
+    @Test
     public void testSharedMode() throws Exception {
         depMode = DeploymentMode.SHARED;
 
-        processTest(false, false);
+        processTest();
     }
 
     /**

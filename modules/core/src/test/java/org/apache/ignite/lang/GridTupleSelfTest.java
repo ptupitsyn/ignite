@@ -20,12 +20,14 @@ package org.apache.ignite.lang;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.NoSuchElementException;
 import org.apache.ignite.internal.util.lang.GridTuple;
 import org.apache.ignite.internal.util.lang.GridTuple3;
-import org.apache.ignite.internal.util.lang.GridTupleV;
+import org.apache.ignite.internal.util.typedef.F;
 import org.apache.ignite.testframework.junits.common.GridCommonAbstractTest;
 import org.apache.ignite.testframework.junits.common.GridCommonTest;
+import org.junit.Test;
 
 /**
  *
@@ -40,6 +42,7 @@ public class GridTupleSelfTest extends GridCommonAbstractTest {
     /**
      * JUnit.
      */
+    @Test
     public void testGridTupleAsIterable() {
         String str = "A test string";
 
@@ -70,6 +73,7 @@ public class GridTupleSelfTest extends GridCommonAbstractTest {
     /**
      * JUnit.
      */
+    @Test
     public void testGridTuple2AsIterable() {
         String str1 = "A test string 1";
         String str2 = "A test string 2";
@@ -102,6 +106,46 @@ public class GridTupleSelfTest extends GridCommonAbstractTest {
     /**
      * JUnit.
      */
+    @Test
+    public void testGridTuple2AsMap() {
+        String str1 = "A test string 1";
+        String str2 = "A test string 2";
+
+        IgniteBiTuple<String, String> tpl = new IgniteBiTuple<>();
+
+        tpl.put(str1, str2);
+
+        assertEquals(str2, tpl.get(str1));
+        assertEquals(1, tpl.size());
+
+        assert tpl.containsKey(str1);
+        assert tpl.containsValue(str2);
+
+        Iterator<Map.Entry<String, String>> it = tpl.entrySet().iterator();
+
+        assert it.hasNext();
+
+        Map.Entry<String, String> next = it.next();
+
+        assertEquals(str1, next.getKey());
+        assertEquals(str2, next.getValue());
+
+        assert !it.hasNext();
+
+        next = F.firstEntry(tpl);
+
+        assertEquals(str1, next.getKey());
+        assertEquals(str2, next.getValue());
+
+        tpl = new IgniteBiTuple<>();
+
+        assert !tpl.entrySet().iterator().hasNext();
+    }
+
+    /**
+     * JUnit.
+     */
+    @Test
     public void testGridTuple3AsIterable() {
         String str1 = "A test string 1";
         String str2 = "A test string 2";
@@ -122,40 +166,6 @@ public class GridTupleSelfTest extends GridCommonAbstractTest {
         assert str1.equals(elems.get(0));
         assert str2.equals(elems.get(1));
         assert str3.equals(elems.get(2));
-
-        try {
-            iter.next();
-
-            fail("NoSuchElementException must have been thrown.");
-        }
-        catch (NoSuchElementException e) {
-            info("Caught expected exception: " + e);
-        }
-    }
-
-    /**
-     * JUnit.
-     */
-    public void testGridTupleVAsIterable() {
-        String strVal = "A test string";
-        Integer intVal = 1;
-        Double doubleVal = 2.5d;
-
-        Iterable<Object> tpl = new GridTupleV(strVal, intVal, doubleVal);
-
-        Iterator<Object> iter = tpl.iterator();
-
-        assert iter != null;
-
-        List<Object> elems = new ArrayList<>();
-
-        while (iter.hasNext())
-            elems.add(iter.next());
-
-        assert elems.size() == 3;
-        assert strVal.equals(elems.get(0));
-        assert intVal.equals(elems.get(1));
-        assert doubleVal.equals(elems.get(2));
 
         try {
             iter.next();

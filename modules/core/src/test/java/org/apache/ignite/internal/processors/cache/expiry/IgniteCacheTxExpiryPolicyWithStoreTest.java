@@ -19,6 +19,9 @@ package org.apache.ignite.internal.processors.cache.expiry;
 
 import org.apache.ignite.cache.CacheAtomicityMode;
 import org.apache.ignite.cache.CacheMode;
+import org.apache.ignite.transactions.TransactionConcurrency;
+import org.apache.ignite.transactions.TransactionIsolation;
+import org.junit.Test;
 
 import static org.apache.ignite.cache.CacheAtomicityMode.TRANSACTIONAL;
 import static org.apache.ignite.cache.CacheMode.PARTITIONED;
@@ -40,5 +43,25 @@ public class IgniteCacheTxExpiryPolicyWithStoreTest extends IgniteCacheExpiryPol
     /** {@inheritDoc} */
     @Override protected CacheAtomicityMode atomicityMode() {
         return TRANSACTIONAL;
+    }
+
+    /** {@inheritDoc} */
+    @Test
+    @Override public void testGetReadThrough() throws Exception {
+        super.testGetReadThrough();
+
+        getReadThrough(false, TransactionConcurrency.OPTIMISTIC, TransactionIsolation.READ_COMMITTED);
+        getReadThrough(true, TransactionConcurrency.OPTIMISTIC, TransactionIsolation.READ_COMMITTED);
+        getReadThrough(false, TransactionConcurrency.OPTIMISTIC, TransactionIsolation.REPEATABLE_READ);
+        getReadThrough(true, TransactionConcurrency.OPTIMISTIC, TransactionIsolation.REPEATABLE_READ);
+        getReadThrough(false, TransactionConcurrency.OPTIMISTIC, TransactionIsolation.SERIALIZABLE);
+        getReadThrough(true, TransactionConcurrency.OPTIMISTIC, TransactionIsolation.SERIALIZABLE);
+
+        getReadThrough(false, TransactionConcurrency.PESSIMISTIC, TransactionIsolation.READ_COMMITTED);
+        getReadThrough(true, TransactionConcurrency.PESSIMISTIC, TransactionIsolation.READ_COMMITTED);
+        getReadThrough(false, TransactionConcurrency.PESSIMISTIC, TransactionIsolation.REPEATABLE_READ);
+        getReadThrough(true, TransactionConcurrency.PESSIMISTIC, TransactionIsolation.REPEATABLE_READ);
+        getReadThrough(false, TransactionConcurrency.PESSIMISTIC, TransactionIsolation.SERIALIZABLE);
+        getReadThrough(true, TransactionConcurrency.PESSIMISTIC, TransactionIsolation.SERIALIZABLE);
     }
 }

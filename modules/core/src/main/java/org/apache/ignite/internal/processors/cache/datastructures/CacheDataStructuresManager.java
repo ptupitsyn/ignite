@@ -21,31 +21,35 @@ import java.io.Externalizable;
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Iterator;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.Callable;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicBoolean;
+import javax.cache.Cache;
 import javax.cache.event.CacheEntryEvent;
 import javax.cache.event.CacheEntryUpdatedListener;
 import org.apache.ignite.Ignite;
 import org.apache.ignite.IgniteCheckedException;
 import org.apache.ignite.IgniteSet;
+import org.apache.ignite.binary.BinaryObject;
 import org.apache.ignite.cache.CacheEntryEventSerializableFilter;
+import org.apache.ignite.cache.CachePeekMode;
 import org.apache.ignite.cluster.ClusterNode;
-import org.apache.ignite.cluster.ClusterTopologyException;
 import org.apache.ignite.internal.IgniteKernal;
+import org.apache.ignite.internal.cluster.ClusterTopologyCheckedException;
 import org.apache.ignite.internal.processors.affinity.AffinityTopologyVersion;
 import org.apache.ignite.internal.processors.cache.GridCacheAdapter;
 import org.apache.ignite.internal.processors.cache.GridCacheAffinityManager;
 import org.apache.ignite.internal.processors.cache.GridCacheGateway;
 import org.apache.ignite.internal.processors.cache.GridCacheManagerAdapter;
 import org.apache.ignite.internal.processors.cache.IgniteInternalCache;
-import org.apache.ignite.internal.processors.cache.KeyCacheObject;
 import org.apache.ignite.internal.processors.datastructures.DataStructuresProcessor;
 import org.apache.ignite.internal.processors.datastructures.GridAtomicCacheQueueImpl;
 import org.apache.ignite.internal.processors.datastructures.GridCacheQueueHeader;
@@ -54,33 +58,52 @@ import org.apache.ignite.internal.processors.datastructures.GridCacheQueueProxy;
 import org.apache.ignite.internal.processors.datastructures.GridCacheSetHeader;
 import org.apache.ignite.internal.processors.datastructures.GridCacheSetHeaderKey;
 import org.apache.ignite.internal.processors.datastructures.GridCacheSetImpl;
-import org.apache.ignite.internal.processors.datastructures.GridCacheSetItemKey;
 import org.apache.ignite.internal.processors.datastructures.GridCacheSetProxy;
 import org.apache.ignite.internal.processors.datastructures.GridTransactionalCacheQueueImpl;
+import org.apache.ignite.internal.processors.datastructures.SetItemKey;
 import org.apache.ignite.internal.processors.task.GridInternal;
-import org.apache.ignite.internal.util.GridConcurrentHashSet;
 import org.apache.ignite.internal.util.GridSpinBusyLock;
+import org.apache.ignite.internal.util.typedef.F;
 import org.apache.ignite.internal.util.typedef.internal.CU;
 import org.apache.ignite.internal.util.typedef.internal.U;
+import org.apache.ignite.lang.IgniteFuture;
 import org.apache.ignite.lang.IgniteUuid;
 import org.apache.ignite.resources.IgniteInstanceResource;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jsr166.ConcurrentHashMap8;
 
-import static org.apache.ignite.cache.CacheMode.PARTITIONED;
+import static javax.cache.event.EventType.REMOVED;
 import static org.apache.ignite.internal.GridClosureCallMode.BROADCAST;
 
 /**
  *
  */
 public class CacheDataStructuresManager extends GridCacheManagerAdapter {
+    /** Known classes which are safe to use on server nodes. */
+    private static final Collection<Class<?>> KNOWN_CLS = new HashSet<>();
+
+    /**
+     *
+     */
+    static {
+        KNOWN_CLS.add(String.class);
+        KNOWN_CLS.add(Boolean.class);
+        KNOWN_CLS.add(Byte.class);
+        KNOWN_CLS.add(Short.class);
+        KNOWN_CLS.add(Character.class);
+        KNOWN_CLS.add(Integer.class);
+        KNOWN_CLS.add(Long.class);
+        KNOWN_CLS.add(Float.class);
+        KNOWN_CLS.add(Double.class);
+        KNOWN_CLS.add(String.class);
+        KNOWN_CLS.add(UUID.class);
+        KNOWN_CLS.add(IgniteUuid.class);
+        KNOWN_CLS.add(BigDecimal.class);
+        KNOWN_CLS.add(BinaryObject.class);
+    }
+
     /** Sets map. */
     private final ConcurrentMap<IgniteUuid, GridCacheSetProxy> setsMap;
-
-    /** Set keys used for set iteration. */
-    private ConcurrentMap<IgniteUuid, GridConcurrentHashSet<GridCacheSetItemKey>> setDataMap =
-        new ConcurrentHashMap8<>();
 
     /** Queues map. */
     private final ConcurrentMap<IgniteUuid, GridCacheQueueProxy> queuesMap;
@@ -107,9 +130,9 @@ public class CacheDataStructuresManager extends GridCacheManagerAdapter {
      *
      */
     public CacheDataStructuresManager() {
-        queuesMap = new ConcurrentHashMap8<>(10);
+        queuesMap = new ConcurrentHashMap<>(10);
 
-        setsMap = new ConcurrentHashMap8<>(10);
+        setsMap = new ConcurrentHashMap<>(10);
     }
 
     /** {@inheritDoc} */
@@ -133,6 +156,17 @@ public class CacheDataStructuresManager extends GridCacheManagerAdapter {
 
         for (GridCacheQueueProxy q : queuesMap.values())
             q.delegate().onKernalStop();
+    }
+
+    /** {@inheritDoc} */
+    @Override public void onDisconnected(IgniteFuture reconnectFut) {
+        super.onDisconnected(reconnectFut);
+
+        for (Map.Entry<IgniteUuid, GridCacheQueueProxy> e : queuesMap.entrySet()) {
+            GridCacheQueueProxy queue = e.getValue();
+
+            queue.delegate().onClientDisconnected();
+        }
     }
 
     /**
@@ -190,7 +224,6 @@ public class CacheDataStructuresManager extends GridCacheManagerAdapter {
      * @return Queue header.
      * @throws IgniteCheckedException If failed.
      */
-    @SuppressWarnings("unchecked")
     @Nullable public <T> GridCacheQueueProxy<T> queue(final String name,
         final int cap,
         boolean colloc,
@@ -199,10 +232,7 @@ public class CacheDataStructuresManager extends GridCacheManagerAdapter {
     {
         waitInitialization();
 
-        // Non collocated mode enabled only for PARTITIONED cache.
-        final boolean colloc0 = create && (cctx.cache().configuration().getCacheMode() != PARTITIONED || colloc);
-
-        return queue0(name, cap, colloc0, create);
+        return queue0(name, cap, colloc, create);
     }
 
     /**
@@ -230,7 +260,7 @@ public class CacheDataStructuresManager extends GridCacheManagerAdapter {
             if (create) {
                 hdr = new GridCacheQueueHeader(IgniteUuid.randomUuid(), cap, colloc, 0, 0, null);
 
-                GridCacheQueueHeader old = queueHdrView.getAndPutIfAbsent(key, hdr);
+                GridCacheQueueHeader old = queueHdrView.withNoRetries().getAndPutIfAbsent(key, hdr);
 
                 if (old != null) {
                     if (old.capacity() != cap || old.collocated() != colloc)
@@ -260,7 +290,7 @@ public class CacheDataStructuresManager extends GridCacheManagerAdapter {
 
                                     for (final GridCacheQueueProxy queue : queuesMap.values()) {
                                         if (queue.name().equals(key.queueName())) {
-                                            if (hdr == null) {
+                                            if (e.getEventType() == REMOVED) {
                                                 GridCacheQueueHeader oldHdr = (GridCacheQueueHeader)e.getOldValue();
 
                                                 assert oldHdr != null;
@@ -284,7 +314,9 @@ public class CacheDataStructuresManager extends GridCacheManagerAdapter {
                     },
                     new QueueHeaderPredicate(),
                     cctx.isLocal() || (cctx.isReplicated() && cctx.affinityNode()),
-                    true);
+                    true,
+                    false,
+                    false);
             }
 
             GridCacheQueueProxy queue = queuesMap.get(hdr.id());
@@ -307,68 +339,34 @@ public class CacheDataStructuresManager extends GridCacheManagerAdapter {
     }
 
     /**
-     * Entry update callback.
-     *
-     * @param key Key.
-     * @param rmv {@code True} if entry was removed.
-     */
-    public void onEntryUpdated(KeyCacheObject key, boolean rmv) {
-        Object key0 = key.value(cctx.cacheObjectContext(), false);
-
-        if (key0 instanceof GridCacheSetItemKey)
-            onSetItemUpdated((GridCacheSetItemKey)key0, rmv);
-    }
-
-    /**
-     * Partition evicted callback.
-     *
-     * @param part Partition number.
-     */
-    public void onPartitionEvicted(int part) {
-        GridCacheAffinityManager aff = cctx.affinity();
-
-        for (GridConcurrentHashSet<GridCacheSetItemKey> set : setDataMap.values()) {
-            Iterator<GridCacheSetItemKey> iter = set.iterator();
-
-            while (iter.hasNext()) {
-                GridCacheSetItemKey key = iter.next();
-
-                if (aff.partition(key) == part)
-                    iter.remove();
-            }
-        }
-    }
-
-    /**
      * @param name Set name.
      * @param colloc Collocated flag.
      * @param create Create flag.
+     * @param separated Separated cache flag.
      * @return Set.
      * @throws IgniteCheckedException If failed.
      */
     @Nullable public <T> IgniteSet<T> set(final String name,
         boolean colloc,
-        final boolean create)
-        throws IgniteCheckedException
+        boolean create,
+        boolean separated) throws IgniteCheckedException
     {
-        // Non collocated mode enabled only for PARTITIONED cache.
-        final boolean colloc0 =
-            create && (cctx.cache().configuration().getCacheMode() != PARTITIONED || colloc);
-
-        return set0(name, colloc0, create);
+        return set0(name, colloc, create, separated);
     }
 
     /**
      * @param name Name of set.
      * @param collocated Collocation flag.
      * @param create If {@code true} set will be created in case it is not in cache.
+     * @param separated Separated cache flag.
      * @return Set.
      * @throws IgniteCheckedException If failed.
      */
     @SuppressWarnings("unchecked")
     @Nullable private <T> IgniteSet<T> set0(String name,
         boolean collocated,
-        boolean create)
+        boolean create,
+        boolean separated)
         throws IgniteCheckedException
     {
         cctx.gate().enter();
@@ -378,12 +376,12 @@ public class CacheDataStructuresManager extends GridCacheManagerAdapter {
 
             GridCacheSetHeader hdr;
 
-            GridCacheAdapter cache = cctx.cache();
+            IgniteInternalCache cache = cctx.cache().withNoRetries();
 
             if (create) {
-                hdr = new GridCacheSetHeader(IgniteUuid.randomUuid(), collocated);
+                hdr = new GridCacheSetHeader(IgniteUuid.randomUuid(), collocated, separated);
 
-                GridCacheSetHeader old = retryPutIfAbsent(cache, key, hdr);
+                GridCacheSetHeader old = (GridCacheSetHeader)cache.getAndPutIfAbsent(key, hdr);
 
                 if (old != null)
                     hdr = old;
@@ -412,11 +410,11 @@ public class CacheDataStructuresManager extends GridCacheManagerAdapter {
     }
 
     /**
-     * @param id Set ID.
-     * @return Data for given set.
+     * @param obj Object.
+     * @return {@code True}
      */
-    @Nullable public GridConcurrentHashSet<GridCacheSetItemKey> setData(IgniteUuid id) {
-        return setDataMap.get(id);
+    public boolean knownType(Object obj) {
+        return obj == null || KNOWN_CLS.contains(obj.getClass());
     }
 
     /**
@@ -424,7 +422,6 @@ public class CacheDataStructuresManager extends GridCacheManagerAdapter {
      * @param topVer Topology version.
      * @throws IgniteCheckedException If failed.
      */
-    @SuppressWarnings("unchecked")
     private void removeSetData(IgniteUuid setId, AffinityTopologyVersion topVer) throws IgniteCheckedException {
         boolean loc = cctx.isLocal();
 
@@ -436,22 +433,19 @@ public class CacheDataStructuresManager extends GridCacheManagerAdapter {
             cctx.preloader().syncFuture().get();
         }
 
-        GridConcurrentHashSet<GridCacheSetItemKey> set = setDataMap.get(setId);
-
-        if (set == null)
-            return;
-
-        IgniteInternalCache cache = cctx.cache();
+        IgniteInternalCache<?, ?> cache = cctx.cache();
 
         final int BATCH_SIZE = 100;
 
-        Collection<GridCacheSetItemKey> keys = new ArrayList<>(BATCH_SIZE);
+        Collection<SetItemKey> keys = new ArrayList<>(BATCH_SIZE);
 
-        for (GridCacheSetItemKey key : set) {
-            if (!loc && !aff.primary(cctx.localNode(), key, topVer))
+        for (Cache.Entry entry : cache.localEntries(new CachePeekMode[] {CachePeekMode.PRIMARY})) {
+            Object obj = entry.getKey();
+
+            if (!(obj instanceof SetItemKey && setId.equals(((SetItemKey)obj).setId())))
                 continue;
 
-            keys.add(key);
+            keys.add((SetItemKey)obj);
 
             if (keys.size() == BATCH_SIZE) {
                 retryRemoveAll(cache, keys);
@@ -462,34 +456,43 @@ public class CacheDataStructuresManager extends GridCacheManagerAdapter {
 
         if (!keys.isEmpty())
             retryRemoveAll(cache, keys);
-
-        setDataMap.remove(setId);
     }
 
     /**
      * @param id Set ID.
+     * @param separated Separated cache flag.
      * @throws IgniteCheckedException If failed.
      */
-    @SuppressWarnings("unchecked")
-    public void removeSetData(IgniteUuid id) throws IgniteCheckedException {
+    public void removeSetData(IgniteUuid id, boolean separated) throws IgniteCheckedException {
         assert id != null;
 
         if (!cctx.isLocal()) {
             while (true) {
                 AffinityTopologyVersion topVer = cctx.topologyVersionFuture().get();
 
-                Collection<ClusterNode> nodes = CU.affinityNodes(cctx, topVer);
+                Collection<ClusterNode> nodes = F.view(cctx.discovery().nodes(topVer), node -> !node.isDaemon());
 
                 try {
                     cctx.closures().callAsyncNoFailover(BROADCAST,
                         new BlockSetCallable(cctx.name(), id),
                         nodes,
-                        true).get();
+                        true,
+                        0, false).get();
+
+                    // Separated cache will be destroyed after the set is blocked.
+                    if (separated)
+                        break;
                 }
                 catch (IgniteCheckedException e) {
-                    if (e.hasCause(ClusterTopologyException.class)) {
+                    if (e.hasCause(ClusterTopologyCheckedException.class)) {
                         if (log.isDebugEnabled())
                             log.debug("RemoveSetData job failed, will retry: " + e);
+
+                        continue;
+                    }
+                    else if (!pingNodes(nodes)) {
+                        if (log.isDebugEnabled())
+                            log.debug("RemoveSetData job failed and set data node left, will retry: " + e);
 
                         continue;
                     }
@@ -497,16 +500,25 @@ public class CacheDataStructuresManager extends GridCacheManagerAdapter {
                         throw e;
                 }
 
+                Collection<ClusterNode> affNodes = CU.affinityNodes(cctx, topVer);
+
                 try {
                     cctx.closures().callAsyncNoFailover(BROADCAST,
                         new RemoveSetDataCallable(cctx.name(), id, topVer),
-                        nodes,
-                        true).get();
+                        affNodes,
+                        true,
+                        0, false).get();
                 }
                 catch (IgniteCheckedException e) {
-                    if (e.hasCause(ClusterTopologyException.class)) {
+                    if (e.hasCause(ClusterTopologyCheckedException.class)) {
                         if (log.isDebugEnabled())
                             log.debug("RemoveSetData job failed, will retry: " + e);
+
+                        continue;
+                    }
+                    else if (!pingNodes(affNodes)) {
+                        if (log.isDebugEnabled())
+                            log.debug("RemoveSetData job failed and set data node left, will retry: " + e);
 
                         continue;
                     }
@@ -526,33 +538,22 @@ public class CacheDataStructuresManager extends GridCacheManagerAdapter {
     }
 
     /**
-     * @param key Set item key.
-     * @param rmv {@code True} if item was removed.
+     * @param nodes Nodes to ping.
+     * @return {@code True} if was able to ping all nodes.
+     * @throws IgniteCheckedException If failed/
      */
-    private void onSetItemUpdated(GridCacheSetItemKey key, boolean rmv) {
-        GridConcurrentHashSet<GridCacheSetItemKey> set = setDataMap.get(key.setId());
-
-        if (set == null) {
-            if (rmv)
-                return;
-
-            GridConcurrentHashSet<GridCacheSetItemKey> old = setDataMap.putIfAbsent(key.setId(),
-                set = new GridConcurrentHashSet<>());
-
-            if (old != null)
-                set = old;
+    private boolean pingNodes(Collection<ClusterNode> nodes) throws IgniteCheckedException {
+        for (ClusterNode node : nodes) {
+            if (!cctx.discovery().pingNode(node.id()))
+                return false;
         }
 
-        if (rmv)
-            set.remove(key);
-        else
-            set.add(key);
+        return true;
     }
 
     /**
      * @param setId Set ID.
      */
-    @SuppressWarnings("unchecked")
     private void blockSet(IgniteUuid setId) {
         GridCacheSetProxy set = setsMap.remove(setId);
 
@@ -562,28 +563,11 @@ public class CacheDataStructuresManager extends GridCacheManagerAdapter {
 
     /**
      * @param cache Cache.
-     * @param key Key.
-     * @param val Value.
-     * @throws IgniteCheckedException If failed.
-     * @return Previous value.
-     */
-    @SuppressWarnings("unchecked")
-    @Nullable private <T> T retryPutIfAbsent(final IgniteInternalCache cache, final Object key, final T val)
-        throws IgniteCheckedException {
-        return DataStructuresProcessor.retry(log, new Callable<T>() {
-            @Nullable @Override public T call() throws Exception {
-                return (T)cache.getAndPutIfAbsent(key, val);
-            }
-        });
-    }
-
-    /**
-     * @param cache Cache.
      * @param keys Keys to remove.
      * @throws IgniteCheckedException If failed.
      */
     @SuppressWarnings("unchecked")
-    private void retryRemoveAll(final IgniteInternalCache cache, final Collection<GridCacheSetItemKey> keys)
+    private void retryRemoveAll(final IgniteInternalCache cache, final Collection<SetItemKey> keys)
         throws IgniteCheckedException {
         DataStructuresProcessor.retry(log, new Callable<Void>() {
             @Override public Void call() throws Exception {
@@ -665,9 +649,9 @@ public class CacheDataStructuresManager extends GridCacheManagerAdapter {
 
             GridCacheAdapter cache = ((IgniteKernal)ignite).context().cache().internalCache(cacheName);
 
-            assert cache != null : cacheName;
-
-            cache.context().dataStructures().blockSet(setId);
+            // On non-affinity node cache starts on demand, so it may not be running.
+            if (cache != null)
+                cache.context().dataStructures().blockSet(setId);
 
             return null;
         }

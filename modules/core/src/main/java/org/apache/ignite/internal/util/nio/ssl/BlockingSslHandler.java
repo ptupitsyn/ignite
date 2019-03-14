@@ -35,6 +35,7 @@ import static javax.net.ssl.SSLEngineResult.HandshakeStatus.FINISHED;
 import static javax.net.ssl.SSLEngineResult.HandshakeStatus.NEED_TASK;
 import static javax.net.ssl.SSLEngineResult.HandshakeStatus.NEED_UNWRAP;
 import static javax.net.ssl.SSLEngineResult.HandshakeStatus.NOT_HANDSHAKING;
+import static javax.net.ssl.SSLEngineResult.Status.BUFFER_OVERFLOW;
 import static javax.net.ssl.SSLEngineResult.Status.BUFFER_UNDERFLOW;
 import static javax.net.ssl.SSLEngineResult.Status.CLOSED;
 import static javax.net.ssl.SSLEngineResult.Status.OK;
@@ -67,7 +68,7 @@ public class BlockingSslHandler {
     /** Input buffer from which SSL engine will decrypt data. */
     private ByteBuffer inNetBuf;
 
-    /** Empty buffer used in handshake procedure.  */
+    /** Empty buffer used in handshake procedure. */
     private ByteBuffer handshakeBuf = ByteBuffer.allocate(0);
 
     /** Application buffer. */
@@ -92,7 +93,10 @@ public class BlockingSslHandler {
         this.order = order;
 
         // Allocate a little bit more so SSL engine would not return buffer overflow status.
-        int netBufSize = sslEngine.getSession().getPacketBufferSize() + 50;
+        //
+        // System property override is for test purposes only.
+        int netBufSize = Integer.getInteger("BlockingSslHandler.netBufSize",
+            sslEngine.getSession().getPacketBufferSize() + 50);
 
         outNetBuf = directBuf ? ByteBuffer.allocateDirect(netBufSize) : ByteBuffer.allocate(netBufSize);
         outNetBuf.order(order);
@@ -110,6 +114,13 @@ public class BlockingSslHandler {
 
         if (log.isDebugEnabled())
             log.debug("Started SSL session [netBufSize=" + netBufSize + ", appBufSize=" + appBuf.capacity() + ']');
+    }
+
+    /**
+     *
+     */
+    public ByteBuffer inputBuffer() {
+        return inNetBuf;
     }
 
     /**
@@ -166,15 +177,22 @@ public class BlockingSslHandler {
 
                     SSLEngineResult res = sslEngine.wrap(handshakeBuf, outNetBuf);
 
-                    outNetBuf.flip();
+                    if (res.getStatus() == BUFFER_OVERFLOW) {
+                        outNetBuf = expandBuffer(outNetBuf, outNetBuf.capacity() * 2);
+
+                        outNetBuf.flip();
+                    }
+                    else {
+                        outNetBuf.flip();
+
+                        writeNetBuffer();
+                    }
 
                     handshakeStatus = res.getHandshakeStatus();
 
                     if (log.isDebugEnabled())
                         log.debug("Wrapped handshake data [status=" + res.getStatus() + ", handshakeStatus=" +
-                        handshakeStatus + ']');
-
-                    writeNetBuffer();
+                            handshakeStatus + ']');
 
                     break;
                 }
@@ -205,8 +223,8 @@ public class BlockingSslHandler {
      * Encrypts data to be written to the network.
      *
      * @param src data to encrypt.
-     * @throws SSLException on errors.
      * @return Output buffer with encrypted data.
+     * @throws SSLException on errors.
      */
     public ByteBuffer encrypt(ByteBuffer src) throws SSLException {
         assert handshakeFinished;
@@ -255,7 +273,7 @@ public class BlockingSslHandler {
      * @throws SSLException If failed to process SSL data.
      */
     public ByteBuffer decode(ByteBuffer buf) throws IgniteCheckedException, SSLException {
-        inNetBuf.clear();
+        appBuf.clear();
 
         if (buf.limit() > inNetBuf.remaining()) {
             inNetBuf = expandBuffer(inNetBuf, inNetBuf.capacity() + buf.limit() * 2);
@@ -346,7 +364,6 @@ public class BlockingSslHandler {
         return sslEngine.getHandshakeStatus();
     }
 
-
     /**
      * Unwraps handshake data and processes it.
      *
@@ -355,12 +372,14 @@ public class BlockingSslHandler {
      * @throws GridNioException If failed to pass event to the next filter.
      */
     private Status unwrapHandshake() throws SSLException, IgniteCheckedException {
-        // Flip input buffer so we can read the collected data.
-        readFromNet();
+        if (!inNetBuf.hasRemaining())
+            readFromNet();
 
+        // Flip input buffer so we can read the collected data.
         inNetBuf.flip();
 
         SSLEngineResult res = unwrap0();
+
         handshakeStatus = res.getHandshakeStatus();
 
         checkStatus(res);
@@ -376,6 +395,14 @@ public class BlockingSslHandler {
             inNetBuf.compact();
 
             renegotiateIfNeeded(res);
+        }
+        else if (res.getStatus() == BUFFER_UNDERFLOW) {
+            inNetBuf.compact();
+
+            if (inNetBuf.capacity() == inNetBuf.limit())
+                inNetBuf = expandBuffer(inNetBuf, inNetBuf.capacity() * 2);
+
+            readFromNet();
         }
         else
             // prepare to be written again
@@ -455,6 +482,7 @@ public class BlockingSslHandler {
         int appBufSize = Math.max(sslEngine.getSession().getApplicationBufferSize() + 50, netBufSize * 2);
 
         ByteBuffer buf = ByteBuffer.allocate(appBufSize);
+
         buf.order(order);
 
         return buf;
@@ -465,8 +493,6 @@ public class BlockingSslHandler {
      */
     private void readFromNet() throws IgniteCheckedException {
         try {
-            inNetBuf.clear();
-
             int read = ch.read(inNetBuf);
 
             if (read == -1)
@@ -499,30 +525,14 @@ public class BlockingSslHandler {
      * @return Expanded byte buffer.
      */
     private ByteBuffer expandBuffer(ByteBuffer original, int cap) {
-        ByteBuffer res = ByteBuffer.allocate(cap);
+        ByteBuffer res = original.isDirect() ? ByteBuffer.allocateDirect(cap) : ByteBuffer.allocate(cap);
 
-        res.order(ByteOrder.nativeOrder());
+        res.order(original.order());
 
         original.flip();
 
         res.put(original);
 
         return res;
-    }
-
-    /**
-     * Copies the given byte buffer.
-     *
-     * @param original Byte buffer to copy.
-     * @return Copy of the original byte buffer.
-     */
-    private ByteBuffer copy(ByteBuffer original) {
-        ByteBuffer cp = ByteBuffer.allocate(original.remaining());
-
-        cp.put(original);
-
-        cp.flip();
-
-        return cp;
     }
 }

@@ -27,21 +27,23 @@ import org.apache.ignite.IgniteAtomicLong;
 import org.apache.ignite.IgniteAtomicReference;
 import org.apache.ignite.IgniteAtomicSequence;
 import org.apache.ignite.IgniteAtomicStamped;
+import org.apache.ignite.IgniteCheckedException;
 import org.apache.ignite.IgniteCountDownLatch;
 import org.apache.ignite.IgniteException;
 import org.apache.ignite.IgniteQueue;
+import org.apache.ignite.IgniteLock;
+import org.apache.ignite.IgniteSemaphore;
 import org.apache.ignite.IgniteSet;
 import org.apache.ignite.cache.CacheAtomicityMode;
-import org.apache.ignite.cache.CacheMemoryMode;
 import org.apache.ignite.cache.CacheMode;
 import org.apache.ignite.configuration.AtomicConfiguration;
 import org.apache.ignite.configuration.IgniteConfiguration;
 import org.apache.ignite.internal.IgniteInternalFuture;
 import org.apache.ignite.lang.IgniteUuid;
 import org.apache.ignite.testframework.GridTestUtils;
+import org.junit.Test;
 
 import static org.apache.ignite.cache.CacheAtomicityMode.ATOMIC;
-import static org.apache.ignite.cache.CacheMemoryMode.ONHEAP_TIERED;
 import static org.apache.ignite.cache.CacheMode.PARTITIONED;
 
 /**
@@ -59,18 +61,13 @@ public class IgniteDataStructureUniqueNameTest extends IgniteCollectionAbstractT
     }
 
     /** {@inheritDoc} */
-    @Override protected CacheMemoryMode collectionMemoryMode() {
-        return ONHEAP_TIERED;
-    }
-
-    /** {@inheritDoc} */
     @Override protected CacheAtomicityMode collectionCacheAtomicityMode() {
         return ATOMIC;
     }
 
     /** {@inheritDoc} */
-    @Override protected IgniteConfiguration getConfiguration(String gridName) throws Exception {
-        IgniteConfiguration cfg = super.getConfiguration(gridName);
+    @Override protected IgniteConfiguration getConfiguration(String igniteInstanceName) throws Exception {
+        IgniteConfiguration cfg = super.getConfiguration(igniteInstanceName);
 
         AtomicConfiguration atomicCfg = new AtomicConfiguration();
 
@@ -85,6 +82,7 @@ public class IgniteDataStructureUniqueNameTest extends IgniteCollectionAbstractT
     /**
      * @throws Exception If failed.
      */
+    @Test
     public void testUniqueNameMultithreaded() throws Exception {
         testUniqueName(true);
     }
@@ -92,6 +90,7 @@ public class IgniteDataStructureUniqueNameTest extends IgniteCollectionAbstractT
     /**
      * @throws Exception If failed.
      */
+    @Test
     public void testUniqueNameMultinode() throws Exception {
         testUniqueName(false);
     }
@@ -99,6 +98,7 @@ public class IgniteDataStructureUniqueNameTest extends IgniteCollectionAbstractT
     /**
      * @throws Exception If failed.
      */
+    @Test
     public void testCreateRemove() throws Exception {
         final String name = IgniteUuid.randomUuid().toString();
 
@@ -215,8 +215,7 @@ public class IgniteDataStructureUniqueNameTest extends IgniteCollectionAbstractT
         }, IgniteException.class, null);
 
         GridTestUtils.assertThrows(log, new Callable<Void>() {
-            @Override
-            public Void call() throws Exception {
+            @Override public Void call() throws Exception {
                 ignite.queue(name, 0, null);
 
                 return null;
@@ -230,6 +229,45 @@ public class IgniteDataStructureUniqueNameTest extends IgniteCollectionAbstractT
         assertNotNull(ref);
 
         assertSame(ref, ignite.atomicReference(name, 0, true));
+
+        ref.close();
+    }
+
+    /**
+     * @throws Exception If failed.
+     */
+    @Test
+    public void testUniqueNamePerGroup() throws Exception {
+        Ignite ignite = ignite(0);
+
+        IgniteAtomicLong atomicLong = ignite.atomicLong("testName",
+            new AtomicConfiguration().setGroupName("group1"),
+            0,
+            true);
+
+        IgniteAtomicSequence atomicSeq = ignite.atomicSequence("testName",
+            new AtomicConfiguration().setGroupName("group2"),
+            0,
+            true);
+
+        assert atomicLong != null;
+        assert atomicSeq != null;
+
+        atomicLong = ignite.atomicLong("testName",
+            new AtomicConfiguration().setGroupName("group1"),
+            0,
+            false);
+
+        atomicSeq = ignite.atomicSequence("testName",
+            new AtomicConfiguration().setGroupName("group2"),
+            0,
+            false);
+
+        assert atomicLong != null;
+        assert atomicSeq != null;
+
+        atomicLong.close();
+        atomicSeq.close();
     }
 
     /**
@@ -239,7 +277,7 @@ public class IgniteDataStructureUniqueNameTest extends IgniteCollectionAbstractT
     private void testUniqueName(final boolean singleGrid) throws Exception {
         final String name = IgniteUuid.randomUuid().toString();
 
-        final int DS_TYPES = 7;
+        final int DS_TYPES = 6;
 
         final int THREADS = DS_TYPES * 3;
 
@@ -287,27 +325,20 @@ public class IgniteDataStructureUniqueNameTest extends IgniteCollectionAbstractT
                                     break;
 
                                 case 3:
-                                    log.info("Create atomic latch, grid: " + ignite.name());
-
-                                    res = ignite.countDownLatch(name, 0, true, true);
-
-                                    break;
-
-                                case 4:
                                     log.info("Create atomic reference, grid: " + ignite.name());
 
                                     res = ignite.atomicReference(name, null, true);
 
                                     break;
 
-                                case 5:
+                                case 4:
                                     log.info("Create queue, grid: " + ignite.name());
 
                                     res = ignite.queue(name, 0, config(false));
 
                                     break;
 
-                                case 6:
+                                case 5:
                                     log.info("Create set, grid: " + ignite.name());
 
                                     res = ignite.set(name, config(false));
@@ -342,7 +373,7 @@ public class IgniteDataStructureUniqueNameTest extends IgniteCollectionAbstractT
             for (IgniteInternalFuture<Object> fut : futs) {
                 Object res = fut.get();
 
-                if (res instanceof IgniteException)
+                if (res instanceof IgniteException || res instanceof IgniteCheckedException)
                     continue;
 
                 assertTrue("Unexpected object: " + res,
@@ -352,7 +383,9 @@ public class IgniteDataStructureUniqueNameTest extends IgniteCollectionAbstractT
                         res instanceof IgniteAtomicStamped ||
                         res instanceof IgniteCountDownLatch ||
                         res instanceof IgniteQueue ||
-                        res instanceof IgniteSet);
+                        res instanceof IgniteSet ||
+                        res instanceof IgniteSemaphore ||
+                        res instanceof IgniteLock);
 
                 log.info("Data structure created: " + dataStructure);
 

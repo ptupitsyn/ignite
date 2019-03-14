@@ -17,10 +17,15 @@
 
 package org.apache.ignite.internal.processors.cache;
 
-import java.util.Map;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.concurrent.atomic.AtomicInteger;
 import javax.cache.Cache;
 import javax.cache.configuration.Factory;
+import javax.cache.processor.EntryProcessor;
+import javax.cache.processor.MutableEntry;
 import org.apache.ignite.Ignite;
 import org.apache.ignite.IgniteCache;
 import org.apache.ignite.IgniteCheckedException;
@@ -30,7 +35,6 @@ import org.apache.ignite.cache.CacheMode;
 import org.apache.ignite.cache.CachePeekMode;
 import org.apache.ignite.cache.CacheWriteSynchronizationMode;
 import org.apache.ignite.cache.store.CacheStore;
-import org.apache.ignite.cache.store.CacheStoreAdapter;
 import org.apache.ignite.configuration.CacheConfiguration;
 import org.apache.ignite.configuration.IgniteConfiguration;
 import org.apache.ignite.configuration.NearCacheConfiguration;
@@ -38,23 +42,23 @@ import org.apache.ignite.internal.IgniteKernal;
 import org.apache.ignite.internal.cluster.ClusterTopologyCheckedException;
 import org.apache.ignite.internal.util.lang.GridAbsPredicateX;
 import org.apache.ignite.internal.util.typedef.CI1;
+import org.apache.ignite.internal.util.typedef.F;
 import org.apache.ignite.internal.util.typedef.P1;
 import org.apache.ignite.internal.util.typedef.R1;
 import org.apache.ignite.internal.util.typedef.X;
 import org.apache.ignite.internal.util.typedef.internal.U;
-import org.apache.ignite.lang.IgniteBiInClosure;
 import org.apache.ignite.lang.IgnitePredicate;
+import org.apache.ignite.spi.communication.tcp.TcpCommunicationSpi;
 import org.apache.ignite.spi.discovery.tcp.TcpDiscoverySpi;
 import org.apache.ignite.spi.discovery.tcp.ipfinder.TcpDiscoveryIpFinder;
 import org.apache.ignite.spi.discovery.tcp.ipfinder.vm.TcpDiscoveryVmIpFinder;
 import org.apache.ignite.testframework.GridTestUtils;
+import org.apache.ignite.testframework.MvccFeatureChecker;
 import org.apache.ignite.testframework.junits.common.GridCommonAbstractTest;
 import org.apache.ignite.transactions.Transaction;
 import org.jetbrains.annotations.Nullable;
-import org.jsr166.ConcurrentHashMap8;
 
 import static org.apache.ignite.cache.CacheAtomicityMode.TRANSACTIONAL;
-import static org.apache.ignite.cache.CacheMemoryMode.OFFHEAP_TIERED;
 import static org.apache.ignite.cache.CacheMode.PARTITIONED;
 import static org.apache.ignite.cache.CacheWriteSynchronizationMode.FULL_SYNC;
 
@@ -65,11 +69,11 @@ public abstract class GridCacheAbstractSelfTest extends GridCommonAbstractTest {
     /** Test timeout */
     private static final long TEST_TIMEOUT = 30 * 1000;
 
-    /** Store map. */
-    protected static final Map<Object, Object> map = new ConcurrentHashMap8<>();
-
     /** VM ip finder for TCP discovery. */
     protected static TcpDiscoveryIpFinder ipFinder = new TcpDiscoveryVmIpFinder(true);
+
+    /** */
+    protected static TestCacheStoreStrategy storeStgy;
 
     /**
      * @return Grids count to start.
@@ -83,9 +87,14 @@ public abstract class GridCacheAbstractSelfTest extends GridCommonAbstractTest {
 
     /** {@inheritDoc} */
     @Override protected void beforeTestsStarted() throws Exception {
+        super.beforeTestsStarted();
+
         int cnt = gridCount();
 
         assert cnt >= 1 : "At least one grid must be started";
+
+        if (!MvccFeatureChecker.forcedMvcc() || MvccFeatureChecker.isSupported(MvccFeatureChecker.Feature.CACHE_STORE))
+            initStoreStrategy();
 
         startGrids(cnt);
 
@@ -94,9 +103,20 @@ public abstract class GridCacheAbstractSelfTest extends GridCommonAbstractTest {
 
     /** {@inheritDoc} */
     @Override protected void afterTestsStopped() throws Exception {
-        stopAllGrids();
+        if (storeStgy != null)
+            storeStgy.resetStore();
+    }
 
-        map.clear();
+    /**
+     * Initializes {@link #storeStgy} with respect to the nature of the test.
+     *
+     * @throws IgniteCheckedException If failed.
+     */
+    protected void initStoreStrategy() throws IgniteCheckedException {
+        if (storeStgy == null)
+            storeStgy = isMultiJvm() ? new H2CacheStoreStrategy() : new MapCacheStoreStrategy();
+        else if (isMultiJvm() && !(storeStgy instanceof H2CacheStoreStrategy))
+            storeStgy = new H2CacheStoreStrategy();
     }
 
     /** {@inheritDoc} */
@@ -124,7 +144,7 @@ public abstract class GridCacheAbstractSelfTest extends GridCommonAbstractTest {
 
                     assertTrue(
                         "Cache is not empty: " + " localSize = " + jcache(fi).localSize(CachePeekMode.ALL)
-                        + ", local entries " + entrySet(jcache(fi).localEntries()),
+                            + ", local entries " + entrySet(jcache(fi).localEntries()),
                         GridTestUtils.waitForCondition(
                             // Preloading may happen as nodes leave, so we need to wait.
                             new GridAbsPredicateX() {
@@ -170,41 +190,20 @@ public abstract class GridCacheAbstractSelfTest extends GridCommonAbstractTest {
                         throw e;
                 }
             }
-
-            for (Cache.Entry<String, Integer> entry : jcache(i).localEntries(CachePeekMode.SWAP))
-                jcache(i).remove(entry.getKey());
         }
 
         assert jcache().unwrap(Ignite.class).transactions().tx() == null;
         assertEquals("Cache is not empty", 0, jcache().localSize(CachePeekMode.ALL));
 
-        resetStore();
-    }
-
-    /**
-     * Cleans up cache store.
-     */
-    protected void resetStore() {
-        map.clear();
-    }
-
-    /**
-     * Put entry to cache store.
-     *
-     * @param key Key.
-     * @param val Value.
-     */
-    protected void putToStore(Object key, Object val) {
-        map.put(key, val);
+        if (storeStgy != null)
+            storeStgy.resetStore();
     }
 
     /** {@inheritDoc} */
-    @Override protected IgniteConfiguration getConfiguration(String gridName) throws Exception {
-        IgniteConfiguration cfg = super.getConfiguration(gridName);
+    @Override protected IgniteConfiguration getConfiguration(String igniteInstanceName) throws Exception {
+        IgniteConfiguration cfg = super.getConfiguration(igniteInstanceName);
 
         TcpDiscoverySpi disco = new TcpDiscoverySpi();
-
-        disco.setMaxMissedHeartbeats(Integer.MAX_VALUE);
 
         disco.setIpFinder(ipFinder);
 
@@ -213,38 +212,53 @@ public abstract class GridCacheAbstractSelfTest extends GridCommonAbstractTest {
 
         cfg.setDiscoverySpi(disco);
 
-        cfg.setCacheConfiguration(cacheConfiguration(gridName));
+        cfg.setCacheConfiguration(cacheConfiguration(igniteInstanceName));
+
+        TcpCommunicationSpi comm = new TcpCommunicationSpi();
+
+        comm.setSharedMemoryPort(-1);
+
+        cfg.setCommunicationSpi(comm);
 
         return cfg;
     }
 
     /**
-     * @param gridName Grid name.
+     * @param igniteInstanceName Ignite instance name.
      * @return Cache configuration.
      * @throws Exception In case of error.
      */
     @SuppressWarnings("unchecked")
-    protected CacheConfiguration cacheConfiguration(String gridName) throws Exception {
+    protected CacheConfiguration cacheConfiguration(String igniteInstanceName) throws Exception {
         CacheConfiguration cfg = defaultCacheConfiguration();
 
-        CacheStore<?, ?> store = cacheStore();
+        if (storeStgy != null) {
+            Factory<? extends CacheStore<Object, Object>> storeFactory = storeStgy.getStoreFactory();
 
-        if (store != null) {
-            cfg.setCacheStoreFactory(new TestStoreFactory());
-            cfg.setReadThrough(true);
-            cfg.setWriteThrough(true);
-            cfg.setLoadPreviousValue(true);
+            CacheStore<?, ?> store = storeFactory.create();
+
+            if (store != null) {
+                cfg.setCacheStoreFactory(storeFactory);
+                cfg.setReadThrough(true);
+                cfg.setWriteThrough(true);
+                cfg.setLoadPreviousValue(true);
+                storeStgy.updateCacheConfiguration(cfg);
+            }
         }
 
-        cfg.setSwapEnabled(swapEnabled());
         cfg.setCacheMode(cacheMode());
         cfg.setAtomicityMode(atomicityMode());
         cfg.setWriteSynchronizationMode(writeSynchronization());
         cfg.setNearConfiguration(nearConfiguration());
-        cfg.setIndexedTypes(indexedTypes());
+        cfg.setOnheapCacheEnabled(onheapCacheEnabled());
+
+        Class<?>[] idxTypes = indexedTypes();
+
+        if (!F.isEmpty(idxTypes))
+            cfg.setIndexedTypes(idxTypes);
 
         if (cacheMode() == PARTITIONED)
-            cfg.setBackups(1);
+            cfg.setBackups(backups());
 
         return cfg;
     }
@@ -285,31 +299,6 @@ public abstract class GridCacheAbstractSelfTest extends GridCommonAbstractTest {
     }
 
     /**
-     * @return Write through storage emulator.
-     */
-    protected static CacheStore<?, ?> cacheStore() {
-        return new CacheStoreAdapter<Object, Object>() {
-            @Override public void loadCache(IgniteBiInClosure<Object, Object> clo,
-                Object... args) {
-                for (Map.Entry<Object, Object> e : map.entrySet())
-                    clo.apply(e.getKey(), e.getValue());
-            }
-
-            @Override public Object load(Object key) {
-                return map.get(key);
-            }
-
-            @Override public void write(javax.cache.Cache.Entry<? extends Object, ? extends Object> e) {
-                map.put(e.getKey(), e.getValue());
-            }
-
-            @Override public void delete(Object key) {
-                map.remove(key);
-            }
-        };
-    }
-
-    /**
      * @return {@code true} if swap should be enabled.
      */
     protected boolean swapEnabled() {
@@ -346,6 +335,13 @@ public abstract class GridCacheAbstractSelfTest extends GridCommonAbstractTest {
     }
 
     /**
+     * @return {@code True} if on-heap cache is enabled.
+     */
+    protected boolean onheapCacheEnabled() {
+        return false;
+    }
+
+    /**
      * @return {@code True} for partitioned caches.
      */
     protected final boolean partitionedMode() {
@@ -368,12 +364,19 @@ public abstract class GridCacheAbstractSelfTest extends GridCommonAbstractTest {
     }
 
     /**
+     * @return Backups.
+     */
+    protected int backups() {
+        return 1;
+    }
+
+    /**
      * @param idx Index of grid.
      * @return Default cache.
      */
     @SuppressWarnings({"unchecked"})
     @Override protected IgniteCache<String, Integer> jcache(int idx) {
-        return ignite(idx).cache(null);
+        return ignite(idx).cache(DEFAULT_CACHE_NAME).withAllowAtomicOpsInTx();
     }
 
     /**
@@ -385,7 +388,7 @@ public abstract class GridCacheAbstractSelfTest extends GridCommonAbstractTest {
             throw new UnsupportedOperationException("Operation can't be done automatically via proxy. " +
                 "Send task with this logic on remote jvm instead.");
 
-        return ((IgniteKernal)grid(idx)).<String, Integer>internalCache().context();
+        return ((IgniteKernal)grid(idx)).<String, Integer>internalCache(DEFAULT_CACHE_NAME).context();
     }
 
     /**
@@ -398,24 +401,14 @@ public abstract class GridCacheAbstractSelfTest extends GridCommonAbstractTest {
     }
 
     /**
-     * @param cache Cache.
-     * @return {@code True} if cache has OFFHEAP_TIERED memory mode.
-     */
-    protected <K, V> boolean offheapTiered(IgniteCache<K, V> cache) {
-        return cache.getConfiguration(CacheConfiguration.class).getMemoryMode() == OFFHEAP_TIERED;
-    }
-
-    /**
      * Executes regular peek or peek from swap.
      *
      * @param cache Cache projection.
      * @param key Key.
      * @return Value.
-     * @throws Exception If failed.
      */
-    @Nullable protected <K, V> V peek(IgniteCache<K, V> cache, K key) throws Exception {
-        return offheapTiered(cache) ? cache.localPeek(key, CachePeekMode.SWAP, CachePeekMode.OFFHEAP) :
-            cache.localPeek(key, CachePeekMode.ONHEAP);
+    @Nullable protected <K, V> V peek(IgniteCache<K, V> cache, K key) {
+        return cache.localPeek(key);
     }
 
     /**
@@ -426,7 +419,7 @@ public abstract class GridCacheAbstractSelfTest extends GridCommonAbstractTest {
      */
     @SuppressWarnings("unchecked")
     protected boolean containsKey(IgniteCache cache, Object key) throws Exception {
-        return offheapTiered(cache) ? cache.localPeek(key, CachePeekMode.OFFHEAP) != null : cache.containsKey(key);
+        return cache.containsKey(key);
     }
 
     /**
@@ -434,20 +427,20 @@ public abstract class GridCacheAbstractSelfTest extends GridCommonAbstractTest {
      */
     protected static IgnitePredicate<Cache.Entry<String, Integer>> entryKeyFilter =
         new P1<Cache.Entry<String, Integer>>() {
-        @Override public boolean apply(Cache.Entry<String, Integer> entry) {
-            return entry.getKey().contains("key");
-        }
-    };
+            @Override public boolean apply(Cache.Entry<String, Integer> entry) {
+                return entry.getKey().contains("key");
+            }
+        };
 
     /**
      * Filters cache entry projections leaving only ones with keys not containing 'key'.
      */
     protected static IgnitePredicate<Cache.Entry<String, Integer>> entryKeyFilterInv =
         new P1<Cache.Entry<String, Integer>>() {
-        @Override public boolean apply(Cache.Entry<String, Integer> entry) {
-            return !entry.getKey().contains("key");
-        }
-    };
+            @Override public boolean apply(Cache.Entry<String, Integer> entry) {
+                return !entry.getKey().contains("key");
+            }
+        };
 
     /**
      * Filters cache entry projections leaving only ones with values less than 50.
@@ -496,7 +489,6 @@ public abstract class GridCacheAbstractSelfTest extends GridCommonAbstractTest {
     /**
      * {@link org.apache.ignite.lang.IgniteInClosure} for calculating sum.
      */
-    @SuppressWarnings({"PublicConstructorInNonPublicClass"})
     protected static final class SumVisitor implements CI1<Cache.Entry<String, Integer>> {
         /** */
         private final AtomicInteger sum;
@@ -523,7 +515,6 @@ public abstract class GridCacheAbstractSelfTest extends GridCommonAbstractTest {
     /**
      * {@link org.apache.ignite.lang.IgniteReducer} for calculating sum.
      */
-    @SuppressWarnings({"PublicConstructorInNonPublicClass"})
     protected static final class SumReducer implements R1<Cache.Entry<String, Integer>, Integer> {
         /** */
         private int sum;
@@ -552,12 +543,117 @@ public abstract class GridCacheAbstractSelfTest extends GridCommonAbstractTest {
         }
     }
 
+    /** */
+    protected enum ResourceType {
+        /** */
+        IGNITE_INSTANCE,
+
+        /** */
+        CACHE_NAME,
+
+        /** */
+        SPRING_APPLICATION_CONTEXT,
+
+        /** */
+        LOGGER,
+
+        /** */
+        SERVICE,
+
+        /** */
+        SPRING_BEAN,
+
+    }
+
     /**
-     * Serializable factory.
+     *
      */
-    protected static class TestStoreFactory implements Factory<CacheStore> {
-        @Override public CacheStore create() {
-            return cacheStore();
+    protected static class ResourceInfoSet {
+        /** */
+        int val;
+
+        /** */
+        public ResourceInfoSet() {
+            this(0);
+        }
+
+        /** */
+        public ResourceInfoSet(int val) {
+            this.val = val;
+        }
+
+        /**
+         * @param val Value.
+         */
+        public static ResourceInfoSet valueOf(int val) {
+            return new ResourceInfoSet(val);
+        }
+
+        /** */
+        public int getValue() {
+            return val;
+        }
+
+        /**
+         * @param type Type.
+         * @param injected Injected.
+         */
+        public ResourceInfoSet set(ResourceType type, boolean injected) {
+            int mask = 1 << type.ordinal();
+
+            if (injected)
+                val |= mask;
+            else
+                val &= ~mask;
+
+            return this;
+        }
+
+        /**
+         * @see {@link #set(ResourceType, boolean)}
+         */
+        public ResourceInfoSet set(ResourceType type, Object toCheck) {
+            return set(type, toCheck != null);
+        }
+
+        /**
+         * @return collection of not injected resources
+         */
+        public Collection<ResourceType> notInjected(Collection<ResourceType> exp) {
+            ArrayList<ResourceType> res = null;
+
+            for (ResourceType type : exp) {
+                int mask = 1 << type.ordinal();
+
+                if ((this.val & mask) == 0) {
+                    if (res == null)
+                        res = new ArrayList<>();
+
+                    res.add(type);
+                }
+            }
+
+            return res == null ? Collections.<ResourceType>emptyList() : res;
+        }
+    }
+
+    /**
+     *
+     */
+    protected abstract static class ResourceInjectionEntryProcessorBase<K, V>
+        implements EntryProcessor<K, V, Integer>, Serializable {
+        /** */
+        protected transient ResourceInfoSet infoSet;
+
+        /** {@inheritDoc} */
+        @Override public Integer process(MutableEntry<K, V> e, Object... args) {
+            return infoSet == null ? null : infoSet.getValue();
+        }
+
+        /** */
+        protected void checkSet() {
+            if (infoSet == null)
+                infoSet = new ResourceInfoSet();
         }
     }
 }

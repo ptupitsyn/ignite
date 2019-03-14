@@ -24,12 +24,12 @@ import org.apache.ignite.cache.CacheMode;
 import org.apache.ignite.configuration.CacheConfiguration;
 import org.apache.ignite.configuration.IgniteConfiguration;
 import org.apache.ignite.configuration.TransactionConfiguration;
-import org.apache.ignite.spi.discovery.tcp.TcpDiscoverySpi;
-import org.apache.ignite.spi.discovery.tcp.ipfinder.TcpDiscoveryIpFinder;
-import org.apache.ignite.spi.discovery.tcp.ipfinder.vm.TcpDiscoveryVmIpFinder;
+import org.apache.ignite.testframework.MvccFeatureChecker;
 import org.apache.ignite.transactions.Transaction;
 import org.apache.ignite.transactions.TransactionConcurrency;
 import org.apache.ignite.transactions.TransactionIsolation;
+import org.junit.Before;
+import org.junit.Test;
 
 import static org.apache.ignite.cache.CacheAtomicityMode.TRANSACTIONAL;
 import static org.apache.ignite.cache.CacheMode.PARTITIONED;
@@ -39,7 +39,10 @@ import static org.apache.ignite.cache.CacheMode.PARTITIONED;
  */
 public class CacheReadThroughRestartSelfTest extends GridCacheAbstractSelfTest {
     /** */
-    private static final TcpDiscoveryIpFinder IP_FINDER = new TcpDiscoveryVmIpFinder(true);
+    @Before
+    public void beforeCacheReadThroughRestartSelfTest() {
+        MvccFeatureChecker.skipIfNotSupported(MvccFeatureChecker.Feature.CACHE_STORE);
+    }
 
     /** {@inheritDoc} */
     @Override protected int gridCount() {
@@ -47,8 +50,8 @@ public class CacheReadThroughRestartSelfTest extends GridCacheAbstractSelfTest {
     }
 
     /** {@inheritDoc} */
-    @Override protected IgniteConfiguration getConfiguration(String gridName) throws Exception {
-        IgniteConfiguration cfg = super.getConfiguration(gridName);
+    @Override protected IgniteConfiguration getConfiguration(String igniteInstanceName) throws Exception {
+        IgniteConfiguration cfg = super.getConfiguration(igniteInstanceName);
 
         TransactionConfiguration txCfg = new TransactionConfiguration();
 
@@ -56,17 +59,11 @@ public class CacheReadThroughRestartSelfTest extends GridCacheAbstractSelfTest {
 
         cfg.setTransactionConfiguration(txCfg);
 
-        CacheConfiguration cc = cacheConfiguration(gridName);
+        CacheConfiguration cc = cacheConfiguration(igniteInstanceName);
 
         cc.setLoadPreviousValue(false);
 
         cfg.setCacheConfiguration(cc);
-
-        TcpDiscoverySpi disco = new TcpDiscoverySpi();
-
-        disco.setIpFinder(IP_FINDER);
-
-        cfg.setDiscoverySpi(disco);
 
         return cfg;
     }
@@ -84,8 +81,24 @@ public class CacheReadThroughRestartSelfTest extends GridCacheAbstractSelfTest {
     /**
      * @throws Exception If failed.
      */
+    @Test
     public void testReadThroughInTx() throws Exception {
-        IgniteCache<String, Integer> cache = grid(1).cache(null);
+        testReadThroughInTx(false);
+    }
+
+    /**
+     * @throws Exception If failed.
+     */
+    @Test
+    public void testReadEntryThroughInTx() throws Exception {
+        testReadThroughInTx(true);
+    }
+
+    /**
+     * @throws Exception If failed.
+     */
+    private void testReadThroughInTx(boolean needVer) throws Exception {
+        IgniteCache<String, Integer> cache = grid(1).cache(DEFAULT_CACHE_NAME);
 
         for (int k = 0; k < 1000; k++)
             cache.put("key" + k, k);
@@ -94,17 +107,29 @@ public class CacheReadThroughRestartSelfTest extends GridCacheAbstractSelfTest {
 
         startGrids(2);
 
+        awaitPartitionMapExchange();
+
         Ignite ignite = grid(1);
 
-        cache = ignite.cache(null);
+        cache = ignite.cache(DEFAULT_CACHE_NAME).withAllowAtomicOpsInTx();
 
         for (TransactionConcurrency txConcurrency : TransactionConcurrency.values()) {
             for (TransactionIsolation txIsolation : TransactionIsolation.values()) {
+                if (MvccFeatureChecker.forcedMvcc() && !MvccFeatureChecker.isSupported(txConcurrency, txIsolation))
+                    continue;
+
                 try (Transaction tx = ignite.transactions().txStart(txConcurrency, txIsolation, 100000, 1000)) {
                     for (int k = 0; k < 1000; k++) {
                         String key = "key" + k;
 
-                        assertNotNull("Null value for key: " + key, cache.get(key));
+                        if (needVer) {
+                            assertNotNull("Null value for key: " + key, cache.getEntry(key));
+                            assertNotNull("Null value for key: " + key, cache.getEntry(key));
+                        }
+                        else {
+                            assertNotNull("Null value for key: " + key, cache.get(key));
+                            assertNotNull("Null value for key: " + key, cache.get(key));
+                        }
                     }
 
                     tx.commit();
@@ -116,8 +141,24 @@ public class CacheReadThroughRestartSelfTest extends GridCacheAbstractSelfTest {
     /**
      * @throws Exception If failed.
      */
+    @Test
     public void testReadThrough() throws Exception {
-        IgniteCache<String, Integer> cache = grid(1).cache(null);
+        testReadThrough(false);
+    }
+
+    /**
+     * @throws Exception If failed.
+     */
+    @Test
+    public void testReadEntryThrough() throws Exception {
+        testReadThrough(true);
+    }
+
+    /**
+     * @throws Exception If failed.
+     */
+    private void testReadThrough(boolean needVer) throws Exception {
+        IgniteCache<String, Integer> cache = grid(1).cache(DEFAULT_CACHE_NAME);
 
         for (int k = 0; k < 1000; k++)
             cache.put("key" + k, k);
@@ -128,12 +169,14 @@ public class CacheReadThroughRestartSelfTest extends GridCacheAbstractSelfTest {
 
         Ignite ignite = grid(1);
 
-        cache = ignite.cache(null);
+        cache = ignite.cache(DEFAULT_CACHE_NAME);
 
         for (int k = 0; k < 1000; k++) {
             String key = "key" + k;
-
-            assertNotNull("Null value for key: " + key, cache.get(key));
+            if (needVer)
+                assertNotNull("Null value for key: " + key, cache.getEntry(key));
+            else
+                assertNotNull("Null value for key: " + key, cache.get(key));
         }
     }
 }

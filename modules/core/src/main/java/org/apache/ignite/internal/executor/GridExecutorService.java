@@ -144,7 +144,6 @@ public class GridExecutorService implements ExecutorService, Externalizable {
     }
 
     /** {@inheritDoc} */
-    @SuppressWarnings("unchecked")
     @Override public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
         prj = (ClusterGroupAdapter)in.readObject();
     }
@@ -337,8 +336,7 @@ public class GridExecutorService implements ExecutorService, Externalizable {
      *     }
      * </pre>
      */
-    @Override
-    public <T> List<Future<T>> invokeAll(Collection<? extends Callable<T>> tasks, long timeout, TimeUnit unit)
+    @Override public <T> List<Future<T>> invokeAll(Collection<? extends Callable<T>> tasks, long timeout, TimeUnit unit)
         throws InterruptedException {
         A.notNull(tasks, "tasks != null");
         A.ensure(timeout >= 0, "timeout >= 0");
@@ -473,7 +471,6 @@ public class GridExecutorService implements ExecutorService, Externalizable {
      *     ...
      * </pre>
      */
-    @SuppressWarnings({"MethodWithTooExceptionsDeclared"})
     @Override public <T> T invokeAny(Collection<? extends Callable<T>> tasks, long timeout, TimeUnit unit)
         throws InterruptedException, ExecutionException, TimeoutException {
         A.notNull(tasks, "tasks != null");
@@ -696,7 +693,6 @@ public class GridExecutorService implements ExecutorService, Externalizable {
         }
 
         /** {@inheritDoc} */
-        @SuppressWarnings({"MethodWithTooExceptionsDeclared"})
         @Override public T get(long timeout, TimeUnit unit) throws ExecutionException, TimeoutException {
             A.ensure(timeout >= 0, "timeout >= 0");
             A.notNull(unit, "unit != null");

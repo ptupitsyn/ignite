@@ -37,6 +37,18 @@ public class CacheEntryInfoCollection implements Message {
     @GridDirectCollection(GridCacheEntryInfo.class)
     private List<GridCacheEntryInfo> infos;
 
+    /** */
+    public CacheEntryInfoCollection() {
+        // No-op
+    }
+
+    /**
+     * @param infos List of cache entry info.
+     */
+    public CacheEntryInfoCollection(List<GridCacheEntryInfo> infos) {
+        this.infos = infos;
+    }
+
     /**
      *
      */
@@ -56,6 +68,11 @@ public class CacheEntryInfoCollection implements Message {
      */
     public void add(GridCacheEntryInfo info) {
         infos.add(info);
+    }
+
+    /** {@inheritDoc} */
+    @Override public void onAckReceived() {
+        // No-op.
     }
 
     /** {@inheritDoc} */
@@ -103,7 +120,7 @@ public class CacheEntryInfoCollection implements Message {
     }
 
     /** {@inheritDoc} */
-    @Override public byte directType() {
+    @Override public short directType() {
         return 92;
     }
 

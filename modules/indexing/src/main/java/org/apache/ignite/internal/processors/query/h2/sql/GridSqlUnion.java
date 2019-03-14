@@ -26,13 +26,70 @@ import org.h2.util.StatementBuilder;
  */
 public class GridSqlUnion extends GridSqlQuery {
     /** */
-    private int unionType;
+    public static final int LEFT_CHILD = 2;
+
+    /** */
+    public static final int RIGHT_CHILD = 3;
+
+    /** */
+    private SelectUnion.UnionType unionType;
 
     /** */
     private GridSqlQuery right;
 
     /** */
     private GridSqlQuery left;
+
+    /** {@inheritDoc} */
+    @SuppressWarnings("unchecked")
+    @Override public <E extends GridSqlAst> E child(int childIdx) {
+        if (childIdx < LEFT_CHILD)
+            return super.child(childIdx);
+
+        switch (childIdx) {
+            case LEFT_CHILD:
+                assert left != null;
+
+                return (E)left;
+
+            case RIGHT_CHILD:
+                assert right != null;
+
+                return (E)right;
+
+            default:
+                throw new IllegalStateException("Child index: " + childIdx);
+        }
+    }
+
+    /** {@inheritDoc} */
+    @Override public <E extends GridSqlAst> void child(int childIdx, E child) {
+        if (childIdx < LEFT_CHILD) {
+            super.child(childIdx, child);
+
+            return;
+        }
+
+        switch (childIdx) {
+            case LEFT_CHILD:
+                left = (GridSqlQuery)child;
+
+                break;
+
+            case RIGHT_CHILD:
+                right = (GridSqlQuery)child;
+
+                break;
+
+            default:
+                throw new IllegalStateException("Child index: " + childIdx);
+        }
+    }
+
+    /** {@inheritDoc} */
+    @Override public int size() {
+        return 4; // OFFSET + LIMIT + LEFT + RIGHT
+    }
 
     /** {@inheritDoc} */
     @Override protected int visibleColumns() {
@@ -50,20 +107,20 @@ public class GridSqlUnion extends GridSqlQuery {
 
         buff.append('(').append(left.getSQL()).append(')');
 
-        switch (unionType) {
-            case SelectUnion.UNION_ALL:
+        switch (unionType()) {
+            case UNION_ALL:
                 buff.append("\nUNION ALL\n");
                 break;
 
-            case SelectUnion.UNION:
+            case UNION:
                 buff.append("\nUNION\n");
                 break;
 
-            case SelectUnion.INTERSECT:
+            case INTERSECT:
                 buff.append("\nINTERSECT\n");
                 break;
 
-            case SelectUnion.EXCEPT:
+            case EXCEPT:
                 buff.append("\nEXCEPT\n");
                 break;
 
@@ -78,17 +135,24 @@ public class GridSqlUnion extends GridSqlQuery {
         return buff.toString();
     }
 
+    /** {@inheritDoc} */
+    @Override public boolean skipMergeTable() {
+        return unionType() == SelectUnion.UnionType.UNION_ALL && sort().isEmpty() &&
+            offset() == null && limit() == null &&
+            left().skipMergeTable() && right().skipMergeTable();
+    }
+
     /**
      * @return Union type.
      */
-    public int unionType() {
+    public SelectUnion.UnionType unionType() {
         return unionType;
     }
 
     /**
      * @param unionType New union type.
      */
-    public void unionType(int unionType) {
+    public void unionType(SelectUnion.UnionType unionType) {
         this.unionType = unionType;
     }
 

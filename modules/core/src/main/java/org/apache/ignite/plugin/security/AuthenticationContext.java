@@ -18,7 +18,10 @@
 package org.apache.ignite.plugin.security;
 
 import java.net.InetSocketAddress;
+import java.util.Collections;
+import java.util.Map;
 import java.util.UUID;
+import org.apache.ignite.internal.processors.authentication.AuthorizationContext;
 
 /**
  * Authentication context.
@@ -31,10 +34,19 @@ public class AuthenticationContext {
     private UUID subjId;
 
     /** Credentials. */
-    private SecurityCredentials credentials;
+    private SecurityCredentials creds;
 
     /** Subject address. */
     private InetSocketAddress addr;
+
+    /** */
+    private Map<String, Object> nodeAttrs;
+
+    /** Authorization context. */
+    private AuthorizationContext athrCtx;
+
+    /** True if this is a client node context. */
+    private boolean client;
 
     /**
      * Gets subject type.
@@ -78,16 +90,16 @@ public class AuthenticationContext {
      * @return Security credentials.
      */
     public SecurityCredentials credentials() {
-        return credentials;
+        return creds;
     }
 
     /**
      * Sets security credentials.
      *
-     * @param credentials Security credentials.
+     * @param creds Security credentials.
      */
-    public void credentials(SecurityCredentials credentials) {
-        this.credentials = credentials;
+    public void credentials(SecurityCredentials creds) {
+        this.creds = creds;
     }
 
     /**
@@ -106,5 +118,56 @@ public class AuthenticationContext {
      */
     public void address(InetSocketAddress addr) {
         this.addr = addr;
+    }
+
+    /**
+     * Gets node attributes.
+     *
+     * @return Node attributes or empty map for {@link SecuritySubjectType#REMOTE_CLIENT}.
+     */
+    public Map<String, Object> nodeAttributes() {
+        return nodeAttrs != null ? nodeAttrs : Collections.<String, Object>emptyMap();
+    }
+
+    /**
+     * Sets node attributes.
+     *
+     * @param nodeAttrs Node attributes.
+     */
+    public void nodeAttributes(Map<String, Object> nodeAttrs) {
+        this.nodeAttrs = nodeAttrs;
+    }
+
+    /**
+     * @return Native Apache Ignite authorization context acquired after authentication or {@code null} if native
+     * Ignite authentication is not used.
+     */
+    public AuthorizationContext authorizationContext(){
+        return athrCtx;
+    }
+
+    /**
+     * Set authorization context acquired after native Apache Ignite authentication.
+     */
+    public AuthenticationContext authorizationContext(AuthorizationContext newVal) {
+        athrCtx = newVal;
+
+        return this;
+    }
+
+    /**
+     * @return {@code true} if this is a client node context.
+     */
+    public boolean isClient() {
+        return client;
+    }
+
+    /**
+     * Sets flag indicating if this is client node context.
+     */
+    public AuthenticationContext setClient(boolean newVal) {
+        client = newVal;
+
+        return this;
     }
 }

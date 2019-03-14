@@ -26,6 +26,7 @@ import java.sql.Statement;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.LongAdder;
 import javax.cache.Cache;
 import javax.cache.integration.CacheLoaderException;
 import javax.cache.integration.CacheWriterException;
@@ -50,7 +51,6 @@ import org.apache.ignite.resources.IgniteInstanceResource;
 import org.apache.ignite.resources.LoggerResource;
 import org.apache.ignite.transactions.Transaction;
 import org.jetbrains.annotations.Nullable;
-import org.jsr166.LongAdder8;
 
 /**
  * {@link CacheStore} implementation backed by JDBC. This implementation
@@ -88,22 +88,22 @@ public class CacheJdbcBlobStore<K, V> extends CacheStoreAdapter<K, V> {
 
     /**
      * Default create table query
-     * (value is <tt>create table if not exists ENTRIES (key other primary key, val other)</tt>).
+     * (value is <tt>create table if not exists ENTRIES (akey binary primary key, val binary)</tt>).
      */
     public static final String DFLT_CREATE_TBL_QRY = "create table if not exists ENTRIES " +
-        "(key binary primary key, val binary)";
+        "(akey binary primary key, val binary)";
 
-    /** Default load entry query (value is <tt>select * from ENTRIES where key=?</tt>). */
-    public static final String DFLT_LOAD_QRY = "select * from ENTRIES where key=?";
+    /** Default load entry query (value is <tt>select * from ENTRIES where akey=?</tt>). */
+    public static final String DFLT_LOAD_QRY = "select * from ENTRIES where akey=?";
 
-    /** Default update entry query (value is <tt>select * from ENTRIES where key=?</tt>). */
-    public static final String DFLT_UPDATE_QRY = "update ENTRIES set val=? where key=?";
+    /** Default update entry query (value is <tt>select * from ENTRIES where akey=?</tt>). */
+    public static final String DFLT_UPDATE_QRY = "update ENTRIES set val=? where akey=?";
 
-    /** Default insert entry query (value is <tt>insert into ENTRIES (key, val) values (?, ?)</tt>). */
-    public static final String DFLT_INSERT_QRY = "insert into ENTRIES (key, val) values (?, ?)";
+    /** Default insert entry query (value is <tt>insert into ENTRIES (akey, val) values (?, ?)</tt>). */
+    public static final String DFLT_INSERT_QRY = "insert into ENTRIES (akey, val) values (?, ?)";
 
-    /** Default delete entry query (value is <tt>delete from ENTRIES where key=?</tt>). */
-    public static final String DFLT_DEL_QRY = "delete from ENTRIES where key=?";
+    /** Default delete entry query (value is <tt>delete from ENTRIES where akey=?</tt>). */
+    public static final String DFLT_DEL_QRY = "delete from ENTRIES where akey=?";
 
     /** Connection attribute name. */
     private static final String ATTR_CONN = "JDBC_STORE_CONNECTION";
@@ -164,11 +164,11 @@ public class CacheJdbcBlobStore<K, V> extends CacheStoreAdapter<K, V> {
 
     /** Opened connections. */
     @GridToStringExclude
-    private final LongAdder8 opened = new LongAdder8();
+    private final LongAdder opened = new LongAdder();
 
     /** Closed connections. */
     @GridToStringExclude
-    private final LongAdder8 closed = new LongAdder8();
+    private final LongAdder closed = new LongAdder();
 
     /** Test mode flag. */
     @GridToStringExclude
@@ -207,7 +207,6 @@ public class CacheJdbcBlobStore<K, V> extends CacheStoreAdapter<K, V> {
     }
 
     /** {@inheritDoc} */
-    @SuppressWarnings({"RedundantTypeArguments"})
     @Override public V load(K key) {
         init();
 
@@ -252,7 +251,10 @@ public class CacheJdbcBlobStore<K, V> extends CacheStoreAdapter<K, V> {
         V val = entry.getValue();
 
         if (log.isDebugEnabled())
-            log.debug("Store put [key=" + key + ", val=" + val + ", tx=" + tx + ']');
+            log.debug(S.toString("Store put",
+                "key", key, true,
+                "val", val, true,
+                "tx", tx, false));
 
         Connection conn = null;
 
@@ -560,7 +562,7 @@ public class CacheJdbcBlobStore<K, V> extends CacheStoreAdapter<K, V> {
      * @throws IgniteCheckedException If failed to convert.
      */
     protected byte[] toBytes(Object obj) throws IgniteCheckedException {
-        return marsh.marshal(obj);
+        return U.marshal(marsh, obj);
     }
 
     /**
@@ -575,7 +577,7 @@ public class CacheJdbcBlobStore<K, V> extends CacheStoreAdapter<K, V> {
         if (bytes == null || bytes.length == 0)
             return null;
 
-        return marsh.unmarshal(bytes, getClass().getClassLoader());
+        return U.unmarshal(marsh, bytes, getClass().getClassLoader());
     }
 
     /**

@@ -113,7 +113,6 @@ final class TestMemcacheClient {
 
         // Start socket reader thread.
         rdr = new Thread(new Runnable() {
-            @SuppressWarnings("InfiniteLoopStatement")
             @Override public void run() {
                 try {
                     InputStream in = sock.getInputStream();
@@ -537,7 +536,7 @@ final class TestMemcacheClient {
         Map<String, Long> res = new HashMap<>(raw.size());
 
         for (Response resp : raw)
-            res.put((String)resp.key(), Long.parseLong(String.valueOf(resp.getObject())));
+            res.put((String)resp.key(), Long.parseLong(String.valueOf(resp.<String>getObject())));
 
         return res;
     }

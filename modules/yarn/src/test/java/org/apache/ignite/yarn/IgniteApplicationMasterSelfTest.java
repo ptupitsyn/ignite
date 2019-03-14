@@ -28,7 +28,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.regex.Pattern;
-import junit.framework.TestCase;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileStatus;
@@ -51,11 +50,15 @@ import org.apache.hadoop.yarn.client.api.AMRMClient;
 import org.apache.hadoop.yarn.client.api.NMClient;
 import org.apache.hadoop.yarn.client.api.async.AMRMClientAsync;
 import org.apache.hadoop.yarn.exceptions.YarnException;
+import org.junit.Before;
+import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
 
 /**
  * Application master tests.
  */
-public class IgniteApplicationMasterSelfTest extends TestCase {
+public class IgniteApplicationMasterSelfTest {
     /** */
     private ApplicationMaster appMaster;
 
@@ -68,9 +71,8 @@ public class IgniteApplicationMasterSelfTest extends TestCase {
     /**
      * @throws Exception If failed.
      */
-    @Override protected void setUp() throws Exception {
-        super.setUp();
-
+    @Before
+    public void setUp() throws Exception {
         props = new ClusterProperties();
         appMaster = new ApplicationMaster("test", props);
 
@@ -82,6 +84,7 @@ public class IgniteApplicationMasterSelfTest extends TestCase {
     /**
      * @throws Exception If failed.
      */
+    @Test
     public void testContainerAllocate() throws Exception {
         appMaster.setRmClient(rmMock);
         appMaster.setNmClient(new NMMock());
@@ -105,8 +108,63 @@ public class IgniteApplicationMasterSelfTest extends TestCase {
     }
 
     /**
+     * Tests whether memory overhead is allocated within container memory.
+     *
      * @throws Exception If failed.
      */
+    @Test
+    public void testMemoryOverHeadAllocation() throws Exception {
+        appMaster.setRmClient(rmMock);
+        appMaster.setNmClient(new NMMock());
+
+        props.cpusPerNode(2);
+        props.memoryPerNode(1024);
+        props.memoryOverHeadPerNode(512);
+        props.instances(3);
+
+        Thread thread = runAppMaster(appMaster);
+
+        List<AMRMClient.ContainerRequest> contRequests = collectRequests(rmMock, 1, 1000);
+
+        interruptedThread(thread);
+
+        assertEquals(3, contRequests.size());
+
+        for (AMRMClient.ContainerRequest req : contRequests) {
+            assertEquals(2, req.getCapability().getVirtualCores());
+            assertEquals(1024 + 512, req.getCapability().getMemory());
+        }
+    }
+
+    /**
+     * Tests whether memory overhead prevents from allocating container.
+     *
+     * @throws Exception If failed.
+     */
+    @Test
+    public void testMemoryOverHeadPreventAllocation() throws Exception {
+        rmMock.availableRes(new MockResource(1024, 2));
+        appMaster.setRmClient(rmMock);
+        appMaster.setNmClient(new NMMock());
+
+        props.cpusPerNode(2);
+        props.memoryPerNode(1024);
+        props.memoryOverHeadPerNode(512);
+        props.instances(3);
+
+        Thread thread = runAppMaster(appMaster);
+
+        List<AMRMClient.ContainerRequest> contRequests = collectRequests(rmMock, 1, 1000);
+
+        interruptedThread(thread);
+
+        assertEquals(0, contRequests.size());
+     }
+
+    /**
+     * @throws Exception If failed.
+     */
+    @Test
     public void testClusterResource() throws Exception {
         rmMock.availableRes(new MockResource(1024, 2));
 
@@ -129,6 +187,7 @@ public class IgniteApplicationMasterSelfTest extends TestCase {
     /**
      * @throws Exception If failed.
      */
+    @Test
     public void testClusterAllocatedResource() throws Exception {
         rmMock.availableRes(new MockResource(1024, 2));
 
@@ -161,6 +220,7 @@ public class IgniteApplicationMasterSelfTest extends TestCase {
     /**
      * @throws Exception If failed.
      */
+    @Test
     public void testStartReleaseContainer() throws Exception {
         rmMock.availableRes(new MockResource(1024, 2));
 
@@ -194,6 +254,7 @@ public class IgniteApplicationMasterSelfTest extends TestCase {
     /**
      * @throws Exception If failed.
      */
+    @Test
     public void testHostnameConstraint() throws Exception {
         rmMock.availableRes(new MockResource(1024, 2));
 
@@ -217,6 +278,20 @@ public class IgniteApplicationMasterSelfTest extends TestCase {
         appMaster.onContainersAllocated(Collections.singletonList(createContainer("ignoreHost", 8, 5000)));
         assertEquals(1, rmMock.releasedResources().size());
         assertEquals(1, nmClient.startedContainer().size());
+    }
+
+    /**
+     * @throws Exception If failed.
+     */
+    @Test
+    public void testContainerEnvironment() throws Exception {
+        props.memoryPerNode(1001);
+        props.memoryOverHeadPerNode(2002);
+
+        // Properties are used to initialize AM container environment
+        Map<String, String> result = props.toEnvs();
+        assertEquals(1001, (int) Double.parseDouble(result.get(ClusterProperties.IGNITE_MEMORY_PER_NODE)));
+        assertEquals(2002, (int) Double.parseDouble(result.get(ClusterProperties.IGNITE_MEMORY_OVERHEAD_PER_NODE)));
     }
 
     /**
@@ -382,7 +457,14 @@ public class IgniteApplicationMasterSelfTest extends TestCase {
             return 0;
         }
 
-        /** {@inheritDoc} */
+        /**
+         * Update application's blacklist with addition or removal resources.
+         *
+         * @param blacklistAdditions list of resources which should be added to the
+         *        application blacklist
+         * @param blacklistRemovals list of resources which should be removed from the
+         *        application blacklist
+         */
         @Override public void updateBlacklist(List blacklistAdditions, List blacklistRemovals) {
             // No-op.
         }

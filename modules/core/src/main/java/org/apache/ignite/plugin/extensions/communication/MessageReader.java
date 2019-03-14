@@ -23,6 +23,7 @@ import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.UUID;
+import org.apache.ignite.internal.processors.affinity.AffinityTopologyVersion;
 import org.apache.ignite.lang.IgniteUuid;
 
 /**
@@ -37,6 +38,13 @@ public interface MessageReader {
      * @param buf Byte buffer.
      */
     public void setBuffer(ByteBuffer buf);
+
+    /**
+     * Sets type of message currently read.
+     *
+     * @param msgCls Message type.
+     */
+    public void setCurrentReadClass(Class<? extends Message> msgCls);
 
     /**
      * Callback that must be invoked by a message implementation before message body started decoding.
@@ -76,6 +84,15 @@ public interface MessageReader {
      * @return {@code int} value.
      */
     public int readInt(String name);
+
+    /**
+     * Reads {@code int} value.
+     *
+     * @param name Field name.
+     * @param dflt Default value if field not found.
+     * @return {@code int} value.
+     */
+    public int readInt(String name, int dflt);
 
     /**
      * Reads {@code long} value.
@@ -214,6 +231,14 @@ public interface MessageReader {
     public IgniteUuid readIgniteUuid(String name);
 
     /**
+     * Reads {@link AffinityTopologyVersion}.
+     *
+     * @param name Field name.
+     * @return {@link AffinityTopologyVersion}.
+     */
+    public AffinityTopologyVersion readAffinityTopologyVersion(String name);
+
+    /**
      * Reads nested message.
      *
      * @param name Field name.
@@ -272,4 +297,21 @@ public interface MessageReader {
      * Increments read state.
      */
     public void incrementState();
+
+    /**
+     * Callback called before inner message is read.
+     */
+    public void beforeInnerMessageRead();
+
+    /**
+     * Callback called after inner message is read.
+     *
+     * @param finished Whether message was fully read.
+     */
+    public void afterInnerMessageRead(boolean finished);
+
+    /**
+     * Resets this reader.
+     */
+    public void reset();
 }

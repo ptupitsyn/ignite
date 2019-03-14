@@ -27,6 +27,7 @@ import javax.cache.configuration.Factory;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLException;
 import org.apache.ignite.IgniteCheckedException;
+import org.apache.ignite.IgniteException;
 import org.apache.ignite.configuration.ConnectorConfiguration;
 import org.apache.ignite.configuration.IgniteConfiguration;
 import org.apache.ignite.internal.GridKernalContext;
@@ -34,6 +35,7 @@ import org.apache.ignite.internal.IgniteNodeAttributes;
 import org.apache.ignite.internal.client.marshaller.GridClientMarshaller;
 import org.apache.ignite.internal.client.marshaller.jdk.GridClientJdkMarshaller;
 import org.apache.ignite.internal.client.marshaller.optimized.GridClientOptimizedMarshaller;
+import org.apache.ignite.internal.client.marshaller.optimized.GridClientZipOptimizedMarshaller;
 import org.apache.ignite.internal.client.ssl.GridSslContextFactory;
 import org.apache.ignite.internal.processors.rest.GridRestProtocolHandler;
 import org.apache.ignite.internal.processors.rest.client.message.GridClientMessage;
@@ -43,15 +45,13 @@ import org.apache.ignite.internal.util.nio.GridNioFilter;
 import org.apache.ignite.internal.util.nio.GridNioParser;
 import org.apache.ignite.internal.util.nio.GridNioServer;
 import org.apache.ignite.internal.util.nio.GridNioServerListener;
-import org.apache.ignite.internal.util.nio.GridNioSession;
 import org.apache.ignite.internal.util.nio.ssl.GridNioSslFilter;
 import org.apache.ignite.internal.util.typedef.internal.U;
-import org.apache.ignite.marshaller.Marshaller;
-import org.apache.ignite.marshaller.jdk.JdkMarshaller;
+import org.apache.ignite.lang.IgnitePredicate;
+import org.apache.ignite.marshaller.MarshallerUtils;
+import org.apache.ignite.plugin.PluginProvider;
 import org.apache.ignite.spi.IgnitePortProtocol;
 import org.jetbrains.annotations.Nullable;
-
-import static org.apache.ignite.internal.util.nio.GridNioSessionMetaKey.MARSHALLER;
 
 /**
  * TCP binary protocol implementation.
@@ -59,9 +59,6 @@ import static org.apache.ignite.internal.util.nio.GridNioSessionMetaKey.MARSHALL
 public class GridTcpRestProtocol extends GridRestProtocolAdapter {
     /** Server. */
     private GridNioServer<GridClientMessage> srv;
-
-    /** JDK marshaller. */
-    private final Marshaller jdkMarshaller = new JdkMarshaller();
 
     /** NIO server listener. */
     private GridTcpRestNioListener lsnr;
@@ -71,34 +68,12 @@ public class GridTcpRestProtocol extends GridRestProtocolAdapter {
         super(ctx);
     }
 
-    /**
-     * @return JDK marshaller.
-     */
-    Marshaller jdkMarshaller() {
-        return jdkMarshaller;
-    }
-
-    /**
-     * Returns marshaller.
-     *
-     * @param ses Session.
-     * @return Marshaller.
-     */
-    GridClientMarshaller marshaller(GridNioSession ses) {
-        GridClientMarshaller marsh = ses.meta(MARSHALLER.ordinal());
-
-        assert marsh != null;
-
-        return marsh;
-    }
-
     /** {@inheritDoc} */
     @Override public String name() {
         return "TCP binary";
     }
 
     /** {@inheritDoc} */
-    @SuppressWarnings("BusyWait")
     @Override public void start(final GridRestProtocolHandler hnd) throws IgniteCheckedException {
         assert hnd != null;
 
@@ -108,7 +83,7 @@ public class GridTcpRestProtocol extends GridRestProtocolAdapter {
 
         lsnr = new GridTcpRestNioListener(log, this, hnd, ctx);
 
-        GridNioParser parser = new GridTcpRestParser(false);
+        GridNioParser parser = new GridTcpRestParser(false, ctx.marshallerContext().jdkMarshaller());
 
         try {
             host = resolveRestTcpHost(ctx.config());
@@ -134,10 +109,11 @@ public class GridTcpRestProtocol extends GridRestProtocolAdapter {
                 else
                     sslCtx = igniteFactory.create();
             }
+            int startPort = cfg.getPort();
+            int portRange = cfg.getPortRange();
+            int lastPort = portRange == 0 ? startPort : startPort + portRange - 1;
 
-            int lastPort = cfg.getPort() + cfg.getPortRange() - 1;
-
-            for (int port0 = cfg.getPort(); port0 <= lastPort; port0++) {
+            for (int port0 = startPort; port0 <= lastPort; port0++) {
                 if (startTcpServer(host, port0, lsnr, parser, sslCtx, cfg)) {
                     port = port0;
 
@@ -152,14 +128,12 @@ public class GridTcpRestProtocol extends GridRestProtocolAdapter {
                 "[firstPort=" + cfg.getPort() + ", lastPort=" + lastPort + ", host=" + host + ']');
         }
         catch (SSLException e) {
-            U.warn(log, "Failed to start " + name() + " protocol on port " + port + ": " + e.getMessage(),
-                "Failed to start " + name() + " protocol on port " + port + ". Check if SSL context factory is " +
-                    "properly configured.");
+            U.warn(log, "Failed to start " + name() + " protocol on port " + port + ". Check if SSL context factory " +
+                "is properly configured: " + e.getMessage());
         }
         catch (IOException e) {
-            U.warn(log, "Failed to start " + name() + " protocol on port " + port + ": " + e.getMessage(),
-                "Failed to start " + name() + " protocol on port " + port + ". " +
-                    "Check restTcpHost configuration property.");
+            U.warn(log, "Failed to start " + name() + " protocol on port " + port + ". " +
+                "Check restTcpHost configuration property: " + e.getMessage());
         }
     }
 
@@ -169,9 +143,21 @@ public class GridTcpRestProtocol extends GridRestProtocolAdapter {
 
         Map<Byte, GridClientMarshaller> marshMap = new HashMap<>();
 
-        marshMap.put(GridClientOptimizedMarshaller.ID,
-            new GridClientOptimizedMarshaller(new ArrayList<>(ctx.plugins().allProviders())));
-        marshMap.put(GridClientJdkMarshaller.ID, new GridClientJdkMarshaller());
+        ArrayList<PluginProvider> providers = new ArrayList<>(ctx.plugins().allProviders());
+
+        GridClientOptimizedMarshaller optMarsh = new GridClientOptimizedMarshaller(providers);
+
+        marshMap.put(GridClientOptimizedMarshaller.ID, optMarsh);
+        marshMap.put(GridClientZipOptimizedMarshaller.ID, new GridClientZipOptimizedMarshaller(optMarsh, providers));
+
+        try {
+            IgnitePredicate<String> clsFilter = MarshallerUtils.classNameFilter(this.getClass().getClassLoader());
+
+            marshMap.put(GridClientJdkMarshaller.ID, new GridClientJdkMarshaller(clsFilter));
+        }
+        catch (IgniteCheckedException e) {
+            throw new IgniteException(e);
+        }
 
         lsnr.marshallers(marshMap);
     }
@@ -249,7 +235,8 @@ public class GridTcpRestProtocol extends GridRestProtocolAdapter {
                 .listener(lsnr)
                 .logger(log)
                 .selectorCount(cfg.getSelectorCount())
-                .gridName(ctx.gridName())
+                .igniteInstanceName(ctx.igniteInstanceName())
+                .serverName("tcp-rest")
                 .tcpNoDelay(cfg.isNoDelay())
                 .directBuffer(cfg.isDirectBuffer())
                 .byteOrder(ByteOrder.nativeOrder())

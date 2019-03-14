@@ -28,15 +28,12 @@ import org.apache.ignite.configuration.CacheConfiguration;
 import org.apache.ignite.configuration.IgniteConfiguration;
 import org.apache.ignite.internal.IgniteInternalFuture;
 import org.apache.ignite.internal.processors.cache.GridCacheContext;
-import org.apache.ignite.internal.processors.cache.transactions.IgniteInternalTx;
 import org.apache.ignite.internal.processors.cache.transactions.TransactionProxyImpl;
 import org.apache.ignite.internal.util.typedef.internal.U;
-import org.apache.ignite.spi.discovery.tcp.TcpDiscoverySpi;
-import org.apache.ignite.spi.discovery.tcp.ipfinder.TcpDiscoveryIpFinder;
-import org.apache.ignite.spi.discovery.tcp.ipfinder.vm.TcpDiscoveryVmIpFinder;
 import org.apache.ignite.testframework.junits.common.GridCommonAbstractTest;
 import org.apache.ignite.transactions.Transaction;
 import org.apache.ignite.transactions.TransactionConcurrency;
+import org.junit.Test;
 
 import static org.apache.ignite.IgniteSystemProperties.IGNITE_TX_SALVAGE_TIMEOUT;
 import static org.apache.ignite.cache.CacheMode.PARTITIONED;
@@ -67,19 +64,9 @@ public class GridCachePartitionedTxSalvageSelfTest extends GridCommonAbstractTes
     /** Salvage timeout system property value before alteration. */
     private static String salvageTimeoutOld;
 
-    /** Standard VM IP finder. */
-    private static final TcpDiscoveryIpFinder ipFinder = new TcpDiscoveryVmIpFinder(true);
-
     /** {@inheritDoc} */
-    @Override protected IgniteConfiguration getConfiguration(String gridName) throws Exception {
-        IgniteConfiguration c = super.getConfiguration(gridName);
-
-        // Discovery.
-        TcpDiscoverySpi disco = new TcpDiscoverySpi();
-
-        disco.setIpFinder(ipFinder);
-
-        c.setDiscoverySpi(disco);
+    @Override protected IgniteConfiguration getConfiguration(String igniteInstanceName) throws Exception {
+        IgniteConfiguration c = super.getConfiguration(igniteInstanceName);
 
         CacheConfiguration cc = defaultCacheConfiguration();
 
@@ -124,6 +111,7 @@ public class GridCachePartitionedTxSalvageSelfTest extends GridCommonAbstractTes
     /**
      * @throws Exception If failed.
      */
+    @Test
     public void testOptimisticTxSalvageBeforeTimeout() throws Exception {
         checkSalvageBeforeTimeout(OPTIMISTIC, true);
     }
@@ -131,6 +119,7 @@ public class GridCachePartitionedTxSalvageSelfTest extends GridCommonAbstractTes
     /**
      * @throws Exception If failed.
      */
+    @Test
     public void testPessimisticcTxSalvageBeforeTimeout() throws Exception {
         checkSalvageBeforeTimeout(PESSIMISTIC, false);
     }
@@ -138,6 +127,7 @@ public class GridCachePartitionedTxSalvageSelfTest extends GridCommonAbstractTes
     /**
      * @throws Exception If failed.
      */
+    @Test
     public void testOptimisticTxSalvageAfterTimeout() throws Exception {
         checkSalvageAfterTimeout(OPTIMISTIC, true);
     }
@@ -145,6 +135,7 @@ public class GridCachePartitionedTxSalvageSelfTest extends GridCommonAbstractTes
     /**
      * @throws Exception If failed.
      */
+    @Test
     public void testPessimisticTxSalvageAfterTimeout() throws Exception {
         checkSalvageAfterTimeout(PESSIMISTIC, false);
     }
@@ -153,7 +144,7 @@ public class GridCachePartitionedTxSalvageSelfTest extends GridCommonAbstractTes
      * Check whether caches has no transactions after salvage timeout.
      *
      * @param mode Transaction mode (PESSIMISTIC, OPTIMISTIC).
-     * @param prepare Whether to prepare transaction state (i.e. call {@link IgniteInternalTx#prepare()}).
+     * @param prepare Whether to prepare transaction state (i.e. call {@link GridNearTxLocal#prepare(boolean)}).
      * @throws Exception If failed.
      */
     private void checkSalvageAfterTimeout(TransactionConcurrency mode, boolean prepare) throws Exception {
@@ -172,7 +163,7 @@ public class GridCachePartitionedTxSalvageSelfTest extends GridCommonAbstractTes
      *
      * @param mode Transaction mode (PESSIMISTIC, OPTIMISTIC).
      * @param prepare Whether to prepare transaction state
-     *                (i.e. call {@link IgniteInternalTx#prepare()}).
+     *                (i.e. call {@link GridNearTxLocal#prepare(boolean)}).
      * @throws Exception If failed.
      */
     private void checkSalvageBeforeTimeout(TransactionConcurrency mode, boolean prepare) throws Exception {
@@ -182,8 +173,8 @@ public class GridCachePartitionedTxSalvageSelfTest extends GridCommonAbstractTes
         List<Integer> dhtSizes = new ArrayList<>(GRID_CNT - 1);
 
         for (int i = 1; i < GRID_CNT; i++) {
-            nearSizes.add(near(i).context().tm().txs().size());
-            dhtSizes.add(dht(i).context().tm().txs().size());
+            nearSizes.add(near(i).context().tm().activeTransactions().size());
+            dhtSizes.add(dht(i).context().tm().activeTransactions().size());
         }
 
         stopNodeAndSleep(SALVAGE_TIMEOUT - DELTA_BEFORE);
@@ -198,13 +189,13 @@ public class GridCachePartitionedTxSalvageSelfTest extends GridCommonAbstractTes
      * Start new transaction on the grid(0) and put some keys to it.
      *
      * @param mode Transaction mode (PESSIMISTIC, OPTIMISTIC).
-     * @param prepare Whether to prepare transaction state (i.e. call {@link IgniteInternalTx#prepare()}).
+     * @param prepare Whether to prepare transaction state (i.e. call {@link GridNearTxLocal#prepare(boolean)}).
      * @throws Exception If failed.
      */
     private void startTxAndPutKeys(final TransactionConcurrency mode, final boolean prepare) throws Exception {
         Ignite ignite = grid(0);
 
-        final Collection<Integer> keys = nearKeys(ignite.cache(null), KEY_CNT, 0);
+        final Collection<Integer> keys = nearKeys(ignite.cache(DEFAULT_CACHE_NAME), KEY_CNT, 0);
 
         IgniteInternalFuture<?> fut = multithreadedAsync(new Runnable() {
             @Override public void run() {
@@ -217,7 +208,7 @@ public class GridCachePartitionedTxSalvageSelfTest extends GridCommonAbstractTes
                         c.put(key, "val" + key);
 
                     if (prepare)
-                        ((TransactionProxyImpl)tx).tx().prepare();
+                        ((TransactionProxyImpl)tx).tx().prepare(true);
                 }
                 catch (IgniteCheckedException e) {
                     info("Failed to put keys to cache: " + e.getMessage());
@@ -235,7 +226,7 @@ public class GridCachePartitionedTxSalvageSelfTest extends GridCommonAbstractTes
      * @throws Exception If failed.
      */
     private void stopNodeAndSleep(long timeout) throws Exception {
-        stopGrid(0);
+        stopGrid(getTestIgniteInstanceName(0), false, false);
 
         info("Stopped grid.");
 
@@ -248,7 +239,7 @@ public class GridCachePartitionedTxSalvageSelfTest extends GridCommonAbstractTes
      * @param ctx Cache context.
      */
     private void checkTxsEmpty(GridCacheContext ctx) {
-        Collection txs = ctx.tm().txs();
+        Collection txs = ctx.tm().activeTransactions();
 
         assert txs.isEmpty() : "Not all transactions were salvaged: " + txs;
     }
@@ -260,7 +251,7 @@ public class GridCachePartitionedTxSalvageSelfTest extends GridCommonAbstractTes
      * @param exp Expected amount of transactions.
      */
     private void checkTxsNotEmpty(GridCacheContext ctx, int exp) {
-        int size = ctx.tm().txs().size();
+        int size = ctx.tm().activeTransactions().size();
 
         assertEquals("Some transactions were salvaged unexpectedly", exp, size);
     }

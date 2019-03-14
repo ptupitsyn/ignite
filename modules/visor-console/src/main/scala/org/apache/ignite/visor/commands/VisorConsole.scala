@@ -62,8 +62,10 @@ class VisorConsole {
         org.apache.ignite.visor.commands.ack.VisorAckCommand
         org.apache.ignite.visor.commands.alert.VisorAlertCommand
         org.apache.ignite.visor.commands.cache.VisorCacheClearCommand
+        org.apache.ignite.visor.commands.cache.VisorCacheResetCommand
+        org.apache.ignite.visor.commands.cache.VisorCacheRebalanceCommand
         org.apache.ignite.visor.commands.cache.VisorCacheCommand
-        org.apache.ignite.visor.commands.cache.VisorCacheSwapCommand
+        org.apache.ignite.visor.commands.cache.VisorCacheModifyCommand
         org.apache.ignite.visor.commands.config.VisorConfigurationCommand
         org.apache.ignite.visor.commands.deploy.VisorDeployCommand
         org.apache.ignite.visor.commands.disco.VisorDiscoveryCommand
@@ -84,13 +86,16 @@ class VisorConsole {
 
         if (hasArgFlag("?", argLst) || hasArgFlag("help", argLst)) {
             println("Usage:")
-            println(s"    $progName [?]|[{-v}{-np}]|[{-b=<batch commands file path>} {-e=command1;command2}]")
+            println(s"    $progName [? | -help]|[{-v}{-np} {-cfg=<path>}]|[{-b=<path>} {-e=command1;command2;...} -quiet]")
             println("    Where:")
-            println("        ?, /help, -help - show this message.")
-            println("        -v              - verbose mode (quiet by default).")
-            println("        -np             - no pause on exit (pause by default)")
-            println("        -b              - batch mode with file)")
-            println("        -e              - batch mode with commands)")
+            println("        ?, /help, -help      - show this message.")
+            println("        -v                   - verbose mode (quiet by default).")
+            println("        -np                  - no pause on exit (pause by default).")
+            println("        -cfg=<path>          - connect with specified configuration.")
+            println("        -b=<path>            - batch mode with file.")
+            println("        -e=cmd1;cmd2;...     - batch mode with commands.")
+            println("        -nq                  - batch mode will not quit after execution (useful for alerts monitoring).")
+            println("        -quiet               - batch mode will not print inform message and node log.")
 
             visor.quit()
         }
@@ -98,15 +103,37 @@ class VisorConsole {
         argLst
     }
 
-    protected def buildReader(argLst: ArgList) = {
+    protected def buildReader(argLst: ArgList): ConsoleReader = {
+        val cfgFile = argValue("cfg", argLst)
         val batchFile = argValue("b", argLst)
         val batchCommand = argValue("e", argLst)
+        val noBatchQuit = hasArgName("nq", argLst)
+        val quiet = hasArgName("quiet", argLst)
+
+        if (noBatchQuit && batchFile.isEmpty && batchCommand.isEmpty)
+            visor.warn("Option \"-nq\" will be ignored because batch mode options \"-b\" or \"-e\" were not specified.")
+
+        if (quiet && batchFile.isEmpty && batchCommand.isEmpty)
+            visor.warn("Option \"-quiet\" will be ignored because batch mode options \"-b\" or \"-e\" were not specified.")
+
+        cfgFile.foreach(cfg => {
+            if (cfg.trim.isEmpty) {
+                visor.warn("Expected path to configuration after \"-cfg\" option.")
+
+                visor.quit()
+            }
+
+            if (batchFile.isDefined || batchCommand.isDefined) {
+                visor.warn("Options can't contains both -cfg and one of -b or -e options.")
+
+                visor.quit()
+            }
+
+            visor.searchCmd("open").foreach(_.withArgs("-cpath=" + cfg))
+        })
 
         if (batchFile.isDefined && batchCommand.isDefined) {
-            visor.warn(
-                "Illegal options can't contains both command file and commands",
-                s"Usage: $progName {-b=<batch commands file path>} {-e=command1;command2}"
-            )
+            visor.warn("Options can't contains both command file and commands.")
 
             visor.quit()
         }
@@ -131,18 +158,33 @@ class VisorConsole {
         batchCommand.foreach(commands => batchStream = Some(commands.replaceAll(";", "\n")))
 
         val inputStream = batchStream match {
-            case Some(cmd) => new ByteArrayInputStream((cmd + "\nquit\n").getBytes("UTF-8"))
+            case Some(cmd) =>
+                visor.batchMode = true
+                visor.quiet = quiet
+
+                val script = cmd + (if (cmd.last == '\n') "" else "\n") + (if (noBatchQuit) "" else "quit\n")
+
+                new ByteArrayInputStream(script.getBytes("UTF-8"))
+
             case None => new FileInputStream(FileDescriptor.in)
         }
 
         // Workaround for IDEA terminal.
-        val term = try {
-            Class.forName("com.intellij.rt.execution.application.AppMain")
+        val idea = Seq(
+            "com.intellij.rt.execution.application.AppMain",
+            "com.intellij.rt.execution.application.AppMainV2"
+        ).exists(cls =>
+            try {
+                Class.forName(cls)
 
-            new TerminalSupport(false) {}
-        } catch {
-            case ignored: ClassNotFoundException => null
-        }
+                true
+            }
+            catch {
+                case _: ClassNotFoundException => false
+            }
+        )
+
+        val term = if (idea) new TerminalSupport(false) {} else null
 
         val reader = new ConsoleReader(inputStream, System.out, term)
 
@@ -153,7 +195,8 @@ class VisorConsole {
     }
 
     protected def mainLoop(reader: ConsoleReader) {
-        welcomeMessage()
+        if (!visor.quiet)
+            welcomeMessage()
 
         var ok = true
 
@@ -168,7 +211,7 @@ class VisorConsole {
         val buf = new StringBuilder
 
         while (ok) {
-            line = reader.readLine("visor> ")
+            line = reader.readLine(if (visor.quiet) null else "visor> ")
 
             ok = line != null
 
@@ -227,11 +270,11 @@ class VisorConsole {
      * Print banner, hint message on start.
      */
     protected def welcomeMessage() {
-        println("___    _________________________ ________" +  NL +
-                "__ |  / /____  _/__  ___/__  __ \\___  __ \\" +  NL +
-                "__ | / /  __  /  _____ \\ _  / / /__  /_/ /" +  NL +
-                "__ |/ /  __/ /   ____/ / / /_/ / _  _, _/" +  NL +
-                "_____/   /___/   /____/  \\____/  /_/ |_|" +  NL +
+        println("___    _________________________ ________" + NL +
+                "__ |  / /____  _/__  ___/__  __ \\___  __ \\" + NL +
+                "__ | / /  __  /  _____ \\ _  / / /__  /_/ /" + NL +
+                "__ |/ /  __/ /   ____/ / / /_/ / _  _, _/" + NL +
+                "_____/   /___/   /____/  \\____/  /_/ |_|" + NL +
                 NL +
                 "ADMIN CONSOLE" + NL +
                 copyright())
@@ -303,7 +346,7 @@ object VisorConsole extends VisorConsole with App {
     addCommands()
 
     private val argLst = parse(args.mkString(" "))
-    
+
     private val reader = buildReader(argLst)
 
     visor.reader(reader)

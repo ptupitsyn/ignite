@@ -43,11 +43,9 @@ public interface GridNioFuture<R> extends IgniteInternalFuture<R> {
     public boolean skipRecovery();
 
     /**
-     * Sets ack closure which will be applied when ack recevied.
-     *
-     * @param closure Ack closure.
+     * The method will be called when ack received.
      */
-    public void ackClosure(IgniteInClosure<IgniteException> closure);
+    public void onAckReceived();
 
     /**
      * @return Ack closure.

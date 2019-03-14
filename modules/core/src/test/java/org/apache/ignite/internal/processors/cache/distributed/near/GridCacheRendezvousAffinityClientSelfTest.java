@@ -32,6 +32,7 @@ import org.apache.ignite.configuration.IgniteConfiguration;
 import org.apache.ignite.internal.util.typedef.F;
 import org.apache.ignite.spi.discovery.tcp.TcpDiscoverySpi;
 import org.apache.ignite.testframework.junits.common.GridCommonAbstractTest;
+import org.junit.Test;
 
 /**
  * Tests rendezvous affinity function with CLIENT_ONLY node (GG-8768).
@@ -41,8 +42,8 @@ public class GridCacheRendezvousAffinityClientSelfTest extends GridCommonAbstrac
     private boolean client;
 
     /** {@inheritDoc} */
-    @Override protected IgniteConfiguration getConfiguration(String gridName) throws Exception {
-        IgniteConfiguration cfg = super.getConfiguration(gridName);
+    @Override protected IgniteConfiguration getConfiguration(String igniteInstanceName) throws Exception {
+        IgniteConfiguration cfg = super.getConfiguration(igniteInstanceName);
 
         ((TcpDiscoverySpi)cfg.getDiscoverySpi()).setForceServerMode(true);
 
@@ -63,6 +64,7 @@ public class GridCacheRendezvousAffinityClientSelfTest extends GridCommonAbstrac
     /**
      * @throws Exception If failed.
      */
+    @Test
     public void testClientNode() throws Exception {
         try {
             client = true;
@@ -75,10 +77,12 @@ public class GridCacheRendezvousAffinityClientSelfTest extends GridCommonAbstrac
             startGrid(2);
             startGrid(3);
 
+            awaitPartitionMapExchange();
+
             Map<Integer, Collection<UUID>> mapping = new HashMap<>();
 
             for (int i = 0; i < 4; i++) {
-                IgniteCache<Object, Object> cache = grid(i).cache(null);
+                IgniteCache<Object, Object> cache = grid(i).cache(DEFAULT_CACHE_NAME);
 
                 Affinity<Object> aff = affinity(cache);
 

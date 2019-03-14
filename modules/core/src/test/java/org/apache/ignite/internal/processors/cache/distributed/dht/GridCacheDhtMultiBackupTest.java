@@ -26,6 +26,7 @@ import org.apache.ignite.internal.util.typedef.X;
 import org.apache.ignite.internal.util.typedef.internal.U;
 import org.apache.ignite.resources.IgniteInstanceResource;
 import org.apache.ignite.testframework.junits.common.GridCommonAbstractTest;
+import org.junit.Test;
 
 /**
  *
@@ -41,6 +42,7 @@ public class GridCacheDhtMultiBackupTest extends GridCommonAbstractTest {
     /**
      * @throws Exception If failed
      */
+    @Test
     public void testPut() throws Exception {
         try {
             Ignite g = G.start("examples/config/example-cache.xml");
@@ -70,7 +72,7 @@ public class GridCacheDhtMultiBackupTest extends GridCommonAbstractTest {
             for (int key = 0; key < 1000; key++) {
                 SampleKey key1 = new SampleKey(key);
 
-                if (!g.cluster().localNode().id().equals(g.cluster().mapKeyToNode("partitioned", key1).id())) {
+                if (!g.cluster().localNode().id().equals(g.affinity("partitioned").mapKeyToNode(key1).id())) {
                     cache.put(key1, new SampleValue(key));
 
                     cnt++;

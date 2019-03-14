@@ -21,6 +21,7 @@ import java.util.Collection;
 import java.util.Iterator;
 import org.apache.ignite.IgniteCheckedException;
 import org.apache.ignite.internal.GridKernalContext;
+import org.apache.ignite.internal.processors.cache.query.QueryTable;
 import org.apache.ignite.internal.processors.query.h2.opt.GridH2ValueCacheObject;
 import org.apache.ignite.plugin.extensions.communication.Message;
 import org.apache.ignite.plugin.extensions.communication.MessageFactory;
@@ -32,7 +33,7 @@ import org.jetbrains.annotations.Nullable;
  */
 public class GridH2ValueMessageFactory implements MessageFactory {
     /** {@inheritDoc} */
-    @Nullable @Override public Message create(byte type) {
+    @Nullable @Override public Message create(short type) {
         switch (type) {
             case -4:
                 return GridH2Null.INSTANCE;
@@ -90,6 +91,36 @@ public class GridH2ValueMessageFactory implements MessageFactory {
 
             case -22:
                 return new GridH2CacheObject();
+
+            case -30:
+                return new GridH2IndexRangeRequest();
+
+            case -31:
+                return new GridH2IndexRangeResponse();
+
+            case -32:
+                return new GridH2RowMessage();
+
+            case -33:
+                return new GridH2QueryRequest();
+
+            case -34:
+                return new GridH2RowRange();
+
+            case -35:
+                return new GridH2RowRangeBounds();
+
+            case -54:
+                return new QueryTable();
+
+            case -55:
+                return new GridH2DmlRequest();
+
+            case -56:
+                return new GridH2DmlResponse();
+
+            case -57:
+                return new GridH2SelectForUpdateTxDetails();
         }
 
         return null;
@@ -98,14 +129,17 @@ public class GridH2ValueMessageFactory implements MessageFactory {
     /**
      * @param src Source values.
      * @param dst Destination collection.
+     * @param cnt Number of columns to actually send.
      * @return Destination collection.
      * @throws IgniteCheckedException If failed.
      */
-    public static Collection<Message> toMessages(Collection<Value[]> src, Collection<Message> dst)
+    public static Collection<Message> toMessages(Collection<Value[]> src, Collection<Message> dst, int cnt)
         throws IgniteCheckedException {
         for (Value[] row : src) {
-            for (Value val : row)
-                dst.add(toMessage(val));
+            assert row.length >= cnt;
+
+            for (int i = 0; i < cnt; i++)
+                dst.add(toMessage(row[i]));
         }
 
         return dst;
@@ -118,7 +152,7 @@ public class GridH2ValueMessageFactory implements MessageFactory {
      * @return Filled array.
      * @throws IgniteCheckedException If failed.
      */
-    public static Value[] fillArray(Iterator<Message> src, Value[] dst, GridKernalContext ctx)
+    public static Value[] fillArray(Iterator<? extends Message> src, Value[] dst, GridKernalContext ctx)
         throws IgniteCheckedException {
         for (int i = 0; i < dst.length; i++) {
             Message msg = src.next();
@@ -134,7 +168,7 @@ public class GridH2ValueMessageFactory implements MessageFactory {
      * @return Message.
      * @throws IgniteCheckedException If failed.
      */
-    public static Message toMessage(Value v) throws IgniteCheckedException {
+    public static GridH2ValueMessage toMessage(Value v) throws IgniteCheckedException {
         switch (v.getType()) {
             case Value.NULL:
                 return GridH2Null.INSTANCE;

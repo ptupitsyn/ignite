@@ -39,7 +39,9 @@ import org.apache.ignite.internal.processors.igfs.IgfsBlockLocationImpl;
 import org.apache.ignite.internal.processors.igfs.IgfsFileImpl;
 import org.apache.ignite.internal.processors.igfs.IgfsHandshakeResponse;
 import org.apache.ignite.internal.processors.igfs.IgfsInputStreamDescriptor;
+import org.apache.ignite.internal.processors.igfs.IgfsModeResolver;
 import org.apache.ignite.internal.processors.igfs.IgfsStatus;
+import org.apache.ignite.internal.processors.igfs.IgfsUtils;
 import org.apache.ignite.internal.util.tostring.GridToStringInclude;
 import org.apache.ignite.internal.util.typedef.X;
 import org.apache.ignite.internal.util.typedef.internal.S;
@@ -113,6 +115,9 @@ public class IgfsControlResponse extends IgfsMessage {
 
     /** Response is a path summary. */
     public static final int RES_TYPE_IGFS_PATH_SUMMARY = 12;
+
+    /** Response is a path summary. */
+    public static final int RES_TYPE_MODE_RESOLVER = 13;
 
     /** Message header size. */
     public static final int RES_HEADER_SIZE = 9;
@@ -256,6 +261,15 @@ public class IgfsControlResponse extends IgfsMessage {
     }
 
     /**
+     * @param res Status response.
+     */
+    public void modeResolver(IgfsModeResolver res) {
+        resType = RES_TYPE_MODE_RESOLVER;
+
+        this.res = res;
+    }
+
+    /**
      * @param len Response length.
      */
     public void length(int len) {
@@ -348,7 +362,6 @@ public class IgfsControlResponse extends IgfsMessage {
      * @param checkIo Whether to check for IO exception.
      * @return Error code.
      */
-    @SuppressWarnings("unchecked")
     private int errorCode(IgniteCheckedException e, boolean checkIo) {
         if (X.hasCause(e, IgfsPathNotFoundException.class))
             return ERR_FILE_NOT_FOUND;
@@ -375,7 +388,6 @@ public class IgfsControlResponse extends IgfsMessage {
      * @param out Data output.
      * @throws IOException If error occurred.
      */
-    @SuppressWarnings("unchecked")
     public void writeExternal(ObjectOutput out) throws IOException {
         byte[] hdr = new byte[RES_HEADER_SIZE];
 
@@ -424,6 +436,7 @@ public class IgfsControlResponse extends IgfsMessage {
             case RES_TYPE_IGFS_FILE:
             case RES_TYPE_IGFS_STREAM_DESCRIPTOR:
             case RES_TYPE_HANDSHAKE:
+            case RES_TYPE_MODE_RESOLVER:
             case RES_TYPE_STATUS: {
                 out.writeBoolean(res != null);
 
@@ -492,13 +505,8 @@ public class IgfsControlResponse extends IgfsMessage {
             case RES_TYPE_IGFS_PATH: {
                 boolean hasVal = in.readBoolean();
 
-                if (hasVal) {
-                    IgfsPath path = new IgfsPath();
-
-                    path.readExternal(in);
-
-                    res = path;
-                }
+                if (hasVal)
+                    res = IgfsUtils.readPath(in);
 
                 break;
             }
@@ -603,13 +611,8 @@ public class IgfsControlResponse extends IgfsMessage {
                 if (size >= 0) {
                     paths = new ArrayList<>(size);
 
-                    for (int i = 0; i < size; i++) {
-                        IgfsPath path = new IgfsPath();
-
-                        path.readExternal(in);
-
-                        paths.add(path);
-                    }
+                    for (int i = 0; i < size; i++)
+                        paths.add(IgfsUtils.readPath(in));
                 }
 
                 res = paths;
@@ -635,6 +638,20 @@ public class IgfsControlResponse extends IgfsMessage {
                 }
 
                 res = locations;
+
+                break;
+            }
+
+            case RES_TYPE_MODE_RESOLVER: {
+                boolean hasVal = in.readBoolean();
+
+                if (hasVal) {
+                    IgfsModeResolver msg = new IgfsModeResolver();
+
+                    msg.readExternal(in);
+
+                    res = msg;
+                }
 
                 break;
             }

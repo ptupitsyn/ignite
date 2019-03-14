@@ -18,6 +18,8 @@
 package org.apache.ignite.internal.processors.query.h2.twostep.messages;
 
 import java.nio.ByteBuffer;
+import org.apache.ignite.cache.query.QueryCancelledException;
+import org.apache.ignite.cache.query.QueryRetryException;
 import org.apache.ignite.internal.util.typedef.internal.S;
 import org.apache.ignite.plugin.extensions.communication.Message;
 import org.apache.ignite.plugin.extensions.communication.MessageReader;
@@ -27,6 +29,15 @@ import org.apache.ignite.plugin.extensions.communication.MessageWriter;
  * Error message.
  */
 public class GridQueryFailResponse implements Message {
+    /** General error failure type. */
+    public static final byte GENERAL_ERROR = 0;
+
+    /** Cancelled by originator failure type. */
+    public static final byte CANCELLED_BY_ORIGINATOR = 1;
+
+    /** Execution error. Query should be retried. */
+    public static final byte RETRY_QUERY = 2;
+
     /** */
     private static final long serialVersionUID = 0L;
 
@@ -35,6 +46,9 @@ public class GridQueryFailResponse implements Message {
 
     /** */
     private String errMsg;
+
+    /** */
+    private byte failCode;
 
     /**
      * Default constructor.
@@ -49,7 +63,14 @@ public class GridQueryFailResponse implements Message {
      */
     public GridQueryFailResponse(long qryReqId, Throwable err) {
         this.qryReqId = qryReqId;
-        this.errMsg = err.getClass() + ":" + err.getMessage();
+        this.errMsg = err.getMessage();
+
+        if (err instanceof QueryCancelledException)
+            this.failCode = CANCELLED_BY_ORIGINATOR;
+        else if (err instanceof QueryRetryException)
+            this.failCode = RETRY_QUERY;
+        else
+            this.failCode = GENERAL_ERROR;
     }
 
     /**
@@ -64,6 +85,18 @@ public class GridQueryFailResponse implements Message {
      */
     public String error() {
         return errMsg;
+    }
+
+    /**
+     * @return Fail code.
+     */
+    public byte failCode() {
+        return failCode;
+    }
+
+    /** {@inheritDoc} */
+    @Override public void onAckReceived() {
+        // No-op.
     }
 
     /** {@inheritDoc} */
@@ -90,6 +123,12 @@ public class GridQueryFailResponse implements Message {
                 writer.incrementState();
 
             case 1:
+                if (!writer.writeByte("failCode", failCode))
+                    return false;
+
+                writer.incrementState();
+
+            case 2:
                 if (!writer.writeLong("qryReqId", qryReqId))
                     return false;
 
@@ -117,6 +156,14 @@ public class GridQueryFailResponse implements Message {
                 reader.incrementState();
 
             case 1:
+                failCode = reader.readByte("failCode");
+
+                if (!reader.isLastRead())
+                    return false;
+
+                reader.incrementState();
+
+            case 2:
                 qryReqId = reader.readLong("qryReqId");
 
                 if (!reader.isLastRead())
@@ -130,12 +177,12 @@ public class GridQueryFailResponse implements Message {
     }
 
     /** {@inheritDoc} */
-    @Override public byte directType() {
+    @Override public short directType() {
         return 107;
     }
 
     /** {@inheritDoc} */
     @Override public byte fieldsCount() {
-        return 2;
+        return 3;
     }
 }

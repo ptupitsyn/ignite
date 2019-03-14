@@ -19,6 +19,7 @@ package org.apache.ignite.spi;
 
 import java.io.Serializable;
 import java.util.Collection;
+import java.util.Map;
 import java.util.UUID;
 import javax.cache.CacheException;
 import org.apache.ignite.IgniteException;
@@ -26,9 +27,11 @@ import org.apache.ignite.cluster.ClusterNode;
 import org.apache.ignite.events.Event;
 import org.apache.ignite.internal.managers.communication.GridMessageListener;
 import org.apache.ignite.internal.managers.eventstorage.GridLocalEventListener;
+import org.apache.ignite.lang.IgniteBiPredicate;
 import org.apache.ignite.plugin.extensions.communication.MessageFactory;
 import org.apache.ignite.plugin.extensions.communication.MessageFormatter;
 import org.apache.ignite.plugin.security.SecuritySubject;
+import org.apache.ignite.spi.discovery.DiscoveryDataBag;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -116,6 +119,23 @@ public interface IgniteSpiContext {
     public void send(ClusterNode node, Serializable msg, String topic) throws IgniteSpiException;
 
     /**
+     * Register an local message listener to receive messages sent by remote nodes. The underlying
+     * communication mechanism is defined by {@link org.apache.ignite.spi.communication.CommunicationSpi} implementation used.
+     *
+     * @param topic Topic to subscribe to.
+     * @param p Message predicate.
+     */
+    public void addLocalMessageListener(@Nullable Object topic, IgniteBiPredicate<UUID, ?> p);
+
+    /**
+     * Removes a previously registered local message listener.
+     *
+     * @param topic Topic to unsubscribe from.
+     * @param p Message predicate.
+     */
+    public void removeLocalMessageListener(@Nullable Object topic, IgniteBiPredicate<UUID, ?> p);
+
+    /**
      * Register a message listener to receive messages sent by remote nodes. The underlying
      * communication mechanism is defined by {@link org.apache.ignite.spi.communication.CommunicationSpi} implementation used.
      * <p>
@@ -124,7 +144,10 @@ public interface IgniteSpiContext {
      *
      * @param lsnr Message listener to register.
      * @param topic Topic to register listener for.
+     *
+     * @deprecated Use {@link #addLocalMessageListener(Object, IgniteBiPredicate)} instead.
      */
+    @Deprecated
     public void addMessageListener(GridMessageListener lsnr, String topic);
 
     /**
@@ -134,7 +157,10 @@ public interface IgniteSpiContext {
      * @param topic Topic to unregister listener for.
      * @return {@code true} of message listener was removed, {@code false} if it was not
      *      previously registered.
+     *
+     * @deprecated Use {@link #removeLocalMessageListener(Object, IgniteBiPredicate)} instead.
      */
+    @Deprecated
     public boolean removeMessageListener(GridMessageListener lsnr, String topic);
 
     /**
@@ -271,6 +297,12 @@ public interface IgniteSpiContext {
     @Nullable public IgniteNodeValidationResult validateNode(ClusterNode node);
 
     /**
+     * @param node Node.
+     * @param discoData Disco data.
+     */
+    @Nullable public IgniteNodeValidationResult validateNode(ClusterNode node, DiscoveryDataBag discoData);
+
+    /**
      * Gets collection of authenticated subjects together with their permissions.
      *
      * @return Collection of authenticated subjects.
@@ -328,4 +360,20 @@ public interface IgniteSpiContext {
      * @param c Timeout object.
      */
     public void removeTimeoutObject(IgniteSpiTimeoutObject c);
+
+    /**
+     * @return Current node attributes.
+     */
+    public Map<String, Object> nodeAttributes();
+
+    /**
+     * @return {@code True} if cluster supports communication error resolving.
+     */
+    public boolean communicationFailureResolveSupported();
+
+    /**
+     * @param node Problem node.
+     * @param err Error.
+     */
+    public void resolveCommunicationFailure(ClusterNode node, Exception err);
 }

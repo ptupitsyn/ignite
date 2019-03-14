@@ -29,6 +29,7 @@ import org.apache.ignite.configuration.IgniteConfiguration;
 import org.apache.ignite.spi.discovery.tcp.TcpDiscoverySpi;
 import org.apache.ignite.spi.discovery.tcp.ipfinder.vm.TcpDiscoveryVmIpFinder;
 import org.apache.ignite.testframework.junits.common.GridCommonAbstractTest;
+import org.junit.Test;
 
 import static org.apache.ignite.cache.CacheWriteSynchronizationMode.FULL_SYNC;
 
@@ -63,8 +64,8 @@ public abstract class GridCacheBasicStoreMultithreadedAbstractTest extends GridC
 
     /** {@inheritDoc} */
     @SuppressWarnings("unchecked")
-    @Override protected final IgniteConfiguration getConfiguration(String gridName) throws Exception {
-        IgniteConfiguration c = super.getConfiguration(gridName);
+    @Override protected final IgniteConfiguration getConfiguration(String igniteInstanceName) throws Exception {
+        IgniteConfiguration c = super.getConfiguration(igniteInstanceName);
 
         TcpDiscoverySpi disco = new TcpDiscoverySpi();
 
@@ -76,7 +77,6 @@ public abstract class GridCacheBasicStoreMultithreadedAbstractTest extends GridC
 
         cc.setCacheMode(cacheMode());
         cc.setWriteSynchronizationMode(FULL_SYNC);
-        cc.setSwapEnabled(false);
 
         cc.setCacheStoreFactory(singletonFactory(store));
         cc.setReadThrough(true);
@@ -91,6 +91,7 @@ public abstract class GridCacheBasicStoreMultithreadedAbstractTest extends GridC
     /**
      * @throws Exception If failed.
      */
+    @Test
     public void testConcurrentGet() throws Exception {
         final AtomicInteger cntr = new AtomicInteger();
 

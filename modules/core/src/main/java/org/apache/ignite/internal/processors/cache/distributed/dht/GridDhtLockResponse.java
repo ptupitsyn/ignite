@@ -22,6 +22,7 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import org.apache.ignite.IgniteCheckedException;
 import org.apache.ignite.internal.GridDirectCollection;
@@ -31,7 +32,6 @@ import org.apache.ignite.internal.processors.cache.GridCacheSharedContext;
 import org.apache.ignite.internal.processors.cache.distributed.GridDistributedLockResponse;
 import org.apache.ignite.internal.processors.cache.transactions.IgniteTxKey;
 import org.apache.ignite.internal.processors.cache.version.GridCacheVersion;
-import org.apache.ignite.internal.util.GridLeanSet;
 import org.apache.ignite.internal.util.tostring.GridToStringInclude;
 import org.apache.ignite.internal.util.typedef.internal.S;
 import org.apache.ignite.lang.IgniteUuid;
@@ -57,7 +57,7 @@ public class GridDhtLockResponse extends GridDistributedLockResponse {
     /** Invalid partitions. */
     @GridToStringInclude
     @GridDirectCollection(int.class)
-    private Collection<Integer> invalidParts = new GridLeanSet<>();
+    private Collection<Integer> invalidParts;
 
     /** Preload entries. */
     @GridDirectCollection(GridCacheEntryInfo.class)
@@ -75,9 +75,11 @@ public class GridDhtLockResponse extends GridDistributedLockResponse {
      * @param futId Future ID.
      * @param miniId Mini future ID.
      * @param cnt Key count.
+     * @param addDepInfo Deployment info.
      */
-    public GridDhtLockResponse(int cacheId, GridCacheVersion lockVer, IgniteUuid futId, IgniteUuid miniId, int cnt) {
-        super(cacheId, lockVer, futId, cnt);
+    public GridDhtLockResponse(int cacheId, GridCacheVersion lockVer, IgniteUuid futId, IgniteUuid miniId, int cnt,
+        boolean addDepInfo) {
+        super(cacheId, lockVer, futId, cnt, addDepInfo);
 
         assert miniId != null;
 
@@ -89,9 +91,11 @@ public class GridDhtLockResponse extends GridDistributedLockResponse {
      * @param futId Future ID.
      * @param miniId Mini future ID.
      * @param err Error.
+     * @param addDepInfo
      */
-    public GridDhtLockResponse(int cacheId, GridCacheVersion lockVer, IgniteUuid futId, IgniteUuid miniId, Throwable err) {
-        super(cacheId, lockVer, futId, err);
+    public GridDhtLockResponse(int cacheId, GridCacheVersion lockVer, IgniteUuid futId, IgniteUuid miniId,
+        Throwable err, boolean addDepInfo) {
+        super(cacheId, lockVer, futId, err, addDepInfo);
 
         assert miniId != null;
 
@@ -123,6 +127,9 @@ public class GridDhtLockResponse extends GridDistributedLockResponse {
      * @param part Invalid partition.
      */
     public void addInvalidPartition(int part) {
+        if (invalidParts == null)
+            invalidParts = new HashSet<>();
+
         invalidParts.add(part);
     }
 
@@ -130,7 +137,7 @@ public class GridDhtLockResponse extends GridDistributedLockResponse {
      * @return Invalid partitions.
      */
     public Collection<Integer> invalidPartitions() {
-        return invalidParts;
+        return invalidParts == null ? Collections.<Integer>emptySet() : invalidParts;
     }
 
     /**
@@ -167,7 +174,7 @@ public class GridDhtLockResponse extends GridDistributedLockResponse {
         }
 
         if (preloadEntries != null)
-            marshalInfos(preloadEntries, cctx);
+            marshalInfos(preloadEntries, cctx.shared(), cctx.cacheObjectContext());
     }
 
     /** {@inheritDoc} */
@@ -200,25 +207,25 @@ public class GridDhtLockResponse extends GridDistributedLockResponse {
         }
 
         switch (writer.state()) {
-            case 10:
+            case 11:
                 if (!writer.writeCollection("invalidParts", invalidParts, MessageCollectionItemType.INT))
                     return false;
 
                 writer.incrementState();
 
-            case 11:
+            case 12:
                 if (!writer.writeIgniteUuid("miniId", miniId))
                     return false;
 
                 writer.incrementState();
 
-            case 12:
+            case 13:
                 if (!writer.writeCollection("nearEvicted", nearEvicted, MessageCollectionItemType.MSG))
                     return false;
 
                 writer.incrementState();
 
-            case 13:
+            case 14:
                 if (!writer.writeCollection("preloadEntries", preloadEntries, MessageCollectionItemType.MSG))
                     return false;
 
@@ -240,7 +247,7 @@ public class GridDhtLockResponse extends GridDistributedLockResponse {
             return false;
 
         switch (reader.state()) {
-            case 10:
+            case 11:
                 invalidParts = reader.readCollection("invalidParts", MessageCollectionItemType.INT);
 
                 if (!reader.isLastRead())
@@ -248,7 +255,7 @@ public class GridDhtLockResponse extends GridDistributedLockResponse {
 
                 reader.incrementState();
 
-            case 11:
+            case 12:
                 miniId = reader.readIgniteUuid("miniId");
 
                 if (!reader.isLastRead())
@@ -256,7 +263,7 @@ public class GridDhtLockResponse extends GridDistributedLockResponse {
 
                 reader.incrementState();
 
-            case 12:
+            case 13:
                 nearEvicted = reader.readCollection("nearEvicted", MessageCollectionItemType.MSG);
 
                 if (!reader.isLastRead())
@@ -264,7 +271,7 @@ public class GridDhtLockResponse extends GridDistributedLockResponse {
 
                 reader.incrementState();
 
-            case 13:
+            case 14:
                 preloadEntries = reader.readCollection("preloadEntries", MessageCollectionItemType.MSG);
 
                 if (!reader.isLastRead())
@@ -278,13 +285,13 @@ public class GridDhtLockResponse extends GridDistributedLockResponse {
     }
 
     /** {@inheritDoc} */
-    @Override public byte directType() {
+    @Override public short directType() {
         return 31;
     }
 
     /** {@inheritDoc} */
     @Override public byte fieldsCount() {
-        return 14;
+        return 15;
     }
 
     /** {@inheritDoc} */

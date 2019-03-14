@@ -35,6 +35,7 @@ import org.apache.ignite.spi.deployment.DeploymentListener;
 import org.apache.ignite.spi.deployment.DeploymentResource;
 import org.apache.ignite.testframework.junits.spi.GridSpiAbstractTest;
 import org.apache.ignite.testframework.junits.spi.GridSpiTest;
+import org.junit.Test;
 
 /**
  * Local deployment SPI test.
@@ -87,6 +88,7 @@ public class GridLocalDeploymentSpiSelfTest extends GridSpiAbstractTest<LocalDep
      * @throws Exception If failed.
      */
     @SuppressWarnings({"TooBroadScope"})
+    @Test
     public void testDeploy() throws Exception {
         String taskName = "GridDeploymentTestTask";
 
@@ -114,6 +116,7 @@ public class GridLocalDeploymentSpiSelfTest extends GridSpiAbstractTest<LocalDep
      * @throws Exception If failed.
      */
     @SuppressWarnings({"TooBroadScope"})
+    @Test
     public void testRedeploy() throws Exception {
         String taskName = "GridDeploymentTestTask";
 
@@ -128,7 +131,7 @@ public class GridLocalDeploymentSpiSelfTest extends GridSpiAbstractTest<LocalDep
 
             assert false : "Exception must be thrown for registering with the same name.";
         }
-        catch (IgniteSpiException e) {
+        catch (IgniteSpiException ignored) {
             // No-op.
         }
 
@@ -147,7 +150,7 @@ public class GridLocalDeploymentSpiSelfTest extends GridSpiAbstractTest<LocalDep
 
             assert false : "Exception must be thrown for registering with the same name.";
         }
-        catch (IgniteSpiException e) {
+        catch (IgniteSpiException ignored) {
             // No-op.
         }
 

@@ -27,6 +27,7 @@ import javax.cache.Cache;
 import javax.cache.integration.CacheLoaderException;
 import javax.cache.integration.CacheWriterException;
 import javax.cache.processor.MutableEntry;
+import org.apache.ignite.Ignite;
 import org.apache.ignite.IgniteCache;
 import org.apache.ignite.IgniteDataStreamer;
 import org.apache.ignite.cache.CacheEntryProcessor;
@@ -37,10 +38,14 @@ import org.apache.ignite.cache.affinity.Affinity;
 import org.apache.ignite.cache.store.CacheStoreAdapter;
 import org.apache.ignite.configuration.CacheConfiguration;
 import org.apache.ignite.configuration.IgniteConfiguration;
+import org.apache.ignite.internal.IgniteEx;
+import org.apache.ignite.internal.binary.BinaryMarshaller;
+import org.apache.ignite.internal.binary.BinaryObjectImpl;
 import org.apache.ignite.internal.processors.cache.distributed.near.GridNearCacheAdapter;
 import org.apache.ignite.internal.util.lang.GridAbsPredicate;
 import org.apache.ignite.lang.IgniteBiInClosure;
 import org.apache.ignite.testframework.GridTestUtils;
+import org.junit.Test;
 
 import static org.apache.ignite.cache.CacheWriteSynchronizationMode.FULL_SYNC;
 
@@ -52,8 +57,8 @@ public abstract class IgniteCacheStoreValueAbstractTest extends IgniteCacheAbstr
     private boolean cpyOnRead;
 
     /** {@inheritDoc} */
-    @Override protected IgniteConfiguration getConfiguration(String gridName) throws Exception {
-        IgniteConfiguration cfg = super.getConfiguration(gridName);
+    @Override protected IgniteConfiguration getConfiguration(String igniteInstanceName) throws Exception {
+        IgniteConfiguration cfg = super.getConfiguration(igniteInstanceName);
 
         cfg.setPeerClassLoadingEnabled(false);
 
@@ -61,8 +66,13 @@ public abstract class IgniteCacheStoreValueAbstractTest extends IgniteCacheAbstr
     }
 
     /** {@inheritDoc} */
-    @Override protected CacheConfiguration cacheConfiguration(String gridName) throws Exception {
-        CacheConfiguration ccfg = super.cacheConfiguration(gridName);
+    @Override protected boolean onheapCacheEnabled() {
+        return true;
+    }
+
+    /** {@inheritDoc} */
+    @Override protected CacheConfiguration cacheConfiguration(String igniteInstanceName) throws Exception {
+        CacheConfiguration ccfg = super.cacheConfiguration(igniteInstanceName);
 
         if (ccfg.getCacheMode() != CacheMode.LOCAL)
             assertEquals(1, ccfg.getBackups());
@@ -97,13 +107,8 @@ public abstract class IgniteCacheStoreValueAbstractTest extends IgniteCacheAbstr
     }
 
     /** {@inheritDoc} */
-    @Override protected boolean swapEnabled() {
-        return true;
-    }
-
-    /** {@inheritDoc} */
     @Override protected long getTestTimeout() {
-        return 2 * 60_000;
+        return 3 * 60_000;
     }
 
     /** {@inheritDoc} */
@@ -121,14 +126,15 @@ public abstract class IgniteCacheStoreValueAbstractTest extends IgniteCacheAbstr
     /**
      * @throws Exception If failed.
      */
+    @Test
     public void testValueNotStored() throws Exception {
         cpyOnRead = true;
 
         startGrids();
 
-        IgniteCache<TestKey, TestValue> cache = grid(0).cache(null);
+        IgniteCache<TestKey, TestValue> cache = grid(0).cache(DEFAULT_CACHE_NAME);
 
-        Affinity<Object> aff = grid(0).affinity(null);
+        Affinity<Object> aff = grid(0).affinity(DEFAULT_CACHE_NAME);
 
         final List<WeakReference<Object>> refs = new ArrayList<>();
 
@@ -143,7 +149,7 @@ public abstract class IgniteCacheStoreValueAbstractTest extends IgniteCacheAbstr
             checkNoValue(aff, key);
 
             for (int g = 0; g < gridCount(); g++)
-                assertNotNull(grid(g).cache(null).get(key));
+                assertNotNull(grid(g).cache(DEFAULT_CACHE_NAME).get(key));
 
             checkNoValue(aff, key);
 
@@ -160,16 +166,16 @@ public abstract class IgniteCacheStoreValueAbstractTest extends IgniteCacheAbstr
             checkNoValue(aff, key);
 
             for (int g = 0; g < gridCount(); g++)
-                assertNotNull(grid(g).cache(null).get(key));
+                assertNotNull(grid(g).cache(DEFAULT_CACHE_NAME).get(key));
 
             checkNoValue(aff, key);
 
             cache.remove(key);
 
             for (int g = 0; g < gridCount(); g++)
-                assertNull(grid(g).cache(null).get(key));
+                assertNull(grid(g).cache(DEFAULT_CACHE_NAME).get(key));
 
-            try (IgniteDataStreamer<TestKey, TestValue> streamer  = grid(0).dataStreamer(null)) {
+            try (IgniteDataStreamer<TestKey, TestValue> streamer  = grid(0).dataStreamer(DEFAULT_CACHE_NAME)) {
                 streamer.addData(key, val);
             }
 
@@ -177,9 +183,7 @@ public abstract class IgniteCacheStoreValueAbstractTest extends IgniteCacheAbstr
 
             cache.remove(key);
 
-            atomicClockModeDelay(cache);
-
-            try (IgniteDataStreamer<TestKey, TestValue> streamer  = grid(0).dataStreamer(null)) {
+            try (IgniteDataStreamer<TestKey, TestValue> streamer  = grid(0).dataStreamer(DEFAULT_CACHE_NAME)) {
                 streamer.allowOverwrite(true);
 
                 streamer.addData(key, val);
@@ -192,7 +196,7 @@ public abstract class IgniteCacheStoreValueAbstractTest extends IgniteCacheAbstr
 
                 assertNull(cache.localPeek(key, CachePeekMode.ONHEAP));
 
-                cache.localPromote(Collections.singleton(key));
+                cache.get(key);
 
                 assertNotNull(cache.localPeek(key, CachePeekMode.ONHEAP));
 
@@ -207,7 +211,7 @@ public abstract class IgniteCacheStoreValueAbstractTest extends IgniteCacheAbstr
         checkNoValue(aff, key);
 
         for (int g = 0; g < gridCount(); g++)
-            assertNotNull(grid(g).cache(null).get(key));
+            assertNotNull(grid(g).cache(DEFAULT_CACHE_NAME).get(key));
 
         checkNoValue(aff, key);
 
@@ -242,7 +246,9 @@ public abstract class IgniteCacheStoreValueAbstractTest extends IgniteCacheAbstr
      */
     private void checkNoValue(Affinity<Object> aff, Object key) {
         for (int g = 0; g < gridCount(); g++) {
-            GridCacheAdapter cache0 = internalCache(grid(g), null);
+            IgniteEx ig = grid(g);
+
+            GridCacheAdapter cache0 = internalCache(ig, DEFAULT_CACHE_NAME);
 
             GridCacheEntryEx e = cache0.peekEx(key);
 
@@ -254,57 +260,53 @@ public abstract class IgniteCacheStoreValueAbstractTest extends IgniteCacheAbstr
 
                 assertNotNull(keyObj);
 
-                assertEquals(KeyCacheObjectImpl.class, keyObj.getClass());
+                if (!isBinaryMarshallerUsed(ig)) {
+                    assertNotNull("Unexpected value, node: " + g,
+                        GridTestUtils.getFieldValue(keyObj, CacheObjectAdapter.class, "val"));
 
-                assertNotNull("Unexpected value, node: " + g,
-                    GridTestUtils.getFieldValue(keyObj, CacheObjectAdapter.class, "val"));
+                    Object key0 = keyObj.value(cache0.context().cacheObjectContext(), true);
+                    Object key1 = keyObj.value(cache0.context().cacheObjectContext(), false);
+                    Object key2 = keyObj.value(cache0.context().cacheObjectContext(), true);
+                    Object key3 = keyObj.value(cache0.context().cacheObjectContext(), false);
 
-                Object key0 = keyObj.value(cache0.context().cacheObjectContext(), true);
-                Object key1 = keyObj.value(cache0.context().cacheObjectContext(), false);
-                Object key2 = keyObj.value(cache0.context().cacheObjectContext(), true);
-                Object key3 = keyObj.value(cache0.context().cacheObjectContext(), false);
-
-                assertSame(key0, key1);
-                assertSame(key1, key2);
-                assertSame(key2, key3);
+                    assertSame(key0, key1);
+                    assertSame(key1, key2);
+                    assertSame(key2, key3);
+                }
 
                 CacheObject obj = e.rawGet();
 
                 if (obj != null) {
-                    assertEquals(CacheObjectImpl.class, obj.getClass());
-
-                    assertNull("Unexpected value, node: " + g,
-                        GridTestUtils.getFieldValue(obj, CacheObjectAdapter.class, "val"));
+                    assertNull("Unexpected value, node: " + g, reflectiveValue(obj));
 
                     assertNotNull(obj.value(cache0.context().cacheObjectContext(), true));
 
-                    assertNull("Unexpected value after value() requested1: " + g,
-                        GridTestUtils.getFieldValue(obj, CacheObjectAdapter.class, "val"));
+                    assertNull("Unexpected value after value() requested1: " + g, reflectiveValue(obj));
 
                     assertNotNull(obj.value(cache0.context().cacheObjectContext(), false));
 
-                    assertNull("Unexpected value after value() requested2: " + g,
-                        GridTestUtils.getFieldValue(obj, CacheObjectAdapter.class, "val"));
+                    assertNull("Unexpected value after value() requested2: " + g, reflectiveValue(obj));
                 }
                 else
-                    assertFalse(aff.isPrimaryOrBackup(grid(g).localNode(), key));
+                    assertFalse(aff.isPrimaryOrBackup(ig.localNode(), key));
             }
             else
-                assertFalse("Entry not found, node: " + g, aff.isPrimaryOrBackup(grid(g).localNode(), key));
+                assertFalse("Entry not found, node: " + g, aff.isPrimaryOrBackup(ig.localNode(), key));
         }
     }
 
     /**
      * @throws Exception If failed.
      */
+    @Test
     public void testValueStored() throws Exception {
         cpyOnRead = false;
 
         startGrids();
 
-        IgniteCache<TestKey, TestValue> cache = grid(0).cache(null);
+        IgniteCache<TestKey, TestValue> cache = grid(0).cache(DEFAULT_CACHE_NAME);
 
-        Affinity<Object> aff = grid(0).affinity(null);
+        Affinity<Object> aff = grid(0).affinity(DEFAULT_CACHE_NAME);
 
         for (int i = 0; i < 100; i++) {
             TestKey key = new TestKey(i);
@@ -315,7 +317,7 @@ public abstract class IgniteCacheStoreValueAbstractTest extends IgniteCacheAbstr
             checkHasValue(aff, key);
 
             for (int g = 0; g < gridCount(); g++)
-                assertNotNull(grid(g).cache(null).get(key));
+                assertNotNull(grid(g).cache(DEFAULT_CACHE_NAME).get(key));
 
             checkHasValue(aff, key);
 
@@ -332,16 +334,16 @@ public abstract class IgniteCacheStoreValueAbstractTest extends IgniteCacheAbstr
             checkHasValue(aff, key);
 
             for (int g = 0; g < gridCount(); g++)
-                assertNotNull(grid(g).cache(null).get(key));
+                assertNotNull(grid(g).cache(DEFAULT_CACHE_NAME).get(key));
 
             checkHasValue(aff, key);
 
             cache.remove(key);
 
             for (int g = 0; g < gridCount(); g++)
-                assertNull(grid(g).cache(null).get(key));
+                assertNull(grid(g).cache(DEFAULT_CACHE_NAME).get(key));
 
-            try (IgniteDataStreamer<TestKey, TestValue> streamer  = grid(0).dataStreamer(null)) {
+            try (IgniteDataStreamer<TestKey, TestValue> streamer  = grid(0).dataStreamer(DEFAULT_CACHE_NAME)) {
                 streamer.addData(key, val);
             }
 
@@ -349,9 +351,7 @@ public abstract class IgniteCacheStoreValueAbstractTest extends IgniteCacheAbstr
 
             cache.remove(key);
 
-            atomicClockModeDelay(cache);
-
-            try (IgniteDataStreamer<TestKey, TestValue> streamer  = grid(0).dataStreamer(null)) {
+            try (IgniteDataStreamer<TestKey, TestValue> streamer  = grid(0).dataStreamer(DEFAULT_CACHE_NAME)) {
                 streamer.allowOverwrite(true);
 
                 streamer.addData(key, val);
@@ -364,7 +364,7 @@ public abstract class IgniteCacheStoreValueAbstractTest extends IgniteCacheAbstr
 
                 assertNull(cache.localPeek(key, CachePeekMode.ONHEAP));
 
-                cache.localPromote(Collections.singleton(key));
+                cache.get(key);
 
                 assertNotNull(cache.localPeek(key, CachePeekMode.ONHEAP));
 
@@ -379,7 +379,9 @@ public abstract class IgniteCacheStoreValueAbstractTest extends IgniteCacheAbstr
      */
     private void checkHasValue(Affinity<Object> aff, Object key) {
         for (int g = 0; g < gridCount(); g++) {
-            GridCacheAdapter cache0 = internalCache(grid(g), null);
+            IgniteEx ig = grid(g);
+
+            GridCacheAdapter cache0 = internalCache(ig, DEFAULT_CACHE_NAME);
 
             GridCacheEntryEx e = cache0.peekEx(key);
 
@@ -391,53 +393,69 @@ public abstract class IgniteCacheStoreValueAbstractTest extends IgniteCacheAbstr
 
                 assertNotNull(keyObj);
 
-                assertEquals(KeyCacheObjectImpl.class, keyObj.getClass());
+                if (!isBinaryMarshallerUsed(ig)) {
+                    assertNotNull("Unexpected value, node: " + g,
+                        GridTestUtils.getFieldValue(keyObj, CacheObjectAdapter.class, "val"));
 
-                assertNotNull("Unexpected value, node: " + g,
-                    GridTestUtils.getFieldValue(keyObj, CacheObjectAdapter.class, "val"));
+                    Object key0 = keyObj.value(cache0.context().cacheObjectContext(), true);
+                    Object key1 = keyObj.value(cache0.context().cacheObjectContext(), false);
+                    Object key2 = keyObj.value(cache0.context().cacheObjectContext(), true);
+                    Object key3 = keyObj.value(cache0.context().cacheObjectContext(), false);
 
-                Object key0 = keyObj.value(cache0.context().cacheObjectContext(), true);
-                Object key1 = keyObj.value(cache0.context().cacheObjectContext(), false);
-                Object key2 = keyObj.value(cache0.context().cacheObjectContext(), true);
-                Object key3 = keyObj.value(cache0.context().cacheObjectContext(), false);
-
-                assertSame(key0, key1);
-                assertSame(key1, key2);
-                assertSame(key2, key3);
+                    assertSame(key0, key1);
+                    assertSame(key1, key2);
+                    assertSame(key2, key3);
+                }
 
                 CacheObject obj = e.rawGet();
 
                 if (obj != null) {
-                    assertEquals(CacheObjectImpl.class, obj.getClass());
-
-                    assertNotNull("Unexpected value, node: " + g,
-                        GridTestUtils.getFieldValue(obj, CacheObjectAdapter.class, "val"));
+                    if (!isBinaryMarshallerUsed(ig))
+                        assertNotNull("Unexpected value, node: " + g, reflectiveValue(obj));
 
                     Object val0 = obj.value(cache0.context().cacheObjectContext(), true);
 
-                    assertNotNull("Unexpected value after value() requested1: " + g,
-                        GridTestUtils.getFieldValue(obj, CacheObjectAdapter.class, "val"));
+                    assertNotNull("Unexpected value after value() requested1: " + g, reflectiveValue(obj));
 
                     Object val1 = obj.value(cache0.context().cacheObjectContext(), true);
 
-                    assertNotNull("Unexpected value after value() requested2: " + g,
-                        GridTestUtils.getFieldValue(obj, CacheObjectAdapter.class, "val"));
+                    assertNotNull("Unexpected value after value() requested2: " + g, reflectiveValue(obj));
 
                     assertSame(val0, val1);
 
                     Object val2 = obj.value(cache0.context().cacheObjectContext(), false);
 
-                    assertNotNull("Unexpected value after value() requested3: " + g,
-                        GridTestUtils.getFieldValue(obj, CacheObjectAdapter.class, "val"));
+                    assertNotNull("Unexpected value after value() requested3: " + g, reflectiveValue(obj));
 
                     assertSame(val1, val2);
                 }
                 else
-                    assertFalse(aff.isPrimaryOrBackup(grid(g).localNode(), key));
+                    assertFalse(aff.isPrimaryOrBackup(ig.localNode(), key));
             }
             else
-                assertFalse("Entry not found, node: " + g, aff.isPrimaryOrBackup(grid(g).localNode(), key));
+                assertFalse("Entry not found, node: " + g, aff.isPrimaryOrBackup(ig.localNode(), key));
         }
+    }
+
+    /**
+     * @param ig Ignite.
+     * @return If binary marshaller is used.
+     */
+    private boolean isBinaryMarshallerUsed(Ignite ig) {
+        return ig.configuration().getMarshaller() == null ||
+            ig.configuration().getMarshaller() instanceof BinaryMarshaller;
+    }
+
+    /**
+     * @param obj Object to extract value from.
+     * @return Cache object.
+     */
+    @SuppressWarnings("IfMayBeConditional")
+    private Object reflectiveValue(CacheObject obj) {
+        if (obj instanceof BinaryObjectImpl)
+            return GridTestUtils.getFieldValue(obj, BinaryObjectImpl.class, "obj");
+        else
+            return GridTestUtils.getFieldValue(obj, CacheObjectAdapter.class, "val");
     }
 
     /**
@@ -489,7 +507,7 @@ public abstract class IgniteCacheStoreValueAbstractTest extends IgniteCacheAbstr
         }
 
         /** {@inheritDoc} */
-        public String toString() {
+        @Override public String toString() {
             return "TestValue [val=" + val + ']';
         }
     }

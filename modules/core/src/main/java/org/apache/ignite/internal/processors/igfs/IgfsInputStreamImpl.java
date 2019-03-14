@@ -17,6 +17,24 @@
 
 package org.apache.ignite.internal.processors.igfs;
 
+import org.apache.ignite.IgniteCheckedException;
+import org.apache.ignite.IgniteLogger;
+import org.apache.ignite.events.IgfsEvent;
+import org.apache.ignite.igfs.IgfsCorruptedFileException;
+import org.apache.ignite.igfs.IgfsInputStream;
+import org.apache.ignite.igfs.IgfsPath;
+import org.apache.ignite.igfs.IgfsPathNotFoundException;
+import org.apache.ignite.igfs.secondary.IgfsSecondaryFileSystemPositionedReadable;
+import org.apache.ignite.internal.IgniteInternalFuture;
+import org.apache.ignite.internal.managers.eventstorage.GridEventStorageManager;
+import org.apache.ignite.internal.util.GridConcurrentHashSet;
+import org.apache.ignite.internal.util.future.GridFutureAdapter;
+import org.apache.ignite.internal.util.typedef.internal.S;
+import org.apache.ignite.internal.util.typedef.internal.U;
+import org.apache.ignite.lang.IgniteInClosure;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import java.io.EOFException;
 import java.io.IOException;
 import java.util.Arrays;
@@ -27,36 +45,20 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
-import org.apache.ignite.IgniteCheckedException;
-import org.apache.ignite.IgniteLogger;
-import org.apache.ignite.igfs.IgfsCorruptedFileException;
-import org.apache.ignite.igfs.IgfsInputStream;
-import org.apache.ignite.igfs.IgfsPath;
-import org.apache.ignite.igfs.IgfsPathNotFoundException;
-import org.apache.ignite.igfs.secondary.IgfsSecondaryFileSystemPositionedReadable;
-import org.apache.ignite.internal.IgniteInternalFuture;
-import org.apache.ignite.internal.util.GridConcurrentHashSet;
-import org.apache.ignite.internal.util.typedef.internal.S;
-import org.apache.ignite.internal.util.typedef.internal.U;
-import org.apache.ignite.lang.IgniteInClosure;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+
+import static org.apache.ignite.events.EventType.EVT_IGFS_FILE_CLOSED_READ;
 
 /**
  * Input stream to read data from grid cache with separate blocks.
  */
-public class IgfsInputStreamImpl extends IgfsInputStreamAdapter {
+public class IgfsInputStreamImpl extends IgfsInputStream implements IgfsSecondaryFileSystemPositionedReadable {
     /** Empty chunks result. */
     private static final byte[][] EMPTY_CHUNKS = new byte[0][];
 
-    /** Meta manager. */
-    private final IgfsMetaManager meta;
-
-    /** Data manager. */
-    private final IgfsDataManager data;
+    /** IGFS context. */
+    private final IgfsContext igfsCtx;
 
     /** Secondary file system reader. */
-    @SuppressWarnings("FieldAccessedSynchronizedAndUnsynchronized")
     private final IgfsSecondaryFileSystemPositionedReadable secReader;
 
     /** Logger. */
@@ -66,7 +68,7 @@ public class IgfsInputStreamImpl extends IgfsInputStreamAdapter {
     protected final IgfsPath path;
 
     /** File descriptor. */
-    private volatile IgfsFileInfo fileInfo;
+    private volatile IgfsEntryInfo fileInfo;
 
     /** The number of already read bytes. Important! Access to the property is guarded by this object lock. */
     private long pos;
@@ -107,36 +109,55 @@ public class IgfsInputStreamImpl extends IgfsInputStreamAdapter {
     /** Time consumed on reading. */
     private long time;
 
-    /** Local IGFS metrics. */
-    private final IgfsLocalMetrics metrics;
+    /** File Length. */
+    private long len;
+
+    /** Block size to read. */
+    private int blockSize;
+
+    /** Block size to read. */
+    private long blocksCnt;
+
+    /** Proxy mode. */
+    private boolean proxy;
 
     /**
      * Constructs file output stream.
-     *
-     * @param igfsCtx IGFS context.
+     *  @param igfsCtx IGFS context.
      * @param path Path to stored file.
      * @param fileInfo File info to write binary data to.
      * @param prefetchBlocks Number of blocks to prefetch.
      * @param seqReadsBeforePrefetch Amount of sequential reads before prefetch is triggered.
      * @param secReader Optional secondary file system reader.
-     * @param metrics Local IGFS metrics.
+     * @param len File length.
+     * @param blockSize Block size.
+     * @param blocksCnt Blocks count.
+     * @param proxy Proxy mode flag.
      */
-    IgfsInputStreamImpl(IgfsContext igfsCtx, IgfsPath path, IgfsFileInfo fileInfo, int prefetchBlocks,
-        int seqReadsBeforePrefetch, @Nullable IgfsSecondaryFileSystemPositionedReadable secReader, IgfsLocalMetrics metrics) {
+    IgfsInputStreamImpl(
+        IgfsContext igfsCtx,
+        IgfsPath path,
+        @Nullable IgfsEntryInfo fileInfo,
+        int prefetchBlocks,
+        int seqReadsBeforePrefetch,
+        @Nullable IgfsSecondaryFileSystemPositionedReadable secReader,
+        long len,
+        int blockSize,
+        long blocksCnt,
+        boolean proxy) {
         assert igfsCtx != null;
         assert path != null;
-        assert fileInfo != null;
-        assert metrics != null;
 
+        this.igfsCtx = igfsCtx;
         this.path = path;
         this.fileInfo = fileInfo;
         this.prefetchBlocks = prefetchBlocks;
         this.seqReadsBeforePrefetch = seqReadsBeforePrefetch;
         this.secReader = secReader;
-        this.metrics = metrics;
-
-        meta = igfsCtx.meta();
-        data = igfsCtx.data();
+        this.len = len;
+        this.blockSize = blockSize;
+        this.blocksCnt = blocksCnt;
+        this.proxy = proxy;
 
         log = igfsCtx.kernalContext().log(IgfsInputStream.class);
 
@@ -145,6 +166,8 @@ public class IgfsInputStreamImpl extends IgfsInputStreamAdapter {
         locCache = new LinkedHashMap<>(maxLocCacheSize, 1.0f);
 
         pendingFuts = new GridConcurrentHashSet<>(prefetchBlocks > 0 ? prefetchBlocks : 1);
+
+        igfsCtx.metrics().incrementFilesOpenedForRead();
     }
 
     /**
@@ -157,8 +180,8 @@ public class IgfsInputStreamImpl extends IgfsInputStreamAdapter {
     }
 
     /** {@inheritDoc} */
-    @Override public IgfsFileInfo fileInfo() {
-        return fileInfo;
+    @Override public long length() {
+        return len;
     }
 
     /** {@inheritDoc} */
@@ -199,7 +222,7 @@ public class IgfsInputStreamImpl extends IgfsInputStreamAdapter {
 
     /** {@inheritDoc} */
     @Override public synchronized int available() throws IOException {
-        long l = fileInfo.length() - pos;
+        long l = len - pos;
 
         if (l < 0)
             return 0;
@@ -233,11 +256,17 @@ public class IgfsInputStreamImpl extends IgfsInputStreamAdapter {
         return readFromStore(pos, buf, off, len);
     }
 
-    /** {@inheritDoc} */
-    @SuppressWarnings("IfMayBeConditional")
-    @Override public synchronized byte[][] readChunks(long pos, int len) throws IOException {
+    /**
+     * Reads bytes from given position.
+     *
+     * @param pos Position to read from.
+     * @param len Number of bytes to read.
+     * @return Array of chunks with respect to chunk file representation.
+     * @throws IOException If read failed.
+     */
+    public synchronized byte[][] readChunks(long pos, int len) throws IOException {
         // Readable bytes in the file, starting from the specified position.
-        long readable = fileInfo.length() - pos;
+        long readable = this.len - pos;
 
         if (readable <= 0)
             return EMPTY_CHUNKS;
@@ -251,8 +280,8 @@ public class IgfsInputStreamImpl extends IgfsInputStreamAdapter {
 
         bytes += len;
 
-        int start = (int)(pos / fileInfo.blockSize());
-        int end = (int)((pos + len - 1) / fileInfo.blockSize());
+        int start = (int)(pos / blockSize);
+        int end = (int)((pos + len - 1) / blockSize);
 
         int chunkCnt = end - start + 1;
 
@@ -261,7 +290,7 @@ public class IgfsInputStreamImpl extends IgfsInputStreamAdapter {
         for (int i = 0; i < chunkCnt; i++) {
             byte[] block = blockFragmentizerSafe(start + i);
 
-            int blockOff = (int)(pos % fileInfo.blockSize());
+            int blockOff = (int)(pos % blockSize);
             int blockLen = Math.min(len, block.length - blockOff);
 
             // If whole block can be used as result, do not do array copy.
@@ -287,50 +316,56 @@ public class IgfsInputStreamImpl extends IgfsInputStreamAdapter {
 
     /** {@inheritDoc} */
     @Override public synchronized void close() throws IOException {
-        try {
-            if (secReader != null) {
-                // Close secondary input stream.
-                secReader.close();
+        if (!closed) {
+            try {
+                if (secReader != null) {
+                    // Close secondary input stream.
+                    secReader.close();
 
-                // Ensuring local cache futures completion.
-                for (IgniteInternalFuture<byte[]> fut : locCache.values()) {
-                    try {
-                        fut.get();
+                    // Ensuring local cache futures completion.
+                    for (IgniteInternalFuture<byte[]> fut : locCache.values()) {
+                        try {
+                            fut.get();
+                        }
+                        catch (IgniteCheckedException ignore) {
+                            // No-op.
+                        }
                     }
-                    catch (IgniteCheckedException ignore) {
-                        // No-op.
+
+                    // Ensuring pending evicted futures completion.
+                    while (!pendingFuts.isEmpty()) {
+                        pendingFutsLock.lock();
+
+                        try {
+                            pendingFutsCond.await(100, TimeUnit.MILLISECONDS);
+                        }
+                        catch (InterruptedException ignore) {
+                            // No-op.
+                        }
+                        finally {
+                            pendingFutsLock.unlock();
+                        }
                     }
                 }
-
-                // Ensuring pending evicted futures completion.
-                while (!pendingFuts.isEmpty()) {
-                    pendingFutsLock.lock();
-
-                    try {
-                        pendingFutsCond.await(100, TimeUnit.MILLISECONDS);
-                    }
-                    catch (InterruptedException ignore) {
-                        // No-op.
-                    }
-                    finally {
-                        pendingFutsLock.unlock();
-                    }
-                }
-
-                // Safety to ensure no orphaned data blocks exist in case file was concurrently deleted.
-               if (!meta.exists(fileInfo.id()))
-                    data.delete(fileInfo);
             }
-        }
-        catch (IgniteCheckedException e) {
-            throw new IOException("File to close the file: " + fileInfo.path(), e);
-        }
-        finally {
-            closed = true;
+            catch (Exception e) {
+                throw new IOException("File to close the file: " + path, e);
+            }
+            finally {
+                closed = true;
 
-            metrics.addReadBytesTime(bytes, time);
+                IgfsLocalMetrics metrics = igfsCtx.metrics();
 
-            locCache.clear();
+                metrics.addReadBytesTime(bytes, time);
+                metrics.decrementFilesOpenedForRead();
+
+                locCache.clear();
+
+                GridEventStorageManager evts = igfsCtx.kernalContext().event();
+
+                if (evts.isRecordable(EVT_IGFS_FILE_CLOSED_READ))
+                    evts.record(new IgfsEvent(path, igfsCtx.localNode(), EVT_IGFS_FILE_CLOSED_READ, bytes()));
+            }
         }
     }
 
@@ -357,7 +392,7 @@ public class IgfsInputStreamImpl extends IgfsInputStreamAdapter {
             return 0; // Fully read done: read zero bytes correctly.
 
         // Readable bytes in the file, starting from the specified position.
-        long readable = fileInfo.length() - pos;
+        long readable = this.len - pos;
 
         if (readable <= 0)
             return -1; // EOF.
@@ -369,10 +404,10 @@ public class IgfsInputStreamImpl extends IgfsInputStreamAdapter {
 
         assert len > 0;
 
-        byte[] block = blockFragmentizerSafe(pos / fileInfo.blockSize());
+        byte[] block = blockFragmentizerSafe(pos / blockSize);
 
         // Skip bytes to expected position.
-        int blockOff = (int)(pos % fileInfo.blockSize());
+        int blockOff = (int)(pos % blockSize);
 
         len = Math.min(len, block.length - blockOff);
 
@@ -403,8 +438,8 @@ public class IgfsInputStreamImpl extends IgfsInputStreamAdapter {
                         ", blockIdx=" + blockIdx + ", errMsg=" + e.getMessage() + ']');
 
                 // This failure may be caused by file being fragmented.
-                if (fileInfo.fileMap() != null && !fileInfo.fileMap().ranges().isEmpty()) {
-                    IgfsFileInfo newInfo = meta.info(fileInfo.id());
+                if (fileInfo != null && fileInfo.fileMap() != null && !fileInfo.fileMap().ranges().isEmpty()) {
+                    IgfsEntryInfo newInfo = igfsCtx.meta().info(fileInfo.id());
 
                     // File was deleted.
                     if (newInfo == null)
@@ -450,7 +485,7 @@ public class IgfsInputStreamImpl extends IgfsInputStreamAdapter {
 
             prevBlockIdx = blockIdx;
 
-            bytesFut = dataBlock(fileInfo, blockIdx);
+            bytesFut = dataBlock(blockIdx);
 
             assert bytesFut != null;
 
@@ -461,10 +496,10 @@ public class IgfsInputStreamImpl extends IgfsInputStreamAdapter {
         if (prefetchBlocks > 0 && seqReads >= seqReadsBeforePrefetch - 1) {
             for (int i = 1; i <= prefetchBlocks; i++) {
                 // Ensure that we do not prefetch over file size.
-                if (fileInfo.blockSize() * (i + blockIdx) >= fileInfo.length())
+                if (blockSize * (i + blockIdx) >= len)
                     break;
                 else if (locCache.get(blockIdx + i) == null)
-                    addLocalCacheFuture(blockIdx + i, dataBlock(fileInfo, blockIdx + i));
+                    addLocalCacheFuture(blockIdx + i, dataBlock(blockIdx + i));
             }
         }
 
@@ -474,17 +509,17 @@ public class IgfsInputStreamImpl extends IgfsInputStreamAdapter {
             throw new IgfsCorruptedFileException("Failed to retrieve file's data block (corrupted file?) " +
                 "[path=" + path + ", blockIdx=" + blockIdx + ']');
 
-        int blockSize = fileInfo.blockSize();
+        int blockSize0 = blockSize;
 
-        if (blockIdx == fileInfo.blocksCount() - 1)
-            blockSize = (int)(fileInfo.length() % blockSize);
+        if (blockIdx == blocksCnt - 1)
+            blockSize0 = (int)(len % blockSize0);
 
         // If part of the file was reserved for writing, but was not actually written.
-        if (bytes.length < blockSize)
+        if (bytes.length < blockSize0)
             throw new IOException("Inconsistent file's data block (incorrectly written?)" +
                 " [path=" + path + ", blockIdx=" + blockIdx + ", blockSize=" + bytes.length +
-                ", expectedBlockSize=" + blockSize + ", fileBlockSize=" + fileInfo.blockSize() +
-                ", fileLen=" + fileInfo.length() + ']');
+                ", expectedBlockSize=" + blockSize0 + ", fileBlockSize=" + blockSize +
+                ", fileLen=" + len + ']');
 
         return bytes;
     }
@@ -529,13 +564,35 @@ public class IgfsInputStreamImpl extends IgfsInputStreamAdapter {
     /**
      * Get data block for specified block index.
      *
-     * @param fileInfo File info.
      * @param blockIdx Block index.
      * @return Requested data block or {@code null} if nothing found.
      * @throws IgniteCheckedException If failed.
      */
-    @Nullable protected IgniteInternalFuture<byte[]> dataBlock(IgfsFileInfo fileInfo, long blockIdx) throws IgniteCheckedException {
-        return data.dataBlock(fileInfo, path, blockIdx, secReader);
+    @Nullable protected IgniteInternalFuture<byte[]> dataBlock(final long blockIdx)
+        throws IgniteCheckedException {
+        if (proxy) {
+            assert secReader != null;
+
+            final GridFutureAdapter<byte[]> fut = new GridFutureAdapter<>();
+
+            igfsCtx.runInIgfsThreadPool(new Runnable() {
+                @Override public void run() {
+                    try {
+                        fut.onDone(igfsCtx.data().secondaryDataBlock(path, blockIdx, secReader, blockSize));
+                    }
+                    catch (Throwable e) {
+                        fut.onDone(null, e);
+                    }
+                }
+            });
+
+            return fut;
+        }
+        else {
+            assert fileInfo != null;
+
+            return igfsCtx.data().dataBlock(fileInfo, path, blockIdx, secReader);
+        }
     }
 
     /** {@inheritDoc} */

@@ -17,9 +17,9 @@
 
 package org.apache.ignite;
 
-import org.apache.ignite.cache.CacheAtomicityMode;
+import java.util.Collection;
 import org.apache.ignite.cache.CacheMode;
-import org.apache.ignite.configuration.CacheConfiguration;
+import org.apache.ignite.configuration.TransactionConfiguration;
 import org.apache.ignite.transactions.Transaction;
 import org.apache.ignite.transactions.TransactionConcurrency;
 import org.apache.ignite.transactions.TransactionIsolation;
@@ -55,11 +55,10 @@ import org.apache.ignite.transactions.TransactionMetrics;
 public interface IgniteTransactions {
     /**
      * Starts transaction with default isolation, concurrency, timeout, and invalidation policy.
-     * All defaults are set in {@link CacheConfiguration} at startup.
+     * All defaults are set in {@link TransactionConfiguration} at startup.
      *
      * @return New transaction
      * @throws IllegalStateException If transaction is already started by this thread.
-     * @throws UnsupportedOperationException If cache is {@link CacheAtomicityMode#ATOMIC}.
      */
     public Transaction txStart() throws IllegalStateException;
 
@@ -70,7 +69,6 @@ public interface IgniteTransactions {
      * @param isolation Isolation.
      * @return New transaction.
      * @throws IllegalStateException If transaction is already started by this thread.
-     * @throws UnsupportedOperationException If cache is {@link CacheAtomicityMode#ATOMIC}.
      */
     public Transaction txStart(TransactionConcurrency concurrency, TransactionIsolation isolation);
 
@@ -84,7 +82,6 @@ public interface IgniteTransactions {
      * @param txSize Number of entries participating in transaction (may be approximate).
      * @return New transaction.
      * @throws IllegalStateException If transaction is already started by this thread.
-     * @throws UnsupportedOperationException If cache is {@link CacheAtomicityMode#ATOMIC}.
      */
     public Transaction txStart(TransactionConcurrency concurrency, TransactionIsolation isolation, long timeout,
         int txSize);
@@ -107,4 +104,24 @@ public interface IgniteTransactions {
      * Resets transaction metrics.
      */
     public void resetMetrics();
+
+    /**
+     * Returns a list of active transactions initiated by this node.
+     * <p>
+     * Note: returned transaction handle will only support getters, {@link Transaction#close()},
+     * {@link Transaction#rollback()}, {@link Transaction#rollbackAsync()} methods.
+     * Trying to invoke other methods will lead to UnsupportedOperationException.
+     *
+     * @return Transactions started on local node.
+     */
+    public Collection<Transaction> localActiveTransactions();
+
+    /**
+     * Returns instance of Ignite Transactions to mark a transaction with a special label.
+     *
+     * @param lb label.
+     * @return {@code This} for chaining.
+     * @throws NullPointerException if label is null.
+     */
+    public IgniteTransactions withLabel(String lb);
 }

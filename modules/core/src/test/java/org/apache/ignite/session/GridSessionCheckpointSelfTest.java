@@ -19,11 +19,19 @@ package org.apache.ignite.session;
 
 import org.apache.ignite.configuration.CacheConfiguration;
 import org.apache.ignite.configuration.IgniteConfiguration;
+import org.apache.ignite.internal.binary.BinaryCachingMetadataHandler;
+import org.apache.ignite.internal.binary.BinaryMarshaller;
+import org.apache.ignite.internal.binary.BinaryContext;
+import org.apache.ignite.internal.util.IgniteUtils;
+import org.apache.ignite.logger.NullLogger;
+import org.apache.ignite.marshaller.Marshaller;
+import org.apache.ignite.marshaller.MarshallerContextTestImpl;
 import org.apache.ignite.spi.checkpoint.cache.CacheCheckpointSpi;
 import org.apache.ignite.spi.checkpoint.jdbc.JdbcCheckpointSpi;
 import org.apache.ignite.spi.checkpoint.sharedfs.SharedFsCheckpointSpi;
 import org.apache.ignite.testframework.junits.common.GridCommonTest;
 import org.hsqldb.jdbc.jdbcDataSource;
+import org.junit.Test;
 
 /**
  * Grid session checkpoint self test.
@@ -33,6 +41,7 @@ public class GridSessionCheckpointSelfTest extends GridSessionCheckpointAbstract
     /**
      * @throws Exception If failed.
      */
+    @Test
     public void testSharedFsCheckpoint() throws Exception {
         IgniteConfiguration cfg = getConfiguration();
 
@@ -44,6 +53,7 @@ public class GridSessionCheckpointSelfTest extends GridSessionCheckpointAbstract
     /**
      * @throws Exception If failed.
      */
+    @Test
     public void testJdbcCheckpoint() throws Exception {
         IgniteConfiguration cfg = getConfiguration();
 
@@ -72,6 +82,7 @@ public class GridSessionCheckpointSelfTest extends GridSessionCheckpointAbstract
     /**
      * @throws Exception If failed.
      */
+    @Test
     public void testCacheCheckpoint() throws Exception {
         IgniteConfiguration cfg = getConfiguration();
 
@@ -88,6 +99,16 @@ public class GridSessionCheckpointSelfTest extends GridSessionCheckpointAbstract
         cfg.setCacheConfiguration(cacheCfg);
 
         cfg.setCheckpointSpi(spi);
+
+        if (cfg.getMarshaller() instanceof BinaryMarshaller) {
+            BinaryContext ctx = new BinaryContext(BinaryCachingMetadataHandler.create(), cfg, new NullLogger());
+
+            Marshaller marsh = cfg.getMarshaller();
+
+            marsh.setContext(new MarshallerContextTestImpl(null));
+
+            IgniteUtils.invoke(BinaryMarshaller.class, marsh, "setBinaryContext", ctx, cfg);
+        }
 
         GridSessionCheckpointSelfTest.spi = spi;
 

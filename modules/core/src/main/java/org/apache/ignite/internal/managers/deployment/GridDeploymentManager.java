@@ -27,6 +27,7 @@ import org.apache.ignite.compute.ComputeTask;
 import org.apache.ignite.compute.ComputeTaskName;
 import org.apache.ignite.configuration.DeploymentMode;
 import org.apache.ignite.internal.GridKernalContext;
+import org.apache.ignite.internal.IgniteInternalFuture;
 import org.apache.ignite.internal.managers.GridManagerAdapter;
 import org.apache.ignite.internal.managers.deployment.protocol.gg.GridProtocolHandler;
 import org.apache.ignite.internal.processors.task.GridInternal;
@@ -123,8 +124,10 @@ public class GridDeploymentManager extends GridManagerAdapter<DeploymentSpi> {
     }
 
     /** {@inheritDoc} */
-    @Override public void onReconnected(boolean clusterRestarted) throws IgniteCheckedException {
+    @Override public IgniteInternalFuture<?> onReconnected(boolean clusterRestarted) throws IgniteCheckedException {
         storesOnKernalStart();
+
+        return null;
     }
 
     /** {@inheritDoc} */
@@ -467,7 +470,7 @@ public class GridDeploymentManager extends GridManagerAdapter<DeploymentSpi> {
                             "in some other mode). Either change IgniteConfiguration.getDeploymentMode() property to " +
                             "SHARED or CONTINUOUS or remove class from local classpath and any of " +
                             "the local GAR deployments that may have it [cls=" + meta.className() + ", depMode=" +
-                            locDep.deployMode() + ']', "Failed to deploy class in SHARED or CONTINUOUS mode.");
+                            locDep.deployMode() + ']');
 
                         return null;
                     }
@@ -475,8 +478,7 @@ public class GridDeploymentManager extends GridManagerAdapter<DeploymentSpi> {
                     if (!locDep.userVersion().equals(meta.userVersion())) {
                         U.warn(log, "Failed to deploy class in SHARED or CONTINUOUS mode for given user version " +
                             "(class is locally deployed for a different user version) [cls=" + meta.className() +
-                            ", localVer=" + locDep.userVersion() + ", otherVer=" + meta.userVersion() + ']',
-                            "Failed to deploy class in SHARED or CONTINUOUS mode.");
+                            ", localVer=" + locDep.userVersion() + ", otherVer=" + meta.userVersion() + ']');
 
                         return null;
                     }

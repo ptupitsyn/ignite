@@ -41,22 +41,16 @@ goto :eof
 :: The following libraries are required for Ignite.
 set IGNITE_LIBS=%IGNITE_HOME%\libs\*
 
-for /D %%F in (%IGNITE_HOME%\libs\*) do if not "%%F" == "%IGNITE_HOME%\libs\optional" call :concat %%F\*
-
-if exist %IGNITE_HOME%\libs\ignite-hadoop set HADOOP_EDITION=1
+if not exist "%IGNITE_LIBS%" goto :eof
+ 
+for /F %%F in ('dir /A:D /b "%IGNITE_LIBS%"') do (
+	if not "%%F" == "optional" call :concat "%IGNITE_HOME%\libs\%%F\*"
+)
 
 if defined USER_LIBS set IGNITE_LIBS=%USER_LIBS%;%IGNITE_LIBS%
-
-if "%HADOOP_EDITION%" == "1" call "%SCRIPTS_HOME%\include\hadoop-classpath.bat"
-
-set COMMON_HOME_LIB=%HADOOP_COMMON_HOME%\lib
-
-if "%IGNITE_HADOOP_CLASSPATH%" == "" goto :eof
-
-set IGNITE_LIBS=%IGNITE_LIBS%;%IGNITE_HADOOP_CLASSPATH%
 
 goto :eof
 
 :concat
-set IGNITE_LIBS=%IGNITE_LIBS%;%1
+set IGNITE_LIBS=%IGNITE_LIBS%;%~1
 goto :eof

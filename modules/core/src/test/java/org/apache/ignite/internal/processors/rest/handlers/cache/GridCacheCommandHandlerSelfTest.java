@@ -28,6 +28,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import org.apache.ignite.IgniteCheckedException;
+import org.apache.ignite.cache.CacheAtomicityMode;
 import org.apache.ignite.cache.CacheMode;
 import org.apache.ignite.configuration.CacheConfiguration;
 import org.apache.ignite.configuration.ConnectorConfiguration;
@@ -44,6 +45,9 @@ import org.apache.ignite.internal.util.typedef.F;
 import org.apache.ignite.spi.discovery.tcp.TcpDiscoverySpi;
 import org.apache.ignite.spi.discovery.tcp.ipfinder.vm.TcpDiscoveryVmIpFinder;
 import org.apache.ignite.testframework.junits.common.GridCommonAbstractTest;
+
+import javax.cache.processor.EntryProcessorException;
+import org.junit.Test;
 
 /**
  * Tests command handler directly.
@@ -62,19 +66,22 @@ public class GridCacheCommandHandlerSelfTest extends GridCommonAbstractTest {
         TcpDiscoverySpi disco = new TcpDiscoverySpi();
 
         disco.setIpFinder(new TcpDiscoveryVmIpFinder(true));
+        disco.setJoinTimeout(5000);
 
         // Cache config.
         CacheConfiguration cacheCfg = defaultCacheConfiguration();
 
         cacheCfg.setCacheMode(CacheMode.LOCAL);
 
+        cacheCfg.setAtomicityMode(atomicityMode());
+
         // Grid config.
         IgniteConfiguration cfg = super.getConfiguration();
 
-        cfg.setLocalHost("localhost");
+        cfg.setLocalHost("127.0.0.1");
 
         ConnectorConfiguration clnCfg = new ConnectorConfiguration();
-        clnCfg.setHost("localhost");
+        clnCfg.setHost("127.0.0.1");
 
         cfg.setConnectorConfiguration(clnCfg);
         cfg.setDiscoverySpi(disco);
@@ -84,14 +91,25 @@ public class GridCacheCommandHandlerSelfTest extends GridCommonAbstractTest {
     }
 
     /**
+     *
+     * @return CacheAtomicityMode for the cache.
+     */
+    protected CacheAtomicityMode atomicityMode(){
+        return CacheAtomicityMode.TRANSACTIONAL;
+    }
+
+    /**
      * Tests the cache failure during the execution of the CACHE_GET command.
      *
      * @throws Exception If failed.
      */
+    @Test
     public void testCacheGetFailsSyncNotify() throws Exception {
         GridRestCommandHandler hnd = new TestableCacheCommandHandler(grid().context(), "getAsync");
 
         GridRestCacheRequest req = new GridRestCacheRequest();
+
+        req.cacheName(DEFAULT_CACHE_NAME);
 
         req.command(GridRestCommand.CACHE_GET);
 
@@ -112,7 +130,7 @@ public class GridCacheCommandHandlerSelfTest extends GridCommonAbstractTest {
      *
      * @throws Exception In case of any exception.
      */
-    @SuppressWarnings("NullableProblems")
+    @Test
     public void testAppendPrepend() throws Exception {
         assertEquals("as" + "df", testAppend("as", "df", true));
         assertEquals("df" + "as", testAppend("as", "df", false));
@@ -148,6 +166,8 @@ public class GridCacheCommandHandlerSelfTest extends GridCommonAbstractTest {
         catch (IgniteCheckedException e) {
             info("Got expected exception: " + e);
 
+            e.printStackTrace();
+
             assertTrue(e.getMessage().startsWith("Incompatible types"));
         }
     }
@@ -162,12 +182,14 @@ public class GridCacheCommandHandlerSelfTest extends GridCommonAbstractTest {
      * @return Resulting value in cache.
      * @throws IgniteCheckedException In case of any grid exception.
      */
-    private <T> T testAppend(T curVal, T newVal, boolean append) throws IgniteCheckedException {
+    private <T> T testAppend(T curVal, T newVal, boolean append) throws IgniteCheckedException, EntryProcessorException {
         GridRestCommandHandler hnd = new GridCacheCommandHandler(((IgniteKernal)grid()).context());
 
         String key = UUID.randomUUID().toString();
 
         GridRestCacheRequest req = new GridRestCacheRequest();
+
+        req.cacheName(DEFAULT_CACHE_NAME);
 
         req.command(append ? GridRestCommand.CACHE_APPEND : GridRestCommand.CACHE_PREPEND);
 
@@ -183,13 +205,43 @@ public class GridCacheCommandHandlerSelfTest extends GridCommonAbstractTest {
             jcache().put(key, curVal);
 
             // Validate behavior for initialized cache (has current value).
-            assertTrue("Expects succeed.", (Boolean)hnd.handleAsync(req).get().getResponse());
+            assertTrue((Boolean) hnd.handleAsync(req).get().getResponse());
         }
         finally {
             res = (T)jcache().getAndRemove(key);
         }
 
         return res;
+    }
+
+    /**
+     * Tests the execution of the CACHE_CLEAR command.
+     *
+     * @throws Exception If failed.
+     */
+    @Test
+    public void testCacheClear() throws Exception {
+        GridRestCommandHandler hnd = new GridCacheCommandHandler(((IgniteKernal)grid()).context());
+
+        GridRestCacheRequest req = new GridRestCacheRequest();
+
+        req.cacheName(DEFAULT_CACHE_NAME);
+
+        req.command(GridRestCommand.CACHE_CLEAR);
+
+        try {
+            // Change cache state.
+            for (int i = 0; i < 10; i++ ) {
+                jcache().put(UUID.randomUUID().toString(), UUID.randomUUID().toString());
+            }
+
+            assertTrue(jcache().size() == 10);
+
+            assertTrue((Boolean) hnd.handleAsync(req).get().getResponse());
+        }
+        finally {
+            assertTrue(jcache().size() == 0);
+        }
     }
 
     /**
@@ -228,10 +280,15 @@ public class GridCacheCommandHandlerSelfTest extends GridCommonAbstractTest {
 
                             return fut;
                         }
+
                         // Rewriting flagOn result to keep intercepting invocations after it.
-                        else if ("setSkipStore".equals(mtd.getName()))
+                        if ("setSkipStore".equals(mtd.getName()))
                             return proxy;
-                        else if ("forSubjectId".equals(mtd.getName()))
+
+                        if ("forSubjectId".equals(mtd.getName()))
+                            return proxy;
+
+                        if ("keepBinary".equals(mtd.getName()))
                             return proxy;
 
                         return mtd.invoke(cache, args);

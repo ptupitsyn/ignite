@@ -40,6 +40,7 @@ import javax.cache.*;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.*;
+import org.junit.Test;
 
 import static org.apache.ignite.transactions.TransactionConcurrency.*;
 import static org.apache.ignite.transactions.TransactionIsolation.*;
@@ -58,10 +59,10 @@ public class IgniteOnePhaseCommitNearSelfTest extends GridCommonAbstractTest {
     private static Map<Class<?>, AtomicInteger> msgCntMap = new ConcurrentHashMap<>();
 
     /** {@inheritDoc} */
-    @Override protected IgniteConfiguration getConfiguration(String gridName) throws Exception {
-        IgniteConfiguration cfg = super.getConfiguration(gridName);
+    @Override protected IgniteConfiguration getConfiguration(String igniteInstanceName) throws Exception {
+        IgniteConfiguration cfg = super.getConfiguration(igniteInstanceName);
 
-        cfg.setCacheConfiguration(cacheConfiguration(gridName));
+        cfg.setCacheConfiguration(cacheConfiguration(igniteInstanceName));
 
         cfg.getTransactionConfiguration().setTxSerializableEnabled(true);
 
@@ -71,11 +72,11 @@ public class IgniteOnePhaseCommitNearSelfTest extends GridCommonAbstractTest {
     }
 
     /**
-     * @param gridName Grid name.
+     * @param igniteInstanceName Ignite instance name.
      * @return Cache configuration.
      */
-    protected CacheConfiguration cacheConfiguration(String gridName) {
-        CacheConfiguration ccfg = new CacheConfiguration();
+    protected CacheConfiguration cacheConfiguration(String igniteInstanceName) {
+        CacheConfiguration ccfg = new CacheConfiguration(DEFAULT_CACHE_NAME);
 
         ccfg.setBackups(backups);
         ccfg.setAtomicityMode(CacheAtomicityMode.TRANSACTIONAL);
@@ -88,6 +89,7 @@ public class IgniteOnePhaseCommitNearSelfTest extends GridCommonAbstractTest {
     /**
      * @throws Exception If failed.
      */
+    @Test
     public void testOnePhaseCommitFromNearNode() throws Exception {
         backups = 1;
 
@@ -98,7 +100,7 @@ public class IgniteOnePhaseCommitNearSelfTest extends GridCommonAbstractTest {
 
             int key = generateNearKey();
 
-            IgniteCache<Object, Object> cache = ignite(0).cache(null);
+            IgniteCache<Object, Object> cache = ignite(0).cache(DEFAULT_CACHE_NAME);
 
             checkKey(ignite(0).transactions(), cache, key);
         }
@@ -143,7 +145,7 @@ public class IgniteOnePhaseCommitNearSelfTest extends GridCommonAbstractTest {
             @Override public boolean apply() {
                 try {
                     for (int i = 0; i < GRID_CNT; i++) {
-                        GridCacheAdapter<Object, Object> cache = ((IgniteKernal)ignite(i)).internalCache();
+                        GridCacheAdapter<Object, Object> cache = ((IgniteKernal)ignite(i)).internalCache(DEFAULT_CACHE_NAME);
 
                         GridCacheEntryEx entry = cache.peekEx(key);
 
@@ -202,7 +204,7 @@ public class IgniteOnePhaseCommitNearSelfTest extends GridCommonAbstractTest {
      * @return Key.
      */
     protected int generateNearKey() {
-        Affinity<Object> aff = ignite(0).affinity(null);
+        Affinity<Object> aff = ignite(0).affinity(DEFAULT_CACHE_NAME);
 
         int key = 0;
 

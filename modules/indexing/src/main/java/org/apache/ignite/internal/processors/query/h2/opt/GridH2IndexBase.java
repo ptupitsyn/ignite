@@ -17,155 +17,105 @@
 
 package org.apache.ignite.internal.processors.query.h2.opt;
 
-import java.util.Iterator;
-import org.apache.ignite.internal.util.lang.GridFilteredIterator;
-import org.apache.ignite.internal.util.typedef.internal.U;
-import org.apache.ignite.lang.IgniteBiPredicate;
-import org.apache.ignite.spi.indexing.IndexingQueryFilter;
+import org.apache.ignite.internal.processors.cache.CacheObject;
+import org.apache.ignite.internal.processors.cache.GridCacheContext;
+import org.apache.ignite.internal.processors.query.QueryUtils;
+import org.apache.ignite.internal.processors.query.h2.opt.join.CollocationModelMultiplier;
+import org.apache.ignite.internal.processors.query.h2.opt.join.CollocationModel;
 import org.h2.engine.Session;
 import org.h2.index.BaseIndex;
 import org.h2.message.DbException;
 import org.h2.result.Row;
 import org.h2.result.SearchRow;
-import org.h2.result.SortOrder;
+import org.h2.table.TableFilter;
 import org.h2.value.Value;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * Index base.
  */
 public abstract class GridH2IndexBase extends BaseIndex {
-    /** */
-    protected static final ThreadLocal<IndexingQueryFilter> filters = new ThreadLocal<>();
-
-    /** */
-    protected final int keyCol;
-
-    /** */
-    protected final int valCol;
+    /** Underlying table. */
+    private final GridH2Table tbl;
 
     /**
-     * @param keyCol Key column.
-     * @param valCol Value column.
-     */
-    protected GridH2IndexBase(int keyCol, int valCol) {
-        this.keyCol = keyCol;
-        this.valCol = valCol;
-    }
-
-    /**
-     * Sets key filters for current thread.
+     * Constructor.
      *
-     * @param fs Filters.
+     * @param tbl Table.
      */
-    public static void setFiltersForThread(IndexingQueryFilter fs) {
-        if (fs == null)
-            filters.remove();
-        else
-            filters.set(fs);
+    protected GridH2IndexBase(GridH2Table tbl) {
+        this.tbl = tbl;
+    }
+
+    /** {@inheritDoc} */
+    @Override public final void close(Session ses) {
+        // No-op. Actual index destruction must happen in method destroy.
     }
 
     /**
-     * If the index supports rebuilding it has to creates its own copy.
+     * Attempts to destroys index and release all the resources.
+     * We use this method instead of {@link #close(Session)} because that method
+     * is used by H2 internally.
      *
-     * @return Rebuilt copy.
-     * @throws InterruptedException If interrupted.
+     * @param rmv Flag remove.
      */
-    public GridH2IndexBase rebuild() throws InterruptedException {
-        return this;
+    public void destroy(boolean rmv) {
+        // No-op.
     }
 
     /**
-     * Put row if absent.
+     * @return Index segment ID for current query context.
+     */
+    protected int threadLocalSegment() {
+        if(segmentsCount() == 1)
+            return 0;
+
+        QueryContext qctx = queryContextRegistry().getThreadLocal();
+
+        if(qctx == null)
+            throw new IllegalStateException("GridH2QueryContext is not initialized.");
+
+        return qctx.segment();
+    }
+
+    /**
+     * Puts row.
      *
      * @param row Row.
      * @return Existing row or {@code null}.
      */
-    public abstract GridH2Row put(GridH2Row row);
+    public abstract H2CacheRow put(H2CacheRow row);
 
     /**
-     * Remove row from index.
+     * Puts row.
      *
      * @param row Row.
-     * @return Removed row.
+     * @return {@code True} if existing row row has been replaced.
      */
-    public abstract GridH2Row remove(SearchRow row);
+    public abstract boolean putx(H2CacheRow row);
 
     /**
-     * Takes or sets existing snapshot to be used in current thread.
+     * Removes row from index.
      *
-     * @param s Optional existing snapshot to use.
-     * @return Snapshot.
+     * @param row Row.
+     * @return {@code True} if row has been removed.
      */
-    public Object takeSnapshot(@Nullable Object s) {
-        return s;
-    }
+    public abstract boolean removex(SearchRow row);
 
     /**
-     * Releases snapshot for current thread.
+     * @param ses Session.
+     * @param filters All joined table filters.
+     * @param filter Current filter.
+     * @return Multiplier.
      */
-    public void releaseSnapshot() {
-        // No-op.
+    public final int getDistributedMultiplier(Session ses, TableFilter[] filters, int filter) {
+        CollocationModelMultiplier mul = CollocationModel.distributedMultiplier(ses, filters, filter);
+
+        return mul.multiplier();
     }
 
     /** {@inheritDoc} */
-    @Override public int compareRows(SearchRow rowData, SearchRow compare) {
-        if (rowData == compare)
-            return 0;
-
-        for (int i = 0, len = indexColumns.length; i < len; i++) {
-            int index = columnIds[i];
-
-            Value v1 = rowData.getValue(index);
-            Value v2 = compare.getValue(index);
-
-            if (v1 == null || v2 == null)
-                return 0;
-
-            int c = compareValues(v1, v2, indexColumns[i].sortType);
-
-            if (c != 0)
-                return c;
-        }
-        return 0;
-    }
-
-    /**
-     * @param a First value.
-     * @param b Second value.
-     * @param sortType Sort type.
-     * @return Comparison result.
-     */
-    private int compareValues(Value a, Value b, int sortType) {
-        if (a == b)
-            return 0;
-
-        int comp = table.compareTypeSave(a, b);
-
-        if ((sortType & SortOrder.DESCENDING) != 0)
-            comp = -comp;
-
-        return comp;
-    }
-
-    /**
-     * Filters rows from expired ones and using predicate.
-     *
-     * @param iter Iterator over rows.
-     * @return Filtered iterator.
-     */
-    protected Iterator<GridH2Row> filter(Iterator<GridH2Row> iter) {
-        IgniteBiPredicate<Object, Object> p = null;
-
-        IndexingQueryFilter f = filters.get();
-
-        if (f != null) {
-            String spaceName = ((GridH2Table)getTable()).spaceName();
-
-            p = f.forSpace(spaceName);
-        }
-
-        return new FilteringIterator(iter, U.currentTimeMillis(), p);
+    @Override public GridH2Table getTable() {
+        return (GridH2Table)super.getTable();
     }
 
     /** {@inheritDoc} */
@@ -190,7 +140,7 @@ public abstract class GridH2IndexBase extends BaseIndex {
 
     /** {@inheritDoc} */
     @Override public void remove(Session ses) {
-        throw DbException.getUnsupportedException("remove index");
+        // No-op: destroyed from owning table.
     }
 
     /** {@inheritDoc} */
@@ -203,49 +153,79 @@ public abstract class GridH2IndexBase extends BaseIndex {
         return false;
     }
 
+    /** {@inheritDoc} */
+    @Override public void removeChildrenAndResources(Session session) {
+        // The sole purpose of this override is to pass session to table.removeIndex
+        assert table instanceof GridH2Table;
+
+        ((GridH2Table)table).removeIndex(session, this);
+
+        remove(session);
+
+        database.removeMeta(session, getId());
+    }
+
     /**
-     * Iterator which filters by expiration time and predicate.
+     * @return Index segments count.
      */
-    protected class FilteringIterator extends GridFilteredIterator<GridH2Row> {
-        /** */
-        private final IgniteBiPredicate<Object, Object> fltr;
+    public abstract int segmentsCount();
 
-        /** */
-        private final long time;
+    /**
+     * @param partition Partition idx.
+     * @return Segment ID for given key
+     */
+    public int segmentForPartition(int partition){
+        return segmentsCount() == 1 ? 0 : (partition % segmentsCount());
+    }
 
-        /**
-         * @param iter Iterator.
-         * @param time Time for expired rows filtering.
-         */
-        protected FilteringIterator(Iterator<GridH2Row> iter, long time,
-            IgniteBiPredicate<Object, Object> fltr) {
-            super(iter);
+    /**
+     * @param row Table row.
+     * @return Segment ID for given row.
+     */
+    @SuppressWarnings("IfMayBeConditional")
+    protected int segmentForRow(GridCacheContext ctx, SearchRow row) {
+        assert row != null;
 
-            this.time = time;
-            this.fltr = fltr;
-        }
+        if (segmentsCount() == 1 || ctx == null)
+            return 0;
 
-        /**
-         * @param row Row.
-         * @return If this row was accepted.
-         */
-        @SuppressWarnings("unchecked")
-        @Override protected boolean accept(GridH2Row row) {
-            if (row instanceof GridH2AbstractKeyValueRow) {
-                if (((GridH2AbstractKeyValueRow) row).expirationTime() <= time)
-                    return false;
-            }
+        CacheObject key;
 
-            if (fltr == null)
-                return true;
+        final Value keyColValue = row.getValue(QueryUtils.KEY_COL);
 
-            Object key = row.getValue(keyCol).getObject();
-            Object val = row.getValue(valCol).getObject();
+        assert keyColValue != null;
 
-            assert key != null;
-            assert val != null;
+        final Object o = keyColValue.getObject();
 
-            return fltr.apply(key, val);
-        }
+        if (o instanceof CacheObject)
+            key = (CacheObject)o;
+        else
+            key = ctx.toCacheKeyObject(o);
+
+        return segmentForPartition(ctx.affinity().partition(key));
+    }
+
+    /**
+     * Re-assign column ids after removal of column(s).
+     */
+    public void refreshColumnIds() {
+        assert columnIds.length == columns.length;
+
+        for (int pos = 0; pos < columnIds.length; ++pos)
+            columnIds[pos] = columns[pos].getColumnId();
+    }
+
+    /**
+     * @return Row descriptor.
+     */
+    protected GridH2RowDescriptor rowDescriptor() {
+        return tbl.rowDescriptor();
+    }
+
+    /**
+     * @return Query context registry.
+     */
+    protected QueryContextRegistry queryContextRegistry() {
+        return tbl.rowDescriptor().indexing().queryContextRegistry();
     }
 }

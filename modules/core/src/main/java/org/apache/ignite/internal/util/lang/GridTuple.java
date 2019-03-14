@@ -33,8 +33,6 @@ import org.jetbrains.annotations.Nullable;
  * This class doesn't provide any synchronization for multi-threaded access
  * and it is responsibility of the user of this class to provide outside
  * synchronization, if needed.
- * @see GridFunc#t1()
- * @see GridFunc#t(Object)
  */
 public class GridTuple<V> implements Iterable<V>, Cloneable, Externalizable {
     /** */
@@ -103,7 +101,6 @@ public class GridTuple<V> implements Iterable<V>, Cloneable, Externalizable {
     }
 
     /** {@inheritDoc} */
-    @SuppressWarnings({"CloneDoesntDeclareCloneNotSupportedException"})
     @Override public Object clone() {
         try {
             return super.clone();
@@ -119,7 +116,6 @@ public class GridTuple<V> implements Iterable<V>, Cloneable, Externalizable {
     }
 
     /** {@inheritDoc} */
-    @SuppressWarnings({"unchecked"})
     @Override public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
         val = (V)in.readObject();
     }

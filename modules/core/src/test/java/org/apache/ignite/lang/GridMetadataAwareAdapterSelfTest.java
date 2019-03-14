@@ -21,6 +21,7 @@ import java.util.concurrent.Callable;
 import org.apache.ignite.internal.util.lang.GridMetadataAwareAdapter;
 import org.apache.ignite.testframework.junits.common.GridCommonAbstractTest;
 import org.apache.ignite.testframework.junits.common.GridCommonTest;
+import org.junit.Test;
 
 /**
  *
@@ -36,6 +37,7 @@ public class GridMetadataAwareAdapterSelfTest extends GridCommonAbstractTest {
      * Junit.
      */
     @SuppressWarnings({"AssertWithSideEffects"})
+    @Test
     public void test() {
         GridMetadataAwareAdapter ma = new GridMetadataAwareAdapter();
 
@@ -51,7 +53,7 @@ public class GridMetadataAwareAdapterSelfTest extends GridCommonAbstractTest {
         int k3 = cnt++;
         int a1 = cnt++;
         int a2 = cnt++;
-        int a3 = cnt++;
+        int a3 = cnt;
 
         // addMeta(name, val).
         assert ma.addMeta(attr1, "val1") == null;

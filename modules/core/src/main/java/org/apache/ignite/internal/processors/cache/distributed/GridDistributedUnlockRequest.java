@@ -22,6 +22,7 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 import org.apache.ignite.IgniteCheckedException;
+import org.apache.ignite.IgniteLogger;
 import org.apache.ignite.internal.GridDirectCollection;
 import org.apache.ignite.internal.processors.cache.GridCacheContext;
 import org.apache.ignite.internal.processors.cache.GridCacheSharedContext;
@@ -54,9 +55,10 @@ public class GridDistributedUnlockRequest extends GridDistributedBaseMessage {
     /**
      * @param cacheId Cache ID.
      * @param keyCnt Key count.
+     * @param addDepInfo Deployment info flag.
      */
-    public GridDistributedUnlockRequest(int cacheId, int keyCnt) {
-        super(keyCnt);
+    public GridDistributedUnlockRequest(int cacheId, int keyCnt, boolean addDepInfo) {
+        super(keyCnt, addDepInfo);
 
         this.cacheId = cacheId;
     }
@@ -80,6 +82,11 @@ public class GridDistributedUnlockRequest extends GridDistributedBaseMessage {
         keys.add(key);
     }
 
+    /** {@inheritDoc} */
+    @Override public int partition() {
+        return keys != null && !keys.isEmpty() ? keys.get(0).partition() : -1;
+    }
+
     /** {@inheritDoc}
      * @param ctx*/
     @Override public void prepareMarshal(GridCacheSharedContext ctx) throws IgniteCheckedException {
@@ -93,6 +100,11 @@ public class GridDistributedUnlockRequest extends GridDistributedBaseMessage {
         super.finishUnmarshal(ctx, ldr);
 
         finishUnmarshalCacheObjects(keys, ctx.cacheContext(cacheId), ldr);
+    }
+
+    /** {@inheritDoc} */
+    @Override public IgniteLogger messageLogger(GridCacheSharedContext ctx) {
+        return ctx.txLockMessageLogger();
     }
 
     /** {@inheritDoc} */
@@ -110,7 +122,7 @@ public class GridDistributedUnlockRequest extends GridDistributedBaseMessage {
         }
 
         switch (writer.state()) {
-            case 7:
+            case 8:
                 if (!writer.writeCollection("keys", keys, MessageCollectionItemType.MSG))
                     return false;
 
@@ -132,7 +144,7 @@ public class GridDistributedUnlockRequest extends GridDistributedBaseMessage {
             return false;
 
         switch (reader.state()) {
-            case 7:
+            case 8:
                 keys = reader.readCollection("keys", MessageCollectionItemType.MSG);
 
                 if (!reader.isLastRead())
@@ -146,13 +158,13 @@ public class GridDistributedUnlockRequest extends GridDistributedBaseMessage {
     }
 
     /** {@inheritDoc} */
-    @Override public byte directType() {
+    @Override public short directType() {
         return 27;
     }
 
     /** {@inheritDoc} */
     @Override public byte fieldsCount() {
-        return 8;
+        return 9;
     }
 
     /** {@inheritDoc} */

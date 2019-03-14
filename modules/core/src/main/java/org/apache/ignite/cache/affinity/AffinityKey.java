@@ -60,11 +60,12 @@ public class AffinityKey<K> implements Externalizable {
     private static final long serialVersionUID = 0L;
 
     /** Key. */
-    @GridToStringInclude
+    @GridToStringInclude(sensitive = true)
     private K key;
 
     /** Affinity key. */
-    @GridToStringInclude
+    @AffinityKeyMapped
+    @GridToStringInclude(sensitive = true)
     private Object affKey;
 
     /**
@@ -126,8 +127,6 @@ public class AffinityKey<K> implements Externalizable {
      *
      * @return Affinity key to use for affinity mapping.
      */
-    @AffinityKeyMapped
-    @SuppressWarnings({"unchecked"})
     public <T> T affinityKey() {
         A.notNull(key, "key");
 

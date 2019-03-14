@@ -20,8 +20,10 @@ package org.apache.ignite.internal.processors.cache.query;
 import java.util.UUID;
 import org.apache.ignite.IgniteCheckedException;
 import org.apache.ignite.internal.IgniteInternalFuture;
+import org.apache.ignite.internal.managers.communication.GridIoPolicy;
 import org.apache.ignite.internal.processors.cache.GridCacheContext;
 import org.apache.ignite.internal.util.lang.GridPlainRunnable;
+import org.apache.ignite.internal.util.typedef.internal.U;
 import org.apache.ignite.lang.IgniteClosure;
 import org.apache.ignite.lang.IgniteReducer;
 import org.apache.ignite.marshaller.Marshaller;
@@ -53,7 +55,7 @@ public class GridCacheLocalQueryFuture<K, V, R> extends GridCacheQueryFutureAdap
      * Executes query runnable.
      */
     void execute() {
-        fut = cctx.kernalContext().closure().runLocalSafe(run, true);
+        fut = cctx.kernalContext().closure().runLocalSafe(run, GridIoPolicy.QUERY_POOL);
     }
 
     /** {@inheritDoc} */
@@ -75,6 +77,11 @@ public class GridCacheLocalQueryFuture<K, V, R> extends GridCacheQueryFutureAdap
     /** {@inheritDoc} */
     @Override protected void loadAllPages() {
         // No-op.
+    }
+
+    /** {@inheritDoc} */
+    @Override public void awaitFirstPage() throws IgniteCheckedException {
+        get();
     }
 
     /** */
@@ -107,10 +114,12 @@ public class GridCacheLocalQueryFuture<K, V, R> extends GridCacheQueryFutureAdap
             Marshaller marsh = cctx.marshaller();
 
             IgniteReducer<Object, Object> rdc = qry.reducer() != null ?
-                marsh.<IgniteReducer<Object, Object>>unmarshal(marsh.marshal(qry.reducer()), null) : null;
+                U.<IgniteReducer<Object, Object>>unmarshal(marsh, U.marshal(marsh, qry.reducer()),
+                    U.resolveClassLoader(cctx.gridConfig())) : null;
 
             IgniteClosure<Object, Object> trans = qry.transform() != null ?
-                marsh.<IgniteClosure<Object, Object>>unmarshal(marsh.marshal(qry.transform()), null) : null;
+                U.<IgniteClosure<Object, Object>>unmarshal(marsh, U.marshal(marsh, qry.transform()),
+                    U.resolveClassLoader(cctx.gridConfig())) : null;
 
             return new GridCacheQueryInfo(
                 true,

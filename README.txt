@@ -1,15 +1,16 @@
-Apache Ignite In-Memory Data Fabric
-===================================
+Apache Ignite In-Memory Database and Caching Platform
+=====================================================
 
-Ignite In-Memory Data Fabric is designed to deliver high performance for the widest
-array of in-memory computing use cases.
+Ignite is a memory-centric distributed database, caching, and processing platform for transactional, analytical,
+and streaming workloads delivering in-memory speeds at petabyte scale.
 
-The main feature set of Ignite In-Memory Data Fabric includes:
+The main feature set of Ignite includes:
+* Memory-Centric Storage
 * Advanced Clustering
+* Distributed Key-Value
+* Distributed SQL
 * Compute Grid
-* Data Grid
 * Service Grid
-* IGFS - Ignite File System
 * Distributed Data Structures
 * Distributed Messaging
 * Distributed Events
@@ -17,9 +18,9 @@ The main feature set of Ignite In-Memory Data Fabric includes:
 
 For information on how to get started with Apache Ignite please visit:
 
-    http://apacheignite.readme.io/v1.0/docs/getting-started
+    http://apacheignite.readme.io/docs/getting-started
 
 
 You can find Apache Ignite documentation here:
 
-    http://apacheignite.readme.io/v1.0/docs/getting-started
+    http://apacheignite.readme.io/docs

@@ -25,17 +25,20 @@ import java.io.ObjectOutput;
 import java.io.ObjectStreamException;
 import java.util.Collection;
 import java.util.Iterator;
-import java.util.concurrent.Callable;
 import org.apache.ignite.IgniteCheckedException;
 import org.apache.ignite.IgniteSet;
 import org.apache.ignite.internal.GridKernalContext;
+import org.apache.ignite.internal.IgniteInternalFuture;
 import org.apache.ignite.internal.processors.cache.GridCacheContext;
 import org.apache.ignite.internal.processors.cache.GridCacheGateway;
 import org.apache.ignite.internal.util.GridSpinBusyLock;
-import org.apache.ignite.internal.util.typedef.F;
-import org.apache.ignite.internal.util.typedef.internal.CU;
+import org.apache.ignite.internal.util.future.GridFutureAdapter;
+import org.apache.ignite.internal.util.future.IgniteFutureImpl;
+import org.apache.ignite.internal.util.typedef.T3;
 import org.apache.ignite.internal.util.typedef.internal.U;
-import org.apache.ignite.lang.IgniteBiTuple;
+import org.apache.ignite.lang.IgniteCallable;
+import org.apache.ignite.lang.IgniteFuture;
+import org.apache.ignite.lang.IgniteRunnable;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -46,10 +49,10 @@ public class GridCacheSetProxy<T> implements IgniteSet<T>, Externalizable {
     private static final long serialVersionUID = 0L;
 
     /** Deserialization stash. */
-    private static final ThreadLocal<IgniteBiTuple<GridKernalContext, String>> stash =
-        new ThreadLocal<IgniteBiTuple<GridKernalContext, String>>() {
-            @Override protected IgniteBiTuple<GridKernalContext, String> initialValue() {
-                return F.t2();
+    private static final ThreadLocal<T3<GridKernalContext, String, String>> stash =
+        new ThreadLocal<T3<GridKernalContext, String, String>>() {
+            @Override protected T3<GridKernalContext, String, String> initialValue() {
+                return new T3<>();
             }
         };
 
@@ -112,17 +115,7 @@ public class GridCacheSetProxy<T> implements IgniteSet<T>, Externalizable {
             gate.enter();
 
             try {
-                if (cctx.transactional())
-                    return CU.outTx(new Callable<Integer>() {
-                        @Override public Integer call() throws Exception {
-                            return delegate.size();
-                        }
-                    }, cctx);
-
                 return delegate.size();
-            }
-            catch (IgniteCheckedException e) {
-                throw U.convertException(e);
             }
             finally {
                 gate.leave();
@@ -141,17 +134,7 @@ public class GridCacheSetProxy<T> implements IgniteSet<T>, Externalizable {
             gate.enter();
 
             try {
-                if (cctx.transactional())
-                    return CU.outTx(new Callable<Boolean>() {
-                        @Override public Boolean call() throws Exception {
-                            return delegate.isEmpty();
-                        }
-                    }, cctx);
-
                 return delegate.isEmpty();
-            }
-            catch (IgniteCheckedException e) {
-                throw U.convertException(e);
             }
             finally {
                 gate.leave();
@@ -170,17 +153,7 @@ public class GridCacheSetProxy<T> implements IgniteSet<T>, Externalizable {
             gate.enter();
 
             try {
-                if (cctx.transactional())
-                    return CU.outTx(new Callable<Boolean>() {
-                        @Override public Boolean call() throws Exception {
-                            return delegate.contains(o);
-                        }
-                    }, cctx);
-
                 return delegate.contains(o);
-            }
-            catch (IgniteCheckedException e) {
-                throw U.convertException(e);
             }
             finally {
                 gate.leave();
@@ -199,17 +172,7 @@ public class GridCacheSetProxy<T> implements IgniteSet<T>, Externalizable {
             gate.enter();
 
             try {
-                if (cctx.transactional())
-                    return CU.outTx(new Callable<Object[]>() {
-                        @Override public Object[] call() throws Exception {
-                            return delegate.toArray();
-                        }
-                    }, cctx);
-
                 return delegate.toArray();
-            }
-            catch (IgniteCheckedException e) {
-                throw U.convertException(e);
             }
             finally {
                 gate.leave();
@@ -228,17 +191,7 @@ public class GridCacheSetProxy<T> implements IgniteSet<T>, Externalizable {
             gate.enter();
 
             try {
-                if (cctx.transactional())
-                    return CU.outTx(new Callable<T1[]>() {
-                        @Override public T1[] call() throws Exception {
-                            return delegate.toArray(a);
-                        }
-                    }, cctx);
-
                 return delegate.toArray(a);
-            }
-            catch (IgniteCheckedException e) {
-                throw U.convertException(e);
             }
             finally {
                 gate.leave();
@@ -257,17 +210,7 @@ public class GridCacheSetProxy<T> implements IgniteSet<T>, Externalizable {
             gate.enter();
 
             try {
-                if (cctx.transactional())
-                    return CU.outTx(new Callable<Boolean>() {
-                        @Override public Boolean call() throws Exception {
-                            return delegate.add(t);
-                        }
-                    }, cctx);
-
                 return delegate.add(t);
-            }
-            catch (IgniteCheckedException e) {
-                throw U.convertException(e);
             }
             finally {
                 gate.leave();
@@ -286,17 +229,7 @@ public class GridCacheSetProxy<T> implements IgniteSet<T>, Externalizable {
             gate.enter();
 
             try {
-                if (cctx.transactional())
-                    return CU.outTx(new Callable<Boolean>() {
-                        @Override public Boolean call() throws Exception {
-                            return delegate.remove(o);
-                        }
-                    }, cctx);
-
                 return delegate.remove(o);
-            }
-            catch (IgniteCheckedException e) {
-                throw U.convertException(e);
             }
             finally {
                 gate.leave();
@@ -315,17 +248,7 @@ public class GridCacheSetProxy<T> implements IgniteSet<T>, Externalizable {
             gate.enter();
 
             try {
-                if (cctx.transactional())
-                    return CU.outTx(new Callable<Boolean>() {
-                        @Override public Boolean call() throws Exception {
-                            return delegate.containsAll(c);
-                        }
-                    }, cctx);
-
                 return delegate.containsAll(c);
-            }
-            catch (IgniteCheckedException e) {
-                throw U.convertException(e);
             }
             finally {
                 gate.leave();
@@ -344,17 +267,7 @@ public class GridCacheSetProxy<T> implements IgniteSet<T>, Externalizable {
             gate.enter();
 
             try {
-                if (cctx.transactional())
-                    return CU.outTx(new Callable<Boolean>() {
-                        @Override public Boolean call() throws Exception {
-                            return delegate.addAll(c);
-                        }
-                    }, cctx);
-
                 return delegate.addAll(c);
-            }
-            catch (IgniteCheckedException e) {
-                throw U.convertException(e);
             }
             finally {
                 gate.leave();
@@ -373,17 +286,7 @@ public class GridCacheSetProxy<T> implements IgniteSet<T>, Externalizable {
             gate.enter();
 
             try {
-                if (cctx.transactional())
-                    return CU.outTx(new Callable<Boolean>() {
-                        @Override public Boolean call() throws Exception {
-                            return delegate.retainAll(c);
-                        }
-                    }, cctx);
-
                 return delegate.retainAll(c);
-            }
-            catch (IgniteCheckedException e) {
-                throw U.convertException(e);
             }
             finally {
                 gate.leave();
@@ -402,17 +305,7 @@ public class GridCacheSetProxy<T> implements IgniteSet<T>, Externalizable {
             gate.enter();
 
             try {
-                if (cctx.transactional())
-                    return CU.outTx(new Callable<Boolean>() {
-                        @Override public Boolean call() throws Exception {
-                            return delegate.removeAll(c);
-                        }
-                    }, cctx);
-
                 return delegate.removeAll(c);
-            }
-            catch (IgniteCheckedException e) {
-                throw U.convertException(e);
             }
             finally {
                 gate.leave();
@@ -431,20 +324,7 @@ public class GridCacheSetProxy<T> implements IgniteSet<T>, Externalizable {
             gate.enter();
 
             try {
-                if (cctx.transactional()) {
-                    CU.outTx(new Callable<Void>() {
-                        @Override public Void call() throws Exception {
-                            delegate.clear();
-
-                            return null;
-                        }
-                    }, cctx);
-                }
-                else
-                    delegate.clear();
-            }
-            catch (IgniteCheckedException e) {
-                throw U.convertException(e);
+                delegate.clear();
             }
             finally {
                 gate.leave();
@@ -463,17 +343,7 @@ public class GridCacheSetProxy<T> implements IgniteSet<T>, Externalizable {
             gate.enter();
 
             try {
-                if (cctx.transactional())
-                    return CU.outTx(new Callable<Iterator<T>>() {
-                        @Override public Iterator<T> call() throws Exception {
-                            return delegate.iterator();
-                        }
-                    }, cctx);
-
                 return delegate.iterator();
-            }
-            catch (IgniteCheckedException e) {
-                throw U.convertException(e);
             }
             finally {
                 gate.leave();
@@ -486,27 +356,28 @@ public class GridCacheSetProxy<T> implements IgniteSet<T>, Externalizable {
 
     /** {@inheritDoc} */
     @Override public void close() {
+        IgniteFuture<Boolean> destroyFut = null;
+
         gate.enter();
 
         try {
-            if (cctx.transactional()) {
-                CU.outTx(new Callable<Void>() {
-                    @Override public Void call() throws Exception {
-                        delegate.close();
+            delegate.close();
 
-                        return null;
-                    }
-                }, cctx);
+            if (delegate.separated()) {
+                IgniteInternalFuture<Boolean> fut = cctx.kernalContext().cache().dynamicDestroyCache(
+                    cctx.cache().name(), false, true, false, null);
+
+                ((GridFutureAdapter)fut).ignoreInterrupts();
+
+                destroyFut = new IgniteFutureImpl<>(fut);
             }
-            else
-                delegate.close();
-        }
-        catch (IgniteCheckedException e) {
-            throw U.convertException(e);
         }
         finally {
             gate.leave();
         }
+
+        if (destroyFut != null)
+            destroyFut.get();
     }
 
     /** {@inheritDoc} */
@@ -522,6 +393,16 @@ public class GridCacheSetProxy<T> implements IgniteSet<T>, Externalizable {
     /** {@inheritDoc} */
     @Override public boolean removed() {
         return delegate.removed();
+    }
+
+    /** {@inheritDoc} */
+    @Override public void affinityRun(final IgniteRunnable job) {
+        delegate.affinityRun(job);
+    }
+
+    /** {@inheritDoc} */
+    @Override public <R> R affinityCall(final IgniteCallable<R> job) {
+        return delegate.affinityCall(job);
     }
 
     /**
@@ -578,14 +459,16 @@ public class GridCacheSetProxy<T> implements IgniteSet<T>, Externalizable {
     @Override public void writeExternal(ObjectOutput out) throws IOException {
         out.writeObject(cctx.kernalContext());
         U.writeString(out, name());
+        U.writeString(out, cctx.group().name());
     }
 
     /** {@inheritDoc} */
     @Override public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
-        IgniteBiTuple<GridKernalContext, String> t = stash.get();
+        T3<GridKernalContext, String, String> t = stash.get();
 
         t.set1((GridKernalContext)in.readObject());
         t.set2(U.readString(in));
+        t.set3(U.readString(in));
     }
 
     /**
@@ -596,9 +479,9 @@ public class GridCacheSetProxy<T> implements IgniteSet<T>, Externalizable {
      */
     protected Object readResolve() throws ObjectStreamException {
         try {
-            IgniteBiTuple<GridKernalContext, String> t = stash.get();
+            T3<GridKernalContext, String, String> t = stash.get();
 
-            return t.get1().dataStructures().set(t.get2(), null);
+            return t.get1().dataStructures().set(t.get2(), t.get3(), null);
         }
         catch (IgniteCheckedException e) {
             throw U.withCause(new InvalidObjectException(e.getMessage()), e);

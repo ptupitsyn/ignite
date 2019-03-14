@@ -79,6 +79,11 @@ public class DataStreamerResponse implements Message {
     }
 
     /** {@inheritDoc} */
+    @Override public void onAckReceived() {
+        // No-op.
+    }
+
+    /** {@inheritDoc} */
     @Override public String toString() {
         return S.toString(DataStreamerResponse.class, this);
     }
@@ -156,7 +161,7 @@ public class DataStreamerResponse implements Message {
     }
 
     /** {@inheritDoc} */
-    @Override public byte directType() {
+    @Override public short directType() {
         return 63;
     }
 

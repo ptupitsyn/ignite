@@ -150,7 +150,7 @@ public class IpcSharedMemoryNativeLoader {
 
             try {
                 if (log != null)
-                    LT.warn(log, null, "Failed to load 'igniteshmem' library from classpath. Will try to load it from IGNITE_HOME.");
+                    LT.warn(log, "Failed to load 'igniteshmem' library from classpath. Will try to load it from IGNITE_HOME.");
 
                 String igniteHome = X.resolveIgniteHome();
 
@@ -307,7 +307,6 @@ public class IpcSharedMemoryNativeLoader {
      * @param target Target.
      * @return {@code True} if resource was found and loaded.
      */
-    @SuppressWarnings("ResultOfMethodCallIgnored")
     private static boolean extract(Collection<Throwable> errs, URL src, File target) {
         FileOutputStream os = null;
         InputStream is = null;
@@ -353,7 +352,6 @@ public class IpcSharedMemoryNativeLoader {
      * @param target Target.
      * @return {@code True} if resource was found and loaded.
      */
-    @SuppressWarnings("ResultOfMethodCallIgnored")
     private static boolean extract(Collection<Throwable> errs, ZipEntry src, JarFile jar, File target) {
         FileOutputStream os = null;
         InputStream is = null;

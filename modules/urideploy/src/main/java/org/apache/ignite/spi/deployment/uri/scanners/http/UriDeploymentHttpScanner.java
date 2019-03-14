@@ -60,11 +60,15 @@ import org.w3c.dom.NodeList;
 import org.w3c.tidy.Tidy;
 
 /**
- * URI deployment HTTP scanner.
+ * HTTP-based URI deployment scanner.
+ * <p>
+ * This scanner reads DOM of the HTML available via {@link UriDeploymentScannerContext#getUri()}
+ * and parses out href attributes of all {@code &lt;a&gt;} tags -
+ * they become the collection of URLs to GAR files that should be deployed.
  */
 public class UriDeploymentHttpScanner implements UriDeploymentScanner {
     /** Default scan frequency. */
-    private static final int DFLT_SCAN_FREQ = 300000;
+    public static final int DFLT_SCAN_FREQ = 300000;
 
     /** Secure socket protocol to use. */
     private static final String PROTOCOL = "TLS";
@@ -153,8 +157,7 @@ public class UriDeploymentHttpScanner implements UriDeploymentScanner {
         return new TrustManager[]{
             new X509TrustManager() {
                 /** {@inheritDoc} */
-                @Nullable
-                @Override public X509Certificate[] getAcceptedIssuers() { return null; }
+                @Nullable @Override public X509Certificate[] getAcceptedIssuers() { return null; }
 
                 /** {@inheritDoc} */
                 @Override public void checkClientTrusted(X509Certificate[] certs, String authType) {
@@ -275,7 +278,6 @@ public class UriDeploymentHttpScanner implements UriDeploymentScanner {
          * @param files Files to process.
          * @param scanCtx Scan context.
          */
-        @SuppressWarnings("unchecked")
         private void processHttp(Collection<String> files, UriDeploymentScannerContext scanCtx) {
             Set<String> urls = getUrls(scanDir, scanCtx);
 
@@ -339,11 +341,11 @@ public class UriDeploymentHttpScanner implements UriDeploymentScanner {
                     catch (IOException e) {
                         if (!scanCtx.isCancelled()) {
                             if (X.hasCause(e, ConnectException.class)) {
-                                LT.warn(scanCtx.getLogger(), e, "Failed to connect to HTTP server " +
+                                LT.error(scanCtx.getLogger(), e, "Failed to connect to HTTP server " +
                                     "(connection refused): " + U.hidePassword(url));
                             }
                             else if (X.hasCause(e, UnknownHostException.class)) {
-                                LT.warn(scanCtx.getLogger(), e, "Failed to connect to HTTP server " +
+                                LT.error(scanCtx.getLogger(), e, "Failed to connect to HTTP server " +
                                     "(host is unknown): " + U.hidePassword(url));
                             }
                             else
@@ -366,7 +368,6 @@ public class UriDeploymentHttpScanner implements UriDeploymentScanner {
          * @param scanCtx Scan context.
          * @return Set of referenced URLs in string format.
          */
-        @SuppressWarnings("unchecked")
         private Set<String> getUrls(URL url, UriDeploymentScannerContext scanCtx) {
             assert url != null;
 
@@ -400,11 +401,11 @@ public class UriDeploymentHttpScanner implements UriDeploymentScanner {
             catch (IOException e) {
                 if (!scanCtx.isCancelled()) {
                     if (X.hasCause(e, ConnectException.class)) {
-                        LT.warn(scanCtx.getLogger(), e, "Failed to connect to HTTP server (connection refused): " +
+                        LT.error(scanCtx.getLogger(), e, "Failed to connect to HTTP server (connection refused): " +
                             U.hidePassword(url.toString()));
                     }
                     else if (X.hasCause(e, UnknownHostException.class)) {
-                        LT.warn(scanCtx.getLogger(), e, "Failed to connect to HTTP server (host is unknown): " +
+                        LT.error(scanCtx.getLogger(), e, "Failed to connect to HTTP server (host is unknown): " +
                             U.hidePassword(url.toString()));
                     }
                     else
@@ -427,7 +428,7 @@ public class UriDeploymentHttpScanner implements UriDeploymentScanner {
          * @param baseUrl Base URL.
          * @param scanCtx Scan context.
          */
-        @SuppressWarnings( {"UnusedCatchParameter", "UnnecessaryFullyQualifiedName"})
+        @SuppressWarnings( {"UnnecessaryFullyQualifiedName"})
         private void findReferences(org.w3c.dom.Node node, Set<String> res, URL baseUrl,
             UriDeploymentScannerContext scanCtx) {
             if (node instanceof Element && "a".equals(node.getNodeName().toLowerCase())) {

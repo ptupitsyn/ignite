@@ -22,7 +22,11 @@ import org.apache.ignite.configuration.IgniteConfiguration;
 import org.apache.ignite.internal.util.typedef.internal.U;
 import org.apache.ignite.spi.discovery.DiscoverySpi;
 import org.apache.ignite.spi.discovery.DiscoverySpiHistorySupport;
+import org.apache.ignite.spi.discovery.tcp.ipfinder.vm.TcpDiscoveryVmIpFinder;
 import org.apache.ignite.testframework.junits.common.GridCommonAbstractTest;
+
+import java.util.Collections;
+import org.junit.Test;
 
 import static org.apache.ignite.spi.discovery.tcp.TcpDiscoverySpi.DFLT_TOP_HISTORY_SIZE;
 
@@ -30,16 +34,15 @@ import static org.apache.ignite.spi.discovery.tcp.TcpDiscoverySpi.DFLT_TOP_HISTO
  * Tests for topology snapshots history.
  */
 public class TcpDiscoverySnapshotHistoryTest extends GridCommonAbstractTest {
-    /** */
-    public TcpDiscoverySnapshotHistoryTest() {
-        super(false);
-    }
-
     /** {@inheritDoc} */
-    @Override protected IgniteConfiguration getConfiguration(String gridName) throws Exception {
-        IgniteConfiguration cfg = super.getConfiguration(gridName);
+    @Override protected IgniteConfiguration getConfiguration(String igniteInstanceName) throws Exception {
+        IgniteConfiguration cfg = super.getConfiguration(igniteInstanceName);
 
-        cfg.setDiscoverySpi(new TcpDiscoverySpi());
+        TcpDiscoveryVmIpFinder ipFinder = new TcpDiscoveryVmIpFinder();
+
+        ipFinder.setAddresses(Collections.singleton("127.0.0.1:47500"));
+
+        cfg.setDiscoverySpi(new TcpDiscoverySpi().setIpFinder(ipFinder));
         cfg.setCacheConfiguration();
         cfg.setLocalHost("127.0.0.1");
         cfg.setConnectorConfiguration(null);
@@ -50,6 +53,7 @@ public class TcpDiscoverySnapshotHistoryTest extends GridCommonAbstractTest {
     /**
      * @throws Exception If any error occurs.
      */
+    @Test
     public void testHistorySupported() throws Exception {
         try {
             final Ignite g = startGrid();
@@ -70,6 +74,7 @@ public class TcpDiscoverySnapshotHistoryTest extends GridCommonAbstractTest {
     /**
      * @throws Exception If any error occurs.
      */
+    @Test
     public void testSettingNewTopologyHistorySize() throws Exception {
         try {
             final Ignite g = startGrid();
@@ -94,6 +99,7 @@ public class TcpDiscoverySnapshotHistoryTest extends GridCommonAbstractTest {
     /**
      * @throws Exception If any error occurs.
      */
+    @Test
     public void testNodeAdded() throws Exception {
         try {
             // Add grid #1
@@ -127,6 +133,7 @@ public class TcpDiscoverySnapshotHistoryTest extends GridCommonAbstractTest {
     /**
      * @throws Exception If any error occurs.
      */
+    @Test
     public void testNodeAddedAndRemoved() throws Exception {
         try {
             // Add grid #1

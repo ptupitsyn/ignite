@@ -22,6 +22,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import org.apache.ignite.compute.ComputeJobResult;
+import org.apache.ignite.internal.processors.cache.GridCacheContext;
 import org.apache.ignite.internal.processors.cache.GridCacheProcessor;
 import org.apache.ignite.internal.processors.cache.IgniteCacheProxy;
 import org.apache.ignite.internal.processors.task.GridInternal;
@@ -29,20 +30,20 @@ import org.apache.ignite.internal.util.typedef.internal.S;
 import org.apache.ignite.internal.util.typedef.internal.U;
 import org.apache.ignite.internal.visor.VisorJob;
 import org.apache.ignite.internal.visor.VisorMultiNodeTask;
-import org.apache.ignite.lang.IgniteBiTuple;
+import org.apache.ignite.internal.visor.util.VisorTaskUtils;
 import org.jetbrains.annotations.Nullable;
 
 /**
  * Task that collect cache metrics from all nodes.
  */
 @GridInternal
-public class VisorCacheMetricsCollectorTask extends VisorMultiNodeTask<IgniteBiTuple<Boolean, Collection<String>>,
+public class VisorCacheMetricsCollectorTask extends VisorMultiNodeTask<VisorCacheMetricsCollectorTaskArg,
     Iterable<VisorCacheAggregatedMetrics>, Collection<VisorCacheMetrics>> {
     /** */
     private static final long serialVersionUID = 0L;
 
     /** {@inheritDoc} */
-    @Override protected VisorCacheMetricsCollectorJob job(IgniteBiTuple<Boolean, Collection<String>> arg) {
+    @Override protected VisorCacheMetricsCollectorJob job(VisorCacheMetricsCollectorTaskArg arg) {
         return new VisorCacheMetricsCollectorJob(arg, debug);
     }
 
@@ -55,15 +56,15 @@ public class VisorCacheMetricsCollectorTask extends VisorMultiNodeTask<IgniteBiT
                 Collection<VisorCacheMetrics> cms = res.getData();
 
                 for (VisorCacheMetrics cm : cms) {
-                    VisorCacheAggregatedMetrics am = grpAggrMetrics.get(cm.name());
+                    VisorCacheAggregatedMetrics am = grpAggrMetrics.get(cm.getName());
 
                     if (am == null) {
-                        am = VisorCacheAggregatedMetrics.from(cm);
+                        am = new VisorCacheAggregatedMetrics(cm);
 
-                        grpAggrMetrics.put(cm.name(), am);
+                        grpAggrMetrics.put(cm.getName(), am);
                     }
 
-                    am.metrics().put(res.getNode().id(), cm);
+                    am.getMetrics().put(res.getNode().id(), cm);
                 }
             }
         }
@@ -76,7 +77,8 @@ public class VisorCacheMetricsCollectorTask extends VisorMultiNodeTask<IgniteBiT
      * Job that collect cache metrics from node.
      */
     private static class VisorCacheMetricsCollectorJob
-        extends VisorJob<IgniteBiTuple<Boolean, Collection<String>>, Collection<VisorCacheMetrics>> {
+        extends VisorJob<VisorCacheMetricsCollectorTaskArg, Collection<VisorCacheMetrics>> {
+
         /** */
         private static final long serialVersionUID = 0L;
 
@@ -86,19 +88,17 @@ public class VisorCacheMetricsCollectorTask extends VisorMultiNodeTask<IgniteBiT
          * @param arg Whether to collect metrics for all caches or for specified cache name only.
          * @param debug Debug flag.
          */
-        private VisorCacheMetricsCollectorJob(IgniteBiTuple<Boolean, Collection<String>> arg, boolean debug) {
+        private VisorCacheMetricsCollectorJob(VisorCacheMetricsCollectorTaskArg arg, boolean debug) {
             super(arg, debug);
         }
 
         /** {@inheritDoc} */
-        @Override protected Collection<VisorCacheMetrics> run(final IgniteBiTuple<Boolean, Collection<String>> arg) {
+        @Override protected Collection<VisorCacheMetrics> run(final VisorCacheMetricsCollectorTaskArg arg) {
             assert arg != null;
 
-            Boolean showSysCaches = arg.get1();
+            boolean showSysCaches = arg.isShowSystemCaches();
 
-            assert showSysCaches != null;
-
-            Collection<String> cacheNames = arg.get2();
+            Collection<String> cacheNames = arg.getCacheNames();
 
             assert cacheNames != null;
 
@@ -111,13 +111,17 @@ public class VisorCacheMetricsCollectorTask extends VisorMultiNodeTask<IgniteBiT
             boolean allCaches = cacheNames.isEmpty();
 
             for (IgniteCacheProxy ca : caches) {
-                if (ca.context().started()) {
-                    String cacheName = ca.getName();
+                String cacheName = ca.getName();
 
-                    VisorCacheMetrics cm = VisorCacheMetrics.from(ignite, cacheName);
+                if (!VisorTaskUtils.isRestartingCache(ignite, cacheName)) {
+                    GridCacheContext ctx = ca.context();
 
-                    if ((allCaches || cacheNames.contains(cacheName)) && (showSysCaches || !cm.system()))
-                        res.add(cm);
+                    if (ctx.started() && (ctx.affinityNode() || ctx.isNear())) {
+                        VisorCacheMetrics cm = new VisorCacheMetrics(ignite, cacheName);
+
+                        if ((allCaches || cacheNames.contains(cacheName)) && (showSysCaches || !cm.isSystem()))
+                            res.add(cm);
+                    }
                 }
             }
 

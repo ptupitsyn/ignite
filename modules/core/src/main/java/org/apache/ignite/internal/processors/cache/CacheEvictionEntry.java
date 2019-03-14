@@ -83,7 +83,7 @@ public class CacheEvictionEntry implements Message {
     }
 
     /** {@inheritDoc} */
-    @Override public byte directType() {
+    @Override public short directType() {
         return 97;
     }
 
@@ -102,6 +102,11 @@ public class CacheEvictionEntry implements Message {
      */
     public void finishUnmarshal(GridCacheContext ctx, ClassLoader ldr) throws IgniteCheckedException {
         key.finishUnmarshal(ctx.cacheObjectContext(), ldr);
+    }
+
+    /** {@inheritDoc} */
+    @Override public void onAckReceived() {
+        // No-op.
     }
 
     /** {@inheritDoc} */

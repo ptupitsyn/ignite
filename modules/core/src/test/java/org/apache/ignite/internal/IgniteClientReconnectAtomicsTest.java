@@ -17,6 +17,8 @@
 
 package org.apache.ignite.internal;
 
+import java.util.Collection;
+import java.util.Collections;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 import org.apache.ignite.Ignite;
@@ -26,8 +28,12 @@ import org.apache.ignite.IgniteAtomicSequence;
 import org.apache.ignite.IgniteAtomicStamped;
 import org.apache.ignite.IgniteClientDisconnectedException;
 import org.apache.ignite.IgniteCountDownLatch;
+import org.apache.ignite.IgniteLock;
+import org.apache.ignite.IgniteSemaphore;
 import org.apache.ignite.internal.processors.cache.distributed.near.GridNearLockResponse;
+import org.apache.ignite.internal.processors.cache.distributed.near.GridNearTxPrepareResponse;
 import org.apache.ignite.testframework.GridTestUtils;
+import org.junit.Test;
 
 /**
  *
@@ -46,12 +52,69 @@ public class IgniteClientReconnectAtomicsTest extends IgniteClientReconnectAbstr
     /**
      * @throws Exception If failed.
      */
+    @Test
+    public void testAtomicsReconnectClusterRestart() throws Exception {
+        Ignite client = grid(serverCount());
+
+        assertTrue(client.cluster().localNode().isClient());
+
+        final IgniteAtomicLong atomicLong = client.atomicLong("atomicLong", 1L, true);
+        final IgniteAtomicReference<Integer> atomicRef = client.atomicReference("atomicRef", 1, true);
+        final IgniteAtomicStamped<Integer, Integer> atomicStamped = client.atomicStamped("atomicStamped", 1, 1, true);
+        final IgniteCountDownLatch latch = client.countDownLatch("latch", 1, true, true);
+        final IgniteAtomicSequence seq = client.atomicSequence("seq", 1L, true);
+
+        Ignite srv = grid(0);
+
+        reconnectServersRestart(log, client, Collections.singleton(srv), new Callable<Collection<Ignite>>() {
+            @Override public Collection<Ignite> call() throws Exception {
+                return Collections.singleton((Ignite)startGrid(0));
+            }
+        });
+
+        GridTestUtils.assertThrows(log, new Callable<Void>() {
+            @Override public Void call() throws Exception {
+                atomicStamped.compareAndSet(1, 1, 2, 2);
+
+                return null;
+            }
+        }, IllegalStateException.class, null);
+
+        GridTestUtils.assertThrows(log, new Callable<Void>() {
+            @Override public Void call() throws Exception {
+                atomicRef.compareAndSet(1, 2);
+
+                return null;
+            }
+        }, IllegalStateException.class, null);
+
+        GridTestUtils.assertThrows(log, new Callable<Void>() {
+            @Override public Void call() throws Exception {
+                atomicLong.incrementAndGet();
+
+                return null;
+            }
+        }, IllegalStateException.class, null);
+
+        GridTestUtils.assertThrows(log, new Callable<Void>() {
+            @Override public Void call() throws Exception {
+                seq.getAndAdd(1L);
+
+                return null;
+            }
+        }, IllegalStateException.class, null);
+    }
+
+    /**
+     * @throws Exception If failed.
+     */
+    @Test
     public void testAtomicSeqReconnect() throws Exception {
         Ignite client = grid(serverCount());
 
         assertTrue(client.cluster().localNode().isClient());
 
-        Ignite srv = clientRouter(client);
+        Ignite srv = ignite(0);
 
         IgniteAtomicSequence clientAtomicSeq = client.atomicSequence("atomicSeq", 0, true);
 
@@ -79,12 +142,13 @@ public class IgniteClientReconnectAtomicsTest extends IgniteClientReconnectAbstr
     /**
      * @throws Exception If failed.
      */
+    @Test
     public void testAtomicSeqReconnectRemoved() throws Exception {
         Ignite client = grid(serverCount());
 
         assertTrue(client.cluster().localNode().isClient());
 
-        Ignite srv = clientRouter(client);
+        Ignite srv = ignite(0);
 
         final IgniteAtomicSequence clientAtomicSeq = client.atomicSequence("atomicSeqRmv", 0, true);
 
@@ -127,14 +191,15 @@ public class IgniteClientReconnectAtomicsTest extends IgniteClientReconnectAbstr
     /**
      * @throws Exception If failed.
      */
+    @Test
     public void testAtomicSeqReconnectInProgress() throws Exception {
         Ignite client = grid(serverCount());
 
         assertTrue(client.cluster().localNode().isClient());
 
-        Ignite srv = clientRouter(client);
+        Ignite srv = ignite(0);
 
-        BlockTpcCommunicationSpi commSpi = commSpi(srv);
+        BlockTcpCommunicationSpi commSpi = commSpi(srv);
 
         final IgniteAtomicSequence clientAtomicSeq = client.atomicSequence("atomicSeqInProg", 0, true);
 
@@ -188,12 +253,13 @@ public class IgniteClientReconnectAtomicsTest extends IgniteClientReconnectAbstr
     /**
      * @throws Exception If failed.
      */
+    @Test
     public void testAtomicReferenceReconnect() throws Exception {
         Ignite client = grid(serverCount());
 
         assertTrue(client.cluster().localNode().isClient());
 
-        Ignite srv = clientRouter(client);
+        Ignite srv = ignite(0);
 
         IgniteAtomicReference<String> clientAtomicRef = client.atomicReference("atomicRef", "1st value", true);
 
@@ -229,12 +295,13 @@ public class IgniteClientReconnectAtomicsTest extends IgniteClientReconnectAbstr
     /**
      * @throws Exception If failed.
      */
+    @Test
     public void testAtomicReferenceReconnectRemoved() throws Exception {
         Ignite client = grid(serverCount());
 
         assertTrue(client.cluster().localNode().isClient());
 
-        Ignite srv = clientRouter(client);
+        Ignite srv = ignite(0);
 
         final IgniteAtomicReference<String> clientAtomicRef =
             client.atomicReference("atomicRefRemoved", "1st value", true);
@@ -282,12 +349,13 @@ public class IgniteClientReconnectAtomicsTest extends IgniteClientReconnectAbstr
     /**
      * @throws Exception If failed.
      */
+    @Test
     public void testAtomicReferenceReconnectInProgress() throws Exception {
         Ignite client = grid(serverCount());
 
         assertTrue(client.cluster().localNode().isClient());
 
-        Ignite srv = clientRouter(client);
+        Ignite srv = ignite(0);
 
         final IgniteAtomicReference<String> clientAtomicRef =
             client.atomicReference("atomicRefInProg", "1st value", true);
@@ -302,9 +370,9 @@ public class IgniteClientReconnectAtomicsTest extends IgniteClientReconnectAbstr
         assertTrue(srvAtomicRef.compareAndSet("2st value", "3st value"));
         assertEquals("3st value", srvAtomicRef.get());
 
-        BlockTpcCommunicationSpi servCommSpi = commSpi(srv);
+        BlockTcpCommunicationSpi servCommSpi = commSpi(srv);
 
-        servCommSpi.blockMessage(GridNearLockResponse.class);
+        servCommSpi.blockMessage(GridNearTxPrepareResponse.class);
 
         final IgniteInternalFuture<Object> fut = GridTestUtils.runAsync(new Callable<Object>() {
             @Override public Object call() throws Exception {
@@ -337,8 +405,6 @@ public class IgniteClientReconnectAtomicsTest extends IgniteClientReconnectAbstr
         assertTrue((Boolean)fut.get(2, TimeUnit.SECONDS));
 
         // Check that after reconnect working.
-        assertEquals("3st value", clientAtomicRef.get());
-        assertTrue(clientAtomicRef.compareAndSet("3st value", "4st value"));
         assertEquals("4st value", clientAtomicRef.get());
 
         assertEquals("4st value", srvAtomicRef.get());
@@ -351,12 +417,13 @@ public class IgniteClientReconnectAtomicsTest extends IgniteClientReconnectAbstr
     /**
      * @throws Exception If failed.
      */
+    @Test
     public void testAtomicStampedReconnect() throws Exception {
         Ignite client = grid(serverCount());
 
         assertTrue(client.cluster().localNode().isClient());
 
-        Ignite srv = clientRouter(client);
+        Ignite srv = ignite(0);
 
         IgniteAtomicStamped clientAtomicStamped = client.atomicStamped("atomicStamped", 0, 0, true);
 
@@ -392,12 +459,13 @@ public class IgniteClientReconnectAtomicsTest extends IgniteClientReconnectAbstr
     /**
      * @throws Exception If failed.
      */
+    @Test
     public void testAtomicStampedReconnectRemoved() throws Exception {
         Ignite client = grid(serverCount());
 
         assertTrue(client.cluster().localNode().isClient());
 
-        Ignite srv = clientRouter(client);
+        Ignite srv = ignite(0);
 
         final IgniteAtomicStamped clientAtomicStamped = client.atomicStamped("atomicStampedRemoved", 0, 0, true);
 
@@ -443,12 +511,13 @@ public class IgniteClientReconnectAtomicsTest extends IgniteClientReconnectAbstr
     /**
      * @throws Exception If failed.
      */
+    @Test
     public void testAtomicStampedReconnectInProgress() throws Exception {
         Ignite client = grid(serverCount());
 
         assertTrue(client.cluster().localNode().isClient());
 
-        Ignite srv = clientRouter(client);
+        Ignite srv = ignite(0);
 
         final IgniteAtomicStamped clientAtomicStamped = client.atomicStamped("atomicStampedInProgress", 0, 0, true);
 
@@ -462,9 +531,9 @@ public class IgniteClientReconnectAtomicsTest extends IgniteClientReconnectAbstr
         assertEquals(2, srvAtomicStamped.value());
         assertEquals(2, srvAtomicStamped.stamp());
 
-        BlockTpcCommunicationSpi servCommSpi = commSpi(srv);
+        BlockTcpCommunicationSpi servCommSpi = commSpi(srv);
 
-        servCommSpi.blockMessage(GridNearLockResponse.class);
+        servCommSpi.blockMessage(GridNearTxPrepareResponse.class);
 
         final IgniteInternalFuture<Object> fut = GridTestUtils.runAsync(new Callable<Object>() {
             @Override public Object call() throws Exception {
@@ -497,7 +566,7 @@ public class IgniteClientReconnectAtomicsTest extends IgniteClientReconnectAbstr
         assertTrue((Boolean)fut.get(2, TimeUnit.SECONDS));
 
         // Check that after reconnect working.
-        assertEquals(true, clientAtomicStamped.compareAndSet(2, 3, 2, 3));
+        assertEquals(false, clientAtomicStamped.compareAndSet(2, 3, 2, 3));
         assertEquals(3, clientAtomicStamped.value());
         assertEquals(3, clientAtomicStamped.stamp());
 
@@ -511,12 +580,13 @@ public class IgniteClientReconnectAtomicsTest extends IgniteClientReconnectAbstr
     /**
      * @throws Exception If failed.
      */
+    @Test
     public void testAtomicLongReconnect() throws Exception {
         Ignite client = grid(serverCount());
 
         assertTrue(client.cluster().localNode().isClient());
 
-        Ignite srv = clientRouter(client);
+        Ignite srv = ignite(0);
 
         IgniteAtomicLong clientAtomicLong = client.atomicLong("atomicLong", 0, true);
 
@@ -542,12 +612,13 @@ public class IgniteClientReconnectAtomicsTest extends IgniteClientReconnectAbstr
     /**
      * @throws Exception If failed.
      */
+    @Test
     public void testAtomicLongReconnectRemoved() throws Exception {
         Ignite client = grid(serverCount());
 
         assertTrue(client.cluster().localNode().isClient());
 
-        Ignite srv = clientRouter(client);
+        Ignite srv = ignite(0);
 
         final IgniteAtomicLong clientAtomicLong = client.atomicLong("atomicLongRmv", 0, true);
 
@@ -583,20 +654,21 @@ public class IgniteClientReconnectAtomicsTest extends IgniteClientReconnectAbstr
     /**
      * @throws Exception If failed.
      */
+    @Test
     public void testAtomicLongReconnectInProgress() throws Exception {
         Ignite client = grid(serverCount());
 
         assertTrue(client.cluster().localNode().isClient());
 
-        Ignite srv = clientRouter(client);
+        Ignite srv = ignite(0);
 
-        BlockTpcCommunicationSpi commSpi = commSpi(srv);
+        BlockTcpCommunicationSpi commSpi = commSpi(srv);
 
         final IgniteAtomicLong clientAtomicLong = client.atomicLong("atomicLongInProggress", 0, true);
 
         final IgniteAtomicLong srvAtomicLong = srv.atomicLong("atomicLongInProggress", 0, false);
 
-        commSpi.blockMessage(GridNearLockResponse.class);
+        commSpi.blockMessage(GridNearTxPrepareResponse.class);
 
         final IgniteInternalFuture<Object> fut = GridTestUtils.runAsync(new Callable<Object>() {
             @Override public Object call() throws Exception {
@@ -629,8 +701,8 @@ public class IgniteClientReconnectAtomicsTest extends IgniteClientReconnectAbstr
         assertTrue((Boolean)fut.get(2, TimeUnit.SECONDS));
 
         // Check that after reconnect working.
-        assertEquals(1, clientAtomicLong.addAndGet(1));
-        assertEquals(2, srvAtomicLong.addAndGet(1));
+        assertEquals(2, clientAtomicLong.addAndGet(1));
+        assertEquals(3, srvAtomicLong.addAndGet(1));
 
         clientAtomicLong.close();
     }
@@ -638,12 +710,13 @@ public class IgniteClientReconnectAtomicsTest extends IgniteClientReconnectAbstr
     /**
      * @throws Exception If failed.
      */
+    @Test
     public void testLatchReconnect() throws Exception {
         Ignite client = grid(serverCount());
 
         assertTrue(client.cluster().localNode().isClient());
 
-        Ignite srv = clientRouter(client);
+        Ignite srv = ignite(0);
 
         IgniteCountDownLatch clientLatch = client.countDownLatch("latch1", 3, false, true);
 
@@ -674,5 +747,105 @@ public class IgniteClientReconnectAtomicsTest extends IgniteClientReconnectAbstr
 
         assertTrue(srvLatch.await(1000));
         assertTrue(clientLatch.await(1000));
+    }
+
+    /**
+     * @throws Exception If failed.
+     */
+    @Test
+    public void testSemaphoreReconnect() throws Exception {
+        Ignite client = grid(serverCount());
+
+        assertTrue(client.cluster().localNode().isClient());
+
+        Ignite srv = ignite(0);
+
+        IgniteSemaphore clientSemaphore = client.semaphore("semaphore1", 3, false, true);
+
+        assertEquals(3, clientSemaphore.availablePermits());
+
+        final IgniteSemaphore srvSemaphore = srv.semaphore("semaphore1", 3, false, false);
+
+        assertEquals(3, srvSemaphore.availablePermits());
+
+        reconnectClientNode(client, srv, new Runnable() {
+            @Override public void run() {
+                srvSemaphore.acquire();
+            }
+        });
+
+        assertEquals(2, srvSemaphore.availablePermits());
+        assertEquals(2, clientSemaphore.availablePermits());
+
+        srvSemaphore.acquire();
+
+        assertEquals(1, srvSemaphore.availablePermits());
+        assertEquals(1, clientSemaphore.availablePermits());
+
+        clientSemaphore.acquire();
+
+        assertEquals(0, srvSemaphore.availablePermits());
+        assertEquals(0, clientSemaphore.availablePermits());
+
+        assertFalse(srvSemaphore.tryAcquire());
+        assertFalse(srvSemaphore.tryAcquire());
+    }
+
+    /**
+     * @throws Exception If failed.
+     */
+    @Test
+    public void testReentrantLockReconnect() throws Exception {
+        testReentrantLockReconnect(false);
+
+        testReentrantLockReconnect(true);
+    }
+
+    private void testReentrantLockReconnect(final boolean fair) throws Exception {
+        Ignite client = grid(serverCount());
+
+        assertTrue(client.cluster().localNode().isClient());
+
+        Ignite srv = ignite(0);
+
+        IgniteLock clientLock = client.reentrantLock("lock1", true, fair, true);
+
+        assertEquals(false, clientLock.isLocked());
+
+        final IgniteLock srvLock = srv.reentrantLock("lock1", true, fair, true);
+
+        assertEquals(false, srvLock.isLocked());
+
+        reconnectClientNode(client, srv, new Runnable() {
+            @Override public void run() {
+                srvLock.lock();
+            }
+        });
+
+        assertTrue(srvLock.isLocked());
+        assertTrue(clientLock.isLocked());
+
+        assertEquals(1, srvLock.getHoldCount());
+
+        srvLock.lock();
+
+        assertTrue(srvLock.isLocked());
+        assertTrue(clientLock.isLocked());
+
+        assertEquals(2, srvLock.getHoldCount());
+
+        srvLock.unlock();
+
+        assertTrue(srvLock.isLocked());
+        assertTrue(clientLock.isLocked());
+
+        assertEquals(1, srvLock.getHoldCount());
+
+        srvLock.unlock();
+
+        assertFalse(srvLock.isLocked());
+        assertFalse(clientLock.isLocked());
+
+        assertEquals(0, srvLock.getHoldCount());
     }
 }

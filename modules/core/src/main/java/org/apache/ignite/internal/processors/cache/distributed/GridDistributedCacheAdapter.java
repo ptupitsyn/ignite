@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.Map;
 import org.apache.ignite.IgniteCheckedException;
 import org.apache.ignite.IgniteException;
+import org.apache.ignite.cache.CachePeekMode;
 import org.apache.ignite.cluster.ClusterNode;
 import org.apache.ignite.cluster.ClusterTopologyException;
 import org.apache.ignite.compute.ComputeJob;
@@ -39,12 +40,11 @@ import org.apache.ignite.internal.processors.cache.GridCacheAdapter;
 import org.apache.ignite.internal.processors.cache.GridCacheConcurrentMap;
 import org.apache.ignite.internal.processors.cache.GridCacheContext;
 import org.apache.ignite.internal.processors.cache.GridCacheEntryEx;
-import org.apache.ignite.internal.processors.cache.GridCacheSwapEntry;
+import org.apache.ignite.internal.processors.cache.IgniteCacheOffheapManager;
 import org.apache.ignite.internal.processors.cache.IgniteInternalCache;
 import org.apache.ignite.internal.processors.cache.KeyCacheObject;
 import org.apache.ignite.internal.processors.cache.distributed.dht.GridDhtCacheAdapter;
-import org.apache.ignite.internal.processors.cache.distributed.dht.GridDhtCacheEntry;
-import org.apache.ignite.internal.processors.cache.distributed.dht.GridDhtLocalPartition;
+import org.apache.ignite.internal.processors.cache.distributed.dht.topology.GridDhtLocalPartition;
 import org.apache.ignite.internal.processors.cache.distributed.near.GridNearCacheAdapter;
 import org.apache.ignite.internal.processors.cache.transactions.IgniteTxLocalEx;
 import org.apache.ignite.internal.processors.cache.version.GridCacheVersion;
@@ -60,7 +60,7 @@ import org.apache.ignite.transactions.TransactionIsolation;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import static org.apache.ignite.internal.processors.cache.distributed.dht.GridDhtPartitionState.OWNING;
+import static org.apache.ignite.internal.processors.cache.distributed.dht.topology.GridDhtPartitionState.OWNING;
 import static org.apache.ignite.internal.processors.task.GridTaskThreadContextKey.TC_SUBGRID;
 
 /**
@@ -79,10 +79,9 @@ public abstract class GridDistributedCacheAdapter<K, V> extends GridCacheAdapter
 
     /**
      * @param ctx Cache registry.
-     * @param startSize Start size.
      */
-    protected GridDistributedCacheAdapter(GridCacheContext<K, V> ctx, int startSize) {
-        super(ctx, startSize);
+    protected GridDistributedCacheAdapter(GridCacheContext<K, V> ctx) {
+        super(ctx);
     }
 
     /**
@@ -102,16 +101,17 @@ public abstract class GridDistributedCacheAdapter<K, V> extends GridCacheAdapter
         boolean retval,
         TransactionIsolation isolation,
         boolean isInvalidate,
+        long createTtl,
         long accessTtl
     ) {
         assert tx != null;
 
-        return lockAllAsync(keys, timeout, tx, isInvalidate, isRead, retval, isolation, accessTtl);
+        return lockAllAsync(keys, timeout, tx, isInvalidate, isRead, retval, isolation, createTtl, accessTtl);
     }
 
     /** {@inheritDoc} */
     @Override public IgniteInternalFuture<Boolean> lockAllAsync(Collection<? extends K> keys, long timeout) {
-        IgniteTxLocalEx tx = ctx.tm().userTxx();
+        IgniteTxLocalEx tx = ctx.tm().userTx();
 
         // Return value flag is true because we choose to bring values for explicit locks.
         return lockAllAsync(ctx.cacheKeysView(keys),
@@ -121,6 +121,7 @@ public abstract class GridDistributedCacheAdapter<K, V> extends GridCacheAdapter
             false,
             /*retval*/true,
             null,
+            -1L,
             -1L);
     }
 
@@ -132,6 +133,7 @@ public abstract class GridDistributedCacheAdapter<K, V> extends GridCacheAdapter
      * @param isRead Indicates whether value is read or written.
      * @param retval Flag to return value.
      * @param isolation Transaction isolation.
+     * @param createTtl TTL for create operation.
      * @param accessTtl TTL for read operation.
      * @return Future for locks.
      */
@@ -142,6 +144,7 @@ public abstract class GridDistributedCacheAdapter<K, V> extends GridCacheAdapter
         boolean isRead,
         boolean retval,
         @Nullable TransactionIsolation isolation,
+        long createTtl,
         long accessTtl);
 
     /**
@@ -169,6 +172,8 @@ public abstract class GridDistributedCacheAdapter<K, V> extends GridCacheAdapter
 
             boolean skipStore = opCtx != null && opCtx.skipStore();
 
+            boolean keepBinary = opCtx != null && opCtx.isKeepBinary();
+
             do {
                 retry = false;
 
@@ -181,7 +186,7 @@ public abstract class GridDistributedCacheAdapter<K, V> extends GridCacheAdapter
                     ctx.kernalContext().task().setThreadContext(TC_SUBGRID, nodes);
 
                     retry = !ctx.kernalContext().task().execute(
-                        new RemoveAllTask(ctx.name(), topVer, skipStore), null).get();
+                        new RemoveAllTask(ctx.name(), topVer, skipStore, keepBinary), null).get();
                 }
             }
             while (ctx.affinity().affinityTopologyVersion().compareTo(topVer) != 0 || retry);
@@ -200,9 +205,7 @@ public abstract class GridDistributedCacheAdapter<K, V> extends GridCacheAdapter
 
         CacheOperationContext opCtx = ctx.operationContextPerCall();
 
-        boolean skipStore = opCtx != null && opCtx.skipStore();
-
-        removeAllAsync(opFut, topVer, skipStore);
+        removeAllAsync(opFut, topVer, opCtx != null && opCtx.skipStore(), opCtx != null && opCtx.isKeepBinary());
 
         return opFut;
     }
@@ -212,15 +215,19 @@ public abstract class GridDistributedCacheAdapter<K, V> extends GridCacheAdapter
      * @param topVer Topology version.
      * @param skipStore Skip store flag.
      */
-    private void removeAllAsync(final GridFutureAdapter<Void> opFut, final AffinityTopologyVersion topVer,
-        final boolean skipStore) {
+    private void removeAllAsync(
+        final GridFutureAdapter<Void> opFut,
+        final AffinityTopologyVersion topVer,
+        final boolean skipStore,
+        final boolean keepBinary
+    ) {
         Collection<ClusterNode> nodes = ctx.grid().cluster().forDataNodes(name()).nodes();
 
         if (!nodes.isEmpty()) {
             ctx.kernalContext().task().setThreadContext(TC_SUBGRID, nodes);
 
             IgniteInternalFuture<Boolean> rmvAll = ctx.kernalContext().task().execute(
-                new RemoveAllTask(ctx.name(), topVer, skipStore), null);
+                new RemoveAllTask(ctx.name(), topVer, skipStore, keepBinary), null);
 
             rmvAll.listen(new IgniteInClosure<IgniteInternalFuture<Boolean>>() {
                 @Override public void apply(IgniteInternalFuture<Boolean> fut) {
@@ -232,7 +239,7 @@ public abstract class GridDistributedCacheAdapter<K, V> extends GridCacheAdapter
                         if (topVer0.equals(topVer) && !retry)
                             opFut.onDone();
                         else
-                            removeAllAsync(opFut, topVer0, skipStore);
+                            removeAllAsync(opFut, topVer0, skipStore, keepBinary);
                     }
                     catch (ClusterGroupEmptyCheckedException ignore) {
                         if (log.isDebugEnabled())
@@ -253,6 +260,57 @@ public abstract class GridDistributedCacheAdapter<K, V> extends GridCacheAdapter
         }
         else
             opFut.onDone();
+    }
+
+    /** {@inheritDoc} */
+    @Override public long localSizeLong(CachePeekMode[] peekModes) throws IgniteCheckedException {
+        PeekModes modes = parsePeekModes(peekModes, true);
+
+        long size = 0;
+
+        if (modes.near)
+            size += nearSize();
+
+        // Swap and offheap are disabled for near cache.
+        if (modes.primary || modes.backup) {
+            AffinityTopologyVersion topVer = ctx.affinity().affinityTopologyVersion();
+
+            IgniteCacheOffheapManager offheap = ctx.offheap();
+
+            if (modes.offheap)
+                size += offheap.cacheEntriesCount(ctx.cacheId(), modes.primary, modes.backup, topVer);
+            else if (modes.heap) {
+                for (GridDhtLocalPartition locPart : ctx.topology().currentLocalPartitions()) {
+                    if ((modes.primary && locPart.primary(topVer)) || (modes.backup && locPart.backup(topVer)))
+                        size += locPart.publicSize(ctx.cacheId());
+                }
+            }
+        }
+
+        return size;
+    }
+
+    /** {@inheritDoc} */
+    @Override public long localSizeLong(int part, CachePeekMode[] peekModes) throws IgniteCheckedException {
+        PeekModes modes = parsePeekModes(peekModes, true);
+
+        long size = 0;
+
+        if (modes.near)
+            size += nearSize();
+
+        // Swap and offheap are disabled for near cache.
+        if (modes.offheap) {
+            AffinityTopologyVersion topVer = ctx.affinity().affinityTopologyVersion();
+
+            IgniteCacheOffheapManager offheap = ctx.offheap();
+
+            if (ctx.affinity().primaryByPartition(ctx.localNode(), part, topVer) && modes.primary ||
+                ctx.affinity().backupByPartition(ctx.localNode(), part, topVer) && modes.backup)
+                size += offheap.cacheEntriesCount(ctx.cacheId(), part);
+        }
+
+        return size;
     }
 
     /** {@inheritDoc} */
@@ -277,24 +335,28 @@ public abstract class GridDistributedCacheAdapter<K, V> extends GridCacheAdapter
         /** Skip store flag. */
         private final boolean skipStore;
 
+        /** Keep binary flag. */
+        private final boolean keepBinary;
+
         /**
          * @param cacheName Cache name.
          * @param topVer Affinity topology version.
          * @param skipStore Skip store flag.
          */
-        public RemoveAllTask(String cacheName, AffinityTopologyVersion topVer, boolean skipStore) {
+        public RemoveAllTask(String cacheName, AffinityTopologyVersion topVer, boolean skipStore, boolean keepBinary) {
             this.cacheName = cacheName;
             this.topVer = topVer;
             this.skipStore = skipStore;
+            this.keepBinary = keepBinary;
         }
 
         /** {@inheritDoc} */
         @Nullable @Override public Map<? extends ComputeJob, ClusterNode> map(List<ClusterNode> subgrid,
             @Nullable Object arg) throws IgniteException {
-            Map<ComputeJob, ClusterNode> jobs = new HashMap();
+            Map<ComputeJob, ClusterNode> jobs = new HashMap<>();
 
             for (ClusterNode node : subgrid)
-                jobs.put(new GlobalRemoveAllJob(cacheName, topVer, skipStore), node);
+                jobs.put(new GlobalRemoveAllJob(cacheName, topVer, skipStore, keepBinary), node);
 
             return jobs;
         }
@@ -323,27 +385,37 @@ public abstract class GridDistributedCacheAdapter<K, V> extends GridCacheAdapter
             return true;
         }
     }
+
     /**
      * Internal job which performs remove all primary key mappings
      * operation on a cache with the given name.
      */
     @GridInternal
-    private static class GlobalRemoveAllJob<K,V>  extends TopologyVersionAwareJob {
+    private static class GlobalRemoveAllJob<K, V> extends TopologyVersionAwareJob {
         /** */
         private static final long serialVersionUID = 0L;
 
         /** Skip store flag. */
         private final boolean skipStore;
 
+        /** Keep binary flag. */
+        private final boolean keepBinary;
+
         /**
          * @param cacheName Cache name.
          * @param topVer Topology version.
          * @param skipStore Skip store flag.
          */
-        private GlobalRemoveAllJob(String cacheName, @NotNull AffinityTopologyVersion topVer, boolean skipStore) {
+        private GlobalRemoveAllJob(
+            String cacheName,
+            @NotNull AffinityTopologyVersion topVer,
+            boolean skipStore,
+            boolean keepBinary
+        ) {
             super(cacheName, topVer);
 
             this.skipStore = skipStore;
+            this.keepBinary = keepBinary;
         }
 
         /** {@inheritDoc} */
@@ -376,6 +448,7 @@ public abstract class GridDistributedCacheAdapter<K, V> extends GridCacheAdapter
                     ((DataStreamerImpl) dataLdr).maxRemapCount(0);
 
                     dataLdr.skipStore(skipStore);
+                    dataLdr.keepBinary(keepBinary);
 
                     dataLdr.receiver(DataStreamerCacheUpdaters.<KeyCacheObject, Object>batched());
 
@@ -386,19 +459,16 @@ public abstract class GridDistributedCacheAdapter<K, V> extends GridCacheAdapter
                             return false;
 
                         try {
-                            if (!locPart.isEmpty()) {
-                                for (GridDhtCacheEntry o : locPart.entries()) {
-                                    if (!o.obsoleteOrDeleted())
-                                        dataLdr.removeDataInternal(o.key());
-                                }
-                            }
-
-                            GridCloseableIterator<Map.Entry<byte[], GridCacheSwapEntry>> iter =
-                                dht.context().swap().iterator(part);
+                            GridCloseableIterator<KeyCacheObject> iter = dht.context().offheap().cacheKeysIterator(ctx.cacheId(), part);
 
                             if (iter != null) {
-                                for (Map.Entry<byte[], GridCacheSwapEntry> e : iter)
-                                    dataLdr.removeDataInternal(ctx.toCacheKeyObject(e.getKey()));
+                                try {
+                                    while (iter.hasNext())
+                                        dataLdr.removeDataInternal(iter.next());
+                                }
+                                finally {
+                                    iter.close();
+                                }
                             }
                         }
                         finally {
@@ -410,7 +480,7 @@ public abstract class GridDistributedCacheAdapter<K, V> extends GridCacheAdapter
                 if (near != null) {
                     GridCacheVersion obsoleteVer = ctx.versions().next();
 
-                    for (GridCacheEntryEx e : near.map().allEntries0()) {
+                    for (GridCacheEntryEx e : near.allEntries()) {
                         if (!e.valid(topVer) && e.markObsolete(obsoleteVer))
                             near.removeEntry(e);
                     }

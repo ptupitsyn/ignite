@@ -28,6 +28,7 @@ import org.apache.ignite.IgniteCheckedException;
 import org.apache.ignite.IgniteLogger;
 import org.apache.ignite.internal.GridKernalContext;
 import org.apache.ignite.internal.IgniteInternalFuture;
+import org.apache.ignite.internal.IgniteInterruptedCheckedException;
 import org.apache.ignite.internal.client.marshaller.GridClientMarshaller;
 import org.apache.ignite.internal.processors.rest.GridRestCommand;
 import org.apache.ignite.internal.processors.rest.GridRestProtocolHandler;
@@ -39,10 +40,14 @@ import org.apache.ignite.internal.processors.rest.client.message.GridClientHands
 import org.apache.ignite.internal.processors.rest.client.message.GridClientMessage;
 import org.apache.ignite.internal.processors.rest.client.message.GridClientPingPacket;
 import org.apache.ignite.internal.processors.rest.client.message.GridClientResponse;
+import org.apache.ignite.internal.processors.rest.client.message.GridClientStateRequest;
 import org.apache.ignite.internal.processors.rest.client.message.GridClientTaskRequest;
 import org.apache.ignite.internal.processors.rest.client.message.GridClientTopologyRequest;
 import org.apache.ignite.internal.processors.rest.handlers.cache.GridCacheRestMetrics;
+import org.apache.ignite.internal.processors.rest.protocols.tcp.redis.GridRedisMessage;
+import org.apache.ignite.internal.processors.rest.protocols.tcp.redis.GridRedisNioListener;
 import org.apache.ignite.internal.processors.rest.request.GridRestCacheRequest;
+import org.apache.ignite.internal.processors.rest.request.GridRestChangeStateRequest;
 import org.apache.ignite.internal.processors.rest.request.GridRestRequest;
 import org.apache.ignite.internal.processors.rest.request.GridRestTaskRequest;
 import org.apache.ignite.internal.processors.rest.request.GridRestTopologyRequest;
@@ -68,6 +73,9 @@ import static org.apache.ignite.internal.processors.rest.GridRestCommand.EXE;
 import static org.apache.ignite.internal.processors.rest.GridRestCommand.NODE;
 import static org.apache.ignite.internal.processors.rest.GridRestCommand.NOOP;
 import static org.apache.ignite.internal.processors.rest.GridRestCommand.TOPOLOGY;
+import static org.apache.ignite.internal.processors.rest.GridRestCommand.CLUSTER_ACTIVATE;
+import static org.apache.ignite.internal.processors.rest.GridRestCommand.CLUSTER_DEACTIVATE;
+import static org.apache.ignite.internal.processors.rest.GridRestCommand.CLUSTER_CURRENT_STATE;
 import static org.apache.ignite.internal.processors.rest.client.message.GridClientCacheRequest.GridCacheOperation.APPEND;
 import static org.apache.ignite.internal.processors.rest.client.message.GridClientCacheRequest.GridCacheOperation.CAS;
 import static org.apache.ignite.internal.processors.rest.client.message.GridClientCacheRequest.GridCacheOperation.GET;
@@ -92,9 +100,7 @@ public class GridTcpRestNioListener extends GridNioServerListenerAdapter<GridCli
     /** Supported protocol versions. */
     private static final Collection<Short> SUPP_VERS = new HashSet<>();
 
-    /**
-     * Fills {@code cacheCmdMap}.
-     */
+    // Fills {@code cacheCmdMap}.
     static {
         cacheCmdMap.put(PUT, CACHE_PUT);
         cacheCmdMap.put(PUT_ALL, CACHE_PUT_ALL);
@@ -126,8 +132,11 @@ public class GridTcpRestNioListener extends GridNioServerListenerAdapter<GridCli
     /** Protocol handler. */
     private GridRestProtocolHandler hnd;
 
-    /** Handler for all memcache requests */
+    /** Handler for all memcache requests. */
     private GridTcpMemcachedNioListener memcachedLsnr;
+
+    /** Handler for all Redis requests. */
+    private GridRedisNioListener redisLsnr;
 
     /**
      * Creates listener which will convert incoming tcp packets to rest requests and forward them to
@@ -140,7 +149,8 @@ public class GridTcpRestNioListener extends GridNioServerListenerAdapter<GridCli
      */
     public GridTcpRestNioListener(IgniteLogger log, GridTcpRestProtocol proto, GridRestProtocolHandler hnd,
         GridKernalContext ctx) {
-        memcachedLsnr = new GridTcpMemcachedNioListener(log, hnd, ctx);
+        memcachedLsnr = new GridTcpMemcachedNioListener(log, hnd);
+        redisLsnr = new GridRedisNioListener(log, hnd, ctx);
 
         this.log = log;
         this.proto = proto;
@@ -174,96 +184,107 @@ public class GridTcpRestNioListener extends GridNioServerListenerAdapter<GridCli
     }
 
     /** {@inheritDoc} */
-    @SuppressWarnings("ConstantConditions")
     @Override public void onMessage(final GridNioSession ses, final GridClientMessage msg) {
         if (msg instanceof GridMemcachedMessage)
             memcachedLsnr.onMessage(ses, (GridMemcachedMessage)msg);
-        else {
-            if (msg instanceof GridClientPingPacket)
-                ses.send(msg);
-            else if (msg instanceof GridClientHandshakeRequest) {
-                GridClientHandshakeRequest hs = (GridClientHandshakeRequest)msg;
+        else if (msg instanceof GridRedisMessage)
+            redisLsnr.onMessage(ses, (GridRedisMessage)msg);
+        else if (msg instanceof GridClientPingPacket)
+            ses.send(msg);
+        else if (msg instanceof GridClientHandshakeRequest) {
+            GridClientHandshakeRequest hs = (GridClientHandshakeRequest)msg;
 
-                short ver = hs.version();
+            short ver = hs.version();
 
-                if (!SUPP_VERS.contains(ver)) {
-                    U.error(log, "Client protocol version is not supported [ses=" + ses +
-                        ", ver=" + ver +
-                        ", supported=" + SUPP_VERS + ']');
+            if (!SUPP_VERS.contains(ver)) {
+                U.error(log, "Client protocol version is not supported [ses=" + ses +
+                    ", ver=" + ver +
+                    ", supported=" + SUPP_VERS + ']');
+
+                ses.close();
+            }
+            else {
+                byte marshId = hs.marshallerId();
+
+                if (marshMapLatch.getCount() > 0) {
+                    try {
+                        U.await(marshMapLatch);
+                    } catch (IgniteInterruptedCheckedException e) {
+                        U.error(log, "Marshaller is not initialized.", e);
+
+                        ses.close();
+
+                        return;
+                    }
+                }
+
+                GridClientMarshaller marsh = marshMap.get(marshId);
+
+                if (marsh == null) {
+                    U.error(log, "Client marshaller ID is invalid. Note that .NET and C++ clients " +
+                        "are supported only in enterprise edition [ses=" + ses + ", marshId=" + marshId + ']');
 
                     ses.close();
                 }
                 else {
-                    byte marshId = hs.marshallerId();
+                    ses.addMeta(MARSHALLER.ordinal(), marsh);
 
-                    if (marshMapLatch.getCount() > 0)
-                        U.awaitQuiet(marshMapLatch);
-
-                    GridClientMarshaller marsh = marshMap.get(marshId);
-
-                    if (marsh == null) {
-                        U.error(log, "Client marshaller ID is invalid. Note that .NET and C++ clients " +
-                            "are supported only in enterprise edition [ses=" + ses + ", marshId=" + marshId + ']');
-
-                        ses.close();
-                    }
-                    else {
-                        ses.addMeta(MARSHALLER.ordinal(), marsh);
-
-                        ses.send(GridClientHandshakeResponse.OK);
-                    }
+                    ses.send(GridClientHandshakeResponse.OK);
                 }
             }
-            else {
-                final GridRestRequest req = createRestRequest(ses, msg);
+        }
+        else {
+            final GridRestRequest req = createRestRequest(ses, msg);
 
-                if (req != null)
-                    hnd.handleAsync(req).listen(new CI1<IgniteInternalFuture<GridRestResponse>>() {
-                        @Override public void apply(IgniteInternalFuture<GridRestResponse> fut) {
-                            GridClientResponse res = new GridClientResponse();
+            if (req != null)
+                hnd.handleAsync(req).listen(new CI1<IgniteInternalFuture<GridRestResponse>>() {
+                    @Override public void apply(IgniteInternalFuture<GridRestResponse> fut) {
+                        GridClientResponse res = new GridClientResponse();
 
-                            res.requestId(msg.requestId());
-                            res.clientId(msg.clientId());
+                        res.requestId(msg.requestId());
+                        res.clientId(msg.clientId());
 
-                            try {
-                                GridRestResponse restRes = fut.get();
+                        try {
+                            GridRestResponse restRes = fut.get();
 
-                                res.sessionToken(restRes.sessionTokenBytes());
-                                res.successStatus(restRes.getSuccessStatus());
-                                res.errorMessage(restRes.getError());
+                            res.sessionToken(restRes.sessionTokenBytes());
+                            res.successStatus(restRes.getSuccessStatus());
+                            res.errorMessage(restRes.getError());
 
-                                Object o = restRes.getResponse();
+                            Object o = restRes.getResponse();
 
-                                // In case of metrics a little adjustment is needed.
-                                if (o instanceof GridCacheRestMetrics)
-                                    o = ((GridCacheRestMetrics)o).map();
+                            // In case of metrics a little adjustment is needed.
+                            if (o instanceof GridCacheRestMetrics)
+                                o = ((GridCacheRestMetrics)o).map();
 
-                                res.result(o);
-                            }
-                            catch (IgniteCheckedException e) {
-                                U.error(log, "Failed to process client request: " + msg, e);
-
-                                res.successStatus(GridClientResponse.STATUS_FAILED);
-                                res.errorMessage("Failed to process client request: " + e.getMessage());
-                            }
-
-                            GridNioFuture<?> sf = ses.send(res);
-
-                            // Check if send failed.
-                            if (sf.isDone())
-                                try {
-                                    sf.get();
-                                }
-                                catch (Exception e) {
-                                    U.error(log, "Failed to process client request [ses=" + ses + ", msg=" + msg + ']',
-                                        e);
-                                }
+                            res.result(o);
                         }
-                    });
-                else
-                    U.error(log, "Failed to process client request (unknown packet type) [ses=" + ses +
-                        ", msg=" + msg + ']');
-            }
+                        catch (IgniteCheckedException e) {
+                            U.error(log, "Failed to process client request: " + msg, e);
+
+                            res.successStatus(GridClientResponse.STATUS_FAILED);
+                            res.errorMessage("Failed to process client request: " + e.getMessage());
+                        }
+
+                        GridNioFuture<?> sf = ses.send(res);
+
+                        // Check if send failed.
+                        sf.listen(new CI1<IgniteInternalFuture<?>>() {
+                            @Override public void apply(IgniteInternalFuture<?> fut) {
+                                try {
+                                    fut.get();
+                                }
+                                catch (IgniteCheckedException e) {
+                                    U.error(log, "Failed to process client request [ses=" + ses +
+                                        ", msg=" + msg + ']', e);
+                                }
+                            }
+                        });
+                    }
+                });
+            else
+                U.error(log, "Failed to process client request (unknown packet type) [ses=" + ses +
+                    ", msg=" + msg + ']');
         }
     }
 
@@ -307,7 +328,7 @@ public class GridTcpRestNioListener extends GridNioServerListenerAdapter<GridCli
             restReq = restCacheReq;
         }
         else if (msg instanceof GridClientTaskRequest) {
-            GridClientTaskRequest req = (GridClientTaskRequest) msg;
+            GridClientTaskRequest req = (GridClientTaskRequest)msg;
 
             GridRestTaskRequest restTaskReq = new GridRestTaskRequest();
 
@@ -319,7 +340,7 @@ public class GridTcpRestNioListener extends GridNioServerListenerAdapter<GridCli
             restReq = restTaskReq;
         }
         else if (msg instanceof GridClientTopologyRequest) {
-            GridClientTopologyRequest req = (GridClientTopologyRequest) msg;
+            GridClientTopologyRequest req = (GridClientTopologyRequest)msg;
 
             GridRestTopologyRequest restTopReq = new GridRestTopologyRequest();
 
@@ -340,6 +361,22 @@ public class GridTcpRestNioListener extends GridNioServerListenerAdapter<GridCli
                 restTopReq.command(TOPOLOGY);
 
             restReq = restTopReq;
+        }
+        else if (msg instanceof GridClientStateRequest) {
+            GridClientStateRequest req = (GridClientStateRequest)msg;
+
+            GridRestChangeStateRequest restChangeReq = new GridRestChangeStateRequest();
+
+            if (req.isReqCurrentState()) {
+                restChangeReq.reqCurrentState();
+                restChangeReq.command(CLUSTER_CURRENT_STATE);
+            }
+            else {
+                restChangeReq.active(req.active());
+                restChangeReq.command(req.active() ? CLUSTER_ACTIVATE : CLUSTER_DEACTIVATE);
+            }
+
+            restReq = restChangeReq;
         }
 
         if (restReq != null) {

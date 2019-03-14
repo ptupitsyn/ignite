@@ -20,7 +20,7 @@ package org.apache.ignite.internal.processors.cache.distributed.dht.preloader;
 import java.util.concurrent.ConcurrentHashMap;
 import org.apache.ignite.cluster.ClusterNode;
 import org.apache.ignite.internal.processors.affinity.AffinityTopologyVersion;
-import org.apache.ignite.internal.util.tostring.GridToStringExclude;
+import org.apache.ignite.internal.processors.cache.distributed.dht.topology.GridDhtPartitionTopologyImpl;
 import org.apache.ignite.internal.util.typedef.internal.S;
 
 /**
@@ -30,42 +30,58 @@ public class GridDhtPreloaderAssignments extends ConcurrentHashMap<ClusterNode, 
     /** */
     private static final long serialVersionUID = 0L;
 
-    /** Exchange future. */
-    @GridToStringExclude
-    private final GridDhtPartitionsExchangeFuture exchFut;
+    /** */
+    private final GridDhtPartitionExchangeId exchangeId;
 
-    /** Last join order. */
+    /** */
     private final AffinityTopologyVersion topVer;
 
+    /** */
+    private boolean cancelled;
+
     /**
-     * @param exchFut Exchange future.
+     * @param exchangeId Exchange ID.
      * @param topVer Last join order.
      */
-    public GridDhtPreloaderAssignments(GridDhtPartitionsExchangeFuture exchFut, AffinityTopologyVersion topVer) {
-        assert exchFut != null;
-        assert topVer.topologyVersion() > 0;
+    public GridDhtPreloaderAssignments(GridDhtPartitionExchangeId exchangeId, AffinityTopologyVersion topVer) {
+        assert exchangeId != null;
+        assert topVer.topologyVersion() > 0 : topVer;
 
-        this.exchFut = exchFut;
+        this.exchangeId = exchangeId;
         this.topVer = topVer;
+    }
+
+    /**
+     * @return {@code True} if assignments creation was cancelled.
+     */
+    public boolean cancelled() {
+        return cancelled;
+    }
+
+    /**
+     * @param cancelled {@code True} if assignments creation was cancelled.
+     */
+    public void cancelled(boolean cancelled) {
+        this.cancelled = cancelled;
     }
 
     /**
      * @return Exchange future.
      */
-    GridDhtPartitionsExchangeFuture exchangeFuture() {
-        return exchFut;
+    GridDhtPartitionExchangeId exchangeId() {
+        return exchangeId;
     }
 
     /**
-     * @return Topology version.
+     * @return Topology version based on last {@link GridDhtPartitionTopologyImpl#readyTopVer}.
      */
-    AffinityTopologyVersion topologyVersion() {
+    public AffinityTopologyVersion topologyVersion() {
         return topVer;
     }
 
     /** {@inheritDoc} */
     @Override public String toString() {
-        return S.toString(GridDhtPreloaderAssignments.class, this, "exchId", exchFut.exchangeId(),
+        return S.toString(GridDhtPreloaderAssignments.class, this, "exchId", exchangeId,
             "super", super.toString());
     }
 }

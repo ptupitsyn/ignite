@@ -41,11 +41,9 @@ import org.apache.ignite.internal.util.typedef.internal.U;
 import org.apache.ignite.lang.IgniteFuture;
 import org.apache.ignite.lang.IgniteRunnable;
 import org.apache.ignite.plugin.extensions.communication.Message;
-import org.apache.ignite.spi.discovery.tcp.TcpDiscoverySpi;
-import org.apache.ignite.spi.discovery.tcp.ipfinder.TcpDiscoveryIpFinder;
-import org.apache.ignite.spi.discovery.tcp.ipfinder.vm.TcpDiscoveryVmIpFinder;
 import org.apache.ignite.testframework.junits.common.GridCommonAbstractTest;
 import org.jetbrains.annotations.Nullable;
+import org.junit.Test;
 
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static org.apache.ignite.cache.CacheMode.PARTITIONED;
@@ -55,9 +53,6 @@ import static org.apache.ignite.cache.CacheRebalanceMode.NONE;
  *
  */
 public class GridOrderedMessageCancelSelfTest extends GridCommonAbstractTest {
-    /** IP finder. */
-    private static final TcpDiscoveryIpFinder IP_FINDER = new TcpDiscoveryVmIpFinder(true);
-
     /** Cancel latch. */
     private static CountDownLatch cancelLatch;
 
@@ -68,8 +63,8 @@ public class GridOrderedMessageCancelSelfTest extends GridCommonAbstractTest {
     private static CountDownLatch finishLatch;
 
     /** {@inheritDoc} */
-    @Override protected IgniteConfiguration getConfiguration(String gridName) throws Exception {
-        IgniteConfiguration cfg = super.getConfiguration(gridName);
+    @Override protected IgniteConfiguration getConfiguration(String igniteInstanceName) throws Exception {
+        IgniteConfiguration cfg = super.getConfiguration(igniteInstanceName);
 
         CacheConfiguration cache = defaultCacheConfiguration();
 
@@ -79,12 +74,6 @@ public class GridOrderedMessageCancelSelfTest extends GridCommonAbstractTest {
         cfg.setCacheConfiguration(cache);
 
         cfg.setCommunicationSpi(new CommunicationSpi());
-
-        TcpDiscoverySpi disco = new TcpDiscoverySpi();
-
-        disco.setIpFinder(IP_FINDER);
-
-        cfg.setDiscoverySpi(disco);
 
         return cfg;
     }
@@ -106,26 +95,36 @@ public class GridOrderedMessageCancelSelfTest extends GridCommonAbstractTest {
     /**
      * @throws Exception If failed.
      */
+    @Test
     public void testTask() throws Exception {
+        Map map = U.field(((IgniteKernal)grid(0)).context().io(), "msgSetMap");
+
+        int initSize =  map.size();
+
         ComputeTaskFuture<?> fut = executeAsync(compute(grid(0).cluster().forRemotes()), Task.class, null);
 
-        testMessageSet(fut);
+        testMessageSet(fut, initSize, map);
     }
 
     /**
      * @throws Exception If failed.
      */
+    @Test
     public void testTaskException() throws Exception {
+        Map map = U.field(((IgniteKernal)grid(0)).context().io(), "msgSetMap");
+
+        int initSize =  map.size();
+
         ComputeTaskFuture<?> fut = executeAsync(compute(grid(0).cluster().forRemotes()), FailTask.class, null);
 
-        testMessageSet(fut);
+        testMessageSet(fut, initSize, map);
     }
 
     /**
      * @param fut Future to cancel.
      * @throws Exception If failed.
      */
-    private void testMessageSet(IgniteFuture<?> fut) throws Exception {
+    private void testMessageSet(IgniteFuture<?> fut, int initSize, Map map) throws Exception {
         cancelLatch.await();
 
         assertTrue(fut.cancel());
@@ -134,11 +133,9 @@ public class GridOrderedMessageCancelSelfTest extends GridCommonAbstractTest {
 
         assertTrue(U.await(finishLatch, 5000, MILLISECONDS));
 
-        Map map = U.field(((IgniteKernal)grid(0)).context().io(), "msgSetMap");
-
         info("Map: " + map);
 
-        assertTrue(map.isEmpty());
+        assertEquals(map.size(), initSize);
     }
 
     /**

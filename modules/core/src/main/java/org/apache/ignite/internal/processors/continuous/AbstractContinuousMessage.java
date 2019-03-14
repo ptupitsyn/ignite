@@ -18,13 +18,20 @@
 package org.apache.ignite.internal.processors.continuous;
 
 import java.util.UUID;
+import org.apache.ignite.internal.managers.discovery.DiscoCache;
 import org.apache.ignite.internal.managers.discovery.DiscoveryCustomMessage;
+import org.apache.ignite.internal.managers.discovery.GridDiscoveryManager;
+import org.apache.ignite.internal.processors.affinity.AffinityTopologyVersion;
 import org.apache.ignite.lang.IgniteUuid;
+import org.jetbrains.annotations.Nullable;
 
 /**
  *
  */
 public abstract class AbstractContinuousMessage implements DiscoveryCustomMessage {
+    /** */
+    private static final long serialVersionUID = 2781778657738703012L;
+
     /** Routine ID. */
     protected final UUID routineId;
 
@@ -51,12 +58,18 @@ public abstract class AbstractContinuousMessage implements DiscoveryCustomMessag
     }
 
     /** {@inheritDoc} */
-    @Override public boolean incrementMinorTopologyVersion() {
+    @Override public boolean isMutable() {
         return false;
     }
 
     /** {@inheritDoc} */
-    @Override public boolean isMutable() {
+    @Override public boolean stopProcess() {
         return false;
+    }
+
+    /** {@inheritDoc} */
+    @Nullable @Override public DiscoCache createDiscoCache(GridDiscoveryManager mgr,
+        AffinityTopologyVersion topVer, DiscoCache discoCache) {
+        throw new UnsupportedOperationException();
     }
 }

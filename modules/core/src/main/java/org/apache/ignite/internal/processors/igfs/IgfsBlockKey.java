@@ -22,7 +22,14 @@ import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
 import java.nio.ByteBuffer;
-import org.apache.ignite.internal.processors.task.GridInternal;
+
+import org.apache.ignite.binary.BinaryObjectException;
+import org.apache.ignite.binary.BinaryRawReader;
+import org.apache.ignite.binary.BinaryRawWriter;
+import org.apache.ignite.binary.BinaryReader;
+import org.apache.ignite.binary.BinaryWriter;
+import org.apache.ignite.binary.Binarylizable;
+import org.apache.ignite.internal.binary.BinaryUtils;
 import org.apache.ignite.internal.util.typedef.F;
 import org.apache.ignite.internal.util.typedef.internal.S;
 import org.apache.ignite.internal.util.typedef.internal.U;
@@ -36,8 +43,8 @@ import org.jetbrains.annotations.Nullable;
 /**
  * File's binary data block key.
  */
-@GridInternal
-public final class IgfsBlockKey implements Message, Externalizable, Comparable<IgfsBlockKey> {
+public final class IgfsBlockKey implements IgfsBaseBlockKey, Message, Externalizable, Binarylizable,
+    Comparable<IgfsBlockKey> {
     /** */
     private static final long serialVersionUID = 0L;
 
@@ -85,11 +92,19 @@ public final class IgfsBlockKey implements Message, Externalizable, Comparable<I
         return fileId;
     }
 
-    /**
-     * @return Block affinity key.
-     */
-    public IgniteUuid affinityKey() {
+    /** {@inheritDoc} */
+    @Override public IgniteUuid affinityKey() {
         return affKey;
+    }
+
+    /** {@inheritDoc} */
+    @Override public long blockId() {
+        return blockId;
+    }
+
+    /** {@inheritDoc} */
+    @Override public int fileHash() {
+        return fileId.hashCode();
     }
 
     /**
@@ -99,11 +114,10 @@ public final class IgfsBlockKey implements Message, Externalizable, Comparable<I
         return evictExclude;
     }
 
-    /**
-     * @return Block ID.
-     */
-    public long getBlockId() {
-        return blockId;
+
+    /** {@inheritDoc} */
+    @Override public void onAckReceived() {
+        // No-op.
     }
 
     /** {@inheritDoc} */
@@ -140,6 +154,26 @@ public final class IgfsBlockKey implements Message, Externalizable, Comparable<I
     @Override public void readExternal(ObjectInput in) throws IOException {
         fileId = U.readGridUuid(in);
         affKey = U.readGridUuid(in);
+        evictExclude = in.readBoolean();
+        blockId = in.readLong();
+    }
+
+    /** {@inheritDoc} */
+    @Override public void writeBinary(BinaryWriter writer) throws BinaryObjectException {
+        BinaryRawWriter out = writer.rawWriter();
+
+        BinaryUtils.writeIgniteUuid(out, fileId);
+        BinaryUtils.writeIgniteUuid(out, affKey);
+        out.writeBoolean(evictExclude);
+        out.writeLong(blockId);
+    }
+
+    /** {@inheritDoc} */
+    @Override public void readBinary(BinaryReader reader) throws BinaryObjectException {
+        BinaryRawReader in = reader.rawReader();
+
+        fileId = BinaryUtils.readIgniteUuid(in);
+        affKey = BinaryUtils.readIgniteUuid(in);
         evictExclude = in.readBoolean();
         blockId = in.readLong();
     }
@@ -250,7 +284,7 @@ public final class IgfsBlockKey implements Message, Externalizable, Comparable<I
     }
 
     /** {@inheritDoc} */
-    @Override public byte directType() {
+    @Override public short directType() {
         return 65;
     }
 

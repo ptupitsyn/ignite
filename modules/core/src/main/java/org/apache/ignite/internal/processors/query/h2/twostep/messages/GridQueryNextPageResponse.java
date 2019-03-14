@@ -42,6 +42,9 @@ public class GridQueryNextPageResponse implements Message {
     private long qryReqId;
 
     /** */
+    private int segmentId;
+
+    /** */
     private int qry;
 
     /** */
@@ -64,6 +67,15 @@ public class GridQueryNextPageResponse implements Message {
     /** */
     private AffinityTopologyVersion retry;
 
+    /** Retry cause description*/
+    private String retryCause;
+
+    /** Last page flag. */
+    private boolean last;
+
+    /** Remove mapping flag. */
+    private boolean removeMapping;
+
     /**
      * For {@link Externalizable}.
      */
@@ -73,25 +85,29 @@ public class GridQueryNextPageResponse implements Message {
 
     /**
      * @param qryReqId Query request ID.
+     * @param segmentId Index segment ID.
      * @param qry Query.
      * @param page Page.
      * @param allRows All rows count.
      * @param cols Number of columns in row.
      * @param vals Values for rows in this page added sequentially.
      * @param plainRows Not marshalled rows for local node.
+     * @param last Last page flag.
      */
-    public GridQueryNextPageResponse(long qryReqId, int qry, int page, int allRows, int cols,
-        Collection<Message> vals, Collection<?> plainRows) {
+    public GridQueryNextPageResponse(long qryReqId, int segmentId, int qry, int page, int allRows, int cols,
+        Collection<Message> vals, Collection<?> plainRows, boolean last) {
         assert vals != null ^ plainRows != null;
         assert cols > 0 : cols;
 
         this.qryReqId = qryReqId;
+        this.segmentId = segmentId;
         this.qry = qry;
         this.page = page;
         this.allRows = allRows;
         this.cols = cols;
         this.vals = vals;
         this.plainRows = plainRows;
+        this.last = last;
     }
 
     /**
@@ -99,6 +115,13 @@ public class GridQueryNextPageResponse implements Message {
      */
     public long queryRequestId() {
         return qryReqId;
+    }
+
+    /**
+     * @return Index segment ID.
+     */
+    public int segmentId() {
+        return segmentId;
     }
 
     /**
@@ -144,8 +167,8 @@ public class GridQueryNextPageResponse implements Message {
     }
 
     /** {@inheritDoc} */
-    @Override public String toString() {
-        return S.toString(GridQueryNextPageResponse.class, this);
+    @Override public void onAckReceived() {
+        // No-op.
     }
 
     /** {@inheritDoc} */
@@ -197,11 +220,34 @@ public class GridQueryNextPageResponse implements Message {
                 writer.incrementState();
 
             case 6:
-                if (!writer.writeMessage("retry", retry))
+                if (!writer.writeAffinityTopologyVersion("retry", retry))
                     return false;
 
                 writer.incrementState();
 
+            case 7:
+                if (!writer.writeInt("segmentId", segmentId))
+                    return false;
+
+                writer.incrementState();
+
+            case 8:
+                if (!writer.writeBoolean("last", last))
+                    return false;
+
+                writer.incrementState();
+
+            case 9:
+                if (!writer.writeString("retryCause", retryCause))
+                    return false;
+
+                writer.incrementState();
+
+            case 10:
+                if (!writer.writeBoolean("removeMapping", removeMapping))
+                    return false;
+
+                writer.incrementState();
         }
 
         return true;
@@ -264,7 +310,39 @@ public class GridQueryNextPageResponse implements Message {
                 reader.incrementState();
 
             case 6:
-                retry = reader.readMessage("retry");
+                retry = reader.readAffinityTopologyVersion("retry");
+
+                if (!reader.isLastRead())
+                    return false;
+
+                reader.incrementState();
+
+            case 7:
+                segmentId = reader.readInt("segmentId");
+
+                if (!reader.isLastRead())
+                    return false;
+
+                reader.incrementState();
+
+            case 8:
+                last = reader.readBoolean("last");
+
+                if (!reader.isLastRead())
+                    return false;
+
+                reader.incrementState();
+
+            case 9:
+                retryCause = reader.readString("retryCause");
+
+                if (!reader.isLastRead())
+                    return false;
+
+                reader.incrementState();
+
+            case 10:
+                removeMapping = reader.readBoolean("removeMapping");
 
                 if (!reader.isLastRead())
                     return false;
@@ -277,13 +355,13 @@ public class GridQueryNextPageResponse implements Message {
     }
 
     /** {@inheritDoc} */
-    @Override public byte directType() {
+    @Override public short directType() {
         return 109;
     }
 
     /** {@inheritDoc} */
     @Override public byte fieldsCount() {
-        return 7;
+        return 11;
     }
 
     /**
@@ -298,5 +376,54 @@ public class GridQueryNextPageResponse implements Message {
      */
     public void retry(AffinityTopologyVersion retry) {
         this.retry = retry;
+    }
+
+    /**
+     * @return Retry Ccause message.
+     */
+    public String retryCause() {
+        return retryCause;
+    }
+
+    /**
+     * @param retryCause Retry Ccause message.
+     */
+    public void retryCause(String retryCause){
+        this.retryCause = retryCause;
+    }
+
+    /**
+     * @return Last page flag.
+     */
+    public boolean last() {
+        return last;
+    }
+
+    /**
+     * @param last Last page flag.
+     */
+    public void last(boolean last) {
+        this.last = last;
+    }
+
+    /**
+     * @param removeMapping Remove mapping flag.
+     */
+    public void removeMapping(boolean removeMapping) {
+        this.removeMapping = removeMapping;
+    }
+
+    /**
+     * @return Remove mapping flag.
+     */
+    public boolean removeMapping() {
+        return removeMapping;
+    }
+
+    /** {@inheritDoc} */
+    @Override public String toString() {
+        return S.toString(GridQueryNextPageResponse.class, this,
+            "valsSize", vals != null ? vals.size() : 0,
+            "rowsSize", plainRows != null ? plainRows.size() : 0);
     }
 }

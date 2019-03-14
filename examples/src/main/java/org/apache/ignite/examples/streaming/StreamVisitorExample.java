@@ -19,7 +19,6 @@ package org.apache.ignite.examples.streaming;
 
 import java.io.Serializable;
 import java.util.List;
-import java.util.Map;
 import java.util.Random;
 import org.apache.ignite.Ignite;
 import org.apache.ignite.IgniteCache;
@@ -36,9 +35,11 @@ import org.apache.ignite.stream.StreamVisitor;
  * Stream random numbers into the streaming cache.
  * To start the example, you should:
  * <ul>
- *     <li>Start a few nodes using {@link ExampleNodeStartup}.</li>
+ *     <li>Start a few nodes using {@link ExampleNodeStartup} or by starting remote nodes as specified below.</li>
  *     <li>Start streaming using {@link StreamVisitorExample}.</li>
  * </ul>
+ * <p>
+ * You should start remote nodes by running {@link ExampleNodeStartup} in another JVM.
  */
 public class StreamVisitorExample {
     /** Random number generator. */
@@ -58,6 +59,9 @@ public class StreamVisitorExample {
             if (!ExamplesUtils.hasServerNodes(ignite))
                 return;
 
+            // Market data cache with default configuration.
+            CacheConfiguration<String, Double> mktDataCfg = new CacheConfiguration<>("marketTicks");
+
             // Financial instrument cache configuration.
             CacheConfiguration<String, Instrument> instCfg = new CacheConfiguration<>("instCache");
 
@@ -67,31 +71,28 @@ public class StreamVisitorExample {
 
             // Auto-close caches at the end of the example.
             try (
-                IgniteCache<String, Double> mktCache = ignite.getOrCreateCache("marketTicks"); // Default config.
+                IgniteCache<String, Double> mktCache = ignite.getOrCreateCache(mktDataCfg);
                 IgniteCache<String, Instrument> instCache = ignite.getOrCreateCache(instCfg)
             ) {
                 try (IgniteDataStreamer<String, Double> mktStmr = ignite.dataStreamer(mktCache.getName())) {
                     // Note that we receive market data, but do not populate 'mktCache' (it remains empty).
                     // Instead we update the instruments in the 'instCache'.
                     // Since both, 'instCache' and 'mktCache' use the same key, updates are collocated.
-                    mktStmr.receiver(new StreamVisitor<String, Double>() {
-                        @Override
-                        public void apply(IgniteCache<String, Double> cache, Map.Entry<String, Double> e) {
-                            String symbol = e.getKey();
-                            Double tick = e.getValue();
+                    mktStmr.receiver(StreamVisitor.from((cache, e) -> {
+                        String symbol = e.getKey();
+                        Double tick = e.getValue();
 
-                            Instrument inst = instCache.get(symbol);
+                        Instrument inst = instCache.get(symbol);
 
-                            if (inst == null)
-                                inst = new Instrument(symbol);
+                        if (inst == null)
+                            inst = new Instrument(symbol);
 
-                            // Don't populate market cache, as we don't use it for querying.
-                            // Update cached instrument based on the latest market tick.
-                            inst.update(tick);
+                        // Don't populate market cache, as we don't use it for querying.
+                        // Update cached instrument based on the latest market tick.
+                        inst.update(tick);
 
-                            instCache.put(symbol, inst);
-                        }
-                    });
+                        instCache.put(symbol, inst);
+                    }));
 
                     // Stream 10 million market data ticks into the system.
                     for (int i = 1; i <= 10_000_000; i++) {
@@ -119,6 +120,11 @@ public class StreamVisitorExample {
 
                 // Print top 10 words.
                 ExamplesUtils.printQueryResults(top3);
+            }
+            finally {
+                // Distributed cache could be removed from cluster only by #destroyCache() call.
+                ignite.destroyCache(mktDataCfg.getName());
+                ignite.destroyCache(instCfg.getName());
             }
         }
     }

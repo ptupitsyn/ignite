@@ -17,11 +17,11 @@
 
 package org.apache.ignite.internal.processors.cache.distributed.dht;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.LinkedList;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
@@ -30,27 +30,36 @@ import org.apache.ignite.IgniteLogger;
 import org.apache.ignite.internal.IgniteInternalFuture;
 import org.apache.ignite.internal.processors.affinity.AffinityTopologyVersion;
 import org.apache.ignite.internal.processors.cache.CacheObject;
+import org.apache.ignite.internal.processors.cache.EntryGetResult;
 import org.apache.ignite.internal.processors.cache.GridCacheContext;
 import org.apache.ignite.internal.processors.cache.GridCacheEntryInfo;
 import org.apache.ignite.internal.processors.cache.GridCacheEntryRemovedException;
 import org.apache.ignite.internal.processors.cache.IgniteCacheExpiryPolicy;
 import org.apache.ignite.internal.processors.cache.KeyCacheObject;
-import org.apache.ignite.internal.processors.cache.transactions.IgniteTxLocalEx;
+import org.apache.ignite.internal.processors.cache.ReaderArguments;
+import org.apache.ignite.internal.processors.cache.distributed.dht.GridDhtTopologyFutureAdapter.LostPolicyValidator;
+import org.apache.ignite.internal.processors.cache.distributed.dht.topology.GridDhtInvalidPartitionException;
+import org.apache.ignite.internal.processors.cache.distributed.dht.topology.GridDhtLocalPartition;
+import org.apache.ignite.internal.processors.cache.mvcc.MvccSnapshot;
 import org.apache.ignite.internal.processors.cache.version.GridCacheVersion;
-import org.apache.ignite.internal.util.GridLeanSet;
 import org.apache.ignite.internal.util.future.GridCompoundFuture;
 import org.apache.ignite.internal.util.future.GridCompoundIdentityFuture;
 import org.apache.ignite.internal.util.future.GridEmbeddedFuture;
 import org.apache.ignite.internal.util.future.GridFinishedFuture;
 import org.apache.ignite.internal.util.lang.GridClosureException;
 import org.apache.ignite.internal.util.typedef.C2;
+import org.apache.ignite.internal.util.typedef.CI1;
 import org.apache.ignite.internal.util.typedef.F;
 import org.apache.ignite.internal.util.typedef.internal.CU;
 import org.apache.ignite.internal.util.typedef.internal.U;
-import org.apache.ignite.lang.IgniteBiClosure;
 import org.apache.ignite.lang.IgniteUuid;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import static java.util.Collections.singleton;
+import static org.apache.ignite.internal.processors.cache.distributed.dht.GridDhtTopologyFutureAdapter.OperationType.READ;
+import static org.apache.ignite.internal.processors.cache.distributed.dht.topology.GridDhtPartitionState.LOST;
+import static org.apache.ignite.internal.processors.cache.distributed.dht.topology.GridDhtPartitionState.OWNING;
 
 /**
  *
@@ -72,9 +81,6 @@ public final class GridDhtGetFuture<K, V> extends GridCompoundIdentityFuture<Col
     /** */
     private UUID reader;
 
-    /** Reload flag. */
-    private boolean reload;
-
     /** Read through flag. */
     private boolean readThrough;
 
@@ -82,10 +88,10 @@ public final class GridDhtGetFuture<K, V> extends GridCompoundIdentityFuture<Col
     private GridCacheContext<K, V> cctx;
 
     /** Keys. */
-    private LinkedHashMap<KeyCacheObject, Boolean> keys;
+    private Map<KeyCacheObject, Boolean> keys;
 
     /** Reserved partitions. */
-    private Collection<GridDhtLocalPartition> parts = new GridLeanSet<>(5);
+    private int[] parts;
 
     /** Future ID. */
     private IgniteUuid futId;
@@ -96,11 +102,8 @@ public final class GridDhtGetFuture<K, V> extends GridCompoundIdentityFuture<Col
     /** Topology version .*/
     private AffinityTopologyVersion topVer;
 
-    /** Transaction. */
-    private IgniteTxLocalEx tx;
-
     /** Retries because ownership changed. */
-    private Collection<Integer> retries = new GridLeanSet<>();
+    private Collection<Integer> retries;
 
     /** Subject ID. */
     private UUID subjId;
@@ -114,35 +117,49 @@ public final class GridDhtGetFuture<K, V> extends GridCompoundIdentityFuture<Col
     /** Skip values flag. */
     private boolean skipVals;
 
+    /** */
+    private final boolean recovery;
+
+    /** */
+    private final boolean addReaders;
+
+    /** Transaction label. */
+    private final String txLbl;
+
+    /** */
+    private final MvccSnapshot mvccSnapshot;
+
     /**
      * @param cctx Context.
      * @param msgId Message ID.
      * @param reader Reader.
      * @param keys Keys.
      * @param readThrough Read through flag.
-     * @param reload Reload flag.
-     * @param tx Transaction.
      * @param topVer Topology version.
      * @param subjId Subject ID.
      * @param taskNameHash Task name hash code.
      * @param expiryPlc Expiry policy.
      * @param skipVals Skip values flag.
+     * @param txLbl Transaction label.
+     * @param mvccSnapshot MVCC snapshot.
      */
     public GridDhtGetFuture(
         GridCacheContext<K, V> cctx,
         long msgId,
         UUID reader,
-        LinkedHashMap<KeyCacheObject, Boolean> keys,
+        Map<KeyCacheObject, Boolean> keys,
         boolean readThrough,
-        boolean reload,
-        @Nullable IgniteTxLocalEx tx,
         @NotNull AffinityTopologyVersion topVer,
         @Nullable UUID subjId,
         int taskNameHash,
         @Nullable IgniteCacheExpiryPolicy expiryPlc,
-        boolean skipVals
+        boolean skipVals,
+        boolean recovery,
+        boolean addReaders,
+        @Nullable String txLbl,
+        MvccSnapshot mvccSnapshot
     ) {
-        super(cctx.kernalContext(), CU.<GridCacheEntryInfo>collectionsReducer());
+        super(CU.<GridCacheEntryInfo>collectionsReducer(keys.size()));
 
         assert reader != null;
         assert !F.isEmpty(keys);
@@ -152,17 +169,19 @@ public final class GridDhtGetFuture<K, V> extends GridCompoundIdentityFuture<Col
         this.msgId = msgId;
         this.keys = keys;
         this.readThrough = readThrough;
-        this.reload = reload;
-        this.tx = tx;
         this.topVer = topVer;
         this.subjId = subjId;
         this.taskNameHash = taskNameHash;
         this.expiryPlc = expiryPlc;
         this.skipVals = skipVals;
+        this.recovery = recovery;
+        this.addReaders = addReaders;
+        this.txLbl = txLbl;
+        this.mvccSnapshot = mvccSnapshot;
 
         futId = IgniteUuid.randomUuid();
 
-        ver = tx == null ? cctx.versions().next() : tx.xidVersion();
+        ver = cctx.versions().next();
 
         if (log == null)
             log = U.logger(cctx.kernalContext(), logRef, GridDhtGetFuture.class);
@@ -172,14 +191,49 @@ public final class GridDhtGetFuture<K, V> extends GridCompoundIdentityFuture<Col
      * Initializes future.
      */
     void init() {
-        map(keys);
+        // TODO get rid of force keys request https://issues.apache.org/jira/browse/IGNITE-10251
+        GridDhtFuture<Object> fut = cctx.group().preloader().request(cctx, keys.keySet(), topVer);
 
-        markInitialized();
+        assert !cctx.mvccEnabled() || fut == null; // Should not happen with MVCC enabled.
+
+        if (fut != null) {
+            if (!F.isEmpty(fut.invalidPartitions())) {
+                if (retries == null)
+                    retries = new HashSet<>();
+
+                retries.addAll(fut.invalidPartitions());
+            }
+
+            fut.listen(new CI1<IgniteInternalFuture<Object>>() {
+                @Override public void apply(IgniteInternalFuture<Object> fut) {
+                    try {
+                        fut.get();
+                    }
+                    catch (IgniteCheckedException e) {
+                        if (log.isDebugEnabled())
+                            log.debug("Failed to request keys from preloader [keys=" + keys + ", err=" + e + ']');
+
+                        onDone(e);
+
+                        return;
+                    }
+
+                    map0(keys, true);
+
+                    markInitialized();
+                }
+            });
+        }
+        else {
+            map0(keys, false);
+
+            markInitialized();
+        }
     }
 
     /** {@inheritDoc} */
     @Override public Collection<Integer> invalidPartitions() {
-        return retries;
+        return retries == null ? Collections.<Integer>emptyList() : retries;
     }
 
     /**
@@ -200,8 +254,8 @@ public final class GridDhtGetFuture<K, V> extends GridCompoundIdentityFuture<Col
     @Override public boolean onDone(Collection<GridCacheEntryInfo> res, Throwable err) {
         if (super.onDone(res, err)) {
             // Release all partitions reserved by this future.
-            for (GridDhtLocalPartition part : parts)
-                part.release();
+            if (parts != null)
+                cctx.topology().releasePartitions(parts);
 
             return true;
         }
@@ -210,88 +264,134 @@ public final class GridDhtGetFuture<K, V> extends GridCompoundIdentityFuture<Col
     }
 
     /**
-     * @param keys Keys.
+     * @param keys Keys to map.
      */
-    private void map(final LinkedHashMap<KeyCacheObject, Boolean> keys) {
-        GridDhtFuture<Object> fut = cctx.dht().dhtPreloader().request(keys.keySet(), topVer);
+    private void map0(Map<KeyCacheObject, Boolean> keys, boolean forceKeys) {
+        Map<KeyCacheObject, Boolean> mappedKeys = null;
 
-        if (!F.isEmpty(fut.invalidPartitions()))
-            retries.addAll(fut.invalidPartitions());
+        // Assign keys to primary nodes.
+        for (Map.Entry<KeyCacheObject, Boolean> key : keys.entrySet()) {
+            int part = cctx.affinity().partition(key.getKey());
 
-        add(new GridEmbeddedFuture<>(
-            new IgniteBiClosure<Object, Exception, Collection<GridCacheEntryInfo>>() {
-                @Override public Collection<GridCacheEntryInfo> apply(Object o, Exception e) {
-                    if (e != null) { // Check error first.
-                        if (log.isDebugEnabled())
-                            log.debug("Failed to request keys from preloader [keys=" + keys + ", err=" + e + ']');
+            if (retries == null || !retries.contains(part)) {
+                if (!map(key.getKey(), forceKeys)) {
+                    if (retries == null)
+                        retries = new HashSet<>();
 
-                        onDone(e);
-                    }
+                    retries.add(part);
 
-                    LinkedHashMap<KeyCacheObject, Boolean> mappedKeys = U.newLinkedHashMap(keys.size());
+                    if (mappedKeys == null) {
+                        mappedKeys = U.newLinkedHashMap(keys.size());
 
-                    // Assign keys to primary nodes.
-                    for (Map.Entry<KeyCacheObject, Boolean> key : keys.entrySet()) {
-                        int part = cctx.affinity().partition(key.getKey());
+                        for (Map.Entry<KeyCacheObject, Boolean> key1 : keys.entrySet()) {
+                            if (key1.getKey() == key.getKey())
+                                break;
 
-                        if (!retries.contains(part)) {
-                            if (!map(key.getKey(), parts))
-                                retries.add(part);
-                            else
-                                mappedKeys.put(key.getKey(), key.getValue());
+                            mappedKeys.put(key.getKey(), key1.getValue());
                         }
                     }
-
-                    // Add new future.
-                    add(getAsync(mappedKeys));
-
-                    // Finish this one.
-                    return Collections.emptyList();
                 }
-            },
-            fut));
+                else if (mappedKeys != null)
+                    mappedKeys.put(key.getKey(), key.getValue());
+            }
+        }
+
+        // Add new future.
+        IgniteInternalFuture<Collection<GridCacheEntryInfo>> fut = getAsync(mappedKeys == null ? keys : mappedKeys);
+
+        // Optimization to avoid going through compound future,
+        // if getAsync() has been completed and no other futures added to this
+        // compound future.
+        if (fut.isDone() && !hasFutures()) {
+            if (fut.error() != null)
+                onDone(fut.error());
+            else
+                onDone(fut.result());
+
+            return;
+        }
+
+        add(fut);
     }
 
     /**
      * @param key Key.
-     * @param parts Parts to map.
      * @return {@code True} if mapped.
      */
-    private boolean map(KeyCacheObject key, Collection<GridDhtLocalPartition> parts) {
-        GridDhtLocalPartition part = topVer.topologyVersion() > 0 ?
-            cache().topology().localPartition(cctx.affinity().partition(key), topVer, true) :
-            cache().topology().localPartition(key, false);
+    private boolean map(KeyCacheObject key, boolean forceKeys) {
+        try {
+            int keyPart = cctx.affinity().partition(key);
 
-        if (part == null)
-            return false;
+            if (cctx.mvccEnabled()) {
+                boolean noOwners = cctx.topology().owners(keyPart, topVer).isEmpty();
 
-        if (!parts.contains(part)) {
-            // By reserving, we make sure that partition won't be unloaded while processed.
-            if (part.reserve()) {
-                parts.add(part);
+                // Force key request is disabled for MVCC. So if there are no partition owners for the given key
+                // (we have a not strict partition loss policy if we've got here) we need to set flag forceKeys to true
+                // to avoid useless remapping to other non-owning partitions. For non-mvcc caches the force key request
+                // is also useless in the such situations, so the same flow is here: allegedly we've made a force key
+                // request with no results and therefore forceKeys flag may be set to true here.
+                if (noOwners)
+                    forceKeys = true;
+            }
 
-                return true;
+            GridDhtLocalPartition part = topVer.topologyVersion() > 0 ?
+                cache().topology().localPartition(keyPart, topVer, true) :
+                cache().topology().localPartition(keyPart);
+
+            if (part == null)
+                return false;
+
+            if (!forceKeys && part.state() == LOST && !recovery) {
+                Throwable error = LostPolicyValidator.validate(cctx, key, READ, singleton(part.id()));
+
+                if (error != null) {
+                    onDone(null, error);
+
+                    return false;
+                }
+            }
+
+            if (parts == null || !F.contains(parts, part.id())) {
+                // By reserving, we make sure that partition won't be unloaded while processed.
+                if (part.reserve()) {
+                    if (forceKeys || (part.state() == OWNING || part.state() == LOST)) {
+                        parts = parts == null ? new int[1] : Arrays.copyOf(parts, parts.length + 1);
+
+                        parts[parts.length - 1] = part.id();
+
+                        return true;
+                    }
+                    else {
+                        part.release();
+
+                        return false;
+                    }
+                }
+                else
+                    return false;
             }
             else
-                return false;
+                return true;
         }
-        else
-            return true;
+        catch (GridDhtInvalidPartitionException e) {
+            if (log.isDebugEnabled())
+                log.debug("Attempted to create a partition which does not belong to local node, will remap " +
+                    "[key=" + key + ", part=" + e.partition() + ']');
+
+            return false;
+        }
     }
 
     /**
      * @param keys Keys to get.
      * @return Future for local get.
      */
-    @SuppressWarnings( {"unchecked", "IfMayBeConditional"})
     private IgniteInternalFuture<Collection<GridCacheEntryInfo>> getAsync(
-        final LinkedHashMap<KeyCacheObject, Boolean> keys)
-    {
+        final Map<KeyCacheObject, Boolean> keys
+    ) {
         if (F.isEmpty(keys))
             return new GridFinishedFuture<Collection<GridCacheEntryInfo>>(
                 Collections.<GridCacheEntryInfo>emptyList());
-
-        final Collection<GridCacheEntryInfo> infos = new LinkedList<>();
 
         String taskName0 = cctx.kernalContext().job().currentTaskName();
 
@@ -302,160 +402,163 @@ public final class GridDhtGetFuture<K, V> extends GridCompoundIdentityFuture<Col
 
         GridCompoundFuture<Boolean, Boolean> txFut = null;
 
-        for (Map.Entry<KeyCacheObject, Boolean> k : keys.entrySet()) {
-            while (true) {
-                GridDhtCacheEntry e = cache().entryExx(k.getKey(), topVer);
+        ReaderArguments readerArgs = null;
 
-                try {
-                    GridCacheEntryInfo info = e.info();
+        if (addReaders && !skipVals && !cctx.localNodeId().equals(reader)) {
+            for (Map.Entry<KeyCacheObject, Boolean> k : keys.entrySet()) {
+                if (!k.getValue())
+                    continue;
 
-                    // If entry is obsolete.
-                    if (info == null)
-                        continue;
+                while (true) {
+                    GridDhtCacheEntry e = cache().entryExx(k.getKey(), topVer);
 
-                    boolean addReader = (!e.deleted() && k.getValue() && !skipVals);
+                    try {
+                        if (e.obsolete())
+                            continue;
 
-                    if (addReader)
-                        e.unswap(false);
+                        boolean addReader = !e.deleted();
 
-                    // Register reader. If there are active transactions for this entry,
-                    // then will wait for their completion before proceeding.
-                    // TODO: GG-4003:
-                    // TODO: What if any transaction we wait for actually removes this entry?
-                    // TODO: In this case seems like we will be stuck with untracked near entry.
-                    // TODO: To fix, check that reader is contained in the list of readers once
-                    // TODO: again after the returned future completes - if not, try again.
-                    // TODO: Also, why is info read before transactions are complete, and not after?
-                    IgniteInternalFuture<Boolean> f = addReader ? e.addReader(reader, msgId, topVer) : null;
+                        if (addReader) {
+                            e.unswap(false);
 
-                    if (f != null) {
-                        if (txFut == null)
-                            txFut = new GridCompoundFuture<>(CU.boolReducer());
+                            // Entry will be removed on touch() if no data in cache,
+                            // but they could be loaded from store,
+                            // we have to add reader again later.
+                            if (readerArgs == null)
+                                readerArgs = new ReaderArguments(reader, msgId, topVer);
+                        }
 
-                        txFut.add(f);
+                        // Register reader. If there are active transactions for this entry,
+                        // then will wait for their completion before proceeding.
+                        // TODO: IGNITE-3498:
+                        // TODO: What if any transaction we wait for actually removes this entry?
+                        // TODO: In this case seems like we will be stuck with untracked near entry.
+                        // TODO: To fix, check that reader is contained in the list of readers once
+                        // TODO: again after the returned future completes - if not, try again.
+                        IgniteInternalFuture<Boolean> f = addReader ? e.addReader(reader, msgId, topVer) : null;
+
+                        if (f != null) {
+                            if (txFut == null)
+                                txFut = new GridCompoundFuture<>(CU.boolReducer());
+
+                            txFut.add(f);
+                        }
+
+                        break;
                     }
-
-                    infos.add(info);
-
-                    break;
-                }
-                catch (IgniteCheckedException err) {
-                    return new GridFinishedFuture<>(err);
-                }
-                catch (GridCacheEntryRemovedException ignore) {
-                    if (log.isDebugEnabled())
-                        log.debug("Got removed entry when getting a DHT value: " + e);
-                }
-                finally {
-                    cctx.evicts().touch(e, topVer);
+                    catch (IgniteCheckedException err) {
+                        return new GridFinishedFuture<>(err);
+                    }
+                    catch (GridCacheEntryRemovedException ignore) {
+                        if (log.isDebugEnabled())
+                            log.debug("Got removed entry when getting a DHT value: " + e);
+                    }
+                    finally {
+                        e.touch();
+                    }
                 }
             }
+
+            if (txFut != null)
+                txFut.markInitialized();
         }
 
-        if (txFut != null)
-            txFut.markInitialized();
-
-        IgniteInternalFuture<Map<KeyCacheObject, CacheObject>> fut;
+        IgniteInternalFuture<Map<KeyCacheObject, EntryGetResult>> fut;
 
         if (txFut == null || txFut.isDone()) {
-            if (reload && cctx.readThrough() && cctx.store().configured()) {
-                fut = cache().reloadAllAsync0(keys.keySet(),
-                    true,
-                    skipVals,
-                    subjId,
-                    taskName);
-            }
-            else {
-                if (tx == null) {
-                    fut = cache().getDhtAllAsync(
-                        keys.keySet(),
-                        readThrough,
-                        subjId,
-                        taskName,
-                        expiryPlc,
-                        skipVals,
-                        /*can remap*/true);
-                }
-                else {
-                    fut = tx.getAllAsync(cctx,
-                        keys.keySet(),
-                        null,
-                        /*deserialize portable*/false,
-                        skipVals,
-                        /*keep cache objects*/true,
-                        /*skip store*/!readThrough);
-                }
-            }
+            fut = cache().getDhtAllAsync(
+                keys.keySet(),
+                readerArgs,
+                readThrough,
+                subjId,
+                taskName,
+                expiryPlc,
+                skipVals,
+                recovery,
+                txLbl,
+                mvccSnapshot);
         }
         else {
+            final ReaderArguments args = readerArgs;
+
             // If we are here, then there were active transactions for some entries
             // when we were adding the reader. In that case we must wait for those
             // transactions to complete.
             fut = new GridEmbeddedFuture<>(
                 txFut,
-                new C2<Boolean, Exception, IgniteInternalFuture<Map<KeyCacheObject, CacheObject>>>() {
-                    @Override public IgniteInternalFuture<Map<KeyCacheObject, CacheObject>> apply(Boolean b, Exception e) {
+                new C2<Boolean, Exception, IgniteInternalFuture<Map<KeyCacheObject, EntryGetResult>>>() {
+                    @Override public IgniteInternalFuture<Map<KeyCacheObject, EntryGetResult>> apply(Boolean b, Exception e) {
                         if (e != null)
                             throw new GridClosureException(e);
 
-                        if (reload && cctx.readThrough() && cctx.store().configured()) {
-                            return cache().reloadAllAsync0(keys.keySet(),
-                                true,
-                                skipVals,
-                                subjId,
-                                taskName);
-                        }
-                        else {
-                            if (tx == null) {
-                                return cache().getDhtAllAsync(
-                                    keys.keySet(),
-                                    readThrough,
-                                    subjId,
-                                    taskName,
-                                    expiryPlc,
-                                    skipVals,
-                                    /*can remap*/true);
-                            }
-                            else {
-                                return tx.getAllAsync(cctx,
-                                    keys.keySet(),
-                                    null,
-                                    /*deserialize portable*/false,
-                                    skipVals,
-                                    /*keep cache objects*/true,
-                                    /*skip store*/!readThrough);
-                            }
-                        }
+                        return cache().getDhtAllAsync(
+                            keys.keySet(),
+                            args,
+                            readThrough,
+                            subjId,
+                            taskName,
+                            expiryPlc,
+                            skipVals,
+                            recovery,
+                            txLbl,
+                            mvccSnapshot);
                     }
                 }
             );
         }
 
+        if (fut.isDone()) {
+            if (fut.error() != null)
+                onDone(fut.error());
+            else
+                return new GridFinishedFuture<>(toEntryInfos(fut.result()));
+        }
+
         return new GridEmbeddedFuture<>(
-            new C2<Map<KeyCacheObject, CacheObject>, Exception, Collection<GridCacheEntryInfo>>() {
-                @Override public Collection<GridCacheEntryInfo> apply(Map<KeyCacheObject, CacheObject> map, Exception e) {
+            new C2<Map<KeyCacheObject, EntryGetResult>, Exception, Collection<GridCacheEntryInfo>>() {
+                @Override public Collection<GridCacheEntryInfo> apply(
+                    Map<KeyCacheObject, EntryGetResult> map, Exception e
+                ) {
                     if (e != null) {
                         onDone(e);
 
                         return Collections.emptyList();
                     }
-                    else {
-                        for (Iterator<GridCacheEntryInfo> it = infos.iterator(); it.hasNext();) {
-                            GridCacheEntryInfo info = it.next();
-
-                            Object v = map.get(info.key());
-
-                            if (v == null)
-                                it.remove();
-                            else if (!skipVals)
-                                info.value((CacheObject)v);
-                        }
-
-                        return infos;
-                    }
+                    else
+                        return toEntryInfos(map);
                 }
             },
             fut);
+    }
+
+    /**
+     * @param map Map to convert.
+     * @return List of infos.
+     */
+    private Collection<GridCacheEntryInfo> toEntryInfos(Map<KeyCacheObject, EntryGetResult> map) {
+        if (map.isEmpty())
+            return Collections.emptyList();
+
+        Collection<GridCacheEntryInfo> infos = new ArrayList<>(map.size());
+
+        for (Map.Entry<KeyCacheObject, EntryGetResult> entry : map.entrySet()) {
+            EntryGetResult val = entry.getValue();
+
+            assert val != null;
+
+            GridCacheEntryInfo info = new GridCacheEntryInfo();
+
+            info.cacheId(cctx.cacheId());
+            info.key(entry.getKey());
+            info.value(skipVals ? null : (CacheObject)val.value());
+            info.version(val.version());
+            info.expireTime(val.expireTime());
+            info.ttl(val.ttl());
+
+            infos.add(info);
+        }
+
+        return infos;
     }
 
     /**

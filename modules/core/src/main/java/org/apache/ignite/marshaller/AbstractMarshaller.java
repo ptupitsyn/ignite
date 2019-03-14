@@ -17,12 +17,9 @@
 
 package org.apache.ignite.marshaller;
 
-import org.apache.ignite.IgniteCheckedException;
 import org.apache.ignite.internal.util.GridByteArrayList;
 import org.apache.ignite.internal.util.io.GridByteArrayInputStream;
 import org.apache.ignite.internal.util.io.GridByteArrayOutputStream;
-import org.apache.ignite.internal.util.typedef.internal.U;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * Base class for marshallers. Provides default implementations of methods
@@ -37,38 +34,24 @@ public abstract class AbstractMarshaller implements Marshaller {
     /** Context. */
     protected MarshallerContext ctx;
 
+    /**
+     * Undeployment callback invoked when class loader is being undeployed.
+     *
+     * Some marshallers may want to clean their internal state that uses the undeployed class loader somehow.
+     *
+     * @param ldr Class loader being undeployed.
+     */
+    public abstract void onUndeploy(ClassLoader ldr);
+
+    /**
+     * @return Marshaller context.
+     */
+    public MarshallerContext getContext() {
+        return ctx;
+    }
+
     /** {@inheritDoc} */
     @Override public void setContext(MarshallerContext ctx) {
         this.ctx = ctx;
-    }
-
-    /** {@inheritDoc} */
-    @Override public byte[] marshal(@Nullable Object obj) throws IgniteCheckedException {
-        GridByteArrayOutputStream out = null;
-
-        try {
-            out = new GridByteArrayOutputStream(DFLT_BUFFER_SIZE);
-
-            marshal(obj, out);
-
-            return out.toByteArray();
-        }
-        finally {
-            U.close(out, null);
-        }
-    }
-
-    /** {@inheritDoc} */
-    @Override public <T> T unmarshal(byte[] arr, @Nullable ClassLoader clsLdr) throws IgniteCheckedException {
-        GridByteArrayInputStream in = null;
-
-        try {
-            in = new GridByteArrayInputStream(arr, 0, arr.length);
-
-            return unmarshal(in, clsLdr);
-        }
-        finally {
-            U.close(in, null);
-        }
     }
 }

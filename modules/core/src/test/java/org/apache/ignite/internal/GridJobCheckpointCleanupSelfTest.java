@@ -38,6 +38,7 @@ import org.apache.ignite.spi.checkpoint.CheckpointListener;
 import org.apache.ignite.spi.checkpoint.CheckpointSpi;
 import org.apache.ignite.testframework.junits.common.GridCommonAbstractTest;
 import org.jetbrains.annotations.Nullable;
+import org.junit.Test;
 
 /**
  * Test for checkpoint cleanup.
@@ -50,8 +51,8 @@ public class GridJobCheckpointCleanupSelfTest extends GridCommonAbstractTest {
     private CheckpointSpi checkpointSpi;
 
     /** {@inheritDoc} */
-    @Override protected IgniteConfiguration getConfiguration(String gridName) throws Exception {
-        IgniteConfiguration c = super.getConfiguration(gridName);
+    @Override protected IgniteConfiguration getConfiguration(String igniteInstanceName) throws Exception {
+        IgniteConfiguration c = super.getConfiguration(igniteInstanceName);
 
         c.setCheckpointSpi(checkpointSpi);
 
@@ -64,6 +65,7 @@ public class GridJobCheckpointCleanupSelfTest extends GridCommonAbstractTest {
      *
      * @throws Exception if failed.
      */
+    @Test
     public void testCheckpointCleanup() throws Exception {
         try {
             checkpointSpi = new TestCheckpointSpi("task-checkpoints", cntr);
@@ -127,7 +129,7 @@ public class GridJobCheckpointCleanupSelfTest extends GridCommonAbstractTest {
         }
 
         /** {@inheritDoc} */
-        @Override public void spiStart(@Nullable String gridName) throws IgniteSpiException {
+        @Override public void spiStart(@Nullable String igniteInstanceName) throws IgniteSpiException {
             // No-op.
         }
 

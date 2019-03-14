@@ -20,6 +20,7 @@ package org.apache.ignite.internal.processors.cache.distributed.replicated;
 import org.apache.ignite.configuration.CacheConfiguration;
 import org.apache.ignite.configuration.IgniteConfiguration;
 import org.apache.ignite.internal.processors.cache.IgniteTxMultiNodeAbstractTest;
+import org.junit.Test;
 
 import static org.apache.ignite.cache.CacheMode.REPLICATED;
 import static org.apache.ignite.cache.CacheWriteSynchronizationMode.FULL_SYNC;
@@ -29,8 +30,8 @@ import static org.apache.ignite.cache.CacheWriteSynchronizationMode.FULL_SYNC;
  */
 public class GridCacheReplicatedTxMultiNodeBasicTest extends IgniteTxMultiNodeAbstractTest {
     /** {@inheritDoc} */
-    @Override protected IgniteConfiguration getConfiguration(String gridName) throws Exception {
-        IgniteConfiguration cfg = super.getConfiguration(gridName);
+    @Override protected IgniteConfiguration getConfiguration(String igniteInstanceName) throws Exception {
+        IgniteConfiguration cfg = super.getConfiguration(igniteInstanceName);
 
         // Default cache configuration.
         CacheConfiguration ccfg = defaultCacheConfiguration();
@@ -44,36 +45,43 @@ public class GridCacheReplicatedTxMultiNodeBasicTest extends IgniteTxMultiNodeAb
     }
 
     /** {@inheritDoc} */
+    @Test
     @Override public void testPutOneEntryInTx() throws Exception {
         super.testPutOneEntryInTx();
     }
 
     /** {@inheritDoc} */
+    @Test
     @Override public void testPutTwoEntriesInTx() throws Exception {
         super.testPutTwoEntriesInTx();
     }
 
     /** {@inheritDoc} */
+    @Test
     @Override public void testPutOneEntryInTxMultiThreaded() throws Exception {
         super.testPutOneEntryInTxMultiThreaded();
     }
 
     /** {@inheritDoc} */
+    @Test
     @Override public void testPutTwoEntryInTxMultiThreaded() throws Exception {
         super.testPutTwoEntryInTxMultiThreaded();
     }
 
     /** {@inheritDoc} */
+    @Test
     @Override public void testRemoveInTxQueried() throws Exception {
         super.testRemoveInTxQueried();
     }
 
     /** {@inheritDoc} */
+    @Test
     @Override public void testRemoveInTxSimple() throws Exception {
         super.testRemoveInTxSimple();
     }
 
     /** {@inheritDoc} */
+    @Test
     @Override public void testRemoveInTxQueriedMultiThreaded() throws Exception {
         super.testRemoveInTxQueriedMultiThreaded();
     }

@@ -17,12 +17,11 @@
 
 package org.apache.ignite.cache.store.jdbc;
 
-import java.io.Serializable;
 import java.util.Collection;
 import java.util.concurrent.Callable;
 import org.apache.ignite.Ignite;
 import org.apache.ignite.IgniteCache;
-import org.apache.ignite.IgniteException;
+import org.apache.ignite.IgniteCheckedException;
 import org.apache.ignite.Ignition;
 import org.apache.ignite.cache.store.jdbc.dialect.H2Dialect;
 import org.apache.ignite.cache.store.jdbc.dialect.JdbcDialect;
@@ -30,9 +29,11 @@ import org.apache.ignite.configuration.CacheConfiguration;
 import org.apache.ignite.testframework.GridTestUtils;
 import org.apache.ignite.testframework.junits.common.GridCommonAbstractTest;
 import org.h2.jdbcx.JdbcDataSource;
+import org.junit.Ignore;
+import org.junit.Test;
 
 /**
- * Test for Cache jdbc blob store factory.
+ * Test for Cache JDBC POJO store factory.
  */
 public class CacheJdbcPojoStoreFactorySelfTest extends GridCommonAbstractTest {
     /** Cache name. */
@@ -41,6 +42,7 @@ public class CacheJdbcPojoStoreFactorySelfTest extends GridCommonAbstractTest {
     /**
      * @throws Exception If failed.
      */
+    @Test
     public void testCacheConfiguration() throws Exception {
         try (Ignite ignite = Ignition.start("modules/spring/src/test/config/node.xml")) {
             try (Ignite ignite1 = Ignition.start("modules/spring/src/test/config/node1.xml")) {
@@ -58,6 +60,7 @@ public class CacheJdbcPojoStoreFactorySelfTest extends GridCommonAbstractTest {
     /**
      * @throws Exception If failed.
      */
+    @Test
     public void testSerializable() throws Exception {
         try (Ignite ignite = Ignition.start("modules/spring/src/test/config/node.xml")) {
             try (IgniteCache<Integer, String> cache = ignite.getOrCreateCache(cacheConfigurationH2Dialect())) {
@@ -69,23 +72,24 @@ public class CacheJdbcPojoStoreFactorySelfTest extends GridCommonAbstractTest {
     /**
      * @throws Exception If failed.
      */
+    @Ignore("https://issues.apache.org/jira/browse/IGNITE-10723")
+    @Test
     public void testIncorrectBeanConfiguration() throws Exception {
-        GridTestUtils.assertThrows(log, new Callable<Object>() {
+        GridTestUtils.assertThrowsAnyCause(log, new Callable<Object>() {
             @Override public Object call() throws Exception {
-                try(Ignite ignite = Ignition.start("modules/spring/src/test/config/pojo-incorrect-store-cache.xml")) {
-                    ignite.cache(CACHE_NAME).getConfiguration(CacheConfiguration.class).
-                        getCacheStoreFactory().create();
+                try (Ignite ignored = Ignition.start("modules/spring/src/test/config/pojo-incorrect-store-cache.xml")) {
+                    // No-op.
                 }
                 return null;
             }
-        }, IgniteException.class, "Failed to load bean in application context");
+        }, IgniteCheckedException.class, "Spring bean with provided name doesn't exist");
     }
 
     /**
      * @return Cache configuration with store.
      */
     private CacheConfiguration<Integer, String> cacheConfiguration() {
-        CacheConfiguration<Integer, String> cfg = new CacheConfiguration<>();
+        CacheConfiguration<Integer, String> cfg = new CacheConfiguration<>(DEFAULT_CACHE_NAME);
 
         CacheJdbcPojoStoreFactory<Integer, String> factory = new CacheJdbcPojoStoreFactory<>();
 
@@ -102,7 +106,7 @@ public class CacheJdbcPojoStoreFactorySelfTest extends GridCommonAbstractTest {
      * @return Cache configuration with store.
      */
     private CacheConfiguration<Integer, String> cacheConfigurationH2Dialect() {
-        CacheConfiguration<Integer, String> cfg = new CacheConfiguration<>();
+        CacheConfiguration<Integer, String> cfg = new CacheConfiguration<>(DEFAULT_CACHE_NAME);
 
         CacheJdbcPojoStoreFactory<Integer, String> factory = new CacheJdbcPojoStoreFactory<>();
 
@@ -117,21 +121,26 @@ public class CacheJdbcPojoStoreFactorySelfTest extends GridCommonAbstractTest {
 
     /**
      * @param cache Ignite cache.
-     * @param dataSrcClass Data source class.
+     * @param dataSrcCls Data source class.
      * @throws Exception If store parameters is not the same as in configuration xml.
      */
-    private void checkStore(IgniteCache<Integer, String> cache, Class<?> dataSrcClass) throws Exception {
+    private void checkStore(IgniteCache<Integer, String> cache, Class<?> dataSrcCls) throws Exception {
         CacheJdbcPojoStore store = (CacheJdbcPojoStore)cache.getConfiguration(CacheConfiguration.class).
             getCacheStoreFactory().create();
 
-        assertEquals(dataSrcClass,
+        assertEquals(dataSrcCls,
             GridTestUtils.getFieldValue(store, CacheAbstractJdbcStore.class, "dataSrc").getClass());
     }
 
     /**
-     *
+     * Dummy JDBC dialect that does nothing.
      */
-    public static class DummyDialect implements JdbcDialect, Serializable {
+    public static class DummyDialect implements JdbcDialect {
+        /** {@inheritDoc} */
+        @Override public String escape(String ident) {
+            return null;
+        }
+
         /** {@inheritDoc} */
         @Override public String loadCacheSelectRangeQuery(String fullTblName, Collection<String> keyCols) {
             return null;
@@ -183,6 +192,11 @@ public class CacheJdbcPojoStoreFactorySelfTest extends GridCommonAbstractTest {
 
         /** {@inheritDoc} */
         @Override public int getMaxParameterCount() {
+            return 0;
+        }
+
+        /** {@inheritDoc} */
+        @Override public int getFetchSize() {
             return 0;
         }
     }

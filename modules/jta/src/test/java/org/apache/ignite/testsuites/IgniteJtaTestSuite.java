@@ -17,28 +17,42 @@
 
 package org.apache.ignite.testsuites;
 
-import junit.framework.TestSuite;
+import org.apache.ignite.internal.processors.cache.CacheJndiTmFactorySelfTest;
 import org.apache.ignite.internal.processors.cache.GridCacheJtaConfigurationValidationSelfTest;
-import org.apache.ignite.internal.processors.cache.GridCacheJtaSelfTest;
-import org.apache.ignite.internal.processors.cache.GridCacheReplicatedJtaSelfTest;
-import org.apache.ignite.internal.processors.cache.GridTmLookupLifecycleAwareSelfTest;
+import org.apache.ignite.internal.processors.cache.GridCacheJtaFactoryConfigValidationSelfTest;
+import org.apache.ignite.internal.processors.cache.GridJtaTransactionManagerSelfTest;
+import org.apache.ignite.internal.processors.cache.jta.GridPartitionedCacheJtaFactorySelfTest;
+import org.apache.ignite.internal.processors.cache.jta.GridPartitionedCacheJtaFactoryUseSyncSelfTest;
+import org.apache.ignite.internal.processors.cache.jta.GridPartitionedCacheJtaLookupClassNameSelfTest;
+import org.apache.ignite.internal.processors.cache.jta.GridReplicatedCacheJtaFactorySelfTest;
+import org.apache.ignite.internal.processors.cache.jta.GridReplicatedCacheJtaFactoryUseSyncSelfTest;
+import org.apache.ignite.internal.processors.cache.jta.GridReplicatedCacheJtaLookupClassNameSelfTest;
+import org.apache.ignite.internal.processors.cache.GridJtaLifecycleAwareSelfTest;
+import org.junit.runner.RunWith;
+import org.junit.runners.Suite;
 
 /**
  * JTA integration tests.
  */
-public class IgniteJtaTestSuite extends TestSuite {
-    /**
-     * @return Test suite.
-     * @throws Exception Thrown in case of the failure.
-     */
-    public static TestSuite suite() throws Exception {
-        TestSuite suite = new TestSuite("JTA Integration Test Suite");
+@RunWith(Suite.class)
+@Suite.SuiteClasses({
+    GridPartitionedCacheJtaFactorySelfTest.class,
+    GridReplicatedCacheJtaFactorySelfTest.class,
 
-        suite.addTestSuite(GridCacheJtaSelfTest.class);
-        suite.addTestSuite(GridCacheReplicatedJtaSelfTest.class);
-        suite.addTestSuite(GridTmLookupLifecycleAwareSelfTest.class);
-        suite.addTestSuite(GridCacheJtaConfigurationValidationSelfTest.class);
+    GridPartitionedCacheJtaLookupClassNameSelfTest.class,
+    GridReplicatedCacheJtaLookupClassNameSelfTest.class,
 
-        return suite;
-    }
+    GridPartitionedCacheJtaFactoryUseSyncSelfTest.class,
+    GridReplicatedCacheJtaFactoryUseSyncSelfTest.class,
+
+    GridJtaLifecycleAwareSelfTest.class,
+    GridCacheJtaConfigurationValidationSelfTest.class,
+    GridCacheJtaFactoryConfigValidationSelfTest.class,
+
+    GridJtaTransactionManagerSelfTest.class,
+
+    // Factory
+    CacheJndiTmFactorySelfTest.class
+})
+public class IgniteJtaTestSuite {
 }

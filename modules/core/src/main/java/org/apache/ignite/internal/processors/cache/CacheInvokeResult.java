@@ -25,6 +25,9 @@ import javax.cache.processor.EntryProcessor;
 import javax.cache.processor.EntryProcessorException;
 import javax.cache.processor.EntryProcessorResult;
 import javax.cache.processor.MutableEntry;
+import org.apache.ignite.IgniteException;
+import org.apache.ignite.internal.UnregisteredBinaryTypeException;
+import org.apache.ignite.internal.UnregisteredClassException;
 import org.apache.ignite.internal.util.tostring.GridToStringInclude;
 import org.apache.ignite.internal.util.typedef.internal.S;
 
@@ -36,7 +39,7 @@ public class CacheInvokeResult<T> implements EntryProcessorResult<T>, Externaliz
     private static final long serialVersionUID = 0L;
 
     /** */
-    @GridToStringInclude
+    @GridToStringInclude(sensitive = true)
     private T res;
 
     /** */
@@ -64,6 +67,20 @@ public class CacheInvokeResult<T> implements EntryProcessorResult<T>, Externaliz
     }
 
     /**
+     * @return Result.
+     */
+    public T result() {
+        return res;
+    }
+
+    /**
+     * Entry processor error;
+     */
+    public Exception error() {
+        return err;
+    }
+
+    /**
      * Static constructor.
      *
      * @param err Exception thrown by {@link EntryProcessor#process(MutableEntry, Object...)}.
@@ -82,6 +99,9 @@ public class CacheInvokeResult<T> implements EntryProcessorResult<T>, Externaliz
     /** {@inheritDoc} */
     @Override public T get() throws EntryProcessorException {
         if (err != null) {
+            if (err instanceof UnregisteredClassException || err instanceof UnregisteredBinaryTypeException)
+                throw (IgniteException) err;
+
             if (err instanceof EntryProcessorException)
                 throw (EntryProcessorException)err;
 
@@ -99,7 +119,6 @@ public class CacheInvokeResult<T> implements EntryProcessorResult<T>, Externaliz
     }
 
     /** {@inheritDoc} */
-    @SuppressWarnings("unchecked")
     @Override public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
         res = (T)in.readObject();
 

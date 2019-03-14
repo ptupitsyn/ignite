@@ -24,6 +24,7 @@ import org.apache.ignite.IgniteCheckedException;
 import org.apache.ignite.IgniteDataStreamer;
 import org.apache.ignite.IgniteException;
 import org.apache.ignite.IgniteLogger;
+import org.apache.ignite.internal.IgniteKernal;
 import org.apache.ignite.internal.util.nio.GridBufferedParser;
 import org.apache.ignite.internal.util.nio.GridDelimitedParser;
 import org.apache.ignite.internal.util.nio.GridNioCodecFilter;
@@ -35,6 +36,9 @@ import org.apache.ignite.internal.util.nio.GridNioServerListenerAdapter;
 import org.apache.ignite.internal.util.nio.GridNioSession;
 import org.apache.ignite.internal.util.typedef.F;
 import org.apache.ignite.internal.util.typedef.internal.A;
+import org.apache.ignite.internal.util.typedef.internal.U;
+import org.apache.ignite.marshaller.Marshaller;
+import org.apache.ignite.marshaller.MarshallerUtils;
 import org.apache.ignite.marshaller.jdk.JdkMarshaller;
 import org.apache.ignite.stream.StreamAdapter;
 import org.apache.ignite.stream.StreamTupleExtractor;
@@ -141,7 +145,8 @@ public class SocketStreamer<T, K, V> extends StreamAdapter<T, K, V> {
      * @throws IgniteException If failed.
      */
     public void start() {
-        A.notNull(getTupleExtractor(), "tupleExtractor");
+        A.ensure(getSingleTupleExtractor() != null || getMultipleTupleExtractor() != null,
+            "tupleExtractor (single or multiple)");
         A.notNull(getStreamer(), "streamer");
         A.notNull(getIgnite(), "ignite");
         A.ensure(threads > 0, "threads > 0");
@@ -172,7 +177,7 @@ public class SocketStreamer<T, K, V> extends StreamAdapter<T, K, V> {
             new GridDelimitedParser(delim, directMode);
 
         if (converter == null)
-            converter = new DefaultConverter<>();
+            converter = new DefaultConverter<>(getIgnite().name());
 
         GridNioFilter codec = new GridNioCodecFilter(parser, log, directMode);
 
@@ -181,6 +186,7 @@ public class SocketStreamer<T, K, V> extends StreamAdapter<T, K, V> {
         try {
             srv = new GridNioServer.Builder<byte[]>()
                 .address(addr == null ? InetAddress.getLocalHost() : addr)
+                .serverName("sock-streamer")
                 .port(port)
                 .listener(lsnr)
                 .logger(log)
@@ -203,7 +209,8 @@ public class SocketStreamer<T, K, V> extends StreamAdapter<T, K, V> {
      * Stops streamer.
      */
     public void stop() {
-        srv.stop();
+        if (srv != null)
+            srv.stop();
 
         if (log.isDebugEnabled())
             log.debug("Socket streaming server stopped");
@@ -212,14 +219,25 @@ public class SocketStreamer<T, K, V> extends StreamAdapter<T, K, V> {
     /**
      * Converts message to Java object using Jdk marshaller.
      */
-    private static class DefaultConverter<T> implements SocketMessageConverter<T> {
+    private class DefaultConverter<T> implements SocketMessageConverter<T> {
         /** Marshaller. */
-        private static final JdkMarshaller MARSH = new JdkMarshaller();
+        private final Marshaller marsh;
+
+        /**
+         * Constructor.
+         *
+         * @param igniteInstanceName Ignite instance name.
+         */
+        private DefaultConverter(@Nullable String igniteInstanceName) {
+            marsh = new JdkMarshaller(((IgniteKernal)ignite).context().marshallerContext().classNameFilter());
+
+            MarshallerUtils.setNodeName(marsh, igniteInstanceName);
+        }
 
         /** {@inheritDoc} */
         @Override public T convert(byte[] msg) {
             try {
-                return MARSH.unmarshal(msg, null);
+                return U.unmarshal(marsh, msg, null);
             }
             catch (IgniteCheckedException e) {
                 throw new IgniteException(e);

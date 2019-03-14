@@ -17,75 +17,63 @@
 
 package org.apache.ignite.stream.kafka;
 
-import java.util.HashMap;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
+import java.util.Properties;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
-import kafka.consumer.ConsumerConfig;
-import kafka.consumer.ConsumerIterator;
-import kafka.consumer.KafkaStream;
-import kafka.javaapi.consumer.ConsumerConnector;
-import kafka.message.MessageAndMetadata;
-import kafka.serializer.Decoder;
+import java.util.stream.IntStream;
 import org.apache.ignite.IgniteDataStreamer;
 import org.apache.ignite.IgniteException;
 import org.apache.ignite.IgniteLogger;
 import org.apache.ignite.internal.util.typedef.internal.A;
 import org.apache.ignite.internal.util.typedef.internal.U;
 import org.apache.ignite.stream.StreamAdapter;
+import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.apache.kafka.clients.consumer.KafkaConsumer;
+import org.apache.kafka.common.KafkaException;
+import org.apache.kafka.common.errors.WakeupException;
 
 /**
  * Server that subscribes to topic messages from Kafka broker and streams its to key-value pairs into
  * {@link IgniteDataStreamer} instance.
  * <p>
  * Uses Kafka's High Level Consumer API to read messages from Kafka.
- *
- * @see <a href="https://cwiki.apache.org/confluence/display/KAFKA/Consumer+Group+Example">Consumer Consumer Group
- * Example</a>
  */
-public class KafkaStreamer<T, K, V> extends StreamAdapter<T, K, V> {
-    /** Retry timeout. */
-    private static final long DFLT_RETRY_TIMEOUT = 10000;
+public class KafkaStreamer<K, V> extends StreamAdapter<ConsumerRecord, K, V> {
+    /** Default polling timeout. */
+    private static final long DFLT_TIMEOUT = 100;
 
     /** Logger. */
     private IgniteLogger log;
 
-    /** Executor used to submit kafka streams. */
+    /** Polling tasks executor. */
     private ExecutorService executor;
 
-    /** Topic. */
-    private String topic;
+    /** Topics. */
+    private List<String> topics;
 
-    /** Number of threads to process kafka streams. */
+    /** Number of threads. */
     private int threads;
 
     /** Kafka consumer config. */
-    private ConsumerConfig consumerCfg;
+    private Properties consumerCfg;
 
-    /** Key decoder. */
-    private Decoder<K> keyDecoder;
+    /** Polling timeout. */
+    private long timeout = DFLT_TIMEOUT;
 
-    /** Value decoder. */
-    private Decoder<V> valDecoder;
-
-    /** Kafka consumer connector. */
-    private ConsumerConnector consumer;
-
-    /** Retry timeout. */
-    private long retryTimeout = DFLT_RETRY_TIMEOUT;
-
-    /** Stopped. */
-    private volatile boolean stopped;
+    /** Kafka consumer tasks. */
+    private final List<ConsumerTask> consumerTasks = new ArrayList<>();
 
     /**
-     * Sets the topic name.
+     * Sets the topic names.
      *
-     * @param topic Topic name.
+     * @param topics Topic names.
      */
-    public void setTopic(String topic) {
-        this.topic = topic;
+    public void setTopic(List<String> topics) {
+        this.topics = topics;
     }
 
     /**
@@ -102,37 +90,19 @@ public class KafkaStreamer<T, K, V> extends StreamAdapter<T, K, V> {
      *
      * @param consumerCfg Consumer configuration.
      */
-    public void setConsumerConfig(ConsumerConfig consumerCfg) {
+    public void setConsumerConfig(Properties consumerCfg) {
         this.consumerCfg = consumerCfg;
     }
 
     /**
-     * Sets the key decoder.
+     * Sets the polling timeout for Kafka tasks.
      *
-     * @param keyDecoder Key decoder.
+     * @param timeout Timeout.
      */
-    public void setKeyDecoder(Decoder<K> keyDecoder) {
-        this.keyDecoder = keyDecoder;
-    }
+    public void setTimeout(long timeout) {
+        A.ensure(timeout > 0, "timeout > 0");
 
-    /**
-     * Sets the value decoder.
-     *
-     * @param valDecoder Value decoder.
-     */
-    public void setValueDecoder(Decoder<V> valDecoder) {
-        this.valDecoder = valDecoder;
-    }
-
-    /**
-     * Sets the retry timeout.
-     *
-     * @param retryTimeout Retry timeout.
-     */
-    public void setRetryTimeout(long retryTimeout) {
-        A.ensure(retryTimeout > 0, "retryTimeout > 0");
-
-        this.retryTimeout = retryTimeout;
+        this.timeout = timeout;
     }
 
     /**
@@ -143,72 +113,28 @@ public class KafkaStreamer<T, K, V> extends StreamAdapter<T, K, V> {
     public void start() {
         A.notNull(getStreamer(), "streamer");
         A.notNull(getIgnite(), "ignite");
-        A.notNull(topic, "topic");
-        A.notNull(keyDecoder, "key decoder");
-        A.notNull(valDecoder, "value decoder");
+        A.notNull(topics, "topics");
         A.notNull(consumerCfg, "kafka consumer config");
         A.ensure(threads > 0, "threads > 0");
+        A.ensure(null != getSingleTupleExtractor() || null != getMultipleTupleExtractor(),
+            "Extractor must be configured");
 
         log = getIgnite().log();
 
-        consumer = kafka.consumer.Consumer.createJavaConsumerConnector(consumerCfg);
-
-        Map<String, Integer> topicCntMap = new HashMap<>();
-
-        topicCntMap.put(topic, threads);
-
-        Map<String, List<KafkaStream<K, V>>> consumerMap =
-            consumer.createMessageStreams(topicCntMap, keyDecoder, valDecoder);
-
-        List<KafkaStream<K, V>> streams = consumerMap.get(topic);
-
-        // Now launch all the consumer threads.
         executor = Executors.newFixedThreadPool(threads);
 
-        stopped = false;
+        IntStream.range(0, threads).forEach(i -> consumerTasks.add(new ConsumerTask(consumerCfg)));
 
-        // Now create an object to consume the messages.
-        for (final KafkaStream<K, V> stream : streams) {
-            executor.submit(new Runnable() {
-                @Override public void run() {
-                    while (!stopped) {
-                        try {
-                            for (ConsumerIterator<K, V> it = stream.iterator(); it.hasNext() && !stopped; ) {
-                                MessageAndMetadata<K, V> msg = it.next();
-
-                                try {
-                                    getStreamer().addData(msg.key(), msg.message());
-                                }
-                                catch (Exception e) {
-                                    U.warn(log, "Message is ignored due to an error [msg=" + msg + ']', e);
-                                }
-                            }
-                        }
-                        catch (Exception e) {
-                            U.warn(log, "Message can't be consumed from stream. Retry after " +
-                                retryTimeout + " ms.", e);
-
-                            try {
-                                Thread.sleep(retryTimeout);
-                            }
-                            catch (InterruptedException ie) {
-                                // No-op.
-                            }
-                        }
-                    }
-                }
-            });
-        }
+        for (ConsumerTask task : consumerTasks)
+            executor.submit(task);
     }
 
     /**
      * Stops streamer.
      */
     public void stop() {
-        stopped = true;
-
-        if (consumer != null)
-            consumer.shutdown();
+        for (ConsumerTask task : consumerTasks)
+            task.stop();
 
         if (executor != null) {
             executor.shutdown();
@@ -218,10 +144,61 @@ public class KafkaStreamer<T, K, V> extends StreamAdapter<T, K, V> {
                     if (log.isDebugEnabled())
                         log.debug("Timed out waiting for consumer threads to shut down, exiting uncleanly.");
             }
-            catch (InterruptedException e) {
+            catch (InterruptedException ignored) {
                 if (log.isDebugEnabled())
                     log.debug("Interrupted during shutdown, exiting uncleanly.");
             }
+        }
+    }
+
+    /** Polling task. */
+    class ConsumerTask implements Callable<Void> {
+        /** Kafka consumer. */
+        private final KafkaConsumer<?, ?> consumer;
+
+        /** Stopped. */
+        private volatile boolean stopped;
+
+        /** Constructor. */
+        public ConsumerTask(Properties consumerCfg) {
+            this.consumer = new KafkaConsumer<>(consumerCfg);
+        }
+
+        /** {@inheritDoc} */
+        @Override public Void call() {
+            consumer.subscribe(topics);
+
+            try {
+                while (!stopped) {
+                    for (ConsumerRecord record : consumer.poll(timeout)) {
+                        try {
+                            addMessage(record);
+                        }
+                        catch (Exception e) {
+                            U.error(log, "Record is ignored due to an error [record = " + record + ']', e);
+                        }
+                    }
+                }
+            }
+            catch (WakeupException we) {
+                log.info("Consumer is being stopped.");
+            }
+            catch (KafkaException ke) {
+                log.error("Kafka error", ke);
+            }
+            finally {
+                consumer.close();
+            }
+
+            return null;
+        }
+
+        /** Stops the polling task. */
+        public void stop() {
+            stopped = true;
+
+            if (consumer != null)
+                consumer.wakeup();
         }
     }
 }

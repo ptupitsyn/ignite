@@ -1,4 +1,10 @@
-#!/bin/bash
+#!/usr/bin/env bash
+set -o nounset
+set -o errexit
+set -o pipefail
+set -o errtrace
+set -o functrace
+
 #
 # Licensed to the Apache Software Foundation (ASF) under one or more
 # contributor license agreements.  See the NOTICE file distributed with
@@ -23,7 +29,7 @@
 #
 # Import common functions.
 #
-if [ "${IGNITE_HOME}" = "" ];
+if [ "${IGNITE_HOME:-}" = "" ];
     then IGNITE_HOME_TMP="$(dirname "$(cd "$(dirname "$0")"; "pwd")")";
     else IGNITE_HOME_TMP=${IGNITE_HOME};
 fi
@@ -45,7 +51,7 @@ checkJava
 #
 setIgniteHome
 
-if [ "${DEFAULT_CONFIG}" == "" ]; then
+if [ "${DEFAULT_CONFIG:-}" == "" ]; then
     DEFAULT_CONFIG=config/default-config.xml
 fi
 
@@ -80,7 +86,7 @@ fi
 # Mac OS specific support to display correct name in the dock.
 osname=`uname`
 
-if [ "${DOCK_OPTS}" == "" ]; then
+if [ "${DOCK_OPTS:-}" == "" ]; then
     DOCK_OPTS="-Xdock:name=Ignite Node"
 fi
 
@@ -90,14 +96,13 @@ fi
 # ADD YOUR/CHANGE ADDITIONAL OPTIONS HERE
 #
 if [ -z "$JVM_OPTS" ] ; then
-    JVM_OPTS="-Xms1g -Xmx1g -server -XX:+AggressiveOpts -XX:MaxPermSize=256m"
+    JVM_OPTS="-Xms1g -Xmx1g -server -XX:MaxMetaspaceSize=256m"
 fi
 
 #
 # Uncomment the following GC settings if you see spikes in your throughput due to Garbage Collection.
 #
-# JVM_OPTS="$JVM_OPTS -XX:+UseParNewGC -XX:+UseConcMarkSweepGC -XX:+UseTLAB -XX:NewSize=128m -XX:MaxNewSize=128m"
-# JVM_OPTS="$JVM_OPTS -XX:MaxTenuringThreshold=0 -XX:SurvivorRatio=1024 -XX:+UseCMSInitiatingOccupancyOnly -XX:CMSInitiatingOccupancyFraction=60"
+# JVM_OPTS="$JVM_OPTS -XX:+UseG1GC"
 
 #
 # Uncomment if you get StackOverflowError.
@@ -124,9 +129,18 @@ if [ "${ENABLE_ASSERTIONS}" = "1" ]; then
 fi
 
 #
+# If this is a Hadoop edition, and HADOOP_HOME set, add the native library location:
+#
+if [ -d "${IGNITE_HOME}/libs/ignite-hadoop/" ] && [ -n "${HADOOP_HOME}" ] && [ -d "${HADOOP_HOME}/lib/native/" ]; then
+   if [[ "${JVM_OPTS}${JVM_XOPTS}" != *-Djava.library.path=* ]]; then
+      JVM_OPTS="${JVM_OPTS} -Djava.library.path=${HADOOP_HOME}/lib/native/"
+   fi
+fi
+
+#
 # Set main class to start service (grid node by default).
 #
-if [ "${MAIN_CLASS}" = "" ]; then
+if [ "${MAIN_CLASS:-}" = "" ]; then
     MAIN_CLASS=org.apache.ignite.startup.cmdline.CommandLineStartup
 fi
 
@@ -135,6 +149,41 @@ fi
 # Uncomment and change if remote debugging is required.
 #
 # JVM_OPTS="-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=8787 ${JVM_OPTS}"
+
+#
+# Final JVM_OPTS for Java 9+ compatibility
+#
+javaMajorVersion "${JAVA}"
+
+if [ $version -eq 8 ] ; then
+    JVM_OPTS="\
+        -XX:+AggressiveOpts \
+         ${JVM_OPTS}"
+
+elif [ $version -gt 8 ] && [ $version -lt 11 ]; then
+    JVM_OPTS="\
+        -XX:+AggressiveOpts \
+        --add-exports=java.base/jdk.internal.misc=ALL-UNNAMED \
+        --add-exports=java.base/sun.nio.ch=ALL-UNNAMED \
+        --add-exports=java.management/com.sun.jmx.mbeanserver=ALL-UNNAMED \
+        --add-exports=jdk.internal.jvmstat/sun.jvmstat.monitor=ALL-UNNAMED \
+        --add-exports=java.base/sun.reflect.generics.reflectiveObjects=ALL-UNNAMED \
+        --illegal-access=permit \
+        --add-modules=java.transaction \
+        --add-modules=java.xml.bind \
+        ${JVM_OPTS}"
+
+elif [ $version -eq 11 ] ; then
+    JVM_OPTS="\
+        --add-exports=java.base/jdk.internal.misc=ALL-UNNAMED \
+        --add-exports=java.base/sun.nio.ch=ALL-UNNAMED \
+        --add-exports=java.management/com.sun.jmx.mbeanserver=ALL-UNNAMED \
+        --add-exports=jdk.internal.jvmstat/sun.jvmstat.monitor=ALL-UNNAMED \
+        --add-exports=java.base/sun.reflect.generics.reflectiveObjects=ALL-UNNAMED \
+        --illegal-access=permit \
+        ${JVM_OPTS}"
+fi
+
 
 ERRORCODE="-1"
 

@@ -50,10 +50,11 @@ import org.apache.ignite.spi.IgniteSpiAdapter;
 import org.apache.ignite.spi.IgniteSpiConfiguration;
 import org.apache.ignite.spi.IgniteSpiContext;
 import org.apache.ignite.spi.IgniteSpiException;
+import org.apache.ignite.spi.IgniteSpiMBeanAdapter;
 import org.apache.ignite.spi.IgniteSpiMultipleInstancesSupport;
 import org.apache.ignite.spi.loadbalancing.LoadBalancingSpi;
 import org.jetbrains.annotations.Nullable;
-import org.jsr166.ConcurrentHashMap8;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static org.apache.ignite.events.EventType.EVT_JOB_MAPPED;
 import static org.apache.ignite.events.EventType.EVT_NODE_FAILED;
@@ -96,13 +97,13 @@ import static org.apache.ignite.events.EventType.EVT_TASK_FINISHED;
  * You should tune these values based on the level of accuracy needed vs. the additional memory
  * that would be required for storing metrics.
  * <p>
- * You should also keep in mind that metrics for remote nodes are delayed (usually by the
- * heartbeat frequency). So if it is acceptable in your environment, set the heartbeat frequency
- * to be more inline with job execution time. Generally, the more often heartbeats between nodes
+ * You should also keep in mind that metrics for remote nodes are delayed (usually by the metrics
+ * update frequency). So if it is acceptable in your environment, set the metrics update frequency
+ * to be more inline with job execution time. Generally, the more often metrics update between nodes
  * are exchanged, the more precise the metrics are. However, you should keep in mind that if
- * heartbeats are exchanged too often then it may create unnecessary traffic in the network.
- * Heartbeats (or metrics update frequency) can be configured via underlying
- * {@link org.apache.ignite.spi.discovery.DiscoverySpi} used in your grid.
+ * metrics update are exchanged too often then it may create unnecessary traffic in the network.
+ * Metrics update frequency can be configured via underlying
+ * {@link org.apache.ignite.configuration.IgniteConfiguration} used in your grid.
  * <p>
  * Here is an example of how probing can be implemented to use
  * number of active and waiting jobs as probing mechanism:
@@ -116,7 +117,7 @@ import static org.apache.ignite.events.EventType.EVT_TASK_FINISHED;
  *     }
  *
  *     // Calculate load based on number of active and waiting jobs.
- *     public double getLoad(GridNode node, int jobsSentSinceLastUpdate) {
+ *     public double getLoad(ClusterNode node, int jobsSentSinceLastUpdate) {
  *         GridNodeMetrics metrics = node.getMetrics();
  *
  *         if (useAvg) {
@@ -143,7 +144,7 @@ import static org.apache.ignite.events.EventType.EVT_TASK_FINISHED;
  * is transparent to your code and is handled automatically by the adapter.
  * Here is an example of how your task will look:
  * <pre name="code" class="java">
- * public class MyFooBarTask extends GridComputeTaskSplitAdapter&lt;Object, Object&gt; {
+ * public class MyFooBarTask extends ComputeTaskSplitAdapter&lt;Object, Object&gt; {
  *    &#64;Override
  *    protected Collection&lt;? extends ComputeJob&gt; split(int gridSize, Object arg) throws IgniteCheckedException {
  *        List&lt;MyFooBarJob&gt; jobs = new ArrayList&lt;MyFooBarJob&gt;(gridSize);
@@ -165,14 +166,14 @@ import static org.apache.ignite.events.EventType.EVT_TASK_FINISHED;
  * case we manually inject load balancer and use it to pick the best node. Doing it in
  * such way would allow user to map some jobs manually and for others use load balancer.
  * <pre name="code" class="java">
- * public class MyFooBarTask extends GridComputeTaskAdapter&lt;String, String&gt; {
+ * public class MyFooBarTask extends ComputeTaskAdapter&lt;String, String&gt; {
  *    // Inject load balancer.
  *    &#64;LoadBalancerResource
  *    ComputeLoadBalancer balancer;
  *
  *    // Map jobs to grid nodes.
- *    public Map&lt;? extends ComputeJob, GridNode&gt; map(List&lt;GridNode&gt; subgrid, String arg) throws IgniteCheckedException {
- *        Map&lt;MyFooBarJob, GridNode&gt; jobs = new HashMap&lt;MyFooBarJob, GridNode&gt;(subgrid.size());
+ *    public Map&lt;? extends ComputeJob, ClusterNode&gt; map(List&lt;ClusterNode&gt; subgrid, String arg) throws IgniteCheckedException {
+ *        Map&lt;MyFooBarJob, ClusterNode&gt; jobs = new HashMap&lt;MyFooBarJob, ClusterNode&gt;(subgrid.size());
  *
  *        // In more complex cases, you can actually do
  *        // more complicated assignments of jobs to nodes.
@@ -185,13 +186,13 @@ import static org.apache.ignite.events.EventType.EVT_TASK_FINISHED;
  *    }
  *
  *    // Aggregate results into one compound result.
- *    public String reduce(List&lt;GridComputeJobResult&gt; results) throws IgniteCheckedException {
+ *    public String reduce(List&lt;ComputeJobResult&gt; results) throws IgniteCheckedException {
  *        // For the purpose of this example we simply
  *        // concatenate string representation of every
  *        // job result
  *        StringBuilder buf = new StringBuilder();
  *
- *        for (GridComputeJobResult res : results) {
+ *        for (ComputeJobResult res : results) {
  *            // Append string representation of result
  *            // returned by every job.
  *            buf.append(res.getData().string());
@@ -254,8 +255,7 @@ import static org.apache.ignite.events.EventType.EVT_TASK_FINISHED;
  * For information about Spring framework visit <a href="http://www.springframework.org/">www.springframework.org</a>
  */
 @IgniteSpiMultipleInstancesSupport(true)
-public class AdaptiveLoadBalancingSpi extends IgniteSpiAdapter implements LoadBalancingSpi,
-    AdaptiveLoadBalancingSpiMBean {
+public class AdaptiveLoadBalancingSpi extends IgniteSpiAdapter implements LoadBalancingSpi {
     /** Random number generator. */
     private static final Random RAND = new Random();
 
@@ -271,7 +271,7 @@ public class AdaptiveLoadBalancingSpi extends IgniteSpiAdapter implements LoadBa
 
     /** Task topologies. First pair value indicates whether or not jobs have been mapped. */
     private ConcurrentMap<IgniteUuid, IgniteBiTuple<Boolean, WeightedTopology>> taskTops =
-        new ConcurrentHashMap8<>();
+        new ConcurrentHashMap<>();
 
     /** */
     private final Map<UUID, AtomicInteger> nodeJobs = new HashMap<>();
@@ -279,8 +279,12 @@ public class AdaptiveLoadBalancingSpi extends IgniteSpiAdapter implements LoadBa
     /** */
     private final ReadWriteLock rwLock = new ReentrantReadWriteLock();
 
-    /** {@inheritDoc} */
-    @Override public String getLoadProbeFormatted() {
+    /**
+     * Gets text description of current load probing implementation used.
+     *
+     * @return Text description of current load probing implementation used.
+     */
+    public String getLoadProbeFormatted() {
         return probe.toString();
     }
 
@@ -290,16 +294,19 @@ public class AdaptiveLoadBalancingSpi extends IgniteSpiAdapter implements LoadBa
      * time on every node.
      *
      * @param probe Implementation of node load probe
+     * @return {@code this} for chaining.
      */
     @IgniteSpiConfiguration(optional = true)
-    public void setLoadProbe(AdaptiveLoadProbe probe) {
+    public AdaptiveLoadBalancingSpi setLoadProbe(AdaptiveLoadProbe probe) {
         A.ensure(probe != null, "probe != null");
 
         this.probe = probe;
+
+        return this;
     }
 
     /** {@inheritDoc} */
-    @Override public void spiStart(@Nullable String gridName) throws IgniteSpiException {
+    @Override public void spiStart(@Nullable String igniteInstanceName) throws IgniteSpiException {
         startStopwatch();
 
         assertParameter(probe != null, "loadProbe != null");
@@ -307,7 +314,8 @@ public class AdaptiveLoadBalancingSpi extends IgniteSpiAdapter implements LoadBa
         if (log.isDebugEnabled())
             log.debug(configInfo("loadProbe", probe));
 
-        registerMBean(gridName, this, AdaptiveLoadBalancingSpiMBean.class);
+        registerMBean(igniteInstanceName, new AdaptiveLoadBalancingSpiMBeanImpl(this),
+            AdaptiveLoadBalancingSpiMBean.class);
 
         // Ack ok start.
         if (log.isDebugEnabled())
@@ -351,7 +359,7 @@ public class AdaptiveLoadBalancingSpi extends IgniteSpiAdapter implements LoadBa
                     }
 
                     case EVT_JOB_MAPPED: {
-                        // We should keep topology and use cache in GridComputeTask#map() method to
+                        // We should keep topology and use cache in ComputeTask#map() method to
                         // avoid O(n*n/2) complexity, after that we can drop caches.
                         // Here we set mapped property and later cache will be ignored
                         JobEvent jobEvt = (JobEvent)evt;
@@ -448,11 +456,11 @@ public class AdaptiveLoadBalancingSpi extends IgniteSpiAdapter implements LoadBa
         // Create new cached topology if there is no one. Do not
         // use cached topology after task has been mapped.
         if (weightedTop == null)
-            // Called from GridComputeTask#map(). Put new topology and false as not mapped yet.
+            // Called from ComputeTask#map(). Put new topology and false as not mapped yet.
             taskTops.put(ses.getId(), weightedTop = F.t(false, new WeightedTopology(top)));
         // We have topology - check if task has been mapped.
         else if (weightedTop.get1())
-            // Do not use cache after GridComputeTask#map().
+            // Do not use cache after ComputeTask#map().
             return new WeightedTopology(top).pickWeightedNode();
 
         return weightedTop.get2().pickWeightedNode();
@@ -606,7 +614,30 @@ public class AdaptiveLoadBalancingSpi extends IgniteSpiAdapter implements LoadBa
     }
 
     /** {@inheritDoc} */
+    @Override public AdaptiveLoadBalancingSpi setName(String name) {
+        super.setName(name);
+
+        return this;
+    }
+
+    /** {@inheritDoc} */
     @Override public String toString() {
         return S.toString(AdaptiveLoadBalancingSpi.class, this);
+    }
+
+    /**
+     * MBean implementation for AdaptiveLoadBalancingSpi.
+     */
+    private class AdaptiveLoadBalancingSpiMBeanImpl extends IgniteSpiMBeanAdapter
+        implements AdaptiveLoadBalancingSpiMBean {
+        /** {@inheritDoc} */
+        AdaptiveLoadBalancingSpiMBeanImpl(IgniteSpiAdapter spiAdapter) {
+            super(spiAdapter);
+        }
+
+        /** {@inheritDoc} */
+        @Override public String getLoadProbeFormatted() {
+            return AdaptiveLoadBalancingSpi.this.getLoadProbeFormatted();
+        }
     }
 }

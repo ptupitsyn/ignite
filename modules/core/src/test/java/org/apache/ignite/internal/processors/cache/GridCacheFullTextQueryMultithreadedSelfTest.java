@@ -17,7 +17,6 @@
 
 package org.apache.ignite.internal.processors.cache;
 
-import java.util.Collection;
 import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -26,8 +25,10 @@ import org.apache.ignite.configuration.CacheConfiguration;
 import org.apache.ignite.internal.IgniteInternalFuture;
 import org.apache.ignite.internal.IgniteKernal;
 import org.apache.ignite.internal.processors.cache.query.CacheQuery;
+import org.apache.ignite.internal.processors.cache.query.CacheQueryFuture;
 import org.apache.ignite.internal.util.typedef.X;
 import org.apache.ignite.internal.util.typedef.internal.S;
+import org.junit.Test;
 
 import static org.apache.ignite.cache.CacheMode.PARTITIONED;
 import static org.apache.ignite.cache.CacheWriteSynchronizationMode.FULL_SYNC;
@@ -53,8 +54,8 @@ public class GridCacheFullTextQueryMultithreadedSelfTest extends GridCacheAbstra
     }
 
     /** {@inheritDoc} */
-    @Override protected CacheConfiguration cacheConfiguration(String gridName) throws Exception {
-        CacheConfiguration cfg = super.cacheConfiguration(gridName);
+    @Override protected CacheConfiguration cacheConfiguration(String igniteInstanceName) throws Exception {
+        CacheConfiguration cfg = super.cacheConfiguration(igniteInstanceName);
 
         cfg.setCacheMode(PARTITIONED);
         cfg.setBackups(1);
@@ -69,13 +70,14 @@ public class GridCacheFullTextQueryMultithreadedSelfTest extends GridCacheAbstra
      * @throws Exception In case of error.
      */
     @SuppressWarnings({"TooBroadScope"})
+    @Test
     public void testH2Text() throws Exception {
-        int duration = 60 * 1000;
+        int duration = 20 * 1000;
         final int keyCnt = 5000;
         final int logFreq = 50;
         final String txt = "Value";
 
-        final GridCacheAdapter<Integer, H2TextValue> c = ((IgniteKernal)grid(0)).internalCache(null);
+        final GridCacheAdapter<Integer, H2TextValue> c = ((IgniteKernal)grid(0)).internalCache(DEFAULT_CACHE_NAME);
 
         IgniteInternalFuture<?> fut1 = multithreadedAsync(new Callable() {
                 @Override public Object call() throws Exception {
@@ -105,12 +107,17 @@ public class GridCacheFullTextQueryMultithreadedSelfTest extends GridCacheAbstra
                     int cnt = 0;
 
                     while (!stop.get()) {
-                        Collection<Map.Entry<Integer, H2TextValue>> res = qry.execute().get();
+                        CacheQueryFuture<Map.Entry<Integer, H2TextValue>> qryFut = qry.execute();
+
+                        int size = 0;
+
+                        while(qryFut.next() != null)
+                            size++;
 
                         cnt++;
 
                         if (cnt % logFreq == 0) {
-                            X.println("Result set: " + res.size());
+                            X.println("Result set: " + size);
                             X.println("Executed queries: " + cnt);
                         }
                     }

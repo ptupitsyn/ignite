@@ -26,6 +26,7 @@ import java.util.Map;
 import java.util.UUID;
 import javax.cache.Cache;
 import javax.cache.integration.CacheLoaderException;
+import org.apache.ignite.Ignite;
 import org.apache.ignite.cache.CacheInterceptor;
 import org.apache.ignite.cache.CacheMode;
 import org.apache.ignite.cache.affinity.AffinityFunction;
@@ -39,13 +40,16 @@ import org.apache.ignite.cluster.ClusterNode;
 import org.apache.ignite.configuration.CacheConfiguration;
 import org.apache.ignite.configuration.IgniteConfiguration;
 import org.apache.ignite.configuration.NearCacheConfiguration;
+import org.apache.ignite.configuration.TopologyValidator;
 import org.apache.ignite.lang.IgniteBiInClosure;
 import org.apache.ignite.lang.IgniteBiTuple;
 import org.apache.ignite.lifecycle.LifecycleAware;
 import org.apache.ignite.resources.CacheNameResource;
+import org.apache.ignite.resources.IgniteInstanceResource;
 import org.apache.ignite.spi.discovery.tcp.TcpDiscoverySpi;
 import org.apache.ignite.testframework.junits.common.GridAbstractLifecycleAwareSelfTest;
 import org.jetbrains.annotations.Nullable;
+import org.junit.Test;
 
 import static org.apache.ignite.cache.CacheMode.PARTITIONED;
 
@@ -256,10 +260,34 @@ public class GridCacheLifecycleAwareSelfTest extends GridAbstractLifecycleAwareS
         }
     }
 
+    /**
+     */
+    private static class TestTopologyValidator extends TestLifecycleAware implements TopologyValidator {
+        @IgniteInstanceResource
+        private Ignite ignite;
+
+        /**
+         */
+        public TestTopologyValidator() {
+            super(CACHE_NAME);
+        }
+
+        /** {@inheritDoc} */
+        @Override public boolean validate(Collection<ClusterNode> nodes) {
+            return false;
+        }
+
+        @Override public void start() {
+            super.start();
+
+            assertNotNull(ignite);
+        }
+    }
+
     /** {@inheritDoc} */
     @SuppressWarnings("unchecked")
-    @Override protected final IgniteConfiguration getConfiguration(String gridName) throws Exception {
-        IgniteConfiguration cfg = super.getConfiguration(gridName);
+    @Override protected final IgniteConfiguration getConfiguration(String igniteInstanceName) throws Exception {
+        IgniteConfiguration cfg = super.getConfiguration(igniteInstanceName);
 
         cfg.setDiscoverySpi(new TcpDiscoverySpi());
 
@@ -291,6 +319,7 @@ public class GridCacheLifecycleAwareSelfTest extends GridAbstractLifecycleAwareS
         TestEvictionPolicy evictionPlc = new TestEvictionPolicy();
 
         ccfg.setEvictionPolicy(evictionPlc);
+        ccfg.setOnheapCacheEnabled(true);
 
         lifecycleAwares.add(evictionPlc);
 
@@ -324,6 +353,12 @@ public class GridCacheLifecycleAwareSelfTest extends GridAbstractLifecycleAwareS
 
         ccfg.setInterceptor(interceptor);
 
+        TestTopologyValidator topValidator = new TestTopologyValidator();
+
+        lifecycleAwares.add(topValidator);
+
+        ccfg.setTopologyValidator(topValidator);
+
         cfg.setCacheConfiguration(ccfg);
 
         return cfg;
@@ -331,6 +366,7 @@ public class GridCacheLifecycleAwareSelfTest extends GridAbstractLifecycleAwareS
 
     /** {@inheritDoc} */
     @SuppressWarnings("ErrorNotRethrown")
+    @Test
     @Override public void testLifecycleAware() throws Exception {
         for (boolean nearEnabled : new boolean[] {true, false}) {
             near = nearEnabled;

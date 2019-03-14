@@ -38,6 +38,7 @@ import org.apache.ignite.spi.discovery.tcp.TcpDiscoverySpi;
 import org.apache.ignite.spi.discovery.tcp.ipfinder.vm.TcpDiscoveryVmIpFinder;
 import org.apache.ignite.testframework.junits.common.GridCommonAbstractTest;
 import org.jetbrains.annotations.Nullable;
+import org.junit.Test;
 
 import static org.apache.ignite.cache.CacheAtomicityMode.TRANSACTIONAL;
 import static org.apache.ignite.cache.CacheMode.PARTITIONED;
@@ -71,75 +72,61 @@ public abstract class IgfsEventsAbstractSelfTest extends GridCommonAbstractTest 
     private IgnitePredicate<Event> lsnr;
 
     /**
-     * Gets cache configuration.
-     *
-     * @param gridName Grid name.
-     * @return Cache configuration.
-     */
-    @SuppressWarnings("deprecation")
-    protected CacheConfiguration[] getCacheConfiguration(String gridName) {
-        CacheConfiguration cacheCfg = defaultCacheConfiguration();
-
-        cacheCfg.setName("dataCache");
-        cacheCfg.setCacheMode(PARTITIONED);
-        cacheCfg.setNearConfiguration(null);
-        cacheCfg.setWriteSynchronizationMode(FULL_SYNC);
-        cacheCfg.setEvictionPolicy(null);
-        cacheCfg.setAffinityMapper(new IgfsGroupDataBlocksKeyMapper(128));
-        cacheCfg.setBackups(0);
-        cacheCfg.setAtomicityMode(TRANSACTIONAL);
-
-        CacheConfiguration metaCacheCfg = defaultCacheConfiguration();
-
-        metaCacheCfg.setName("metaCache");
-        metaCacheCfg.setCacheMode(REPLICATED);
-        metaCacheCfg.setWriteSynchronizationMode(FULL_SYNC);
-        metaCacheCfg.setEvictionPolicy(null);
-        metaCacheCfg.setAtomicityMode(TRANSACTIONAL);
-
-        return new CacheConfiguration[] {cacheCfg, metaCacheCfg};
-    }
-
-    /**
      * @return IGFS configuration for this test.
      */
     protected FileSystemConfiguration getIgfsConfiguration() throws IgniteCheckedException {
         FileSystemConfiguration igfsCfg = new FileSystemConfiguration();
 
-        igfsCfg.setDataCacheName("dataCache");
-        igfsCfg.setMetaCacheName("metaCache");
         igfsCfg.setName("igfs");
-
         igfsCfg.setBlockSize(512 * 1024); // Together with group blocks mapper will yield 64M per node groups.
+
+        CacheConfiguration dataCacheCfg = defaultCacheConfiguration();
+
+        dataCacheCfg.setCacheMode(PARTITIONED);
+        dataCacheCfg.setNearConfiguration(null);
+        dataCacheCfg.setWriteSynchronizationMode(FULL_SYNC);
+        dataCacheCfg.setEvictionPolicy(null);
+        dataCacheCfg.setAffinityMapper(new IgfsGroupDataBlocksKeyMapper(128));
+        dataCacheCfg.setBackups(0);
+        dataCacheCfg.setAtomicityMode(TRANSACTIONAL);
+
+        CacheConfiguration metaCacheCfg = defaultCacheConfiguration();
+
+        metaCacheCfg.setCacheMode(REPLICATED);
+        metaCacheCfg.setWriteSynchronizationMode(FULL_SYNC);
+        metaCacheCfg.setEvictionPolicy(null);
+        metaCacheCfg.setAtomicityMode(TRANSACTIONAL);
+
+        igfsCfg.setMetaCacheConfiguration(metaCacheCfg);
+        igfsCfg.setDataCacheConfiguration(dataCacheCfg);
 
         return igfsCfg;
     }
 
     /** {@inheritDoc} */
-    @Override protected IgniteConfiguration getConfiguration(String gridName) throws Exception {
-        return getConfiguration(gridName, getIgfsConfiguration());
+    @Override protected IgniteConfiguration getConfiguration(String igniteInstanceName) throws Exception {
+        return getConfiguration(igniteInstanceName, getIgfsConfiguration());
     }
 
     /**
-     * The same as getConfiguration(String gridName) but it sets custom IGFS configuration
+     * The same as getConfiguration(String igniteInstanceName) but it sets custom IGFS configuration
      *
-     * @param gridName Grid name.
+     * @param igniteInstanceName Ignite instance name.
      * @param igfsCfg IGFS configuration.
      * @return Grid configuration.
      * @throws Exception If failed.
      */
-    protected IgniteConfiguration getConfiguration(String gridName, FileSystemConfiguration igfsCfg) throws Exception {
+    protected IgniteConfiguration getConfiguration(String igniteInstanceName, FileSystemConfiguration igfsCfg)
+        throws Exception {
         IgniteConfiguration cfg = IgnitionEx.loadConfiguration("config/hadoop/default-config.xml").get1();
 
         assert cfg != null;
 
-        cfg.setGridName(gridName);
+        cfg.setIgniteInstanceName(igniteInstanceName);
 
         cfg.setIncludeEventTypes(concat(EVTS_IGFS, EVT_TASK_FAILED, EVT_TASK_FINISHED, EVT_JOB_MAPPED));
 
         cfg.setFileSystemConfiguration(igfsCfg);
-
-        cfg.setCacheConfiguration(getCacheConfiguration(gridName));
 
         cfg.setHadoopConfiguration(null);
 
@@ -190,12 +177,7 @@ public abstract class IgfsEventsAbstractSelfTest extends GridCommonAbstractTest 
 
         // Clean up file system.
         if (igfs != null)
-            igfs.format();
-    }
-
-    /** {@inheritDoc} */
-    @Override protected void afterTestsStopped() throws Exception {
-        stopGrid(1);
+            igfs.clear();
     }
 
     /**
@@ -203,6 +185,7 @@ public abstract class IgfsEventsAbstractSelfTest extends GridCommonAbstractTest 
      *
      * @throws Exception If failed.
      */
+    @Test
     public void testSingleFileNestedDirs() throws Exception {
         final List<Event> evtList = new ArrayList<>();
 
@@ -284,6 +267,7 @@ public abstract class IgfsEventsAbstractSelfTest extends GridCommonAbstractTest 
      *
      * @throws Exception If failed.
      */
+    @Test
     public void testDirWithFiles() throws Exception {
         final List<Event> evtList = new ArrayList<>();
 
@@ -365,6 +349,7 @@ public abstract class IgfsEventsAbstractSelfTest extends GridCommonAbstractTest 
      *
      * @throws Exception If failed.
      */
+    @Test
     public void testSingleEmptyDir() throws Exception {
         final List<Event> evtList = new ArrayList<>();
 
@@ -422,6 +407,7 @@ public abstract class IgfsEventsAbstractSelfTest extends GridCommonAbstractTest 
      *
      * @throws Exception If failed.
      */
+    @Test
     public void testTwoFiles() throws Exception {
         final List<Event> evtList = new ArrayList<>();
 
@@ -509,6 +495,7 @@ public abstract class IgfsEventsAbstractSelfTest extends GridCommonAbstractTest 
      *
      * @throws Exception If failed.
      */
+    @Test
     public void testDeleteNonRecursive() throws Exception {
         final List<Event> evtList = new ArrayList<>();
 
@@ -563,6 +550,7 @@ public abstract class IgfsEventsAbstractSelfTest extends GridCommonAbstractTest 
      *
      * @throws Exception If failed.
      */
+    @Test
     public void testMoveFile() throws Exception {
         final List<Event> evtList = new ArrayList<>();
 
@@ -630,6 +618,7 @@ public abstract class IgfsEventsAbstractSelfTest extends GridCommonAbstractTest 
      *
      * @throws Exception If failed.
      */
+    @Test
     public void testNestedEmptyDirs() throws Exception {
         final List<Event> evtList = new ArrayList<>();
 
@@ -680,10 +669,15 @@ public abstract class IgfsEventsAbstractSelfTest extends GridCommonAbstractTest 
      *
      * @throws Exception If failed.
      */
+    @Test
     public void testSingleFileOverwrite() throws Exception {
         final List<Event> evtList = new ArrayList<>();
 
-        final int evtsCnt = 3 + 4 + 1;
+        // NB: In case of create-overwrite FILE_PURGED event will be sent in PRIMARY IGFS mode only.
+        final boolean awaitForPurgeEvt
+            = grid(1).configuration().getFileSystemConfiguration()[0].getDefaultMode() == IgfsMode.PRIMARY;
+
+        final int evtsCnt = 1 + 4 + (awaitForPurgeEvt ? 1 : 0);
 
         final CountDownLatch latch = new CountDownLatch(evtsCnt);
 
@@ -703,7 +697,7 @@ public abstract class IgfsEventsAbstractSelfTest extends GridCommonAbstractTest 
 
         igfs.create(file, false).close(); // Will generate create, open and close events.
 
-        igfs.create(file, true).close(); // Will generate same event set + delete and purge events.
+        igfs.create(file, true).close(); // Will generate PURGE (async), OPEN_WRITE & close events.
 
         try {
             igfs.create(file, false).close(); // Won't generate any event.
@@ -732,26 +726,12 @@ public abstract class IgfsEventsAbstractSelfTest extends GridCommonAbstractTest 
         assertEquals(0, evt.dataSize());
 
         assertOneToOne(
-            evtList.subList(3, 8),
-            new P1<Event>() {
-                @Override public boolean apply(Event e) {
-                    IgfsEvent e0 = (IgfsEvent)e;
-
-                    return e0.type() == EVT_IGFS_FILE_DELETED && e0.path().equals(file1);
-                }
-            },
+            evtList.subList(3, evtsCnt),
             new P1<Event>() {
                 @Override public boolean apply(Event e) {
                     IgfsEvent e0 = (IgfsEvent)e;
 
                     return e0.type() == EVT_IGFS_FILE_PURGED && e0.path().equals(file1);
-                }
-            },
-            new P1<Event>() {
-                @Override public boolean apply(Event e) {
-                    IgfsEvent e0 = (IgfsEvent)e;
-
-                    return e0.type() == EVT_IGFS_FILE_CREATED && e0.path().equals(file1);
                 }
             },
             new P1<Event>() {
@@ -776,6 +756,7 @@ public abstract class IgfsEventsAbstractSelfTest extends GridCommonAbstractTest 
      *
      * @throws Exception If failed.
      */
+    @Test
     public void testFileDataEvents() throws Exception {
         final List<Event> evtList = new ArrayList<>();
 
@@ -835,7 +816,7 @@ public abstract class IgfsEventsAbstractSelfTest extends GridCommonAbstractTest 
         evt = (IgfsEvent)evtList.get(4);
         assertEquals(EVT_IGFS_FILE_CLOSED_READ, evt.type());
         assertEquals(new IgfsPath("/file1"), evt.path());
-        assertEquals((long)dataSize, evt.dataSize());
+        assertEquals((long) dataSize, evt.dataSize());
     }
 
     /**

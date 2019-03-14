@@ -34,6 +34,7 @@ import org.apache.ignite.internal.util.typedef.internal.U;
 import org.apache.ignite.testframework.junits.common.GridCommonAbstractTest;
 import org.jetbrains.annotations.Nullable;
 import org.jsr166.ConcurrentLinkedHashMap;
+import org.junit.Test;
 
 import static org.jsr166.ConcurrentLinkedHashMap.QueuePolicy.PER_SEGMENT_Q;
 import static org.jsr166.ConcurrentLinkedHashMap.QueuePolicy.PER_SEGMENT_Q_OPTIMIZED_RMV;
@@ -46,6 +47,7 @@ public class GridConcurrentLinkedHashMapMultiThreadedSelfTest extends GridCommon
     /**
      * @throws Exception If failed.
      */
+    @Test
     public void testPut() throws Exception {
         info(">>> Test grid concurrent linked hash map...");
 
@@ -64,6 +66,7 @@ public class GridConcurrentLinkedHashMapMultiThreadedSelfTest extends GridCommon
     /**
      * @throws Exception If failed.
      */
+    @Test
     public void testPutPerSegment() throws Exception {
         info(">>> Test grid concurrent linked hash map...");
 
@@ -81,6 +84,7 @@ public class GridConcurrentLinkedHashMapMultiThreadedSelfTest extends GridCommon
     /**
      * @throws Exception If failed.
      */
+    @Test
     public void testEvict() throws Exception {
         info(">>> Test grid concurrent linked hash map...");
 
@@ -143,43 +147,45 @@ public class GridConcurrentLinkedHashMapMultiThreadedSelfTest extends GridCommon
     /**
      * @throws Exception If failed.
      */
+    @Test
     public void testEvictPerSegment() throws Exception {
         info(">>> Test grid concurrent linked hash map...");
 
-        final int maxSize = 1000;
+        int concurLvl = 64;
+        final int maxSize = concurLvl * 30;
+        int diff = (int)(maxSize * 0.1);
 
         ConcurrentLinkedHashMap<Integer, String> linkedMap = new ConcurrentLinkedHashMap<>(
-            32, 0.75f, 64, maxSize, PER_SEGMENT_Q);
+            32, 0.75f, concurLvl, maxSize, PER_SEGMENT_Q);
 
         int keyCnt = 1000000;
 
-        putMultiThreaded(linkedMap, 10, keyCnt, maxSize);
-
-        int diff = 10; // 1% of 1000.
+        Map<String, LinkedList<Integer>> map = putMultiThreaded(
+            linkedMap,
+            10,
+            keyCnt,
+            maxSize * 10); // Intentionally memorize more than maxSize since in this mode LRU is not fair.
 
         assertTrue("Invalid map size: " + linkedMap.size(), U.safeAbs(maxSize - linkedMap.size()) <= diff);
         assertTrue("Invalid map sizex: " + linkedMap.sizex(), U.safeAbs(maxSize - linkedMap.sizex()) <= diff);
 
-//      TODO IGNITE-606 - Need to fix iterators for ConcurrentLinkedHashMap in perSegment mode
-//        LinkedList<Integer> keys = new LinkedList<Integer>(linkedMap.keySet());
-//
-//        while (!keys.isEmpty()) {
-//            boolean found = false;
-//
-//            int key = keys.removeLast();
-//
-//            for (LinkedList<Integer> threadKeys : map.values()) {
-//                if (threadKeys.getLast() == key) {
-//                    threadKeys.removeLast();
-//
-//                    found = true;
-//
-//                    break;
-//                }
-//            }
-//
-//            assertTrue("Key was not found on the top of any thread: " + key, found);
-//        }
+        LinkedList<Integer> keys = new LinkedList<>(linkedMap.keySet());
+
+        while (!keys.isEmpty()) {
+            boolean found = false;
+
+            int key = keys.removeLast();
+
+            for (LinkedList<Integer> threadKeys : map.values()) {
+                if (threadKeys.contains(key)) {
+                    found = true;
+
+                    break;
+                }
+            }
+
+            assertTrue("Key was not found in any thread: " + key, found);
+        }
 
         int min = Integer.MAX_VALUE;
         int max = 0;
@@ -204,43 +210,45 @@ public class GridConcurrentLinkedHashMapMultiThreadedSelfTest extends GridCommon
     /**
      * @throws Exception If failed.
      */
+    @Test
     public void testEvictPerSegmentOptimizedRemoves() throws Exception {
         info(">>> Test grid concurrent linked hash map...");
 
-        final int maxSize = 1000;
+        int concurLvl = 64;
+        final int maxSize = concurLvl * 30;
+        int diff = (int)(maxSize * 0.1);
 
         ConcurrentLinkedHashMap<Integer, String> linkedMap = new ConcurrentLinkedHashMap<>(
-            32, 0.75f, 64, maxSize, PER_SEGMENT_Q_OPTIMIZED_RMV);
+            32, 0.75f, concurLvl, maxSize, PER_SEGMENT_Q_OPTIMIZED_RMV);
 
         int keyCnt = 1000000;
 
-        putMultiThreaded(linkedMap, 10, keyCnt, maxSize);
-
-        int diff = 10; // 1% of 1000.
+        Map<String, LinkedList<Integer>> map = putMultiThreaded(
+            linkedMap,
+            10,
+            keyCnt,
+            maxSize * 10); // Intentionally memorize more than maxSize since in this mode LRU is not fair.
 
         assertTrue("Invalid map size: " + linkedMap.size(), U.safeAbs(maxSize - linkedMap.size()) <= diff);
         assertTrue("Invalid map sizex: " + linkedMap.sizex(), U.safeAbs(maxSize - linkedMap.sizex()) <= diff);
 
-//      TODO IGNITE-606 - Need to fix iterators for ConcurrentLinkedHashMap in perSegment mode
-//        LinkedList<Integer> keys = new LinkedList<Integer>(linkedMap.keySet());
-//
-//        while (!keys.isEmpty()) {
-//            boolean found = false;
-//
-//            int key = keys.removeLast();
-//
-//            for (LinkedList<Integer> threadKeys : map.values()) {
-//                if (threadKeys.getLast() == key) {
-//                    threadKeys.removeLast();
-//
-//                    found = true;
-//
-//                    break;
-//                }
-//            }
-//
-//            assertTrue("Key was not found on the top of any thread: " + key, found);
-//        }
+        LinkedList<Integer> keys = new LinkedList<>(linkedMap.keySet());
+
+        while (!keys.isEmpty()) {
+            boolean found = false;
+
+            int key = keys.removeLast();
+
+            for (LinkedList<Integer> threadKeys : map.values()) {
+                if (threadKeys.contains(key)) {
+                    found = true;
+
+                    break;
+                }
+            }
+
+            assertTrue("Key was not found in any thread: " + key, found);
+        }
 
         int min = Integer.MAX_VALUE;
         int max = 0;
@@ -321,6 +329,7 @@ public class GridConcurrentLinkedHashMapMultiThreadedSelfTest extends GridCommon
     /**
      * @throws Exception If failed.
      */
+    @Test
     public void testInsertOrderIterator() throws Exception {
         final AtomicBoolean run = new AtomicBoolean(true);
 
@@ -382,6 +391,7 @@ public class GridConcurrentLinkedHashMapMultiThreadedSelfTest extends GridCommon
     /**
      * @throws Exception If failed.
      */
+    @Test
     public void testIteratorModificationInsertOrder() throws Exception {
         testGetRemovePutIterator();
     }
@@ -389,6 +399,7 @@ public class GridConcurrentLinkedHashMapMultiThreadedSelfTest extends GridCommon
     /**
      * @throws Exception If failed.
      */
+    @Test
     public void testInsertOrderGetRemovePut() throws Exception {
         testPutGetRemove(false);
     }
@@ -396,6 +407,7 @@ public class GridConcurrentLinkedHashMapMultiThreadedSelfTest extends GridCommon
     /**
      * @throws Exception If failed.
      */
+    @Test
     public void testInsertOrderPutGetRemove() throws Exception {
         testPutGetRemove(true);
     }
@@ -479,6 +491,7 @@ public class GridConcurrentLinkedHashMapMultiThreadedSelfTest extends GridCommon
      *
      * @throws Exception If failed.
      */
+    @Test
     public void testGetRemovePutIterator() throws Exception {
 
         info(">>> Test grid concurrent linked hash map iterator...");

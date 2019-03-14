@@ -29,6 +29,7 @@ import org.apache.ignite.internal.util.typedef.internal.U;
 import org.apache.ignite.spi.discovery.tcp.TcpDiscoverySpi;
 import org.apache.ignite.testframework.junits.common.GridCommonAbstractTest;
 import org.apache.ignite.testframework.junits.common.GridCommonTest;
+import org.junit.Test;
 
 /**
  * Test for {@link ClusterGroup#forHost(String, String...)}.
@@ -45,10 +46,10 @@ public class ClusterGroupHostsSelfTest extends GridCommonAbstractTest {
     }
 
     /** {@inheritDoc} */
-    @Override protected IgniteConfiguration getConfiguration(String gridName) throws Exception {
+    @Override protected IgniteConfiguration getConfiguration(String igniteInstanceName) throws Exception {
         Collection<String> hostNames = Arrays.asList("h_1", "h_2", "h_3");
 
-        IgniteConfiguration cfg = super.getConfiguration(gridName);
+        IgniteConfiguration cfg = super.getConfiguration(igniteInstanceName);
 
         TcpDiscoverySpi disco = (TcpDiscoverySpi)cfg.getDiscoverySpi();
 
@@ -60,7 +61,11 @@ public class ClusterGroupHostsSelfTest extends GridCommonAbstractTest {
     /**
      * @throws Exception If failed.
      */
+    @Test
     public void testForHosts() throws Exception {
+        if (!tcpDiscovery())
+            return;
+
         Ignite ignite = grid();
 
         assertEquals(1, ignite.cluster().forHost("h_1").nodes().size());
@@ -75,7 +80,7 @@ public class ClusterGroupHostsSelfTest extends GridCommonAbstractTest {
         try {
             assertEquals(0, ignite.cluster().forHost(null, null, null).nodes().size());
         }
-        catch (NullPointerException e) {
+        catch (NullPointerException ignored) {
             gotNpe = true;
         }
         finally {
@@ -86,6 +91,7 @@ public class ClusterGroupHostsSelfTest extends GridCommonAbstractTest {
     /**
      * @throws Exception If failed.
      */
+    @Test
     public void testHostNames() throws Exception {
         Ignite ignite = grid();
 
@@ -99,7 +105,7 @@ public class ClusterGroupHostsSelfTest extends GridCommonAbstractTest {
         try {
             clusterHosts.add("valueShouldNotToBeAdded");
         }
-        catch (UnsupportedOperationException e) {
+        catch (UnsupportedOperationException ignored) {
             gotNpe = true;
         }
         finally {

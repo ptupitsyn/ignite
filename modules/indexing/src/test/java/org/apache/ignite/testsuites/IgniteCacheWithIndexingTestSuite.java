@@ -17,58 +17,73 @@
 
 package org.apache.ignite.testsuites;
 
-import junit.framework.TestSuite;
+import org.apache.ignite.internal.processors.cache.BinaryTypeMismatchLoggingTest;
+import org.apache.ignite.internal.processors.cache.CacheBinaryKeyConcurrentQueryTest;
 import org.apache.ignite.internal.processors.cache.CacheConfigurationP2PTest;
-import org.apache.ignite.internal.processors.cache.GridCacheOffHeapAndSwapSelfTest;
+import org.apache.ignite.internal.processors.cache.CacheIndexStreamerTest;
+import org.apache.ignite.internal.processors.cache.CacheOperationsWithExpirationTest;
+import org.apache.ignite.internal.processors.cache.CacheQueryAfterDynamicCacheStartFailureTest;
+import org.apache.ignite.internal.processors.cache.CacheQueryFilterExpiredTest;
+import org.apache.ignite.internal.processors.cache.CacheRandomOperationsMultithreadedTest;
+import org.apache.ignite.internal.processors.cache.ClientReconnectAfterClusterRestartTest;
+import org.apache.ignite.internal.processors.cache.ClusterReadOnlyModeSqlTest;
 import org.apache.ignite.internal.processors.cache.GridCacheOffHeapSelfTest;
 import org.apache.ignite.internal.processors.cache.GridCacheOffheapIndexEntryEvictTest;
 import org.apache.ignite.internal.processors.cache.GridCacheOffheapIndexGetSelfTest;
-import org.apache.ignite.internal.processors.cache.GridCacheSwapSelfTest;
 import org.apache.ignite.internal.processors.cache.GridIndexingWithNoopSwapSelfTest;
 import org.apache.ignite.internal.processors.cache.IgniteCacheConfigurationPrimitiveTypesSelfTest;
+import org.apache.ignite.internal.processors.cache.IgniteCacheGroupsSqlTest;
+import org.apache.ignite.internal.processors.cache.IgniteCacheStarvationOnRebalanceTest;
 import org.apache.ignite.internal.processors.cache.IgniteClientReconnectQueriesTest;
-import org.apache.ignite.internal.processors.cache.ttl.CacheTtlOffheapAtomicLocalSelfTest;
-import org.apache.ignite.internal.processors.cache.ttl.CacheTtlOffheapAtomicPartitionedSelfTest;
-import org.apache.ignite.internal.processors.cache.ttl.CacheTtlOffheapTransactionalLocalSelfTest;
-import org.apache.ignite.internal.processors.cache.ttl.CacheTtlOffheapTransactionalPartitionedSelfTest;
-import org.apache.ignite.internal.processors.cache.ttl.CacheTtlOnheapAtomicLocalSelfTest;
-import org.apache.ignite.internal.processors.cache.ttl.CacheTtlOnheapAtomicPartitionedSelfTest;
-import org.apache.ignite.internal.processors.cache.ttl.CacheTtlOnheapTransactionalLocalSelfTest;
-import org.apache.ignite.internal.processors.cache.ttl.CacheTtlOnheapTransactionalPartitionedSelfTest;
+import org.apache.ignite.internal.processors.cache.ttl.CacheTtlAtomicLocalSelfTest;
+import org.apache.ignite.internal.processors.cache.ttl.CacheTtlAtomicPartitionedSelfTest;
+import org.apache.ignite.internal.processors.cache.ttl.CacheTtlTransactionalLocalSelfTest;
+import org.apache.ignite.internal.processors.cache.ttl.CacheTtlTransactionalPartitionedSelfTest;
+import org.apache.ignite.internal.processors.client.IgniteDataStreamerTest;
+import org.apache.ignite.internal.processors.query.h2.database.InlineIndexHelperTest;
+import org.junit.runner.RunWith;
+import org.junit.runners.Suite;
 
 /**
  * Cache tests using indexing.
  */
-public class IgniteCacheWithIndexingTestSuite extends TestSuite {
-    /**
-     * @return Test suite.
-     * @throws Exception Thrown in case of the failure.
-     */
-    public static TestSuite suite() throws Exception {
-        TestSuite suite = new TestSuite("Ignite Cache With Indexing Test Suite");
+@RunWith(Suite.class)
+@Suite.SuiteClasses({
+    InlineIndexHelperTest.class,
 
-        suite.addTestSuite(GridCacheOffHeapAndSwapSelfTest.class);
-        suite.addTestSuite(GridIndexingWithNoopSwapSelfTest.class);
-        suite.addTestSuite(GridCacheSwapSelfTest.class);
-        suite.addTestSuite(GridCacheOffHeapSelfTest.class);
+    GridIndexingWithNoopSwapSelfTest.class,
+    GridCacheOffHeapSelfTest.class,
 
-        suite.addTestSuite(CacheTtlOffheapAtomicLocalSelfTest.class);
-        suite.addTestSuite(CacheTtlOffheapAtomicPartitionedSelfTest.class);
-        suite.addTestSuite(CacheTtlOffheapTransactionalLocalSelfTest.class);
-        suite.addTestSuite(CacheTtlOffheapTransactionalPartitionedSelfTest.class);
-        suite.addTestSuite(CacheTtlOnheapTransactionalLocalSelfTest.class);
-        suite.addTestSuite(CacheTtlOnheapTransactionalPartitionedSelfTest.class);
-        suite.addTestSuite(CacheTtlOnheapAtomicLocalSelfTest.class);
-        suite.addTestSuite(CacheTtlOnheapAtomicPartitionedSelfTest.class);
+    CacheTtlTransactionalLocalSelfTest.class,
+    CacheTtlTransactionalPartitionedSelfTest.class,
+    CacheTtlAtomicLocalSelfTest.class,
+    CacheTtlAtomicPartitionedSelfTest.class,
 
-        suite.addTestSuite(GridCacheOffheapIndexGetSelfTest.class);
-        suite.addTestSuite(GridCacheOffheapIndexEntryEvictTest.class);
+    GridCacheOffheapIndexGetSelfTest.class,
+    GridCacheOffheapIndexEntryEvictTest.class,
+    CacheIndexStreamerTest.class,
 
-        suite.addTestSuite(CacheConfigurationP2PTest.class);
+    CacheConfigurationP2PTest.class,
 
-        suite.addTestSuite(IgniteCacheConfigurationPrimitiveTypesSelfTest.class);
-        suite.addTestSuite(IgniteClientReconnectQueriesTest.class);
+    IgniteCacheConfigurationPrimitiveTypesSelfTest.class,
+    IgniteClientReconnectQueriesTest.class,
+    CacheRandomOperationsMultithreadedTest.class,
+    IgniteCacheStarvationOnRebalanceTest.class,
+    CacheOperationsWithExpirationTest.class,
+    CacheBinaryKeyConcurrentQueryTest.class,
+    CacheQueryFilterExpiredTest.class,
 
-        return suite;
-    }
+    ClientReconnectAfterClusterRestartTest.class,
+
+    CacheQueryAfterDynamicCacheStartFailureTest.class,
+
+    IgniteCacheGroupsSqlTest.class,
+
+    IgniteDataStreamerTest.class,
+
+    BinaryTypeMismatchLoggingTest.class,
+
+    ClusterReadOnlyModeSqlTest.class
+})
+public class IgniteCacheWithIndexingTestSuite {
 }

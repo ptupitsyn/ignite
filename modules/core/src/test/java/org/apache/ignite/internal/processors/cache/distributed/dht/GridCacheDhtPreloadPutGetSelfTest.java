@@ -17,6 +17,8 @@
 
 package org.apache.ignite.internal.processors.cache.distributed.dht;
 
+import java.util.Arrays;
+import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -24,16 +26,17 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import org.apache.ignite.Ignite;
 import org.apache.ignite.IgniteCache;
 import org.apache.ignite.cache.CacheRebalanceMode;
+import org.apache.ignite.cache.affinity.rendezvous.RendezvousAffinityFunction;
 import org.apache.ignite.configuration.CacheConfiguration;
 import org.apache.ignite.configuration.IgniteConfiguration;
 import org.apache.ignite.internal.IgniteInternalFuture;
 import org.apache.ignite.internal.processors.cache.distributed.dht.preloader.GridDhtPreloader;
-import org.apache.ignite.spi.discovery.tcp.TcpDiscoverySpi;
-import org.apache.ignite.spi.discovery.tcp.ipfinder.TcpDiscoveryIpFinder;
-import org.apache.ignite.spi.discovery.tcp.ipfinder.vm.TcpDiscoveryVmIpFinder;
 import org.apache.ignite.testframework.GridTestUtils;
+import org.apache.ignite.testframework.MvccFeatureChecker;
 import org.apache.ignite.testframework.junits.common.GridCommonAbstractTest;
 import org.jetbrains.annotations.Nullable;
+import org.junit.Assume;
+import org.junit.Test;
 
 import static org.apache.ignite.cache.CacheMode.PARTITIONED;
 import static org.apache.ignite.cache.CacheRebalanceMode.ASYNC;
@@ -60,12 +63,9 @@ public class GridCacheDhtPreloadPutGetSelfTest extends GridCommonAbstractTest {
     /** Preload mode. */
     private CacheRebalanceMode preloadMode;
 
-    /** IP finder. */
-    private TcpDiscoveryIpFinder ipFinder = new TcpDiscoveryVmIpFinder(true);
-
     /** {@inheritDoc} */
-    @Override protected IgniteConfiguration getConfiguration(String gridName) throws Exception {
-        IgniteConfiguration cfg = super.getConfiguration(gridName);
+    @Override protected IgniteConfiguration getConfiguration(String igniteInstanceName) throws Exception {
+        IgniteConfiguration cfg = super.getConfiguration(igniteInstanceName);
 
         assert preloadMode != null;
 
@@ -76,11 +76,8 @@ public class GridCacheDhtPreloadPutGetSelfTest extends GridCommonAbstractTest {
         cacheCfg.setRebalanceMode(preloadMode);
         cacheCfg.setBackups(backups);
 
-        TcpDiscoverySpi disco = new TcpDiscoverySpi();
+        cacheCfg.setAffinity(new RendezvousAffinityFunction());
 
-        disco.setIpFinder(ipFinder);
-
-        cfg.setDiscoverySpi(disco);
         cfg.setCacheConfiguration(cacheCfg);
 
         return cfg;
@@ -89,6 +86,7 @@ public class GridCacheDhtPreloadPutGetSelfTest extends GridCommonAbstractTest {
     /**
      * @throws Exception If failed.
      */
+    @Test
     public void testPutGetAsync0() throws Exception {
         preloadMode = ASYNC;
         backups = 0;
@@ -99,6 +97,7 @@ public class GridCacheDhtPreloadPutGetSelfTest extends GridCommonAbstractTest {
     /**
      * @throws Exception If failed.
      */
+    @Test
     public void testPutGetAsync1() throws Exception {
         preloadMode = ASYNC;
         backups = 1;
@@ -109,6 +108,7 @@ public class GridCacheDhtPreloadPutGetSelfTest extends GridCommonAbstractTest {
     /**
      * @throws Exception If failed.
      */
+    @Test
     public void testPutGetAsync2() throws Exception {
         preloadMode = ASYNC;
         backups = 2;
@@ -119,6 +119,7 @@ public class GridCacheDhtPreloadPutGetSelfTest extends GridCommonAbstractTest {
     /**
      * @throws Exception If failed.
      */
+    @Test
     public void testPutGetSync0() throws Exception {
         preloadMode = SYNC;
         backups = 0;
@@ -129,6 +130,7 @@ public class GridCacheDhtPreloadPutGetSelfTest extends GridCommonAbstractTest {
     /**
      * @throws Exception If failed.
      */
+    @Test
     public void testPutGetSync1() throws Exception {
         preloadMode = SYNC;
         backups = 1;
@@ -139,6 +141,7 @@ public class GridCacheDhtPreloadPutGetSelfTest extends GridCommonAbstractTest {
     /**
      * @throws Exception If failed.
      */
+    @Test
     public void testPutGetSync2() throws Exception {
         preloadMode = SYNC;
         backups = 2;
@@ -149,7 +152,10 @@ public class GridCacheDhtPreloadPutGetSelfTest extends GridCommonAbstractTest {
     /**
      * @throws Exception If failed.
      */
+    @Test
     public void testPutGetNone0() throws Exception {
+        Assume.assumeFalse("https://issues.apache.org/jira/browse/IGNITE-11417", MvccFeatureChecker.forcedMvcc());
+
         preloadMode = NONE;
         backups = 0;
 
@@ -159,7 +165,10 @@ public class GridCacheDhtPreloadPutGetSelfTest extends GridCommonAbstractTest {
     /**
      * @throws Exception If failed.
      */
+    @Test
     public void testPutGetNone1() throws Exception {
+        Assume.assumeFalse("https://issues.apache.org/jira/browse/IGNITE-11417", MvccFeatureChecker.forcedMvcc());
+
         preloadMode = NONE;
         backups = 1;
 
@@ -169,7 +178,10 @@ public class GridCacheDhtPreloadPutGetSelfTest extends GridCommonAbstractTest {
     /**
      * @throws Exception If failed.
      */
+    @Test
     public void testPutGetNone2() throws Exception {
+        Assume.assumeFalse("https://issues.apache.org/jira/browse/IGNITE-11417", MvccFeatureChecker.forcedMvcc());
+
         preloadMode = NONE;
         backups = 2;
 
@@ -195,7 +207,7 @@ public class GridCacheDhtPreloadPutGetSelfTest extends GridCommonAbstractTest {
                         for (int i = 0; i < ITER_CNT; i++) {
                             info("Iteration # " + i);
 
-                            IgniteCache<Integer, Integer> cache = g2.cache(null);
+                            IgniteCache<Integer, Integer> cache = g2.cache(DEFAULT_CACHE_NAME);
 
                             for (int j = 0; j < KEY_CNT; j++) {
                                 Integer val = cache.get(j);
@@ -227,7 +239,7 @@ public class GridCacheDhtPreloadPutGetSelfTest extends GridCommonAbstractTest {
 
                             Ignite g1 = startGrid(1);
 
-                            IgniteCache<Integer, Integer> cache = g1.cache(null);
+                            IgniteCache<Integer, Integer> cache = g1.cache(DEFAULT_CACHE_NAME);
 
                             for (int j = 0; j < KEY_CNT; j++) {
                                 cache.put(j, j);
@@ -239,9 +251,15 @@ public class GridCacheDhtPreloadPutGetSelfTest extends GridCommonAbstractTest {
                             done.set(true);
 
                             for (int j = 0; j < KEY_CNT; j++) {
+                                // Check SingleGetFuture.
                                 Integer val = internalCache(cache).get(j);
 
                                 assert val != null;
+
+                                // Check GetFuture.
+                                Map<Integer, Integer> vals = internalCache(cache).getAll(Arrays.asList(j, j + 1));
+
+                                assert val.equals(vals.get(j));
 
                                 if (j % FREQUENCY == 0)
                                     info("Read entry: " + j + " -> " + val);

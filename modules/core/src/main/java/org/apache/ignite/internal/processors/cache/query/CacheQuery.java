@@ -17,6 +17,7 @@
 
 package org.apache.ignite.internal.processors.cache.query;
 
+import org.apache.ignite.IgniteCheckedException;
 import org.apache.ignite.cache.affinity.AffinityKey;
 import org.apache.ignite.cache.query.Query;
 import org.apache.ignite.cache.query.QueryMetrics;
@@ -24,7 +25,7 @@ import org.apache.ignite.cache.query.annotations.QuerySqlField;
 import org.apache.ignite.cache.query.annotations.QuerySqlFunction;
 import org.apache.ignite.cache.query.annotations.QueryTextField;
 import org.apache.ignite.cluster.ClusterGroup;
-import org.apache.ignite.lang.IgniteClosure;
+import org.apache.ignite.internal.util.lang.GridCloseableIterator;
 import org.apache.ignite.lang.IgniteReducer;
 import org.jetbrains.annotations.Nullable;
 
@@ -155,13 +156,13 @@ import org.jetbrains.annotations.Nullable;
  * private class MapPoint implements Serializable {
  *     // Geospatial index.
  *     &#64;QuerySqlField(index = true)
- *     private com.vividsolutions.jts.geom.Point location;
+ *     private org.locationtech.jts.geom.Point location;
  *
  *     // Not indexed field.
  *     &#64;QuerySqlField
  *     private String name;
  *
- *     public MapPoint(com.vividsolutions.jts.geom.Point location, String name) {
+ *     public MapPoint(org.locationtech.jts.geom.Point location, String name) {
  *         this.location = location;
  *         this.name = name;
  *     }
@@ -169,14 +170,14 @@ import org.jetbrains.annotations.Nullable;
  * </pre>
  * Example of spatial query on the geo-indexed field from above:
  * <pre name="code" class="java">
- * com.vividsolutions.jts.geom.GeometryFactory factory = new com.vividsolutions.jts.geom.GeometryFactory();
+ * org.locationtech.jts.geom.GeometryFactory factory = new org.locationtech.jts.geom.GeometryFactory();
  *
- * com.vividsolutions.jts.geom.Polygon square = factory.createPolygon(new Coordinate[] {
- *     new com.vividsolutions.jts.geom.Coordinate(0, 0),
- *     new com.vividsolutions.jts.geom.Coordinate(0, 100),
- *     new com.vividsolutions.jts.geom.Coordinate(100, 100),
- *     new com.vividsolutions.jts.geom.Coordinate(100, 0),
- *     new com.vividsolutions.jts.geom.Coordinate(0, 0)
+ * org.locationtech.jts.geom.Polygon square = factory.createPolygon(new Coordinate[] {
+ *     new org.locationtech.jts.geom.Coordinate(0, 0),
+ *     new org.locationtech.jts.geom.Coordinate(0, 100),
+ *     new org.locationtech.jts.geom.Coordinate(100, 100),
+ *     new org.locationtech.jts.geom.Coordinate(100, 0),
+ *     new org.locationtech.jts.geom.Coordinate(0, 0)
  * });
  *
  * Map.Entry<String, UserData> records = cache.queries().createSqlQuery(MapPoint.class, "select * from MapPoint where location && ?")
@@ -203,15 +204,6 @@ public interface CacheQuery<T> {
      * @return {@code this} query instance for chaining.
      */
     public CacheQuery<T> timeout(long timeout);
-
-    /**
-     * Sets whether or not to keep all query results local. If not - only the current page
-     * is kept locally. Default value is {@code true}.
-     *
-     * @param keepAll Keep results or not.
-     * @return {@code this} query instance for chaining.
-     */
-    public CacheQuery<T> keepAll(boolean keepAll);
 
     /**
      * Sets whether or not to include backup entries into query result. This flag
@@ -244,10 +236,7 @@ public interface CacheQuery<T> {
      * Executes the query and returns the query future. Caller may decide to iterate
      * over the returned future directly in which case the iterator may block until
      * the next value will become available, or wait for the whole query to finish
-     * by calling any of the {@code 'get(..)'} methods on the returned future. If
-     * {@link #keepAll(boolean)} flag is set to {@code false}, then {@code 'get(..)'}
-     * methods will only return the last page received, otherwise all pages will be
-     * accumulated and returned to user as a collection.
+     * by calling any of the {@code 'get(..)'} methods on the returned future.
      * <p>
      * Note that if the passed in grid projection is a local node, then query
      * will be executed locally without distribution to other nodes.
@@ -270,15 +259,6 @@ public interface CacheQuery<T> {
     public <R> CacheQueryFuture<R> execute(IgniteReducer<T, R> rmtReducer, @Nullable Object... args);
 
     /**
-     * Executes the query the same way as {@link #execute(Object...)} method but transforms result remotely.
-     *
-     * @param rmtTransform Remote transformer.
-     * @param args Optional arguments.
-     * @return Future for the query result.
-     */
-    public <R> CacheQueryFuture<R> execute(IgniteClosure<T, R> rmtTransform, @Nullable Object... args);
-
-    /**
      * Gets metrics for this query.
      *
      * @return Query metrics.
@@ -289,4 +269,9 @@ public interface CacheQuery<T> {
      * Resets metrics for this query.
      */
     public void resetMetrics();
+
+    /**
+     * @return Scan query iterator.
+     */
+    public GridCloseableIterator executeScanQuery() throws IgniteCheckedException;
 }

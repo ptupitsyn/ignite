@@ -18,9 +18,13 @@
 package org.apache.ignite.internal.processors.cache;
 
 import java.io.IOException;
+import java.util.List;
 import javax.cache.CacheException;
 import org.apache.ignite.cache.affinity.Affinity;
+import org.apache.ignite.cluster.ClusterNode;
 import org.apache.ignite.internal.util.typedef.X;
+import org.apache.ignite.internal.util.typedef.internal.U;
+import org.junit.Test;
 
 /**
  * Checks behavior on exception while unmarshalling key.
@@ -32,6 +36,7 @@ public class IgniteCacheP2pUnmarshallingRebalanceErrorTest extends IgniteCacheP2
     }
 
     /** {@inheritDoc} */
+    @Test
     @Override public void testResponseMessageOnUnmarshallingFailed() throws Exception {
         //GridDhtPartitionSupplyMessage unmarshalling failed test.
         readCnt.set(Integer.MAX_VALUE);
@@ -43,29 +48,54 @@ public class IgniteCacheP2pUnmarshallingRebalanceErrorTest extends IgniteCacheP2
 
         startGrid(3);
 
-        //GridDhtPartitionSupplyMessage unmarshalling failed but ioManager does not hangs up.
+        // GridDhtPartitionSupplyMessage unmarshalling failed but ioManager does not hangs up.
 
         Thread.sleep(1000);
 
-        //GridDhtForceKeysRequest unmarshalling failed test.
+        // GridDhtForceKeysRequest unmarshalling failed test.
         stopGrid(3);
 
         readCnt.set(Integer.MAX_VALUE);
 
-        for (int i = 0; i <= 1000; i++)
+        for (int i = 0; i <= 100; i++)
             jcache(0).put(new TestKey(String.valueOf(++key)), "");
 
-        startGrid(3);
+        startGrid(10); // Custom rebalanceDelay set at cfg.
 
-        Affinity<Object> aff = affinity(grid(3).cache(null));
+        Affinity<Object> aff = affinity(grid(10).cache(DEFAULT_CACHE_NAME));
 
-        while (!aff.isPrimary(grid(3).localNode(), new TestKey(String.valueOf(key))))
+        GridCacheContext cctx = grid(10).context().cache().cache(DEFAULT_CACHE_NAME).context();
+
+        List<List<ClusterNode>> affAssign =
+            cctx.affinity().assignment(cctx.affinity().affinityTopologyVersion()).idealAssignment();
+
+        Integer part = null;
+
+        ClusterNode node = grid(10).localNode();
+
+        for (int p = 0; p < aff.partitions(); p++) {
+            if (affAssign.get(p).get(0).equals(node)) {
+                part = p;
+
+                break;
+            }
+        }
+
+        assertNotNull(part);
+
+        long stopTime = U.currentTimeMillis() + 5000;
+
+        while (!part.equals(aff.partition(new TestKey(String.valueOf(key))))) {
             --key;
+
+            if (U.currentTimeMillis() > stopTime)
+                fail();
+        }
 
         readCnt.set(1);
 
         try {
-            jcache(3).get(new TestKey(String.valueOf(key)));
+            jcache(10).get(new TestKey(String.valueOf(key)));
 
             assert false : "p2p marshalling failed, but error response was not sent";
         }

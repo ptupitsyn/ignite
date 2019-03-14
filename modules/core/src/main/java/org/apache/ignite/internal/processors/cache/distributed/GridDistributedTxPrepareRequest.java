@@ -26,16 +26,24 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.UUID;
 import org.apache.ignite.IgniteCheckedException;
+import org.apache.ignite.IgniteLogger;
 import org.apache.ignite.internal.GridDirectCollection;
+import org.apache.ignite.internal.GridDirectMap;
 import org.apache.ignite.internal.GridDirectTransient;
 import org.apache.ignite.internal.processors.cache.GridCacheContext;
 import org.apache.ignite.internal.processors.cache.GridCacheSharedContext;
 import org.apache.ignite.internal.processors.cache.transactions.IgniteInternalTx;
 import org.apache.ignite.internal.processors.cache.transactions.IgniteTxEntry;
 import org.apache.ignite.internal.processors.cache.transactions.IgniteTxKey;
+import org.apache.ignite.internal.processors.cache.transactions.IgniteTxState;
+import org.apache.ignite.internal.processors.cache.transactions.IgniteTxStateAware;
 import org.apache.ignite.internal.processors.cache.version.GridCacheVersion;
+import org.apache.ignite.internal.util.UUIDCollectionMessage;
 import org.apache.ignite.internal.util.tostring.GridToStringBuilder;
+import org.apache.ignite.internal.util.tostring.GridToStringExclude;
 import org.apache.ignite.internal.util.tostring.GridToStringInclude;
+import org.apache.ignite.internal.util.typedef.C1;
+import org.apache.ignite.internal.util.typedef.F;
 import org.apache.ignite.internal.util.typedef.internal.U;
 import org.apache.ignite.plugin.extensions.communication.MessageCollectionItemType;
 import org.apache.ignite.plugin.extensions.communication.MessageReader;
@@ -48,9 +56,44 @@ import org.jetbrains.annotations.Nullable;
  * Transaction prepare request for optimistic and eventually consistent
  * transactions.
  */
-public class GridDistributedTxPrepareRequest extends GridDistributedBaseMessage {
+public class GridDistributedTxPrepareRequest extends GridDistributedBaseMessage implements IgniteTxStateAware {
     /** */
     private static final long serialVersionUID = 0L;
+
+    /** */
+    private static final int NEED_RETURN_VALUE_FLAG_MASK = 0x01;
+
+    /** */
+    private static final int INVALIDATE_FLAG_MASK = 0x02;
+
+    /** */
+    private static final int ONE_PHASE_COMMIT_FLAG_MASK = 0x04;
+
+    /** */
+    private static final int LAST_REQ_FLAG_MASK = 0x08;
+
+    /** */
+    private static final int SYSTEM_TX_FLAG_MASK = 0x10;
+
+    /** */
+    public static final int STORE_WRITE_THROUGH_FLAG_MASK = 0x20;
+
+    /** */
+    public static final int QUERY_UPDATE_FLAG_MASK = 0x40;
+
+    /** Collection to message converter. */
+    private static final C1<Collection<UUID>, UUIDCollectionMessage> COL_TO_MSG = new C1<Collection<UUID>, UUIDCollectionMessage>() {
+        @Override public UUIDCollectionMessage apply(Collection<UUID> uuids) {
+            return new UUIDCollectionMessage(uuids);
+        }
+    };
+
+    /** Message to collection converter. */
+    private static final C1<UUIDCollectionMessage, Collection<UUID>> MSG_TO_COL = new C1<UUIDCollectionMessage, Collection<UUID>>() {
+        @Override public Collection<UUID> apply(UUIDCollectionMessage msg) {
+            return msg.uuids();
+        }
+    };
 
     /** Thread ID. */
     @GridToStringInclude
@@ -71,10 +114,6 @@ public class GridDistributedTxPrepareRequest extends GridDistributedBaseMessage 
     /** Transaction timeout. */
     @GridToStringInclude
     private long timeout;
-
-    /** Invalidation flag. */
-    @GridToStringInclude
-    private boolean invalidate;
 
     /** Transaction read set. */
     @GridToStringInclude
@@ -106,17 +145,20 @@ public class GridDistributedTxPrepareRequest extends GridDistributedBaseMessage 
     @GridDirectTransient
     private Map<UUID, Collection<UUID>> txNodes;
 
-    /** */
-    private byte[] txNodesBytes;
-
-    /** One phase commit flag. */
-    private boolean onePhaseCommit;
-
-    /** System flag. */
-    private boolean sys;
+    /** Tx nodes direct marshallable message. */
+    @GridDirectMap(keyType = UUID.class, valueType = UUIDCollectionMessage.class)
+    private Map<UUID, UUIDCollectionMessage> txNodesMsg;
 
     /** IO policy. */
     private byte plc;
+
+    /** Transient TX state. */
+    @GridDirectTransient
+    private IgniteTxState txState;
+
+    /** */
+    @GridToStringExclude
+    private byte flags;
 
     /**
      * Required by {@link Externalizable}.
@@ -127,34 +169,59 @@ public class GridDistributedTxPrepareRequest extends GridDistributedBaseMessage 
 
     /**
      * @param tx Cache transaction.
+     * @param timeout Transactions timeout.
      * @param reads Read entries.
      * @param writes Write entries.
      * @param txNodes Transaction nodes mapping.
+     * @param retVal Return value flag.
+     * @param last Last request flag.
      * @param onePhaseCommit One phase commit flag.
+     * @param addDepInfo Deployment info flag.
      */
     public GridDistributedTxPrepareRequest(
         IgniteInternalTx tx,
+        long timeout,
         @Nullable Collection<IgniteTxEntry> reads,
         Collection<IgniteTxEntry> writes,
         Map<UUID, Collection<UUID>> txNodes,
-        boolean onePhaseCommit
+        boolean retVal,
+        boolean last,
+        boolean onePhaseCommit,
+        boolean addDepInfo
     ) {
-        super(tx.xidVersion(), 0);
+        super(tx.xidVersion(), 0, addDepInfo);
 
         writeVer = tx.writeVersion();
         threadId = tx.threadId();
         concurrency = tx.concurrency();
         isolation = tx.isolation();
-        timeout = tx.timeout();
-        invalidate = tx.isInvalidate();
         txSize = tx.size();
-        sys = tx.system();
         plc = tx.ioPolicy();
 
+        this.timeout = timeout;
         this.reads = reads;
         this.writes = writes;
         this.txNodes = txNodes;
-        this.onePhaseCommit = onePhaseCommit;
+
+        setFlag(tx.system(), SYSTEM_TX_FLAG_MASK);
+        setFlag(retVal, NEED_RETURN_VALUE_FLAG_MASK);
+        setFlag(tx.isInvalidate(), INVALIDATE_FLAG_MASK);
+        setFlag(onePhaseCommit, ONE_PHASE_COMMIT_FLAG_MASK);
+        setFlag(last, LAST_REQ_FLAG_MASK);
+    }
+
+    /**
+     * @return Flag indicating whether transaction needs return value.
+     */
+    public final boolean needReturnValue() {
+        return isFlag(NEED_RETURN_VALUE_FLAG_MASK);
+    }
+
+    /**
+     * @param retVal Need return value.
+     */
+    public final void needReturnValue(boolean retVal) {
+        setFlag(retVal, NEED_RETURN_VALUE_FLAG_MASK);
     }
 
     /**
@@ -167,8 +234,44 @@ public class GridDistributedTxPrepareRequest extends GridDistributedBaseMessage 
     /**
      * @return System flag.
      */
-    public boolean system() {
-        return sys;
+    public final boolean system() {
+        return isFlag(SYSTEM_TX_FLAG_MASK);
+    }
+
+    /**
+     * @return Flag indicating whether transaction use cache store.
+     */
+    public boolean storeWriteThrough() {
+        return (flags & STORE_WRITE_THROUGH_FLAG_MASK) != 0;
+    }
+
+    /**
+     * @param storeWriteThrough Store write through value.
+     */
+    public void storeWriteThrough(boolean storeWriteThrough) {
+        if (storeWriteThrough)
+            flags = (byte)(flags | STORE_WRITE_THROUGH_FLAG_MASK);
+        else
+            flags &= ~STORE_WRITE_THROUGH_FLAG_MASK;
+    }
+
+    /**
+     *
+     * @return Flag indicating whether it is a query update.
+     */
+    public boolean queryUpdate() {
+        return (flags & QUERY_UPDATE_FLAG_MASK) != 0;
+    }
+
+    /**
+     *
+     * @param queryUpdate Query update value.
+     */
+    public void queryUpdate(boolean queryUpdate) {
+        if (queryUpdate)
+            flags = (byte)(flags | QUERY_UPDATE_FLAG_MASK);
+        else
+            flags &= ~QUERY_UPDATE_FLAG_MASK;
     }
 
     /**
@@ -208,12 +311,16 @@ public class GridDistributedTxPrepareRequest extends GridDistributedBaseMessage 
     /**
      * @return Commit version.
      */
-    public GridCacheVersion writeVersion() { return writeVer; }
+    public GridCacheVersion writeVersion() {
+        return writeVer;
+    }
 
     /**
      * @return Invalidate flag.
      */
-    public boolean isInvalidate() { return invalidate; }
+    public boolean isInvalidate() {
+        return isFlag(INVALIDATE_FLAG_MASK);
+    }
 
     /**
      * @return Transaction timeout.
@@ -275,7 +382,24 @@ public class GridDistributedTxPrepareRequest extends GridDistributedBaseMessage 
      * @return One phase commit flag.
      */
     public boolean onePhaseCommit() {
-        return onePhaseCommit;
+        return isFlag(ONE_PHASE_COMMIT_FLAG_MASK);
+    }
+
+    /**
+     * @return {@code True} if this is last prepare request for node.
+     */
+    public boolean last() {
+        return isFlag(LAST_REQ_FLAG_MASK);
+    }
+
+    /** {@inheritDoc} */
+    @Override public IgniteTxState txState() {
+        return txState;
+    }
+
+    /** {@inheritDoc} */
+    @Override public void txState(IgniteTxState txState) {
+        this.txState = txState;
     }
 
     /** {@inheritDoc}
@@ -289,7 +413,7 @@ public class GridDistributedTxPrepareRequest extends GridDistributedBaseMessage 
         if (reads != null)
             marshalTx(reads, ctx);
 
-        if (dhtVers != null) {
+        if (dhtVers != null && dhtVerKeys == null) {
             for (IgniteTxKey key : dhtVers.keySet()) {
                 GridCacheContext cctx = ctx.cacheContext(key.cacheId());
 
@@ -300,8 +424,8 @@ public class GridDistributedTxPrepareRequest extends GridDistributedBaseMessage 
             dhtVerVals = dhtVers.values();
         }
 
-        if (txNodes != null)
-            txNodesBytes = ctx.marshaller().marshal(txNodes);
+        if (txNodesMsg == null)
+            txNodesMsg = F.viewReadOnly(txNodes, COL_TO_MSG);
     }
 
     /** {@inheritDoc} */
@@ -332,8 +456,38 @@ public class GridDistributedTxPrepareRequest extends GridDistributedBaseMessage 
             }
         }
 
-        if (txNodesBytes != null)
-            txNodes = ctx.marshaller().unmarshal(txNodesBytes, ldr);
+        if (txNodesMsg != null)
+            txNodes = F.viewReadOnly(txNodesMsg, MSG_TO_COL);
+    }
+
+    /** {@inheritDoc} */
+    @Override public boolean addDeploymentInfo() {
+        return addDepInfo || forceAddDepInfo;
+    }
+
+    /** {@inheritDoc} */
+    @Override public IgniteLogger messageLogger(GridCacheSharedContext ctx) {
+        return ctx.txPrepareMessageLogger();
+    }
+
+    /**
+     * Sets flag mask.
+     *
+     * @param flag Set or clear.
+     * @param mask Mask.
+     */
+    private void setFlag(boolean flag, int mask) {
+        flags = flag ? (byte)(flags | mask) : (byte)(flags & ~mask);
+    }
+
+    /**
+     * Reags flag mask.
+     *
+     * @param mask Mask to read.
+     * @return Flag value.
+     */
+    private boolean isFlag(int mask) {
+        return (flags & mask) != 0;
     }
 
     /** {@inheritDoc} */
@@ -351,38 +505,32 @@ public class GridDistributedTxPrepareRequest extends GridDistributedBaseMessage 
         }
 
         switch (writer.state()) {
-            case 7:
+            case 8:
                 if (!writer.writeByte("concurrency", concurrency != null ? (byte)concurrency.ordinal() : -1))
                     return false;
 
                 writer.incrementState();
 
-            case 8:
+            case 9:
                 if (!writer.writeCollection("dhtVerKeys", dhtVerKeys, MessageCollectionItemType.MSG))
                     return false;
 
                 writer.incrementState();
 
-            case 9:
+            case 10:
                 if (!writer.writeCollection("dhtVerVals", dhtVerVals, MessageCollectionItemType.MSG))
                     return false;
 
                 writer.incrementState();
 
-            case 10:
-                if (!writer.writeBoolean("invalidate", invalidate))
-                    return false;
-
-                writer.incrementState();
-
             case 11:
-                if (!writer.writeByte("isolation", isolation != null ? (byte)isolation.ordinal() : -1))
+                if (!writer.writeByte("flags", flags))
                     return false;
 
                 writer.incrementState();
 
             case 12:
-                if (!writer.writeBoolean("onePhaseCommit", onePhaseCommit))
+                if (!writer.writeByte("isolation", isolation != null ? (byte)isolation.ordinal() : -1))
                     return false;
 
                 writer.incrementState();
@@ -400,42 +548,36 @@ public class GridDistributedTxPrepareRequest extends GridDistributedBaseMessage 
                 writer.incrementState();
 
             case 15:
-                if (!writer.writeBoolean("sys", sys))
-                    return false;
-
-                writer.incrementState();
-
-            case 16:
                 if (!writer.writeLong("threadId", threadId))
                     return false;
 
                 writer.incrementState();
 
-            case 17:
+            case 16:
                 if (!writer.writeLong("timeout", timeout))
                     return false;
 
                 writer.incrementState();
 
-            case 18:
-                if (!writer.writeByteArray("txNodesBytes", txNodesBytes))
+            case 17:
+                if (!writer.writeMap("txNodesMsg", txNodesMsg, MessageCollectionItemType.UUID, MessageCollectionItemType.MSG))
                     return false;
 
                 writer.incrementState();
 
-            case 19:
+            case 18:
                 if (!writer.writeInt("txSize", txSize))
                     return false;
 
                 writer.incrementState();
 
-            case 20:
+            case 19:
                 if (!writer.writeMessage("writeVer", writeVer))
                     return false;
 
                 writer.incrementState();
 
-            case 21:
+            case 20:
                 if (!writer.writeCollection("writes", writes, MessageCollectionItemType.MSG))
                     return false;
 
@@ -457,7 +599,7 @@ public class GridDistributedTxPrepareRequest extends GridDistributedBaseMessage 
             return false;
 
         switch (reader.state()) {
-            case 7:
+            case 8:
                 byte concurrencyOrd;
 
                 concurrencyOrd = reader.readByte("concurrency");
@@ -469,7 +611,7 @@ public class GridDistributedTxPrepareRequest extends GridDistributedBaseMessage 
 
                 reader.incrementState();
 
-            case 8:
+            case 9:
                 dhtVerKeys = reader.readCollection("dhtVerKeys", MessageCollectionItemType.MSG);
 
                 if (!reader.isLastRead())
@@ -477,7 +619,7 @@ public class GridDistributedTxPrepareRequest extends GridDistributedBaseMessage 
 
                 reader.incrementState();
 
-            case 9:
+            case 10:
                 dhtVerVals = reader.readCollection("dhtVerVals", MessageCollectionItemType.MSG);
 
                 if (!reader.isLastRead())
@@ -485,15 +627,15 @@ public class GridDistributedTxPrepareRequest extends GridDistributedBaseMessage 
 
                 reader.incrementState();
 
-            case 10:
-                invalidate = reader.readBoolean("invalidate");
+            case 11:
+                flags = reader.readByte("flags");
 
                 if (!reader.isLastRead())
                     return false;
 
                 reader.incrementState();
 
-            case 11:
+            case 12:
                 byte isolationOrd;
 
                 isolationOrd = reader.readByte("isolation");
@@ -502,14 +644,6 @@ public class GridDistributedTxPrepareRequest extends GridDistributedBaseMessage 
                     return false;
 
                 isolation = TransactionIsolation.fromOrdinal(isolationOrd);
-
-                reader.incrementState();
-
-            case 12:
-                onePhaseCommit = reader.readBoolean("onePhaseCommit");
-
-                if (!reader.isLastRead())
-                    return false;
 
                 reader.incrementState();
 
@@ -530,14 +664,6 @@ public class GridDistributedTxPrepareRequest extends GridDistributedBaseMessage 
                 reader.incrementState();
 
             case 15:
-                sys = reader.readBoolean("sys");
-
-                if (!reader.isLastRead())
-                    return false;
-
-                reader.incrementState();
-
-            case 16:
                 threadId = reader.readLong("threadId");
 
                 if (!reader.isLastRead())
@@ -545,7 +671,7 @@ public class GridDistributedTxPrepareRequest extends GridDistributedBaseMessage 
 
                 reader.incrementState();
 
-            case 17:
+            case 16:
                 timeout = reader.readLong("timeout");
 
                 if (!reader.isLastRead())
@@ -553,15 +679,15 @@ public class GridDistributedTxPrepareRequest extends GridDistributedBaseMessage 
 
                 reader.incrementState();
 
-            case 18:
-                txNodesBytes = reader.readByteArray("txNodesBytes");
+            case 17:
+                txNodesMsg = reader.readMap("txNodesMsg", MessageCollectionItemType.UUID, MessageCollectionItemType.MSG, false);
 
                 if (!reader.isLastRead())
                     return false;
 
                 reader.incrementState();
 
-            case 19:
+            case 18:
                 txSize = reader.readInt("txSize");
 
                 if (!reader.isLastRead())
@@ -569,7 +695,7 @@ public class GridDistributedTxPrepareRequest extends GridDistributedBaseMessage 
 
                 reader.incrementState();
 
-            case 20:
+            case 19:
                 writeVer = reader.readMessage("writeVer");
 
                 if (!reader.isLastRead())
@@ -577,7 +703,7 @@ public class GridDistributedTxPrepareRequest extends GridDistributedBaseMessage 
 
                 reader.incrementState();
 
-            case 21:
+            case 20:
                 writes = reader.readCollection("writes", MessageCollectionItemType.MSG);
 
                 if (!reader.isLastRead())
@@ -591,18 +717,36 @@ public class GridDistributedTxPrepareRequest extends GridDistributedBaseMessage 
     }
 
     /** {@inheritDoc} */
-    @Override public byte directType() {
+    @Override public short directType() {
         return 25;
     }
 
     /** {@inheritDoc} */
     @Override public byte fieldsCount() {
-        return 22;
+        return 21;
     }
 
     /** {@inheritDoc} */
     @Override public String toString() {
+        StringBuilder flags = new StringBuilder();
+
+        if (needReturnValue())
+            appendFlag(flags, "retVal");
+
+        if (isInvalidate())
+            appendFlag(flags, "invalidate");
+
+        if (onePhaseCommit())
+            appendFlag(flags, "onePhase");
+
+        if (last())
+            appendFlag(flags, "last");
+
+        if (system())
+            appendFlag(flags, "sys");
+
         return GridToStringBuilder.toString(GridDistributedTxPrepareRequest.class, this,
+            "flags", flags.toString(),
             "super", super.toString());
     }
 }

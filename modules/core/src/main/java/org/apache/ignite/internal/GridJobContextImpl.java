@@ -137,7 +137,6 @@ public class GridJobContextImpl implements ComputeJobContext, Externalizable {
     }
 
     /** {@inheritDoc} */
-    @SuppressWarnings("unchecked")
     @Override public <K, V> V getAttribute(K key) {
         A.notNull(key, "key");
 
@@ -217,7 +216,7 @@ public class GridJobContextImpl implements ComputeJobContext, Externalizable {
 
                                 assert execSvc != null;
 
-                                execSvc.submit(new Runnable() {
+                                execSvc.execute(new Runnable() {
                                     @Override public void run() {
                                         callcc0();
                                     }

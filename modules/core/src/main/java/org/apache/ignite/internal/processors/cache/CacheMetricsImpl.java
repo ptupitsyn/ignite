@@ -17,23 +17,63 @@
 
 package org.apache.ignite.internal.processors.cache;
 
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
-import org.apache.ignite.IgniteCheckedException;
+import org.apache.ignite.IgniteSystemProperties;
 import org.apache.ignite.cache.CacheMetrics;
+import org.apache.ignite.cache.CachePeekMode;
 import org.apache.ignite.configuration.CacheConfiguration;
+import org.apache.ignite.internal.processors.affinity.AffinityTopologyVersion;
+import org.apache.ignite.internal.processors.cache.distributed.dht.GridDhtTopologyFuture;
+import org.apache.ignite.internal.processors.cache.distributed.dht.topology.GridDhtLocalPartition;
+import org.apache.ignite.internal.processors.cache.distributed.dht.topology.GridDhtPartitionState;
+import org.apache.ignite.internal.processors.cache.ratemetrics.HitRateMetrics;
 import org.apache.ignite.internal.processors.cache.store.GridCacheWriteBehindStore;
 import org.apache.ignite.internal.util.tostring.GridToStringExclude;
 import org.apache.ignite.internal.util.typedef.internal.S;
+import org.apache.ignite.internal.util.typedef.internal.U;
 
 /**
  * Adapter for cache metrics.
  */
 public class CacheMetricsImpl implements CacheMetrics {
+    /** Rebalance rate interval. */
+    private static final int REBALANCE_RATE_INTERVAL = IgniteSystemProperties.getInteger(
+        IgniteSystemProperties.IGNITE_REBALANCE_STATISTICS_TIME_INTERVAL, 60000);
+
+    /** Onheap peek modes. */
+    private static final CachePeekMode[] ONHEAP_PEEK_MODES = new CachePeekMode[] {
+        CachePeekMode.ONHEAP, CachePeekMode.PRIMARY, CachePeekMode.BACKUP, CachePeekMode.NEAR};
+
     /** */
     private static final long NANOS_IN_MICROSECOND = 1000L;
 
     /** Number of reads. */
     private AtomicLong reads = new AtomicLong();
+
+    /** Number of invocations caused update. */
+    private AtomicLong entryProcessorPuts = new AtomicLong();
+
+    /** Number of invocations caused removal. */
+    private AtomicLong entryProcessorRemovals = new AtomicLong();
+
+    /** Number of invocations caused update. */
+    private AtomicLong entryProcessorReadOnlyInvocations = new AtomicLong();
+
+    /** Entry processor invoke time taken nanos. */
+    private AtomicLong entryProcessorInvokeTimeNanos = new AtomicLong();
+
+    /** So far, the minimum time to execute cache invokes. */
+    private AtomicLong entryProcessorMinInvocationTime = new AtomicLong();
+
+    /** So far, the maximum time to execute cache invokes. */
+    private AtomicLong entryProcessorMaxInvocationTime = new AtomicLong();
+
+    /** Number of entry processor invokes on keys, which exist in cache. */
+    private AtomicLong entryProcessorHits = new AtomicLong();
+
+    /** Number of entry processor invokes on keys, which don't exist in cache. */
+    private AtomicLong entryProcessorMisses = new AtomicLong();
 
     /** Number of writes. */
     private AtomicLong writes = new AtomicLong();
@@ -89,20 +129,26 @@ public class CacheMetricsImpl implements CacheMetrics {
     /** Number of off-heap misses. */
     private AtomicLong offHeapMisses = new AtomicLong();
 
-    /** Number of reads from swap. */
-    private AtomicLong swapGets = new AtomicLong();
+    /** Rebalanced keys count. */
+    private AtomicLong rebalancedKeys = new AtomicLong();
 
-    /** Number of writes to swap. */
-    private AtomicLong swapPuts = new AtomicLong();
+    /** Total rebalanced bytes count. */
+    private AtomicLong totalRebalancedBytes = new AtomicLong();
 
-    /** Number of removed entries from swap. */
-    private AtomicLong swapRemoves = new AtomicLong();
+    /** Rebalanced start time. */
+    private AtomicLong rebalanceStartTime = new AtomicLong(-1L);
 
-    /** Number of swap hits. */
-    private AtomicLong swapHits = new AtomicLong();
+    /** Estimated rebalancing keys count. */
+    private AtomicLong estimatedRebalancingKeys = new AtomicLong();
 
-    /** Number of swap misses. */
-    private AtomicLong swapMisses = new AtomicLong();
+    /** Rebalancing rate in keys. */
+    private HitRateMetrics rebalancingKeysRate = new HitRateMetrics(REBALANCE_RATE_INTERVAL, 20);
+
+    /** Rebalancing rate in bytes. */
+    private HitRateMetrics rebalancingBytesRate = new HitRateMetrics(REBALANCE_RATE_INTERVAL, 20);
+
+    /** Number of currently clearing partitions for rebalancing. */
+    private AtomicLong rebalanceClearingPartitions = new AtomicLong();
 
     /** Cache metrics. */
     @GridToStringExclude
@@ -146,18 +192,6 @@ public class CacheMetricsImpl implements CacheMetrics {
     /** {@inheritDoc} */
     @Override public String name() {
         return cctx.name();
-    }
-
-    /** {@inheritDoc} */
-    @Override public long getOverflowSize() {
-        try {
-            GridCacheAdapter<?, ?> cache = cctx.cache();
-
-            return cache != null ? cache.overflowSize() : -1;
-        }
-        catch (IgniteCheckedException ignored) {
-            return -1;
-        }
     }
 
     /** {@inheritDoc} */
@@ -214,29 +248,22 @@ public class CacheMetricsImpl implements CacheMetrics {
 
     /** {@inheritDoc} */
     @Override public long getOffHeapEntriesCount() {
-        GridCacheAdapter<?, ?> cache = cctx.cache();
+        return getEntriesStat().offHeapEntriesCount();
+    }
 
-        return cache != null ? cache.offHeapEntriesCount() : -1;
+    /** {@inheritDoc} */
+    @Override public long getHeapEntriesCount() {
+        return getEntriesStat().heapEntriesCount();
     }
 
     /** {@inheritDoc} */
     @Override public long getOffHeapPrimaryEntriesCount() {
-        try {
-            return cctx.swap().offheapEntriesCount(true, false, cctx.affinity().affinityTopologyVersion());
-        }
-        catch (IgniteCheckedException e) {
-            return 0;
-        }
+        return getEntriesStat().offHeapPrimaryEntriesCount();
     }
 
     /** {@inheritDoc} */
     @Override public long getOffHeapBackupEntriesCount() {
-        try {
-            return cctx.swap().offheapEntriesCount(false, true, cctx.affinity().affinityTopologyVersion());
-        }
-        catch (IgniteCheckedException e) {
-            return 0;
-        }
+        return getEntriesStat().offHeapBackupEntriesCount();
     }
 
     /** {@inheritDoc} */
@@ -247,111 +274,33 @@ public class CacheMetricsImpl implements CacheMetrics {
     }
 
     /** {@inheritDoc} */
-    @Override public long getOffHeapMaxSize() {
-        return cctx.config().getOffHeapMaxMemory();
-    }
-
-    /** {@inheritDoc} */
-    @Override public long getSwapGets() {
-        return swapGets.get();
-    }
-
-    /** {@inheritDoc} */
-    @Override public long getSwapPuts() {
-        return swapPuts.get();
-    }
-
-    /** {@inheritDoc} */
-    @Override public long getSwapRemovals() {
-        return swapRemoves.get();
-    }
-
-    /** {@inheritDoc} */
-    @Override public long getSwapHits() {
-        return swapHits.get();
-    }
-
-    /** {@inheritDoc} */
-    @Override public long getSwapMisses() {
-        return swapMisses.get();
-    }
-
-    /** {@inheritDoc} */
-    @Override public long getSwapEntriesCount() {
-        try {
-            return cctx.cache().swapKeys();
-        }
-        catch (IgniteCheckedException e) {
-            return 0;
-        }
-    }
-
-    /** {@inheritDoc} */
-    @Override public long getSwapSize() {
-        try {
-            return cctx.cache().swapSize();
-        }
-        catch (IgniteCheckedException e) {
-            return 0;
-        }
-    }
-
-    /** {@inheritDoc} */
-    @Override public float getSwapHitPercentage() {
-        long hits0 = swapHits.get();
-        long gets0 = swapGets.get();
-
-        if (hits0 == 0)
-            return 0;
-
-        return (float) hits0 / gets0 * 100.0f;
-    }
-
-    /** {@inheritDoc} */
-    @Override public float getSwapMissPercentage() {
-        long misses0 = swapMisses.get();
-        long reads0 = swapGets.get();
-
-        if (misses0 == 0)
-            return 0;
-
-        return (float) misses0 / reads0 * 100.0f;
-    }
-
-    /** {@inheritDoc} */
     @Override public int getSize() {
-        GridCacheAdapter<?, ?> cache = cctx.cache();
+        return getEntriesStat().size();
+    }
 
-        return cache != null ? cache.size() : 0;
+    /** {@inheritDoc} */
+    @Override public long getCacheSize() {
+        return getEntriesStat().cacheSize();
     }
 
     /** {@inheritDoc} */
     @Override public int getKeySize() {
-        return getSize();
+        return getEntriesStat().keySize();
     }
 
     /** {@inheritDoc} */
     @Override public boolean isEmpty() {
-        GridCacheAdapter<?, ?> cache = cctx.cache();
-
-        return cache == null || cache.isEmpty();
+        return getEntriesStat().isEmpty();
     }
 
     /** {@inheritDoc} */
     @Override public int getDhtEvictQueueCurrentSize() {
-        GridCacheContext<?, ?> ctx = cctx.isNear() ? dhtCtx : cctx;
-
-        if (ctx == null)
-            return -1;
-
-        GridCacheEvictionManager evictMgr = ctx.evicts();
-
-        return evictMgr != null ? evictMgr.evictQueueSize() : -1;
+        return -1;
     }
 
     /** {@inheritDoc} */
     @Override public int getTxCommitQueueSize() {
-        return cctx.tm().commitQueueSize();
+        return 0;
     }
 
     /** {@inheritDoc} */
@@ -366,12 +315,12 @@ public class CacheMetricsImpl implements CacheMetrics {
 
     /** {@inheritDoc} */
     @Override public int getTxPrepareQueueSize() {
-        return cctx.tm().prepareQueueSize();
+        return 0;
     }
 
     /** {@inheritDoc} */
     @Override public int getTxStartVersionCountsSize() {
-        return cctx.tm().startVersionCountsSize();
+        return 0;
     }
 
     /** {@inheritDoc} */
@@ -386,7 +335,7 @@ public class CacheMetricsImpl implements CacheMetrics {
 
     /** {@inheritDoc} */
     @Override public int getTxDhtThreadMapSize() {
-        return cctx.isNear() && dhtCtx != null ? dhtCtx.tm().threadMapSize() : -1;
+        return cctx.tm().threadMapSize();
     }
 
     /** {@inheritDoc} */
@@ -396,17 +345,17 @@ public class CacheMetricsImpl implements CacheMetrics {
 
     /** {@inheritDoc} */
     @Override public int getTxDhtCommitQueueSize() {
-        return cctx.isNear() && dhtCtx != null ? dhtCtx.tm().commitQueueSize() : -1;
+        return 0;
     }
 
     /** {@inheritDoc} */
     @Override public int getTxDhtPrepareQueueSize() {
-        return cctx.isNear() && dhtCtx != null ? dhtCtx.tm().prepareQueueSize() : -1;
+        return 0;
     }
 
     /** {@inheritDoc} */
     @Override public int getTxDhtStartVersionCountsSize() {
-        return cctx.isNear() && dhtCtx != null ? dhtCtx.tm().startVersionCountsSize() : -1;
+        return 0;
     }
 
     /** {@inheritDoc} */
@@ -514,6 +463,15 @@ public class CacheMetricsImpl implements CacheMetrics {
         commitTimeNanos.set(0);
         rollbackTimeNanos.set(0);
 
+        entryProcessorPuts.set(0);
+        entryProcessorRemovals.set(0);
+        entryProcessorReadOnlyInvocations.set(0);
+        entryProcessorMisses.set(0);
+        entryProcessorHits.set(0);
+        entryProcessorInvokeTimeNanos.set(0);
+        entryProcessorMaxInvocationTime.set(0);
+        entryProcessorMinInvocationTime.set(0);
+
         offHeapGets.set(0);
         offHeapPuts.set(0);
         offHeapRemoves.set(0);
@@ -521,11 +479,7 @@ public class CacheMetricsImpl implements CacheMetrics {
         offHeapMisses.set(0);
         offHeapEvicts.set(0);
 
-        swapGets.set(0);
-        swapPuts.set(0);
-        swapRemoves.set(0);
-        swapHits.set(0);
-        swapMisses.set(0);
+        clearRebalanceCounters();
 
         if (delegate != null)
             delegate.clear();
@@ -571,6 +525,79 @@ public class CacheMetricsImpl implements CacheMetrics {
     /** {@inheritDoc} */
     @Override public long getCachePuts() {
         return writes.get();
+    }
+
+    /** {@inheritDoc} */
+    @Override public long getEntryProcessorPuts() {
+        return entryProcessorPuts.get();
+    }
+
+    /** {@inheritDoc} */
+    @Override public long getEntryProcessorRemovals() {
+        return entryProcessorRemovals.get();
+    }
+
+    /** {@inheritDoc} */
+    @Override public long getEntryProcessorReadOnlyInvocations() {
+        return entryProcessorReadOnlyInvocations.get();
+    }
+
+    /** {@inheritDoc} */
+    @Override public long getEntryProcessorInvocations() {
+        return entryProcessorReadOnlyInvocations.get() + entryProcessorPuts.get() + entryProcessorRemovals.get();
+    }
+
+    /** {@inheritDoc} */
+    @Override public long getEntryProcessorHits() {
+        return entryProcessorHits.get();
+    }
+
+    /** {@inheritDoc} */
+    @Override public float getEntryProcessorHitPercentage() {
+        long hits = entryProcessorHits.get();
+        long totalInvocations = getEntryProcessorInvocations();
+
+        if (hits == 0)
+            return 0;
+
+        return (float) hits / totalInvocations * 100.0f;
+    }
+
+    /** {@inheritDoc} */
+    @Override public long getEntryProcessorMisses() {
+        return entryProcessorMisses.get();
+    }
+
+    /** {@inheritDoc} */
+    @Override public float getEntryProcessorMissPercentage() {
+        long misses = entryProcessorMisses.get();
+        long totalInvocations = getEntryProcessorInvocations();
+
+        if (misses == 0)
+            return 0;
+
+        return (float) misses / totalInvocations * 100.0f;
+    }
+
+    /** {@inheritDoc} */
+    @Override public float getEntryProcessorAverageInvocationTime() {
+        long totalInvokes = getEntryProcessorInvocations();
+        long timeNanos = entryProcessorInvokeTimeNanos.get();
+
+        if (timeNanos == 0 || totalInvokes == 0)
+            return 0;
+
+        return (1f * timeNanos) / totalInvokes / NANOS_IN_MICROSECOND;
+    }
+
+    /** {@inheritDoc} */
+    @Override public float getEntryProcessorMinInvocationTime() {
+        return (1f * entryProcessorMinInvocationTime.get()) / NANOS_IN_MICROSECOND;
+    }
+
+    /** {@inheritDoc} */
+    @Override public float getEntryProcessorMaxInvocationTime() {
+        return (1f * entryProcessorMaxInvocationTime.get()) / NANOS_IN_MICROSECOND;
     }
 
     /** {@inheritDoc} */
@@ -630,6 +657,106 @@ public class CacheMetricsImpl implements CacheMetrics {
 
         if (delegate != null)
             delegate.onRead(isHit);
+    }
+
+    /**
+     * Cache invocations caused update callback.
+     *
+     * @param isHit Hit or miss flag.
+     */
+    public void onInvokeUpdate(boolean isHit) {
+        entryProcessorPuts.incrementAndGet();
+
+        if (isHit)
+            entryProcessorHits.incrementAndGet();
+        else
+            entryProcessorMisses.incrementAndGet();
+
+        if (delegate != null)
+            delegate.onInvokeUpdate(isHit);
+    }
+
+    /**
+     * Cache invocations caused removal callback.
+     *
+     * @param isHit Hit or miss flag.
+     */
+    public void onInvokeRemove(boolean isHit) {
+        entryProcessorRemovals.incrementAndGet();
+
+        if (isHit)
+            entryProcessorHits.incrementAndGet();
+        else
+            entryProcessorMisses.incrementAndGet();
+
+        if (delegate != null)
+            delegate.onInvokeRemove(isHit);
+    }
+
+    /**
+     * Read-only cache invocations.
+     *
+     * @param isHit Hit or miss flag.
+     */
+    public void onReadOnlyInvoke(boolean isHit) {
+        entryProcessorReadOnlyInvocations.incrementAndGet();
+
+        if (isHit)
+            entryProcessorHits.incrementAndGet();
+        else
+            entryProcessorMisses.incrementAndGet();
+
+        if (delegate != null)
+            delegate.onReadOnlyInvoke(isHit);
+    }
+
+    /**
+     * Increments invoke operation time nanos.
+     *
+     * @param duration Duration.
+     */
+    public void addInvokeTimeNanos(long duration) {
+        entryProcessorInvokeTimeNanos.addAndGet(duration);
+
+        recalculateInvokeMinTimeNanos(duration);
+
+        recalculateInvokeMaxTimeNanos(duration);
+
+        if (delegate != null)
+            delegate.addInvokeTimeNanos(duration);
+
+    }
+
+    /**
+     * Recalculates invoke operation minimum time nanos.
+     *
+     * @param duration Duration.
+     */
+    private void recalculateInvokeMinTimeNanos(long duration){
+        long minTime = entryProcessorMinInvocationTime.longValue();
+
+        while (minTime > duration || minTime == 0) {
+            if (entryProcessorMinInvocationTime.compareAndSet(minTime, duration))
+                break;
+            else
+                minTime = entryProcessorMinInvocationTime.longValue();
+        }
+    }
+
+    /**
+     * Recalculates invoke operation maximum time nanos.
+     *
+     * @param duration Duration.
+     */
+    private void recalculateInvokeMaxTimeNanos(long duration){
+        long maxTime = entryProcessorMaxInvocationTime.longValue();
+
+        while (maxTime < duration) {
+            if (entryProcessorMaxInvocationTime.compareAndSet(maxTime, duration))
+                break;
+            else
+                maxTime = entryProcessorMaxInvocationTime.longValue();
+        }
     }
 
     /**
@@ -778,6 +905,36 @@ public class CacheMetricsImpl implements CacheMetrics {
         return ccfg != null && ccfg.isWriteThrough();
     }
 
+    /**
+     * Checks whether cache topology is valid for operations.
+     *
+     * @param read {@code True} if validating read operations, {@code false} if validating write.
+     * @return Valid ot not.
+     */
+    private boolean isValidForOperation(boolean read) {
+        if (cctx.isLocal())
+            return true;
+
+        try {
+            GridDhtTopologyFuture fut = cctx.shared().exchange().lastFinishedFuture();
+
+            return (fut != null && fut.validateCache(cctx, false, read, null, null) == null);
+        }
+        catch (Exception ignored) {
+            return false;
+        }
+    }
+
+    /** {@inheritDoc} */
+    @Override public boolean isValidForReading() {
+        return isValidForOperation(true);
+    }
+
+    /** {@inheritDoc} */
+    @Override public boolean isValidForWriting() {
+        return isValidForOperation(false);
+    }
+
     /** {@inheritDoc} */
     @Override public boolean isStoreByValue() {
         CacheConfiguration ccfg = cctx.config();
@@ -787,9 +944,7 @@ public class CacheMetricsImpl implements CacheMetrics {
 
     /** {@inheritDoc} */
     @Override public boolean isStatisticsEnabled() {
-        CacheConfiguration ccfg = cctx.config();
-
-        return ccfg != null && ccfg.isStatisticsEnabled();
+        return cctx.statisticsEnabled();
     }
 
     /** {@inheritDoc} */
@@ -797,6 +952,240 @@ public class CacheMetricsImpl implements CacheMetrics {
         CacheConfiguration ccfg = cctx.config();
 
         return ccfg != null && ccfg.isManagementEnabled();
+    }
+
+    /**
+     * Calculates entries count/partitions count metrics using one iteration over local partitions for all metrics
+     */
+    public EntriesStatMetrics getEntriesStat() {
+        int owningPartCnt = 0;
+        int movingPartCnt = 0;
+        long offHeapEntriesCnt = 0L;
+        long offHeapPrimaryEntriesCnt = 0L;
+        long offHeapBackupEntriesCnt = 0L;
+        long heapEntriesCnt = 0L;
+        int size = 0;
+        long sizeLong = 0L;
+        boolean isEmpty;
+
+        try {
+            final GridCacheAdapter<?, ?> cache = cctx.cache();
+
+            if (cache != null) {
+                offHeapEntriesCnt = cache.offHeapEntriesCount();
+
+                size = cache.localSize(null);
+                sizeLong = cache.localSizeLong(null);
+            }
+
+            if (cctx.isLocal()) {
+                if (cache != null) {
+                    offHeapPrimaryEntriesCnt = offHeapEntriesCnt;
+
+                    heapEntriesCnt = cache.sizeLong();
+                }
+            }
+            else {
+                AffinityTopologyVersion topVer = cctx.affinity().affinityTopologyVersion();
+
+                Set<Integer> primaries = cctx.affinity().primaryPartitions(cctx.localNodeId(), topVer);
+                Set<Integer> backups = cctx.affinity().backupPartitions(cctx.localNodeId(), topVer);
+
+                if (cctx.isNear() && cache != null)
+                    heapEntriesCnt = cache.nearSize();
+
+                for (GridDhtLocalPartition part : cctx.topology().currentLocalPartitions()) {
+                    // Partitions count.
+                    GridDhtPartitionState partState = part.state();
+
+                    if (partState == GridDhtPartitionState.OWNING)
+                        owningPartCnt++;
+
+                    if (partState == GridDhtPartitionState.MOVING)
+                        movingPartCnt++;
+
+                    // Offheap entries count
+                    if (cache == null)
+                        continue;
+
+                    long cacheSize = part.dataStore().cacheSize(cctx.cacheId());
+
+                    if (primaries.contains(part.id()))
+                        offHeapPrimaryEntriesCnt += cacheSize;
+                    else if (backups.contains(part.id()))
+                        offHeapBackupEntriesCnt += cacheSize;
+
+                    heapEntriesCnt += part.publicSize(cctx.cacheId());
+                }
+            }
+        }
+        catch (Exception e) {
+            owningPartCnt = -1;
+            movingPartCnt = 0;
+            offHeapEntriesCnt = -1L;
+            offHeapPrimaryEntriesCnt = -1L;
+            offHeapBackupEntriesCnt = -1L;
+            heapEntriesCnt = -1L;
+            size = -1;
+            sizeLong = -1L;
+        }
+
+        isEmpty = (offHeapEntriesCnt == 0);
+
+        EntriesStatMetrics stat = new EntriesStatMetrics();
+
+        stat.offHeapEntriesCount(offHeapEntriesCnt);
+        stat.offHeapPrimaryEntriesCount(offHeapPrimaryEntriesCnt);
+        stat.offHeapBackupEntriesCount(offHeapBackupEntriesCnt);
+        stat.heapEntriesCount(heapEntriesCnt);
+        stat.size(size);
+        stat.cacheSize(sizeLong);
+        stat.keySize(size);
+        stat.isEmpty(isEmpty);
+        stat.totalPartitionsCount(owningPartCnt + movingPartCnt);
+        stat.rebalancingPartitionsCount(movingPartCnt);
+
+        return stat;
+    }
+
+    /** {@inheritDoc} */
+    @Override public int getTotalPartitionsCount() {
+        return getEntriesStat().totalPartitionsCount();
+    }
+
+    /** {@inheritDoc} */
+    @Override public int getRebalancingPartitionsCount() {
+        return getEntriesStat().rebalancingPartitionsCount();
+    }
+
+    /** {@inheritDoc} */
+    @Override public long getRebalancedKeys() {
+        return rebalancedKeys.get();
+    }
+
+    /** {@inheritDoc} */
+    @Override public long getEstimatedRebalancingKeys() {
+        return estimatedRebalancingKeys.get();
+    }
+
+    /** {@inheritDoc} */
+    @Override public long getKeysToRebalanceLeft() {
+        return Math.max(0, estimatedRebalancingKeys.get() - rebalancedKeys.get());
+    }
+
+    /** {@inheritDoc} */
+    @Override public long getRebalancingKeysRate() {
+        return rebalancingKeysRate.getRate();
+    }
+
+    /** {@inheritDoc} */
+    @Override public long getRebalancingBytesRate() {
+        return rebalancingBytesRate.getRate();
+    }
+
+    /**
+     * Clear rebalance counters.
+     */
+    public void clearRebalanceCounters() {
+        estimatedRebalancingKeys.set(0);
+
+        rebalancedKeys.set(0);
+
+        totalRebalancedBytes.set(0);
+
+        rebalancingBytesRate.clear();
+
+        rebalancingKeysRate.clear();
+
+        rebalanceStartTime.set(-1L);
+    }
+
+    /**
+     *
+     */
+    public void startRebalance(long delay){
+        rebalanceStartTime.set(delay + U.currentTimeMillis());
+    }
+
+    /** {@inheritDoc} */
+    @Override public long estimateRebalancingFinishTime() {
+        return getEstimatedRebalancingFinishTime();
+    }
+
+    /** {@inheritDoc} */
+    @Override public long rebalancingStartTime() {
+        return rebalanceStartTime.get();
+    }
+
+    /** {@inheritDoc} */
+    @Override public long getEstimatedRebalancingFinishTime() {
+        long rate = rebalancingKeysRate.getRate();
+
+        return rate <= 0 ? -1L :
+            ((getKeysToRebalanceLeft() / rate) * REBALANCE_RATE_INTERVAL) + U.currentTimeMillis();
+    }
+
+    /** {@inheritDoc} */
+    @Override public long getRebalancingStartTime() {
+        return rebalanceStartTime.get();
+    }
+
+    /** {@inheritDoc} */
+    @Override public long getRebalanceClearingPartitionsLeft() {
+        return rebalanceClearingPartitions.get();
+    }
+
+    /**
+     * Sets clearing partitions number.
+     * @param partitions Partitions number.
+     */
+    public void rebalanceClearingPartitions(int partitions) {
+        rebalanceClearingPartitions.set(partitions);
+    }
+
+    /**
+     * First rebalance supply message callback.
+     * @param keysCnt Estimated number of keys.
+     */
+    public void onRebalancingKeysCountEstimateReceived(Long keysCnt) {
+        if (keysCnt == null)
+            return;
+
+        estimatedRebalancingKeys.addAndGet(keysCnt);
+    }
+
+    /**
+     * Rebalance entry store callback.
+     */
+    public void onRebalanceKeyReceived() {
+        rebalancedKeys.incrementAndGet();
+
+        rebalancingKeysRate.onHit();
+    }
+
+    /**
+     * Rebalance supply message callback.
+     *
+     * @param batchSize Batch size in bytes.
+     */
+    public void onRebalanceBatchReceived(long batchSize) {
+        totalRebalancedBytes.addAndGet(batchSize);
+
+        rebalancingBytesRate.onHits(batchSize);
+    }
+
+    /**
+     * @return Total number of allocated pages.
+     */
+    public long getTotalAllocatedPages() {
+        return 0;
+    }
+
+    /**
+     * @return Total number of evicted pages.
+     */
+    public long getTotalEvictedPages() {
+        return 0;
     }
 
     /**
@@ -846,63 +1235,183 @@ public class CacheMetricsImpl implements CacheMetrics {
             delegate.onOffHeapEvict();
     }
 
-    /**
-     * Swap read callback.
-     *
-     * @param hit Hit or miss flag.
-     */
-    public void onSwapRead(boolean hit) {
-        swapGets.incrementAndGet();
-
-        if (hit)
-            swapHits.incrementAndGet();
-        else
-            swapMisses.incrementAndGet();
-
-        if (delegate != null)
-            delegate.onSwapRead(hit);
-    }
-
-    /**
-     * Swap write callback.
-     */
-    public void onSwapWrite() {
-        onSwapWrite(1);
-    }
-
-    /**
-     * Swap write callback.
-     *
-     * @param cnt Amount of entries.
-     */
-    public void onSwapWrite(int cnt) {
-        swapPuts.addAndGet(cnt);
-
-        if (delegate != null)
-            delegate.onSwapWrite(cnt);
-    }
-
-    /**
-     * Swap remove callback.
-     */
-    public void onSwapRemove() {
-        onSwapRemove(1);
-    }
-
-    /**
-     * Swap remove callback.
-     *
-     * @param cnt Amount of entries.
-     */
-    public void onSwapRemove(int cnt) {
-        swapRemoves.addAndGet(cnt);
-
-        if (delegate != null)
-            delegate.onSwapRemove(cnt);
-    }
-
     /** {@inheritDoc} */
     @Override public String toString() {
         return S.toString(CacheMetricsImpl.class, this);
+    }
+
+    /**
+     * Entries and partitions metrics holder class.
+     */
+    public static class EntriesStatMetrics {
+        /** Total partitions count. */
+        private int totalPartsCnt;
+
+        /** Rebalancing partitions count. */
+        private int rebalancingPartsCnt;
+
+        /** Offheap entries count. */
+        private long offHeapEntriesCnt;
+
+        /** Offheap primary entries count. */
+        private long offHeapPrimaryEntriesCnt;
+
+        /** Offheap backup entries count. */
+        private long offHeapBackupEntriesCnt;
+
+        /** Onheap entries count. */
+        private long heapEntriesCnt;
+
+        /** Size. */
+        private int size;
+
+        /** Long size. */
+        private long cacheSize;
+
+        /** Key size. */
+        private int keySize;
+
+        /** Is empty. */
+        private boolean isEmpty;
+
+        /**
+         * @return Total partitions count.
+         */
+        public int totalPartitionsCount() {
+            return totalPartsCnt;
+        }
+
+        /**
+         * @param totalPartsCnt Total partitions count.
+         */
+        public void totalPartitionsCount(int totalPartsCnt) {
+            this.totalPartsCnt = totalPartsCnt;
+        }
+
+        /**
+         * @return Rebalancing partitions count.
+         */
+        public int rebalancingPartitionsCount() {
+            return rebalancingPartsCnt;
+        }
+
+        /**
+         * @param rebalancingPartsCnt Rebalancing partitions count.
+         */
+        public void rebalancingPartitionsCount(int rebalancingPartsCnt) {
+            this.rebalancingPartsCnt = rebalancingPartsCnt;
+        }
+
+        /**
+         * @return Offheap entries count.
+         */
+        public long offHeapEntriesCount() {
+            return offHeapEntriesCnt;
+        }
+
+        /**
+         * @param offHeapEntriesCnt Offheap entries count.
+         */
+        public void offHeapEntriesCount(long offHeapEntriesCnt) {
+            this.offHeapEntriesCnt = offHeapEntriesCnt;
+        }
+
+        /**
+         * @return Offheap primary entries count.
+         */
+        public long offHeapPrimaryEntriesCount() {
+            return offHeapPrimaryEntriesCnt;
+        }
+
+        /**
+         * @param offHeapPrimaryEntriesCnt Offheap primary entries count.
+         */
+        public void offHeapPrimaryEntriesCount(long offHeapPrimaryEntriesCnt) {
+            this.offHeapPrimaryEntriesCnt = offHeapPrimaryEntriesCnt;
+        }
+
+        /**
+         * @return Offheap backup entries count.
+         */
+        public long offHeapBackupEntriesCount() {
+            return offHeapBackupEntriesCnt;
+        }
+
+        /**
+         * @param offHeapBackupEntriesCnt Offheap backup entries count.
+         */
+        public void offHeapBackupEntriesCount(long offHeapBackupEntriesCnt) {
+            this.offHeapBackupEntriesCnt = offHeapBackupEntriesCnt;
+        }
+
+        /**
+         * @return Heap entries count.
+         */
+        public long heapEntriesCount() {
+            return heapEntriesCnt;
+        }
+
+        /**
+         * @param heapEntriesCnt Onheap entries count.
+         */
+        public void heapEntriesCount(long heapEntriesCnt) {
+            this.heapEntriesCnt = heapEntriesCnt;
+        }
+
+        /**
+         * @return Size.
+         */
+        public int size() {
+            return size;
+        }
+
+        /**
+         * @param size Size.
+         */
+        public void size(int size) {
+            this.size = size;
+        }
+
+        /**
+         * @return Key size.
+         */
+        public int keySize() {
+            return keySize;
+        }
+
+        /**
+         * @param keySize Key size.
+         */
+        public void keySize(int keySize) {
+            this.keySize = keySize;
+        }
+
+        /**
+         * @return Long size.
+         */
+        public long cacheSize() {
+            return cacheSize;
+        }
+
+        /**
+         * @param cacheSize Size long.
+         */
+        public void cacheSize(long cacheSize) {
+            this.cacheSize = cacheSize;
+        }
+
+        /**
+         * @return Is empty.
+         */
+        public boolean isEmpty() {
+            return isEmpty;
+        }
+
+        /**
+         * @param isEmpty Is empty flag.
+         */
+        public void isEmpty(boolean isEmpty) {
+            this.isEmpty = isEmpty;
+        }
     }
 }

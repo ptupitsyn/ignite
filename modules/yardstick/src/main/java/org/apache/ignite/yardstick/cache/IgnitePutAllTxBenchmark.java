@@ -17,51 +17,12 @@
 
 package org.apache.ignite.yardstick.cache;
 
-import java.util.Map;
-import java.util.SortedMap;
-import java.util.TreeMap;
 import org.apache.ignite.IgniteCache;
-import org.apache.ignite.cache.affinity.Affinity;
-import org.apache.ignite.cluster.ClusterNode;
-import org.yardstickframework.BenchmarkConfiguration;
 
 /**
  * Ignite benchmark that performs transactional putAll operations.
  */
-public class IgnitePutAllTxBenchmark extends IgniteCacheAbstractBenchmark {
-    /** Affinity mapper. */
-    private Affinity<Integer> aff;
-
-    /** {@inheritDoc} */
-    @Override public void setUp(BenchmarkConfiguration cfg) throws Exception {
-        super.setUp(cfg);
-
-        aff = ignite().affinity("tx");
-    }
-
-    /** {@inheritDoc} */
-    @Override public boolean test(Map<Object, Object> ctx) throws Exception {
-        SortedMap<Integer, Integer> vals = new TreeMap<>();
-
-        ClusterNode node = args.collocated() ? aff.mapKeyToNode(nextRandom(args.range())) : null;
-
-        for (int i = 0; i < args.batch(); ) {
-            int key = nextRandom(args.range());
-
-            if (args.collocated() && !aff.isPrimary(node, key))
-                continue;
-
-            ++i;
-
-            vals.put(key, key);
-        }
-
-        // Implicit transaction is used.
-        cache.putAll(vals);
-
-        return true;
-    }
-
+public class IgnitePutAllTxBenchmark extends IgnitePutAllBenchmark {
     /** {@inheritDoc} */
     @Override protected IgniteCache<Integer, Object> cache() {
         return ignite().cache("tx");

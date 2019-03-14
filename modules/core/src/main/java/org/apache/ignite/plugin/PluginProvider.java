@@ -63,7 +63,7 @@ public interface PluginProvider<C extends PluginConfiguration> {
      * @param ctx Plugin context.
      * @param registry Extension registry.
      */
-    public void initExtensions(PluginContext ctx, ExtensionRegistry registry);
+    public void initExtensions(PluginContext ctx, ExtensionRegistry registry) throws IgniteCheckedException;
 
     /**
      * Creates Ignite component.
@@ -73,6 +73,14 @@ public interface PluginProvider<C extends PluginConfiguration> {
      * @return Ignite component or {@code null} if component is not supported.
      */
     @Nullable public <T> T createComponent(PluginContext ctx, Class<T> cls);
+
+    /**
+     * Creates cache plugin provider.
+     *
+     * @return Cache plugin provider class.
+     * @param ctx Plugin context.
+     */
+    public CachePluginProvider createCacheProvider(CachePluginContext ctx);
 
     /**
      * Starts grid component.
@@ -133,6 +141,22 @@ public interface PluginProvider<C extends PluginConfiguration> {
      *
      * @param node Joining node.
      * @throws PluginValidationException If cluster-wide plugin validation failed.
+     *
+     * @deprecated Use {@link #validateNewNode(ClusterNode, Serializable)} instead.
      */
+    @Deprecated
     public void validateNewNode(ClusterNode node) throws PluginValidationException;
+
+    /**
+     * Validates that new node can join grid topology, this method is called on coordinator
+     * node before new node joins topology.
+     *
+     * @param node Joining node.
+     * @param data Discovery data object or {@code null} if nothing was
+     * sent for this component.
+     * @throws PluginValidationException If cluster-wide plugin validation failed.
+     */
+    public default void validateNewNode(ClusterNode node, Serializable data)  {
+        validateNewNode(node);
+    }
 }

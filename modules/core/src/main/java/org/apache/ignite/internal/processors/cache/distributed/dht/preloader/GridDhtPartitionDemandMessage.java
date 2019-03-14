@@ -19,17 +19,16 @@ package org.apache.ignite.internal.processors.cache.distributed.dht.preloader;
 
 import java.io.Externalizable;
 import java.nio.ByteBuffer;
-import java.util.Collection;
-import java.util.HashSet;
 import org.apache.ignite.IgniteCheckedException;
-import org.apache.ignite.internal.GridDirectCollection;
 import org.apache.ignite.internal.GridDirectTransient;
+import org.apache.ignite.internal.IgniteCodeGeneratingFail;
 import org.apache.ignite.internal.processors.affinity.AffinityTopologyVersion;
+import org.apache.ignite.internal.processors.cache.GridCacheGroupIdMessage;
 import org.apache.ignite.internal.processors.cache.GridCacheMessage;
 import org.apache.ignite.internal.processors.cache.GridCacheSharedContext;
-import org.apache.ignite.internal.util.tostring.GridToStringInclude;
 import org.apache.ignite.internal.util.typedef.internal.S;
-import org.apache.ignite.plugin.extensions.communication.MessageCollectionItemType;
+import org.apache.ignite.internal.util.typedef.internal.U;
+import org.apache.ignite.lang.IgniteProductVersion;
 import org.apache.ignite.plugin.extensions.communication.MessageReader;
 import org.apache.ignite.plugin.extensions.communication.MessageWriter;
 import org.jetbrains.annotations.NotNull;
@@ -37,17 +36,23 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Partition demand request.
  */
-public class GridDhtPartitionDemandMessage extends GridCacheMessage {
+@IgniteCodeGeneratingFail
+public class GridDhtPartitionDemandMessage extends GridCacheGroupIdMessage {
     /** */
     private static final long serialVersionUID = 0L;
 
-    /** Update sequence. */
-    private long updateSeq;
+    /** */
+    public static final IgniteProductVersion VERSION_SINCE = IgniteProductVersion.fromString("2.4.4");
 
-    /** Partition. */
-    @GridToStringInclude
-    @GridDirectCollection(int.class)
-    private Collection<Integer> parts;
+    /** Rebalance id. */
+    private long rebalanceId;
+
+    /** Partitions map. */
+    @GridDirectTransient
+    private IgniteDhtDemandedPartitionsMap parts;
+
+    /** Serialized partitions map. */
+    private byte[] partsBytes;
 
     /** Topic. */
     @GridDirectTransient
@@ -66,30 +71,43 @@ public class GridDhtPartitionDemandMessage extends GridCacheMessage {
     private AffinityTopologyVersion topVer;
 
     /**
-     * @param updateSeq Update sequence for this node.
+     * @param rebalanceId Rebalance id for this node.
      * @param topVer Topology version.
+     * @param grpId Cache group ID.
      */
-    GridDhtPartitionDemandMessage(long updateSeq, @NotNull AffinityTopologyVersion topVer, int cacheId) {
-        assert updateSeq > 0;
-
-        this.cacheId = cacheId;
-        this.updateSeq = updateSeq;
+    GridDhtPartitionDemandMessage(long rebalanceId, @NotNull AffinityTopologyVersion topVer, int grpId) {
+        this.grpId = grpId;
+        this.rebalanceId = rebalanceId;
         this.topVer = topVer;
+
+        parts = new IgniteDhtDemandedPartitionsMap();
     }
 
     /**
      * @param cp Message to copy from.
      */
-    GridDhtPartitionDemandMessage(GridDhtPartitionDemandMessage cp, Collection<Integer> parts) {
-        cacheId = cp.cacheId;
-        updateSeq = cp.updateSeq;
-        topic = cp.topic;
-        timeout = cp.timeout;
-        workerId = cp.workerId;
-        topVer = cp.topVer;
+    public GridDhtPartitionDemandMessage(GridDhtPartitionDemandLegacyMessage cp) {
+        grpId = cp.groupId();
+        rebalanceId = cp.updateSequence();
+        topic = cp.topic();
+        timeout = cp.timeout();
+        workerId = cp.workerId();
+        topVer = cp.topologyVersion();
 
-        // Create a copy of passed in collection since it can be modified when this message is being sent.
-        this.parts = new HashSet<>(parts);
+        IgniteDhtDemandedPartitionsMap partMap = new IgniteDhtDemandedPartitionsMap();
+
+        if (cp.partitions() != null) {
+            for (Integer p : cp.partitions()) {
+                if (cp.isHistorical(p))
+                    partMap.addHistorical(p, 0, cp.partitionCounter(p), cp.partitions().size());
+                else
+                    partMap.addFull(p);
+            }
+        }
+
+        partMap.historicalMap().trim();
+
+        parts = partMap;
     }
 
     /**
@@ -99,34 +117,43 @@ public class GridDhtPartitionDemandMessage extends GridCacheMessage {
         // No-op.
     }
 
-    /** {@inheritDoc} */
-    @Override public boolean allowForStartup() {
-        return true;
-    }
-
     /**
-     * @param p Partition.
+     * Creates copy of this message with new partitions map.
+     *
+     * @param parts New partitions map.
+     * @return Copy of message with new partitions map.
      */
-    void addPartition(int p) {
-        if (parts == null)
-            parts = new HashSet<>();
-
-        parts.add(p);
+    public GridDhtPartitionDemandMessage withNewPartitionsMap(@NotNull IgniteDhtDemandedPartitionsMap parts) {
+        GridDhtPartitionDemandMessage cp = new GridDhtPartitionDemandMessage();
+        cp.grpId = grpId;
+        cp.rebalanceId = rebalanceId;
+        cp.topic = topic;
+        cp.timeout = timeout;
+        cp.workerId = workerId;
+        cp.topVer = topVer;
+        cp.parts = parts;
+        return cp;
     }
-
 
     /**
      * @return Partition.
      */
-    Collection<Integer> partitions() {
+    public IgniteDhtDemandedPartitionsMap partitions() {
         return parts;
     }
 
     /**
-     * @return Update sequence.
+     * @param updateSeq Update sequence.
      */
-    long updateSequence() {
-        return updateSeq;
+    void rebalanceId(long updateSeq) {
+        this.rebalanceId = updateSeq;
+    }
+
+    /**
+     * @return Unique rebalance session id.
+     */
+    long rebalanceId() {
+        return rebalanceId;
     }
 
     /**
@@ -178,21 +205,45 @@ public class GridDhtPartitionDemandMessage extends GridCacheMessage {
         return topVer;
     }
 
+    /**
+     * Converts message to it's legacy version if necessary.
+     *
+     * @param target Target version
+     * @return Converted message or {@code this} if conversion isn't necessary.
+     */
+    public GridCacheMessage convertIfNeeded(IgniteProductVersion target) {
+        if (target.compareTo(VERSION_SINCE) <= 0)
+            return new GridDhtPartitionDemandLegacyMessage(this);
+
+        return this;
+    }
+
     /** {@inheritDoc}
      * @param ctx*/
     @Override public void prepareMarshal(GridCacheSharedContext ctx) throws IgniteCheckedException {
         super.prepareMarshal(ctx);
 
-        if (topic != null)
-            topicBytes = ctx.marshaller().marshal(topic);
+        if (topic != null && topicBytes == null)
+            topicBytes = U.marshal(ctx, topic);
+
+        if (parts != null && partsBytes == null)
+            partsBytes = U.marshal(ctx, parts);
     }
 
     /** {@inheritDoc} */
     @Override public void finishUnmarshal(GridCacheSharedContext ctx, ClassLoader ldr) throws IgniteCheckedException {
         super.finishUnmarshal(ctx, ldr);
 
-        if (topicBytes != null)
-            topic = ctx.marshaller().unmarshal(topicBytes, ldr);
+        if (topicBytes != null && topic == null)
+            topic = U.unmarshal(ctx, topicBytes, U.resolveClassLoader(ldr, ctx.gridConfig()));
+
+        if (partsBytes != null && parts == null)
+            parts = U.unmarshal(ctx, partsBytes, U.resolveClassLoader(ldr, ctx.gridConfig()));
+    }
+
+    /** {@inheritDoc} */
+    @Override public boolean addDeploymentInfo() {
+        return false;
     }
 
     /** {@inheritDoc} */
@@ -210,37 +261,37 @@ public class GridDhtPartitionDemandMessage extends GridCacheMessage {
         }
 
         switch (writer.state()) {
-            case 3:
-                if (!writer.writeCollection("parts", parts, MessageCollectionItemType.INT))
-                    return false;
-
-                writer.incrementState();
-
             case 4:
-                if (!writer.writeLong("timeout", timeout))
+                if (!writer.writeByteArray("partsBytes", partsBytes))
                     return false;
 
                 writer.incrementState();
 
             case 5:
-                if (!writer.writeMessage("topVer", topVer))
+                if (!writer.writeLong("timeout", timeout))
                     return false;
 
                 writer.incrementState();
 
             case 6:
-                if (!writer.writeByteArray("topicBytes", topicBytes))
+                if (!writer.writeAffinityTopologyVersion("topVer", topVer))
                     return false;
 
                 writer.incrementState();
 
             case 7:
-                if (!writer.writeLong("updateSeq", updateSeq))
+                if (!writer.writeByteArray("topicBytes", topicBytes))
                     return false;
 
                 writer.incrementState();
 
             case 8:
+                if (!writer.writeLong("rebalanceId", rebalanceId))
+                    return false;
+
+                writer.incrementState();
+
+            case 9:
                 if (!writer.writeInt("workerId", workerId))
                     return false;
 
@@ -262,16 +313,8 @@ public class GridDhtPartitionDemandMessage extends GridCacheMessage {
             return false;
 
         switch (reader.state()) {
-            case 3:
-                parts = reader.readCollection("parts", MessageCollectionItemType.INT);
-
-                if (!reader.isLastRead())
-                    return false;
-
-                reader.incrementState();
-
             case 4:
-                timeout = reader.readLong("timeout");
+                partsBytes = reader.readByteArray("partsBytes");
 
                 if (!reader.isLastRead())
                     return false;
@@ -279,7 +322,7 @@ public class GridDhtPartitionDemandMessage extends GridCacheMessage {
                 reader.incrementState();
 
             case 5:
-                topVer = reader.readMessage("topVer");
+                timeout = reader.readLong("timeout");
 
                 if (!reader.isLastRead())
                     return false;
@@ -287,7 +330,7 @@ public class GridDhtPartitionDemandMessage extends GridCacheMessage {
                 reader.incrementState();
 
             case 6:
-                topicBytes = reader.readByteArray("topicBytes");
+                topVer = reader.readAffinityTopologyVersion("topVer");
 
                 if (!reader.isLastRead())
                     return false;
@@ -295,7 +338,7 @@ public class GridDhtPartitionDemandMessage extends GridCacheMessage {
                 reader.incrementState();
 
             case 7:
-                updateSeq = reader.readLong("updateSeq");
+                topicBytes = reader.readByteArray("topicBytes");
 
                 if (!reader.isLastRead())
                     return false;
@@ -303,6 +346,14 @@ public class GridDhtPartitionDemandMessage extends GridCacheMessage {
                 reader.incrementState();
 
             case 8:
+                rebalanceId = reader.readLong("rebalanceId");
+
+                if (!reader.isLastRead())
+                    return false;
+
+                reader.incrementState();
+
+            case 9:
                 workerId = reader.readInt("workerId");
 
                 if (!reader.isLastRead())
@@ -316,18 +367,19 @@ public class GridDhtPartitionDemandMessage extends GridCacheMessage {
     }
 
     /** {@inheritDoc} */
-    @Override public byte directType() {
-        return 44;
+    @Override public short directType() {
+        return 45;
     }
 
     /** {@inheritDoc} */
     @Override public byte fieldsCount() {
-        return 9;
+        return 10;
     }
 
     /** {@inheritDoc} */
     @Override public String toString() {
-        return S.toString(GridDhtPartitionDemandMessage.class, this, "partCnt", parts.size(), "super",
-            super.toString());
+        return S.toString(GridDhtPartitionDemandMessage.class, this,
+            "partCnt", parts != null ? parts.size() : 0,
+            "super", super.toString());
     }
 }

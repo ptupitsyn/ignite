@@ -18,25 +18,20 @@
 package org.apache.ignite.internal.processors.cache;
 
 import java.util.Collection;
-import java.util.concurrent.ConcurrentLinkedDeque;
 import org.apache.ignite.IgniteCache;
-import org.apache.ignite.IgniteException;
 import org.apache.ignite.cache.CacheAtomicityMode;
-import org.apache.ignite.cluster.ClusterNode;
 import org.apache.ignite.configuration.CacheConfiguration;
 import org.apache.ignite.configuration.IgniteConfiguration;
 import org.apache.ignite.configuration.NearCacheConfiguration;
 import org.apache.ignite.internal.IgniteKernal;
-import org.apache.ignite.internal.managers.communication.GridIoMessage;
+import org.apache.ignite.internal.TestRecordingCommunicationSpi;
 import org.apache.ignite.internal.processors.cache.distributed.near.GridNearCacheEntry;
 import org.apache.ignite.internal.processors.cache.distributed.near.GridNearLockRequest;
-import org.apache.ignite.lang.IgniteInClosure;
-import org.apache.ignite.plugin.extensions.communication.Message;
-import org.apache.ignite.spi.IgniteSpiException;
-import org.apache.ignite.spi.communication.tcp.TcpCommunicationSpi;
 import org.apache.ignite.spi.discovery.tcp.TcpDiscoverySpi;
+import org.apache.ignite.testframework.MvccFeatureChecker;
 import org.apache.ignite.testframework.junits.common.GridCommonAbstractTest;
 import org.apache.ignite.transactions.Transaction;
+import org.junit.Test;
 
 import static org.apache.ignite.transactions.TransactionConcurrency.PESSIMISTIC;
 import static org.apache.ignite.transactions.TransactionIsolation.REPEATABLE_READ;
@@ -47,26 +42,29 @@ import static org.apache.ignite.transactions.TransactionIsolation.REPEATABLE_REA
 public class IgniteCacheNearLockValueSelfTest extends GridCommonAbstractTest {
     /** {@inheritDoc} */
     @Override protected void beforeTestsStarted() throws Exception {
-        startGridsMultiThreaded(2);
+        MvccFeatureChecker.skipIfNotSupported(MvccFeatureChecker.Feature.NEAR_CACHE);
+
+        startGrid(1);
+
+        startGrid(0);
     }
 
     /** {@inheritDoc} */
-    @Override protected void afterTestsStopped() throws Exception {
-        super.afterTestsStopped();
+    @Override protected IgniteConfiguration getConfiguration(String igniteInstanceName) throws Exception {
+        MvccFeatureChecker.skipIfNotSupported(MvccFeatureChecker.Feature.NEAR_CACHE);
 
-        stopAllGrids();
-    }
+        IgniteConfiguration cfg = super.getConfiguration(igniteInstanceName);
 
-    /** {@inheritDoc} */
-    @Override protected IgniteConfiguration getConfiguration(String gridName) throws Exception {
-        IgniteConfiguration cfg = super.getConfiguration(gridName);
+        ((TcpDiscoverySpi)cfg.getDiscoverySpi()).setForceServerMode(true);
 
-        cfg.setDiscoverySpi(new TcpDiscoverySpi().setForceServerMode(true));
-
-        if (getTestGridName(0).equals(gridName))
+        if (getTestIgniteInstanceName(0).equals(igniteInstanceName))
             cfg.setClientMode(true);
 
-        cfg.setCommunicationSpi(new TestCommunicationSpi());
+        TestRecordingCommunicationSpi commSpi = new TestRecordingCommunicationSpi();
+
+        commSpi.record(GridNearLockRequest.class);
+
+        cfg.setCommunicationSpi(commSpi);
 
         return cfg;
     }
@@ -74,6 +72,7 @@ public class IgniteCacheNearLockValueSelfTest extends GridCommonAbstractTest {
     /**
      * @throws Exception If failed.
      */
+    @Test
     public void testDhtVersion() throws Exception {
         CacheConfiguration<Object, Object> pCfg = new CacheConfiguration<>("partitioned");
 
@@ -83,18 +82,18 @@ public class IgniteCacheNearLockValueSelfTest extends GridCommonAbstractTest {
             cache.put("key1", "val1");
 
             for (int i = 0; i < 3; i++) {
-                ((TestCommunicationSpi)ignite(0).configuration().getCommunicationSpi()).clear();
-                ((TestCommunicationSpi)ignite(1).configuration().getCommunicationSpi()).clear();
-
                 try (Transaction tx = ignite(0).transactions().txStart(PESSIMISTIC, REPEATABLE_READ)) {
                     cache.get("key1");
 
                     tx.commit();
                 }
 
-                TestCommunicationSpi comm = (TestCommunicationSpi)ignite(0).configuration().getCommunicationSpi();
+                TestRecordingCommunicationSpi comm =
+                    (TestRecordingCommunicationSpi)ignite(0).configuration().getCommunicationSpi();
 
-                assertEquals(1, comm.requests().size());
+                Collection<GridNearLockRequest> reqs = (Collection)comm.recordedMessages(false);
+
+                assertEquals(1, reqs.size());
 
                 GridCacheAdapter<Object, Object> primary = ((IgniteKernal)grid(1)).internalCache("partitioned");
 
@@ -102,7 +101,7 @@ public class IgniteCacheNearLockValueSelfTest extends GridCommonAbstractTest {
 
                 assertNotNull(dhtEntry);
 
-                GridNearLockRequest req = comm.requests().iterator().next();
+                GridNearLockRequest req = reqs.iterator().next();
 
                 assertEquals(dhtEntry.version(), req.dhtVersion(0));
 
@@ -115,41 +114,6 @@ public class IgniteCacheNearLockValueSelfTest extends GridCommonAbstractTest {
 
                 assertEquals(dhtEntry.version(), nearEntry.dhtVersion());
             }
-        }
-    }
-
-    /**
-     *
-     */
-    private static class TestCommunicationSpi extends TcpCommunicationSpi {
-        /** */
-        private Collection<GridNearLockRequest> reqs = new ConcurrentLinkedDeque<>();
-
-        /** {@inheritDoc} */
-        @Override public void sendMessage(ClusterNode node, Message msg, IgniteInClosure<IgniteException> ackClosure)
-            throws IgniteSpiException {
-            if (msg instanceof GridIoMessage) {
-                GridIoMessage ioMsg = (GridIoMessage)msg;
-
-                if (ioMsg.message() instanceof GridNearLockRequest)
-                    reqs.add((GridNearLockRequest)ioMsg.message());
-            }
-
-            super.sendMessage(node, msg, ackClosure);
-        }
-
-        /**
-         * @return Collected requests.
-         */
-        public Collection<GridNearLockRequest> requests() {
-            return reqs;
-        }
-
-        /**
-         *
-         */
-        public void clear() {
-            reqs.clear();
         }
     }
 }

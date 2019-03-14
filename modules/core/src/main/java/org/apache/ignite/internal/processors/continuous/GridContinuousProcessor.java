@@ -29,53 +29,80 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import javax.cache.event.CacheEntryUpdatedListener;
 import org.apache.ignite.IgniteCheckedException;
+import org.apache.ignite.IgniteException;
+import org.apache.ignite.cache.CacheEntryEventSerializableFilter;
 import org.apache.ignite.cluster.ClusterNode;
 import org.apache.ignite.events.DiscoveryEvent;
 import org.apache.ignite.events.Event;
 import org.apache.ignite.internal.GridKernalContext;
+import org.apache.ignite.internal.GridMessageListenHandler;
 import org.apache.ignite.internal.IgniteClientDisconnectedCheckedException;
 import org.apache.ignite.internal.IgniteDeploymentCheckedException;
+import org.apache.ignite.internal.IgniteFutureTimeoutCheckedException;
 import org.apache.ignite.internal.IgniteInternalFuture;
 import org.apache.ignite.internal.IgniteInterruptedCheckedException;
+import org.apache.ignite.internal.NodeStoppingException;
 import org.apache.ignite.internal.cluster.ClusterTopologyCheckedException;
 import org.apache.ignite.internal.managers.communication.GridMessageListener;
 import org.apache.ignite.internal.managers.deployment.GridDeployment;
 import org.apache.ignite.internal.managers.deployment.GridDeploymentInfo;
 import org.apache.ignite.internal.managers.deployment.GridDeploymentInfoBean;
 import org.apache.ignite.internal.managers.discovery.CustomEventListener;
+import org.apache.ignite.internal.managers.discovery.DiscoCache;
+import org.apache.ignite.internal.managers.discovery.DiscoveryMessageResultsCollector;
 import org.apache.ignite.internal.managers.eventstorage.GridLocalEventListener;
+import org.apache.ignite.internal.managers.eventstorage.HighPriorityListener;
 import org.apache.ignite.internal.processors.GridProcessorAdapter;
+import org.apache.ignite.internal.processors.affinity.AffinityTopologyVersion;
+import org.apache.ignite.internal.processors.cache.GridCacheAdapter;
 import org.apache.ignite.internal.processors.cache.GridCacheContext;
+import org.apache.ignite.internal.processors.cache.GridCacheProcessor;
+import org.apache.ignite.internal.processors.cache.distributed.dht.preloader.CachePartitionPartialCountersMap;
+import org.apache.ignite.internal.processors.cache.query.continuous.CacheContinuousQueryHandler;
+import org.apache.ignite.internal.processors.service.GridServiceProcessor;
 import org.apache.ignite.internal.processors.timeout.GridTimeoutObject;
 import org.apache.ignite.internal.util.future.GridFinishedFuture;
 import org.apache.ignite.internal.util.future.GridFutureAdapter;
 import org.apache.ignite.internal.util.tostring.GridToStringInclude;
+import org.apache.ignite.internal.util.typedef.CI1;
 import org.apache.ignite.internal.util.typedef.F;
+import org.apache.ignite.internal.util.typedef.T2;
+import org.apache.ignite.internal.util.typedef.internal.LT;
 import org.apache.ignite.internal.util.typedef.internal.S;
 import org.apache.ignite.internal.util.typedef.internal.U;
 import org.apache.ignite.internal.util.worker.GridWorker;
 import org.apache.ignite.lang.IgniteBiTuple;
 import org.apache.ignite.lang.IgniteFuture;
+import org.apache.ignite.lang.IgniteInClosure;
 import org.apache.ignite.lang.IgnitePredicate;
 import org.apache.ignite.lang.IgniteUuid;
 import org.apache.ignite.marshaller.Marshaller;
 import org.apache.ignite.plugin.extensions.communication.Message;
+import org.apache.ignite.spi.discovery.DiscoveryDataBag;
+import org.apache.ignite.spi.discovery.DiscoveryDataBag.GridDiscoveryData;
+import org.apache.ignite.spi.discovery.DiscoveryDataBag.JoiningNodeDiscoveryData;
 import org.apache.ignite.thread.IgniteThread;
+import org.apache.ignite.thread.OomExceptionHandler;
 import org.jetbrains.annotations.Nullable;
-import org.jsr166.ConcurrentHashMap8;
-import org.jsr166.ConcurrentLinkedDeque8;
 
 import static org.apache.ignite.events.EventType.EVT_NODE_FAILED;
 import static org.apache.ignite.events.EventType.EVT_NODE_LEFT;
 import static org.apache.ignite.events.EventType.EVT_NODE_SEGMENTED;
+import static org.apache.ignite.internal.GridComponent.DiscoveryDataExchangeType.CONTINUOUS_PROC;
+import static org.apache.ignite.internal.GridTopic.TOPIC_CACHE;
 import static org.apache.ignite.internal.GridTopic.TOPIC_CONTINUOUS;
 import static org.apache.ignite.internal.managers.communication.GridIoPolicy.SYSTEM_POOL;
+import static org.apache.ignite.internal.processors.cache.distributed.dht.preloader.CachePartitionPartialCountersMap.toCountersMap;
 import static org.apache.ignite.internal.processors.continuous.GridContinuousMessageType.MSG_EVT_ACK;
 import static org.apache.ignite.internal.processors.continuous.GridContinuousMessageType.MSG_EVT_NOTIFICATION;
 
@@ -84,25 +111,25 @@ import static org.apache.ignite.internal.processors.continuous.GridContinuousMes
  */
 public class GridContinuousProcessor extends GridProcessorAdapter {
     /** Local infos. */
-    private final ConcurrentMap<UUID, LocalRoutineInfo> locInfos = new ConcurrentHashMap8<>();
+    private final ConcurrentMap<UUID, LocalRoutineInfo> locInfos = new ConcurrentHashMap<>();
 
     /** Local infos. */
-    private final ConcurrentMap<UUID, Map<UUID, LocalRoutineInfo>> clientInfos = new ConcurrentHashMap8<>();
+    private final ConcurrentMap<UUID, Map<UUID, LocalRoutineInfo>> clientInfos = new ConcurrentHashMap<>();
 
     /** Remote infos. */
-    private final ConcurrentMap<UUID, RemoteRoutineInfo> rmtInfos = new ConcurrentHashMap8<>();
+    private final ConcurrentMap<UUID, RemoteRoutineInfo> rmtInfos = new ConcurrentHashMap<>();
 
     /** Start futures. */
-    private final ConcurrentMap<UUID, StartFuture> startFuts = new ConcurrentHashMap8<>();
+    private final ConcurrentMap<UUID, StartFuture> startFuts = new ConcurrentHashMap<>();
 
     /** Stop futures. */
-    private final ConcurrentMap<UUID, StopFuture> stopFuts = new ConcurrentHashMap8<>();
+    private final ConcurrentMap<UUID, StopFuture> stopFuts = new ConcurrentHashMap<>();
 
     /** Threads started by this processor. */
-    private final Map<UUID, IgniteThread> bufCheckThreads = new ConcurrentHashMap8<>();
+    private final Map<UUID, IgniteThread> bufCheckThreads = new ConcurrentHashMap<>();
 
     /** */
-    private final ConcurrentMap<IgniteUuid, SyncMessageAckFuture> syncMsgFuts = new ConcurrentHashMap8<>();
+    private final ConcurrentMap<IgniteUuid, SyncMessageAckFuture> syncMsgFuts = new ConcurrentHashMap<>();
 
     /** Stopped IDs. */
     private final Collection<UUID> stopped = new HashSet<>();
@@ -125,6 +152,15 @@ public class GridContinuousProcessor extends GridProcessorAdapter {
     /** */
     private boolean processorStopped;
 
+    /** Query sequence number for message topic. */
+    private final AtomicLong seq = new AtomicLong();
+
+    /** */
+    private ContinuousRoutinesInfo routinesInfo;
+
+    /** */
+    private int discoProtoVer;
+
     /**
      * @param ctx Kernal context.
      */
@@ -134,6 +170,11 @@ public class GridContinuousProcessor extends GridProcessorAdapter {
 
     /** {@inheritDoc} */
     @Override public void start() throws IgniteCheckedException {
+        discoProtoVer = ctx.discovery().mutableCustomMessages() ? 1 : 2;
+
+        if (discoProtoVer == 2)
+            routinesInfo = new ContinuousRoutinesInfo();
+
         if (ctx.config().isDaemon())
             return;
 
@@ -142,41 +183,7 @@ public class GridContinuousProcessor extends GridProcessorAdapter {
 
         marsh = ctx.config().getMarshaller();
 
-        ctx.event().addLocalEventListener(new GridLocalEventListener() {
-            @SuppressWarnings({"fallthrough", "TooBroadScope"})
-            @Override public void onEvent(Event evt) {
-                assert evt instanceof DiscoveryEvent;
-                assert evt.type() == EVT_NODE_LEFT || evt.type() == EVT_NODE_FAILED;
-
-                UUID nodeId = ((DiscoveryEvent)evt).eventNode().id();
-
-                clientInfos.remove(nodeId);
-
-                // Unregister handlers created by left node.
-                for (Map.Entry<UUID, RemoteRoutineInfo> e : rmtInfos.entrySet()) {
-                    UUID routineId = e.getKey();
-                    RemoteRoutineInfo info = e.getValue();
-
-                    if (info.autoUnsubscribe && nodeId.equals(info.nodeId))
-                        unregisterRemote(routineId);
-                }
-
-                for (Map.Entry<IgniteUuid, SyncMessageAckFuture> e : syncMsgFuts.entrySet()) {
-                    SyncMessageAckFuture fut = e.getValue();
-
-                    if (fut.nodeId().equals(nodeId)) {
-                        SyncMessageAckFuture fut0 = syncMsgFuts.remove(e.getKey());
-
-                        if (fut0 != null) {
-                            ClusterTopologyCheckedException err = new ClusterTopologyCheckedException(
-                                "Node left grid while sending message to: " + nodeId);
-
-                            fut0.onDone(err);
-                        }
-                    }
-                }
-            }
-        }, EVT_NODE_LEFT, EVT_NODE_FAILED);
+        ctx.event().addLocalEventListener(new DiscoveryListener(), EVT_NODE_LEFT, EVT_NODE_FAILED);
 
         ctx.event().addLocalEventListener(new GridLocalEventListener() {
             @Override public void onEvent(Event evt) {
@@ -186,90 +193,111 @@ public class GridContinuousProcessor extends GridProcessorAdapter {
 
         ctx.discovery().setCustomEventListener(StartRoutineDiscoveryMessage.class,
             new CustomEventListener<StartRoutineDiscoveryMessage>() {
-                @Override public void onCustomEvent(ClusterNode snd, StartRoutineDiscoveryMessage msg) {
-                    if (!snd.id().equals(ctx.localNodeId()) && !ctx.isStopping())
-                        processStartRequest(snd, msg);
+                @Override public void onCustomEvent(AffinityTopologyVersion topVer,
+                    ClusterNode snd,
+                    StartRoutineDiscoveryMessage msg) {
+                    assert discoProtoVer == 1 : discoProtoVer;
+
+                    if (ctx.isStopping())
+                        return;
+
+                    processStartRequest(snd, msg);
+                }
+            });
+
+        ctx.discovery().setCustomEventListener(StartRoutineDiscoveryMessageV2.class,
+            new CustomEventListener<StartRoutineDiscoveryMessageV2>() {
+                @Override public void onCustomEvent(AffinityTopologyVersion topVer,
+                    ClusterNode snd,
+                    StartRoutineDiscoveryMessageV2 msg) {
+                    assert discoProtoVer == 2 : discoProtoVer;
+
+                    if (ctx.isStopping())
+                        return;
+
+                    processStartRequestV2(topVer, snd, msg);
                 }
             });
 
         ctx.discovery().setCustomEventListener(StartRoutineAckDiscoveryMessage.class,
             new CustomEventListener<StartRoutineAckDiscoveryMessage>() {
-                @Override public void onCustomEvent(ClusterNode snd, StartRoutineAckDiscoveryMessage msg) {
-                    StartFuture fut = startFuts.remove(msg.routineId());
+                @Override public void onCustomEvent(AffinityTopologyVersion topVer,
+                    ClusterNode snd,
+                    StartRoutineAckDiscoveryMessage msg) {
+                    if (ctx.isStopping())
+                        return;
 
-                    if (fut != null) {
-                        if (msg.errs().isEmpty())
-                            fut.onRemoteRegistered();
-                        else {
-                            IgniteCheckedException firstEx = F.first(msg.errs().values());
-
-                            fut.onDone(firstEx);
-
-                            stopRoutine(msg.routineId());
-                        }
-                    }
+                    processStartAckRequest(topVer, msg);
                 }
             });
 
         ctx.discovery().setCustomEventListener(StopRoutineDiscoveryMessage.class,
             new CustomEventListener<StopRoutineDiscoveryMessage>() {
-                @Override public void onCustomEvent(ClusterNode snd, StopRoutineDiscoveryMessage msg) {
-                    if (!snd.id().equals(ctx.localNodeId())) {
-                        UUID routineId = msg.routineId();
+                @Override public void onCustomEvent(AffinityTopologyVersion topVer,
+                    ClusterNode snd,
+                    StopRoutineDiscoveryMessage msg) {
+                    if (discoProtoVer == 2)
+                        routinesInfo.removeRoutine(msg.routineId);
 
-                        unregisterRemote(routineId);
+                    if (ctx.isStopping())
+                        return;
 
-                        if (snd.isClient()) {
-                            Map<UUID, LocalRoutineInfo> clientRoutineMap = clientInfos.get(snd.id());
-
-                            if (clientRoutineMap != null)
-                                clientRoutineMap.remove(msg.routineId());
-                        }
-                    }
+                    processStopRequest(snd, msg);
                 }
             });
 
         ctx.discovery().setCustomEventListener(StopRoutineAckDiscoveryMessage.class,
             new CustomEventListener<StopRoutineAckDiscoveryMessage>() {
-                @Override public void onCustomEvent(ClusterNode snd, StopRoutineAckDiscoveryMessage msg) {
-                    StopFuture fut = stopFuts.remove(msg.routineId());
+                @Override public void onCustomEvent(AffinityTopologyVersion topVer,
+                    ClusterNode snd,
+                    StopRoutineAckDiscoveryMessage msg) {
+                    if (ctx.isStopping())
+                        return;
 
-                    if (fut != null)
-                        fut.onDone();
+                    processStopAckRequest(msg);
                 }
             });
 
         ctx.io().addMessageListener(TOPIC_CONTINUOUS, new GridMessageListener() {
-            @Override public void onMessage(UUID nodeId, Object obj) {
-                GridContinuousMessage msg = (GridContinuousMessage)obj;
+            @Override public void onMessage(UUID nodeId, Object obj, byte plc) {
+                if (obj instanceof ContinuousRoutineStartResultMessage)
+                    processRoutineStartResultMessage(nodeId, (ContinuousRoutineStartResultMessage)obj);
+                else {
+                    GridContinuousMessage msg = (GridContinuousMessage)obj;
 
-                if (msg.data() == null && msg.dataBytes() != null) {
-                    try {
-                        msg.data(marsh.unmarshal(msg.dataBytes(), null));
+                    if (msg.data() == null && msg.dataBytes() != null) {
+                        try {
+                            msg.data(U.unmarshal(marsh, msg.dataBytes(), U.resolveClassLoader(ctx.config())));
+                        }
+                        catch (IgniteCheckedException e) {
+                            U.error(log, "Failed to process message (ignoring): " + msg, e);
+
+                            return;
+                        }
                     }
-                    catch (IgniteCheckedException e) {
-                        U.error(log, "Failed to process message (ignoring): " + msg, e);
 
-                        return;
+                    switch (msg.type()) {
+                        case MSG_EVT_NOTIFICATION:
+                            processNotification(nodeId, msg);
+
+                            break;
+
+                        case MSG_EVT_ACK:
+                            processMessageAck(msg);
+
+                            break;
+
+                        default:
+                            assert false : "Unexpected message received: " + msg.type();
                     }
-                }
-
-                switch (msg.type()) {
-                    case MSG_EVT_NOTIFICATION:
-                        processNotification(nodeId, msg);
-
-                        break;
-
-                    case MSG_EVT_ACK:
-                        processMessageAck(msg);
-
-                        break;
-
-                    default:
-                        assert false : "Unexpected message received: " + msg.type();
                 }
             }
         });
+
+        ctx.cacheObjects().onContinuousProcessorStarted(ctx);
+
+        if (ctx.service() instanceof GridServiceProcessor)
+            ((GridServiceProcessor)ctx.service()).onContinuousProcessorStarted(ctx);
 
         if (log.isDebugEnabled())
             log.debug("Continuous processor started.");
@@ -329,6 +357,8 @@ public class GridContinuousProcessor extends GridProcessorAdapter {
         finally {
             processorStopLock.writeLock().unlock();
         }
+
+        cancelFutures(new NodeStoppingException("Failed to start continuous query (node is stopping)"));
     }
 
     /** {@inheritDoc} */
@@ -349,13 +379,65 @@ public class GridContinuousProcessor extends GridProcessorAdapter {
 
     /** {@inheritDoc} */
     @Nullable @Override public DiscoveryDataExchangeType discoveryDataType() {
-        return DiscoveryDataExchangeType.CONTINUOUS_PROC;
+        return CONTINUOUS_PROC;
     }
 
     /** {@inheritDoc} */
-    @Override @Nullable public Serializable collectDiscoveryData(UUID nodeId) {
-        if (!nodeId.equals(ctx.localNodeId()) || !locInfos.isEmpty()) {
-            DiscoveryData data = new DiscoveryData(ctx.localNodeId(), clientInfos);
+    @Override public void collectJoiningNodeData(DiscoveryDataBag dataBag) {
+        if (ctx.isDaemon())
+            return;
+
+        if (discoProtoVer == 2) {
+            routinesInfo.collectJoiningNodeData(dataBag);
+
+            return;
+        }
+
+        Serializable data = getDiscoveryData(dataBag.joiningNodeId());
+
+        if (data != null)
+            dataBag.addJoiningNodeData(CONTINUOUS_PROC.ordinal(), data);
+    }
+
+    /** {@inheritDoc} */
+    @Override public void collectGridNodeData(DiscoveryDataBag dataBag) {
+        if (ctx.isDaemon())
+            return;
+
+        if (discoProtoVer == 2) {
+            routinesInfo.collectGridNodeData(dataBag);
+
+            return;
+        }
+
+        Serializable data = getDiscoveryData(dataBag.joiningNodeId());
+
+        if (data != null)
+            dataBag.addNodeSpecificData(CONTINUOUS_PROC.ordinal(), data);
+    }
+
+    /**
+     * @param joiningNodeId Joining node id.
+     */
+    private Serializable getDiscoveryData(UUID joiningNodeId) {
+        if (log.isDebugEnabled()) {
+            log.debug("collectDiscoveryData [node=" + joiningNodeId +
+                    ", loc=" + ctx.localNodeId() +
+                    ", locInfos=" + locInfos +
+                    ", clientInfos=" + clientInfos +
+                    ']');
+        }
+
+        if (!joiningNodeId.equals(ctx.localNodeId()) || !locInfos.isEmpty()) {
+            Map<UUID, Map<UUID, LocalRoutineInfo>> clientInfos0 = copyClientInfos(clientInfos);
+
+            if (joiningNodeId.equals(ctx.localNodeId()) && ctx.discovery().localNode().isClient()) {
+                Map<UUID, LocalRoutineInfo> infos = copyLocalInfos(locInfos);
+
+                clientInfos0.put(ctx.localNodeId(), infos);
+            }
+
+            DiscoveryData data = new DiscoveryData(ctx.localNodeId(), clientInfos0);
 
             // Collect listeners information (will be sent to joining node during discovery process).
             for (Map.Entry<UUID, LocalRoutineInfo> e : locInfos.entrySet()) {
@@ -363,11 +445,11 @@ public class GridContinuousProcessor extends GridProcessorAdapter {
                 LocalRoutineInfo info = e.getValue();
 
                 data.addItem(new DiscoveryDataItem(routineId,
-                    info.prjPred,
-                    info.hnd,
-                    info.bufSize,
-                    info.interval,
-                    info.autoUnsubscribe));
+                        info.prjPred,
+                        info.hnd,
+                        info.bufSize,
+                        info.interval,
+                        info.autoUnsubscribe));
             }
 
             return data;
@@ -376,10 +458,163 @@ public class GridContinuousProcessor extends GridProcessorAdapter {
         return null;
     }
 
-    /** {@inheritDoc} */
-    @Override public void onDiscoveryDataReceived(UUID joiningNodeId, UUID rmtNodeId, Serializable obj) {
-        DiscoveryData data = (DiscoveryData)obj;
+    /**
+     * @param clientInfos Client infos.
+     */
+    private Map<UUID, Map<UUID, LocalRoutineInfo>> copyClientInfos(Map<UUID, Map<UUID, LocalRoutineInfo>> clientInfos) {
+        Map<UUID, Map<UUID, LocalRoutineInfo>> res = U.newHashMap(clientInfos.size());
 
+        for (Map.Entry<UUID, Map<UUID, LocalRoutineInfo>> e : clientInfos.entrySet()) {
+            Map<UUID, LocalRoutineInfo> cp = U.newHashMap(e.getValue().size());
+
+            for (Map.Entry<UUID, LocalRoutineInfo> e0 : e.getValue().entrySet())
+                cp.put(e0.getKey(), e0.getValue());
+
+            res.put(e.getKey(), cp);
+        }
+
+        return res;
+    }
+
+    /**
+     * @param locInfos Locale infos.
+     */
+    private Map<UUID, LocalRoutineInfo> copyLocalInfos(Map<UUID, LocalRoutineInfo> locInfos) {
+        Map<UUID, LocalRoutineInfo> res = U.newHashMap(locInfos.size());
+
+        for (Map.Entry<UUID, LocalRoutineInfo> e : locInfos.entrySet())
+            res.put(e.getKey(), e.getValue());
+
+        return res;
+    }
+
+    /** {@inheritDoc} */
+    @Override public void onJoiningNodeDataReceived(JoiningNodeDiscoveryData data) {
+        if (log.isDebugEnabled()) {
+            log.debug("onJoiningNodeDataReceived [joining=" + data.joiningNodeId() +
+                ", loc=" + ctx.localNodeId() +
+                ", data=" + data.joiningNodeData() +
+                ']');
+        }
+
+        if (discoProtoVer == 2) {
+            if (data.hasJoiningNodeData())    {
+                ContinuousRoutinesJoiningNodeDiscoveryData nodeData = (ContinuousRoutinesJoiningNodeDiscoveryData)
+                    data.joiningNodeData();
+
+                for (ContinuousRoutineInfo routineInfo : nodeData.startedRoutines) {
+                    routinesInfo.addRoutineInfo(routineInfo);
+
+                    startDiscoveryDataRoutine(routineInfo);
+                }
+            }
+        }
+        else {
+            if (data.hasJoiningNodeData())
+                onDiscoDataReceived((DiscoveryData) data.joiningNodeData());
+        }
+    }
+
+    /** {@inheritDoc} */
+    @Override public void onGridDataReceived(GridDiscoveryData data) {
+        if (discoProtoVer == 2) {
+            if (ctx.isDaemon())
+                return;
+
+            if (data.commonData() != null) {
+                ContinuousRoutinesCommonDiscoveryData commonData =
+                    (ContinuousRoutinesCommonDiscoveryData)data.commonData();
+
+                for (ContinuousRoutineInfo routineInfo : commonData.startedRoutines) {
+                    if (routinesInfo.routineExists(routineInfo.routineId))
+                        continue;
+
+                    routinesInfo.addRoutineInfo(routineInfo);
+
+                    startDiscoveryDataRoutine(routineInfo);
+                }
+            }
+        }
+        else {
+            Map<UUID, Serializable> nodeSpecData = data.nodeSpecificData();
+
+            if (nodeSpecData != null) {
+                for (Map.Entry<UUID, Serializable> e : nodeSpecData.entrySet())
+                    onDiscoDataReceived((DiscoveryData) e.getValue());
+            }
+        }
+    }
+
+    /**
+     * @param routineInfo Routine info.
+     */
+    private void startDiscoveryDataRoutine(ContinuousRoutineInfo routineInfo) {
+        IgnitePredicate<ClusterNode> nodeFilter;
+
+        try {
+            if (routineInfo.nodeFilter != null) {
+                nodeFilter = U.unmarshal(marsh, routineInfo.nodeFilter, U.resolveClassLoader(ctx.config()));
+
+                ctx.resource().injectGeneric(nodeFilter);
+            }
+            else
+                nodeFilter = null;
+        }
+        catch (IgniteCheckedException e) {
+            U.error(log, "Failed to unmarshal continuous routine filter, ignore routine [" +
+                "routineId=" + routineInfo.routineId +
+                ", srcNodeId=" + routineInfo.srcNodeId + ']', e);
+
+            return;
+        }
+
+        ctx.discovery().localJoinFuture().listen(f -> ctx.closure().runLocalSafe(() -> {
+            if (nodeFilter == null || nodeFilter.apply(ctx.discovery().localNode())) {
+                GridContinuousHandler hnd;
+
+                try {
+                    hnd = U.unmarshal(marsh, routineInfo.hnd, U.resolveClassLoader(ctx.config()));
+
+                    if (ctx.config().isPeerClassLoadingEnabled())
+                        hnd.p2pUnmarshal(routineInfo.srcNodeId, ctx);
+                }
+                catch (IgniteCheckedException e) {
+                    U.error(log, "Failed to unmarshal continuous routine handler, ignore routine [" +
+                        "routineId=" + routineInfo.routineId +
+                        ", srcNodeId=" + routineInfo.srcNodeId + ']', e);
+
+                    return;
+                }
+
+                try {
+                    registerHandler(routineInfo.srcNodeId,
+                        routineInfo.routineId,
+                        hnd,
+                        routineInfo.bufSize,
+                        routineInfo.interval,
+                        routineInfo.autoUnsubscribe,
+                        false);
+                }
+                catch (IgniteCheckedException e) {
+                    U.error(log, "Failed to register continuous routine handler, ignore routine [" +
+                        "routineId=" + routineInfo.routineId +
+                        ", srcNodeId=" + routineInfo.srcNodeId + ']', e);
+                }
+            }
+            else {
+                if (log.isDebugEnabled()) {
+                    log.debug("Do not register continuous routine, rejected by node filter [" +
+                        "routineId=" + routineInfo.routineId +
+                        ", srcNodeId=" + routineInfo.srcNodeId + ']');
+                }
+            }
+        }));
+    }
+
+    /**
+     * @param data received discovery data.
+     */
+    private void onDiscoDataReceived(DiscoveryData data) {
         if (!ctx.isDaemon() && data != null) {
             for (DiscoveryDataItem item : data.items) {
                 try {
@@ -387,11 +622,15 @@ public class GridContinuousProcessor extends GridProcessorAdapter {
                         ctx.resource().injectGeneric(item.prjPred);
 
                     // Register handler only if local node passes projection predicate.
-                    if (item.prjPred == null || item.prjPred.apply(ctx.discovery().localNode())) {
-                        if (registerHandler(data.nodeId, item.routineId, item.hnd, item.bufSize, item.interval,
-                            item.autoUnsubscribe, false))
-                            item.hnd.onListenerRegistered(item.routineId, ctx);
-                    }
+                    if ((item.prjPred == null || item.prjPred.apply(ctx.discovery().localNode())) &&
+                            !locInfos.containsKey(item.routineId))
+                        registerHandler(data.nodeId, item.routineId, item.hnd, item.bufSize, item.interval,
+                                item.autoUnsubscribe, false);
+
+                    if (!item.autoUnsubscribe)
+                        // Register routine locally.
+                        locInfos.putIfAbsent(item.routineId, new LocalRoutineInfo(
+                                item.prjPred, item.hnd, item.bufSize, item.interval, item.autoUnsubscribe));
                 }
                 catch (IgniteCheckedException e) {
                     U.error(log, "Failed to register continuous handler.", e);
@@ -401,29 +640,30 @@ public class GridContinuousProcessor extends GridProcessorAdapter {
             for (Map.Entry<UUID, Map<UUID, LocalRoutineInfo>> entry : data.clientInfos.entrySet()) {
                 UUID clientNodeId = entry.getKey();
 
-                Map<UUID, LocalRoutineInfo> clientRoutineMap = entry.getValue();
+                if (!ctx.clientNode()) {
+                    Map<UUID, LocalRoutineInfo> clientRoutineMap = entry.getValue();
 
-                for (Map.Entry<UUID, LocalRoutineInfo> e : clientRoutineMap.entrySet()) {
-                    UUID routineId = e.getKey();
-                    LocalRoutineInfo info = e.getValue();
+                    for (Map.Entry<UUID, LocalRoutineInfo> e : clientRoutineMap.entrySet()) {
+                        UUID routineId = e.getKey();
+                        LocalRoutineInfo info = e.getValue();
 
-                    try {
-                        if (info.prjPred != null)
-                            ctx.resource().injectGeneric(info.prjPred);
+                        try {
+                            if (info.prjPred != null)
+                                ctx.resource().injectGeneric(info.prjPred);
 
-                        if (info.prjPred == null || info.prjPred.apply(ctx.discovery().localNode())) {
-                            if (registerHandler(clientNodeId,
-                                routineId,
-                                info.hnd,
-                                info.bufSize,
-                                info.interval,
-                                info.autoUnsubscribe,
-                                false))
-                                info.hnd.onListenerRegistered(routineId, ctx);
+                            if (info.prjPred == null || info.prjPred.apply(ctx.discovery().localNode())) {
+                                registerHandler(clientNodeId,
+                                        routineId,
+                                        info.hnd,
+                                        info.bufSize,
+                                        info.interval,
+                                        info.autoUnsubscribe,
+                                        false);
+                            }
                         }
-                    }
-                    catch (IgniteCheckedException err) {
-                        U.error(log, "Failed to register continuous handler.", err);
+                        catch (IgniteCheckedException err) {
+                            U.error(log, "Failed to register continuous handler.", err);
+                        }
                     }
                 }
 
@@ -453,13 +693,10 @@ public class GridContinuousProcessor extends GridProcessorAdapter {
 
             GridContinuousHandler hnd = rmtInfo.hnd;
 
-            if (hnd.isForQuery() && F.eq(ctx.name(), hnd.cacheName()) && rmtInfo.clearDelayedRegister()) {
+            if (hnd.isQuery() && F.eq(ctx.name(), hnd.cacheName()) && rmtInfo.clearDelayedRegister()) {
                 GridContinuousHandler.RegisterStatus status = hnd.register(rmtInfo.nodeId, routineId, this.ctx);
 
                 assert status != GridContinuousHandler.RegisterStatus.DELAYED;
-
-                if (status == GridContinuousHandler.RegisterStatus.REGISTERED)
-                    hnd.onListenerRegistered(routineId, this.ctx);
             }
         }
     }
@@ -475,9 +712,96 @@ public class GridContinuousProcessor extends GridProcessorAdapter {
 
             GridContinuousHandler hnd = entry.getValue().hnd;
 
-            if (hnd.isForQuery() && F.eq(ctx.name(), hnd.cacheName()))
+            if (hnd.isQuery() && F.eq(ctx.name(), hnd.cacheName()))
                 it.remove();
         }
+    }
+
+    /**
+     * Registers routine info to be sent in discovery data during this node join
+     * (to be used for internal queries started from client nodes).
+     *
+     * @param cacheName Cache name.
+     * @param locLsnr Local listener.
+     * @param rmtFilter Remote filter.
+     * @param prjPred Projection predicate.
+     * @return Routine ID.
+     * @throws IgniteCheckedException If failed.
+     */
+    @SuppressWarnings("unchecked")
+    public UUID registerStaticRoutine(
+        String cacheName,
+        CacheEntryUpdatedListener<?, ?> locLsnr,
+        CacheEntryEventSerializableFilter rmtFilter,
+        @Nullable IgnitePredicate<ClusterNode> prjPred) throws IgniteCheckedException {
+        String topicPrefix = "CONTINUOUS_QUERY_STATIC" + "_" + cacheName;
+
+        CacheContinuousQueryHandler hnd = new CacheContinuousQueryHandler(
+            cacheName,
+            TOPIC_CACHE.topic(topicPrefix, ctx.localNodeId(), seq.incrementAndGet()),
+            locLsnr,
+            rmtFilter,
+            true,
+            false,
+            true,
+            false);
+
+        hnd.internal(true);
+
+        final UUID routineId = UUID.randomUUID();
+
+        LocalRoutineInfo routineInfo = new LocalRoutineInfo(prjPred, hnd, 1, 0, true);
+
+        if (discoProtoVer == 2) {
+            routinesInfo.addRoutineInfo(createRoutineInfo(
+                ctx.localNodeId(),
+                routineId,
+                hnd,
+                prjPred,
+                routineInfo.bufSize,
+                routineInfo.interval,
+                routineInfo.autoUnsubscribe));
+        }
+
+        locInfos.put(routineId, routineInfo);
+
+        registerMessageListener(hnd);
+
+        return routineId;
+    }
+
+    /**
+     * @param srcNodeId Source node ID.
+     * @param routineId Routine ID.
+     * @param hnd Handler.
+     * @param nodeFilter Node filter.
+     * @param bufSize Handler buffer size.
+     * @param interval Time interval.
+     * @param autoUnsubscribe Auto unsubscribe flag.
+     * @return Routine info instance.
+     * @throws IgniteCheckedException If failed.
+     */
+    private ContinuousRoutineInfo createRoutineInfo(
+        UUID srcNodeId,
+        UUID routineId,
+        GridContinuousHandler hnd,
+        @Nullable IgnitePredicate<ClusterNode> nodeFilter,
+        int bufSize,
+        long interval,
+        boolean autoUnsubscribe)
+        throws IgniteCheckedException {
+        byte[] hndBytes = marsh.marshal(hnd);
+
+        byte[] filterBytes = nodeFilter != null ? marsh.marshal(nodeFilter) : null;
+
+        return new ContinuousRoutineInfo(
+            srcNodeId,
+            routineId,
+            hndBytes,
+            filterBytes,
+            bufSize,
+            interval,
+            autoUnsubscribe);
     }
 
     /**
@@ -485,11 +809,12 @@ public class GridContinuousProcessor extends GridProcessorAdapter {
      * @param bufSize Buffer size.
      * @param interval Time interval.
      * @param autoUnsubscribe Automatic unsubscribe flag.
+     * @param locOnly Local only flag.
      * @param prjPred Projection predicate.
      * @return Future.
      */
-    @SuppressWarnings("TooBroadScope")
     public IgniteInternalFuture<UUID> startRoutine(GridContinuousHandler hnd,
+        boolean locOnly,
         int bufSize,
         long interval,
         boolean autoUnsubscribe,
@@ -498,45 +823,175 @@ public class GridContinuousProcessor extends GridProcessorAdapter {
         assert bufSize > 0;
         assert interval >= 0;
 
-        // Whether local node is included in routine.
-        boolean locIncluded = prjPred == null || prjPred.apply(ctx.discovery().localNode());
-
         // Generate ID.
         final UUID routineId = UUID.randomUUID();
 
-        StartRequestData reqData = new StartRequestData(prjPred, hnd.clone(), bufSize, interval, autoUnsubscribe);
+        // Register routine locally.
+        locInfos.put(routineId, new LocalRoutineInfo(prjPred, hnd, bufSize, interval, autoUnsubscribe));
+
+        if (locOnly) {
+            try {
+                registerHandler(ctx.localNodeId(), routineId, hnd, bufSize, interval, autoUnsubscribe, true);
+
+                return new GridFinishedFuture<>(routineId);
+            }
+            catch (IgniteCheckedException e) {
+                unregisterHandler(routineId, hnd, true);
+
+                return new GridFinishedFuture<>(e);
+            }
+        }
+
+        // Whether local node is included in routine.
+        boolean locIncluded = prjPred == null || prjPred.apply(ctx.discovery().localNode());
+
+        AbstractContinuousMessage msg;
 
         try {
-            if (ctx.config().isPeerClassLoadingEnabled()) {
-                // Handle peer deployment for projection predicate.
-                if (prjPred != null && !U.isGrid(prjPred.getClass())) {
-                    Class cls = U.detectClass(prjPred);
-
-                    String clsName = cls.getName();
-
-                    GridDeployment dep = ctx.deploy().deploy(cls, U.detectClassLoader(cls));
-
-                    if (dep == null)
-                        throw new IgniteDeploymentCheckedException("Failed to deploy projection predicate: " + prjPred);
-
-                    reqData.className(clsName);
-                    reqData.deploymentInfo(new GridDeploymentInfoBean(dep));
-
-                    reqData.p2pMarshal(marsh);
-                }
-
-                // Handle peer deployment for other handler-specific objects.
-                reqData.handler().p2pMarshal(ctx);
-            }
+            msg = createStartMessage(routineId, hnd, bufSize, interval, autoUnsubscribe, prjPred);
         }
         catch (IgniteCheckedException e) {
             return new GridFinishedFuture<>(e);
         }
 
         // Register per-routine notifications listener if ordered messaging is used.
+        registerMessageListener(hnd);
+
+        if (!lockStopping())
+            return new GridFinishedFuture<>(new NodeStoppingException("Failed to start continuous query (node is stopping)"));
+
+        try {
+            StartFuture fut = new StartFuture(routineId);
+
+            startFuts.put(routineId, fut);
+
+            try {
+                if (locIncluded || hnd.isQuery()) {
+                    registerHandler(ctx.localNodeId(),
+                        routineId,
+                        hnd,
+                        bufSize,
+                        interval,
+                        autoUnsubscribe,
+                        true);
+                }
+
+                ctx.discovery().sendCustomEvent(msg);
+            }
+            catch (IgniteCheckedException e) {
+                startFuts.remove(routineId);
+                locInfos.remove(routineId);
+
+                unregisterHandler(routineId, hnd, true);
+
+                fut.onDone(e);
+
+                return fut;
+            }
+
+            // Handler is registered locally.
+            fut.onLocalRegistered();
+
+            return fut;
+        }
+        finally {
+            unlockStopping();
+        }
+    }
+
+    /**
+     * @param routineId Routine ID.
+     * @param hnd Handler.
+     * @param bufSize Buffer size.
+     * @param interval Interval.
+     * @param autoUnsubscribe Auto unsubscribe flag.
+     * @param nodeFilter Node filter.
+     * @return Routine start message.
+     * @throws IgniteCheckedException If failed.
+     */
+    private AbstractContinuousMessage createStartMessage(UUID routineId,
+        GridContinuousHandler hnd,
+        int bufSize,
+        long interval,
+        boolean autoUnsubscribe,
+        @Nullable IgnitePredicate<ClusterNode> nodeFilter)
+        throws IgniteCheckedException
+    {
+        hnd = hnd.clone();
+
+        String clsName = null;
+        GridDeploymentInfoBean dep = null;
+
+        if (ctx.config().isPeerClassLoadingEnabled()) {
+            // Handle peer deployment for projection predicate.
+            if (nodeFilter != null && !U.isGrid(nodeFilter.getClass())) {
+                Class cls = U.detectClass(nodeFilter);
+
+                clsName = cls.getName();
+
+                GridDeployment dep0 = ctx.deploy().deploy(cls, U.detectClassLoader(cls));
+
+                if (dep0 == null)
+                    throw new IgniteDeploymentCheckedException("Failed to deploy projection predicate: " + nodeFilter);
+
+                dep = new GridDeploymentInfoBean(dep0);
+            }
+
+            // Handle peer deployment for other handler-specific objects.
+            hnd.p2pMarshal(ctx);
+        }
+
+        if (discoProtoVer == 1) {
+            StartRequestData reqData = new StartRequestData(
+                nodeFilter,
+                hnd,
+                bufSize,
+                interval,
+                autoUnsubscribe);
+
+            if (clsName != null) {
+                reqData.className(clsName);
+                reqData.deploymentInfo(dep);
+
+                reqData.p2pMarshal(marsh);
+            }
+
+            return new StartRoutineDiscoveryMessage(
+                routineId,
+                reqData,
+                reqData.handler().keepBinary());
+        }
+        else {
+            assert discoProtoVer == 2 : discoProtoVer;
+
+            byte[] nodeFilterBytes = nodeFilter != null ? U.marshal(marsh, nodeFilter) : null;
+            byte[] hndBytes =  U.marshal(marsh, hnd);
+
+            StartRequestDataV2 reqData = new StartRequestDataV2(nodeFilterBytes,
+                hndBytes,
+                bufSize,
+                interval,
+                autoUnsubscribe);
+
+            if (clsName != null) {
+                reqData.className(clsName);
+                reqData.deploymentInfo(dep);
+            }
+
+            return new StartRoutineDiscoveryMessageV2(
+                routineId,
+                reqData,
+                hnd.keepBinary());
+        }
+    }
+
+    /**
+     * @param hnd Handler.
+     */
+    private void registerMessageListener(GridContinuousHandler hnd) {
         if (hnd.orderedTopic() != null) {
             ctx.io().addMessageListener(hnd.orderedTopic(), new GridMessageListener() {
-                @Override public void onMessage(UUID nodeId, Object obj) {
+                @Override public void onMessage(UUID nodeId, Object obj, byte plc) {
                     GridContinuousMessage msg = (GridContinuousMessage)obj;
 
                     // Only notification can be ordered.
@@ -544,7 +999,7 @@ public class GridContinuousProcessor extends GridProcessorAdapter {
 
                     if (msg.data() == null && msg.dataBytes() != null) {
                         try {
-                            msg.data(marsh.unmarshal(msg.dataBytes(), null));
+                            msg.data(U.unmarshal(marsh, msg.dataBytes(), U.resolveClassLoader(ctx.config())));
                         }
                         catch (IgniteCheckedException e) {
                             U.error(log, "Failed to process message (ignoring): " + msg, e);
@@ -557,35 +1012,6 @@ public class GridContinuousProcessor extends GridProcessorAdapter {
                 }
             });
         }
-
-        // Register routine locally.
-        locInfos.put(routineId, new LocalRoutineInfo(prjPred, hnd, bufSize, interval, autoUnsubscribe));
-
-        StartFuture fut = new StartFuture(ctx, routineId);
-
-        startFuts.put(routineId, fut);
-
-        try {
-            if (locIncluded && registerHandler(ctx.localNodeId(), routineId, hnd, bufSize, interval, autoUnsubscribe, true))
-                hnd.onListenerRegistered(routineId, ctx);
-
-            ctx.discovery().sendCustomEvent(new StartRoutineDiscoveryMessage(routineId, reqData));
-        }
-        catch (IgniteCheckedException e) {
-            startFuts.remove(routineId);
-            locInfos.remove(routineId);
-
-            unregisterHandler(routineId, hnd, true);
-
-            fut.onDone(e);
-
-            return fut;
-        }
-
-        // Handler is registered locally.
-        fut.onLocalRegistered();
-
-        return fut;
     }
 
     /**
@@ -597,33 +1023,46 @@ public class GridContinuousProcessor extends GridProcessorAdapter {
 
         boolean doStop = false;
 
-        StopFuture fut = stopFuts.get(routineId);
+        if (!lockStopping())
+            return new GridFinishedFuture<>(new NodeStoppingException("Failed to stop continuous query (node is stopping)"));
 
-        // Only one thread will stop routine with provided ID.
-        if (fut == null) {
-            StopFuture old = stopFuts.putIfAbsent(routineId, fut = new StopFuture(ctx));
+        try {
+            StopFuture fut = stopFuts.get(routineId);
 
-            if (old != null)
-                fut = old;
-            else
-                doStop = true;
-        }
+            // Only one thread will stop routine with provided ID.
+            if (fut == null) {
+                StopFuture old = stopFuts.putIfAbsent(routineId, fut = new StopFuture(ctx));
+
+                if (old != null)
+                    fut = old;
+                else
+                    doStop = true;
+            }
 
         if (doStop) {
+            boolean stop = false;
+
             // Unregister routine locally.
             LocalRoutineInfo routine = locInfos.remove(routineId);
 
-            // Finish if routine is not found (wrong ID is provided).
-            if (routine == null) {
-                stopFuts.remove(routineId);
+            if (routine != null) {
+                stop = true;
 
-                fut.onDone();
-
-                return fut;
+                // Unregister handler locally.
+                unregisterHandler(routineId, routine.hnd, true);
             }
 
-            // Unregister handler locally.
-            unregisterHandler(routineId, routine.hnd, true);
+            if (!stop && discoProtoVer == 2)
+                stop = routinesInfo.routineExists(routineId);
+
+            // Finish if routine is not found (wrong ID is provided).
+            if (!stop) {
+                stopFuts.remove(routineId);
+
+                    fut.onDone();
+
+                    return fut;
+                }
 
             try {
                 ctx.discovery().sendCustomEvent(new StopRoutineDiscoveryMessage(routineId));
@@ -632,11 +1071,48 @@ public class GridContinuousProcessor extends GridProcessorAdapter {
                 fut.onDone(e);
             }
 
-            if (ctx.isStopping())
-                fut.onDone();
-        }
+                if (ctx.isStopping())
+                    fut.onDone();
+            }
 
-        return fut;
+            return fut;
+        }
+        finally {
+            unlockStopping();
+        }
+    }
+
+    /**
+     * @param nodeId ID of the node that started routine.
+     * @param routineId Routine ID.
+     * @param objs Notification objects.
+     * @param orderedTopic Topic for ordered notifications. If {@code null}, non-ordered message will be sent.
+     * @throws IgniteCheckedException In case of error.
+     */
+    public void addBackupNotification(UUID nodeId,
+        final UUID routineId,
+        Collection<?> objs,
+        @Nullable Object orderedTopic)
+        throws IgniteCheckedException {
+        if (processorStopped)
+            return;
+
+        final RemoteRoutineInfo info = rmtInfos.get(routineId);
+
+        if (info != null) {
+            final GridContinuousBatch batch = info.addAll(objs);
+
+            Collection<Object> toSnd = batch.collect();
+
+            if (!toSnd.isEmpty())
+                sendNotification(nodeId, routineId, null, toSnd, orderedTopic, true, null);
+        }
+        else {
+            LocalRoutineInfo locRoutineInfo = locInfos.get(routineId);
+
+            if (locRoutineInfo != null)
+                locRoutineInfo.handler().notifyCallback(nodeId, routineId, objs, ctx);
+        }
     }
 
     /**
@@ -649,7 +1125,7 @@ public class GridContinuousProcessor extends GridProcessorAdapter {
      * @throws IgniteCheckedException In case of error.
      */
     public void addNotification(UUID nodeId,
-        UUID routineId,
+        final UUID routineId,
         @Nullable Object obj,
         @Nullable Object orderedTopic,
         boolean sync,
@@ -657,14 +1133,14 @@ public class GridContinuousProcessor extends GridProcessorAdapter {
         throws IgniteCheckedException {
         assert nodeId != null;
         assert routineId != null;
-        assert !msg || obj instanceof Message : obj;
+        assert !msg || (obj instanceof Message || obj instanceof Collection) : obj;
 
         assert !nodeId.equals(ctx.localNodeId());
 
         if (processorStopped)
             return;
 
-        RemoteRoutineInfo info = rmtInfos.get(routineId);
+        final RemoteRoutineInfo info = rmtInfos.get(routineId);
 
         if (info != null) {
             assert info.interval == 0 || !sync;
@@ -677,7 +1153,15 @@ public class GridContinuousProcessor extends GridProcessorAdapter {
                 syncMsgFuts.put(futId, fut);
 
                 try {
-                    sendNotification(nodeId, routineId, futId, F.asList(obj), orderedTopic, msg);
+                    sendNotification(nodeId,
+                        routineId,
+                        futId,
+                        obj instanceof Collection ? (Collection)obj : F.asList(obj),
+                        null,
+                        msg,
+                        null);
+
+                    info.hnd.onBatchAcknowledged(routineId, info.add(obj), ctx);
                 }
                 catch (IgniteCheckedException e) {
                     syncMsgFuts.remove(futId);
@@ -685,27 +1169,85 @@ public class GridContinuousProcessor extends GridProcessorAdapter {
                     throw e;
                 }
 
-                fut.get();
+                while (true) {
+                    try {
+                        fut.get(100, TimeUnit.MILLISECONDS);
+
+                        break;
+                    }
+                    catch (IgniteFutureTimeoutCheckedException ignored) {
+                        // Additional failover to break waiting on node left/fail
+                        // in case left/fail event processing failed, hanged or delayed.
+                        if (!ctx.discovery().alive(nodeId)) {
+                            SyncMessageAckFuture fut0 = syncMsgFuts.remove(futId);
+
+                            if (fut0 != null) {
+                                ClusterTopologyCheckedException err = new ClusterTopologyCheckedException(
+                                    "Node left grid after receiving, but before processing the message [node=" +
+                                        nodeId + "]");
+
+                                fut0.onDone(err);
+                            }
+
+                            break;
+                        }
+
+                        LT.warn(log, "Failed to wait for ack message. [node=" + nodeId +
+                            ", routine=" + routineId + "]");
+                    }
+                }
+
+                assert fut.isDone() : "Future in not finished [fut= " + fut + "]";
             }
             else {
-                Collection<Object> toSnd = info.add(obj);
+                final GridContinuousBatch batch = info.add(obj);
 
-                if (toSnd != null)
-                    sendNotification(nodeId, routineId, null, toSnd, orderedTopic, msg);
+                if (batch != null) {
+                    CI1<IgniteException> ackC = new CI1<IgniteException>() {
+                        @Override public void apply(IgniteException e) {
+                            if (e == null)
+                                info.hnd.onBatchAcknowledged(routineId, batch, ctx);
+                        }
+                    };
+
+                    sendNotification(nodeId, routineId, null, batch.collect(), orderedTopic, msg, ackC);
+                }
             }
         }
     }
 
     /** {@inheritDoc} */
-    @Override public void onDisconnected(IgniteFuture<?> reconnectFut) throws IgniteCheckedException {
+    @Override public void onDisconnected(IgniteFuture<?> reconnectFut) {
         cancelFutures(new IgniteClientDisconnectedCheckedException(reconnectFut, "Client node disconnected."));
 
-        for (UUID rmtId : rmtInfos.keySet())
-            unregisterRemote(rmtId);
+        if (log.isDebugEnabled()) {
+            log.debug("onDisconnected [rmtInfos=" + rmtInfos +
+                ", locInfos=" + locInfos +
+                ", clientInfos=" + clientInfos + ']');
+        }
+
+        for (Map.Entry<UUID, RemoteRoutineInfo> e : rmtInfos.entrySet()) {
+            RemoteRoutineInfo info = e.getValue();
+
+            if (!ctx.localNodeId().equals(info.nodeId) || info.autoUnsubscribe)
+                unregisterRemote(e.getKey());
+        }
+
+        for (LocalRoutineInfo routine : locInfos.values())
+            routine.hnd.onClientDisconnected();
 
         rmtInfos.clear();
 
         clientInfos.clear();
+
+        if (discoProtoVer == 2)
+            routinesInfo.onClientDisconnected(locInfos.keySet());
+
+        if (log.isDebugEnabled()) {
+            log.debug("after onDisconnected [rmtInfos=" + rmtInfos +
+                ", locInfos=" + locInfos +
+                ", clientInfos=" + clientInfos + ']');
+        }
     }
 
     /**
@@ -716,6 +1258,7 @@ public class GridContinuousProcessor extends GridProcessorAdapter {
      * @param orderedTopic Topic for ordered notifications.
      *      If {@code null}, non-ordered message will be sent.
      * @param msg If {@code true} then sent data is collection of messages.
+     * @param ackC Ack closure.
      * @throws IgniteCheckedException In case of error.
      */
     private void sendNotification(UUID nodeId,
@@ -723,7 +1266,8 @@ public class GridContinuousProcessor extends GridProcessorAdapter {
         @Nullable IgniteUuid futId,
         Collection<Object> toSnd,
         @Nullable Object orderedTopic,
-        boolean msg) throws IgniteCheckedException {
+        boolean msg,
+        IgniteInClosure<IgniteException> ackC) throws IgniteCheckedException {
         assert nodeId != null;
         assert routineId != null;
         assert toSnd != null;
@@ -731,7 +1275,52 @@ public class GridContinuousProcessor extends GridProcessorAdapter {
 
         sendWithRetries(nodeId,
             new GridContinuousMessage(MSG_EVT_NOTIFICATION, routineId, futId, toSnd, msg),
-            orderedTopic);
+            orderedTopic,
+            ackC);
+    }
+
+    /**
+     * @param msg Message.
+     */
+    private void processStopAckRequest(StopRoutineAckDiscoveryMessage msg) {
+        StopFuture fut = stopFuts.remove(msg.routineId());
+
+        if (fut != null)
+            fut.onDone();
+    }
+
+    /**
+     * @param snd Sender node.
+     * @param msg Message/
+     */
+    private void processStopRequest(ClusterNode snd, StopRoutineDiscoveryMessage msg) {
+        if (!snd.id().equals(ctx.localNodeId())) {
+            UUID routineId = msg.routineId();
+
+            unregisterRemote(routineId);
+        }
+
+        for (Map<UUID, LocalRoutineInfo> clientInfo : clientInfos.values()) {
+            if (clientInfo.remove(msg.routineId()) != null)
+                break;
+        }
+    }
+
+    /**
+     * @param topVer Topology version.
+     * @param msg Message.
+     */
+    private void processStartAckRequest(AffinityTopologyVersion topVer,
+        StartRoutineAckDiscoveryMessage msg) {
+        StartFuture fut = startFuts.remove(msg.routineId());
+
+        if (fut != null) {
+            fut.onAllRemoteRegistered(
+                topVer,
+                msg.errs(),
+                msg.updateCountersPerNode(),
+                msg.updateCounters());
+        }
     }
 
     /**
@@ -740,9 +1329,18 @@ public class GridContinuousProcessor extends GridProcessorAdapter {
      */
     private void processStartRequest(ClusterNode node, StartRoutineDiscoveryMessage req) {
         UUID routineId = req.routineId();
+        if (node.id().equals(ctx.localNodeId()))
+            return;
+
         StartRequestData data = req.startRequestData();
 
         GridContinuousHandler hnd = data.handler();
+
+        if (req.keepBinary()) {
+            assert hnd instanceof CacheContinuousQueryHandler;
+
+            ((CacheContinuousQueryHandler)hnd).keepBinary(true);
+        }
 
         IgniteCheckedException err = null;
 
@@ -759,7 +1357,7 @@ public class GridContinuousProcessor extends GridProcessorAdapter {
                     if (dep == null)
                         throw new IgniteDeploymentCheckedException("Failed to obtain deployment for class: " + clsName);
 
-                    data.p2pUnmarshal(marsh, dep.classLoader());
+                    data.p2pUnmarshal(marsh, U.resolveClassLoader(dep.classLoader(), ctx.config()));
                 }
 
                 hnd.p2pUnmarshal(node.id(), ctx);
@@ -770,6 +1368,10 @@ public class GridContinuousProcessor extends GridProcessorAdapter {
 
             U.error(log, "Failed to register handler [nodeId=" + node.id() + ", routineId=" + routineId + ']', e);
         }
+
+        GridContinuousHandler hnd0 = hnd instanceof GridMessageListenHandler ?
+            new GridMessageListenHandler((GridMessageListenHandler)hnd) :
+            hnd;
 
         if (node.isClient()) {
             Map<UUID, LocalRoutineInfo> clientRoutineMap = clientInfos.get(node.id());
@@ -783,24 +1385,28 @@ public class GridContinuousProcessor extends GridProcessorAdapter {
             }
 
             clientRoutineMap.put(routineId, new LocalRoutineInfo(data.projectionPredicate(),
-                hnd,
+                hnd0,
                 data.bufferSize(),
                 data.interval(),
                 data.autoUnsubscribe()));
         }
 
-        boolean registered = false;
-
         if (err == null) {
             try {
                 IgnitePredicate<ClusterNode> prjPred = data.projectionPredicate();
 
-                ctx.resource().injectGeneric(prjPred);
+                if (prjPred != null)
+                    ctx.resource().injectGeneric(prjPred);
 
-                if (prjPred == null || prjPred.apply(ctx.discovery().node(ctx.localNodeId()))) {
-                    registered = registerHandler(node.id(), routineId, hnd, data.bufferSize(), data.interval(),
+                if ((prjPred == null || prjPred.apply(ctx.discovery().node(ctx.localNodeId()))) &&
+                    !locInfos.containsKey(routineId))
+                    registerHandler(node.id(), routineId, hnd0, data.bufferSize(), data.interval(),
                         data.autoUnsubscribe(), false);
-                }
+
+                if (!data.autoUnsubscribe())
+                    // Register routine locally.
+                    locInfos.putIfAbsent(routineId, new LocalRoutineInfo(
+                        prjPred, hnd0, data.bufferSize(), data.interval(), data.autoUnsubscribe()));
             }
             catch (IgniteCheckedException e) {
                 err = e;
@@ -809,11 +1415,213 @@ public class GridContinuousProcessor extends GridProcessorAdapter {
             }
         }
 
+        // Load partition counters.
+        if (hnd0.isQuery()) {
+            GridCacheProcessor proc = ctx.cache();
+
+            if (proc != null) {
+                GridCacheAdapter cache = ctx.cache().internalCache(hnd0.cacheName());
+
+                if (cache != null && !cache.isLocal() && cache.context().userCache())
+                    req.addUpdateCounters(ctx.localNodeId(), hnd0.updateCounters());
+            }
+        }
+
         if (err != null)
             req.addError(ctx.localNodeId(), err);
+    }
 
-        if (registered)
-            hnd.onListenerRegistered(routineId, ctx);
+    /**
+     * @param sndId Sender node ID.
+     * @param msg Message.
+     */
+    private void processRoutineStartResultMessage(UUID sndId, ContinuousRoutineStartResultMessage msg) {
+        StartFuture fut = startFuts.get(msg.routineId());
+
+        if (fut != null)
+            fut.onResult(sndId, msg);
+    }
+
+    /**
+     * @param topVer Current topology version.
+     * @param snd Sender.
+     * @param msg Start request.
+     */
+    private void processStartRequestV2(final AffinityTopologyVersion topVer,
+        final ClusterNode snd,
+        final StartRoutineDiscoveryMessageV2 msg) {
+        StartRequestDataV2 reqData = msg.startRequestData();
+
+        ContinuousRoutineInfo routineInfo = new ContinuousRoutineInfo(snd.id(),
+            msg.routineId(),
+            reqData.handlerBytes(),
+            reqData.nodeFilterBytes(),
+            reqData.bufferSize(),
+            reqData.interval(),
+            reqData.autoUnsubscribe());
+
+        routinesInfo.addRoutineInfo(routineInfo);
+
+        final DiscoCache discoCache = ctx.discovery().discoCache(topVer);
+
+        // Should not use marshaller and send messages from discovery thread.
+        ctx.getSystemExecutorService().execute(new Runnable() {
+            @Override public void run() {
+                if (snd.id().equals(ctx.localNodeId())) {
+                    StartFuture fut = startFuts.get(msg.routineId());
+
+                    if (fut != null)
+                        fut.initRemoteNodes(discoCache);
+
+                    return;
+                }
+
+                StartRequestDataV2 reqData = msg.startRequestData();
+
+                Exception err = null;
+
+                IgnitePredicate<ClusterNode> nodeFilter = null;
+
+                byte[] cntrs = null;
+
+                if (reqData.nodeFilterBytes() != null) {
+                    try {
+                        if (ctx.config().isPeerClassLoadingEnabled() && reqData.className() != null) {
+                            String clsName = reqData.className();
+                            GridDeploymentInfo depInfo = reqData.deploymentInfo();
+
+                            GridDeployment dep = ctx.deploy().getGlobalDeployment(depInfo.deployMode(),
+                                clsName,
+                                clsName,
+                                depInfo.userVersion(),
+                                snd.id(),
+                                depInfo.classLoaderId(),
+                                depInfo.participants(),
+                                null);
+
+                            if (dep == null) {
+                                throw new IgniteDeploymentCheckedException("Failed to obtain deployment " +
+                                    "for class: " + clsName);
+                            }
+
+                            nodeFilter = U.unmarshal(marsh,
+                                reqData.nodeFilterBytes(),
+                                U.resolveClassLoader(dep.classLoader(), ctx.config()));
+                        }
+                        else {
+                            nodeFilter = U.unmarshal(marsh,
+                                reqData.nodeFilterBytes(),
+                                U.resolveClassLoader(ctx.config()));
+                        }
+
+                        if (nodeFilter != null)
+                            ctx.resource().injectGeneric(nodeFilter);
+                    }
+                    catch (Exception e) {
+                        err = e;
+
+                        U.error(log, "Failed to unmarshal continuous routine filter [" +
+                            "routineId=" + msg.routineId +
+                            ", srcNodeId=" + snd.id() + ']', e);
+                    }
+                }
+
+                boolean register = err == null &&
+                    (nodeFilter == null || nodeFilter.apply(ctx.discovery().localNode()));
+
+                if (register) {
+                    try {
+                        GridContinuousHandler hnd = U.unmarshal(marsh,
+                            reqData.handlerBytes(),
+                            U.resolveClassLoader(ctx.config()));
+
+                        if (ctx.config().isPeerClassLoadingEnabled())
+                            hnd.p2pUnmarshal(snd.id(), ctx);
+
+                        if (msg.keepBinary()) {
+                            assert hnd instanceof CacheContinuousQueryHandler : hnd;
+
+                            ((CacheContinuousQueryHandler)hnd).keepBinary(true);
+                        }
+
+                        GridContinuousHandler hnd0 = hnd instanceof GridMessageListenHandler ?
+                            new GridMessageListenHandler((GridMessageListenHandler)hnd) :
+                            hnd;
+
+                        registerHandler(snd.id(),
+                            msg.routineId,
+                            hnd0,
+                            reqData.bufferSize(),
+                            reqData.interval(),
+                            reqData.autoUnsubscribe(),
+                            false);
+
+                        if (hnd0.isQuery()) {
+                            GridCacheProcessor proc = ctx.cache();
+
+                            if (proc != null) {
+                                GridCacheAdapter cache = ctx.cache().internalCache(hnd0.cacheName());
+
+                                if (cache != null && !cache.isLocal() && cache.context().userCache()) {
+                                    CachePartitionPartialCountersMap cntrsMap =
+                                        cache.context().topology().localUpdateCounters(false);
+
+                                    cntrs = U.marshal(marsh, cntrsMap);
+                                }
+                            }
+                        }
+                    }
+                    catch (Exception e) {
+                        err = e;
+
+                        U.error(log, "Failed to register continuous routine handler [" +
+                            "routineId=" + msg.routineId +
+                            ", srcNodeId=" + snd.id() + ']', e);
+                    }
+                }
+
+                sendMessageStartResult(snd, msg.routineId(), cntrs, err);
+            }
+        });
+    }
+
+    /**
+     * @param node Target node.
+     * @param routineId Routine ID.
+     * @param cntrsMapBytes Marshalled {@link CachePartitionPartialCountersMap}.
+     * @param err Start error if any.
+     */
+    private void sendMessageStartResult(final ClusterNode node,
+        final UUID routineId,
+        byte[] cntrsMapBytes,
+        @Nullable final Exception err)
+    {
+        byte[] errBytes = null;
+
+        if (err != null) {
+            try {
+                errBytes = U.marshal(marsh, err);
+            }
+            catch (Exception e) {
+                U.error(log, "Failed to marshal routine start error: " + e, e);
+            }
+        }
+
+        ContinuousRoutineStartResultMessage msg = new ContinuousRoutineStartResultMessage(routineId,
+            cntrsMapBytes,
+            errBytes,
+            err != null);
+
+        try {
+            ctx.io().sendToGridTopic(node, TOPIC_CONTINUOUS, msg, SYSTEM_POOL, null);
+        }
+        catch (ClusterTopologyCheckedException e) {
+            if (log.isDebugEnabled())
+                log.debug("Failed to send routine start result, node failed: " + e);
+        }
+        catch (IgniteCheckedException e) {
+            U.error(log, "Failed to send routine start result: " + e, e);
+        }
     }
 
     /**
@@ -849,6 +1657,7 @@ public class GridContinuousProcessor extends GridProcessorAdapter {
                 try {
                     sendWithRetries(nodeId,
                         new GridContinuousMessage(MSG_EVT_ACK, null, msg.futureId(), null, false),
+                        null,
                         null);
                 }
                 catch (IgniteCheckedException e) {
@@ -898,9 +1707,11 @@ public class GridContinuousProcessor extends GridProcessorAdapter {
         }
 
         if (doRegister) {
+            if (log.isDebugEnabled())
+                log.debug("Register handler: [nodeId=" + nodeId + ", routineId=" + routineId + ", info=" + info + ']');
+
             if (interval > 0) {
-                IgniteThread checker = new IgniteThread(new GridWorker(ctx.gridName(), "continuous-buffer-checker", log) {
-                    @SuppressWarnings("ConstantConditions")
+                IgniteThread checker = new IgniteThread(new GridWorker(ctx.igniteInstanceName(), "continuous-buffer-checker", log) {
                     @Override protected void body() {
                         long interval0 = interval;
 
@@ -912,15 +1723,30 @@ public class GridContinuousProcessor extends GridProcessorAdapter {
                                 break;
                             }
 
-                            IgniteBiTuple<Collection<Object>, Long> t = info.checkInterval();
+                            IgniteBiTuple<GridContinuousBatch, Long> t = info.checkInterval();
 
-                            Collection<Object> toSnd = t.get1();
+                            final GridContinuousBatch batch = t.get1();
 
-                            if (toSnd != null && !toSnd.isEmpty()) {
+                            if (batch != null && batch.size() > 0) {
                                 try {
+                                    Collection<Object> toSnd = batch.collect();
+
                                     boolean msg = toSnd.iterator().next() instanceof Message;
 
-                                    sendNotification(nodeId, routineId, null, toSnd, hnd.orderedTopic(), msg);
+                                    CI1<IgniteException> ackC = new CI1<IgniteException>() {
+                                        @Override public void apply(IgniteException e) {
+                                            if (e == null)
+                                                info.hnd.onBatchAcknowledged(routineId, batch, ctx);
+                                        }
+                                    };
+
+                                    sendNotification(nodeId,
+                                        routineId,
+                                        null,
+                                        toSnd,
+                                        hnd.orderedTopic(),
+                                        msg,
+                                        ackC);
                                 }
                                 catch (ClusterTopologyCheckedException ignored) {
                                     if (log.isDebugEnabled())
@@ -935,6 +1761,8 @@ public class GridContinuousProcessor extends GridProcessorAdapter {
                         }
                     }
                 });
+
+                checker.setUncaughtExceptionHandler(new OomExceptionHandler(ctx));
 
                 bufCheckThreads.put(routineId, checker);
 
@@ -980,22 +1808,32 @@ public class GridContinuousProcessor extends GridProcessorAdapter {
      */
     @SuppressWarnings("TooBroadScope")
     private void unregisterRemote(UUID routineId) {
-        RemoteRoutineInfo info;
+        RemoteRoutineInfo remote;
+        LocalRoutineInfo loc;
 
         stopLock.lock();
 
         try {
-            info = rmtInfos.remove(routineId);
+            remote = rmtInfos.remove(routineId);
 
-            if (info == null)
+            loc = locInfos.remove(routineId);
+
+            if (remote == null)
                 stopped.add(routineId);
         }
         finally {
             stopLock.unlock();
         }
 
-        if (info != null)
-            unregisterHandler(routineId, info.hnd, false);
+        if (log.isDebugEnabled())
+            log.debug("unregisterRemote [routineId=" + routineId + ", loc=" + loc + ", rmt=" + remote + ']');
+
+        if (remote != null)
+            unregisterHandler(routineId, remote.hnd, false);
+        else if (loc != null) {
+            // Removes routine at node started it when stopRoutine called from another node.
+            unregisterHandler(routineId, loc.hnd, false);
+        }
     }
 
     /**
@@ -1003,9 +1841,11 @@ public class GridContinuousProcessor extends GridProcessorAdapter {
      * @param msg Message.
      * @param orderedTopic Topic for ordered notifications.
      *      If {@code null}, non-ordered message will be sent.
+     * @param ackC Ack closure.
      * @throws IgniteCheckedException In case of error.
      */
-    private void sendWithRetries(UUID nodeId, GridContinuousMessage msg, @Nullable Object orderedTopic)
+    private void sendWithRetries(UUID nodeId, GridContinuousMessage msg, @Nullable Object orderedTopic,
+        IgniteInClosure<IgniteException> ackC)
         throws IgniteCheckedException {
         assert nodeId != null;
         assert msg != null;
@@ -1013,7 +1853,7 @@ public class GridContinuousProcessor extends GridProcessorAdapter {
         ClusterNode node = ctx.discovery().node(nodeId);
 
         if (node != null)
-            sendWithRetries(node, msg, orderedTopic);
+            sendWithRetries(node, msg, orderedTopic, ackC);
         else
             throw new ClusterTopologyCheckedException("Node for provided ID doesn't exist (did it leave the grid?): " + nodeId);
     }
@@ -1023,14 +1863,15 @@ public class GridContinuousProcessor extends GridProcessorAdapter {
      * @param msg Message.
      * @param orderedTopic Topic for ordered notifications.
      *      If {@code null}, non-ordered message will be sent.
+     * @param ackC Ack closure.
      * @throws IgniteCheckedException In case of error.
      */
-    private void sendWithRetries(ClusterNode node, GridContinuousMessage msg, @Nullable Object orderedTopic)
-        throws IgniteCheckedException {
+    private void sendWithRetries(ClusterNode node, GridContinuousMessage msg, @Nullable Object orderedTopic,
+        IgniteInClosure<IgniteException> ackC) throws IgniteCheckedException {
         assert node != null;
         assert msg != null;
 
-        sendWithRetries(F.asList(node), msg, orderedTopic);
+        sendWithRetries(F.asList(node), msg, orderedTopic, ackC);
     }
 
     /**
@@ -1038,17 +1879,18 @@ public class GridContinuousProcessor extends GridProcessorAdapter {
      * @param msg Message.
      * @param orderedTopic Topic for ordered notifications.
      *      If {@code null}, non-ordered message will be sent.
+     * @param ackC Ack closure.
      * @throws IgniteCheckedException In case of error.
      */
     private void sendWithRetries(Collection<? extends ClusterNode> nodes, GridContinuousMessage msg,
-        @Nullable Object orderedTopic) throws IgniteCheckedException {
+        @Nullable Object orderedTopic, IgniteInClosure<IgniteException> ackC) throws IgniteCheckedException {
         assert !F.isEmpty(nodes);
         assert msg != null;
 
         if (!msg.messages() &&
             msg.data() != null &&
             (nodes.size() > 1 || !ctx.localNodeId().equals(F.first(nodes).id())))
-            msg.dataBytes(marsh.marshal(msg.data()));
+            msg.dataBytes(U.marshal(marsh, msg.data()));
 
         for (ClusterNode node : nodes) {
             int cnt = 0;
@@ -1064,14 +1906,15 @@ public class GridContinuousProcessor extends GridProcessorAdapter {
                             msg,
                             SYSTEM_POOL,
                             0,
-                            true);
+                            true,
+                            ackC);
                     }
                     else
-                        ctx.io().send(node, TOPIC_CONTINUOUS, msg, SYSTEM_POOL);
+                        ctx.io().sendToGridTopic(node, TOPIC_CONTINUOUS, msg, SYSTEM_POOL, ackC);
 
                     break;
                 }
-                catch (IgniteInterruptedCheckedException e) {
+                catch (ClusterTopologyCheckedException | IgniteInterruptedCheckedException e) {
                     throw e;
                 }
                 catch (IgniteCheckedException e) {
@@ -1086,6 +1929,62 @@ public class GridContinuousProcessor extends GridProcessorAdapter {
 
                 U.sleep(retryDelay);
             }
+        }
+    }
+
+    /**
+     *
+     */
+    private class DiscoveryListener implements GridLocalEventListener, HighPriorityListener {
+        /** {@inheritDoc} */
+        @Override public void onEvent(Event evt) {
+            assert evt instanceof DiscoveryEvent;
+            assert evt.type() == EVT_NODE_LEFT || evt.type() == EVT_NODE_FAILED;
+
+            UUID nodeId = ((DiscoveryEvent)evt).eventNode().id();
+
+            if (discoProtoVer == 2) {
+                routinesInfo.onNodeFail(nodeId);
+
+                for (StartFuture fut : startFuts.values())
+                    fut.onNodeFail(nodeId);
+            }
+
+            clientInfos.remove(nodeId);
+
+            // Unregister handlers created by left node.
+            for (Map.Entry<UUID, RemoteRoutineInfo> e : rmtInfos.entrySet()) {
+                UUID routineId = e.getKey();
+                RemoteRoutineInfo info = e.getValue();
+
+                if (nodeId.equals(info.nodeId)) {
+                    if (info.autoUnsubscribe)
+                        unregisterRemote(routineId);
+
+                    if (info.hnd.isQuery())
+                        info.hnd.onNodeLeft();
+                }
+            }
+
+            for (Map.Entry<IgniteUuid, SyncMessageAckFuture> e : syncMsgFuts.entrySet()) {
+                SyncMessageAckFuture fut = e.getValue();
+
+                if (fut.nodeId().equals(nodeId)) {
+                    SyncMessageAckFuture fut0 = syncMsgFuts.remove(e.getKey());
+
+                    if (fut0 != null) {
+                        ClusterTopologyCheckedException err = new ClusterTopologyCheckedException(
+                            "Node left grid while sending message to: " + nodeId);
+
+                        fut0.onDone(err);
+                    }
+                }
+            }
+        }
+
+        /** {@inheritDoc} */
+        @Override public int order() {
+            return 1;
         }
     }
 
@@ -1168,8 +2067,8 @@ public class GridContinuousProcessor extends GridProcessorAdapter {
         /** Lock. */
         private final ReadWriteLock lock = new ReentrantReadWriteLock();
 
-        /** Buffer. */
-        private ConcurrentLinkedDeque8<Object> buf;
+        /** Batch. */
+        private GridContinuousBatch batch;
 
         /** Last send time. */
         private long lastSndTime = U.currentTimeMillis();
@@ -1200,14 +2099,14 @@ public class GridContinuousProcessor extends GridProcessorAdapter {
             this.interval = interval;
             this.autoUnsubscribe = autoUnsubscribe;
 
-            buf = new ConcurrentLinkedDeque8<>();
+            batch = hnd.createBatch();
         }
 
         /**
          * Marks info to be registered when cache is started.
          */
         public void markDelayedRegister() {
-            assert hnd.isForQuery();
+            assert hnd.isQuery();
 
             delayedRegister = true;
         }
@@ -1228,21 +2127,52 @@ public class GridContinuousProcessor extends GridProcessorAdapter {
         }
 
         /**
-         * @param obj Object to add.
-         * @return Object to send or {@code null} if there is nothing to send for now.
+         * @param objs Objects to add.
+         * @return Batch to send.
          */
-        @Nullable Collection<Object> add(@Nullable Object obj) {
-            ConcurrentLinkedDeque8 buf0 = null;
+        GridContinuousBatch addAll(Collection<?> objs) {
+            assert objs != null;
 
-            if (buf.sizex() >= bufSize - 1) {
+            GridContinuousBatch toSnd;
+
+            lock.writeLock().lock();
+
+            try {
+                for (Object obj : objs)
+                    batch.add(obj);
+
+                toSnd = batch;
+
+                batch = hnd.createBatch();
+
+                if (interval > 0)
+                    lastSndTime = U.currentTimeMillis();
+            }
+            finally {
+                lock.writeLock().unlock();
+            }
+
+            return toSnd;
+        }
+
+        /**
+         * @param obj Object to add.
+         * @return Batch to send or {@code null} if there is nothing to send for now.
+         */
+        @Nullable GridContinuousBatch add(Object obj) {
+            assert obj != null;
+
+            GridContinuousBatch toSnd = null;
+
+            if (batch.size() >= bufSize - 1) {
                 lock.writeLock().lock();
 
                 try {
-                    buf.add(obj);
+                    batch.add(obj);
 
-                    buf0 = buf;
+                    toSnd = batch;
 
-                    buf = new ConcurrentLinkedDeque8<>();
+                    batch = hnd.createBatch();
 
                     if (interval > 0)
                         lastSndTime = U.currentTimeMillis();
@@ -1255,34 +2185,25 @@ public class GridContinuousProcessor extends GridProcessorAdapter {
                 lock.readLock().lock();
 
                 try {
-                    buf.add(obj);
+                    batch.add(obj);
                 }
                 finally {
                     lock.readLock().unlock();
                 }
             }
 
-            Collection<Object> toSnd = null;
-
-            if (buf0 != null) {
-                toSnd = new ArrayList<>(buf0.sizex());
-
-                for (Object o : buf0)
-                    toSnd.add(o);
-            }
-
             return toSnd;
         }
 
         /**
-         * @return Tuple with objects to sleep (or {@code null} if there is nothing to
+         * @return Tuple with batch to send (or {@code null} if there is nothing to
          *      send for now) and time interval after next check is needed.
          */
         @SuppressWarnings("TooBroadScope")
-        IgniteBiTuple<Collection<Object>, Long> checkInterval() {
+        IgniteBiTuple<GridContinuousBatch, Long> checkInterval() {
             assert interval > 0;
 
-            Collection<Object> toSnd = null;
+            GridContinuousBatch toSnd = null;
             long diff;
 
             long now = U.currentTimeMillis();
@@ -1292,10 +2213,10 @@ public class GridContinuousProcessor extends GridProcessorAdapter {
             try {
                 diff = now - lastSndTime;
 
-                if (diff >= interval && !buf.isEmpty()) {
-                    toSnd = buf;
+                if (diff >= interval && batch.size() > 0) {
+                    toSnd = batch;
 
-                    buf = new ConcurrentLinkedDeque8<>();
+                    batch = hnd.createBatch();
 
                     lastSndTime = now;
                 }
@@ -1449,7 +2370,6 @@ public class GridContinuousProcessor extends GridProcessorAdapter {
         }
 
         /** {@inheritDoc} */
-        @SuppressWarnings("unchecked")
         @Override public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
             routineId = U.readUuid(in);
             prjPred = (IgnitePredicate<ClusterNode>)in.readObject();
@@ -1468,13 +2388,7 @@ public class GridContinuousProcessor extends GridProcessorAdapter {
     /**
      * Future for start routine.
      */
-    private static class StartFuture extends GridFutureAdapter<UUID> {
-        /** */
-        private static final long serialVersionUID = 0L;
-
-        /** */
-        private GridKernalContext ctx;
-
+    private class StartFuture extends GridFutureAdapter<UUID> {
         /** Consume ID. */
         private UUID routineId;
 
@@ -1484,23 +2398,156 @@ public class GridContinuousProcessor extends GridProcessorAdapter {
         /** All remote listeners are registered. */
         private volatile boolean rmt;
 
-        /** Timeout object. */
-        private volatile GridTimeoutObject timeoutObj;
+        /** */
+        private final DiscoveryMessageResultsCollector<ContinuousRoutineStartResultMessage, RoutineRegisterResults>
+            resCollect;
 
         /**
-         * @param ctx Kernal context.
          * @param routineId Consume ID.
          */
-        StartFuture(GridKernalContext ctx, UUID routineId) {
-            this.ctx = ctx;
-
+        StartFuture(UUID routineId) {
             this.routineId = routineId;
+
+            resCollect = new DiscoveryMessageResultsCollector<ContinuousRoutineStartResultMessage, RoutineRegisterResults>(ctx) {
+                @Override protected RoutineRegisterResults createResult(Map<UUID, NodeMessage<ContinuousRoutineStartResultMessage>> rcvd) {
+                    Map<UUID, Exception> errs = null;
+                    Map<UUID, Map<Integer, T2<Long, Long>>> cntrsPerNode = null;
+
+                    for (Map.Entry<UUID, NodeMessage<ContinuousRoutineStartResultMessage>> entry : rcvd.entrySet()) {
+                        ContinuousRoutineStartResultMessage msg = entry.getValue().message();
+
+                        if (msg == null)
+                            continue;
+
+                        if (msg.error()) {
+                            byte[] errBytes = msg.errorBytes();
+
+                            Exception err = null;
+
+                            if (errBytes != null) {
+                                try {
+                                    err = U.unmarshal(marsh, errBytes, U.resolveClassLoader(ctx.config()));
+                                }
+                                catch (Exception e) {
+                                    U.warn(log, "Failed to unmarhal continuous routine start error: " + e);
+                                }
+                            }
+
+                            if (err == null) {
+                                err = new IgniteCheckedException("Failed to start continuous " +
+                                    "routine on node: " + entry.getKey());
+                            }
+
+                            if (errs == null)
+                                errs = new HashMap<>();
+
+                            errs.put(entry.getKey(), err);
+                        }
+                        else {
+                            byte[] cntrsMapBytes = msg.countersMapBytes();
+
+                            if (cntrsMapBytes != null) {
+                                try {
+                                    CachePartitionPartialCountersMap cntrsMap = U.unmarshal(
+                                        marsh,
+                                        cntrsMapBytes,
+                                        U.resolveClassLoader(ctx.config()));
+
+                                    if (cntrsPerNode == null)
+                                        cntrsPerNode = new HashMap<>();
+
+                                    cntrsPerNode.put(entry.getKey(), CachePartitionPartialCountersMap.toCountersMap(cntrsMap));
+                                }
+                                catch (Exception e) {
+                                    U.warn(log, "Failed to unmarhal continuous query update counters: " + e);
+                                }
+                            }
+                        }
+                    }
+
+                    return new RoutineRegisterResults(discoCache.version(), errs, cntrsPerNode);
+                }
+
+                @Override protected void onResultsCollected(RoutineRegisterResults res0) {
+                    onAllRemoteRegistered(res0.topVer, res0.errs, res0.cntrsPerNode, null);
+                }
+
+                @Override protected boolean waitForNode(DiscoCache discoCache, ClusterNode node) {
+                    return !ctx.localNodeId().equals(node.id());
+                }
+            };
+        }
+
+        /**
+         * @param topVer Topology version.
+         * @param errs Errors.
+         * @param cntrsPerNode Update counters.
+         * @param cntrs Update counters.
+         */
+        private void onAllRemoteRegistered(
+            AffinityTopologyVersion topVer,
+            @Nullable Map<UUID, ? extends Exception> errs,
+            Map<UUID, Map<Integer, T2<Long, Long>>> cntrsPerNode,
+            Map<Integer, T2<Long, Long>> cntrs) {
+            try {
+                if (errs == null || errs.isEmpty()) {
+                    LocalRoutineInfo routine = locInfos.get(routineId);
+
+                    // Update partition counters.
+                    if (routine != null && routine.handler().isQuery()) {
+                        GridCacheAdapter<Object, Object> interCache =
+                            ctx.cache().internalCache(routine.handler().cacheName());
+
+                        GridCacheContext cctx = interCache != null ? interCache.context() : null;
+
+                        if (cctx != null && cntrsPerNode != null && !cctx.isLocal() && cctx.affinityNode())
+                            cntrsPerNode.put(ctx.localNodeId(),
+                                toCountersMap(cctx.topology().localUpdateCounters(false)));
+
+                        routine.handler().updateCounters(topVer, cntrsPerNode, cntrs);
+                    }
+
+                    onRemoteRegistered();
+                }
+                else {
+                    Exception firstEx = F.first(errs.values());
+
+                    onDone(firstEx);
+
+                    stopRoutine(routineId);
+                }
+            }
+            finally {
+                startFuts.remove(routineId, this);
+            }
+        }
+
+        /**
+         * @param discoCache Discovery state.
+         */
+        void initRemoteNodes(DiscoCache discoCache) {
+            resCollect.init(discoCache);
+        }
+
+        /**
+         * @param nodeId Node ID.
+         * @param msg Message.
+         */
+        void onResult(UUID nodeId, ContinuousRoutineStartResultMessage msg) {
+            resCollect.onMessage(nodeId, msg);
+        }
+
+        /**
+         * @param nodeId Failed node ID.
+         */
+        void onNodeFail(UUID nodeId) {
+            resCollect.onNodeFail(nodeId);
         }
 
         /**
          * Called when local listener is registered.
          */
-        public void onLocalRegistered() {
+        void onLocalRegistered() {
             loc = true;
 
             if (rmt && !isDone())
@@ -1510,30 +2557,11 @@ public class GridContinuousProcessor extends GridProcessorAdapter {
         /**
          * Called when all remote listeners are registered.
          */
-        public void onRemoteRegistered() {
+        void onRemoteRegistered() {
             rmt = true;
 
             if (loc && !isDone())
                 onDone(routineId);
-        }
-
-        /**
-         * @param timeoutObj Timeout object.
-         */
-        public void addTimeoutObject(GridTimeoutObject timeoutObj) {
-            assert timeoutObj != null;
-
-            this.timeoutObj = timeoutObj;
-
-            ctx.timeout().addTimeoutObject(timeoutObj);
-        }
-
-        /** {@inheritDoc} */
-        @Override public boolean onDone(@Nullable UUID res, @Nullable Throwable err) {
-            if (timeoutObj != null)
-                ctx.timeout().removeTimeoutObject(timeoutObj);
-
-            return super.onDone(res, err);
         }
 
         /** {@inheritDoc} */
@@ -1543,12 +2571,36 @@ public class GridContinuousProcessor extends GridProcessorAdapter {
     }
 
     /**
+     *
+     */
+    private static class RoutineRegisterResults {
+        /** */
+        private final AffinityTopologyVersion topVer;
+
+        /** */
+        private final Map<UUID, ? extends Exception> errs;
+
+        /** */
+        private final Map<UUID, Map<Integer, T2<Long, Long>>> cntrsPerNode;
+
+        /**
+         * @param topVer Topology version.
+         * @param errs Errors.
+         * @param cntrsPerNode Update counters.
+         */
+        RoutineRegisterResults(AffinityTopologyVersion topVer,
+            Map<UUID, ? extends Exception> errs,
+            Map<UUID, Map<Integer, T2<Long, Long>>> cntrsPerNode) {
+            this.topVer = topVer;
+            this.errs = errs;
+            this.cntrsPerNode = cntrsPerNode;
+        }
+    }
+
+    /**
      * Future for stop routine.
      */
     private static class StopFuture extends GridFutureAdapter<Object> {
-        /** */
-        private static final long serialVersionUID = 0L;
-
         /** Timeout object. */
         private volatile GridTimeoutObject timeoutObj;
 
@@ -1591,9 +2643,6 @@ public class GridContinuousProcessor extends GridProcessorAdapter {
      * Synchronous message acknowledgement future.
      */
     private static class SyncMessageAckFuture extends GridFutureAdapter<Object> {
-        /** */
-        private static final long serialVersionUID = 0L;
-
         /** */
         private UUID nodeId;
 

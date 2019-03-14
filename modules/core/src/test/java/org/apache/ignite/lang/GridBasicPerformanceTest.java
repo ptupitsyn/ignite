@@ -30,6 +30,7 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -49,8 +50,6 @@ import org.apache.ignite.internal.util.typedef.X;
 import org.apache.ignite.testframework.GridTestUtils;
 import org.jetbrains.annotations.Nullable;
 import org.jsr166.ConcurrentLinkedDeque8;
-import org.jsr166.ThreadLocalRandom8;
-import sun.misc.Unsafe;
 
 /**
  * Tests synchronization performance vs. lock.
@@ -75,11 +74,9 @@ public class GridBasicPerformanceTest {
     private static final ReadWriteLock rwLock = new ReentrantReadWriteLock();
 
     /** Test variable. */
-    @SuppressWarnings({"UnusedDeclaration", "FieldAccessedSynchronizedAndUnsynchronized"})
     private static int n;
 
     /** Volatile variable. */
-    @SuppressWarnings({"FieldCanBeLocal", "UnusedDeclaration"})
     private static volatile int v;
 
     /** Atomic integer. */
@@ -713,7 +710,7 @@ public class GridBasicPerformanceTest {
         int lim = 10000;
 
         for (int i = 0; i < arr.length; i++)
-            arr[i] = ThreadLocalRandom8.current().nextInt(lim);
+            arr[i] = ThreadLocalRandom.current().nextInt(lim);
 
         Arrays.sort(arr);
 
@@ -721,9 +718,9 @@ public class GridBasicPerformanceTest {
 
         for (int i = 0; i < MAX; i++) {
             if (sort)
-                Arrays.binarySearch(arr, ThreadLocalRandom8.current().nextInt(lim));
+                Arrays.binarySearch(arr, ThreadLocalRandom.current().nextInt(lim));
             else
-                F.contains(arr, ThreadLocalRandom8.current().nextInt(lim));
+                F.contains(arr, ThreadLocalRandom.current().nextInt(lim));
         }
 
         long time =  System.currentTimeMillis() - start;
@@ -739,7 +736,7 @@ public class GridBasicPerformanceTest {
         int lim = 10000;
 
         for (int i = 0; i < arr.length; i++)
-            arr[i] = ThreadLocalRandom8.current().nextLong(lim);
+            arr[i] = ThreadLocalRandom.current().nextLong(lim);
 
         Arrays.sort(arr);
 
@@ -747,9 +744,9 @@ public class GridBasicPerformanceTest {
 
         for (int i = 0; i < MAX; i++) {
             if (sort)
-                Arrays.binarySearch(arr, ThreadLocalRandom8.current().nextInt(lim));
+                Arrays.binarySearch(arr, ThreadLocalRandom.current().nextInt(lim));
             else
-                F.contains(arr, ThreadLocalRandom8.current().nextInt(lim));
+                F.contains(arr, ThreadLocalRandom.current().nextInt(lim));
         }
 
         long time =  System.currentTimeMillis() - start;
@@ -804,7 +801,6 @@ public class GridBasicPerformanceTest {
     /**
      * @param q Queue.
      */
-    @SuppressWarnings("StatementWithEmptyBody")
     private static void testQueue(Queue<Integer> q) {
         System.gc();
 
@@ -874,7 +870,6 @@ public class GridBasicPerformanceTest {
 
         IgniteInternalFuture<?> fut2 = GridTestUtils.runMultiThreadedAsync(
             new Callable<Object>() {
-                @SuppressWarnings("StatementWithEmptyBody")
                 @Nullable @Override public Object call() throws Exception {
                     latch2.await();
 
@@ -936,7 +931,6 @@ public class GridBasicPerformanceTest {
     /**
      * Test unsafe vs. new.
      */
-    @SuppressWarnings("JavaDoc")
     private static void testUnsafe() throws InterruptedException {
         X.println("Testing unsafe...");
 
@@ -948,16 +942,14 @@ public class GridBasicPerformanceTest {
 
         GridTimer t = new GridTimer("unsafe");
 
-        Unsafe unsafe = GridUnsafe.unsafe();
-
         int mem = 1024;
 
         for (int i = 0; i < MAX; i++) {
-            addrs[i] = unsafe.allocateMemory(mem);
+            addrs[i] = GridUnsafe.allocateMemory(mem);
 
-            unsafe.putByte(addrs[i] + RAND.nextInt(mem), (byte)RAND.nextInt(mem));
+            GridUnsafe.putByte(addrs[i] + RAND.nextInt(mem), (byte)RAND.nextInt(mem));
 
-            v = unsafe.getByte(addrs[i] + RAND.nextInt(mem));
+            v = GridUnsafe.getByte(addrs[i] + RAND.nextInt(mem));
         }
 
         X.println("Unsafe [time=" + t.stop() + "ms, v=" + v + ']');
@@ -965,7 +957,7 @@ public class GridBasicPerformanceTest {
         Thread.sleep(5000L);
 
         for (long l : addrs)
-            unsafe.freeMemory(l);
+            GridUnsafe.freeMemory(l);
     }
 
 

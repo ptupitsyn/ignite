@@ -17,7 +17,6 @@ import java.util.AbstractSet;
 import java.util.ArrayDeque;
 import java.util.Collection;
 import java.util.ConcurrentModificationException;
-import java.util.Deque;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Hashtable;
@@ -27,7 +26,11 @@ import java.util.NoSuchElementException;
 import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.atomic.LongAdder;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import org.apache.ignite.internal.util.tostring.GridToStringExclude;
+import org.apache.ignite.internal.util.typedef.internal.S;
+import org.jetbrains.annotations.Nullable;
 
 import static org.jsr166.ConcurrentLinkedHashMap.QueuePolicy.PER_SEGMENT_Q;
 import static org.jsr166.ConcurrentLinkedHashMap.QueuePolicy.PER_SEGMENT_Q_OPTIMIZED_RMV;
@@ -108,7 +111,6 @@ import static org.jsr166.ConcurrentLinkedHashMap.QueuePolicy.SINGLE_Q;
  * @param <K> the type of keys maintained by this map
  * @param <V> the type of mapped values
  */
-@SuppressWarnings("NullableProblems")
 public class ConcurrentLinkedHashMap<K, V> extends AbstractMap<K, V> implements ConcurrentMap<K, V> {
     /*
      * The basic strategy is to subdivide the table among Segments,
@@ -193,10 +195,10 @@ public class ConcurrentLinkedHashMap<K, V> extends AbstractMap<K, V> implements 
     private final ConcurrentLinkedDeque8<HashEntry<K, V>> entryQ;
 
     /** Atomic variable containing map size. */
-    private final LongAdder8 size = new LongAdder8();
+    private final LongAdder size = new LongAdder();
 
     /** */
-    private final LongAdder8 modCnt = new LongAdder8();
+    private final LongAdder modCnt = new LongAdder();
 
     /** */
     private final int maxCap;
@@ -249,7 +251,7 @@ public class ConcurrentLinkedHashMap<K, V> extends AbstractMap<K, V> implements 
      * instead of initial value when read via a data race.  Although a
      * reordering leading to this is not likely to ever actually
      * occur, the Segment.readValueUnderLock method is used as a
-     * backup in case a null (pre-initialized) value is ever seen in
+     * snapshot in case a null (pre-initialized) value is ever seen in
      * an unsynchronized access method.
      */
     @SuppressWarnings({"PublicInnerClass"})
@@ -264,12 +266,14 @@ public class ConcurrentLinkedHashMap<K, V> extends AbstractMap<K, V> implements 
         private volatile V val;
 
         /** Reference to a node in queue for fast removal operations. */
+        @GridToStringExclude
         private volatile ConcurrentLinkedDeque8.Node node;
 
         /** Modification count of the map for duplicates exclusion. */
         private volatile int modCnt;
 
         /** Link to the next entry in a bucket */
+        @GridToStringExclude
         private final HashEntry<K, V> next;
 
         /**
@@ -331,6 +335,11 @@ public class ConcurrentLinkedHashMap<K, V> extends AbstractMap<K, V> implements 
         @SuppressWarnings("unchecked")
         static <K, V> HashEntry<K, V>[] newArray(int i) {
             return new HashEntry[i];
+        }
+
+        /** {@inheritDoc} */
+        @Override public String toString() {
+            return S.toString(HashEntry.class, this, "key", key, "val", val);
         }
     }
 
@@ -589,7 +598,6 @@ public class ConcurrentLinkedHashMap<K, V> extends AbstractMap<K, V> implements 
          * @param newVal New value
          * @return {@code true} If value was replaced.
          */
-        @SuppressWarnings({"unchecked"})
         boolean replace(K key, int hash, V oldVal, V newVal) {
             writeLock().lock();
 
@@ -624,7 +632,6 @@ public class ConcurrentLinkedHashMap<K, V> extends AbstractMap<K, V> implements 
          * @return {@code oldVal}, if value was replaced, non-null object if map
          *         contained some other value and {@code null} if there were no such key.
          */
-        @SuppressWarnings({"unchecked"})
         V replacex(K key, int hash, V oldVal, V newVal) {
             writeLock().lock();
 
@@ -653,7 +660,6 @@ public class ConcurrentLinkedHashMap<K, V> extends AbstractMap<K, V> implements 
             return replaced;
         }
 
-        @SuppressWarnings({"unchecked"})
         V replace(K key, int hash, V newVal) {
             writeLock().lock();
 
@@ -678,7 +684,6 @@ public class ConcurrentLinkedHashMap<K, V> extends AbstractMap<K, V> implements 
             return oldVal;
         }
 
-        @SuppressWarnings({"unchecked"})
         V put(K key, int hash, V val, boolean onlyIfAbsent) {
             writeLock().lock();
 
@@ -749,7 +754,7 @@ public class ConcurrentLinkedHashMap<K, V> extends AbstractMap<K, V> implements 
                             recordInsert(e, (ConcurrentLinkedDeque8)segEntryQ);
 
                             if (maxCap > 0)
-                                checkRemoveEldestEntrySegment();
+                                checkRemoveEldestEntrySegment(c);
 
                             break;
 
@@ -757,7 +762,7 @@ public class ConcurrentLinkedHashMap<K, V> extends AbstractMap<K, V> implements 
                             segEntryQ.add(e);
 
                             if (maxCap > 0)
-                                checkRemoveEldestEntrySegment();
+                                checkRemoveEldestEntrySegment(c);
 
                             break;
 
@@ -779,30 +784,28 @@ public class ConcurrentLinkedHashMap<K, V> extends AbstractMap<K, V> implements 
         }
 
         /**
-         *
+         * @param cnt Segment entries count.
          */
-        private void checkRemoveEldestEntrySegment() {
+        private void checkRemoveEldestEntrySegment(int cnt) {
             assert maxCap > 0;
 
-            int rmvCnt = sizex() - maxCap;
-
-            for (int i = 0; i < rmvCnt; i++) {
+            if (cnt - ((maxCap / segments.length) + 1) > 0) {
                 HashEntry<K, V> e0 = segEntryQ.poll();
 
-                if (e0 == null)
-                    break;
+                assert e0 != null;
 
-                removeLocked(e0.key, e0.hash, null /*no need to compare*/, false);
-
-                if (sizex() <= maxCap)
-                    break;
+                removeLocked(
+                    e0.key,
+                    e0.hash,
+                    null /*no need to compare*/,
+                    false);
             }
         }
 
         /**
          * This method is called under the segment lock.
          */
-        @SuppressWarnings({"ForLoopReplaceableByForEach", "unchecked"})
+        @SuppressWarnings({"ForLoopReplaceableByForEach"})
         void rehash() {
             HashEntry<K, V>[] oldTbl = tbl;
             int oldCap = oldTbl.length;
@@ -980,29 +983,6 @@ public class ConcurrentLinkedHashMap<K, V> extends AbstractMap<K, V> implements 
 
             return oldVal;
         }
-
-        /**
-         *
-         */
-        void clear() {
-            if (cnt != 0) {
-                writeLock().lock();
-
-                try {
-                    HashEntry<K, V>[] tab = tbl;
-
-                    for (int i = 0; i < tab.length ; i++)
-                        tab[i] = null;
-
-                    ++modCnt;
-
-                    cnt = 0; // write-volatile
-                }
-                finally {
-                    writeLock().unlock();
-                }
-            }
-        }
     }
 
     /* ---------------- Public operations -------------- */
@@ -1108,7 +1088,6 @@ public class ConcurrentLinkedHashMap<K, V> extends AbstractMap<K, V> implements 
      *      negative or the load factor or concurLvl are
      *      non-positive.
      */
-    @SuppressWarnings({"unchecked"})
     public ConcurrentLinkedHashMap(int initCap, float loadFactor, int concurLvl) {
         this(initCap, loadFactor, concurLvl, 0);
     }
@@ -1492,7 +1471,6 @@ public class ConcurrentLinkedHashMap<K, V> extends AbstractMap<K, V> implements 
      *
      * @throws NullPointerException if the specified key is null
      */
-    @SuppressWarnings("NullableProblems")
     @Override public boolean remove(Object key, Object val) {
         int hash = hash(key.hashCode());
 
@@ -1504,7 +1482,6 @@ public class ConcurrentLinkedHashMap<K, V> extends AbstractMap<K, V> implements 
      *
      * @throws NullPointerException if any of the arguments are null
      */
-    @SuppressWarnings("NullableProblems")
     @Override public boolean replace(K key, V oldVal, V newVal) {
         if (oldVal == null || newVal == null)
             throw new NullPointerException();
@@ -1549,7 +1526,6 @@ public class ConcurrentLinkedHashMap<K, V> extends AbstractMap<K, V> implements 
      *         or <tt>null</tt> if there was no mapping for the key
      * @throws NullPointerException if the specified key or value is null
      */
-    @SuppressWarnings("NullableProblems")
     @Override public V replace(K key, V val) {
         if (val == null)
             throw new NullPointerException();
@@ -1563,8 +1539,7 @@ public class ConcurrentLinkedHashMap<K, V> extends AbstractMap<K, V> implements 
      * Removes all of the mappings from this map.
      */
     @Override public void clear() {
-        for (Segment<K, V> segment : segments)
-            segment.clear();
+        throw new UnsupportedOperationException();
     }
 
     /**
@@ -1812,34 +1787,22 @@ public class ConcurrentLinkedHashMap<K, V> extends AbstractMap<K, V> implements 
          * @param asc {@code True} for ascending iterator.
          */
         HashIterator(boolean asc) {
-            // TODO GG-4788 - Need to fix iterators for ConcurrentLinkedHashMap in perSegment mode
-            if (qPlc != SINGLE_Q)
-                throw new IllegalStateException("Iterators are not supported in 'perSegmentQueue' modes.");
-
             modCnt = ConcurrentLinkedHashMap.this.modCnt.intValue();
 
             // Init delegate.
-            delegate = asc ? entryQ.iterator() : entryQ.descendingIterator();
+            switch (qPlc) {
+                case SINGLE_Q:
+                    delegate = asc ? entryQ.iterator() : entryQ.descendingIterator();
+
+                    break;
+
+                default:
+                    assert qPlc == PER_SEGMENT_Q || qPlc == PER_SEGMENT_Q_OPTIMIZED_RMV : qPlc;
+
+                    delegate = new HashIteratorDelegate();
+            }
 
             advance();
-        }
-
-        /**
-         * @return Copy of the queue.
-         */
-        private Deque<HashEntry<K, V>> copyQueue() {
-            int i = entryQ.sizex();
-
-            Deque<HashEntry<K, V>> res = new ArrayDeque<>(i);
-
-            Iterator<HashEntry<K, V>> iter = entryQ.iterator();
-
-            while (iter.hasNext() && i-- >= 0)
-                res.add(iter.next());
-
-            assert !iter.hasNext() : "Entries queue has been modified.";
-
-            return res;
         }
 
         /**
@@ -1897,6 +1860,129 @@ public class ConcurrentLinkedHashMap<K, V> extends AbstractMap<K, V> implements 
                     break;
                 }
             }
+        }
+    }
+
+    /**
+     *
+     */
+    private class HashIteratorDelegate implements Iterator<HashEntry<K, V>> {
+        /** */
+        private HashEntry<K, V>[] curTbl;
+
+        /** */
+        private int nextSegIdx;
+
+        /** */
+        private int nextTblIdx;
+
+        /** */
+        private HashEntry<K, V> next;
+
+        /** */
+        private HashEntry<K, V> next0;
+
+        /** */
+        private HashEntry<K, V> cur;
+
+        /**
+         *
+         */
+        public HashIteratorDelegate() {
+            nextSegIdx = segments.length - 1;
+            nextTblIdx = -1;
+
+            advance();
+        }
+
+        /**
+         *
+         */
+        private void advance() {
+            if (next0 != null && advanceInBucket(next0, true))
+                return;
+
+            while (nextTblIdx >= 0) {
+                HashEntry<K, V> bucket = curTbl[nextTblIdx--];
+
+                if (bucket != null && advanceInBucket(bucket, false))
+                    return;
+            }
+
+            while (nextSegIdx >= 0) {
+                int nextSegIdx0 = nextSegIdx--;
+
+                Segment seg = segments[nextSegIdx0];
+
+                curTbl = seg.tbl;
+
+                for (int j = curTbl.length - 1; j >= 0; --j) {
+                    HashEntry<K, V> bucket = curTbl[j];
+
+                    if (bucket != null && advanceInBucket(bucket, false)) {
+                        nextTblIdx = j - 1;
+
+                        return;
+                    }
+                }
+            }
+        }
+
+        /**
+         * @param e Current next.
+         * @return {@code True} if advance succeeded.
+         */
+        private boolean advanceInBucket(@Nullable HashEntry<K, V> e, boolean skipFirst) {
+            if (e == null)
+                return false;
+
+            next0 = e;
+
+            do {
+                if (!skipFirst) {
+                    next = next0;
+
+                    return true;
+                }
+                else
+                    skipFirst = false;
+            }
+            while ((next0 = next0.next) != null);
+
+            assert next0 == null;
+
+            next = null;
+
+            return false;
+        }
+
+        /** {@inheritDoc} */
+        @Override public boolean hasNext() {
+            return next != null;
+        }
+
+        /** {@inheritDoc} */
+        @Override public HashEntry<K, V> next() {
+            HashEntry<K, V> e = next;
+
+            if (e == null)
+                throw new NoSuchElementException();
+
+            advance();
+
+            return e;
+        }
+
+        /** {@inheritDoc} */
+        @Override public void remove() {
+            if (cur == null)
+                throw new IllegalStateException();
+
+            HashEntry<K, V> e = cur;
+
+            cur = null;
+
+            ConcurrentLinkedHashMap.this.remove(e.key, e.val);
         }
     }
 
@@ -2154,12 +2240,16 @@ public class ConcurrentLinkedHashMap<K, V> extends AbstractMap<K, V> implements 
          * the fastest &quot;natural&quot; evicts for bounded maps.
          * <p>
          * NOTE: Remove operations on map are slower than with other policies.
+         * <p>
+         * NOTE: Iteration order is not preserved, i.e. iteration goes as if it was ordinary hash map.
          */
         PER_SEGMENT_Q,
 
         /**
          * Instance of {@code GridConcurrentLinkedDequeue} is created for each segment. This gives
          * faster &quot;natural&quot; evicts for bounded queues and better remove operation times.
+         * <p>
+         * NOTE: Iteration order is not preserved, i.e. iteration goes as if it was ordinary hash map.
          */
         PER_SEGMENT_Q_OPTIMIZED_RMV
     }

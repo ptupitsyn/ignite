@@ -29,11 +29,9 @@ import org.apache.ignite.internal.processors.affinity.AffinityTopologyVersion;
 import org.apache.ignite.internal.processors.cache.distributed.dht.GridDhtCacheAdapter;
 import org.apache.ignite.internal.util.typedef.internal.U;
 import org.apache.ignite.spi.checkpoint.noop.NoopCheckpointSpi;
-import org.apache.ignite.spi.discovery.tcp.TcpDiscoverySpi;
-import org.apache.ignite.spi.discovery.tcp.ipfinder.TcpDiscoveryIpFinder;
-import org.apache.ignite.spi.discovery.tcp.ipfinder.vm.TcpDiscoveryVmIpFinder;
 import org.apache.ignite.testframework.junits.common.GridCommonAbstractTest;
 import org.apache.ignite.transactions.Transaction;
+import org.junit.Test;
 
 import static org.apache.ignite.cache.CacheMode.PARTITIONED;
 import static org.apache.ignite.cache.CacheRebalanceMode.SYNC;
@@ -45,21 +43,12 @@ import static org.apache.ignite.transactions.TransactionIsolation.REPEATABLE_REA
  * Tests multi-update locks.
  */
 public class GridCacheMultiUpdateLockSelfTest extends GridCommonAbstractTest {
-    /** Shared IP finder. */
-    private static final TcpDiscoveryIpFinder IP_FINDER = new TcpDiscoveryVmIpFinder(true);
-
     /** Near enabled flag. */
     private boolean nearEnabled;
 
     /** {@inheritDoc} */
-    @Override protected IgniteConfiguration getConfiguration(String name) throws Exception {
-        IgniteConfiguration cfg = super.getConfiguration(name);
-
-        TcpDiscoverySpi discoSpi = new TcpDiscoverySpi();
-
-        discoSpi.setIpFinder(IP_FINDER);
-
-        cfg.setDiscoverySpi(discoSpi);
+    @Override protected IgniteConfiguration getConfiguration(String igniteInstanceName) throws Exception {
+        IgniteConfiguration cfg = super.getConfiguration(igniteInstanceName);
 
         cfg.setCacheConfiguration(cacheConfiguration());
 
@@ -89,6 +78,7 @@ public class GridCacheMultiUpdateLockSelfTest extends GridCommonAbstractTest {
     /**
      * @throws Exception If failed.
      */
+    @Test
     public void testMultiUpdateLocksNear() throws Exception {
         checkMultiUpdateLocks(true);
     }
@@ -96,6 +86,7 @@ public class GridCacheMultiUpdateLockSelfTest extends GridCommonAbstractTest {
     /**
      * @throws Exception If failed.
      */
+    @Test
     public void testMultiUpdateLocksColocated() throws Exception {
         checkMultiUpdateLocks(false);
     }
@@ -112,7 +103,7 @@ public class GridCacheMultiUpdateLockSelfTest extends GridCommonAbstractTest {
         try {
             IgniteKernal g = (IgniteKernal)grid(0);
 
-            GridCacheContext<Object, Object> cctx = g.internalCache().context();
+            GridCacheContext<Object, Object> cctx = g.internalCache(DEFAULT_CACHE_NAME).context();
 
             GridDhtCacheAdapter cache = nearEnabled ? cctx.near().dht() : cctx.colocated();
 
@@ -133,7 +124,7 @@ public class GridCacheMultiUpdateLockSelfTest extends GridCommonAbstractTest {
 
                         started.set(true);
 
-                        IgniteCache<Object, Object> c = g4.cache(null);
+                        IgniteCache<Object, Object> c = g4.cache(DEFAULT_CACHE_NAME);
 
                         info(">>>> Checking tx in new grid.");
 
@@ -154,7 +145,7 @@ public class GridCacheMultiUpdateLockSelfTest extends GridCommonAbstractTest {
                 assertFalse(started.get());
 
                 // Check we can proceed with transactions.
-                IgniteCache<Object, Object> cache0 = g.cache(null);
+                IgniteCache<Object, Object> cache0 = g.cache(DEFAULT_CACHE_NAME);
 
                 info(">>>> Checking tx commit.");
 

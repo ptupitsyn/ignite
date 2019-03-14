@@ -21,10 +21,10 @@ import java.io.Externalizable;
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
+import java.util.concurrent.atomic.LongAdder;
 import org.apache.ignite.cache.query.QueryMetrics;
 import org.apache.ignite.internal.util.GridAtomicLong;
 import org.apache.ignite.internal.util.typedef.internal.S;
-import org.jsr166.LongAdder8;
 
 /**
  * Adapter for {@link QueryMetrics}.
@@ -34,13 +34,13 @@ public class GridCacheQueryMetricsAdapter implements QueryMetrics, Externalizabl
     private static final long serialVersionUID = 0L;
 
     /** Minimum time of execution. */
-    private final GridAtomicLong minTime = new GridAtomicLong();
+    private final GridAtomicLong minTime = new GridAtomicLong(Long.MAX_VALUE);
 
     /** Maximum time of execution. */
     private final GridAtomicLong maxTime = new GridAtomicLong();
 
     /** Sum of execution time for all completed queries. */
-    private final LongAdder8 sumTime = new LongAdder8();
+    private final LongAdder sumTime = new LongAdder();
 
     /** Average time of execution.
      * If doesn't equal zero then this metrics set is copy from remote node and doesn't actually update.
@@ -48,17 +48,19 @@ public class GridCacheQueryMetricsAdapter implements QueryMetrics, Externalizabl
     private double avgTime;
 
     /** Number of executions. */
-    private final LongAdder8 execs = new LongAdder8();
+    private final LongAdder execs = new LongAdder();
 
     /** Number of completed executions. */
-    private final LongAdder8 completed = new LongAdder8();
+    private final LongAdder completed = new LongAdder();
 
     /** Number of fails. */
-    private final LongAdder8 fails = new LongAdder8();
+    private final LongAdder fails = new LongAdder();
 
     /** {@inheritDoc} */
     @Override public long minimumTime() {
-        return minTime.get();
+        long min = minTime.get();
+
+        return min == Long.MAX_VALUE ? 0 : min;
     }
 
     /** {@inheritDoc} */
@@ -71,9 +73,9 @@ public class GridCacheQueryMetricsAdapter implements QueryMetrics, Externalizabl
         if (avgTime > 0)
             return avgTime;
         else {
-            long val = completed.sum();
+            double val = completed.sum();
 
-            return val > 0 ? sumTime.sum() / val : 0;
+            return val > 0 ? sumTime.sum() / val : 0.0;
         }
     }
 
@@ -98,31 +100,22 @@ public class GridCacheQueryMetricsAdapter implements QueryMetrics, Externalizabl
     }
 
     /**
-     * Callback for query execution.
-     *
-     * @param fail {@code True} query executed unsuccessfully {@code false} otherwise.
-     */
-    public void onQueryExecute(boolean fail) {
-        execs.increment();
-
-        if (fail)
-            fails.increment();
-    }
-
-    /**
-     * Callback for completion of query execution.
+     * Update metrics.
      *
      * @param duration Duration of queue execution.
      * @param fail {@code True} query executed unsuccessfully {@code false} otherwise.
      */
-    public void onQueryCompleted(long duration, boolean fail) {
-        minTime.setIfLess(duration);
-        maxTime.setIfGreater(duration);
-
-        if (fail)
+    public void update(long duration, boolean fail) {
+        if (fail) {
+            execs.increment();
             fails.increment();
+        }
         else {
+            execs.increment();
             completed.increment();
+
+            minTime.setIfLess(duration);
+            maxTime.setIfGreater(duration);
 
             sumTime.add(duration);
         }

@@ -18,9 +18,14 @@
 package org.apache.ignite.cache.query;
 
 import javax.cache.Cache;
+import javax.cache.configuration.Factory;
+import javax.cache.event.CacheEntryEventFilter;
 import javax.cache.event.CacheEntryUpdatedListener;
 import org.apache.ignite.IgniteCache;
 import org.apache.ignite.cache.CacheEntryEventSerializableFilter;
+import org.apache.ignite.cache.query.ContinuousQueryWithTransformer.EventListener;
+import org.apache.ignite.configuration.IgniteConfiguration;
+import org.apache.ignite.lang.IgniteAsyncCallback;
 
 /**
  * API for configuring continuous cache queries.
@@ -90,40 +95,27 @@ import org.apache.ignite.cache.CacheEntryEventSerializableFilter;
  * Note that this works even if you didn't provide initial query. Cursor will
  * be empty in this case, but it will still unregister listeners when {@link QueryCursor#close()}
  * is called.
+ * <p>
+ * {@link IgniteAsyncCallback} annotation is supported for {@link CacheEntryEventFilter}
+ * (see {@link #setRemoteFilterFactory(Factory)}) and {@link CacheEntryUpdatedListener}
+ * (see {@link #setLocalListener(CacheEntryUpdatedListener)}).
+ * If filter and/or listener are annotated with {@link IgniteAsyncCallback} then annotated callback
+ * is executed in async callback pool (see {@link IgniteConfiguration#getAsyncCallbackPoolSize()})
+ * and notification order is kept the same as update order for given cache key.
+ *
+ * @see ContinuousQueryWithTransformer
+ * @see IgniteAsyncCallback
+ * @see IgniteConfiguration#getAsyncCallbackPoolSize()
  */
-public final class ContinuousQuery<K, V> extends Query<Cache.Entry<K, V>> {
+public final class ContinuousQuery<K, V> extends AbstractContinuousQuery<K, V> {
     /** */
     private static final long serialVersionUID = 0L;
-
-    /**
-     * Default page size. Size of {@code 1} means that all entries
-     * will be sent to master node immediately (buffering is disabled).
-     */
-    public static final int DFLT_PAGE_SIZE = 1;
-
-    /** Maximum default time interval after which buffer will be flushed (if buffering is enabled). */
-    public static final long DFLT_TIME_INTERVAL = 0;
-
-    /**
-     * Default value for automatic unsubscription flag. Remote filters
-     * will be unregistered by default if master node leaves topology.
-     */
-    public static final boolean DFLT_AUTO_UNSUBSCRIBE = true;
-
-    /** Initial query. */
-    private Query<Cache.Entry<K, V>> initQry;
 
     /** Local listener. */
     private CacheEntryUpdatedListener<K, V> locLsnr;
 
     /** Remote filter. */
     private CacheEntryEventSerializableFilter<K, V> rmtFilter;
-
-    /** Time interval. */
-    private long timeInterval = DFLT_TIME_INTERVAL;
-
-    /** Automatic unsubscription flag. */
-    private boolean autoUnsubscribe = DFLT_AUTO_UNSUBSCRIBE;
 
     /**
      * Creates new continuous query.
@@ -132,29 +124,9 @@ public final class ContinuousQuery<K, V> extends Query<Cache.Entry<K, V>> {
         setPageSize(DFLT_PAGE_SIZE);
     }
 
-    /**
-     * Sets initial query.
-     * <p>
-     * This query will be executed before continuous listener is registered
-     * which allows to iterate through entries which already existed at the
-     * time continuous query is executed.
-     *
-     * @param initQry Initial query.
-     * @return {@code this} for chaining.
-     */
-    public ContinuousQuery<K, V> setInitialQuery(Query<Cache.Entry<K, V>> initQry) {
-        this.initQry = initQry;
-
-        return this;
-    }
-
-    /**
-     * Gets initial query.
-     *
-     * @return Initial query.
-     */
-    public Query<Cache.Entry<K, V>> getInitialQuery() {
-        return initQry;
+    /** {@inheritDoc} */
+    @Override public ContinuousQuery<K, V> setInitialQuery(Query<Cache.Entry<K, V>> initQry) {
+        return (ContinuousQuery<K, V>)super.setInitialQuery(initQry);
     }
 
     /**
@@ -168,9 +140,15 @@ public final class ContinuousQuery<K, V> extends Query<Cache.Entry<K, V>> {
      * <b>WARNING:</b> all operations that involve any kind of JVM-local or distributed locking (e.g.,
      * synchronization or transactional cache operations), should be executed asynchronously without
      * blocking the thread that called the callback. Otherwise, you can get deadlocks.
+     * <p>
+     * If local listener are annotated with {@link IgniteAsyncCallback} then it is executed in async callback pool
+     * (see {@link IgniteConfiguration#getAsyncCallbackPoolSize()}) that allow to perform a cache operations.
      *
      * @param locLsnr Local callback.
      * @return {@code this} for chaining.
+     * @see IgniteAsyncCallback
+     * @see IgniteConfiguration#getAsyncCallbackPoolSize()
+     * @see ContinuousQueryWithTransformer#setLocalListener(EventListener)
      */
     public ContinuousQuery<K, V> setLocalListener(CacheEntryUpdatedListener<K, V> locLsnr) {
         this.locLsnr = locLsnr;
@@ -193,10 +171,18 @@ public final class ContinuousQuery<K, V> extends Query<Cache.Entry<K, V>> {
      * <b>WARNING:</b> all operations that involve any kind of JVM-local or distributed locking
      * (e.g., synchronization or transactional cache operations), should be executed asynchronously
      * without blocking the thread that called the filter. Otherwise, you can get deadlocks.
+     * <p>
+     * If remote filter are annotated with {@link IgniteAsyncCallback} then it is executed in async callback
+     * pool (see {@link IgniteConfiguration#getAsyncCallbackPoolSize()}) that allow to perform a cache operations.
      *
      * @param rmtFilter Key-value filter.
      * @return {@code this} for chaining.
+     *
+     * @deprecated Use {@link #setRemoteFilterFactory(Factory)} instead.
+     * @see IgniteAsyncCallback
+     * @see IgniteConfiguration#getAsyncCallbackPoolSize()
      */
+    @Deprecated
     public ContinuousQuery<K, V> setRemoteFilter(CacheEntryEventSerializableFilter<K, V> rmtFilter) {
         this.rmtFilter = rmtFilter;
 
@@ -212,54 +198,14 @@ public final class ContinuousQuery<K, V> extends Query<Cache.Entry<K, V>> {
         return rmtFilter;
     }
 
-    /**
-     * Sets time interval.
-     * <p>
-     * When a cache update happens, entry is first put into a buffer. Entries from buffer will
-     * be sent to the master node only if the buffer is full (its size can be provided via {@link #setPageSize(int)}
-     * method) or time provided via this method is exceeded.
-     * <p>
-     * Default time interval is {@code 0} which means that
-     * time check is disabled and entries will be sent only when buffer is full.
-     *
-     * @param timeInterval Time interval.
-     * @return {@code this} for chaining.
-     */
-    public ContinuousQuery<K, V> setTimeInterval(long timeInterval) {
-        if (timeInterval < 0)
-            throw new IllegalArgumentException("Time interval can't be negative.");
-
-        this.timeInterval = timeInterval;
-
-        return this;
+    /** {@inheritDoc} */
+    @Override public ContinuousQuery<K, V> setTimeInterval(long timeInterval) {
+        return (ContinuousQuery<K, V>)super.setTimeInterval(timeInterval);
     }
 
-    /**
-     * Gets time interval.
-     *
-     * @return Time interval.
-     */
-    public long getTimeInterval() {
-        return timeInterval;
-    }
-
-    /**
-     * Sets automatic unsubscribe flag.
-     * <p>
-     * This flag indicates that query filters on remote nodes should be
-     * automatically unregistered if master node (node that initiated the query) leaves topology. If this flag is
-     * {@code false}, filters will be unregistered only when the query is cancelled from master node, and won't ever be
-     * unregistered if master node leaves grid.
-     * <p>
-     * Default value for this flag is {@code true}.
-     *
-     * @param autoUnsubscribe Automatic unsubscription flag.
-     * @return {@code this} for chaining.
-     */
-    public ContinuousQuery<K, V> setAutoUnsubscribe(boolean autoUnsubscribe) {
-        this.autoUnsubscribe = autoUnsubscribe;
-
-        return this;
+    /** {@inheritDoc} */
+    @Override public ContinuousQuery<K, V> setAutoUnsubscribe(boolean autoUnsubscribe) {
+        return (ContinuousQuery<K, V>)super.setAutoUnsubscribe(autoUnsubscribe);
     }
 
     /** {@inheritDoc} */
@@ -267,17 +213,17 @@ public final class ContinuousQuery<K, V> extends Query<Cache.Entry<K, V>> {
         return (ContinuousQuery<K, V>)super.setPageSize(pageSize);
     }
 
-    /** {@inheritDoc} */
+    /**
+     * Sets whether this query should be executed on local node only.
+     *
+     * Note: backup event queues are not kept for local continuous queries. It may lead to loss of notifications in case
+     * of node failures. Use {@link ContinuousQuery#setRemoteFilterFactory(Factory)} to register cache event listeners
+     * on all cache nodes, if delivery guarantee is required.
+     *
+     * @param loc Local flag.
+     * @return {@code this} for chaining.
+     */
     @Override public ContinuousQuery<K, V> setLocal(boolean loc) {
         return (ContinuousQuery<K, V>)super.setLocal(loc);
-    }
-
-    /**
-     * Gets automatic unsubscription flag value.
-     *
-     * @return Automatic unsubscription flag.
-     */
-    public boolean isAutoUnsubscribe() {
-        return autoUnsubscribe;
     }
 }

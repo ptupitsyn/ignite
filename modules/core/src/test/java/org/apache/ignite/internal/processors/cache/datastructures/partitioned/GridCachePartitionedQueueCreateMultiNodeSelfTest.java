@@ -26,17 +26,18 @@ import org.apache.ignite.Ignite;
 import org.apache.ignite.IgniteCache;
 import org.apache.ignite.IgniteQueue;
 import org.apache.ignite.cache.CacheAtomicityMode;
-import org.apache.ignite.cache.CacheMemoryMode;
 import org.apache.ignite.cache.CacheMode;
 import org.apache.ignite.configuration.CacheConfiguration;
 import org.apache.ignite.configuration.IgniteConfiguration;
 import org.apache.ignite.internal.IgniteInternalFuture;
 import org.apache.ignite.internal.processors.cache.datastructures.IgniteCollectionAbstractTest;
+import org.apache.ignite.testframework.GridTestUtils;
 import org.apache.ignite.transactions.Transaction;
+import org.junit.Test;
 
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
+
 import static org.apache.ignite.cache.CacheAtomicityMode.TRANSACTIONAL;
-import static org.apache.ignite.cache.CacheMemoryMode.ONHEAP_TIERED;
 import static org.apache.ignite.cache.CacheMode.PARTITIONED;
 import static org.apache.ignite.cache.CacheRebalanceMode.SYNC;
 import static org.apache.ignite.cache.CacheWriteSynchronizationMode.FULL_SYNC;
@@ -48,11 +49,6 @@ import static org.apache.ignite.transactions.TransactionIsolation.REPEATABLE_REA
  */
 public class GridCachePartitionedQueueCreateMultiNodeSelfTest extends IgniteCollectionAbstractTest {
     /** {@inheritDoc} */
-    @Override protected void beforeTest() throws Exception {
-        fail("https://issues.apache.org/jira/browse/IGNITE-80");
-    }
-
-    /** {@inheritDoc} */
     @Override protected int gridCount() {
         return 1;
     }
@@ -60,11 +56,6 @@ public class GridCachePartitionedQueueCreateMultiNodeSelfTest extends IgniteColl
     /** {@inheritDoc} */
     @Override protected CacheMode collectionCacheMode() {
         return PARTITIONED;
-    }
-
-    /** {@inheritDoc} */
-    @Override protected CacheMemoryMode collectionMemoryMode() {
-        return ONHEAP_TIERED;
     }
 
     /** {@inheritDoc} */
@@ -78,8 +69,8 @@ public class GridCachePartitionedQueueCreateMultiNodeSelfTest extends IgniteColl
     }
 
     /** {@inheritDoc} */
-    @Override protected IgniteConfiguration getConfiguration(String gridName) throws Exception {
-        IgniteConfiguration c = super.getConfiguration(gridName);
+    @Override protected IgniteConfiguration getConfiguration(String igniteInstanceName) throws Exception {
+        IgniteConfiguration c = super.getConfiguration(igniteInstanceName);
 
         c.setIncludeEventTypes();
         c.setPeerClassLoadingEnabled(false);
@@ -117,6 +108,7 @@ public class GridCachePartitionedQueueCreateMultiNodeSelfTest extends IgniteColl
     /**
      * @throws Exception If failed.
      */
+    @Test
     public void testQueueCreation() throws Exception {
         final AtomicInteger idx = new AtomicInteger();
 
@@ -127,13 +119,21 @@ public class GridCachePartitionedQueueCreateMultiNodeSelfTest extends IgniteColl
 
                     Thread.currentThread().setName("createQueue-" + idx0);
 
-                    Ignite ignite = startGrid(idx0);
+                    final Ignite ignite = startGrid(idx0);
 
                     UUID locNodeId = ignite.cluster().localNode().id();
 
                     info("Started grid: " + locNodeId);
 
                     info("Creating queue: " + locNodeId);
+
+                    GridTestUtils.runMultiThreaded(new Callable<Void>() {
+                        @Override public Void call() throws Exception {
+                            ignite.queue("queue", 1, config(true));
+
+                            return null;
+                        }
+                    }, 10, "create-queue-" + ignite.name());
 
                     IgniteQueue<String> q = ignite.queue("queue", 1, config(true));
 
@@ -163,6 +163,7 @@ public class GridCachePartitionedQueueCreateMultiNodeSelfTest extends IgniteColl
     /**
      * @throws Exception If failed.
      */
+    @Test
     public void testTx() throws Exception {
         if (cacheConfiguration().getAtomicityMode() != TRANSACTIONAL)
             return;
@@ -190,9 +191,9 @@ public class GridCachePartitionedQueueCreateMultiNodeSelfTest extends IgniteColl
                     // If output presents, test passes with greater probability.
                     // info("Start puts.");
 
-                    IgniteCache<Integer, String> cache = ignite.cache(null);
+                    IgniteCache<Integer, String> cache = ignite.cache(DEFAULT_CACHE_NAME);
 
-                    info("Partition: " + ignite.affinity(null).partition(1));
+                    info("Partition: " + ignite.affinity(DEFAULT_CACHE_NAME).partition(1));
 
                     try (Transaction tx = ignite.transactions().txStart(PESSIMISTIC, REPEATABLE_READ)) {
                         // info("Getting value for key 1");

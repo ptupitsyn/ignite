@@ -18,8 +18,10 @@
 package org.apache.ignite.internal.util.nio;
 
 import org.apache.ignite.IgniteCheckedException;
+import org.apache.ignite.IgniteException;
 import org.apache.ignite.IgniteLogger;
 import org.apache.ignite.internal.util.typedef.internal.LT;
+import org.apache.ignite.lang.IgniteInClosure;
 
 /**
  * Filter chain implementation for nio server filters.
@@ -75,7 +77,7 @@ public class GridNioFilterChain<T> extends GridNioFilterAdapter {
     }
 
     /** {@inheritDoc} */
-    public String toString() {
+    @Override public String toString() {
         if (str == null) {
             StringBuilder res = new StringBuilder("FilterChain[filters=[");
 
@@ -158,7 +160,7 @@ public class GridNioFilterChain<T> extends GridNioFilterAdapter {
             head.onExceptionCaught(ses, e);
         }
         catch (Exception ex) {
-            LT.warn(log, ex, "Failed to forward GridNioException to filter chain [ses=" + ses + ", e=" + e + ']');
+            LT.error(log, ex, "Failed to forward GridNioException to filter chain [ses=" + ses + ", e=" + e + ']');
         }
     }
 
@@ -181,8 +183,13 @@ public class GridNioFilterChain<T> extends GridNioFilterAdapter {
      * @return Send future.
      * @throws IgniteCheckedException If IgniteCheckedException occurred while handling event.
      */
-    @Override public GridNioFuture<?> onSessionWrite(GridNioSession ses, Object msg) throws IgniteCheckedException {
-        return tail.onSessionWrite(ses, msg);
+    @Override public GridNioFuture<?> onSessionWrite(
+        GridNioSession ses,
+        Object msg,
+        boolean fut,
+        IgniteInClosure<IgniteException> ackC
+    ) throws IgniteCheckedException {
+        return tail.onSessionWrite(ses, msg, fut, ackC);
     }
 
     /**
@@ -255,9 +262,11 @@ public class GridNioFilterChain<T> extends GridNioFilterAdapter {
         }
 
         /** {@inheritDoc} */
-        @Override public GridNioFuture<?> onSessionWrite(GridNioSession ses, Object msg)
-            throws IgniteCheckedException {
-            return proceedSessionWrite(ses, msg);
+        @Override public GridNioFuture<?> onSessionWrite(GridNioSession ses,
+            Object msg,
+            boolean fut,
+            IgniteInClosure<IgniteException> ackC) throws IgniteCheckedException {
+            return proceedSessionWrite(ses, msg, fut, ackC);
         }
 
         /** {@inheritDoc} */

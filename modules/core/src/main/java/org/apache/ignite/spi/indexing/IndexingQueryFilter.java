@@ -17,7 +17,6 @@
 
 package org.apache.ignite.spi.indexing;
 
-import org.apache.ignite.lang.IgniteBiPredicate;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -25,10 +24,10 @@ import org.jetbrains.annotations.Nullable;
  */
 public interface IndexingQueryFilter {
     /**
-     * Creates optional predicate for space.
+     * Creates optional predicate for cache.
      *
-     * @param spaceName Space name.
+     * @param cacheName Cache name.
      * @return Predicate or {@code null} if no filtering is needed.
      */
-    @Nullable public <K, V> IgniteBiPredicate<K, V> forSpace(@Nullable String spaceName);
+    @Nullable public IndexingQueryCacheFilter forCache(String cacheName);
 }

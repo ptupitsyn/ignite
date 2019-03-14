@@ -27,6 +27,7 @@ import java.util.concurrent.CountDownLatch;
 import org.apache.ignite.IgniteCheckedException;
 import org.apache.ignite.cluster.ClusterNode;
 import org.apache.ignite.internal.IgniteInterruptedCheckedException;
+import org.apache.ignite.internal.cluster.ClusterTopologyCheckedException;
 import org.apache.ignite.internal.processors.cache.GridCacheContext;
 import org.apache.ignite.internal.util.typedef.F;
 import org.apache.ignite.internal.util.typedef.P1;
@@ -57,7 +58,6 @@ public class GridCacheDistributedQueryFuture<K, V, R> extends GridCacheQueryFutu
      * @param qry Query.
      * @param nodes Nodes.
      */
-    @SuppressWarnings("unchecked")
     protected GridCacheDistributedQueryFuture(GridCacheContext<K, V> ctx, long reqId, GridCacheQueryBean qry,
         Iterable<ClusterNode> nodes) {
         super(ctx, qry, false);
@@ -70,7 +70,7 @@ public class GridCacheDistributedQueryFuture<K, V, R> extends GridCacheQueryFutu
 
         assert mgr != null;
 
-        synchronized (mux) {
+        synchronized (this) {
             for (ClusterNode node : nodes)
                 subgrid.add(node.id());
         }
@@ -86,7 +86,7 @@ public class GridCacheDistributedQueryFuture<K, V, R> extends GridCacheQueryFutu
             Collection<ClusterNode> allNodes = cctx.discovery().allNodes();
             Collection<ClusterNode> nodes;
 
-            synchronized (mux) {
+            synchronized (this) {
                 nodes = F.retain(allNodes, true,
                     new P1<ClusterNode>() {
                         @Override public boolean apply(ClusterNode node) {
@@ -101,7 +101,8 @@ public class GridCacheDistributedQueryFuture<K, V, R> extends GridCacheQueryFutu
             final GridCacheQueryRequest req = new GridCacheQueryRequest(cctx.cacheId(),
                 reqId,
                 fields(),
-                qryMgr.queryTopologyVersion());
+                qryMgr.queryTopologyVersion(),
+                cctx.deploymentEnabled());
 
             // Process cancel query directly (without sending) for local node,
             cctx.closures().callLocalSafe(new Callable<Object>() {
@@ -113,14 +114,19 @@ public class GridCacheDistributedQueryFuture<K, V, R> extends GridCacheQueryFutu
             });
 
             if (!nodes.isEmpty()) {
-                cctx.io().safeSend(nodes, req, cctx.ioPolicy(),
-                    new P1<ClusterNode>() {
-                        @Override public boolean apply(ClusterNode node) {
-                            onNodeLeft(node.id());
-
-                            return !isDone();
+                for (ClusterNode node : nodes) {
+                    try {
+                        cctx.io().send(node, req, cctx.ioPolicy());
+                    }
+                    catch (IgniteCheckedException e) {
+                        if (cctx.io().checkNodeLeft(node.id(), e, false)) {
+                            if (log.isDebugEnabled())
+                                log.debug("Failed to send cancel request, node failed: " + node);
                         }
-                    });
+                        else
+                            U.error(log, "Failed to send cancel request [node=" + node + ']', e);
+                    }
+                }
             }
         }
         catch (IgniteCheckedException e) {
@@ -137,19 +143,34 @@ public class GridCacheDistributedQueryFuture<K, V, R> extends GridCacheQueryFutu
     @Override protected void onNodeLeft(UUID nodeId) {
         boolean callOnPage;
 
-        synchronized (mux) {
+        synchronized (this) {
             callOnPage = !loc && subgrid.contains(nodeId);
         }
 
         if (callOnPage)
-            // We consider node departure as a reception of last empty
-            // page from this node.
-            onPage(nodeId, Collections.emptyList(), null, true);
+            onPage(nodeId, Collections.emptyList(),
+                new ClusterTopologyCheckedException("Remote node has left topology: " + nodeId), true);
+    }
+
+    /** {@inheritDoc} */
+    @Override public void awaitFirstPage() throws IgniteCheckedException {
+        try {
+            firstPageLatch.await();
+
+            if (isDone() && error() != null)
+                // Throw the exception if future failed.
+                get();
+        }
+        catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+
+            throw new IgniteInterruptedCheckedException(e);
+        }
     }
 
     /** {@inheritDoc} */
     @Override protected boolean onPage(UUID nodeId, boolean last) {
-        assert Thread.holdsLock(mux);
+        assert Thread.holdsLock(this);
 
         if (!loc) {
             rcvd.add(nodeId);
@@ -173,13 +194,12 @@ public class GridCacheDistributedQueryFuture<K, V, R> extends GridCacheQueryFutu
     }
 
     /** {@inheritDoc} */
-    @SuppressWarnings("NonPrivateFieldAccessedInSynchronizedContext")
     @Override protected void loadPage() {
-        assert !Thread.holdsLock(mux);
+        assert !Thread.holdsLock(this);
 
         Collection<ClusterNode> nodes = null;
 
-        synchronized (mux) {
+        synchronized (this) {
             if (!isDone() && rcvd.containsAll(subgrid)) {
                 rcvd.clear();
 
@@ -192,15 +212,14 @@ public class GridCacheDistributedQueryFuture<K, V, R> extends GridCacheQueryFutu
     }
 
     /** {@inheritDoc} */
-    @SuppressWarnings("NonPrivateFieldAccessedInSynchronizedContext")
     @Override protected void loadAllPages() throws IgniteInterruptedCheckedException {
-        assert !Thread.holdsLock(mux);
+        assert !Thread.holdsLock(this);
 
         U.await(firstPageLatch);
 
         Collection<ClusterNode> nodes = null;
 
-        synchronized (mux) {
+        synchronized (this) {
             if (!isDone() && !subgrid.isEmpty())
                 nodes = nodes();
         }
@@ -213,7 +232,7 @@ public class GridCacheDistributedQueryFuture<K, V, R> extends GridCacheQueryFutu
      * @return Nodes to send requests to.
      */
     private Collection<ClusterNode> nodes() {
-        assert Thread.holdsLock(mux);
+        assert Thread.holdsLock(this);
 
         Collection<ClusterNode> nodes = new ArrayList<>(subgrid.size());
 
@@ -229,9 +248,12 @@ public class GridCacheDistributedQueryFuture<K, V, R> extends GridCacheQueryFutu
 
     /** {@inheritDoc} */
     @Override public boolean onDone(Collection<R> res, Throwable err) {
+        boolean done = super.onDone(res, err);
+
+        // Must release the lath after onDone() in order for a waiting thread to see an exception, if any.
         firstPageLatch.countDown();
 
-        return super.onDone(res, err);
+        return done;
     }
 
     /** {@inheritDoc} */
@@ -250,10 +272,11 @@ public class GridCacheDistributedQueryFuture<K, V, R> extends GridCacheQueryFutu
 
     /** {@inheritDoc} */
     @Override void clear() {
+        assert isDone() : this;
+
         GridCacheDistributedQueryManager<K, V> qryMgr = (GridCacheDistributedQueryManager<K, V>)cctx.queries();
 
-        assert qryMgr != null;
-
-        qryMgr.removeQueryFuture(reqId);
+        if (qryMgr != null)
+            qryMgr.removeQueryFuture(reqId);
     }
 }

@@ -19,7 +19,6 @@ package org.apache.ignite.internal.cluster;
 
 import java.util.UUID;
 import org.apache.ignite.cluster.ClusterGroup;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * Internal projection interface.
@@ -29,7 +28,7 @@ public interface ClusterGroupEx extends ClusterGroup {
      * Creates projection for specified subject ID.
      *
      * @param subjId Subject ID.
-     * @return Internal projection.
+     * @return Cluster group.
      */
     public ClusterGroupEx forSubjectId(UUID subjId);
 
@@ -40,5 +39,14 @@ public interface ClusterGroupEx extends ClusterGroup {
      * @param clientNodes Flag to include client nodes.
      * @return Cluster group.
      */
-    public ClusterGroup forCacheNodes(@Nullable String cacheName, boolean affNodes, boolean nearNodes, boolean clientNodes);
+    public ClusterGroup forCacheNodes(String cacheName, boolean affNodes, boolean nearNodes, boolean clientNodes);
+
+    /**
+     * Create projection for IGFS server nodes.
+     *
+     * @param igfsName IGFS name.
+     * @param metaCacheName Metadata cache name.
+     * @return Cluster group.
+     */
+    public ClusterGroup forIgfsMetadataDataNodes(String igfsName, String metaCacheName);
 }

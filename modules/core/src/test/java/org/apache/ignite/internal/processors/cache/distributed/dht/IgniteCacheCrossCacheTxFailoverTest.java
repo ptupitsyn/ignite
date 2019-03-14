@@ -37,34 +37,32 @@ import org.apache.ignite.internal.IgniteFutureTimeoutCheckedException;
 import org.apache.ignite.internal.IgniteInternalFuture;
 import org.apache.ignite.internal.IgniteKernal;
 import org.apache.ignite.internal.processors.affinity.AffinityTopologyVersion;
-import org.apache.ignite.spi.discovery.tcp.TcpDiscoverySpi;
-import org.apache.ignite.spi.discovery.tcp.ipfinder.TcpDiscoveryIpFinder;
-import org.apache.ignite.spi.discovery.tcp.ipfinder.vm.TcpDiscoveryVmIpFinder;
-import org.apache.ignite.spi.swapspace.file.FileSwapSpaceSpi;
+import org.apache.ignite.internal.util.typedef.G;
+import org.apache.ignite.internal.util.typedef.internal.S;
+import org.apache.ignite.spi.communication.tcp.TcpCommunicationSpi;
 import org.apache.ignite.testframework.junits.common.GridCommonAbstractTest;
 import org.apache.ignite.transactions.Transaction;
 import org.apache.ignite.transactions.TransactionConcurrency;
 import org.apache.ignite.transactions.TransactionIsolation;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.junit.Test;
 
 import static org.apache.ignite.cache.CacheAtomicityMode.TRANSACTIONAL;
 import static org.apache.ignite.cache.CacheMode.PARTITIONED;
 import static org.apache.ignite.cache.CacheMode.REPLICATED;
 import static org.apache.ignite.cache.CacheWriteSynchronizationMode.FULL_SYNC;
-import static org.apache.ignite.testframework.GridTestUtils.TestMemoryMode;
 import static org.apache.ignite.testframework.GridTestUtils.runMultiThreadedAsync;
-import static org.apache.ignite.testframework.GridTestUtils.setMemoryMode;
+import static org.apache.ignite.testframework.GridTestUtils.SF;
 import static org.apache.ignite.transactions.TransactionConcurrency.OPTIMISTIC;
 import static org.apache.ignite.transactions.TransactionConcurrency.PESSIMISTIC;
 import static org.apache.ignite.transactions.TransactionIsolation.REPEATABLE_READ;
+import static org.apache.ignite.transactions.TransactionIsolation.SERIALIZABLE;
 
 /**
  *
  */
 public class IgniteCacheCrossCacheTxFailoverTest extends GridCommonAbstractTest {
-    /** */
-    private static final TcpDiscoveryIpFinder IP_FINDER = new TcpDiscoveryVmIpFinder(true);
-
     /** */
     private static final String CACHE1 = "cache1";
 
@@ -81,15 +79,13 @@ public class IgniteCacheCrossCacheTxFailoverTest extends GridCommonAbstractTest 
     private static final long TEST_TIME = 3 * 60_000;
 
     /** {@inheritDoc} */
-    @Override protected IgniteConfiguration getConfiguration(String gridName) throws Exception {
-        IgniteConfiguration cfg = super.getConfiguration(gridName);
+    @Override protected IgniteConfiguration getConfiguration(String igniteInstanceName) throws Exception {
+        IgniteConfiguration cfg = super.getConfiguration(igniteInstanceName);
 
-        ((TcpDiscoverySpi)cfg.getDiscoverySpi()).setIpFinder(IP_FINDER);
-
-        if (gridName.equals(getTestGridName(GRID_CNT - 1)))
+        if (igniteInstanceName.equals(getTestIgniteInstanceName(GRID_CNT - 1)))
             cfg.setClientMode(true);
 
-        cfg.setSwapSpaceSpi(new FileSwapSpaceSpi());
+        ((TcpCommunicationSpi)cfg.getCommunicationSpi()).setSharedMemoryPort(-1);
 
         return cfg;
     }
@@ -101,25 +97,16 @@ public class IgniteCacheCrossCacheTxFailoverTest extends GridCommonAbstractTest 
         startGrids(4);
     }
 
-    /** {@inheritDoc} */
-    @Override protected void afterTestsStopped() throws Exception {
-        super.afterTestsStopped();
-
-        stopAllGrids();
-    }
-
     /**
      * @param name Cache name.
      * @param cacheMode Cache mode.
      * @param parts Number of partitions.
-     * @param memMode Memory mode.
      * @return Cache configuration.
      */
-    private CacheConfiguration cacheConfiguration(String name,
+    private CacheConfiguration cacheConfiguration(@NotNull String name,
         CacheMode cacheMode,
-        int parts,
-        TestMemoryMode memMode) {
-        CacheConfiguration ccfg = new CacheConfiguration();
+        int parts) {
+        CacheConfiguration ccfg = new CacheConfiguration(DEFAULT_CACHE_NAME);
 
         ccfg.setName(name);
         ccfg.setCacheMode(cacheMode);
@@ -130,8 +117,6 @@ public class IgniteCacheCrossCacheTxFailoverTest extends GridCommonAbstractTest 
             ccfg.setBackups(1);
 
         ccfg.setAffinity(new RendezvousAffinityFunction(false, parts));
-
-        setMemoryMode(null, ccfg, memMode, 100, 1024);
 
         return ccfg;
     }
@@ -144,64 +129,65 @@ public class IgniteCacheCrossCacheTxFailoverTest extends GridCommonAbstractTest 
     /**
      * @throws Exception If failed.
      */
+    @Test
     public void testCrossCachePessimisticTxFailover() throws Exception {
-        crossCacheTxFailover(PARTITIONED, true, PESSIMISTIC, REPEATABLE_READ, TestMemoryMode.HEAP);
+        crossCacheTxFailover(PARTITIONED, true, PESSIMISTIC, REPEATABLE_READ);
     }
 
     /**
      * @throws Exception If failed.
      */
-    public void testCrossCachePessimisticTxFailoverOffheapSwap() throws Exception {
-        crossCacheTxFailover(PARTITIONED, true, PESSIMISTIC, REPEATABLE_READ, TestMemoryMode.OFFHEAP_EVICT_SWAP);
-    }
-
-    /**
-     * @throws Exception If failed.
-     */
+    @Test
     public void testCrossCachePessimisticTxFailoverDifferentAffinity() throws Exception {
-        crossCacheTxFailover(PARTITIONED, false, PESSIMISTIC, REPEATABLE_READ, TestMemoryMode.HEAP);
+        crossCacheTxFailover(PARTITIONED, false, PESSIMISTIC, REPEATABLE_READ);
     }
 
     /**
      * @throws Exception If failed.
      */
+    @Test
     public void testCrossCacheOptimisticTxFailover() throws Exception {
-        crossCacheTxFailover(PARTITIONED, true, OPTIMISTIC, REPEATABLE_READ, TestMemoryMode.HEAP);
+        crossCacheTxFailover(PARTITIONED, true, OPTIMISTIC, REPEATABLE_READ);
     }
 
     /**
      * @throws Exception If failed.
      */
-    public void testCrossCacheOptimisticTxFailoverOffheapSwap() throws Exception {
-        crossCacheTxFailover(PARTITIONED, true, OPTIMISTIC, REPEATABLE_READ, TestMemoryMode.OFFHEAP_EVICT_SWAP);
+    @Test
+    public void testCrossCacheOptimisticSerializableTxFailover() throws Exception {
+        crossCacheTxFailover(PARTITIONED, true, OPTIMISTIC, SERIALIZABLE);
     }
 
     /**
      * @throws Exception If failed.
      */
+    @Test
     public void testCrossCacheOptimisticTxFailoverDifferentAffinity() throws Exception {
-        crossCacheTxFailover(PARTITIONED, false, OPTIMISTIC, REPEATABLE_READ, TestMemoryMode.HEAP);
+        crossCacheTxFailover(PARTITIONED, false, OPTIMISTIC, REPEATABLE_READ);
     }
 
     /**
      * @throws Exception If failed.
      */
+    @Test
     public void testCrossCachePessimisticTxFailoverReplicated() throws Exception {
-        crossCacheTxFailover(REPLICATED, true, PESSIMISTIC, REPEATABLE_READ, TestMemoryMode.HEAP);
+        crossCacheTxFailover(REPLICATED, true, PESSIMISTIC, REPEATABLE_READ);
     }
 
     /**
      * @throws Exception If failed.
      */
+    @Test
     public void testCrossCacheOptimisticTxFailoverReplicated() throws Exception {
-        crossCacheTxFailover(REPLICATED, true, OPTIMISTIC, REPEATABLE_READ, TestMemoryMode.HEAP);
+        crossCacheTxFailover(REPLICATED, true, OPTIMISTIC, REPEATABLE_READ);
     }
 
     /**
      * @throws Exception If failed.
      */
+    @Test
     public void testCrossCachePessimisticTxFailoverDifferentAffinityReplicated() throws Exception {
-        crossCacheTxFailover(PARTITIONED, false, PESSIMISTIC, REPEATABLE_READ, TestMemoryMode.HEAP);
+        crossCacheTxFailover(PARTITIONED, false, PESSIMISTIC, REPEATABLE_READ);
     }
 
     /**
@@ -209,21 +195,19 @@ public class IgniteCacheCrossCacheTxFailoverTest extends GridCommonAbstractTest 
      * @param sameAff If {@code false} uses different number of partitions for caches.
      * @param concurrency Transaction concurrency.
      * @param isolation Transaction isolation.
-     * @param memMode Memory mode.
      * @throws Exception If failed.
      */
     private void crossCacheTxFailover(CacheMode cacheMode,
         boolean sameAff,
         final TransactionConcurrency concurrency,
-        final TransactionIsolation isolation,
-        TestMemoryMode memMode) throws Exception {
+        final TransactionIsolation isolation) throws Exception {
         IgniteKernal ignite0 = (IgniteKernal)ignite(0);
 
         final AtomicBoolean stop = new AtomicBoolean();
 
         try {
-            ignite0.createCache(cacheConfiguration(CACHE1, cacheMode, 256, memMode));
-            ignite0.createCache(cacheConfiguration(CACHE2, cacheMode, sameAff ? 256 : 128, memMode));
+            ignite0.createCache(cacheConfiguration(CACHE1, cacheMode, 256));
+            ignite0.createCache(cacheConfiguration(CACHE2, cacheMode, sameAff ? 256 : 128));
 
             final AtomicInteger threadIdx = new AtomicInteger();
 
@@ -313,7 +297,7 @@ public class IgniteCacheCrossCacheTxFailoverTest extends GridCommonAbstractTest 
                 }
             }, 10, "tx-thread");
 
-            long stopTime = System.currentTimeMillis() + 3 * 60_000;
+            long stopTime = System.currentTimeMillis() + SF.applyLB(3 * 60_000, 20_000);
 
             long topVer = ignite0.cluster().topologyVersion();
 
@@ -335,7 +319,7 @@ public class IgniteCacheCrossCacheTxFailoverTest extends GridCommonAbstractTest 
                     if (affFut != null)
                         affFut.get(30_000);
                 }
-                catch (IgniteFutureTimeoutCheckedException e) {
+                catch (IgniteFutureTimeoutCheckedException ignored) {
                     log.error("Failed to wait for affinity future after start: " + topVer);
 
                     failed = true;
@@ -358,7 +342,7 @@ public class IgniteCacheCrossCacheTxFailoverTest extends GridCommonAbstractTest 
                     if (affFut != null)
                         affFut.get(30_000);
                 }
-                catch (IgniteFutureTimeoutCheckedException e) {
+                catch (IgniteFutureTimeoutCheckedException ignored) {
                     log.error("Failed to wait for affinity future after stop: " + topVer);
 
                     failed = true;
@@ -378,6 +362,11 @@ public class IgniteCacheCrossCacheTxFailoverTest extends GridCommonAbstractTest 
 
             ignite0.destroyCache(CACHE1);
             ignite0.destroyCache(CACHE2);
+
+            AffinityTopologyVersion topVer = ignite0.context().cache().context().exchange().lastTopologyFuture().get();
+
+            for (Ignite ignite : G.allGrids())
+                ((IgniteKernal)ignite).context().cache().context().exchange().affinityReadyFuture(topVer).get();
 
             awaitPartitionMapExchange();
         }
@@ -421,6 +410,11 @@ public class IgniteCacheCrossCacheTxFailoverTest extends GridCommonAbstractTest 
         @Override public int hashCode() {
             return (int)(key ^ (key >>> 32));
         }
+
+        /** {@inheritDoc} */
+        @Override public String toString() {
+            return S.toString(TestKey.class, this);
+        }
     }
 
     /**
@@ -442,6 +436,11 @@ public class IgniteCacheCrossCacheTxFailoverTest extends GridCommonAbstractTest 
          */
         public long value() {
             return val;
+        }
+
+        /** {@inheritDoc} */
+        @Override public String toString() {
+            return S.toString(TestValue.class, this);
         }
     }
 

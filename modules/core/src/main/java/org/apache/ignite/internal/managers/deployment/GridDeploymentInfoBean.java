@@ -52,6 +52,7 @@ public class GridDeploymentInfoBean implements Message, GridDeploymentInfo, Exte
     private String userVer;
 
     /** */
+    @Deprecated // Left for backward compatibility only.
     private boolean locDepOwner;
 
     /** Node class loader participant map. */
@@ -71,15 +72,17 @@ public class GridDeploymentInfoBean implements Message, GridDeploymentInfo, Exte
      * @param userVer User version.
      * @param depMode Deployment mode.
      * @param participants Participants.
-     * @param locDepOwner Local deployment owner flag.
      */
-    public GridDeploymentInfoBean(IgniteUuid clsLdrId, String userVer, DeploymentMode depMode,
-        Map<UUID, IgniteUuid> participants, boolean locDepOwner) {
+    public GridDeploymentInfoBean(
+        IgniteUuid clsLdrId,
+        String userVer,
+        DeploymentMode depMode,
+        Map<UUID, IgniteUuid> participants
+    ) {
         this.clsLdrId = clsLdrId;
         this.depMode = depMode;
         this.userVer = userVer;
         this.participants = participants;
-        this.locDepOwner = locDepOwner;
     }
 
     /**
@@ -89,7 +92,6 @@ public class GridDeploymentInfoBean implements Message, GridDeploymentInfo, Exte
         clsLdrId = dep.classLoaderId();
         depMode = dep.deployMode();
         userVer = dep.userVersion();
-        locDepOwner = dep.localDeploymentOwner();
         participants = dep.participants();
     }
 
@@ -123,13 +125,9 @@ public class GridDeploymentInfoBean implements Message, GridDeploymentInfo, Exte
         return participants;
     }
 
-    /**
-     * Sets local deployment ownership flag.
-     *
-     * @param locDepOwner Local deployment ownership flag.
-     */
-    public void localDeploymentOwner(boolean locDepOwner) {
-        this.locDepOwner = locDepOwner;
+    /** {@inheritDoc} */
+    @Override public void onAckReceived() {
+        // No-op.
     }
 
     /** {@inheritDoc} */
@@ -248,7 +246,7 @@ public class GridDeploymentInfoBean implements Message, GridDeploymentInfo, Exte
     }
 
     /** {@inheritDoc} */
-    @Override public byte directType() {
+    @Override public short directType() {
         return 10;
     }
 

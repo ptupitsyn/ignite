@@ -39,6 +39,7 @@ import org.apache.ignite.spi.failover.jobstealing.JobStealingFailoverSpi;
 import org.apache.ignite.testframework.junits.common.GridCommonAbstractTest;
 import org.apache.ignite.testframework.junits.common.GridCommonTest;
 import org.jetbrains.annotations.Nullable;
+import org.junit.Test;
 
 /**
  * Job stealing test.
@@ -65,6 +66,7 @@ public class GridJobStealingZeroActiveJobsSelfTest extends GridCommonAbstractTes
     /** {@inheritDoc} */
     @Override protected void afterTest() throws Exception {
         ignite1 = null;
+        ignite2 = null;
 
         stopGrid(1);
         stopGrid(2);
@@ -75,18 +77,19 @@ public class GridJobStealingZeroActiveJobsSelfTest extends GridCommonAbstractTes
      *
      * @throws IgniteCheckedException If test failed.
      */
+    @Test
     public void testTwoJobs() throws IgniteCheckedException {
         ignite1.compute().execute(JobStealingTask.class, null);
     }
 
     /** {@inheritDoc} */
-    @Override protected IgniteConfiguration getConfiguration(String gridName) throws Exception {
-        IgniteConfiguration cfg = super.getConfiguration(gridName);
+    @Override protected IgniteConfiguration getConfiguration(String igniteInstanceName) throws Exception {
+        IgniteConfiguration cfg = super.getConfiguration(igniteInstanceName);
 
         JobStealingCollisionSpi colSpi = new JobStealingCollisionSpi();
 
         // One job at a time.
-        colSpi.setActiveJobsThreshold(gridName.endsWith("1") ? 0 : 2);
+        colSpi.setActiveJobsThreshold(igniteInstanceName.endsWith("1") ? 0 : 2);
         colSpi.setWaitJobsThreshold(0);
 
         JobStealingFailoverSpi failSpi = new JobStealingFailoverSpi();

@@ -37,7 +37,6 @@ public class PlatformNativeException extends PlatformException implements Extern
     /**
      * {@link java.io.Externalizable} support.
      */
-    @SuppressWarnings("UnusedDeclaration")
     public PlatformNativeException() {
         // No-op.
     }
@@ -72,6 +71,7 @@ public class PlatformNativeException extends PlatformException implements Extern
 
     /** {@inheritDoc} */
     @Override public String toString() {
-        return S.toString(PlatformNativeException.class, this, "cause", cause);
+        return S.toString(PlatformNativeException.class, this,
+            "cause", S.INCLUDE_SENSITIVE ? cause : (cause == null ? "null" : cause.getClass().getSimpleName()));
     }
 }

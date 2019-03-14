@@ -43,7 +43,7 @@ public class IgniteProductVersion implements Comparable<IgniteProductVersion>, E
 
     /** Regexp parse pattern. */
     private static final Pattern VER_PATTERN =
-        Pattern.compile("(\\d+)\\.(\\d+)\\.(\\d+)(-([^0123456789][^-]+)(-SNAPSHOT)?)?(-(\\d+))?(-([\\da-f]+))?");
+        Pattern.compile("(\\d+)\\.(\\d+)\\.(\\d+)([-.]([^0123456789][^-]+)(-SNAPSHOT)?)?(-(\\d+))?(-([\\da-f]+))?");
 
     /** Major version number. */
     private byte major;
@@ -159,7 +159,7 @@ public class IgniteProductVersion implements Comparable<IgniteProductVersion>, E
      * @return Release date.
      */
     public Date releaseDate() {
-        return new Date(revTs);
+        return new Date(revTs * 1000);
     }
 
     /**
@@ -195,6 +195,24 @@ public class IgniteProductVersion implements Comparable<IgniteProductVersion>, E
             return res;
 
         return Long.compare(revTs, o.revTs);
+    }
+
+    /**
+     * @param o Other version.
+     * @return Compare result.
+     */
+    public int compareToIgnoreTimestamp(@NotNull IgniteProductVersion o) {
+        int res = Integer.compare(major, o.major);
+
+        if (res != 0)
+            return res;
+
+        res = Integer.compare(minor, o.minor);
+
+        if (res != 0)
+            return res;
+
+        return Integer.compare(maintenance, o.maintenance);
     }
 
     /** {@inheritDoc} */
@@ -240,7 +258,7 @@ public class IgniteProductVersion implements Comparable<IgniteProductVersion>, E
     }
 
     /** {@inheritDoc} */
-    public String toString() {
+    @Override public String toString() {
         String revTsStr = new SimpleDateFormat("yyyyMMdd").format(new Date(revTs * 1000));
 
         String hash = U.byteArray2HexString(revHash).toLowerCase();
@@ -256,7 +274,6 @@ public class IgniteProductVersion implements Comparable<IgniteProductVersion>, E
      * @param verStr String representation of version.
      * @return Product version.
      */
-    @SuppressWarnings({"MagicConstant", "TypeMayBeWeakened"})
     public static IgniteProductVersion fromString(String verStr) {
         assert verStr != null;
 

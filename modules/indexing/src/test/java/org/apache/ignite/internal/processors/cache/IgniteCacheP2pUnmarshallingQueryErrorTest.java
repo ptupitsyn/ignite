@@ -17,17 +17,23 @@
 
 package org.apache.ignite.internal.processors.cache;
 
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import javax.cache.CacheException;
+import org.apache.ignite.cache.query.ScanQuery;
 import org.apache.ignite.cache.query.SqlQuery;
 import org.apache.ignite.configuration.IgniteConfiguration;
+import org.apache.ignite.lang.IgniteBiPredicate;
+import org.junit.Test;
 
 /**
  * Checks behavior on exception while unmarshalling key.
  */
 public class IgniteCacheP2pUnmarshallingQueryErrorTest extends IgniteCacheP2pUnmarshallingErrorTest {
     /** {@inheritDoc} */
-    @Override protected IgniteConfiguration getConfiguration(String gridName) throws Exception {
-        IgniteConfiguration cfg = super.getConfiguration(gridName);
+    @Override protected IgniteConfiguration getConfiguration(String igniteInstanceName) throws Exception {
+        IgniteConfiguration cfg = super.getConfiguration(igniteInstanceName);
 
         if (cfg.getCacheConfiguration().length > 0)
             cfg.getCacheConfiguration()[0].setIndexedTypes(TestKey.class, String.class);
@@ -36,6 +42,7 @@ public class IgniteCacheP2pUnmarshallingQueryErrorTest extends IgniteCacheP2pUnm
     }
 
     /** {@inheritDoc} */
+    @Test
     @Override public void testResponseMessageOnUnmarshallingFailed() {
         readCnt.set(Integer.MAX_VALUE);
 
@@ -47,10 +54,39 @@ public class IgniteCacheP2pUnmarshallingQueryErrorTest extends IgniteCacheP2pUnm
         try {
             jcache(0).query(new SqlQuery<TestKey, String>(String.class, "field like '" + key + "'")).getAll();
 
-            assert false : "p2p marshalling failed, but error response was not sent";
+            fail("p2p marshalling failed, but error response was not sent");
         }
-        catch (CacheException e) {
-            // No-op
+        catch (CacheException ignored) {
+            // No-op.
+        }
+    }
+
+    /**
+     * @throws Exception If failed.
+     */
+    @Test
+    public void testResponseMessageOnRequestUnmarshallingFailed() throws Exception {
+        readCnt.set(Integer.MAX_VALUE);
+
+        try {
+            jcache().query(new ScanQuery<>(new IgniteBiPredicate<TestKey, String>() {
+                @Override public boolean apply(TestKey key, String val) {
+                    return false;
+                }
+
+                private void readObject(ObjectInputStream is) throws IOException {
+                    throw new IOException();
+                }
+
+                private void writeObject(ObjectOutputStream os) throws IOException {
+                    // No-op.
+                }
+            })).getAll();
+
+            fail();
+        }
+        catch (Exception ignored) {
+            // No-op.
         }
     }
 }

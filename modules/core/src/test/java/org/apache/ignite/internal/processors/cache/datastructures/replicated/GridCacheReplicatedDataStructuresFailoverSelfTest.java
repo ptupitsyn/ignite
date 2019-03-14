@@ -18,12 +18,10 @@
 package org.apache.ignite.internal.processors.cache.datastructures.replicated;
 
 import org.apache.ignite.cache.CacheAtomicityMode;
-import org.apache.ignite.cache.CacheMemoryMode;
 import org.apache.ignite.cache.CacheMode;
 import org.apache.ignite.internal.processors.cache.datastructures.GridCacheAbstractDataStructuresFailoverSelfTest;
 
 import static org.apache.ignite.cache.CacheAtomicityMode.TRANSACTIONAL;
-import static org.apache.ignite.cache.CacheMemoryMode.ONHEAP_TIERED;
 import static org.apache.ignite.cache.CacheMode.REPLICATED;
 
 /**
@@ -32,18 +30,8 @@ import static org.apache.ignite.cache.CacheMode.REPLICATED;
 public class GridCacheReplicatedDataStructuresFailoverSelfTest
     extends GridCacheAbstractDataStructuresFailoverSelfTest {
     /** {@inheritDoc} */
-    @Override protected void beforeTest() throws Exception {
-        fail("https://issues.apache.org/jira/browse/IGNITE-801");
-    }
-
-    /** {@inheritDoc} */
     @Override protected CacheMode collectionCacheMode() {
         return REPLICATED;
-    }
-
-    /** {@inheritDoc} */
-    @Override protected CacheMemoryMode collectionMemoryMode() {
-        return ONHEAP_TIERED;
     }
 
     /** {@inheritDoc} */

@@ -26,6 +26,7 @@ import org.apache.ignite.IgniteClientDisconnectedException;
 import org.apache.ignite.lang.IgniteCallable;
 import org.apache.ignite.lang.IgniteClosure;
 import org.apache.ignite.testframework.GridTestUtils;
+import org.junit.Test;
 
 /**
  *
@@ -44,19 +45,20 @@ public class IgniteClientReconnectComputeTest extends IgniteClientReconnectAbstr
     /**
      * @throws Exception If failed.
      */
+    @Test
     public void testReconnectAffinityCallInProgress() throws Exception {
         final Ignite client = grid(serverCount());
 
         assertTrue(client.cluster().localNode().isClient());
 
-        Ignite srv = clientRouter(client);
+        Ignite srv = ignite(0);
 
         IgniteCache<Integer, Integer> cache = client.getOrCreateCache("test-cache");
 
         for (int i = 0; i < 100; i++)
             cache.put(i, i);
 
-        BlockTpcCommunicationSpi commSpi = commSpi(srv);
+        BlockTcpCommunicationSpi commSpi = commSpi(srv);
 
         commSpi.blockMessage(GridJobExecuteResponse.class);
 
@@ -98,14 +100,15 @@ public class IgniteClientReconnectComputeTest extends IgniteClientReconnectAbstr
     /**
      * @throws Exception If failed.
      */
+    @Test
     public void testReconnectBroadcastInProgress() throws Exception {
         final Ignite client = grid(serverCount());
 
         assertTrue(client.cluster().localNode().isClient());
 
-        Ignite srv = clientRouter(client);
+        Ignite srv = ignite(0);
 
-        BlockTpcCommunicationSpi commSpi = commSpi(srv);
+        BlockTcpCommunicationSpi commSpi = commSpi(srv);
 
         commSpi.blockMessage(GridJobExecuteResponse.class);
 
@@ -147,14 +150,15 @@ public class IgniteClientReconnectComputeTest extends IgniteClientReconnectAbstr
     /**
      * @throws Exception If failed.
      */
+    @Test
     public void testReconnectApplyInProgress() throws Exception {
         final Ignite client = grid(serverCount());
 
         assertTrue(client.cluster().localNode().isClient());
 
-        Ignite srv = clientRouter(client);
+        Ignite srv = ignite(0);
 
-        BlockTpcCommunicationSpi commSpi = commSpi(srv);
+        BlockTcpCommunicationSpi commSpi = commSpi(srv);
 
         commSpi.blockMessage(GridJobExecuteResponse.class);
 

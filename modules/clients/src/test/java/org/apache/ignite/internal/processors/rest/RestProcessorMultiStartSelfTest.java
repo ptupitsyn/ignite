@@ -17,9 +17,12 @@
 
 package org.apache.ignite.internal.processors.rest;
 
+import java.util.Map;
 import org.apache.ignite.configuration.ConnectorConfiguration;
 import org.apache.ignite.configuration.IgniteConfiguration;
+import org.apache.ignite.testframework.GridTestUtils;
 import org.apache.ignite.testframework.junits.common.GridCommonAbstractTest;
+import org.junit.Test;
 
 /**
  * Rest processor test.
@@ -28,13 +31,24 @@ public class RestProcessorMultiStartSelfTest extends GridCommonAbstractTest {
     /** */
     private static final int GRID_CNT = 3;
 
+    /** */
+    private static boolean client = false;
+
     /** {@inheritDoc} */
-    @Override protected IgniteConfiguration getConfiguration(String gridName) throws Exception {
-        IgniteConfiguration cfg = super.getConfiguration(gridName);
+    @Override protected IgniteConfiguration getConfiguration(String igniteInstanceName) throws Exception {
+        IgniteConfiguration cfg = super.getConfiguration(igniteInstanceName);
 
         cfg.setConnectorConfiguration(new ConnectorConfiguration());
+        cfg.setClientMode(client);
 
         return cfg;
+    }
+
+    /** {@inheritDoc} */
+    @Override protected void beforeTest() throws Exception {
+        super.beforeTest();
+
+        client = false;
     }
 
     /**
@@ -42,12 +56,47 @@ public class RestProcessorMultiStartSelfTest extends GridCommonAbstractTest {
      *
      * @throws Exception If failed.
      */
+    @Test
     public void testMultiStart() throws Exception {
         try {
             for (int i = 0; i < GRID_CNT; i++)
                 startGrid(i);
 
             stopGrid(0);
+        }
+        finally {
+            stopAllGrids();
+        }
+    }
+
+    /**
+     * Test that multiple nodes can start with JETTY enabled.
+     *
+     * @throws Exception If failed.
+     */
+    @Test
+    public void testMultiStartWithClient() throws Exception {
+        try {
+            int clnIdx = GRID_CNT - 1;
+
+            for (int i = 0; i < clnIdx; i++) {
+                startGrid(i);
+
+                GridRestProcessor rest = grid(i).context().rest();
+
+                assertNotNull(rest);
+                assertFalse(((Map)GridTestUtils.getFieldValue(rest, "handlers")).isEmpty());
+            }
+
+            client = true;
+
+            startGrid(clnIdx);
+
+            GridRestProcessor rest = grid(GRID_CNT - 1).context().rest();
+
+            // Check that rest processor doesn't start.
+            assertNotNull(rest);
+            assertTrue(((Map)GridTestUtils.getFieldValue(rest, "handlers")).isEmpty());
         }
         finally {
             stopAllGrids();

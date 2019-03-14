@@ -73,6 +73,22 @@ public class AffinityTopologyVersion implements Comparable<AffinityTopologyVersi
     }
 
     /**
+     * @return {@code True} if this is real topology version (neither {@link #NONE} nor {@link #ZERO}.
+     */
+    public boolean initialized() {
+        return topVer > 0;
+    }
+
+    /**
+     * @return Topology version with incremented minor version.
+     */
+    public AffinityTopologyVersion nextMinorVersion() {
+        assert topVer > 0;
+
+        return new AffinityTopologyVersion(topVer, minorTopVer + 1);
+    }
+
+    /**
      * @return Topology version.
      */
     public long topologyVersion() {
@@ -94,6 +110,20 @@ public class AffinityTopologyVersion implements Comparable<AffinityTopologyVersi
             return Integer.compare(minorTopVer, o.minorTopVer);
 
         return cmp;
+    }
+
+    /**
+     * @param lower Lower bound.
+     * @param upper Upper bound.
+     * @return {@code True} if this topology version is within provided bounds (inclusive).
+     */
+    public boolean isBetween(AffinityTopologyVersion lower, AffinityTopologyVersion upper) {
+        return compareTo(lower) >= 0 && compareTo(upper) <= 0;
+    }
+
+    /** {@inheritDoc} */
+    @Override public void onAckReceived() {
+        // No-op.
     }
 
     /** {@inheritDoc} */
@@ -185,7 +215,7 @@ public class AffinityTopologyVersion implements Comparable<AffinityTopologyVersi
     }
 
     /** {@inheritDoc} */
-    @Override public byte directType() {
+    @Override public short directType() {
         return 111;
     }
 

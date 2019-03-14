@@ -17,7 +17,6 @@
 
 package org.apache.ignite.testframework.junits.multijvm;
 
-import com.thoughtworks.xstream.XStream;
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.File;
@@ -25,13 +24,13 @@ import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
+import com.thoughtworks.xstream.XStream;
 import org.apache.ignite.Ignite;
-import org.apache.ignite.IgniteException;
+import org.apache.ignite.IgniteCheckedException;
 import org.apache.ignite.Ignition;
 import org.apache.ignite.configuration.IgniteConfiguration;
 import org.apache.ignite.internal.IgniteEx;
@@ -39,8 +38,9 @@ import org.apache.ignite.internal.processors.cache.GridCacheAbstractFullApiSelfT
 import org.apache.ignite.internal.util.GridJavaProcess;
 import org.apache.ignite.internal.util.typedef.X;
 import org.apache.ignite.internal.util.typedef.internal.U;
-import org.apache.ignite.marshaller.optimized.OptimizedMarshaller;
+import org.apache.ignite.marshaller.Marshaller;
 import org.apache.ignite.spi.discovery.tcp.TcpDiscoverySpi;
+import org.apache.ignite.testframework.junits.IgniteTestResources;
 import sun.jvmstat.monitor.HostIdentifier;
 import sun.jvmstat.monitor.MonitoredHost;
 import sun.jvmstat.monitor.MonitoredVm;
@@ -56,7 +56,7 @@ public class IgniteNodeRunner {
         File.separator + "igniteConfiguration.tmp_";
 
     /** */
-    private static volatile Ignite ignite;
+    protected static volatile Ignite ignite;
 
     /**
      * Starts {@link Ignite} instance accorging to given arguments.
@@ -96,43 +96,42 @@ public class IgniteNodeRunner {
      * @throws IOException If failed.
      * @see #readCfgFromFileAndDeleteFile(String)
      */
-    public static String storeToFile(IgniteConfiguration cfg) throws IOException {
+    public static String storeToFile(IgniteConfiguration cfg, boolean resetDiscovery) throws IOException, IgniteCheckedException {
         String fileName = IGNITE_CONFIGURATION_FILE + cfg.getNodeId();
 
-        // Check marshaller configuration, because read configuration method expect specific marshaller.
-        if (cfg.getMarshaller() instanceof OptimizedMarshaller){
-            OptimizedMarshaller marsh = (OptimizedMarshaller)cfg.getMarshaller();
-
-            try {
-                Field isRequireFiled = marsh.getClass().getDeclaredField("requireSer");
-
-                isRequireFiled.setAccessible(true);
-
-                boolean isRequireSer = isRequireFiled.getBoolean(marsh);
-
-                if (isRequireSer)
-                    throw new UnsupportedOperationException("Unsupported marshaller configuration. " +
-                        "readCfgFromFileAndDeleteFile method expect " + OptimizedMarshaller.class.getSimpleName() +
-                        "with requireSerializeble flag in 'false'.");
-            }
-            catch (NoSuchFieldException|IllegalAccessException e) {
-                throw new IgniteException("Failed to check filed of " + OptimizedMarshaller.class.getSimpleName(), e);
-            }
-        }
-        else
-            throw new UnsupportedOperationException("Unsupported marshaller. " +
-                "readCfgFromFileAndDeleteFile method expect " + OptimizedMarshaller.class.getSimpleName());
-
-        try(OutputStream out = new BufferedOutputStream(new FileOutputStream(fileName))) {
-            cfg.setMBeanServer(null);
-            cfg.setMarshaller(null);
-            cfg.setDiscoverySpi(null);
-            cfg.setGridLogger(null);
-
-            new XStream().toXML(cfg, out);
-        }
+        storeToFile(cfg, fileName, true, resetDiscovery);
 
         return fileName;
+    }
+
+    /**
+     * Stores {@link IgniteConfiguration} to file as xml.
+     *
+     * @param cfg Ignite Configuration.
+     * @param fileName A name of file where the configuration was stored.
+     * @param resetMarshaller Reset marshaller configuration to default.
+     * @param resetDiscovery Reset discovery configuration to default.
+     * @throws IOException If failed.
+     * @see #readCfgFromFileAndDeleteFile(String)
+     */
+    public static void storeToFile(IgniteConfiguration cfg, String fileName,
+        boolean resetMarshaller,
+        boolean resetDiscovery) throws IOException, IgniteCheckedException {
+        try(OutputStream out = new BufferedOutputStream(new FileOutputStream(fileName))) {
+            IgniteConfiguration cfg0 = new IgniteConfiguration(cfg);
+
+            if (resetMarshaller)
+                cfg0.setMarshaller(null);
+
+            if (resetDiscovery)
+                cfg0.setDiscoverySpi(null);
+
+            cfg0.setWorkDirectory(U.defaultWorkDirectory());
+            cfg0.setMBeanServer(null);
+            cfg0.setGridLogger(null);
+
+            new XStream().toXML(cfg0, out);
+        }
     }
 
     /**
@@ -141,17 +140,29 @@ public class IgniteNodeRunner {
      * @param fileName File name.
      * @return Readed configuration.
      * @throws IOException If failed.
-     * @see #storeToFile(IgniteConfiguration)
+     * @see #storeToFile(IgniteConfiguration, boolean)
+     * @throws IgniteCheckedException On error.
      */
-    private static IgniteConfiguration readCfgFromFileAndDeleteFile(String fileName) throws IOException {
+    private static IgniteConfiguration readCfgFromFileAndDeleteFile(String fileName)
+        throws IOException, IgniteCheckedException {
         try(BufferedReader cfgReader = new BufferedReader(new FileReader(fileName))) {
             IgniteConfiguration cfg = (IgniteConfiguration)new XStream().fromXML(cfgReader);
 
-            cfg.setMarshaller(new OptimizedMarshaller(false));
+            if (cfg.getMarshaller() == null) {
+                Marshaller marsh = IgniteTestResources.getMarshaller();
 
-            TcpDiscoverySpi disco = new TcpDiscoverySpi();
-            disco.setIpFinder(GridCacheAbstractFullApiSelfTest.LOCAL_IP_FINDER);
-            cfg.setDiscoverySpi(disco);
+                cfg.setMarshaller(marsh);
+            }
+
+            X.println("Configured marshaller class: " + cfg.getMarshaller().getClass().getName());
+
+            if (cfg.getDiscoverySpi() == null) {
+                TcpDiscoverySpi disco = new TcpDiscoverySpi();
+                disco.setIpFinder(GridCacheAbstractFullApiSelfTest.LOCAL_IP_FINDER);
+                cfg.setDiscoverySpi(disco);
+            }
+
+            X.println("Configured discovery: " + cfg.getDiscoverySpi().getClass().getName());
 
             return cfg;
         }
@@ -178,9 +189,9 @@ public class IgniteNodeRunner {
                 MonitoredVm vm = monitoredHost.getMonitoredVm(new VmIdentifier("//" + jvmId + "?mode=r"), 0);
 
                 if (IgniteNodeRunner.class.getName().equals(MonitoredVmUtil.mainClass(vm, true))) {
-                    Process killProc = U.isWindows() ?
-                        Runtime.getRuntime().exec(new String[] {"taskkill", "/pid", jvmId.toString(), "/f", "/t"}) :
-                        Runtime.getRuntime().exec(new String[] {"kill", "-9", jvmId.toString()});
+                    Process killProc = Runtime.getRuntime().exec(U.isWindows() ?
+                        new String[] {"taskkill", "/pid", jvmId.toString(), "/f", "/t"} :
+                        new String[] {"kill", "-9", jvmId.toString()});
 
                     killProc.waitFor();
 

@@ -48,6 +48,7 @@ import org.apache.ignite.resources.TaskSessionResource;
 import org.apache.ignite.spi.failover.always.AlwaysFailoverSpi;
 import org.apache.ignite.testframework.junits.common.GridCommonAbstractTest;
 import org.apache.ignite.testframework.junits.common.GridCommonTest;
+import org.junit.Test;
 
 /**
  * Tests waiting for unfinished tasks while stopping the grid.
@@ -68,8 +69,8 @@ public class GridStopWithWaitSelfTest extends GridCommonAbstractTest {
     }
 
     /** {@inheritDoc} */
-    @Override protected IgniteConfiguration getConfiguration(String gridName) throws Exception {
-        IgniteConfiguration cfg = super.getConfiguration(gridName);
+    @Override protected IgniteConfiguration getConfiguration(String igniteInstanceName) throws Exception {
+        IgniteConfiguration cfg = super.getConfiguration(igniteInstanceName);
 
         cfg.setFailoverSpi(new AlwaysFailoverSpi());
 
@@ -79,6 +80,7 @@ public class GridStopWithWaitSelfTest extends GridCommonAbstractTest {
     /**
      * @throws Exception If failed.
      */
+    @Test
     public void testWait() throws Exception {
         jobStarted = new CountDownLatch(1);
 
@@ -99,8 +101,8 @@ public class GridStopWithWaitSelfTest extends GridCommonAbstractTest {
         }
         finally {
             // Do not cancel but wait.
-            G.stop(getTestGridName(1), false);
-            G.stop(getTestGridName(2), false);
+            G.stop(getTestIgniteInstanceName(1), false);
+            G.stop(getTestIgniteInstanceName(2), false);
         }
 
         assert fut != null;
@@ -113,6 +115,7 @@ public class GridStopWithWaitSelfTest extends GridCommonAbstractTest {
     /**
      * @throws Exception If failed.
      */
+    @Test
     public void testWaitFailover() throws Exception {
         jobStarted = new CountDownLatch(1);
 
@@ -133,8 +136,8 @@ public class GridStopWithWaitSelfTest extends GridCommonAbstractTest {
         }
         finally {
             // Do not cancel but wait.
-            G.stop(getTestGridName(1), false);
-            G.stop(getTestGridName(2), false);
+            G.stop(getTestIgniteInstanceName(1), false);
+            G.stop(getTestIgniteInstanceName(2), false);
         }
 
         assert fut != null;

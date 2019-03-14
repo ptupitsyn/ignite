@@ -24,17 +24,19 @@ import org.apache.ignite.IgniteCache;
 
 /**
  * Cache entry that extends {@link javax.cache.Cache.Entry} by providing additional entry related information.
- *
- * To get an instance of {@code CacheEntry} use {@link javax.cache.Cache.Entry#unwrap(Class)} method by passing
- * {@code CacheEntry} class to it as the argument.
+ * <p>
+ * To get an instance of {@code CacheEntry} from {@link javax.cache.Cache.Entry} use
+ * {@link javax.cache.Cache.Entry#unwrap(Class)} method by passing {@code CacheEntry} class to it as the argument.
  * <p>
  * {@code CacheEntry} is supported only for {@link javax.cache.Cache.Entry} returned by one of the following methods:
  * <ul>
  * <li>{@link javax.cache.Cache#invoke(Object, EntryProcessor, Object...)}</li>
  * <li>{@link javax.cache.Cache#invokeAll(Set, EntryProcessor, Object...)}</li>
  * <li>invoke and invokeAll methods of {@link IgniteCache}</li>
- * <li>{@link IgniteCache#randomEntry()}</li>
  * </ul>
+ * <p>
+ * To get an instance of {@code CacheEntry} directly use {@link IgniteCache#getEntry(Object)} or
+ * {@link IgniteCache#getEntries(Set)} methods.
  * <p>
  * {@code CacheEntry} is not supported for {@link javax.cache.Cache#iterator()} because of performance reasons.
  * {@link javax.cache.Cache#iterator()} loads entries from all the cluster nodes and to speed up the load additional
@@ -79,15 +81,4 @@ public interface CacheEntry<K, V> extends Cache.Entry<K, V> {
      * @return Version of this cache entry.
      */
     public Comparable version();
-
-    /**
-     * Returns the time when the cache entry for the given key has been updated or initially created.
-     * <p>
-     * It is valid to compare cache entries' update time for the same key. In this case the latter update will
-     * be represented by higher update time. The result of update time comparison of cache entries of different keys is
-     * undefined.
-     *
-     * @return Time in milliseconds.
-     */
-    public long updateTime();
 }

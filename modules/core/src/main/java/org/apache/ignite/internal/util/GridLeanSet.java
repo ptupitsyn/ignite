@@ -57,12 +57,12 @@ public class GridLeanSet<E> extends GridSetWrapper<E> implements Cloneable {
      *
      * @param c Collection to add.
      */
+    @Deprecated
     public GridLeanSet(Collection<E> c) {
         super(new GridLeanMap<>(F.zip(c, VAL)));
     }
 
     /** {@inheritDoc} */
-    @SuppressWarnings( {"unchecked", "CloneDoesntDeclareCloneNotSupportedException"})
     @Override public Object clone() {
         try {
             GridLeanSet<E> clone = (GridLeanSet<E>)super.clone();

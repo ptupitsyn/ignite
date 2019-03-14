@@ -17,17 +17,21 @@
 
 package org.apache.ignite.examples;
 
-import org.apache.ignite.examples.computegrid.ComputeContinuousMapperExample;
 import org.apache.ignite.testframework.junits.common.GridAbstractExamplesTest;
+import org.junit.Ignore;
 
 /**
  * ContinuousMapperExample self test.
  */
+@Ignore("https://issues.apache.org/jira/browse/IGNITE-711")
 public class ContinuousMapperExamplesSelfTest extends GridAbstractExamplesTest {
     /**
+     * TODO: IGNITE-711 next example(s) should be implemented for java 8
+     * or testing method(s) should be removed if example(s) does not applicable for java 8.
+     *
      * @throws Exception If failed.
      */
-    public void testContinuousMapperExample() throws Exception {
-        ComputeContinuousMapperExample.main(EMPTY_ARGS);
-    }
+//    public void testContinuousMapperExample() throws Exception {
+//        ComputeContinuousMapperExample.main(EMPTY_ARGS);
+//    }
 }

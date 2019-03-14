@@ -39,7 +39,6 @@ import static org.apache.ignite.internal.IgniteVersionUtils.COPYRIGHT;
  */
 public class GridRouterCommandLineStartup {
     /** Logger. */
-    @SuppressWarnings("FieldCanBeLocal")
     private IgniteLogger log;
 
     /** TCP router. */
@@ -137,7 +136,7 @@ public class GridRouterCommandLineStartup {
             try {
                 t = U.addLog4jNoOpLogger();
             }
-            catch (Exception e) {
+            catch (Exception ignored) {
                 isLog4jUsed = false;
             }
         }

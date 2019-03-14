@@ -24,6 +24,7 @@ import org.apache.ignite.IgniteCheckedException;
 import org.apache.ignite.internal.GridDirectTransient;
 import org.apache.ignite.internal.util.tostring.GridToStringInclude;
 import org.apache.ignite.internal.util.typedef.internal.S;
+import org.apache.ignite.internal.util.typedef.internal.U;
 import org.apache.ignite.plugin.extensions.communication.Message;
 import org.apache.ignite.plugin.extensions.communication.MessageReader;
 import org.apache.ignite.plugin.extensions.communication.MessageWriter;
@@ -41,10 +42,14 @@ public class CacheInvokeDirectResult implements Message {
 
     /** */
     @GridToStringInclude
-    private CacheObject res;
+    private transient Object unprepareRes;
 
     /** */
     @GridToStringInclude
+    private CacheObject res;
+
+    /** */
+    @GridToStringInclude(sensitive = true)
     @GridDirectTransient
     private Exception err;
 
@@ -65,6 +70,22 @@ public class CacheInvokeDirectResult implements Message {
     public CacheInvokeDirectResult(KeyCacheObject key, CacheObject res) {
         this.key = key;
         this.res = res;
+    }
+
+    /**
+     * Constructs CacheInvokeDirectResult with unprepared res, to avoid object marshaling while holding topology locks.
+     *
+     * @param key Key.
+     * @param res Result.
+     * @return a new instance of CacheInvokeDirectResult.
+     */
+    static CacheInvokeDirectResult lazyResult(KeyCacheObject key, Object res) {
+        CacheInvokeDirectResult res0 = new CacheInvokeDirectResult();
+
+        res0.key = key;
+        res0.unprepareRes = res;
+
+        return res0;
     }
 
     /**
@@ -104,11 +125,40 @@ public class CacheInvokeDirectResult implements Message {
     public void prepareMarshal(GridCacheContext ctx) throws IgniteCheckedException {
         key.prepareMarshal(ctx.cacheObjectContext());
 
-        if (err != null)
-            errBytes = ctx.marshaller().marshal(err);
+        if (err != null && errBytes == null) {
+            try {
+                errBytes = U.marshal(ctx.marshaller(), err);
+            }
+            catch (IgniteCheckedException e) {
+                // Try send exception even if it's unable to marshal.
+                IgniteCheckedException exc = new IgniteCheckedException(err.getMessage());
+
+                exc.setStackTrace(err.getStackTrace());
+                exc.addSuppressed(e);
+
+                errBytes = U.marshal(ctx.marshaller(), exc);
+            }
+        }
+
+        assert unprepareRes == null : "marshalResult() was not called for the result: " + this;
 
         if (res != null)
             res.prepareMarshal(ctx.cacheObjectContext());
+    }
+
+    /**
+     * Converts the entry processor unprepared result to a cache object instance.
+     *
+     * @param ctx Cache context.
+     */
+    public void marshalResult(GridCacheContext ctx) {
+        try {
+            if (unprepareRes != null)
+                res = ctx.toCacheObject(unprepareRes);
+        }
+        finally {
+            unprepareRes = null;
+        }
     }
 
     /**
@@ -119,15 +169,20 @@ public class CacheInvokeDirectResult implements Message {
     public void finishUnmarshal(GridCacheContext ctx, ClassLoader ldr) throws IgniteCheckedException {
         key.finishUnmarshal(ctx.cacheObjectContext(), ldr);
 
-        if (errBytes != null)
-            err = ctx.marshaller().unmarshal(errBytes, ldr);
+        if (errBytes != null && err == null)
+            err = U.unmarshal(ctx.marshaller(), errBytes, U.resolveClassLoader(ldr, ctx.gridConfig()));
 
         if (res != null)
             res.finishUnmarshal(ctx.cacheObjectContext(), ldr);
     }
 
     /** {@inheritDoc} */
-    @Override public byte directType() {
+    @Override public void onAckReceived() {
+        // No-op.
+    }
+
+    /** {@inheritDoc} */
+    @Override public short directType() {
         return 93;
     }
 

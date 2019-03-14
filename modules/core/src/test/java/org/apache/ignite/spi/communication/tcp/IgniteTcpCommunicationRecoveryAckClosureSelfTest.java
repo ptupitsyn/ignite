@@ -29,6 +29,8 @@ import org.apache.ignite.IgniteCheckedException;
 import org.apache.ignite.IgniteException;
 import org.apache.ignite.cluster.ClusterNode;
 import org.apache.ignite.internal.managers.communication.GridIoMessageFactory;
+import org.apache.ignite.internal.processors.timeout.GridTimeoutProcessor;
+import org.apache.ignite.internal.util.GridConcurrentHashSet;
 import org.apache.ignite.internal.util.lang.GridAbsPredicate;
 import org.apache.ignite.internal.util.nio.GridNioRecoveryDescriptor;
 import org.apache.ignite.internal.util.nio.GridNioServer;
@@ -40,19 +42,23 @@ import org.apache.ignite.lang.IgniteInClosure;
 import org.apache.ignite.lang.IgniteRunnable;
 import org.apache.ignite.plugin.extensions.communication.Message;
 import org.apache.ignite.spi.IgniteSpiAdapter;
+import org.apache.ignite.spi.IgniteSpiException;
 import org.apache.ignite.spi.communication.CommunicationListener;
 import org.apache.ignite.spi.communication.CommunicationSpi;
 import org.apache.ignite.spi.communication.GridTestMessage;
 import org.apache.ignite.testframework.GridSpiTestContext;
 import org.apache.ignite.testframework.GridTestNode;
 import org.apache.ignite.testframework.GridTestUtils;
+import org.apache.ignite.testframework.junits.GridTestKernalContext;
 import org.apache.ignite.testframework.junits.IgniteTestResources;
 import org.apache.ignite.testframework.junits.spi.GridSpiAbstractTest;
-import org.eclipse.jetty.util.ConcurrentHashSet;
+import org.apache.ignite.testframework.junits.spi.GridSpiTest;
+import org.junit.Test;
 
 /**
  *
  */
+@GridSpiTest(spi = TcpCommunicationSpi.class, group = "Communication SPI")
 public class IgniteTcpCommunicationRecoveryAckClosureSelfTest<T extends CommunicationSpi>
     extends GridSpiAbstractTest<T> {
     /** */
@@ -66,6 +72,9 @@ public class IgniteTcpCommunicationRecoveryAckClosureSelfTest<T extends Communic
 
     /** */
     private static final int SPI_CNT = 2;
+
+    /** */
+    private static GridTimeoutProcessor timeoutProcessor;
 
     /**
      *
@@ -86,18 +95,15 @@ public class IgniteTcpCommunicationRecoveryAckClosureSelfTest<T extends Communic
     }
 
     /** */
-    @SuppressWarnings({"deprecation"})
     private class TestListener implements CommunicationListener<Message> {
         /** */
-        private ConcurrentHashSet<Long> msgIds = new ConcurrentHashSet<>();
+        private GridConcurrentHashSet<Long> msgIds = new GridConcurrentHashSet<>();
 
         /** */
         private AtomicInteger rcvCnt = new AtomicInteger();
 
         /** {@inheritDoc} */
         @Override public void onMessage(UUID nodeId, Message msg, IgniteRunnable msgC) {
-            info("Test listener received message: " + msg);
-
             assertTrue("Unexpected message: " + msg, msg instanceof GridTestMessage);
 
             GridTestMessage msg0 = (GridTestMessage)msg;
@@ -118,6 +124,7 @@ public class IgniteTcpCommunicationRecoveryAckClosureSelfTest<T extends Communic
     /**
      * @throws Exception If failed.
      */
+    @Test
     public void testAckOnIdle() throws Exception {
         checkAck(10, 2000, 9);
     }
@@ -125,6 +132,7 @@ public class IgniteTcpCommunicationRecoveryAckClosureSelfTest<T extends Communic
     /**
      * @throws Exception If failed.
      */
+    @Test
     public void testAckOnCount() throws Exception {
         checkAck(10, 60_000, 10);
     }
@@ -149,12 +157,14 @@ public class IgniteTcpCommunicationRecoveryAckClosureSelfTest<T extends Communic
 
             int expMsgs = 0;
 
+            long totAcked = 0;
+
             for (int i = 0; i < 5; i++) {
                 info("Iteration: " + i);
 
                 final AtomicInteger ackMsgs = new AtomicInteger(0);
 
-                IgniteInClosure<IgniteException> ackClosure = new CI1<IgniteException>() {
+                IgniteInClosure<IgniteException> ackC = new CI1<IgniteException>() {
                     @Override public void apply(IgniteException o) {
                         assert o == null;
 
@@ -163,12 +173,25 @@ public class IgniteTcpCommunicationRecoveryAckClosureSelfTest<T extends Communic
                 };
 
                 for (int j = 0; j < msgPerIter; j++) {
-                    spi0.sendMessage(node1, new GridTestMessage(node0.id(), ++msgId, 0), ackClosure);
+                    spi0.sendMessage(node1, new GridTestMessage(node0.id(), ++msgId, 0), ackC);
 
-                    spi1.sendMessage(node0, new GridTestMessage(node1.id(), ++msgId, 0), ackClosure);
+                    spi1.sendMessage(node0, new GridTestMessage(node1.id(), ++msgId, 0), ackC);
+
+                    if (j == 0) {
+                        final TestListener lsnr0 = (TestListener)spi0.getListener();
+                        final TestListener lsnr1 = (TestListener)spi1.getListener();
+
+                        GridTestUtils.waitForCondition(new GridAbsPredicate() {
+                            @Override public boolean apply() {
+                                return lsnr0.rcvCnt.get() >= 1 && lsnr1.rcvCnt.get() >= 1;
+                            }
+                        }, 1000);
+                    }
                 }
 
                 expMsgs += msgPerIter;
+
+                final long totAcked0 = totAcked;
 
                 for (TcpCommunicationSpi spi : spis) {
                     GridNioServer srv = U.field(spi, "nioSrvr");
@@ -180,19 +203,27 @@ public class IgniteTcpCommunicationRecoveryAckClosureSelfTest<T extends Communic
                     boolean found = false;
 
                     for (GridNioSession ses : sessions) {
-                        final GridNioRecoveryDescriptor recoveryDesc = ses.recoveryDescriptor();
+                        final GridNioRecoveryDescriptor recoveryDesc = ses.outRecoveryDescriptor();
 
                         if (recoveryDesc != null) {
                             found = true;
 
                             GridTestUtils.waitForCondition(new GridAbsPredicate() {
                                 @Override public boolean apply() {
-                                    return recoveryDesc.messagesFutures().isEmpty();
+                                    long acked = GridTestUtils.getFieldValue(recoveryDesc, "acked");
+
+                                    return acked > totAcked0;
+                                }
+                            }, 5000);
+
+                            GridTestUtils.waitForCondition(new GridAbsPredicate() {
+                                @Override public boolean apply() {
+                                    return recoveryDesc.messagesRequests().isEmpty();
                                 }
                             }, 10_000);
 
-                            assertEquals("Unexpected messages: " + recoveryDesc.messagesFutures(), 0,
-                                recoveryDesc.messagesFutures().size());
+                            assertEquals("Unexpected messages: " + recoveryDesc.messagesRequests(), 0,
+                                recoveryDesc.messagesRequests().size());
 
                             break;
                         }
@@ -207,8 +238,7 @@ public class IgniteTcpCommunicationRecoveryAckClosureSelfTest<T extends Communic
                     final TestListener lsnr = (TestListener)spi.getListener();
 
                     GridTestUtils.waitForCondition(new GridAbsPredicate() {
-                        @Override
-                        public boolean apply() {
+                        @Override public boolean apply() {
                             return lsnr.rcvCnt.get() >= expMsgs0;
                         }
                     }, 5000);
@@ -217,6 +247,8 @@ public class IgniteTcpCommunicationRecoveryAckClosureSelfTest<T extends Communic
                 }
 
                 assertEquals(msgPerIter * 2, ackMsgs.get());
+
+                totAcked += msgPerIter;
             }
         }
         finally {
@@ -227,6 +259,7 @@ public class IgniteTcpCommunicationRecoveryAckClosureSelfTest<T extends Communic
     /**
      * @throws Exception If failed.
      */
+    @Test
     public void testQueueOverflow() throws Exception {
         for (int i = 0; i < 3; i++) {
             try {
@@ -267,11 +300,20 @@ public class IgniteTcpCommunicationRecoveryAckClosureSelfTest<T extends Communic
         ClusterNode node0 = nodes.get(0);
         ClusterNode node1 = nodes.get(1);
 
+        // Await time to close the session by queue overflow.
+        final int awaitTime = 5_000;
+
+        // Check that session will not be closed by idle timeout because expected close by queue overflow.
+        assertTrue(spi0.getIdleConnectionTimeout() > awaitTime);
+
         final GridNioServer srv1 = U.field(spi1, "nioSrvr");
+
+        // For prevent session close by write timeout.
+        srv1.writeTimeout(60_000);
 
         final AtomicInteger ackMsgs = new AtomicInteger(0);
 
-        IgniteInClosure<IgniteException> ackClosure = new CI1<IgniteException>() {
+        IgniteInClosure<IgniteException> ackC = new CI1<IgniteException>() {
             @Override public void apply(IgniteException o) {
                 assert o == null;
 
@@ -282,31 +324,48 @@ public class IgniteTcpCommunicationRecoveryAckClosureSelfTest<T extends Communic
         int msgId = 0;
 
         // Send message to establish connection.
-        spi0.sendMessage(node1, new GridTestMessage(node0.id(), ++msgId, 0), ackClosure);
+        spi0.sendMessage(node1, new GridTestMessage(node0.id(), ++msgId, 0), ackC);
+
+        int sentMsgs = 1;
 
         // Prevent node1 from send
         GridTestUtils.setFieldValue(srv1, "skipWrite", true);
 
         final GridNioSession ses0 = communicationSession(spi0);
 
-        for (int i = 0; i < 150; i++)
-            spi0.sendMessage(node1, new GridTestMessage(node0.id(), ++msgId, 0), ackClosure);
+        int queueLimit = ses0.outRecoveryDescriptor().queueLimit();
+
+        for (int i = sentMsgs; i < queueLimit; i++) {
+            try {
+                spi0.sendMessage(node1, new GridTestMessage(node0.id(), ++msgId, 0), ackC);
+
+                sentMsgs++;
+            }
+            catch (IgniteSpiException e) {
+                log.info("Send error [err=" + e + ", sentMsgs=" + sentMsgs + ']');
+
+                break;
+            }
+        }
 
         // Wait when session is closed because of queue overflow.
         GridTestUtils.waitForCondition(new GridAbsPredicate() {
             @Override public boolean apply() {
                 return ses0.closeTime() != 0;
             }
-        }, 5000);
+        }, awaitTime);
 
         assertTrue("Failed to wait for session close", ses0.closeTime() != 0);
 
         GridTestUtils.setFieldValue(srv1, "skipWrite", false);
 
-        for (int i = 0; i < 100; i++)
-            spi0.sendMessage(node1, new GridTestMessage(node0.id(), ++msgId, 0), ackClosure);
+        // It to gain all acks since acks have batch nature.
+        int cnt = 100 - sentMsgs % spi0.getAckSendThreshold();
 
-        final int expMsgs = 251;
+        for (int i = 0; i < cnt; i++)
+            spi0.sendMessage(node1, new GridTestMessage(node0.id(), ++msgId, 0), ackC);
+
+        final int expMsgs = sentMsgs + cnt;
 
         final TestListener lsnr = (TestListener)spi1.getListener();
 
@@ -323,6 +382,8 @@ public class IgniteTcpCommunicationRecoveryAckClosureSelfTest<T extends Communic
                 return expMsgs == ackMsgs.get();
             }
         }, 5000);
+
+        assertEquals(expMsgs, ackMsgs.get());
     }
 
     /**
@@ -330,13 +391,11 @@ public class IgniteTcpCommunicationRecoveryAckClosureSelfTest<T extends Communic
      * @return Session.
      * @throws Exception If failed.
      */
-    @SuppressWarnings("unchecked")
     private GridNioSession communicationSession(TcpCommunicationSpi spi) throws Exception {
         final GridNioServer srv = U.field(spi, "nioSrvr");
 
         GridTestUtils.waitForCondition(new GridAbsPredicate() {
-            @Override
-            public boolean apply() {
+            @Override public boolean apply() {
                 Collection<? extends GridNioSession> sessions = GridTestUtils.getFieldValue(srv, "sessions");
 
                 return !sessions.isEmpty();
@@ -365,6 +424,7 @@ public class IgniteTcpCommunicationRecoveryAckClosureSelfTest<T extends Communic
         spi.setAckSendThreshold(ackCnt);
         spi.setMessageQueueLimit(queueLimit);
         spi.setSharedMemoryPort(-1);
+        spi.setConnectionsPerNode(1);
 
         return spi;
     }
@@ -382,10 +442,16 @@ public class IgniteTcpCommunicationRecoveryAckClosureSelfTest<T extends Communic
 
         Map<ClusterNode, GridSpiTestContext> ctxs = new HashMap<>();
 
+        timeoutProcessor = new GridTimeoutProcessor(new GridTestKernalContext(log));
+
+        timeoutProcessor.start();
+
+        timeoutProcessor.onKernalStart(true);
+
         for (int i = 0; i < SPI_CNT; i++) {
             TcpCommunicationSpi spi = getSpi(ackCnt, idleTimeout, queueLimit);
 
-            GridTestUtils.setFieldValue(spi, IgniteSpiAdapter.class, "gridName", "grid-" + i);
+            GridTestUtils.setFieldValue(spi, IgniteSpiAdapter.class, "igniteInstanceName", "grid-" + i);
 
             IgniteTestResources rsrcs = new IgniteTestResources();
 
@@ -395,6 +461,8 @@ public class IgniteTcpCommunicationRecoveryAckClosureSelfTest<T extends Communic
 
             ctx.setLocalNode(node);
 
+            ctx.timeoutProcessor(timeoutProcessor);
+
             spiRsrcs.add(rsrcs);
 
             rsrcs.inject(spi);
@@ -403,9 +471,11 @@ public class IgniteTcpCommunicationRecoveryAckClosureSelfTest<T extends Communic
 
             node.setAttributes(spi.getNodeAttributes());
 
+            node.order(i);
+
             nodes.add(node);
 
-            spi.spiStart(getTestGridName() + (i + 1));
+            spi.spiStart(getTestIgniteInstanceName() + (i + 1));
 
             spis.add(spi);
 
@@ -458,6 +528,14 @@ public class IgniteTcpCommunicationRecoveryAckClosureSelfTest<T extends Communic
      * @throws Exception If failed.
      */
     private void stopSpis() throws Exception {
+        if (timeoutProcessor != null) {
+            timeoutProcessor.onKernalStop(true);
+
+            timeoutProcessor.stop(true);
+
+            timeoutProcessor = null;
+        }
+
         for (CommunicationSpi<Message> spi : spis) {
             spi.onContextDestroyed();
 

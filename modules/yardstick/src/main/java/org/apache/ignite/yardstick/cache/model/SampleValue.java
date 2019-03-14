@@ -21,12 +21,18 @@ import java.io.Externalizable;
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
+import org.apache.ignite.binary.BinaryObjectException;
+import org.apache.ignite.binary.BinaryReader;
+import org.apache.ignite.binary.BinaryWriter;
+import org.apache.ignite.binary.Binarylizable;
+import org.apache.ignite.cache.query.annotations.QuerySqlField;
 
 /**
  * Entity class for benchmark.
  */
-public class SampleValue implements Externalizable {
+public class SampleValue implements Externalizable, Binarylizable {
     /** */
+    @QuerySqlField
     private int id;
 
     /** */
@@ -66,7 +72,17 @@ public class SampleValue implements Externalizable {
     }
 
     /** {@inheritDoc} */
+    @Override public void writeBinary(BinaryWriter writer) throws BinaryObjectException {
+        writer.writeInt("id", id);
+    }
+
+    /** {@inheritDoc} */
+    @Override public void readBinary(BinaryReader reader) throws BinaryObjectException {
+        id = reader.readInt("id");
+    }
+
+    /** {@inheritDoc} */
     @Override public String toString() {
-        return "Value [id=" + id + ']';
+        return "SampleValue [id=" + id + ']';
     }
 }

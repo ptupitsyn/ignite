@@ -25,10 +25,9 @@ import org.apache.ignite.configuration.CacheConfiguration;
 import org.apache.ignite.configuration.IgniteConfiguration;
 import org.apache.ignite.internal.IgniteKernal;
 import org.apache.ignite.internal.processors.cache.version.GridCacheVersion;
-import org.apache.ignite.spi.discovery.tcp.TcpDiscoverySpi;
-import org.apache.ignite.spi.discovery.tcp.ipfinder.TcpDiscoveryIpFinder;
-import org.apache.ignite.spi.discovery.tcp.ipfinder.vm.TcpDiscoveryVmIpFinder;
 import org.apache.ignite.testframework.junits.common.GridCommonAbstractTest;
+import org.jetbrains.annotations.Nullable;
+import org.junit.Test;
 
 import static org.apache.ignite.cache.CacheAtomicityMode.TRANSACTIONAL;
 import static org.apache.ignite.cache.CacheMode.PARTITIONED;
@@ -37,11 +36,11 @@ import static org.apache.ignite.cache.CacheMode.PARTITIONED;
  * Test cases for multi-threaded tests in partitioned cache.
  */
 public class GridCacheMvccPartitionedSelfTest extends GridCommonAbstractTest {
+    /** */
+    private static final UUID nodeId = UUID.randomUUID();
+
     /** Grid. */
     private IgniteKernal grid;
-
-    /** VM ip finder for TCP discovery. */
-    private static TcpDiscoveryIpFinder ipFinder = new TcpDiscoveryVmIpFinder(true);
 
     /**
      *
@@ -64,12 +63,6 @@ public class GridCacheMvccPartitionedSelfTest extends GridCommonAbstractTest {
     @Override protected IgniteConfiguration getConfiguration() throws Exception {
         IgniteConfiguration cfg = super.getConfiguration();
 
-        TcpDiscoverySpi disco = new TcpDiscoverySpi();
-
-        disco.setIpFinder(ipFinder);
-
-        cfg.setDiscoverySpi(disco);
-
         CacheConfiguration cacheCfg = defaultCacheConfiguration();
 
         cacheCfg.setCacheMode(PARTITIONED);
@@ -84,8 +77,9 @@ public class GridCacheMvccPartitionedSelfTest extends GridCommonAbstractTest {
     /**
      * Tests remote candidates.
      */
+    @Test
     public void testNearLocalsWithPending() {
-        GridCacheAdapter<String, String> cache = grid.internalCache();
+        GridCacheAdapter<String, String> cache = grid.internalCache(DEFAULT_CACHE_NAME);
 
         GridCacheTestEntryEx entry = new GridCacheTestEntryEx(cache.context(), "1");
 
@@ -94,8 +88,8 @@ public class GridCacheMvccPartitionedSelfTest extends GridCommonAbstractTest {
         GridCacheVersion ver1 = version(1);
         GridCacheVersion ver2 = version(2);
 
-        GridCacheMvccCandidate c1 = entry.addRemote(node1, 1, ver1, 0, false, true);
-        GridCacheMvccCandidate c2 = entry.addNearLocal(node1, 1, ver2, 0, true);
+        GridCacheMvccCandidate c1 = entry.addRemote(node1, 1, ver1, true);
+        GridCacheMvccCandidate c2 = entry.addNearLocal(node1, 1, ver2, true);
 
         Collection<GridCacheMvccCandidate> rmtCands = entry.remoteMvccSnapshot();
         Collection<GridCacheMvccCandidate> nearLocCands = entry.localCandidates();
@@ -118,8 +112,9 @@ public class GridCacheMvccPartitionedSelfTest extends GridCommonAbstractTest {
     /**
      * Tests remote candidates.
      */
+    @Test
     public void testNearLocalsWithCommitted() {
-        GridCacheAdapter<String, String> cache = grid.internalCache();
+        GridCacheAdapter<String, String> cache = grid.internalCache(DEFAULT_CACHE_NAME);
 
         GridCacheTestEntryEx entry = new GridCacheTestEntryEx(cache.context(), "1");
 
@@ -128,8 +123,8 @@ public class GridCacheMvccPartitionedSelfTest extends GridCommonAbstractTest {
         GridCacheVersion ver1 = version(1);
         GridCacheVersion ver2 = version(2);
 
-        GridCacheMvccCandidate c1 = entry.addNearLocal(node1, 1, ver1, 0, true);
-        GridCacheMvccCandidate c2 = entry.addRemote(node1, 1, ver2, 0, false, true);
+        GridCacheMvccCandidate c1 = entry.addNearLocal(node1, 1, ver1, true);
+        GridCacheMvccCandidate c2 = entry.addRemote(node1, 1, ver2, true);
 
         Collection<GridCacheMvccCandidate> rmtCands = entry.remoteMvccSnapshot();
         Collection<GridCacheMvccCandidate> nearLocCands = entry.localCandidates();
@@ -151,8 +146,9 @@ public class GridCacheMvccPartitionedSelfTest extends GridCommonAbstractTest {
     /**
      * Tests remote candidates.
      */
+    @Test
     public void testNearLocalsWithRolledback() {
-        GridCacheAdapter<String, String> cache = grid.internalCache();
+        GridCacheAdapter<String, String> cache = grid.internalCache(DEFAULT_CACHE_NAME);
 
         GridCacheTestEntryEx entry = new GridCacheTestEntryEx(cache.context(), "1");
 
@@ -161,8 +157,8 @@ public class GridCacheMvccPartitionedSelfTest extends GridCommonAbstractTest {
         GridCacheVersion ver1 = version(1);
         GridCacheVersion ver2 = version(2);
 
-        GridCacheMvccCandidate c1 = entry.addNearLocal(node1, 1, ver1, 0, true);
-        GridCacheMvccCandidate c2 = entry.addRemote(node1, 1, ver2, 0, false, true);
+        GridCacheMvccCandidate c1 = entry.addNearLocal(node1, 1, ver1, true);
+        GridCacheMvccCandidate c2 = entry.addRemote(node1, 1, ver2, true);
 
         Collection<GridCacheMvccCandidate> rmtCands = entry.remoteMvccSnapshot();
         Collection<GridCacheMvccCandidate> nearLocCands = entry.localCandidates();
@@ -184,8 +180,9 @@ public class GridCacheMvccPartitionedSelfTest extends GridCommonAbstractTest {
     /**
      * Tests remote candidates.
      */
+    @Test
     public void testNearLocals() {
-        GridCacheAdapter<String, String> cache = grid.internalCache();
+        GridCacheAdapter<String, String> cache = grid.internalCache(DEFAULT_CACHE_NAME);
 
         GridCacheTestEntryEx entry = new GridCacheTestEntryEx(cache.context(), "1");
 
@@ -194,8 +191,8 @@ public class GridCacheMvccPartitionedSelfTest extends GridCommonAbstractTest {
         GridCacheVersion ver1 = version(1);
         GridCacheVersion ver2 = version(2);
 
-        GridCacheMvccCandidate c1 = entry.addNearLocal(node1, 1, ver1, 0, true);
-        GridCacheMvccCandidate c2 = entry.addNearLocal(node1, 1, ver2, 0, true);
+        GridCacheMvccCandidate c1 = entry.addNearLocal(node1, 1, ver1, true);
+        GridCacheMvccCandidate c2 = entry.addNearLocal(node1, 1, ver2, true);
 
         entry.readyNearLocal(ver2, ver2,  empty(), empty(), empty());
 
@@ -214,8 +211,9 @@ public class GridCacheMvccPartitionedSelfTest extends GridCommonAbstractTest {
     /**
      * Tests remote candidates.
      */
+    @Test
     public void testNearLocalsWithOwned() {
-        GridCacheAdapter<String, String> cache = grid.internalCache();
+        GridCacheAdapter<String, String> cache = grid.internalCache(DEFAULT_CACHE_NAME);
 
         GridCacheTestEntryEx entry = new GridCacheTestEntryEx(cache.context(), "1");
 
@@ -224,8 +222,8 @@ public class GridCacheMvccPartitionedSelfTest extends GridCommonAbstractTest {
         GridCacheVersion ver1 = version(1);
         GridCacheVersion ver2 = version(2);
 
-        GridCacheMvccCandidate c1 = entry.addRemote(node1, 1, ver1, 0, false, true);
-        GridCacheMvccCandidate c2 = entry.addNearLocal(node1, 1, ver2, 0, true);
+        GridCacheMvccCandidate c1 = entry.addRemote(node1, 1, ver1, true);
+        GridCacheMvccCandidate c2 = entry.addNearLocal(node1, 1, ver2, true);
 
         Collection<GridCacheMvccCandidate> rmtCands = entry.remoteMvccSnapshot();
         Collection<GridCacheMvccCandidate> nearLocCands = entry.localCandidates();
@@ -253,8 +251,9 @@ public class GridCacheMvccPartitionedSelfTest extends GridCommonAbstractTest {
     /**
      * @throws Exception If failed.
      */
+    @Test
     public void testAddPendingRemote0() throws Exception {
-        GridCacheAdapter<String, String> cache = grid.internalCache();
+        GridCacheAdapter<String, String> cache = grid.internalCache(DEFAULT_CACHE_NAME);
 
         GridCacheTestEntryEx entry = new GridCacheTestEntryEx(cache.context(), "1");
 
@@ -263,11 +262,11 @@ public class GridCacheMvccPartitionedSelfTest extends GridCommonAbstractTest {
         GridCacheVersion ver0 = version(0);
         GridCacheVersion ver1 = version(1);
 
-        entry.addNearLocal(node1, 1, ver1, 0, true);
+        entry.addNearLocal(node1, 1, ver1, true);
 
         entry.readyNearLocal(ver1, ver1, empty(), empty(), Collections.singletonList(ver0));
 
-        entry.addRemote(node1, 1, ver0, 0, false, true);
+        entry.addRemote(node1, 1, ver0, true);
 
         Collection<GridCacheMvccCandidate> rmtCands = entry.remoteMvccSnapshot();
         Collection<GridCacheMvccCandidate> nearLocCands = entry.localCandidates();
@@ -285,8 +284,9 @@ public class GridCacheMvccPartitionedSelfTest extends GridCommonAbstractTest {
     /**
      * @throws Exception If failed.
      */
+    @Test
     public void testAddPendingRemote1() throws Exception {
-        GridCacheAdapter<String, String> cache = grid.internalCache();
+        GridCacheAdapter<String, String> cache = grid.internalCache(DEFAULT_CACHE_NAME);
 
         GridCacheTestEntryEx entry = new GridCacheTestEntryEx(cache.context(), "1");
 
@@ -297,13 +297,13 @@ public class GridCacheMvccPartitionedSelfTest extends GridCommonAbstractTest {
         GridCacheVersion ver2 = version(2);
         GridCacheVersion ver3 = version(3);
 
-        GridCacheMvccCandidate c3 = entry.addNearLocal(node1, 1, ver3, 0, true);
+        GridCacheMvccCandidate c3 = entry.addNearLocal(node1, 1, ver3, true);
 
         entry.readyNearLocal(ver3, ver3, empty(), empty(), Arrays.asList(ver0, ver1, ver2));
 
-        GridCacheMvccCandidate c2 = entry.addRemote(node1, 1, ver2, 0, false, true);
-        GridCacheMvccCandidate c1 = entry.addRemote(node1, 1, ver1, 0, false, true);
-        GridCacheMvccCandidate c0 = entry.addRemote(node1, 1, ver0, 0, false, true);
+        GridCacheMvccCandidate c2 = entry.addRemote(node1, 1, ver2, true);
+        GridCacheMvccCandidate c1 = entry.addRemote(node1, 1, ver1, true);
+        GridCacheMvccCandidate c0 = entry.addRemote(node1, 1, ver0, true);
 
         Collection<GridCacheMvccCandidate> rmtCands = entry.remoteMvccSnapshot();
 
@@ -328,8 +328,9 @@ public class GridCacheMvccPartitionedSelfTest extends GridCommonAbstractTest {
     /**
      * @throws Exception If failed.
      */
+    @Test
     public void testAddPendingRemote2() throws Exception {
-        GridCacheAdapter<String, String> cache = grid.internalCache();
+        GridCacheAdapter<String, String> cache = grid.internalCache(DEFAULT_CACHE_NAME);
 
         GridCacheTestEntryEx entry = new GridCacheTestEntryEx(cache.context(), "1");
 
@@ -340,13 +341,13 @@ public class GridCacheMvccPartitionedSelfTest extends GridCommonAbstractTest {
         GridCacheVersion ver2 = version(2);
         GridCacheVersion ver3 = version(3);
 
-        GridCacheMvccCandidate c3 = entry.addNearLocal(node1, 1, ver3, 0, true);
-        entry.addNearLocal(node1, 1, ver2, 0, true);
+        GridCacheMvccCandidate c3 = entry.addNearLocal(node1, 1, ver3, true);
+        entry.addNearLocal(node1, 1, ver2, true);
 
         entry.readyNearLocal(ver3, ver3, empty(), empty(), Arrays.asList(ver0, ver1, ver2));
 
-        GridCacheMvccCandidate c1 = entry.addRemote(node1, 1, ver1, 0, false, true);
-        GridCacheMvccCandidate c0 = entry.addRemote(node1, 1, ver0, 0, false, true);
+        GridCacheMvccCandidate c1 = entry.addRemote(node1, 1, ver1, true);
+        GridCacheMvccCandidate c0 = entry.addRemote(node1, 1, ver0, true);
 
         Collection<GridCacheMvccCandidate> rmtCands = entry.remoteMvccSnapshot();
 
@@ -372,8 +373,9 @@ public class GridCacheMvccPartitionedSelfTest extends GridCommonAbstractTest {
     /**
      * Tests salvageRemote method
      */
+    @Test
     public void testSalvageRemote() {
-        GridCacheAdapter<String, String> cache = grid.internalCache();
+        GridCacheAdapter<String, String> cache = grid.internalCache(DEFAULT_CACHE_NAME);
 
         GridCacheTestEntryEx entry = new GridCacheTestEntryEx(cache.context(), "1");
 
@@ -386,12 +388,12 @@ public class GridCacheMvccPartitionedSelfTest extends GridCommonAbstractTest {
         GridCacheVersion ver5 = version(5);
         GridCacheVersion ver6 = version(6);
 
-        entry.addRemote(node1, 1, ver1, 0, false, true);
-        entry.addRemote(node1, 1, ver2, 0, false, true);
-        GridCacheMvccCandidate c3 = entry.addNearLocal(node1, 1, ver3, 0, true);
-        GridCacheMvccCandidate c4 = entry.addRemote(node1, 1, ver4, 0, false, true);
-        entry.addRemote(node1, 1, ver5, 0, false, true);
-        entry.addRemote(node1, 1, ver6, 0, false, true);
+        entry.addRemote(node1, 1, ver1, true);
+        entry.addRemote(node1, 1, ver2, true);
+        GridCacheMvccCandidate c3 = entry.addNearLocal(node1, 1, ver3, true);
+        GridCacheMvccCandidate c4 = entry.addRemote(node1, 1, ver4, true);
+        entry.addRemote(node1, 1, ver5, true);
+        entry.addRemote(node1, 1, ver6, true);
 
         Collection<GridCacheMvccCandidate> rmtCands = entry.remoteMvccSnapshot();
 
@@ -430,8 +432,9 @@ public class GridCacheMvccPartitionedSelfTest extends GridCommonAbstractTest {
     /**
      * @throws Exception If failed.
      */
+    @Test
     public void testNearRemoteConsistentOrdering0() throws Exception {
-        GridCacheAdapter<String, String> cache = grid.internalCache();
+        GridCacheAdapter<String, String> cache = grid.internalCache(DEFAULT_CACHE_NAME);
 
         GridCacheTestEntryEx entry = new GridCacheTestEntryEx(cache.context(), "1");
 
@@ -442,9 +445,9 @@ public class GridCacheMvccPartitionedSelfTest extends GridCommonAbstractTest {
         GridCacheVersion ver2 = version(20);
         GridCacheVersion ver3 = version(30);
 
-        entry.addRemote(node1, 1, ver1, 0, false, true);
-        entry.addNearLocal(node1, 1, nearVer2, 0, true);
-        entry.addRemote(node1, 1, ver3, 0, false, true);
+        entry.addRemote(node1, 1, ver1, true);
+        entry.addNearLocal(node1, 1, nearVer2, true);
+        entry.addRemote(node1, 1, ver3, true);
 
         Collection<GridCacheMvccCandidate> rmtCands = entry.remoteMvccSnapshot();
         Collection<GridCacheMvccCandidate> nearLocCands = entry.localCandidates();
@@ -468,8 +471,9 @@ public class GridCacheMvccPartitionedSelfTest extends GridCommonAbstractTest {
     /**
      * @throws Exception If failed.
      */
+    @Test
     public void testNearRemoteConsistentOrdering1() throws Exception {
-        GridCacheAdapter<String, String> cache = grid.internalCache();
+        GridCacheAdapter<String, String> cache = grid.internalCache(DEFAULT_CACHE_NAME);
 
         GridCacheTestEntryEx entry = new GridCacheTestEntryEx(cache.context(), "1");
 
@@ -480,9 +484,9 @@ public class GridCacheMvccPartitionedSelfTest extends GridCommonAbstractTest {
         GridCacheVersion ver2 = version(20);
         GridCacheVersion ver3 = version(30);
 
-        entry.addRemote(node1, 1, ver1, 0, false, true);
-        entry.addNearLocal(node1, 1, nearVer2, 0, true);
-        entry.addRemote(node1, 1, ver3, 0, false, true);
+        entry.addRemote(node1, 1, ver1, true);
+        entry.addNearLocal(node1, 1, nearVer2, true);
+        entry.addRemote(node1, 1, ver3, true);
 
         Collection<GridCacheMvccCandidate> rmtCands = entry.remoteMvccSnapshot();
         Collection<GridCacheMvccCandidate> nearLocCands = entry.localCandidates();
@@ -513,8 +517,9 @@ public class GridCacheMvccPartitionedSelfTest extends GridCommonAbstractTest {
     /**
      * @throws Exception If failed.
      */
+    @Test
     public void testNearRemoteConsistentOrdering2() throws Exception {
-        GridCacheAdapter<String, String> cache = grid.internalCache();
+        GridCacheAdapter<String, String> cache = grid.internalCache(DEFAULT_CACHE_NAME);
 
         GridCacheTestEntryEx entry = new GridCacheTestEntryEx(cache.context(), "1");
 
@@ -525,9 +530,9 @@ public class GridCacheMvccPartitionedSelfTest extends GridCommonAbstractTest {
         GridCacheVersion ver2 = version(20);
         GridCacheVersion ver3 = version(30);
 
-        entry.addRemote(node1, 1, ver1, 0, false, true);
-        entry.addNearLocal(node1, 1, nearVer2, 0, true);
-        entry.addRemote(node1, 1, ver3, 0, false, true);
+        entry.addRemote(node1, 1, ver1, true);
+        entry.addNearLocal(node1, 1, nearVer2, true);
+        entry.addRemote(node1, 1, ver3, true);
 
         Collection<GridCacheMvccCandidate> rmtCands = entry.remoteMvccSnapshot();
         Collection<GridCacheMvccCandidate> nearLocCands = entry.localCandidates();
@@ -558,8 +563,9 @@ public class GridCacheMvccPartitionedSelfTest extends GridCommonAbstractTest {
     /**
      * @throws Exception If failed.
      */
+    @Test
     public void testNearRemoteConsistentOrdering3() throws Exception {
-        GridCacheAdapter<String, String> cache = grid.internalCache();
+        GridCacheAdapter<String, String> cache = grid.internalCache(DEFAULT_CACHE_NAME);
 
         GridCacheTestEntryEx entry = new GridCacheTestEntryEx(cache.context(), "1");
 
@@ -570,9 +576,9 @@ public class GridCacheMvccPartitionedSelfTest extends GridCommonAbstractTest {
         GridCacheVersion ver2 = version(20);
         GridCacheVersion ver3 = version(30);
 
-        entry.addRemote(node1, 1, ver1, 0, false, true);
-        entry.addNearLocal(node1, 1, nearVer2, 0, true);
-        entry.addRemote(node1, 1, ver3, 0, false, true);
+        entry.addRemote(node1, 1, ver1, true);
+        entry.addNearLocal(node1, 1, nearVer2, true);
+        entry.addRemote(node1, 1, ver3, true);
 
         Collection<GridCacheMvccCandidate> rmtCands = entry.remoteMvccSnapshot();
         Collection<GridCacheMvccCandidate> nearLocCands = entry.localCandidates();
@@ -595,13 +601,402 @@ public class GridCacheMvccPartitionedSelfTest extends GridCommonAbstractTest {
     }
 
     /**
+     * @throws Exception If failed.
+     */
+    @Test
+    public void testSerializableReadLocksAdd() throws Exception {
+        GridCacheAdapter<String, String> cache = grid.internalCache(DEFAULT_CACHE_NAME);
+
+        GridCacheVersion serOrder1 = new GridCacheVersion(0, 10, 1);
+        GridCacheVersion serOrder2 = new GridCacheVersion(0, 20, 1);
+        GridCacheVersion serOrder3 = new GridCacheVersion(0, 15, 1);
+
+        {
+            GridCacheMvcc mvcc = new GridCacheMvcc(cache.context());
+
+            GridCacheTestEntryEx e = new GridCacheTestEntryEx(cache.context(), "1");
+
+            GridCacheMvccCandidate cand1 = addLocal(mvcc, e, version(1), serOrder1, true);
+
+            assertNotNull(cand1);
+
+            GridCacheMvccCandidate cand2 = addLocal(mvcc, e, version(2), serOrder2, true);
+
+            assertNotNull(cand2);
+
+            GridCacheMvccCandidate cand3 = addLocal(mvcc, e, version(3), serOrder3, false);
+
+            assertNull(cand3);
+
+            cand3 = addLocal(mvcc, e, version(3), serOrder3, true);
+
+            assertNotNull(cand3);
+        }
+
+        {
+            GridCacheMvcc mvcc = new GridCacheMvcc(cache.context());
+
+            GridCacheTestEntryEx e = new GridCacheTestEntryEx(cache.context(), "1");
+
+            GridCacheMvccCandidate cand1 = addLocal(mvcc, e, version(1), serOrder2, true);
+
+            assertNotNull(cand1);
+
+            GridCacheMvccCandidate cand2 = addLocal(mvcc, e, version(2), serOrder1, true);
+
+            assertNotNull(cand2);
+
+            GridCacheMvccCandidate cand3 = addLocal(mvcc, e, version(3), serOrder3, false);
+
+            assertNull(cand3);
+
+            cand3 = addLocal(mvcc, e, version(3), serOrder3, true);
+
+            assertNotNull(cand3);
+        }
+
+        {
+            GridCacheMvcc mvcc = new GridCacheMvcc(cache.context());
+
+            GridCacheTestEntryEx e = new GridCacheTestEntryEx(cache.context(), "1");
+
+            GridCacheMvccCandidate cand1 = addLocal(mvcc, e, version(1), serOrder3, false);
+
+            assertNotNull(cand1);
+
+            GridCacheMvccCandidate cand2 = addLocal(mvcc, e, version(2), serOrder2, true);
+
+            assertNotNull(cand2);
+
+            GridCacheMvccCandidate cand3 = addLocal(mvcc, e, version(3), serOrder1, true);
+
+            assertNull(cand3);
+
+            cand3 = addLocal(mvcc, e, version(3), serOrder1, false);
+
+            assertNull(cand3);
+        }
+    }
+
+    /**
+     * @throws Exception If failed.
+     */
+    @Test
+    public void testSerializableReadLocksAssign() throws Exception {
+        GridCacheAdapter<String, String> cache = grid.internalCache(DEFAULT_CACHE_NAME);
+
+        GridCacheVersion serOrder1 = new GridCacheVersion(0, 10, 1);
+        GridCacheVersion serOrder2 = new GridCacheVersion(0, 20, 1);
+        GridCacheVersion serOrder3 = new GridCacheVersion(0, 15, 1);
+
+        {
+            GridCacheMvcc mvcc = new GridCacheMvcc(cache.context());
+
+            GridCacheTestEntryEx e = new GridCacheTestEntryEx(cache.context(), "1");
+
+            GridCacheMvccCandidate cand1 = addLocal(mvcc, e, version(1), serOrder1, true);
+
+            assertNotNull(cand1);
+
+            GridCacheMvccCandidate cand2 = addLocal(mvcc, e, version(2), serOrder2, true);
+
+            assertNotNull(cand2);
+
+            GridCacheMvccCandidate cand3 = addLocal(mvcc, e, version(3), serOrder3, false);
+
+            assertNull(cand3);
+
+            cand3 = addLocal(mvcc, e, version(3), serOrder3, true);
+
+            assertNotNull(cand3);
+
+            CacheLockCandidates owners = mvcc.recheck();
+
+            assertNull(owners);
+
+            cand1.setReady();
+
+            owners = mvcc.recheck();
+
+            assertSame(cand1, owners);
+            checkCandidates(owners, cand1.version());
+
+            cand2.setReady();
+
+            owners = mvcc.recheck();
+            checkCandidates(owners, cand1.version(), cand2.version());
+
+            mvcc.remove(cand1.version());
+
+            owners = mvcc.recheck();
+            assertSame(cand2, owners);
+            checkCandidates(owners, cand2.version());
+        }
+
+        {
+            GridCacheMvcc mvcc = new GridCacheMvcc(cache.context());
+
+            GridCacheTestEntryEx e = new GridCacheTestEntryEx(cache.context(), "1");
+
+            GridCacheMvccCandidate cand1 = addLocal(mvcc, e, version(1), serOrder1, true);
+
+            assertNotNull(cand1);
+
+            GridCacheMvccCandidate cand2 = addLocal(mvcc, e, version(2), serOrder2, true);
+
+            assertNotNull(cand2);
+
+            GridCacheMvccCandidate cand3 = addLocal(mvcc, e, version(3), serOrder3, false);
+
+            assertNull(cand3);
+
+            cand3 = addLocal(mvcc, e, version(3), serOrder3, true);
+
+            assertNotNull(cand3);
+
+            CacheLockCandidates owners = mvcc.recheck();
+
+            assertNull(owners);
+
+            cand2.setReady();
+
+            owners = mvcc.recheck();
+
+            assertSame(cand2, owners);
+            checkCandidates(owners, cand2.version());
+
+            cand1.setReady();
+
+            owners = mvcc.recheck();
+            checkCandidates(owners, cand1.version(), cand2.version());
+
+            mvcc.remove(cand2.version());
+
+            owners = mvcc.recheck();
+            assertSame(cand1, owners);
+            checkCandidates(owners, cand1.version());
+        }
+    }
+
+    /**
+     * @param all Candidates list.
+     * @param vers Expected candidates.
+     */
+    private void checkCandidates(CacheLockCandidates all, GridCacheVersion...vers) {
+        assertNotNull(all);
+        assertEquals(vers.length, all.size());
+
+        for (GridCacheVersion ver : vers)
+            assertTrue(all.hasCandidate(ver));
+    }
+
+    /**
+     * @param mvcc Mvcc.
+     * @param e Entry.
+     * @param ver Version.
+     * @param serOrder Serializable tx version.
+     * @param read Read lock flag.
+     * @return Candidate.
+     */
+    @Nullable private GridCacheMvccCandidate addLocal(GridCacheMvcc mvcc,
+        GridCacheEntryEx e,
+        GridCacheVersion ver,
+        GridCacheVersion serOrder,
+        boolean read) {
+        return mvcc.addLocal(e,
+            nodeId,
+            null,
+            1,
+            ver,
+            0,
+            serOrder,
+            false,
+            true,
+            false,
+            true,
+            read
+        );
+    }
+
+    /**
+     * @throws Exception If failed.
+     */
+    @Test
+    public void testSerializableLocks() throws Exception {
+        checkSerializableAdd(false);
+
+        checkSerializableAdd(true);
+
+        checkNonSerializableConflict();
+    }
+
+    /**
+     * @throws Exception If failed.
+     */
+    private void checkNonSerializableConflict() throws Exception {
+        GridCacheAdapter<String, String> cache = grid.internalCache(DEFAULT_CACHE_NAME);
+
+        UUID nodeId = UUID.randomUUID();
+
+        GridCacheMvcc mvcc = new GridCacheMvcc(cache.context());
+
+        GridCacheTestEntryEx e = new GridCacheTestEntryEx(cache.context(), "1");
+
+        GridCacheMvccCandidate cand1 = mvcc.addLocal(e,
+            nodeId,
+            null,
+            1,
+            version(1),
+            0,
+            null,
+            false,
+            true,
+            false,
+            true,
+            false
+        );
+
+        assertNotNull(cand1);
+
+        GridCacheMvccCandidate cand2 = mvcc.addLocal(e,
+            nodeId,
+            null,
+            1,
+            version(2),
+            0,
+            new GridCacheVersion(0, 0, 1),
+            false,
+            true,
+            false,
+            true,
+            false
+        );
+
+        assertNull(cand2);
+    }
+
+    /**
+     * @param incVer If {@code true} lock version is incremented.
+     * @throws Exception If failed.
+     */
+    private void checkSerializableAdd(boolean incVer) throws Exception {
+        GridCacheAdapter<String, String> cache = grid.internalCache(DEFAULT_CACHE_NAME);
+
+        UUID nodeId = UUID.randomUUID();
+
+        GridCacheMvcc mvcc = new GridCacheMvcc(cache.context());
+
+        GridCacheTestEntryEx e = new GridCacheTestEntryEx(cache.context(), "1");
+
+        GridCacheVersion serOrder1 = new GridCacheVersion(0, 10, 1);
+        GridCacheVersion serOrder2 = new GridCacheVersion(0, 20, 1);
+        GridCacheVersion serOrder3 = new GridCacheVersion(0, 15, 1);
+        GridCacheVersion serOrder4 = new GridCacheVersion(0, 30, 1);
+
+        GridCacheVersion ver1 = incVer ? version(1) : version(4);
+        GridCacheVersion ver2 = incVer ? version(2) : version(3);
+        GridCacheVersion ver3 = incVer ? version(3) : version(2);
+        GridCacheVersion ver4 = incVer ? version(4) : version(1);
+
+        GridCacheMvccCandidate cand1 = mvcc.addLocal(e,
+            nodeId,
+            null,
+            1,
+            ver1,
+            0,
+            serOrder1,
+            false,
+            true,
+            false,
+            true,
+            false
+            );
+
+        assertNotNull(cand1);
+
+        GridCacheMvccCandidate cand2 = mvcc.addLocal(e,
+            nodeId,
+            null,
+            2,
+            ver2,
+            0,
+            serOrder2,
+            false,
+            true,
+            false,
+            true,
+            false
+        );
+
+        assertNotNull(cand2);
+
+        GridCacheMvccCandidate cand3 = mvcc.addLocal(e,
+            nodeId,
+            null,
+            3,
+            ver3,
+            0,
+            serOrder3,
+            false,
+            true,
+            false,
+            true,
+            false
+        );
+
+        assertNull(cand3);
+
+        GridCacheMvccCandidate cand4 = mvcc.addLocal(e,
+            nodeId,
+            null,
+            4,
+            ver4,
+            0,
+            serOrder4,
+            false,
+            true,
+            false,
+            true,
+            false
+        );
+
+        assertNotNull(cand4);
+
+        CacheLockCandidates owners = mvcc.recheck();
+
+        assertNull(owners);
+
+        cand2.setReady();
+
+        owners = mvcc.recheck();
+
+        assertNull(owners);
+
+        cand1.setReady();
+
+        owners = mvcc.recheck();
+
+        assertSame(cand1, owners);
+
+        owners = mvcc.recheck();
+
+        assertSame(cand1, owners);
+
+        mvcc.remove(cand1.version());
+
+        owners = mvcc.recheck();
+
+        assertSame(cand2, owners);
+    }
+
+    /**
      * Gets version based on order.
      *
      * @param order Order.
      * @return Version.
      */
     private GridCacheVersion version(int order) {
-        return new GridCacheVersion(1, 0, order, order, 0);
+        return new GridCacheVersion(1, order, order, 0);
     }
 
     /**

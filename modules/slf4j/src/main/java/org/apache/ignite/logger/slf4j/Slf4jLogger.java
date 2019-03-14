@@ -18,9 +18,14 @@
 package org.apache.ignite.logger.slf4j;
 
 import org.apache.ignite.IgniteLogger;
+import org.apache.ignite.internal.util.typedef.internal.S;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.Marker;
+import org.slf4j.MarkerFactory;
+
+import static org.apache.ignite.IgniteSystemProperties.IGNITE_QUIET;
 
 /**
  * SLF4J-based implementation for logging. This logger should be used
@@ -29,7 +34,7 @@ import org.slf4j.LoggerFactory;
  * Here is an example of configuring SLF4J logger in Ignite configuration Spring file:
  * <pre name="code" class="xml">
  *      &lt;property name="gridLogger"&gt;
- *          &lt;bean class="org.apache.ignite.logger.slf4j.GridSlf4jLogger"/&gt;
+ *          &lt;bean class="org.apache.ignite.logger.slf4j.Slf4jLogger"/&gt;
  *      &lt;/property&gt;
  * </pre>
  * <p>
@@ -41,11 +46,14 @@ public class Slf4jLogger implements IgniteLogger {
     /** SLF4J implementation proxy. */
     private final Logger impl;
 
+    /** Quiet flag. */
+    private final boolean quiet;
+
     /**
      * Creates new logger.
      */
     public Slf4jLogger() {
-        impl = LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
+        this(LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME));
     }
 
     /**
@@ -57,6 +65,8 @@ public class Slf4jLogger implements IgniteLogger {
         assert impl != null;
 
         this.impl = impl;
+
+        quiet = Boolean.valueOf(System.getProperty(IGNITE_QUIET, "true"));
     }
 
     /** {@inheritDoc} */
@@ -70,46 +80,66 @@ public class Slf4jLogger implements IgniteLogger {
 
     /** {@inheritDoc} */
     @Override public void trace(String msg) {
+        trace(null, msg);
+    }
+
+    /** {@inheritDoc} */
+    @Override public void trace(@Nullable String marker, String msg) {
         if (!impl.isTraceEnabled())
             warning("Logging at TRACE level without checking if TRACE level is enabled: " + msg);
 
-        impl.trace(msg);
+        impl.trace(getMarkerOrNull(marker), msg);
     }
 
     /** {@inheritDoc} */
     @Override public void debug(String msg) {
+        debug(null, msg);
+    }
+
+    /** {@inheritDoc} */
+    @Override public void debug(@Nullable String marker, String msg) {
         if (!impl.isDebugEnabled())
             warning("Logging at DEBUG level without checking if DEBUG level is enabled: " + msg);
 
-        impl.debug(msg);
+        impl.debug(getMarkerOrNull(marker), msg);
     }
 
     /** {@inheritDoc} */
     @Override public void info(String msg) {
-        if (!impl.isInfoEnabled())
-            warning("Logging at INFO level without checking if INFO level is enabled: " + msg);
-
-        impl.info(msg);
+        info(null, msg);
     }
 
     /** {@inheritDoc} */
-    @Override public void warning(String msg) {
-        impl.warn(msg);
+    @Override public void info(@Nullable String marker, String msg) {
+        if (!impl.isInfoEnabled())
+            warning("Logging at INFO level without checking if INFO level is enabled: " + msg);
+
+        impl.info(getMarkerOrNull(marker), msg);
     }
 
     /** {@inheritDoc} */
     @Override public void warning(String msg, @Nullable Throwable e) {
-        impl.warn(msg, e);
+        warning(null, msg, e);
     }
 
     /** {@inheritDoc} */
-    @Override public void error(String msg) {
-        impl.error(msg);
+    @Override public void warning(@Nullable String marker, String msg, @Nullable Throwable e) {
+        impl.warn(getMarkerOrNull(marker), msg, e);
     }
 
     /** {@inheritDoc} */
     @Override public void error(String msg, @Nullable Throwable e) {
-        impl.error(msg, e);
+        error(null, msg, e);
+    }
+
+    /** {@inheritDoc} */
+    @Override public void error(@Nullable String marker, String msg, @Nullable Throwable e) {
+        impl.error(getMarkerOrNull(marker), msg, e);
+    }
+
+    /** Returns Marker object for the specified name, or null if the name is null */
+    private Marker getMarkerOrNull(@Nullable String marker) {
+        return marker != null ? MarkerFactory.getMarker(marker) : null;
     }
 
     /** {@inheritDoc} */
@@ -129,11 +159,16 @@ public class Slf4jLogger implements IgniteLogger {
 
     /** {@inheritDoc} */
     @Override public boolean isQuiet() {
-        return !isInfoEnabled() && !isDebugEnabled();
+        return quiet;
     }
 
     /** {@inheritDoc} */
     @Nullable @Override public String fileName() {
         return null;
+    }
+
+    /** {@inheritDoc} */
+    @Override public String toString() {
+        return S.toString(Slf4jLogger.class, this);
     }
 }

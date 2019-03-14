@@ -17,12 +17,16 @@
 
 package org.apache.ignite.cache.query;
 
+import java.util.concurrent.TimeUnit;
 import javax.cache.Cache;
 import org.apache.ignite.IgniteCache;
-import org.apache.ignite.internal.processors.query.GridQueryProcessor;
+import org.apache.ignite.cache.CacheAtomicityMode;
+import org.apache.ignite.configuration.DataRegionConfiguration;
+import org.apache.ignite.internal.processors.query.QueryUtils;
 import org.apache.ignite.internal.util.tostring.GridToStringInclude;
 import org.apache.ignite.internal.util.typedef.internal.A;
 import org.apache.ignite.internal.util.typedef.internal.S;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * SQL Query.
@@ -36,12 +40,30 @@ public final class SqlQuery<K, V> extends Query<Cache.Entry<K, V>> {
     /** */
     private String type;
 
+    /** Table alias */
+    private String alias;
+
     /** SQL clause. */
     private String sql;
 
     /** Arguments. */
     @GridToStringInclude
     private Object[] args;
+
+    /** Timeout in millis. */
+    private int timeout;
+
+    /** */
+    private boolean distributedJoins;
+
+    /** */
+    private boolean replicatedOnly;
+
+    /** Partitions for query */
+    private int[] parts;
+
+    /** */
+    private Boolean dataPageScanEnabled;
 
     /**
      * Constructs query for the given type name and SQL query.
@@ -130,6 +152,49 @@ public final class SqlQuery<K, V> extends Query<Cache.Entry<K, V>> {
         return this;
     }
 
+    /**
+     * Sets table alias for type.
+     *
+     * @return Table alias.
+     */
+    public String getAlias() {
+        return alias;
+    }
+
+    /**
+     * Gets table alias for type.
+     *
+     * @param alias table alias for type that is used in query.
+     * @return {@code this} For chaining.
+     */
+    public SqlQuery<K, V> setAlias(String alias) {
+        this.alias = alias;
+
+        return this;
+    }
+
+    /**
+     * Gets the query execution timeout in milliseconds.
+     *
+     * @return Timeout value.
+     */
+    public int getTimeout() {
+        return timeout;
+    }
+
+    /**
+     * Sets the query execution timeout. Query will be automatically cancelled if the execution timeout is exceeded.
+     *
+     * @param timeout Timeout value. Zero value disables timeout.
+     * @param timeUnit Time granularity.
+     * @return {@code this} For chaining.
+     */
+    public SqlQuery<K, V> setTimeout(int timeout, TimeUnit timeUnit) {
+        this.timeout = QueryUtils.validateTimeout(timeout, timeUnit);
+
+        return this;
+    }
+
     /** {@inheritDoc} */
     @Override public SqlQuery<K, V> setPageSize(int pageSize) {
         return (SqlQuery<K, V>)super.setPageSize(pageSize);
@@ -142,9 +207,108 @@ public final class SqlQuery<K, V> extends Query<Cache.Entry<K, V>> {
 
     /**
      * @param type Type.
+     * @return {@code this} For chaining.
      */
-    public SqlQuery setType(Class<?> type) {
-        return setType(GridQueryProcessor.typeName(type));
+    public SqlQuery<K, V> setType(Class<?> type) {
+        return setType(QueryUtils.typeName(type));
+    }
+
+    /**
+     * Specify if distributed joins are enabled for this query.
+     *
+     * When disabled, join results will only contain colocated data (joins work locally).
+     * When enabled, joins work as expected, no matter how the data is distributed.
+     *
+     * @param distributedJoins Distributed joins enabled.
+     * @return {@code this} For chaining.
+     */
+    public SqlQuery<K, V> setDistributedJoins(boolean distributedJoins) {
+        this.distributedJoins = distributedJoins;
+
+        return this;
+    }
+
+    /**
+     * Check if distributed joins are enabled for this query.
+     *
+     * @return {@code true} If distributed joins enabled.
+     */
+    public boolean isDistributedJoins() {
+        return distributedJoins;
+    }
+
+    /**
+     * Specify if the query contains only replicated tables.
+     * This is a hint for potentially more effective execution.
+     *
+     * @param replicatedOnly The query contains only replicated tables.
+     * @return {@code this} For chaining.
+     * @deprecated No longer used as of Apache Ignite 2.8.
+     */
+    @Deprecated
+    public SqlQuery<K, V> setReplicatedOnly(boolean replicatedOnly) {
+        this.replicatedOnly = replicatedOnly;
+
+        return this;
+    }
+
+    /**
+     * Check is the query contains only replicated tables.
+     *
+     * @return {@code true} If the query contains only replicated tables.
+     * @deprecated No longer used as of Apache Ignite 2.8.
+     */
+    @Deprecated
+    public boolean isReplicatedOnly() {
+        return replicatedOnly;
+    }
+
+    /**
+     * Gets partitions for query, in ascending order.
+     */
+    @Nullable public int[] getPartitions() {
+        return parts;
+    }
+
+    /**
+     * Sets partitions for a query.
+     * The query will be executed only on nodes which are primary for specified partitions.
+     * <p>
+     * Note what passed array'll be sorted in place for performance reasons, if it wasn't sorted yet.
+     *
+     * @param parts Partitions.
+     * @return {@code this} for chaining.
+     */
+    public SqlQuery setPartitions(@Nullable int... parts) {
+        this.parts = prepare(parts);
+
+        return this;
+    }
+
+    /**
+     * Sets data page scan enabled or disabled.
+     *
+     * Makes sense only with enabled {@link DataRegionConfiguration#setPersistenceEnabled persistence}
+     * and generally improves performance of full-scan SQL queries.
+     * When enabled, result may miss some concurrent updates or produce duplicates for the same key.
+     * To avoid these issues use with {@link CacheAtomicityMode#TRANSACTIONAL_SNAPSHOT}.
+     *
+     * @param dataPageScanEnabled {@code true} If data page scan enabled, {@code false} if not, and {@code null} if not set.
+     * @return {@code this} for chaining.
+     */
+    public SqlQuery<K,V> setDataPageScanEnabled(Boolean dataPageScanEnabled) {
+        this.dataPageScanEnabled = dataPageScanEnabled;
+
+        return this;
+    }
+
+    /**
+     * Checks if data page scan enabled.
+     *
+     * @return {@code true} If data page scan enabled, {@code false} if not, and {@code null} if not set.
+     */
+    public Boolean isDataPageScanEnabled() {
+        return dataPageScanEnabled;
     }
 
     /** {@inheritDoc} */

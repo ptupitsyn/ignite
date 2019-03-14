@@ -19,11 +19,9 @@ package org.apache.ignite.internal.processors.cache.distributed.near;
 
 import org.apache.ignite.configuration.CacheConfiguration;
 import org.apache.ignite.configuration.IgniteConfiguration;
+import org.apache.ignite.configuration.NearCacheConfiguration;
 import org.apache.ignite.internal.processors.cache.GridCacheProcessor;
 import org.apache.ignite.internal.processors.cache.IgniteTxMultiThreadedAbstractTest;
-import org.apache.ignite.spi.discovery.tcp.TcpDiscoverySpi;
-import org.apache.ignite.spi.discovery.tcp.ipfinder.TcpDiscoveryIpFinder;
-import org.apache.ignite.spi.discovery.tcp.ipfinder.vm.TcpDiscoveryVmIpFinder;
 import org.apache.log4j.Level;
 
 import static org.apache.ignite.cache.CacheMode.PARTITIONED;
@@ -36,18 +34,9 @@ public class GridCachePartitionedTxMultiThreadedSelfTest extends IgniteTxMultiTh
     /** Cache debug flag. */
     private static final boolean CACHE_DEBUG = false;
 
-    /** */
-    private TcpDiscoveryIpFinder ipFinder = new TcpDiscoveryVmIpFinder(true);
-
     /** {@inheritDoc} */
-    @Override public void testOptimisticSerializableCommitMultithreaded() throws Exception {
-        fail("https://issues.apache.org/jira/browse/IGNITE-806");
-    }
-
-    /** {@inheritDoc} */
-    @SuppressWarnings({"ConstantConditions"})
-    @Override protected IgniteConfiguration getConfiguration(String gridName) throws Exception {
-        IgniteConfiguration c = super.getConfiguration(gridName);
+    @Override protected IgniteConfiguration getConfiguration(String igniteInstanceName) throws Exception {
+        IgniteConfiguration c = super.getConfiguration(igniteInstanceName);
 
         c.getTransactionConfiguration().setTxSerializableEnabled(true);
 
@@ -60,18 +49,21 @@ public class GridCachePartitionedTxMultiThreadedSelfTest extends IgniteTxMultiTh
 
         cc.setWriteSynchronizationMode(FULL_SYNC);
 
+        cc.setNearConfiguration(nearEnabled() ? new NearCacheConfiguration() : null);
+
         c.setCacheConfiguration(cc);
-
-        TcpDiscoverySpi disco = new TcpDiscoverySpi();
-
-        disco.setIpFinder(ipFinder);
-
-        c.setDiscoverySpi(disco);
 
         if (CACHE_DEBUG)
             resetLog4j(Level.DEBUG, true, GridCacheProcessor.class.getPackage().getName());
 
         return c;
+    }
+
+    /**
+     * @return {@code True} if near cache is enabled.
+     */
+    protected boolean nearEnabled() {
+        return true;
     }
 
     /** {@inheritDoc} */

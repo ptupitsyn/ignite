@@ -18,12 +18,10 @@
 package org.apache.ignite.internal.processors.cache.datastructures.replicated;
 
 import org.apache.ignite.cache.CacheAtomicityMode;
-import org.apache.ignite.cache.CacheMemoryMode;
 import org.apache.ignite.cache.CacheMode;
 import org.apache.ignite.internal.processors.cache.datastructures.GridCacheQueueApiSelfAbstractTest;
 
 import static org.apache.ignite.cache.CacheAtomicityMode.TRANSACTIONAL;
-import static org.apache.ignite.cache.CacheMemoryMode.OFFHEAP_TIERED;
 import static org.apache.ignite.cache.CacheMode.REPLICATED;
 
 /**
@@ -31,13 +29,13 @@ import static org.apache.ignite.cache.CacheMode.REPLICATED;
  */
 public class GridCacheReplicatedQueueApiSelfTest extends GridCacheQueueApiSelfAbstractTest {
     /** {@inheritDoc} */
-    @Override protected CacheMode collectionCacheMode() {
-        return REPLICATED;
+    @Override protected int gridCount() {
+        return 4;
     }
 
     /** {@inheritDoc} */
-    @Override protected CacheMemoryMode collectionMemoryMode() {
-        return OFFHEAP_TIERED;
+    @Override protected CacheMode collectionCacheMode() {
+        return REPLICATED;
     }
 
     /** {@inheritDoc} */

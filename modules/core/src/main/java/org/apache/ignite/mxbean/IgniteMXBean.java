@@ -17,7 +17,8 @@
 
 package org.apache.ignite.mxbean;
 
-import java.util.Collection;
+import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import javax.management.JMException;
 
@@ -51,6 +52,27 @@ public interface IgniteMXBean {
     public String getStartTimestampFormatted();
 
     /**
+     * Gets rebalance enabled flag.
+     *
+     * @return Rebalance enabled flag.
+     */
+    @MXBeanDescription("Rebalance enabled flag.")
+    public boolean isRebalanceEnabled();
+
+    /**
+     * Enable or disable cache partition rebalance per node.
+     *
+     * @param rebalanceEnabled If {@code true} then set rebalance to enabled state.
+     */
+    @MXBeanParametersDescriptions(
+        {
+            "Enable cache partitions rebalance on node.",
+            "Disable cache partitions rebalance on node."
+        }
+    )
+    public void rebalanceEnabled(boolean rebalanceEnabled);
+
+    /**
      * Gets string presentation of up-time for the kernal.
      *
      * @return String presentation of up-time for the kernal.
@@ -75,7 +97,31 @@ public interface IgniteMXBean {
     public long getUpTime();
 
     /**
-     * Gets a collection of formatted user-defined attributes added to this node.
+     * Gets long JVM pauses count.
+     *
+     * @return Long JVM pauses count.
+     */
+    @MXBeanDescription("Long JVM pauses count.")
+    public long getLongJVMPausesCount();
+
+    /**
+     * Gets long JVM pauses total duration.
+     *
+     * @return Long JVM pauses total duration.
+     */
+    @MXBeanDescription("Long JVM pauses total duration.")
+    public long getLongJVMPausesTotalDuration();
+
+    /**
+     * Gets long JVM pause last events.
+     *
+     * @return Long JVM pause last events.
+     */
+    @MXBeanDescription("Long JVM pause last events.")
+    public Map<Long, Long> getLongJVMPauseLastEvents();
+
+    /**
+     * Gets a list of formatted user-defined attributes added to this node.
      * <p>
      * Note that grid will add all System properties and environment properties
      * to grid node attributes also. SPIs may also add node attributes that are
@@ -84,7 +130,7 @@ public interface IgniteMXBean {
      * @return User defined attributes for this node.
      */
     @MXBeanDescription("Collection of formatted user-defined attributes added to this node.")
-    public Collection<String> getUserAttributesFormatted();
+    public List<String> getUserAttributesFormatted();
 
     /**
      * Gets a formatted instance of logger that is in grid.
@@ -149,7 +195,7 @@ public interface IgniteMXBean {
      *      with Ignite.
      */
     @MXBeanDescription("String representation of lifecycle beans.")
-    public Collection<String> getLifecycleBeansFormatted();
+    public List<String> getLifecycleBeansFormatted();
 
     /**
      * This method allows manually remove the checkpoint with given {@code key}.
@@ -184,6 +230,27 @@ public interface IgniteMXBean {
         "String presentation of node ID. See java.util.UUID class for details."
     )
     public boolean pingNode(String nodeId);
+
+    /**
+     * @param active Activate/DeActivate flag.
+     */
+    @MXBeanDescription(
+        "Execute activate or deactivate process."
+    )
+    @MXBeanParametersNames(
+        "active"
+    )
+    public void active(boolean active);
+
+    /**
+     * Checks if Ignite grid is active. If Ignite grid is not active return {@code False}.
+     *
+     * @return {@code True} if grid is active. {@code False} If grid is not active.
+     */
+    @MXBeanDescription(
+        "Checks Ignite grid is active or is not active."
+    )
+    public boolean active();
 
     /**
      * Makes the best attempt to undeploy a task from the whole grid. Note that this
@@ -290,14 +357,6 @@ public interface IgniteMXBean {
     public String getCollisionSpiFormatted();
 
     /**
-     * Gets a formatted instance of configured swapspace SPI implementations.
-     *
-     * @return Grid swapspace SPI implementations.
-     */
-    @MXBeanDescription("Formatted instance of configured swapspace SPI implementations.")
-    public String getSwapSpaceSpiFormatted();
-
-    /**
      * Gets a formatted instance of fully configured event SPI implementation.
      *
      * @return Grid event SPI implementation.
@@ -366,4 +425,74 @@ public interface IgniteMXBean {
      */
     @MXBeanDescription("Prints last suppressed errors.")
     public void printLastErrors();
+
+    /**
+     * Dumps debug information for the current node.
+     */
+    @MXBeanDescription("Dumps debug information for the current node.")
+    public void dumpDebugInfo();
+
+    /**
+     * Gets a formatted properties of current coordinator.
+     */
+    @MXBeanDescription("Formatted properties of current coordinator.")
+    public String getCurrentCoordinatorFormatted();
+
+    /**
+     * Gets a flag whether local node is in baseline. Returns false if baseline topology is not established.
+     *
+     * @return Return a baseline flag.
+     */
+    @MXBeanDescription("Baseline node flag.")
+    public boolean isNodeInBaseline();
+
+    /**
+     * Runs IO latency test against all remote server nodes in cluster.
+     *
+     * @param warmup Warmup duration in milliseconds.
+     * @param duration Test duration in milliseconds.
+     * @param threads Thread count.
+     * @param maxLatency Max latency in nanoseconds.
+     * @param rangesCnt Ranges count in resulting histogram.
+     * @param payLoadSize Payload size in bytes.
+     * @param procFromNioThread {@code True} to process requests in NIO threads.
+     */
+    @MXBeanDescription("Runs IO latency test against all remote server nodes in cluster.")
+    @MXBeanParametersNames(
+        {
+            "warmup",
+            "duration",
+            "threads",
+            "maxLatency",
+            "rangesCnt",
+            "payLoadSize",
+            "procFromNioThread"
+        }
+    )
+    @MXBeanParametersDescriptions(
+        {
+            "Warmup duration (millis).",
+            "Test duration (millis).",
+            "Threads count.",
+            "Maximum latency expected (nanos).",
+            "Ranges count for histogram.",
+            "Payload size (bytes).",
+            "Process requests in NIO-threads flag."
+        }
+    )
+    void runIoTest(
+        long warmup,
+        long duration,
+        int threads,
+        long maxLatency,
+        int rangesCnt,
+        int payLoadSize,
+        boolean procFromNioThread
+    );
+
+    /**
+     * Clears node local map.
+     */
+    @MXBeanDescription("Clears local node map.")
+    void clearNodeLocalMap();
 }

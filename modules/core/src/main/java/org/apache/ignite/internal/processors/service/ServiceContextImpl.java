@@ -23,6 +23,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutorService;
 import org.apache.ignite.internal.util.tostring.GridToStringExclude;
+import org.apache.ignite.internal.util.tostring.GridToStringInclude;
 import org.apache.ignite.internal.util.typedef.internal.S;
 import org.apache.ignite.services.Service;
 import org.apache.ignite.services.ServiceContext;
@@ -48,11 +49,8 @@ public class ServiceContextImpl implements ServiceContext {
     private final String cacheName;
 
     /** Affinity key. */
+    @GridToStringInclude
     private final Object affKey;
-
-    /** Service. */
-    @GridToStringExclude
-    private final Service svc;
 
     /** Executor service. */
     @GridToStringExclude
@@ -61,25 +59,29 @@ public class ServiceContextImpl implements ServiceContext {
     /** Methods reflection cache. */
     private final ConcurrentMap<GridServiceMethodReflectKey, Method> mtds = new ConcurrentHashMap<>();
 
+    /** Service. */
+    @GridToStringExclude
+    private volatile Service svc;
+
     /** Cancelled flag. */
     private volatile boolean isCancelled;
-
 
     /**
      * @param name Service name.
      * @param execId Execution ID.
      * @param cacheName Cache name.
      * @param affKey Affinity key.
-     * @param svc Service.
      * @param exe Executor service.
      */
-    ServiceContextImpl(String name, UUID execId, String cacheName, Object affKey, Service svc,
+    ServiceContextImpl(String name,
+        UUID execId,
+        String cacheName,
+        Object affKey,
         ExecutorService exe) {
         this.name = name;
         this.execId = execId;
         this.cacheName = cacheName;
         this.affKey = affKey;
-        this.svc = svc;
         this.exe = exe;
     }
 
@@ -104,15 +106,21 @@ public class ServiceContextImpl implements ServiceContext {
     }
 
     /** {@inheritDoc} */
-    @SuppressWarnings("unchecked")
     @Nullable @Override public <K> K affinityKey() {
         return (K)affKey;
     }
 
     /**
-     * @return Service instance.
+     * @param svc Service instance.
      */
-    Service service() {
+    void service(Service svc) {
+        this.svc = svc;
+    }
+
+    /**
+     * @return Service instance or {@code null} if service initialization is not finished yet.
+     */
+    @Nullable Service service() {
         return svc;
     }
 
@@ -133,8 +141,10 @@ public class ServiceContextImpl implements ServiceContext {
         if (mtd == null) {
             try {
                 mtd = svc.getClass().getMethod(key.methodName(), key.argTypes());
+
+                mtd.setAccessible(true);
             }
-            catch (NoSuchMethodException e) {
+            catch (NoSuchMethodException ignored) {
                 mtd = NULL_METHOD;
             }
 

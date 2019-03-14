@@ -30,19 +30,19 @@ import org.apache.ignite.IgniteTransactions;
 import org.apache.ignite.cache.CacheEntryProcessor;
 import org.apache.ignite.cache.CacheMode;
 import org.apache.ignite.cache.CacheWriteSynchronizationMode;
-import org.apache.ignite.cache.affinity.fair.FairAffinityFunction;
 import org.apache.ignite.cache.affinity.rendezvous.RendezvousAffinityFunction;
 import org.apache.ignite.configuration.CacheConfiguration;
 import org.apache.ignite.configuration.IgniteConfiguration;
+import org.apache.ignite.configuration.NearCacheConfiguration;
 import org.apache.ignite.internal.util.typedef.internal.S;
-import org.apache.ignite.spi.discovery.tcp.TcpDiscoverySpi;
-import org.apache.ignite.spi.discovery.tcp.ipfinder.TcpDiscoveryIpFinder;
-import org.apache.ignite.spi.discovery.tcp.ipfinder.vm.TcpDiscoveryVmIpFinder;
+import org.apache.ignite.testframework.MvccFeatureChecker;
 import org.apache.ignite.testframework.junits.common.GridCommonAbstractTest;
 import org.apache.ignite.transactions.Transaction;
 import org.apache.ignite.transactions.TransactionConcurrency;
 import org.apache.ignite.transactions.TransactionIsolation;
 import org.jetbrains.annotations.Nullable;
+import org.junit.Before;
+import org.junit.Test;
 
 import static org.apache.ignite.cache.CacheAtomicityMode.TRANSACTIONAL;
 import static org.apache.ignite.cache.CacheMode.PARTITIONED;
@@ -52,14 +52,12 @@ import static org.apache.ignite.cache.CacheWriteSynchronizationMode.PRIMARY_SYNC
 import static org.apache.ignite.transactions.TransactionConcurrency.OPTIMISTIC;
 import static org.apache.ignite.transactions.TransactionConcurrency.PESSIMISTIC;
 import static org.apache.ignite.transactions.TransactionIsolation.REPEATABLE_READ;
+import static org.apache.ignite.transactions.TransactionIsolation.SERIALIZABLE;
 
 /**
  *
  */
 public class CrossCacheTxRandomOperationsTest extends GridCommonAbstractTest {
-    /** */
-    private static final TcpDiscoveryIpFinder IP_FINDER = new TcpDiscoveryVmIpFinder(true);
-
     /** */
     private static final String CACHE1 = "cache1";
 
@@ -73,15 +71,25 @@ public class CrossCacheTxRandomOperationsTest extends GridCommonAbstractTest {
     private static final int KEY_RANGE = 1000;
 
     /** {@inheritDoc} */
-    @Override protected IgniteConfiguration getConfiguration(String gridName) throws Exception {
-        IgniteConfiguration cfg = super.getConfiguration(gridName);
+    @Override protected IgniteConfiguration getConfiguration(String igniteInstanceName) throws Exception {
+        IgniteConfiguration cfg = super.getConfiguration(igniteInstanceName);
 
-        ((TcpDiscoverySpi)cfg.getDiscoverySpi()).setIpFinder(IP_FINDER);
-
-        if (gridName.equals(getTestGridName(GRID_CNT - 1)))
+        if (igniteInstanceName.equals(getTestIgniteInstanceName(GRID_CNT - 1)))
             cfg.setClientMode(true);
 
         return cfg;
+    }
+
+    /** {@inheritDoc} */
+    @Override protected long getTestTimeout() {
+        return 6 * 60 * 1000;
+    }
+
+    /** */
+    @Before
+    public void beforeCrossCacheTxRandomOperationsTest() {
+        if (nearCacheEnabled())
+            MvccFeatureChecker.skipIfNotSupported(MvccFeatureChecker.Feature.NEAR_CACHE);
     }
 
     /** {@inheritDoc} */
@@ -93,67 +101,65 @@ public class CrossCacheTxRandomOperationsTest extends GridCommonAbstractTest {
         startGrid(GRID_CNT - 1);
     }
 
-    /** {@inheritDoc} */
-    @Override protected void afterTestsStopped() throws Exception {
-        super.afterTestsStopped();
-
-        stopAllGrids();
+    /**
+     * @return Test near cache flag.
+     */
+    protected boolean nearCacheEnabled() {
+        return false;
     }
 
     /**
      * @throws Exception If failed.
      */
+    @Test
     public void testTxOperations() throws Exception {
-        txOperations(PARTITIONED, FULL_SYNC, false, false);
+        txOperations(PARTITIONED, FULL_SYNC, false);
     }
 
     /**
      * @throws Exception If failed.
      */
+    @Test
     public void testCrossCacheTxOperations() throws Exception {
-        txOperations(PARTITIONED, FULL_SYNC, true, false);
+        txOperations(PARTITIONED, FULL_SYNC, true);
     }
 
     /**
      * @throws Exception If failed.
      */
+    @Test
     public void testCrossCacheTxOperationsPrimarySync() throws Exception {
-        txOperations(PARTITIONED, PRIMARY_SYNC, true, false);
+        txOperations(PARTITIONED, PRIMARY_SYNC, true);
     }
 
     /**
      * @throws Exception If failed.
      */
-    public void _testCrossCacheTxOperationsFairAffinity() throws Exception {
-        txOperations(PARTITIONED, FULL_SYNC, true, true);
-    }
-
-    /**
-     * @throws Exception If failed.
-     */
+    @Test
     public void testCrossCacheTxOperationsReplicated() throws Exception {
-        txOperations(REPLICATED, FULL_SYNC, true, false);
+        txOperations(REPLICATED, FULL_SYNC, true);
     }
 
     /**
      * @throws Exception If failed.
      */
+    @Test
     public void testCrossCacheTxOperationsReplicatedPrimarySync() throws Exception {
-        txOperations(REPLICATED, PRIMARY_SYNC, true, false);
+        txOperations(REPLICATED, PRIMARY_SYNC, true);
     }
 
     /**
      * @param name Cache name.
      * @param cacheMode Cache mode.
      * @param writeSync Write synchronization mode.
-     * @param fairAff If {@code true} uses {@link FairAffinityFunction}, otherwise {@link RendezvousAffinityFunction}.
+     * @param nearCache Near cache flag.
      * @return Cache configuration.
      */
-    private CacheConfiguration cacheConfiguration(String name,
+    protected CacheConfiguration cacheConfiguration(String name,
         CacheMode cacheMode,
         CacheWriteSynchronizationMode writeSync,
-        boolean fairAff) {
-        CacheConfiguration ccfg = new CacheConfiguration();
+        boolean nearCache) {
+        CacheConfiguration ccfg = new CacheConfiguration(DEFAULT_CACHE_NAME);
 
         ccfg.setName(name);
         ccfg.setCacheMode(cacheMode);
@@ -163,7 +169,10 @@ public class CrossCacheTxRandomOperationsTest extends GridCommonAbstractTest {
         if (cacheMode == PARTITIONED)
             ccfg.setBackups(1);
 
-        ccfg.setAffinity(fairAff ? new FairAffinityFunction() : new RendezvousAffinityFunction());
+        ccfg.setAffinity(new RendezvousAffinityFunction());
+
+        if (nearCache)
+            ccfg.setNearConfiguration(new NearCacheConfiguration());
 
         return ccfg;
     }
@@ -171,25 +180,52 @@ public class CrossCacheTxRandomOperationsTest extends GridCommonAbstractTest {
     /**
      * @param cacheMode Cache mode.
      * @param writeSync Write synchronization mode.
+     * @param nearCache Near cache flag.
+     * @param ignite Node to use.
+     * @param name Cache name.
+     */
+    protected void createCache(CacheMode cacheMode,
+        CacheWriteSynchronizationMode writeSync,
+        boolean nearCache,
+        Ignite ignite,
+        String name) {
+        ignite.createCache(cacheConfiguration(name, cacheMode, writeSync, nearCache));
+    }
+
+    /**
+     * @param cacheMode Cache mode.
+     * @param writeSync Write synchronization mode.
      * @param crossCacheTx If {@code true} uses cross cache transaction.
-     * @param fairAff If {@code true} uses {@link FairAffinityFunction}, otherwise {@link RendezvousAffinityFunction}.
      * @throws Exception If failed.
      */
     private void txOperations(CacheMode cacheMode,
         CacheWriteSynchronizationMode writeSync,
-        boolean crossCacheTx,
-        boolean fairAff) throws Exception {
+        boolean crossCacheTx) throws Exception {
+        if (MvccFeatureChecker.forcedMvcc()) {
+            assert !nearCacheEnabled();
+
+            if(writeSync != CacheWriteSynchronizationMode.FULL_SYNC)
+                return;
+        }
+
         Ignite ignite = ignite(0);
 
         try {
-            ignite.createCache(cacheConfiguration(CACHE1, cacheMode, writeSync, fairAff));
-            ignite.createCache(cacheConfiguration(CACHE2, cacheMode, writeSync, fairAff));
+            createCache(cacheMode, writeSync, nearCacheEnabled(), ignite, CACHE1);
+            createCache(cacheMode, writeSync, false, ignite, CACHE2);
 
             txOperations(PESSIMISTIC, REPEATABLE_READ, crossCacheTx, false);
             txOperations(PESSIMISTIC, REPEATABLE_READ, crossCacheTx, true);
 
-            txOperations(OPTIMISTIC, REPEATABLE_READ, crossCacheTx, false);
-            txOperations(OPTIMISTIC, REPEATABLE_READ, crossCacheTx, true);
+            if(!MvccFeatureChecker.forcedMvcc()) {
+                txOperations(OPTIMISTIC, REPEATABLE_READ, crossCacheTx, false);
+                txOperations(OPTIMISTIC, REPEATABLE_READ, crossCacheTx, true);
+
+                if (writeSync == FULL_SYNC) {
+                    txOperations(OPTIMISTIC, SERIALIZABLE, crossCacheTx, false);
+                    txOperations(OPTIMISTIC, SERIALIZABLE, crossCacheTx, true);
+                }
+            }
         }
         finally {
             ignite.destroyCache(CACHE1);
@@ -256,9 +292,18 @@ public class CrossCacheTxRandomOperationsTest extends GridCommonAbstractTest {
 
             boolean checkData = fullSync && !optimistic;
 
+            long stopTime = System.currentTimeMillis() + 10_000;
+
             for (int i = 0; i < 10_000; i++) {
-                if (i % 100 == 0)
+                if (i % 100 == 0) {
+                    if (System.currentTimeMillis() > stopTime) {
+                        log.info("Stop on timeout, iteration: " + i);
+
+                        break;
+                    }
+
                     log.info("Iteration: " + i);
+                }
 
                 boolean rollback = i % 10 == 0;
 

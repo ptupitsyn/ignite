@@ -17,19 +17,24 @@
 
 package org.apache.ignite.internal.processors.cache.transactions;
 
-import org.apache.ignite.IgniteException;
+import java.util.Collection;
+import org.apache.ignite.IgniteTransactions;
 import org.apache.ignite.configuration.TransactionConfiguration;
 import org.apache.ignite.internal.IgniteTransactionsEx;
 import org.apache.ignite.internal.processors.cache.GridCacheContext;
 import org.apache.ignite.internal.processors.cache.GridCacheSharedContext;
+import org.apache.ignite.internal.processors.cache.distributed.near.GridNearTxLocal;
+import org.apache.ignite.internal.util.typedef.F;
 import org.apache.ignite.internal.util.typedef.internal.A;
+import org.apache.ignite.internal.util.typedef.internal.CU;
+import org.apache.ignite.lang.IgniteClosure;
+import org.apache.ignite.lang.IgnitePredicate;
 import org.apache.ignite.transactions.Transaction;
 import org.apache.ignite.transactions.TransactionConcurrency;
+import org.apache.ignite.transactions.TransactionException;
 import org.apache.ignite.transactions.TransactionIsolation;
 import org.apache.ignite.transactions.TransactionMetrics;
 import org.jetbrains.annotations.Nullable;
-
-import static org.apache.ignite.transactions.TransactionIsolation.SERIALIZABLE;
 
 /**
  * Grid transactions implementation.
@@ -38,16 +43,21 @@ public class IgniteTransactionsImpl<K, V> implements IgniteTransactionsEx {
     /** Cache shared context. */
     private GridCacheSharedContext<K, V> cctx;
 
+    /** Label. */
+    private String lb;
+
     /**
      * @param cctx Cache shared context.
+     * @param lb Label.
      */
-    public IgniteTransactionsImpl(GridCacheSharedContext<K, V> cctx) {
+    public IgniteTransactionsImpl(GridCacheSharedContext<K, V> cctx, @Nullable String lb) {
         this.cctx = cctx;
+        this.lb = lb;
     }
 
     /** {@inheritDoc} */
     @Override public Transaction txStart() throws IllegalStateException {
-        TransactionConfiguration cfg = cctx.gridConfig().getTransactionConfiguration();
+        TransactionConfiguration cfg = CU.transactionConfiguration(null, cctx.kernalContext().config());
 
         return txStart0(
             cfg.getDefaultTxConcurrency(),
@@ -63,7 +73,7 @@ public class IgniteTransactionsImpl<K, V> implements IgniteTransactionsEx {
         A.notNull(concurrency, "concurrency");
         A.notNull(isolation, "isolation");
 
-        TransactionConfiguration cfg = cctx.gridConfig().getTransactionConfiguration();
+        TransactionConfiguration cfg = CU.transactionConfiguration(null, cctx.kernalContext().config());
 
         return txStart0(
             concurrency,
@@ -92,7 +102,7 @@ public class IgniteTransactionsImpl<K, V> implements IgniteTransactionsEx {
     }
 
     /** {@inheritDoc} */
-    @Override public IgniteInternalTx txStartEx(
+    @Override public GridNearTxLocal txStartEx(
         GridCacheContext ctx,
         TransactionConcurrency concurrency,
         TransactionIsolation isolation,
@@ -114,7 +124,7 @@ public class IgniteTransactionsImpl<K, V> implements IgniteTransactionsEx {
     }
 
     /** {@inheritDoc} */
-    @Override public IgniteInternalTx txStartEx(
+    @Override public GridNearTxLocal txStartEx(
         GridCacheContext ctx,
         TransactionConcurrency concurrency,
         TransactionIsolation isolation)
@@ -124,7 +134,7 @@ public class IgniteTransactionsImpl<K, V> implements IgniteTransactionsEx {
 
         checkTransactional(ctx);
 
-        TransactionConfiguration cfg = cctx.gridConfig().getTransactionConfiguration();
+        TransactionConfiguration cfg = CU.transactionConfiguration(ctx, cctx.kernalContext().config());
 
         return txStart0(concurrency,
             isolation,
@@ -141,19 +151,17 @@ public class IgniteTransactionsImpl<K, V> implements IgniteTransactionsEx {
      * @param sysCacheCtx System cache context.
      * @return Transaction.
      */
-    @SuppressWarnings("unchecked")
-    private IgniteInternalTx txStart0(TransactionConcurrency concurrency, TransactionIsolation isolation,
-        long timeout, int txSize, @Nullable GridCacheContext sysCacheCtx) {
+    private GridNearTxLocal txStart0(
+        TransactionConcurrency concurrency,
+        TransactionIsolation isolation,
+        long timeout,
+        int txSize,
+        @Nullable GridCacheContext sysCacheCtx
+    ) {
         cctx.kernalContext().gateway().readLock();
 
         try {
-            TransactionConfiguration cfg = cctx.gridConfig().getTransactionConfiguration();
-
-            if (!cfg.isTxSerializableEnabled() && isolation == SERIALIZABLE)
-                throw new IllegalArgumentException("SERIALIZABLE isolation level is disabled (to enable change " +
-                    "'txSerializableEnabled' configuration property)");
-
-            IgniteInternalTx tx = cctx.tm().userTx(sysCacheCtx);
+            GridNearTxLocal tx = cctx.tm().userTx(sysCacheCtx);
 
             if (tx != null)
                 throw new IllegalStateException("Failed to start new transaction " +
@@ -167,7 +175,9 @@ public class IgniteTransactionsImpl<K, V> implements IgniteTransactionsEx {
                 isolation,
                 timeout,
                 true,
-                txSize
+                null,
+                txSize,
+                lb
             );
 
             assert tx != null;
@@ -181,7 +191,7 @@ public class IgniteTransactionsImpl<K, V> implements IgniteTransactionsEx {
 
     /** {@inheritDoc} */
     @Nullable @Override public Transaction tx() {
-        IgniteInternalTx tx = cctx.tm().userTx();
+        GridNearTxLocal tx = cctx.tm().userTx();
 
         return tx != null ? tx.proxy() : null;
     }
@@ -196,11 +206,31 @@ public class IgniteTransactionsImpl<K, V> implements IgniteTransactionsEx {
         cctx.resetTxMetrics();
     }
 
+    /** {@inheritDoc} */
+    @Override public Collection<Transaction> localActiveTransactions() {
+        return F.viewReadOnly(cctx.tm().activeTransactions(), new IgniteClosure<IgniteInternalTx, Transaction>() {
+            @Override public Transaction apply(IgniteInternalTx tx) {
+                return ((GridNearTxLocal)tx).rollbackOnlyProxy();
+            }
+        }, new IgnitePredicate<IgniteInternalTx>() {
+            @Override public boolean apply(IgniteInternalTx tx) {
+                return tx.local() && tx.near();
+            }
+        });
+    }
+
+    /** {@inheritDoc} */
+    @Override public IgniteTransactions withLabel(String lb) {
+        A.notNull(lb, "label should not be empty.");
+
+        return new IgniteTransactionsImpl<>(cctx, lb);
+    }
+
     /**
      * @param ctx Cache context.
      */
     private void checkTransactional(GridCacheContext ctx) {
         if (!ctx.transactional())
-            throw new IgniteException("Failed to start transaction on non-transactional cache: " + ctx.name());
+            throw new TransactionException("Failed to start transaction on non-transactional cache: " + ctx.name());
     }
 }

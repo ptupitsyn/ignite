@@ -48,7 +48,7 @@ public class GridContinuousMessage implements Message {
     private UUID routineId;
 
     /** Optional message data. */
-    @GridToStringInclude
+    @GridToStringInclude(sensitive = true)
     @GridDirectTransient
     private Object data;
 
@@ -118,7 +118,6 @@ public class GridContinuousMessage implements Message {
     /**
      * @return Message data.
      */
-    @SuppressWarnings("unchecked")
     public <T> T data() {
         return msgs != null ? (T)msgs : (T)data;
     }
@@ -142,6 +141,11 @@ public class GridContinuousMessage implements Message {
      */
     public void dataBytes(byte[] dataBytes) {
         this.dataBytes = dataBytes;
+    }
+
+    /** {@inheritDoc} */
+    @Override public void onAckReceived() {
+        // No-op.
     }
 
     /**
@@ -256,7 +260,7 @@ public class GridContinuousMessage implements Message {
     }
 
     /** {@inheritDoc} */
-    @Override public byte directType() {
+    @Override public short directType() {
         return 61;
     }
 

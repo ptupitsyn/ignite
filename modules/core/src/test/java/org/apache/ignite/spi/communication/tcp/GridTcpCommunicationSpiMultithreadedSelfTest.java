@@ -19,6 +19,7 @@ package org.apache.ignite.spi.communication.tcp;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Deque;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -27,6 +28,7 @@ import java.util.Random;
 import java.util.UUID;
 import java.util.concurrent.BrokenBarrierException;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -37,6 +39,7 @@ import org.apache.ignite.cluster.ClusterNode;
 import org.apache.ignite.internal.IgniteInternalFuture;
 import org.apache.ignite.internal.IgniteInterruptedCheckedException;
 import org.apache.ignite.internal.managers.communication.GridIoMessageFactory;
+import org.apache.ignite.internal.processors.timeout.GridTimeoutProcessor;
 import org.apache.ignite.internal.util.lang.GridAbsPredicate;
 import org.apache.ignite.internal.util.nio.GridCommunicationClient;
 import org.apache.ignite.internal.util.nio.GridNioRecoveryDescriptor;
@@ -55,16 +58,16 @@ import org.apache.ignite.spi.communication.GridTestMessage;
 import org.apache.ignite.testframework.GridSpiTestContext;
 import org.apache.ignite.testframework.GridTestNode;
 import org.apache.ignite.testframework.GridTestUtils;
+import org.apache.ignite.testframework.junits.GridTestKernalContext;
 import org.apache.ignite.testframework.junits.IgniteTestResources;
 import org.apache.ignite.testframework.junits.spi.GridSpiAbstractTest;
-import org.jsr166.ConcurrentLinkedDeque8;
+import org.junit.Test;
 
 import static org.apache.ignite.internal.IgniteNodeAttributes.ATTR_MACS;
 
 /**
  * Class for multithreaded {@link TcpCommunicationSpi} test.
  */
-@SuppressWarnings({"JUnitAbstractTestClassNamingConvention"})
 public class GridTcpCommunicationSpiMultithreadedSelfTest extends GridSpiAbstractTest<TcpCommunicationSpi> {
     /** Connection idle timeout */
     public static final int IDLE_CONN_TIMEOUT = 2000;
@@ -90,6 +93,9 @@ public class GridTcpCommunicationSpiMultithreadedSelfTest extends GridSpiAbstrac
     /** Initialized nodes */
     private static final List<ClusterNode> nodes = new ArrayList<>();
 
+    /** */
+    private static GridTimeoutProcessor timeoutProcessor;
+
     /** Flag indicating if listener should reject messages. */
     private static boolean reject;
 
@@ -104,7 +110,7 @@ public class GridTcpCommunicationSpiMultithreadedSelfTest extends GridSpiAbstrac
     /**
      * @param useShmem Use shared mem.
      */
-    protected GridTcpCommunicationSpiMultithreadedSelfTest(boolean useShmem) {
+    GridTcpCommunicationSpiMultithreadedSelfTest(boolean useShmem) {
         super(false);
 
         this.useShmem = useShmem;
@@ -120,13 +126,12 @@ public class GridTcpCommunicationSpiMultithreadedSelfTest extends GridSpiAbstrac
     /**
      * Accumulating listener.
      */
-    @SuppressWarnings({"deprecation"})
     private static class MessageListener implements CommunicationListener<Message> {
         /** Node id of local node. */
         private final UUID locNodeId;
 
         /** Received messages by node. */
-        private ConcurrentLinkedDeque8<GridTestMessage> rcvdMsgs = new ConcurrentLinkedDeque8<>();
+        private Deque<GridTestMessage> rcvdMsgs = new ConcurrentLinkedDeque<>();
 
         /** Count of messages received from remote nodes */
         private AtomicInteger rmtMsgCnt = new AtomicInteger();
@@ -168,7 +173,7 @@ public class GridTcpCommunicationSpiMultithreadedSelfTest extends GridSpiAbstrac
         /**
          * @return Queue containing received messages in receive order.
          */
-        public ConcurrentLinkedDeque8<GridTestMessage> receivedMsgs() {
+        public Deque<GridTestMessage> receivedMsgs() {
             return rcvdMsgs;
         }
 
@@ -181,13 +186,14 @@ public class GridTcpCommunicationSpiMultithreadedSelfTest extends GridSpiAbstrac
 
         /** {@inheritDoc} */
         @Override public String toString() {
-            return "MessageListener [nodeId=" + locNodeId + ", rcvd=" + rcvdMsgs.sizex() + ']';
+            return "MessageListener [nodeId=" + locNodeId + ", rcvd=" + rcvdMsgs.size() + ']';
         }
     }
 
     /**
      * @throws Exception If failed.
      */
+    @Test
     public void testSendToRandomNodesMultithreaded() throws Exception {
         info(">>> Starting send to random nodes multithreaded test. <<<");
 
@@ -195,7 +201,7 @@ public class GridTcpCommunicationSpiMultithreadedSelfTest extends GridSpiAbstrac
 
         assertEquals("Invalid listener count", getSpiCount(), lsnrs.size());
 
-        final ConcurrentMap<UUID, ConcurrentLinkedDeque8<GridTestMessage>> msgs = new ConcurrentHashMap<>();
+        final ConcurrentMap<UUID, Deque<GridTestMessage>> msgs = new ConcurrentHashMap<>();
 
         final int iterationCnt = 5000;
 
@@ -216,11 +222,10 @@ public class GridTcpCommunicationSpiMultithreadedSelfTest extends GridSpiAbstrac
 
                         spis.get(from.id()).sendMessage(to, msg);
 
-                        ConcurrentLinkedDeque8<GridTestMessage> queue = msgs.get(to.id());
+                        Deque<GridTestMessage> queue = msgs.get(to.id());
 
                         if (queue == null) {
-                            ConcurrentLinkedDeque8<GridTestMessage> old = msgs.putIfAbsent(to.id(),
-                                queue = new ConcurrentLinkedDeque8<>());
+                            Deque<GridTestMessage> old = msgs.putIfAbsent(to.id(), queue = new ConcurrentLinkedDeque<>());
 
                             if (old != null)
                                 queue = old;
@@ -246,25 +251,25 @@ public class GridTcpCommunicationSpiMultithreadedSelfTest extends GridSpiAbstrac
         U.sleep(IDLE_CONN_TIMEOUT * 2);
 
         // Now validate all sent and received messages.
-        for (Entry<UUID, ConcurrentLinkedDeque8<GridTestMessage>> e : msgs.entrySet()) {
+        for (Entry<UUID, Deque<GridTestMessage>> e : msgs.entrySet()) {
             UUID to = e.getKey();
 
-            ConcurrentLinkedDeque8<GridTestMessage> sent = e.getValue();
+            Deque<GridTestMessage> sent = e.getValue();
 
             MessageListener lsnr = lsnrs.get(to);
 
-            ConcurrentLinkedDeque8<GridTestMessage> rcvd = lsnr.receivedMsgs();
+            Deque<GridTestMessage> rcvd = lsnr.receivedMsgs();
 
             info(">>> Node " + to + " received " + lsnr.remoteMessageCount() + " remote messages of " +
-                rcvd.sizex() + " total");
+                rcvd.size() + " total");
 
-            for (int i = 0; i < 3 && sent.sizex() != rcvd.sizex(); i++) {
-                info("Check failed for node [node=" + to + ", sent=" + sent.sizex() + ", rcvd=" + rcvd.sizex() + ']');
+            for (int i = 0; i < 3 && sent.size() != rcvd.size(); i++) {
+                info("Check failed for node [node=" + to + ", sent=" + sent.size() + ", rcvd=" + rcvd.size() + ']');
 
                 U.sleep(2000);
             }
 
-            assertEquals("Sent and received messages count mismatch.", sent.sizex(), rcvd.sizex());
+            assertEquals("Sent and received messages count mismatch.", sent.size(), rcvd.size());
 
             assertTrue("Listener did not receive some messages: " + lsnr, rcvd.containsAll(sent));
             assertTrue("Listener received extra messages: " + lsnr, sent.containsAll(rcvd));
@@ -274,6 +279,7 @@ public class GridTcpCommunicationSpiMultithreadedSelfTest extends GridSpiAbstrac
     /**
      * @throws Exception If failed.
      */
+    @Test
     public void testFlowSend() throws Exception {
         reject = true;
 
@@ -365,17 +371,17 @@ public class GridTcpCommunicationSpiMultithreadedSelfTest extends GridSpiAbstrac
             Collection<? extends GridNioSession> sessions = GridTestUtils.getFieldValue(srv, "sessions");
 
             for (GridNioSession ses : sessions) {
-                final GridNioRecoveryDescriptor snd = ses.recoveryDescriptor();
+                final GridNioRecoveryDescriptor snd = ses.outRecoveryDescriptor();
 
                 if (snd != null) {
                     GridTestUtils.waitForCondition(new GridAbsPredicate() {
                         @Override public boolean apply() {
-                            return snd.messagesFutures().isEmpty();
+                            return snd.messagesRequests().isEmpty();
                         }
                     }, 10_000);
 
-                    assertEquals("Unexpected messages: " + snd.messagesFutures(), 0,
-                        snd.messagesFutures().size());
+                    assertEquals("Unexpected messages: " + snd.messagesRequests(), 0,
+                        snd.messagesRequests().size());
                 }
             }
         }
@@ -384,6 +390,7 @@ public class GridTcpCommunicationSpiMultithreadedSelfTest extends GridSpiAbstrac
     /**
      * @throws Exception If failed.
      */
+    @Test
     public void testPassThroughPerformance() throws Exception {
         reject = true;
 
@@ -463,8 +470,6 @@ public class GridTcpCommunicationSpiMultithreadedSelfTest extends GridSpiAbstrac
 
     /** {@inheritDoc} */
     @Override protected void beforeTestsStarted() throws Exception {
-        U.setWorkDirectory(null, U.getIgniteHome());
-
         spis.clear();
         nodes.clear();
         spiRsrcs.clear();
@@ -472,10 +477,16 @@ public class GridTcpCommunicationSpiMultithreadedSelfTest extends GridSpiAbstrac
 
         Map<ClusterNode, GridSpiTestContext> ctxs = new HashMap<>();
 
+        timeoutProcessor = new GridTimeoutProcessor(new GridTestKernalContext(log));
+
+        timeoutProcessor.start();
+
+        timeoutProcessor.onKernalStart(true);
+
         for (int i = 0; i < getSpiCount(); i++) {
             CommunicationSpi<Message> spi = newCommunicationSpi();
 
-            GridTestUtils.setFieldValue(spi, IgniteSpiAdapter.class, "gridName", "grid-" + i);
+            GridTestUtils.setFieldValue(spi, IgniteSpiAdapter.class, "igniteInstanceName", "grid-" + i);
 
             IgniteTestResources rsrcs = new IgniteTestResources();
 
@@ -484,6 +495,8 @@ public class GridTcpCommunicationSpiMultithreadedSelfTest extends GridSpiAbstrac
             node.order(i);
 
             GridSpiTestContext ctx = initSpiContext();
+
+            ctx.timeoutProcessor(timeoutProcessor);
 
             ctx.setLocalNode(node);
 
@@ -506,7 +519,7 @@ public class GridTcpCommunicationSpiMultithreadedSelfTest extends GridSpiAbstrac
 
             nodes.add(node);
 
-            spi.spiStart(getTestGridName() + (i + 1));
+            spi.spiStart(getTestIgniteInstanceName() + (i + 1));
 
             spis.put(rsrcs.getNodeId(), spi);
 
@@ -536,11 +549,18 @@ public class GridTcpCommunicationSpiMultithreadedSelfTest extends GridSpiAbstrac
         }
 
         for (CommunicationSpi spi : spis.values()) {
-            final ConcurrentMap<UUID, GridCommunicationClient> clients = U.field(spi, "clients");
+            final ConcurrentMap<UUID, GridCommunicationClient[]> clients = U.field(spi, "clients");
 
             assert GridTestUtils.waitForCondition(new PA() {
                 @Override public boolean apply() {
-                    return clients.isEmpty();
+                    for (GridCommunicationClient[] clients0 : clients.values()) {
+                        for (GridCommunicationClient client : clients0) {
+                            if (client != null)
+                                return false;
+                        }
+                    }
+
+                    return true;
                 }
             }, getTestTimeout()) : "Clients: " + clients;
         }
@@ -548,6 +568,14 @@ public class GridTcpCommunicationSpiMultithreadedSelfTest extends GridSpiAbstrac
 
     /** {@inheritDoc} */
     @Override protected void afterTestsStopped() throws Exception {
+        if (timeoutProcessor != null) {
+            timeoutProcessor.onKernalStop(true);
+
+            timeoutProcessor.stop(true);
+
+            timeoutProcessor = null;
+        }
+
         for (CommunicationSpi<Message> spi : spis.values()) {
             spi.onContextDestroyed();
 

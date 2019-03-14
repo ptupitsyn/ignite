@@ -26,9 +26,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.Executor;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.LongAdder;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -54,22 +57,27 @@ import org.apache.ignite.internal.GridKernalContext;
 import org.apache.ignite.internal.GridTaskSessionImpl;
 import org.apache.ignite.internal.GridTaskSessionRequest;
 import org.apache.ignite.internal.SkipDaemon;
+import org.apache.ignite.internal.cluster.ClusterTopologyCheckedException;
 import org.apache.ignite.internal.managers.collision.GridCollisionJobContextAdapter;
 import org.apache.ignite.internal.managers.communication.GridIoManager;
 import org.apache.ignite.internal.managers.communication.GridMessageListener;
 import org.apache.ignite.internal.managers.deployment.GridDeployment;
 import org.apache.ignite.internal.managers.eventstorage.GridLocalEventListener;
 import org.apache.ignite.internal.processors.GridProcessorAdapter;
+import org.apache.ignite.internal.processors.affinity.AffinityTopologyVersion;
+import org.apache.ignite.internal.processors.cache.GridCacheContext;
+import org.apache.ignite.internal.processors.cache.distributed.dht.topology.GridDhtLocalPartition;
+import org.apache.ignite.internal.processors.cache.distributed.dht.GridReservable;
 import org.apache.ignite.internal.processors.jobmetrics.GridJobMetricsSnapshot;
 import org.apache.ignite.internal.util.GridAtomicLong;
 import org.apache.ignite.internal.util.GridBoundedConcurrentLinkedHashMap;
 import org.apache.ignite.internal.util.GridBoundedConcurrentLinkedHashSet;
 import org.apache.ignite.internal.util.GridConcurrentHashSet;
 import org.apache.ignite.internal.util.GridSpinReadWriteLock;
-import org.apache.ignite.internal.util.typedef.CI1;
 import org.apache.ignite.internal.util.typedef.F;
 import org.apache.ignite.internal.util.typedef.P1;
 import org.apache.ignite.internal.util.typedef.X;
+import org.apache.ignite.internal.util.typedef.internal.LT;
 import org.apache.ignite.internal.util.typedef.internal.S;
 import org.apache.ignite.internal.util.typedef.internal.U;
 import org.apache.ignite.lang.IgniteBiTuple;
@@ -78,9 +86,7 @@ import org.apache.ignite.lang.IgniteUuid;
 import org.apache.ignite.marshaller.Marshaller;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jsr166.ConcurrentHashMap8;
 import org.jsr166.ConcurrentLinkedHashMap;
-import org.jsr166.LongAdder8;
 
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static org.apache.ignite.IgniteSystemProperties.IGNITE_JOBS_HISTORY_SIZE;
@@ -95,6 +101,7 @@ import static org.apache.ignite.internal.GridTopic.TOPIC_JOB_SIBLINGS;
 import static org.apache.ignite.internal.GridTopic.TOPIC_TASK;
 import static org.apache.ignite.internal.managers.communication.GridIoPolicy.MANAGEMENT_POOL;
 import static org.apache.ignite.internal.managers.communication.GridIoPolicy.SYSTEM_POOL;
+import static org.apache.ignite.internal.processors.cache.distributed.dht.topology.GridDhtPartitionState.OWNING;
 import static org.jsr166.ConcurrentLinkedHashMap.QueuePolicy.PER_SEGMENT_Q;
 
 /**
@@ -119,13 +126,13 @@ public class GridJobProcessor extends GridProcessorAdapter {
 
     /** */
     private final ConcurrentMap<IgniteUuid, GridJobWorker> cancelledJobs =
-        new ConcurrentHashMap8<>();
+        new ConcurrentHashMap<>();
 
     /** */
     private final Collection<IgniteUuid> heldJobs = new GridConcurrentHashSet<>();
 
     /** If value is {@code true}, job was cancelled from future. */
-    private final GridBoundedConcurrentLinkedHashMap<IgniteUuid, Boolean> cancelReqs =
+    private volatile GridBoundedConcurrentLinkedHashMap<IgniteUuid, Boolean> cancelReqs =
         new GridBoundedConcurrentLinkedHashMap<>(FINISHED_JOBS_COUNT,
             FINISHED_JOBS_COUNT < 128 ? FINISHED_JOBS_COUNT : 128,
             0.75f, 16);
@@ -149,19 +156,19 @@ public class GridJobProcessor extends GridProcessorAdapter {
     private final GridLocalEventListener discoLsnr;
 
     /** Needed for statistics. */
-    private final LongAdder8 canceledJobsCnt = new LongAdder8();
+    private final LongAdder canceledJobsCnt = new LongAdder();
 
     /** Needed for statistics. */
-    private final LongAdder8 finishedJobsCnt = new LongAdder8();
+    private final LongAdder finishedJobsCnt = new LongAdder();
 
     /** Needed for statistics. */
-    private final LongAdder8 startedJobsCnt = new LongAdder8();
+    private final LongAdder startedJobsCnt = new LongAdder();
 
     /** Needed for statistics. */
-    private final LongAdder8 rejectedJobsCnt = new LongAdder8();
+    private final LongAdder rejectedJobsCnt = new LongAdder();
 
     /** Total job execution time (unaccounted for in metrics). */
-    private final LongAdder8 finishedJobsTime = new LongAdder8();
+    private final LongAdder finishedJobsTime = new LongAdder();
 
     /** Maximum job execution time for finished jobs. */
     private final GridAtomicLong maxFinishedJobsTime = new GridAtomicLong();
@@ -202,7 +209,7 @@ public class GridJobProcessor extends GridProcessorAdapter {
     };
 
     /** Current session. */
-    private final ThreadLocal<ComputeTaskSession> currentSess = new ThreadLocal<>();
+    private final ThreadLocal<ComputeTaskSession> currSess = new ThreadLocal<>();
 
     /**
      * @param ctx Kernal context.
@@ -217,7 +224,7 @@ public class GridJobProcessor extends GridProcessorAdapter {
 
         metricsUpdateFreq = ctx.config().getMetricsUpdateFrequency();
 
-        activeJobs = jobAlwaysActivate ? new ConcurrentHashMap8<IgniteUuid, GridJobWorker>() :
+        activeJobs = jobAlwaysActivate ? new ConcurrentHashMap<IgniteUuid, GridJobWorker>() :
             new JobsMap(1024, 0.75f, 256);
 
         passiveJobs = jobAlwaysActivate ? null : new JobsMap(1024, 0.75f, 256);
@@ -256,7 +263,9 @@ public class GridJobProcessor extends GridProcessorAdapter {
         // Clear collections.
         activeJobs.clear();
         cancelledJobs.clear();
-        cancelReqs.clear();
+        cancelReqs = new GridBoundedConcurrentLinkedHashMap<>(FINISHED_JOBS_COUNT,
+            FINISHED_JOBS_COUNT < 128 ? FINISHED_JOBS_COUNT : 128,
+            0.75f, 16);
 
         if (log.isDebugEnabled())
             log.debug("Job processor stopped.");
@@ -403,7 +412,7 @@ public class GridJobProcessor extends GridProcessorAdapter {
         boolean loc = ctx.localNodeId().equals(taskNode.id()) && !ctx.config().isMarshalLocalJobs();
 
         GridTaskSessionRequest req = new GridTaskSessionRequest(ses.getId(), ses.getJobId(),
-            loc ? null : marsh.marshal(attrs), attrs);
+            loc ? null : U.marshal(marsh, attrs), attrs);
 
         Object topic = TOPIC_TASK.topic(ses.getJobId(), ctx.discovery().localNode().id());
 
@@ -422,7 +431,8 @@ public class GridJobProcessor extends GridProcessorAdapter {
      * @return Siblings.
      * @throws IgniteCheckedException If failed.
      */
-    public Collection<ComputeJobSibling> requestJobSiblings(final ComputeTaskSession ses) throws IgniteCheckedException {
+    public Collection<ComputeJobSibling> requestJobSiblings(
+        final ComputeTaskSession ses) throws IgniteCheckedException {
         assert ses != null;
 
         final UUID taskNodeId = ses.getTaskNodeId();
@@ -433,13 +443,13 @@ public class GridJobProcessor extends GridProcessorAdapter {
             throw new IgniteCheckedException("Node that originated task execution has left grid: " + taskNodeId);
 
         // Tuple: error message-response.
-        final IgniteBiTuple<String, GridJobSiblingsResponse> t = F.t2();
+        final IgniteBiTuple<String, GridJobSiblingsResponse> t = new IgniteBiTuple<>();
 
         final Lock lock = new ReentrantLock();
         final Condition cond = lock.newCondition();
 
         GridMessageListener msgLsnr = new GridMessageListener() {
-            @Override public void onMessage(UUID nodeId, Object msg) {
+            @Override public void onMessage(UUID nodeId, Object msg, byte plc) {
                 String err = null;
                 GridJobSiblingsResponse res = null;
 
@@ -448,18 +458,19 @@ public class GridJobProcessor extends GridProcessorAdapter {
                 else if (!nodeId.equals(taskNodeId))
                     err = "Received job siblings response from unexpected node [taskNodeId=" + taskNodeId +
                         ", nodeId=" + nodeId + ']';
-                else
+                else {
                     // Sender and message type are fine.
                     res = (GridJobSiblingsResponse)msg;
 
-                if (res.jobSiblings() == null) {
-                    try {
-                        res.unmarshalSiblings(marsh);
-                    }
-                    catch (IgniteCheckedException e) {
-                        U.error(log, "Failed to unmarshal job siblings.", e);
+                    if (res.jobSiblings() == null) {
+                        try {
+                            res.unmarshalSiblings(marsh);
+                        }
+                        catch (IgniteCheckedException e) {
+                            U.error(log, "Failed to unmarshal job siblings.", e);
 
-                        err = e.getMessage();
+                            err = e.getMessage();
+                        }
                     }
                 }
 
@@ -512,10 +523,10 @@ public class GridJobProcessor extends GridProcessorAdapter {
             ctx.io().addMessageListener(topic, msgLsnr);
 
             // 3. Send message.
-            ctx.io().send(taskNode, TOPIC_JOB_SIBLINGS,
+            ctx.io().sendToGridTopic(taskNode, TOPIC_JOB_SIBLINGS,
                 new GridJobSiblingsRequest(ses.getId(),
                     loc ? topic : null,
-                    loc ? null : marsh.marshal(topic)),
+                    loc ? null : U.marshal(marsh, topic)),
                 SYSTEM_POOL);
 
             // 4. Listen to discovery events.
@@ -608,19 +619,15 @@ public class GridJobProcessor extends GridProcessorAdapter {
             // If we don't have jobId then we have to iterate
             if (jobId == null) {
                 if (!jobAlwaysActivate) {
-                    // If job gets removed from passive jobs it never gets activated.
-                    F.forEach(passiveJobs.values(), new CI1<GridJobWorker>() {
-                        @Override public void apply(GridJobWorker job) {
+                    for (GridJobWorker job : passiveJobs.values()) {
+                        if (idsMatch.apply(job))
                             cancelPassiveJob(job);
-                        }
-                    }, idsMatch);
-                }
-
-                F.forEach(activeJobs.values(), new CI1<GridJobWorker>() {
-                    @Override public void apply(GridJobWorker job) {
-                        cancelActiveJob(job, sys);
                     }
-                }, idsMatch);
+                }
+                for (GridJobWorker job : activeJobs.values()) {
+                    if (idsMatch.apply(job))
+                        cancelActiveJob(job, sys);
+                }
             }
             else {
                 if (!jobAlwaysActivate) {
@@ -633,7 +640,7 @@ public class GridJobProcessor extends GridProcessorAdapter {
                 GridJobWorker activeJob = activeJobs.get(jobId);
 
                 if (activeJob != null && idsMatch.apply(activeJob))
-                    cancelActiveJob(activeJob,  sys);
+                    cancelActiveJob(activeJob, sys);
             }
         }
         finally {
@@ -748,7 +755,7 @@ public class GridJobProcessor extends GridProcessorAdapter {
                             void advance() {
                                 assert w == null;
 
-                                while(iter.hasNext()) {
+                                while (iter.hasNext()) {
                                     GridJobWorker w0 = iter.next();
 
                                     assert !w0.isInternal();
@@ -809,7 +816,7 @@ public class GridJobProcessor extends GridProcessorAdapter {
                             void advance() {
                                 assert w == null;
 
-                                while(iter.hasNext()) {
+                                while (iter.hasNext()) {
                                     GridJobWorker w0 = iter.next();
 
                                     assert !w0.isInternal();
@@ -830,7 +837,8 @@ public class GridJobProcessor extends GridProcessorAdapter {
                                 if (w == null)
                                     throw new NoSuchElementException();
 
-                                org.apache.ignite.spi.collision.CollisionJobContext ret = new CollisionJobContext(w, false);
+                                org.apache.ignite.spi.collision.CollisionJobContext ret =
+                                    new CollisionJobContext(w, false);
 
                                 w = null;
 
@@ -850,8 +858,7 @@ public class GridJobProcessor extends GridProcessorAdapter {
                     }
                 });
 
-            if (metricsUpdateFreq > -1L)
-                updateJobMetrics();
+            updateJobMetrics();
         }
         finally {
             handlingCollision.set(Boolean.FALSE);
@@ -862,24 +869,21 @@ public class GridJobProcessor extends GridProcessorAdapter {
      *
      */
     private void updateJobMetrics() {
-        assert metricsUpdateFreq > -1L;
+        assert metricsUpdateFreq > 0L;
 
-        if (metricsUpdateFreq == 0L)
+        long now = U.currentTimeMillis();
+        long lastUpdate = metricsLastUpdateTstamp.get();
+
+        if (now - lastUpdate > metricsUpdateFreq && metricsLastUpdateTstamp.compareAndSet(lastUpdate, now))
             updateJobMetrics0();
-        else {
-            long now = U.currentTimeMillis();
-            long lastUpdate = metricsLastUpdateTstamp.get();
 
-            if (now - lastUpdate > metricsUpdateFreq && metricsLastUpdateTstamp.compareAndSet(lastUpdate, now))
-                updateJobMetrics0();
-        }
     }
 
     /**
      *
      */
     private void updateJobMetrics0() {
-        assert metricsUpdateFreq > -1L;
+        assert metricsUpdateFreq > 0L;
 
         GridJobMetricsSnapshot m = new GridJobMetricsSnapshot();
 
@@ -951,18 +955,25 @@ public class GridJobProcessor extends GridProcessorAdapter {
         if (log.isDebugEnabled())
             log.debug("Received job request message [req=" + req + ", nodeId=" + node.id() + ']');
 
+        PartitionsReservation partsReservation = null;
+
+        if (req.getCacheIds() != null) {
+            assert req.getPartition() >= 0 : req;
+            assert !F.isEmpty(req.getCacheIds()) : req;
+
+            partsReservation = new PartitionsReservation(req.getCacheIds(), req.getPartition(), req.getTopVer());
+        }
+
         GridJobWorker job = null;
 
-        rwLock.readLock();
+        if (!rwLock.tryReadLock()) {
+            if (log.isDebugEnabled())
+                log.debug("Received job execution request while stopping this node (will ignore): " + req);
+
+            return;
+        }
 
         try {
-            if (stopping) {
-                if (log.isDebugEnabled())
-                    log.debug("Received job execution request while stopping this node (will ignore): " + req);
-
-                return;
-            }
-
             long endTime = req.getCreateTime() + req.getTimeout();
 
             // Account for overflow.
@@ -1018,7 +1029,7 @@ public class GridJobProcessor extends GridProcessorAdapter {
                             if (siblings0 == null) {
                                 assert req.getSiblingsBytes() != null;
 
-                                siblings0 = marsh.unmarshal(req.getSiblingsBytes(), null);
+                                siblings0 = U.unmarshal(marsh, req.getSiblingsBytes(), U.resolveClassLoader(ctx.config()));
                             }
 
                             siblings = new ArrayList<>(siblings0);
@@ -1030,8 +1041,15 @@ public class GridJobProcessor extends GridProcessorAdapter {
                             sesAttrs = req.getSessionAttributes();
 
                             if (sesAttrs == null)
-                                sesAttrs = marsh.unmarshal(req.getSessionAttributesBytes(),
-                                    dep.classLoader());
+                                sesAttrs = U.unmarshal(marsh, req.getSessionAttributesBytes(),
+                                    U.resolveClassLoader(dep.classLoader(), ctx.config()));
+                        }
+
+                        IgnitePredicate<ClusterNode> topologyPred = req.getTopologyPredicate();
+
+                        if (topologyPred == null && req.getTopologyPredicateBytes() != null) {
+                            topologyPred = U.unmarshal(marsh, req.getTopologyPredicateBytes(),
+                                U.resolveClassLoader(dep.classLoader(), ctx.config()));
                         }
 
                         // Note that we unmarshal session/job attributes here with proper class loader.
@@ -1042,12 +1060,15 @@ public class GridJobProcessor extends GridProcessorAdapter {
                             dep,
                             req.getTaskClassName(),
                             req.topology(),
+                            topologyPred,
                             req.getStartTaskTime(),
                             endTime,
                             siblings,
                             sesAttrs,
                             req.isSessionFullSupport(),
-                            req.getSubjectId());
+                            req.isInternal(),
+                            req.getSubjectId(),
+                            req.executorName());
 
                         taskSes.setCheckpointSpi(req.getCheckpointSpi());
                         taskSes.setClassLoader(dep.classLoader());
@@ -1057,7 +1078,8 @@ public class GridJobProcessor extends GridProcessorAdapter {
                         Map<? extends Serializable, ? extends Serializable> jobAttrs = req.getJobAttributes();
 
                         if (jobAttrs == null)
-                            jobAttrs = marsh.unmarshal(req.getJobAttributesBytes(), dep.classLoader());
+                            jobAttrs = U.unmarshal(marsh, req.getJobAttributesBytes(),
+                                U.resolveClassLoader(dep.classLoader(), ctx.config()));
 
                         jobCtx = new GridJobContextImpl(ctx, req.getJobId(), jobAttrs);
                     }
@@ -1084,7 +1106,10 @@ public class GridJobProcessor extends GridProcessorAdapter {
                         node,
                         req.isInternal(),
                         evtLsnr,
-                        holdLsnr);
+                        holdLsnr,
+                        partsReservation,
+                        req.getTopVer(),
+                        req.executorName());
 
                     jobCtx.job(job);
 
@@ -1172,7 +1197,7 @@ public class GridJobProcessor extends GridProcessorAdapter {
      * @param ses Session.
      */
     public void currentTaskSession(ComputeTaskSession ses) {
-        currentSess.set(ses);
+        currSess.set(ses);
     }
 
     /**
@@ -1195,7 +1220,7 @@ public class GridJobProcessor extends GridProcessorAdapter {
         if (!ctx.security().enabled())
             return null;
 
-        ComputeTaskSession ses = currentSess.get();
+        ComputeTaskSession ses = currSess.get();
 
         if (ses == null)
             return null;
@@ -1260,7 +1285,20 @@ public class GridJobProcessor extends GridProcessorAdapter {
      */
     private boolean executeAsync(GridJobWorker jobWorker) {
         try {
-            ctx.getExecutorService().execute(jobWorker);
+            if (jobWorker.executorName() != null) {
+                Executor customExec = ctx.pools().customExecutor(jobWorker.executorName());
+
+                if (customExec != null)
+                    customExec.execute(jobWorker);
+                else {
+                    LT.warn(log, "Custom executor doesn't exist (local job will be processed in default " +
+                        "thread pool): " + jobWorker.executorName());
+
+                    ctx.getExecutorService().execute(jobWorker);
+                }
+            }
+            else
+                ctx.getExecutorService().execute(jobWorker);
 
             if (metricsUpdateFreq > -1L)
                 startedJobsCnt.increment();
@@ -1329,13 +1367,14 @@ public class GridJobProcessor extends GridProcessorAdapter {
                 locNodeId,
                 req.getSessionId(),
                 req.getJobId(),
-                loc ? null : marsh.marshal(ex),
+                loc ? null : U.marshal(marsh, ex),
                 ex,
-                loc ? null : marsh.marshal(null),
+                loc ? null : U.marshal(marsh, null),
                 null,
-                loc ? null : marsh.marshal(null),
+                loc ? null : U.marshal(marsh, null),
                 null,
-                false);
+                false,
+                null);
 
             if (req.isSessionFullSupport()) {
                 // Send response to designated job topic.
@@ -1364,11 +1403,11 @@ public class GridJobProcessor extends GridProcessorAdapter {
                 ctx.task().processJobExecuteResponse(ctx.localNodeId(), jobRes);
             else
                 // Send response to common topic as unordered message.
-                ctx.io().send(sndNode, TOPIC_TASK, jobRes, req.isInternal() ? MANAGEMENT_POOL : SYSTEM_POOL);
+                ctx.io().sendToGridTopic(sndNode, TOPIC_TASK, jobRes, req.isInternal() ? MANAGEMENT_POOL : SYSTEM_POOL);
         }
         catch (IgniteCheckedException e) {
             // The only option here is to log, as we must assume that resending will fail too.
-            if (isDeadNode(node.id()))
+            if ((e instanceof ClusterTopologyCheckedException) || isDeadNode(node.id()))
                 // Avoid stack trace for left nodes.
                 U.error(log, "Failed to reply to sender node because it left grid [nodeId=" + node.id() +
                     ", jobId=" + req.getJobId() + ']');
@@ -1402,18 +1441,16 @@ public class GridJobProcessor extends GridProcessorAdapter {
      * @param nodeId Node ID.
      * @param req Request.
      */
-    @SuppressWarnings({"SynchronizationOnLocalVariableOrMethodParameter", "RedundantCast"})
+    @SuppressWarnings({"SynchronizationOnLocalVariableOrMethodParameter"})
     private void processTaskSessionRequest(UUID nodeId, GridTaskSessionRequest req) {
-        rwLock.readLock();
+        if (!rwLock.tryReadLock()) {
+            if (log.isDebugEnabled())
+                log.debug("Received job session request while stopping grid (will ignore): " + req);
+
+            return;
+        }
 
         try {
-            if (stopping) {
-                if (log.isDebugEnabled())
-                    log.debug("Received job session request while stopping grid (will ignore): " + req);
-
-                return;
-            }
-
             GridTaskSessionImpl ses = ctx.session().getSession(req.getSessionId());
 
             if (ses == null) {
@@ -1426,7 +1463,8 @@ public class GridJobProcessor extends GridProcessorAdapter {
             boolean loc = ctx.localNodeId().equals(nodeId) && !ctx.config().isMarshalLocalJobs();
 
             Map<?, ?> attrs = loc ? req.getAttributes() :
-                (Map<?, ?>)marsh.unmarshal(req.getAttributesBytes(), ses.getClassLoader());
+                (Map<?, ?>)U.unmarshal(marsh, req.getAttributesBytes(),
+                    U.resolveClassLoader(ses.getClassLoader(), ctx.config()));
 
             if (ctx.event().isRecordable(EVT_TASK_SESSION_ATTR_SET)) {
                 Event evt = new TaskEvent(
@@ -1467,12 +1505,120 @@ public class GridJobProcessor extends GridProcessorAdapter {
     /** {@inheritDoc} */
     @Override public void printMemoryStats() {
         X.println(">>>");
-        X.println(">>> Job processor memory stats [grid=" + ctx.gridName() + ']');
+        X.println(">>> Job processor memory stats [igniteInstanceName=" + ctx.igniteInstanceName() + ']');
         X.println(">>>   activeJobsSize: " + activeJobs.size());
         X.println(">>>   passiveJobsSize: " + (jobAlwaysActivate ? "n/a" : passiveJobs.size()));
         X.println(">>>   cancelledJobsSize: " + cancelledJobs.size());
         X.println(">>>   cancelReqsSize: " + cancelReqs.sizex());
         X.println(">>>   finishedJobsSize: " + finishedJobs.sizex());
+    }
+
+    /**
+     *
+     */
+    private class PartitionsReservation implements GridReservable {
+        /** Caches. */
+        private final int[] cacheIds;
+
+        /** Partition id. */
+        private final int partId;
+
+        /** Topology version. */
+        private final AffinityTopologyVersion topVer;
+
+        /** Partitions. */
+        private GridDhtLocalPartition[] partititons;
+
+        /**
+         * @param cacheIds Cache identifiers array.
+         * @param partId Partition number.
+         * @param topVer Affinity topology version.
+         */
+        public PartitionsReservation(int[] cacheIds, int partId,
+            AffinityTopologyVersion topVer) {
+            this.cacheIds = cacheIds;
+            this.partId = partId;
+            this.topVer = topVer;
+            partititons = new GridDhtLocalPartition[cacheIds.length];
+        }
+
+        /** {@inheritDoc} */
+        @Override public boolean reserve() {
+            boolean reserved = false;
+
+            try {
+                for (int i = 0; i < cacheIds.length; ++i) {
+                    GridCacheContext<?, ?> cctx = ctx.cache().context().cacheContext(cacheIds[i]);
+
+                    if (cctx == null) // Cache was not found, probably was not deployed yet.
+                        return reserved;
+
+                    if (!cctx.started()) // Cache not started.
+                        return reserved;
+
+                    if (cctx.isLocal() || !cctx.rebalanceEnabled())
+                        continue;
+
+                    boolean checkPartMapping = false;
+
+                    try {
+                        if (cctx.isReplicated()) {
+                            GridDhtLocalPartition part = cctx.topology().localPartition(partId,
+                                topVer, false);
+
+                            // We don't need to reserve partitions because they will not be evicted in replicated caches.
+                            if (part == null || part.state() != OWNING) {
+                                checkPartMapping = true;
+
+                                return reserved;
+                            }
+                        }
+
+                        GridDhtLocalPartition part = cctx.topology().localPartition(partId, topVer, false);
+
+                        if (part == null || part.state() != OWNING || !part.reserve()) {
+                            checkPartMapping = true;
+
+                            return reserved;
+                        }
+
+                        partititons[i] = part;
+
+                        // Double check that we are still in owning state and partition contents are not cleared.
+                        if (part.state() != OWNING) {
+                            checkPartMapping = true;
+
+                            return reserved;
+                        }
+                    }
+                    finally {
+                        if (checkPartMapping && !cctx.affinity().primaryByPartition(partId, topVer).id().equals(ctx.localNodeId()))
+                            throw new IgniteException("Failed partition reservation. " +
+                                "Partition is not primary on the node. [partition=" + partId + ", cacheName=" + cctx.name() +
+                                ", nodeId=" + ctx.localNodeId() + ", topology=" + topVer + ']');
+                    }
+                }
+
+                reserved = true;
+            }
+            finally {
+                if (!reserved)
+                    release();
+            }
+
+            return true;
+        }
+
+        /** {@inheritDoc} */
+        @Override public void release() {
+            for (int i = 0; i < partititons.length; ++i) {
+                if (partititons[i] == null)
+                    break;
+
+                partititons[i].release();
+                partititons[i] = null;
+            }
+        }
     }
 
     /**
@@ -1557,16 +1703,14 @@ public class GridJobProcessor extends GridProcessorAdapter {
             if (log.isDebugEnabled())
                 log.debug("Received external collision event.");
 
-            rwLock.readLock();
+            if (!rwLock.tryReadLock()) {
+                if (log.isDebugEnabled())
+                    log.debug("Received external collision notification while stopping grid (will ignore).");
+
+                return;
+            }
 
             try {
-                if (stopping) {
-                    if (log.isDebugEnabled())
-                        log.debug("Received external collision notification while stopping grid (will ignore).");
-
-                    return;
-                }
-
                 handleCollisions();
             }
             finally {
@@ -1651,29 +1795,32 @@ public class GridJobProcessor extends GridProcessorAdapter {
                 if (jobAlwaysActivate) {
                     if (metricsUpdateFreq > -1L)
                         updateJobMetrics();
+
+                    if (!activeJobs.remove(worker.getJobId(), worker))
+                        cancelledJobs.remove(worker.getJobId(), worker);
+
+                    heldJobs.remove(worker.getJobId());
                 }
                 else {
-                    rwLock.readLock();
+                    if (!rwLock.tryReadLock()) {
+                        if (log.isDebugEnabled())
+                            log.debug("Skipping collision handling on job finish (node is stopping).");
+
+                        return;
+                    }
+
+                    if (!activeJobs.remove(worker.getJobId(), worker))
+                        cancelledJobs.remove(worker.getJobId(), worker);
+
+                    heldJobs.remove(worker.getJobId());
 
                     try {
-                        if (stopping) {
-                            if (log.isDebugEnabled())
-                                log.debug("Skipping collision handling on job finish (node is stopping).");
-
-                            return;
-                        }
-
                         handleCollisions();
                     }
                     finally {
                         rwLock.readUnlock();
                     }
                 }
-
-                if (!activeJobs.remove(worker.getJobId(), worker))
-                    cancelledJobs.remove(worker.getJobId(), worker);
-
-                heldJobs.remove(worker.getJobId());
             }
         }
     }
@@ -1724,7 +1871,7 @@ public class GridJobProcessor extends GridProcessorAdapter {
      */
     private class JobSessionListener implements GridMessageListener {
         /** {@inheritDoc} */
-        @Override public void onMessage(UUID nodeId, Object msg) {
+        @Override public void onMessage(UUID nodeId, Object msg, byte plc) {
             assert nodeId != null;
             assert msg != null;
 
@@ -1740,7 +1887,7 @@ public class GridJobProcessor extends GridProcessorAdapter {
      */
     private class JobCancelListener implements GridMessageListener {
         /** {@inheritDoc} */
-        @Override public void onMessage(UUID nodeId, Object msg) {
+        @Override public void onMessage(UUID nodeId, Object msg, byte plc) {
             assert nodeId != null;
             assert msg != null;
 
@@ -1758,7 +1905,7 @@ public class GridJobProcessor extends GridProcessorAdapter {
      */
     private class JobExecutionListener implements GridMessageListener {
         /** {@inheritDoc} */
-        @Override public void onMessage(UUID nodeId, Object msg) {
+        @Override public void onMessage(UUID nodeId, Object msg, byte plc) {
             assert nodeId != null;
             assert msg != null;
 
@@ -1788,7 +1935,6 @@ public class GridJobProcessor extends GridProcessorAdapter {
         private int metricsUpdateCntr;
 
         /** {@inheritDoc} */
-        @SuppressWarnings("fallthrough")
         @Override public void onEvent(Event evt) {
             assert evt instanceof DiscoveryEvent;
 
@@ -1851,16 +1997,14 @@ public class GridJobProcessor extends GridProcessorAdapter {
             }
 
             if (handleCollisions) {
-                rwLock.readLock();
+                if (!rwLock.tryReadLock()) {
+                    if (log.isDebugEnabled())
+                        log.debug("Skipped collision handling on discovery event (node is stopping): " + evt);
+
+                    return;
+                }
 
                 try {
-                    if (stopping) {
-                        if (log.isDebugEnabled())
-                            log.debug("Skipped collision handling on discovery event (node is stopping): " + evt);
-
-                        return;
-                    }
-
                     if (!jobAlwaysActivate)
                         handleCollisions();
                     else if (metricsUpdateFreq > -1L)

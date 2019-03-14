@@ -19,6 +19,11 @@ package org.apache.ignite.internal.processors.cache.distributed;
 
 import java.io.Externalizable;
 import java.nio.ByteBuffer;
+import org.apache.ignite.IgniteLogger;
+import org.apache.ignite.internal.GridDirectTransient;
+import org.apache.ignite.internal.processors.cache.GridCacheSharedContext;
+import org.apache.ignite.internal.processors.cache.transactions.IgniteTxState;
+import org.apache.ignite.internal.processors.cache.transactions.IgniteTxStateAware;
 import org.apache.ignite.internal.processors.cache.version.GridCacheVersion;
 import org.apache.ignite.internal.util.typedef.internal.S;
 import org.apache.ignite.lang.IgniteUuid;
@@ -28,7 +33,7 @@ import org.apache.ignite.plugin.extensions.communication.MessageWriter;
 /**
  * Transactions recovery check response.
  */
-public class GridCacheTxRecoveryResponse extends GridDistributedBaseMessage {
+public class GridCacheTxRecoveryResponse extends GridDistributedBaseMessage implements IgniteTxStateAware {
     /** */
     private static final long serialVersionUID = 0L;
 
@@ -40,6 +45,10 @@ public class GridCacheTxRecoveryResponse extends GridDistributedBaseMessage {
 
     /** Flag indicating if all remote transactions were prepared. */
     private boolean success;
+
+    /** Transient TX state. */
+    @GridDirectTransient
+    private IgniteTxState txState;
 
     /**
      * Empty constructor required by {@link Externalizable}
@@ -53,17 +62,20 @@ public class GridCacheTxRecoveryResponse extends GridDistributedBaseMessage {
      * @param futId Future ID.
      * @param miniId Mini future ID.
      * @param success {@code True} if all remote transactions were prepared, {@code false} otherwise.
+     * @param addDepInfo Deployment info flag.
      */
     public GridCacheTxRecoveryResponse(GridCacheVersion txId,
         IgniteUuid futId,
         IgniteUuid miniId,
-        boolean success)
-    {
-        super(txId, 0);
+        boolean success,
+        boolean addDepInfo) {
+        super(txId, 0, addDepInfo);
 
         this.futId = futId;
         this.miniId = miniId;
         this.success = success;
+
+        this.addDepInfo = addDepInfo;
     }
 
     /**
@@ -88,6 +100,21 @@ public class GridCacheTxRecoveryResponse extends GridDistributedBaseMessage {
     }
 
     /** {@inheritDoc} */
+    @Override public IgniteTxState txState() {
+        return txState;
+    }
+
+    /** {@inheritDoc} */
+    @Override public void txState(IgniteTxState txState) {
+        this.txState = txState;
+    }
+
+    /** {@inheritDoc} */
+    @Override public IgniteLogger messageLogger(GridCacheSharedContext ctx) {
+        return ctx.txRecoveryMessageLogger();
+    }
+
+    /** {@inheritDoc} */
     @Override public boolean writeTo(ByteBuffer buf, MessageWriter writer) {
         writer.setBuffer(buf);
 
@@ -102,19 +129,19 @@ public class GridCacheTxRecoveryResponse extends GridDistributedBaseMessage {
         }
 
         switch (writer.state()) {
-            case 7:
+            case 8:
                 if (!writer.writeIgniteUuid("futId", futId))
                     return false;
 
                 writer.incrementState();
 
-            case 8:
+            case 9:
                 if (!writer.writeIgniteUuid("miniId", miniId))
                     return false;
 
                 writer.incrementState();
 
-            case 9:
+            case 10:
                 if (!writer.writeBoolean("success", success))
                     return false;
 
@@ -136,7 +163,7 @@ public class GridCacheTxRecoveryResponse extends GridDistributedBaseMessage {
             return false;
 
         switch (reader.state()) {
-            case 7:
+            case 8:
                 futId = reader.readIgniteUuid("futId");
 
                 if (!reader.isLastRead())
@@ -144,7 +171,7 @@ public class GridCacheTxRecoveryResponse extends GridDistributedBaseMessage {
 
                 reader.incrementState();
 
-            case 8:
+            case 9:
                 miniId = reader.readIgniteUuid("miniId");
 
                 if (!reader.isLastRead())
@@ -152,7 +179,7 @@ public class GridCacheTxRecoveryResponse extends GridDistributedBaseMessage {
 
                 reader.incrementState();
 
-            case 9:
+            case 10:
                 success = reader.readBoolean("success");
 
                 if (!reader.isLastRead())
@@ -166,13 +193,13 @@ public class GridCacheTxRecoveryResponse extends GridDistributedBaseMessage {
     }
 
     /** {@inheritDoc} */
-    @Override public byte directType() {
+    @Override public short directType() {
         return 17;
     }
 
     /** {@inheritDoc} */
     @Override public byte fieldsCount() {
-        return 10;
+        return 11;
     }
 
     /** {@inheritDoc} */

@@ -18,6 +18,8 @@
 package org.apache.ignite.internal.client;
 
 import java.util.Collection;
+import java.util.EnumSet;
+import java.util.Set;
 
 /**
  * Cache projection flags that specify projection behaviour.
@@ -27,15 +29,21 @@ public enum GridClientCacheFlag {
     SKIP_STORE,
 
     /**
-     * Disable deserialization of portable objects on get operations.
-     * If set and portable marshaller is used, {@link GridClientData#get(Object)}
+     * Disable deserialization of binary objects on get operations.
+     * If set and binary marshaller is used, {@link GridClientData#get(Object)}
      * and {@link GridClientData#getAll(Collection)} methods will return
-     * instances of {@code PortableObject} class instead of user objects.
+     * instances of {@code BinaryObject} class instead of user objects.
      * Use this flag if you don't have corresponding class on your client of
      * if you want to get access to some individual fields, but do not want to
      * fully deserialize the object.
      */
-    KEEP_PORTABLES;
+    KEEP_BINARIES;
+
+    /** */
+    public static final int SKIP_STORE_MASK = 0b1;
+
+    /** */
+    public static final int KEEP_BINARIES_MASK = 0b10;
 
     /** */
     private static final GridClientCacheFlag[] VALS = values();
@@ -48,5 +56,45 @@ public enum GridClientCacheFlag {
      */
     public static GridClientCacheFlag fromOrdinal(int ord) {
         return ord >= 0 && ord < VALS.length ? VALS[ord] : null;
+    }
+
+    /**
+     * Encodes cache flags to bit map.
+     *
+     * @param flagSet Set of flags to be encoded.
+     * @return Bit map.
+     */
+    public static int encodeCacheFlags(Collection<GridClientCacheFlag> flagSet) {
+        int bits = 0;
+
+        if (flagSet.contains(SKIP_STORE))
+            bits |= SKIP_STORE_MASK;
+
+        if (flagSet.contains(KEEP_BINARIES))
+            bits |= KEEP_BINARIES_MASK;
+
+        return bits;
+    }
+
+    /**
+     * Retrieves cache flags from corresponding bits.
+     *
+     * @param cacheFlagsBits Integer representation of cache flags bit set.
+     * @return Cache flags.
+     */
+    public static Set<GridClientCacheFlag> parseCacheFlags(int cacheFlagsBits) {
+        boolean skipStore = (cacheFlagsBits & SKIP_STORE_MASK) != 0;
+        boolean keepBinaries = (cacheFlagsBits & KEEP_BINARIES_MASK) != 0;
+
+        if (skipStore & keepBinaries)
+            return EnumSet.of(SKIP_STORE, KEEP_BINARIES);
+
+        if (skipStore)
+            return EnumSet.of(SKIP_STORE);
+
+        if (keepBinaries)
+            return EnumSet.of(KEEP_BINARIES);
+
+        return EnumSet.noneOf(GridClientCacheFlag.class);
     }
 }

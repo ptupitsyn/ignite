@@ -95,7 +95,7 @@ public class IgniteStandardMXBean extends StandardMBean {
                     str = desc.value();
 
                     assert str != null : "Failed to find method: " + mtd;
-                    assert str.trim().length() > 0 : "Method description cannot be empty: " + mtd;
+                    assert !str.trim().isEmpty() : "Method description cannot be empty: " + mtd;
 
                     // Enforce proper English.
                     assert Character.isUpperCase(str.charAt(0)) == true :
@@ -105,7 +105,7 @@ public class IgniteStandardMXBean extends StandardMBean {
                 }
             }
         }
-        catch (SecurityException e) {
+        catch (SecurityException ignored) {
             // No-op. Default value will be returned.
         }
 
@@ -123,7 +123,7 @@ public class IgniteStandardMXBean extends StandardMBean {
             str = desc.value();
 
             assert str != null;
-            assert str.trim().length() > 0;
+            assert !str.trim().isEmpty();
 
             // Enforce proper English.
             assert Character.isUpperCase(str.charAt(0)) == true : str;
@@ -146,14 +146,14 @@ public class IgniteStandardMXBean extends StandardMBean {
                 str = desc.value();
 
                 assert str != null;
-                assert str.trim().length() > 0;
+                assert !str.trim().isEmpty();
 
                 // Enforce proper English.
                 assert Character.isUpperCase(str.charAt(0)) == true : str;
                 assert str.charAt(str.length() - 1) == '.' : str;
             }
         }
-        catch (SecurityException | ClassNotFoundException e) {
+        catch (SecurityException | ClassNotFoundException ignored) {
             // No-op. Default value will be returned.
         }
 
@@ -176,14 +176,14 @@ public class IgniteStandardMXBean extends StandardMBean {
                 str = decsAnn.value()[seq];
 
                 assert str != null;
-                assert str.trim().length() > 0;
+                assert !str.trim().isEmpty();
 
                 // Enforce proper English.
                 assert Character.isUpperCase(str.charAt(0)) == true : str;
                 assert str.charAt(str.length() - 1) == '.' : str;
             }
         }
-        catch (SecurityException | ClassNotFoundException e) {
+        catch (SecurityException | ClassNotFoundException ignored) {
             // No-op. Default value will be returned.
         }
 
@@ -206,10 +206,10 @@ public class IgniteStandardMXBean extends StandardMBean {
                 str = namesAnn.value()[seq];
 
                 assert str != null;
-                assert str.trim().length() > 0;
+                assert !str.trim().isEmpty();
             }
         }
-        catch (SecurityException | ClassNotFoundException e) {
+        catch (SecurityException | ClassNotFoundException ignored) {
             // No-op. Default value will be returned.
         }
 
@@ -265,7 +265,7 @@ public class IgniteStandardMXBean extends StandardMBean {
             if (res != null)
                 return res;
         }
-        catch (NoSuchMethodException e) {
+        catch (NoSuchMethodException ignored) {
             // No-op. Default value will be returned.
         }
 

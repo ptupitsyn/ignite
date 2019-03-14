@@ -26,12 +26,14 @@ import org.apache.ignite.internal.processors.cache.GridCacheInternal;
 import org.apache.ignite.internal.util.tostring.GridToStringInclude;
 import org.apache.ignite.internal.util.typedef.internal.S;
 import org.apache.ignite.lang.IgnitePredicate;
-import org.apache.ignite.services.Service;
 import org.apache.ignite.services.ServiceConfiguration;
 
 /**
  * Service per-node assignment.
+ *
+ * @deprecated Services internals use messages for deployment management instead of the utility cache, since Ignite 2.8.
  */
+@Deprecated
 public class GridServiceAssignments implements Serializable, GridCacheInternal {
     /** Serialization version. */
     private static final long serialVersionUID = 0L;
@@ -72,13 +74,6 @@ public class GridServiceAssignments implements Serializable, GridCacheInternal {
      */
     public String name() {
         return cfg.getName();
-    }
-
-    /**
-     * @return Service.
-     */
-    public Service service() {
-        return cfg.getService();
     }
 
     /**

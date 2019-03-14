@@ -18,6 +18,7 @@
 package org.apache.ignite.spi.communication.tcp;
 
 import org.apache.ignite.configuration.IgniteConfiguration;
+import org.junit.Test;
 
 /**
  *
@@ -33,6 +34,7 @@ public class GridTcpCommunicationSpiRecoveryFailureDetectionSelfTest extends Gri
         spi.setAckSendThreshold(5);
         spi.setSocketSendBuffer(512);
         spi.setSocketReceiveBuffer(512);
+        spi.setConnectionsPerNode(1);
 
         return spi;
     }
@@ -45,6 +47,7 @@ public class GridTcpCommunicationSpiRecoveryFailureDetectionSelfTest extends Gri
     /**
      * @throws Exception if failed.
      */
+    @Test
     public void testFailureDetectionEnabled() throws Exception {
         for (TcpCommunicationSpi spi: spis) {
             assertTrue(spi.failureDetectionTimeoutEnabled());

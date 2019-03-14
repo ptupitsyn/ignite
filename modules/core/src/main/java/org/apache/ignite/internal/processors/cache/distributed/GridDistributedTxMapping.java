@@ -17,91 +17,69 @@
 
 package org.apache.ignite.internal.processors.cache.distributed;
 
-import java.io.Externalizable;
-import java.io.IOException;
-import java.io.ObjectInput;
-import java.io.ObjectOutput;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
+import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
 import org.apache.ignite.cluster.ClusterNode;
-import org.apache.ignite.internal.processors.cache.GridCacheEntryEx;
 import org.apache.ignite.internal.processors.cache.transactions.IgniteTxEntry;
 import org.apache.ignite.internal.processors.cache.transactions.IgniteTxKey;
 import org.apache.ignite.internal.processors.cache.version.GridCacheVersion;
-import org.apache.ignite.internal.util.GridConcurrentLinkedHashSet;
 import org.apache.ignite.internal.util.tostring.GridToStringExclude;
 import org.apache.ignite.internal.util.tostring.GridToStringInclude;
 import org.apache.ignite.internal.util.typedef.F;
 import org.apache.ignite.internal.util.typedef.internal.CU;
 import org.apache.ignite.internal.util.typedef.internal.S;
-import org.apache.ignite.internal.util.typedef.internal.U;
 import org.jetbrains.annotations.Nullable;
 
 /**
  * Transaction node mapping.
  */
-public class GridDistributedTxMapping implements Externalizable {
+public class GridDistributedTxMapping {
     /** */
-    private static final long serialVersionUID = 0L;
+    private static final AtomicReferenceFieldUpdater<GridDistributedTxMapping, Set> BACKUPS_FIELD_UPDATER
+        = AtomicReferenceFieldUpdater.newUpdater(GridDistributedTxMapping.class, Set.class, "backups");
 
     /** Mapped node. */
     @GridToStringExclude
-    private ClusterNode node;
+    private ClusterNode primary;
+
+    /** Mapped backup nodes. */
+    private volatile Set<UUID> backups;
 
     /** Entries. */
     @GridToStringInclude
-    private Collection<IgniteTxEntry> entries;
+    private final Collection<IgniteTxEntry> entries;
 
     /** Explicit lock flag. */
     private boolean explicitLock;
 
+    /** Query update flag. */
+    private boolean queryUpdate;
+
     /** DHT version. */
     private GridCacheVersion dhtVer;
-
-    /** Copy on remove flag. */
-    private boolean readOnly;
 
     /** {@code True} if this is last mapping for node. */
     private boolean last;
 
-    /** IDs of backup nodes receiving last prepare request during this mapping. */
-    private Collection<UUID> lastBackups;
-
-    /** {@code True} if mapping is for near caches, {@code false} otherwise. */
-    private boolean near;
+    /** Near cache entries count. */
+    private int nearEntries;
 
     /** {@code True} if this is first mapping for optimistic tx on client node. */
     private boolean clientFirst;
 
     /**
-     * Empty constructor required for {@link Externalizable}.
+     * @param primary Primary node.
      */
-    public GridDistributedTxMapping() {
-        // No-op.
-    }
+    public GridDistributedTxMapping(ClusterNode primary) {
+        this.primary = primary;
 
-    /**
-     * @param node Mapped node.
-     */
-    public GridDistributedTxMapping(ClusterNode node) {
-        this.node = node;
-
-        entries = new GridConcurrentLinkedHashSet<>();
-    }
-
-    /**
-     * @return IDs of backup nodes receiving last prepare request during this mapping.
-     */
-    @Nullable public Collection<UUID> lastBackups() {
-        return lastBackups;
-    }
-
-    /**
-     * @param lastBackups IDs of backup nodes receiving last prepare request during this mapping.
-     */
-    public void lastBackups(@Nullable Collection<UUID> lastBackups) {
-        this.lastBackups = lastBackups;
+        entries = new LinkedHashSet<>();
     }
 
     /**
@@ -133,24 +111,24 @@ public class GridDistributedTxMapping implements Externalizable {
     }
 
     /**
-     * @return {@code True} if mapping is for near caches, {@code false} otherwise.
+     * @return {@code True} if has colocated cache entries.
      */
-    public boolean near() {
-        return near;
+    public boolean hasColocatedCacheEntries() {
+        return entries.size() > nearEntries;
     }
 
     /**
-     * @param near {@code True} if mapping is for near caches, {@code false} otherwise.
+     * @return {@code True} if has near cache entries.
      */
-    public void near(boolean near) {
-        this.near = near;
+    public boolean hasNearCacheEntries() {
+        return nearEntries > 0;
     }
 
     /**
      * @return Node.
      */
-    public ClusterNode node() {
-        return node;
+    public ClusterNode primary() {
+        return primary;
     }
 
     /**
@@ -161,14 +139,26 @@ public class GridDistributedTxMapping implements Externalizable {
     }
 
     /**
-     * @param entries Mapped entries.
-     * @param readOnly Flag indicating that passed in collection is read-only.
+     * @return Near cache entries.
      */
-    public void entries(Collection<IgniteTxEntry> entries, boolean readOnly) {
-        this.entries = entries;
+    @Nullable public Collection<IgniteTxEntry> nearCacheEntries() {
+        assert nearEntries > 0;
 
-        // Set copy on remove flag as passed in collection is unmodifiable.
-        this.readOnly = true;
+        return F.view(entries, CU.FILTER_NEAR_CACHE_ENTRY);
+    }
+
+    /**
+     * @return {@code True} if mapping was created for a query update.
+     */
+    public boolean queryUpdate() {
+        return queryUpdate;
+    }
+
+    /**
+     * Sets query update flag to {@code true}.
+     */
+    public void markQueryUpdate() {
+        queryUpdate = true;
     }
 
     /**
@@ -207,23 +197,58 @@ public class GridDistributedTxMapping implements Externalizable {
      * @return Reads.
      */
     public Collection<IgniteTxEntry> reads() {
-        return F.view(entries, CU.reads());
+        return F.view(entries, CU.READ_FILTER);
     }
 
     /**
      * @return Writes.
      */
     public Collection<IgniteTxEntry> writes() {
-        return F.view(entries, CU.writes());
+        return F.view(entries, CU.WRITE_FILTER);
+    }
+
+    /**
+     * @return Near cache reads.
+     */
+    public Collection<IgniteTxEntry> nearEntriesReads() {
+        assert hasNearCacheEntries();
+
+        return F.view(entries, CU.READ_FILTER_NEAR);
+    }
+
+    /**
+     * @return Near cache writes.
+     */
+    public Collection<IgniteTxEntry> nearEntriesWrites() {
+        assert hasNearCacheEntries();
+
+        return F.view(entries, CU.WRITE_FILTER_NEAR);
+    }
+
+    /**
+     * @return Colocated cache reads.
+     */
+    public Collection<IgniteTxEntry> colocatedEntriesReads() {
+        assert hasColocatedCacheEntries();
+
+        return F.view(entries, CU.READ_FILTER_COLOCATED);
+    }
+
+    /**
+     * @return Colocated cache writes.
+     */
+    public Collection<IgniteTxEntry> colocatedEntriesWrites() {
+        assert hasColocatedCacheEntries();
+
+        return F.view(entries, CU.WRITE_FILTER_COLOCATED);
     }
 
     /**
      * @param entry Adds entry.
      */
     public void add(IgniteTxEntry entry) {
-        ensureModifiable();
-
-        entries.add(entry);
+        if (entries.add(entry) && entry.context().isNear())
+            nearEntries++;
     }
 
     /**
@@ -231,37 +256,7 @@ public class GridDistributedTxMapping implements Externalizable {
      * @return {@code True} if entry was removed.
      */
     public boolean removeEntry(IgniteTxEntry entry) {
-        ensureModifiable();
-
         return entries.remove(entry);
-    }
-
-    /**
-     * @param parts Evicts partitions from mapping.
-     */
-    public void evictPartitions(@Nullable int[] parts) {
-        if (!F.isEmpty(parts)) {
-            ensureModifiable();
-
-            evictPartitions(parts, entries);
-        }
-    }
-
-    /**
-     * @param parts Partitions.
-     * @param c Collection.
-     */
-    private void evictPartitions(int[] parts, Collection<IgniteTxEntry> c) {
-        assert parts != null;
-
-        for (Iterator<IgniteTxEntry> it = c.iterator(); it.hasNext();) {
-            IgniteTxEntry e = it.next();
-
-            GridCacheEntryEx cached = e.cached();
-
-            if (U.containsIntArray(parts, cached.partition()))
-                it.remove();
-        }
     }
 
     /**
@@ -270,8 +265,6 @@ public class GridDistributedTxMapping implements Externalizable {
     public void evictReaders(@Nullable Collection<IgniteTxKey> keys) {
         if (keys == null || keys.isEmpty())
             return;
-
-        ensureModifiable();
 
         evictReaders(keys, entries);
     }
@@ -293,17 +286,6 @@ public class GridDistributedTxMapping implements Externalizable {
     }
 
     /**
-     * Copies collection of entries if it is read-only.
-     */
-    private void ensureModifiable() {
-        if (readOnly) {
-            entries = new GridConcurrentLinkedHashSet<>(entries);
-
-            readOnly = false;
-        }
-    }
-
-    /**
      * Whether empty or not.
      *
      * @return Empty or not.
@@ -312,22 +294,28 @@ public class GridDistributedTxMapping implements Externalizable {
         return entries.isEmpty();
     }
 
-    /** {@inheritDoc} */
-    @Override public void writeExternal(ObjectOutput out) throws IOException {
-        out.writeObject(node);
+    /**
+     * @param newBackups Backups to be added to this mapping.
+     */
+    public void addBackups(Collection<UUID> newBackups) {
+        if (newBackups == null)
+            return;
 
-        U.writeCollection(out, entries);
+        if (backups == null)
+            BACKUPS_FIELD_UPDATER.compareAndSet(this, null, Collections.newSetFromMap(new ConcurrentHashMap<>()));
+
+        backups.addAll(newBackups);
     }
 
-    /** {@inheritDoc} */
-    @Override public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
-        node = (ClusterNode)in.readObject();
-
-        entries = U.readCollection(in);
+    /**
+     * @return Mapped backup nodes.
+     */
+    public Set<UUID> backups() {
+        return backups != null ? backups : Collections.emptySet();
     }
 
     /** {@inheritDoc} */
     @Override public String toString() {
-        return S.toString(GridDistributedTxMapping.class, this, "node", node.id());
+        return S.toString(GridDistributedTxMapping.class, this, "node", primary.id());
     }
 }

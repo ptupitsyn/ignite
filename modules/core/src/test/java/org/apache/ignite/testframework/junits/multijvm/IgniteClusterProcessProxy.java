@@ -26,16 +26,19 @@ import org.apache.ignite.Ignite;
 import org.apache.ignite.IgniteCluster;
 import org.apache.ignite.IgniteCompute;
 import org.apache.ignite.IgniteException;
-import org.apache.ignite.Ignition;
+import org.apache.ignite.cluster.BaselineNode;
 import org.apache.ignite.cluster.ClusterGroup;
 import org.apache.ignite.cluster.ClusterMetrics;
 import org.apache.ignite.cluster.ClusterNode;
 import org.apache.ignite.cluster.ClusterStartNodeResult;
 import org.apache.ignite.internal.cluster.ClusterGroupEx;
+import org.apache.ignite.internal.cluster.DistributedBaselineConfiguration;
 import org.apache.ignite.internal.cluster.IgniteClusterEx;
 import org.apache.ignite.lang.IgniteCallable;
 import org.apache.ignite.lang.IgniteFuture;
 import org.apache.ignite.lang.IgnitePredicate;
+import org.apache.ignite.resources.IgniteInstanceResource;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -43,9 +46,6 @@ import org.jetbrains.annotations.Nullable;
  */
 @SuppressWarnings("TransientFieldInNonSerializableClass")
 public class IgniteClusterProcessProxy implements IgniteClusterEx {
-    /** Grid id. */
-    private final UUID gridId;
-
     /** Compute. */
     private final transient IgniteCompute compute;
 
@@ -57,21 +57,11 @@ public class IgniteClusterProcessProxy implements IgniteClusterEx {
      */
     public IgniteClusterProcessProxy(IgniteProcessProxy proxy) {
         this.proxy = proxy;
-        gridId = proxy.getId();
         compute = proxy.remoteCompute();
     }
 
-    /**
-     * Returns cluster instance. Method to be called from closure at another JVM.
-     *
-     * @return Cache.
-     */
-    private IgniteClusterEx cluster() {
-        return (IgniteClusterEx)Ignition.ignite(gridId).cluster();
-    }
-
     /** {@inheritDoc} */
-    @Override public ClusterGroupEx forSubjectId(final UUID subjId) {
+    @Override public ClusterGroupEx forSubjectId(UUID subjId) {
         throw new UnsupportedOperationException("Operation is not supported yet.");
     }
 
@@ -82,12 +72,13 @@ public class IgniteClusterProcessProxy implements IgniteClusterEx {
     }
 
     /** {@inheritDoc} */
+    @Override public ClusterGroup forIgfsMetadataDataNodes(String igfsName, @Nullable String metaCacheName) {
+        throw new UnsupportedOperationException("Operation is not supported yet.");
+    }
+
+    /** {@inheritDoc} */
     @Override public ClusterNode localNode() {
-        return compute.call(new IgniteCallable<ClusterNode>() {
-            @Override public ClusterNode call() throws Exception {
-                return cluster().localNode();
-            }
-        });
+        return compute.call(new LocalNodeTask());
     }
 
     /** {@inheritDoc} */
@@ -116,25 +107,27 @@ public class IgniteClusterProcessProxy implements IgniteClusterEx {
     }
 
     /** {@inheritDoc} */
-    @Override public <K> Map<ClusterNode, Collection<K>> mapKeysToNodes(@Nullable String cacheName,
-        @Nullable Collection<? extends K> keys) throws IgniteException {
-        throw new UnsupportedOperationException("Operation is not supported yet.");
-    }
-
-    /** {@inheritDoc} */
-    @Override public <K> ClusterNode mapKeyToNode(@Nullable String cacheName, K key) throws IgniteException {
-        throw new UnsupportedOperationException("Operation is not supported yet.");
-    }
-
-    /** {@inheritDoc} */
     @Override public Collection<ClusterStartNodeResult> startNodes(File file, boolean restart, int timeout,
         int maxConn) throws IgniteException {
         throw new UnsupportedOperationException("Operation is not supported yet.");
     }
 
     /** {@inheritDoc} */
+    @Override public IgniteFuture<Collection<ClusterStartNodeResult>> startNodesAsync(File file, boolean restart,
+        int timeout, int maxConn) throws IgniteException {
+        throw new UnsupportedOperationException("Operation is not supported yet.");
+    }
+
+    /** {@inheritDoc} */
     @Override public Collection<ClusterStartNodeResult> startNodes(Collection<Map<String, Object>> hosts,
         @Nullable Map<String, Object> dflts, boolean restart, int timeout, int maxConn) throws IgniteException {
+        throw new UnsupportedOperationException("Operation is not supported yet.");
+    }
+
+    /** {@inheritDoc} */
+    @Override public IgniteFuture<Collection<ClusterStartNodeResult>> startNodesAsync(
+        Collection<Map<String, Object>> hosts, @Nullable Map<String, Object> dflts,
+        boolean restart, int timeout, int maxConn) throws IgniteException {
         throw new UnsupportedOperationException("Operation is not supported yet.");
     }
 
@@ -164,7 +157,37 @@ public class IgniteClusterProcessProxy implements IgniteClusterEx {
     }
 
     /** {@inheritDoc} */
+    @Override public void enableStatistics(Collection<String> caches, boolean enabled) {
+        throw new UnsupportedOperationException("Operation is not supported yet.");
+    }
+
+    /** {@inheritDoc} */
+    @Override public void clearStatistics(Collection<String> caches) {
+        throw new UnsupportedOperationException("Operation is not supported yet.");
+    }
+
+    /** {@inheritDoc} */
+    @Override public void setTxTimeoutOnPartitionMapExchange(long timeout) {
+        throw new UnsupportedOperationException("Operation is not supported yet.");
+    }
+
+    /** {@inheritDoc} */
     @Override public IgniteCluster withAsync() {
+        throw new UnsupportedOperationException("Operation is not supported yet.");
+    }
+
+    /** {@inheritDoc} */
+    @Override public boolean enableWal(String cacheName) throws IgniteException {
+        throw new UnsupportedOperationException("Operation is not supported yet.");
+    }
+
+    /** {@inheritDoc} */
+    @Override public boolean disableWal(String cacheName) throws IgniteException {
+        throw new UnsupportedOperationException("Operation is not supported yet.");
+    }
+    
+    /** {@inheritDoc} */
+    @Override public boolean isWalEnabled(String cacheName) {
         throw new UnsupportedOperationException("Operation is not supported yet.");
     }
 
@@ -234,17 +257,17 @@ public class IgniteClusterProcessProxy implements IgniteClusterEx {
     }
 
     /** {@inheritDoc} */
-    @Override public ClusterGroup forCacheNodes(String cacheName) {
+    @Override public ClusterGroup forCacheNodes(@NotNull String cacheName) {
         throw new UnsupportedOperationException("Operation is not supported yet.");
     }
 
     /** {@inheritDoc} */
-    @Override public ClusterGroup forDataNodes(String cacheName) {
+    @Override public ClusterGroup forDataNodes(@NotNull String cacheName) {
         throw new UnsupportedOperationException("Operation is not supported yet.");
     }
 
     /** {@inheritDoc} */
-    @Override public ClusterGroup forClientNodes(String cacheName) {
+    @Override public ClusterGroup forClientNodes(@NotNull String cacheName) {
         throw new UnsupportedOperationException("Operation is not supported yet.");
     }
 
@@ -285,38 +308,22 @@ public class IgniteClusterProcessProxy implements IgniteClusterEx {
 
     /** {@inheritDoc} */
     @Override public Collection<ClusterNode> nodes() {
-        return compute.call(new IgniteCallable<Collection<ClusterNode>>() {
-            @Override public Collection<ClusterNode> call() throws Exception {
-                return cluster().nodes();
-            }
-        });
+        return compute.call(new NodesTask());
     }
 
     /** {@inheritDoc} */
-    @Override public ClusterNode node(final UUID nid) {
-        return compute.call(new IgniteCallable<ClusterNode>() {
-            @Override public ClusterNode call() throws Exception {
-                return cluster().node(nid);
-            }
-        });
+    @Override public ClusterNode node(UUID nid) {
+        return compute.call(new NodeTask(nid));
     }
 
     /** {@inheritDoc} */
     @Override public ClusterNode node() {
-        return compute.call(new IgniteCallable<ClusterNode>() {
-            @Override public ClusterNode call() throws Exception {
-                return cluster().node();
-            }
-        });
+        return compute.call(new NodeTask(null));
     }
 
     /** {@inheritDoc} */
     @Override public Collection<String> hostNames() {
-        return compute.call(new IgniteCallable<Collection<String>>() {
-            @Override public Collection<String> call() throws Exception {
-                return cluster().hostNames();
-            }
-        });
+        return compute.call(new HostNamesTask());
     }
 
     /** {@inheritDoc} */
@@ -332,5 +339,116 @@ public class IgniteClusterProcessProxy implements IgniteClusterEx {
     /** {@inheritDoc} */
     @Nullable @Override public IgniteFuture<?> clientReconnectFuture() {
         throw new UnsupportedOperationException("Operation is not supported yet.");
+    }
+
+    /** {@inheritDoc} */
+    @Override public boolean active() {
+        throw new UnsupportedOperationException("Operation is not supported yet.");
+    }
+
+    /** {@inheritDoc} */
+    @Override public void active(boolean active) {
+        throw new UnsupportedOperationException("Operation is not supported yet.");
+    }
+
+    /** {@inheritDoc} */
+    @Nullable @Override public Collection<BaselineNode> currentBaselineTopology() {
+        throw new UnsupportedOperationException("Operation is not supported yet.");
+    }
+
+    /** {@inheritDoc} */
+    @Override public void setBaselineTopology(Collection<? extends BaselineNode> baselineTop) {
+        throw new UnsupportedOperationException("Operation is not supported yet.");
+    }
+
+    /** {@inheritDoc} */
+    @Override public void setBaselineTopology(long topVer) {
+        throw new UnsupportedOperationException("Operation is not supported yet.");
+    }
+
+    /** {@inheritDoc} */
+    @Override public boolean isBaselineAutoAdjustEnabled() {
+        throw new UnsupportedOperationException("Operation is not supported yet.");
+    }
+
+    /** {@inheritDoc} */
+    @Override public void baselineAutoAdjustEnabled(boolean baselineAutoAdjustEnabled) throws IgniteException {
+        throw new UnsupportedOperationException("Operation is not supported yet.");
+    }
+
+    /** {@inheritDoc} */
+    @Override public long baselineAutoAdjustTimeout() {
+        throw new UnsupportedOperationException("Operation is not supported yet.");
+    }
+
+    /** {@inheritDoc} */
+    @Override public void baselineAutoAdjustTimeout(long baselineAutoAdjustTimeout) throws IgniteException {
+        throw new UnsupportedOperationException("Operation is not supported yet.");
+    }
+
+    /**
+     *
+     */
+    private static class LocalNodeTask extends ClusterTaskAdapter<ClusterNode> {
+        /** {@inheritDoc} */
+        @Override public ClusterNode call() throws Exception {
+            return cluster().localNode();
+        }
+    }
+
+    /**
+     *
+     */
+    private static class NodesTask extends ClusterTaskAdapter<Collection<ClusterNode>> {
+        /** {@inheritDoc} */
+        @Override public Collection<ClusterNode> call() throws Exception {
+            return cluster().nodes();
+        }
+    }
+
+    /**
+     *
+     */
+    private static class NodeTask extends ClusterTaskAdapter<ClusterNode> {
+        /** Node id. */
+        private final UUID nodeId;
+
+        /**
+         * @param nodeId Node id.
+         */
+        public NodeTask(UUID nodeId) {
+            this.nodeId = nodeId;
+        }
+
+        /** {@inheritDoc} */
+        @Override public ClusterNode call() throws Exception {
+            return nodeId == null ? cluster().node() : cluster().node(nodeId);
+        }
+    }
+
+    /**
+     *
+     */
+    private static class HostNamesTask extends ClusterTaskAdapter<Collection<String>> {
+        /** {@inheritDoc} */
+        @Override public Collection<String> call() throws Exception {
+            return cluster().hostNames();
+        }
+    }
+
+    /**
+     *
+     */
+    private abstract static class ClusterTaskAdapter<R> implements IgniteCallable<R> {
+        /** Ignite. */
+        @IgniteInstanceResource
+        protected Ignite ignite;
+
+        /**
+         *
+         */
+        protected IgniteCluster cluster() {
+            return ignite.cluster();
+        }
     }
 }

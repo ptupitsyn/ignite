@@ -40,6 +40,7 @@ import org.apache.ignite.spi.IgniteSpiException;
 import org.apache.ignite.spi.deployment.local.LocalDeploymentSpi;
 import org.apache.ignite.testframework.junits.common.GridCommonAbstractTest;
 import org.apache.ignite.testframework.junits.common.GridCommonTest;
+import org.junit.Test;
 
 import static org.apache.ignite.events.EventType.EVT_TASK_DEPLOYED;
 import static org.apache.ignite.events.EventType.EVT_TASK_UNDEPLOYED;
@@ -47,7 +48,6 @@ import static org.apache.ignite.events.EventType.EVT_TASK_UNDEPLOYED;
 /**
  * Task deployment tests.
  */
-@SuppressWarnings("unchecked")
 @GridCommonTest(group = "Kernal Self")
 public class GridDeploymentSelfTest extends GridCommonAbstractTest {
     /** */
@@ -67,8 +67,8 @@ public class GridDeploymentSelfTest extends GridCommonAbstractTest {
     }
 
     /** {@inheritDoc} */
-    @Override protected IgniteConfiguration getConfiguration(String gridName) throws Exception {
-        IgniteConfiguration cfg = super.getConfiguration(gridName);
+    @Override protected IgniteConfiguration getConfiguration(String igniteInstanceName) throws Exception {
+        IgniteConfiguration cfg = super.getConfiguration(igniteInstanceName);
 
         cfg.setDeploymentSpi(depSpi = new TestDeploymentSpi());
         cfg.setPeerClassLoadingEnabled(p2pEnabled);
@@ -96,7 +96,6 @@ public class GridDeploymentSelfTest extends GridCommonAbstractTest {
     /**
      * @param ignite Grid.
      */
-    @SuppressWarnings({"CatchGenericClass"})
     private void stopGrid(Ignite ignite) {
         try {
             if (ignite != null)
@@ -110,8 +109,9 @@ public class GridDeploymentSelfTest extends GridCommonAbstractTest {
     /**
      * @throws Exception If failed.
      */
+    @Test
     public void testDeploy() throws Exception {
-        Ignite ignite = startGrid(getTestGridName());
+        Ignite ignite = startGrid(getTestIgniteInstanceName());
 
         try {
             ignite.compute().localDeployTask(GridDeploymentTestTask.class, GridDeploymentTestTask.class.getClassLoader());
@@ -136,12 +136,13 @@ public class GridDeploymentSelfTest extends GridCommonAbstractTest {
     /**
      * @throws Exception If failed.
      */
+    @Test
     public void testIgnoreDeploymentSpi() throws Exception {
         // If peer class loading is disabled and local deployment SPI
         // is configured, SPI should be ignored.
         p2pEnabled = false;
 
-        Ignite ignite = startGrid(getTestGridName());
+        Ignite ignite = startGrid(getTestIgniteInstanceName());
 
         try {
             ignite.compute().localDeployTask(GridDeploymentTestTask.class, GridDeploymentTestTask.class.getClassLoader());
@@ -162,8 +163,9 @@ public class GridDeploymentSelfTest extends GridCommonAbstractTest {
     /**
      * @throws Exception If failed.
      */
+    @Test
     public void testRedeploy() throws Exception {
-        Ignite ignite = startGrid(getTestGridName());
+        Ignite ignite = startGrid(getTestIgniteInstanceName());
 
         try {
             // Added to work with P2P.
@@ -257,9 +259,10 @@ public class GridDeploymentSelfTest extends GridCommonAbstractTest {
      * @throws Exception If failed.
      */
     @SuppressWarnings({"BusyWait"})
+    @Test
     public void testDeployOnTwoNodes() throws Exception {
-        Ignite ignite1 = startGrid(getTestGridName() + '1');
-        Ignite ignite2 = startGrid(getTestGridName() + '2');
+        Ignite ignite1 = startGrid(getTestIgniteInstanceName() + '1');
+        Ignite ignite2 = startGrid(getTestIgniteInstanceName() + '2');
 
         try {
             assert !ignite1.cluster().forRemotes().nodes().isEmpty() : ignite1.cluster().forRemotes();
@@ -299,8 +302,9 @@ public class GridDeploymentSelfTest extends GridCommonAbstractTest {
     /**
      * @throws Exception If failed.
      */
+    @Test
     public void testDeployEvents() throws Exception {
-        Ignite ignite = startGrid(getTestGridName());
+        Ignite ignite = startGrid(getTestIgniteInstanceName());
 
         try {
             DeploymentEventListener evtLsnr = new DeploymentEventListener();
@@ -473,7 +477,7 @@ public class GridDeploymentSelfTest extends GridCommonAbstractTest {
 
         /** {@inheritDoc} */
         @Override public boolean register(ClassLoader ldr, Class rsrc) throws IgniteSpiException {
-            if (super.register(ldr, rsrc)) {
+            if (super.register(ldr, rsrc) && ComputeTaskAdapter.class.isAssignableFrom(rsrc)) {
                 deployCnt++;
 
                 return true;

@@ -18,9 +18,12 @@
 package org.apache.ignite.internal.processors.cache;
 
 import org.apache.ignite.configuration.CacheConfiguration;
+import org.junit.Assume;
+import org.junit.Test;
+import org.apache.ignite.testframework.MvccFeatureChecker;
 
 /**
- * TODO: IGNITE-809.
+ *
  */
 public class GridCacheMultinodeUpdateNearEnabledNoBackupsSelfTest extends GridCacheMultinodeUpdateNearEnabledSelfTest {
     /** {@inheritDoc} */
@@ -29,11 +32,19 @@ public class GridCacheMultinodeUpdateNearEnabledNoBackupsSelfTest extends GridCa
     }
 
     /** {@inheritDoc} */
-    @Override protected CacheConfiguration cacheConfiguration(String gridName) throws Exception {
-        CacheConfiguration ccfg = super.cacheConfiguration(gridName);
+    @Override protected CacheConfiguration cacheConfiguration(String igniteInstanceName) throws Exception {
+        CacheConfiguration ccfg = super.cacheConfiguration(igniteInstanceName);
 
         ccfg.setBackups(0);
 
         return ccfg;
+    }
+
+    /** {@inheritDoc} */
+    @Test
+    @Override public void testInvoke() throws Exception {
+        Assume.assumeTrue("https://issues.apache.org/jira/browse/IGNITE-809", MvccFeatureChecker.forcedMvcc());
+
+        super.testInvoke();
     }
 }

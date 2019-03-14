@@ -37,6 +37,7 @@ import org.apache.ignite.IgniteCache;
 import org.apache.ignite.IgniteCompute;
 import org.apache.ignite.IgniteException;
 import org.apache.ignite.IgniteLogger;
+import org.apache.ignite.IgniteSystemProperties;
 import org.apache.ignite.cache.CacheAtomicityMode;
 import org.apache.ignite.cluster.ClusterNode;
 import org.apache.ignite.compute.ComputeJobContext;
@@ -56,12 +57,10 @@ import org.apache.ignite.resources.LoggerResource;
 import org.apache.ignite.spi.IgniteSpiConsistencyChecked;
 import org.apache.ignite.spi.communication.tcp.TcpCommunicationSpi;
 import org.apache.ignite.spi.discovery.tcp.TcpDiscoverySpi;
-import org.apache.ignite.spi.discovery.tcp.ipfinder.TcpDiscoveryIpFinder;
-import org.apache.ignite.spi.discovery.tcp.ipfinder.vm.TcpDiscoveryVmIpFinder;
 import org.apache.ignite.spi.failover.FailoverContext;
 import org.apache.ignite.spi.failover.always.AlwaysFailoverSpi;
-import org.apache.ignite.testframework.GridTestUtils;
 import org.apache.ignite.testframework.junits.common.GridCommonAbstractTest;
+import org.junit.Test;
 
 import static org.apache.ignite.cache.CacheAtomicityMode.TRANSACTIONAL;
 import static org.apache.ignite.cache.CacheMode.PARTITIONED;
@@ -72,9 +71,6 @@ import static org.apache.ignite.cache.CacheWriteSynchronizationMode.FULL_SYNC;
  * Tests putAll() method along with failover and different configurations.
  */
 public class GridCachePutAllFailoverSelfTest extends GridCommonAbstractTest {
-    /** IP finder. */
-    private static TcpDiscoveryIpFinder ipFinder = new TcpDiscoveryVmIpFinder(true);
-
     /** Size of the test map. */
     private static final int TEST_MAP_SIZE = 30_000;
 
@@ -102,12 +98,8 @@ public class GridCachePutAllFailoverSelfTest extends GridCommonAbstractTest {
     /** Backups count. */
     private int backups;
 
-    /** */
-    private GridTestUtils.TestMemoryMode memMode = GridTestUtils.TestMemoryMode.HEAP;
-
     /** Filter to include only worker nodes. */
     private static final IgnitePredicate<ClusterNode> workerNodesFilter = new PN() {
-        @SuppressWarnings("unchecked")
         @Override public boolean apply(ClusterNode n) {
              return "worker".equals(n.attribute("segment"));
         }
@@ -125,6 +117,7 @@ public class GridCachePutAllFailoverSelfTest extends GridCommonAbstractTest {
     /**
      * @throws Exception If failed.
      */
+    @Test
     public void testPutAllFailoverColocatedNearEnabledThreeBackups() throws Exception {
         checkPutAllFailoverColocated(true, 7, 3);
     }
@@ -132,6 +125,7 @@ public class GridCachePutAllFailoverSelfTest extends GridCommonAbstractTest {
     /**
      * @throws Exception If failed.
      */
+    @Test
     public void testPutAllFailoverColocatedNearDisabledThreeBackups() throws Exception {
         checkPutAllFailoverColocated(false, 7, 3);
     }
@@ -139,6 +133,7 @@ public class GridCachePutAllFailoverSelfTest extends GridCommonAbstractTest {
     /**
      * @throws Exception If failed.
      */
+    @Test
     public void testPutAllFailoverNearEnabledOneBackup() throws Exception {
         checkPutAllFailover(true, 3, 1);
     }
@@ -146,6 +141,7 @@ public class GridCachePutAllFailoverSelfTest extends GridCommonAbstractTest {
     /**
      * @throws Exception If failed.
      */
+    @Test
     public void testPutAllFailoverNearDisabledOneBackup() throws Exception {
         checkPutAllFailover(false, 3, 1);
     }
@@ -153,6 +149,7 @@ public class GridCachePutAllFailoverSelfTest extends GridCommonAbstractTest {
     /**
      * @throws Exception If failed.
      */
+    @Test
     public void testPutAllFailoverNearEnabledTwoBackups() throws Exception {
         checkPutAllFailover(true, 5, 2);
     }
@@ -160,6 +157,7 @@ public class GridCachePutAllFailoverSelfTest extends GridCommonAbstractTest {
     /**
      * @throws Exception If failed.
      */
+    @Test
     public void testPutAllFailoverNearDisabledTwoBackups() throws Exception {
         checkPutAllFailover(false, 5, 2);
     }
@@ -167,6 +165,7 @@ public class GridCachePutAllFailoverSelfTest extends GridCommonAbstractTest {
     /**
      * @throws Exception If failed.
      */
+    @Test
     public void testPutAllFailoverNearEnabledThreeBackups() throws Exception {
         checkPutAllFailover(true, 7, 3);
     }
@@ -174,6 +173,7 @@ public class GridCachePutAllFailoverSelfTest extends GridCommonAbstractTest {
     /**
      * @throws Exception If failed.
      */
+    @Test
     public void testPutAllFailoverNearDisabledThreeBackups() throws Exception {
         checkPutAllFailover(false, 7, 3);
     }
@@ -181,6 +181,7 @@ public class GridCachePutAllFailoverSelfTest extends GridCommonAbstractTest {
     /**
      * @throws Exception If failed.
      */
+    @Test
     public void testPutAllFailoverColocatedNearEnabledOneBackup() throws Exception {
         checkPutAllFailoverColocated(true, 3, 1);
     }
@@ -188,6 +189,7 @@ public class GridCachePutAllFailoverSelfTest extends GridCommonAbstractTest {
     /**
      * @throws Exception If failed.
      */
+    @Test
     public void testPutAllFailoverColocatedNearDisabledOneBackup() throws Exception {
         checkPutAllFailoverColocated(false, 3, 1);
     }
@@ -195,6 +197,7 @@ public class GridCachePutAllFailoverSelfTest extends GridCommonAbstractTest {
     /**
      * @throws Exception If failed.
      */
+    @Test
     public void testPutAllFailoverColocatedNearEnabledTwoBackups() throws Exception {
         checkPutAllFailoverColocated(true, 5, 2);
     }
@@ -202,62 +205,9 @@ public class GridCachePutAllFailoverSelfTest extends GridCommonAbstractTest {
     /**
      * @throws Exception If failed.
      */
+    @Test
     public void testPutAllFailoverColocatedNearDisabledTwoBackups() throws Exception {
         checkPutAllFailoverColocated(false, 5, 2);
-    }
-
-    /**
-     * @throws Exception If failed.
-     */
-    public void testPutAllFailoverColocatedNearEnabledTwoBackupsSwap() throws Exception {
-        memMode = GridTestUtils.TestMemoryMode.SWAP;
-
-        checkPutAllFailoverColocated(true, 5, 2);
-    }
-
-    /**
-     * @throws Exception If failed.
-     */
-    public void testPutAllFailoverColocatedTwoBackupsSwap() throws Exception {
-        memMode = GridTestUtils.TestMemoryMode.SWAP;
-
-        checkPutAllFailoverColocated(false, 5, 2);
-    }
-
-    /**
-     * @throws Exception If failed.
-     */
-    public void testPutAllFailoverColocatedNearEnabledTwoBackupsOffheapTiered() throws Exception {
-        memMode = GridTestUtils.TestMemoryMode.OFFHEAP_TIERED;
-
-        checkPutAllFailoverColocated(true, 5, 2);
-    }
-
-    /**
-     * @throws Exception If failed.
-     */
-    public void testPutAllFailoverColocatedNearEnabledTwoBackupsOffheapTieredSwap() throws Exception {
-        memMode = GridTestUtils.TestMemoryMode.OFFHEAP_TIERED_SWAP;
-
-        checkPutAllFailoverColocated(true, 5, 2);
-    }
-
-    /**
-     * @throws Exception If failed.
-     */
-    public void testPutAllFailoverColocatedNearEnabledTwoBackupsOffheapEvict() throws Exception {
-        memMode = GridTestUtils.TestMemoryMode.OFFHEAP_EVICT;
-
-        checkPutAllFailoverColocated(true, 5, 2);
-    }
-
-    /**
-     * @throws Exception If failed.
-     */
-    public void testPutAllFailoverColocatedNearEnabledTwoBackupsOffheapEvictSwap() throws Exception {
-        memMode = GridTestUtils.TestMemoryMode.OFFHEAP_EVICT_SWAP;
-
-        checkPutAllFailoverColocated(true, 5, 2);
     }
 
     /** {@inheritDoc} */
@@ -303,7 +253,7 @@ public class GridCachePutAllFailoverSelfTest extends GridCommonAbstractTest {
 
         try {
             // Dummy call to fetch affinity function from remote node
-            master.cluster().mapKeyToNode(CACHE_NAME, "Dummy");
+            master.affinity(CACHE_NAME).mapKeyToNode("Dummy");
 
             Random rnd = new Random();
 
@@ -318,7 +268,7 @@ public class GridCachePutAllFailoverSelfTest extends GridCommonAbstractTest {
 
             final AtomicBoolean inputExhausted = new AtomicBoolean();
 
-            IgniteCompute comp = compute(master.cluster().forPredicate(workerNodesFilter)).withAsync();
+            IgniteCompute comp = compute(master.cluster().forPredicate(workerNodesFilter));
 
             for (Integer key : testKeys) {
                 dataChunk.add(key);
@@ -331,13 +281,11 @@ public class GridCachePutAllFailoverSelfTest extends GridCommonAbstractTest {
 
                     log.info("Pushing data chunk [chunkNo=" + chunkCntr + "]");
 
-                    comp.execute(
+                    ComputeTaskFuture<Void> fut = comp.executeAsync(
                         new GridCachePutAllTask(
                             runningWorkers.get(rnd.nextInt(runningWorkers.size())).cluster().localNode().id(),
                             CACHE_NAME),
                             dataChunk);
-
-                    ComputeTaskFuture<Void> fut = comp.future();
 
                     resQueue.put(fut); // Blocks if queue is full.
 
@@ -514,10 +462,10 @@ public class GridCachePutAllFailoverSelfTest extends GridCommonAbstractTest {
 
             final AtomicBoolean inputExhausted = new AtomicBoolean();
 
-            IgniteCompute comp = compute(master.cluster().forPredicate(workerNodesFilter)).withAsync();
+            IgniteCompute comp = compute(master.cluster().forPredicate(workerNodesFilter));
 
             for (Integer key : testKeys) {
-                ClusterNode mappedNode = master.cluster().mapKeyToNode(CACHE_NAME, key);
+                ClusterNode mappedNode = master.affinity(CACHE_NAME).mapKeyToNode(key);
 
                 UUID nodeId = mappedNode.id();
 
@@ -536,9 +484,7 @@ public class GridCachePutAllFailoverSelfTest extends GridCommonAbstractTest {
 
                     log.info("Pushing data chunk [chunkNo=" + chunkCntr + "]");
 
-                    comp.execute(new GridCachePutAllTask(nodeId, CACHE_NAME), data);
-
-                    ComputeTaskFuture<Void> fut = comp.future();
+                    ComputeTaskFuture<Void> fut = comp.executeAsync(new GridCachePutAllTask(nodeId, CACHE_NAME), data);
 
                     resQueue.put(fut); // Blocks if queue is full.
 
@@ -587,9 +533,7 @@ public class GridCachePutAllFailoverSelfTest extends GridCommonAbstractTest {
             }
 
             for (Map.Entry<UUID, Collection<Integer>> entry : dataChunks.entrySet()) {
-                comp.execute(new GridCachePutAllTask(entry.getKey(), CACHE_NAME), entry.getValue());
-
-                ComputeTaskFuture<Void> fut = comp.future();
+                ComputeTaskFuture<Void> fut = comp.executeAsync(new GridCachePutAllTask(entry.getKey(), CACHE_NAME), entry.getValue());
 
                 resQueue.put(fut); // Blocks if queue is full.
 
@@ -712,8 +656,8 @@ public class GridCachePutAllFailoverSelfTest extends GridCommonAbstractTest {
 
     /** {@inheritDoc} */
     @SuppressWarnings("unchecked")
-    @Override protected IgniteConfiguration getConfiguration(String gridName) throws Exception {
-        IgniteConfiguration cfg = super.getConfiguration(gridName);
+    @Override protected IgniteConfiguration getConfiguration(String igniteInstanceName) throws Exception {
+        IgniteConfiguration cfg = super.getConfiguration(igniteInstanceName);
 
         ((TcpCommunicationSpi)cfg.getCommunicationSpi()).setSharedMemoryPort(-1);
 
@@ -721,15 +665,14 @@ public class GridCachePutAllFailoverSelfTest extends GridCommonAbstractTest {
 
         cfg.setDeploymentMode(DeploymentMode.CONTINUOUS);
 
-        TcpDiscoverySpi discoverySpi = new TcpDiscoverySpi();
+        TcpDiscoverySpi discoverySpi = (TcpDiscoverySpi)cfg.getDiscoverySpi();
 
         discoverySpi.setAckTimeout(60000);
-        discoverySpi.setIpFinder(ipFinder);
         discoverySpi.setForceServerMode(true);
 
         cfg.setDiscoverySpi(discoverySpi);
 
-        if (gridName.startsWith("master")) {
+        if (igniteInstanceName.startsWith("master")) {
             cfg.setClientMode(true);
 
             cfg.setUserAttributes(ImmutableMap.of("segment", "master"));
@@ -739,14 +682,13 @@ public class GridCachePutAllFailoverSelfTest extends GridCommonAbstractTest {
 
             cfg.setFailoverSpi(failoverSpi);
         }
-        else if (gridName.startsWith("worker")) {
+        else if (igniteInstanceName.startsWith("worker")) {
             cfg.setUserAttributes(ImmutableMap.of("segment", "worker"));
 
             CacheConfiguration cacheCfg = defaultCacheConfiguration();
             cacheCfg.setName("partitioned");
             cacheCfg.setAtomicityMode(atomicityMode());
             cacheCfg.setCacheMode(PARTITIONED);
-            cacheCfg.setStartSize(4500000);
 
             cacheCfg.setBackups(backups);
 
@@ -754,12 +696,11 @@ public class GridCachePutAllFailoverSelfTest extends GridCommonAbstractTest {
 
             cacheCfg.setWriteSynchronizationMode(FULL_SYNC);
 
-            GridTestUtils.setMemoryMode(cfg, cacheCfg, memMode, 1000, 10 * 1024);
 
             cfg.setCacheConfiguration(cacheCfg);
         }
         else
-            throw new IllegalStateException("Unexpected grid name: " + gridName);
+            throw new IllegalStateException("Unexpected Ignite instance name: " + igniteInstanceName);
 
         return cfg;
     }

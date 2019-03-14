@@ -42,7 +42,6 @@ import org.jetbrains.annotations.Nullable;
  * For a good explanation of what consistent hashing is, you can refer to
  * <a href="http://weblogs.java.net/blog/tomwhite/archive/2007/11/consistent_hash.html">Tom White's Blog</a>.
  */
-@SuppressWarnings("NullableProblems")
 public class GridClientConsistentHash<N> {
     /** Prime number. */
     private static final int PRIME = 15485857;
@@ -439,13 +438,9 @@ public class GridClientConsistentHash<N> {
 
     /** {@inheritDoc} */
     @Override public String toString() {
-        StringBuilder sb = new StringBuilder(getClass().getSimpleName());
-
-        sb.append(" [affSeed=").append(affSeed).
-            append(", circle=").append(circle).
-            append(", nodesComp=").append(nodesComp).
-            append(", nodes=").append(nodes).append("]");
-
-        return sb.toString();
+        return getClass().getSimpleName() + " [affSeed=" + affSeed +
+            ", circle=" + circle +
+            ", nodesComp=" + nodesComp +
+            ", nodes=" + nodes + "]";
     }
 }

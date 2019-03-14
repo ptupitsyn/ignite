@@ -18,6 +18,7 @@
 package org.apache.ignite.internal.processors.cache.distributed;
 
 import java.io.Externalizable;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedList;
@@ -25,11 +26,18 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
+import java.util.stream.Collectors;
 import org.apache.ignite.IgniteCheckedException;
+import org.apache.ignite.IgniteException;
+import org.apache.ignite.failure.FailureContext;
+import org.apache.ignite.failure.FailureType;
 import org.apache.ignite.internal.IgniteInternalFuture;
+import org.apache.ignite.internal.NodeStoppingException;
+import org.apache.ignite.internal.pagemem.wal.WALPointer;
+import org.apache.ignite.internal.pagemem.wal.record.DataEntry;
+import org.apache.ignite.internal.pagemem.wal.record.DataRecord;
 import org.apache.ignite.internal.processors.affinity.AffinityTopologyVersion;
-import org.apache.ignite.internal.processors.cache.CacheEntryPredicate;
 import org.apache.ignite.internal.processors.cache.CacheObject;
 import org.apache.ignite.internal.processors.cache.GridCacheContext;
 import org.apache.ignite.internal.processors.cache.GridCacheEntryEx;
@@ -37,7 +45,10 @@ import org.apache.ignite.internal.processors.cache.GridCacheEntryRemovedExceptio
 import org.apache.ignite.internal.processors.cache.GridCacheFilterFailedException;
 import org.apache.ignite.internal.processors.cache.GridCacheMvccCandidate;
 import org.apache.ignite.internal.processors.cache.GridCacheOperation;
+import org.apache.ignite.internal.processors.cache.GridCacheReturn;
+import org.apache.ignite.internal.processors.cache.GridCacheReturnCompletableWrapper;
 import org.apache.ignite.internal.processors.cache.GridCacheSharedContext;
+import org.apache.ignite.internal.processors.cache.GridCacheUpdateTxResult;
 import org.apache.ignite.internal.processors.cache.KeyCacheObject;
 import org.apache.ignite.internal.processors.cache.distributed.near.GridNearCacheEntry;
 import org.apache.ignite.internal.processors.cache.transactions.IgniteInternalTx;
@@ -45,6 +56,9 @@ import org.apache.ignite.internal.processors.cache.transactions.IgniteTxAdapter;
 import org.apache.ignite.internal.processors.cache.transactions.IgniteTxEntry;
 import org.apache.ignite.internal.processors.cache.transactions.IgniteTxKey;
 import org.apache.ignite.internal.processors.cache.transactions.IgniteTxRemoteEx;
+import org.apache.ignite.internal.processors.cache.transactions.IgniteTxRemoteState;
+import org.apache.ignite.internal.processors.cache.transactions.IgniteTxState;
+import org.apache.ignite.internal.processors.cache.transactions.TxCounters;
 import org.apache.ignite.internal.processors.cache.version.GridCacheVersion;
 import org.apache.ignite.internal.processors.cache.version.GridCacheVersionConflictContext;
 import org.apache.ignite.internal.transactions.IgniteTxHeuristicCheckedException;
@@ -53,6 +67,8 @@ import org.apache.ignite.internal.util.lang.GridTuple;
 import org.apache.ignite.internal.util.tostring.GridToStringBuilder;
 import org.apache.ignite.internal.util.tostring.GridToStringInclude;
 import org.apache.ignite.internal.util.typedef.F;
+import org.apache.ignite.internal.util.typedef.T2;
+import org.apache.ignite.internal.util.typedef.X;
 import org.apache.ignite.internal.util.typedef.internal.CU;
 import org.apache.ignite.internal.util.typedef.internal.U;
 import org.apache.ignite.lang.IgniteBiTuple;
@@ -80,22 +96,14 @@ import static org.apache.ignite.transactions.TransactionState.UNKNOWN;
 /**
  * Transaction created by system implicitly on remote nodes.
  */
-public class GridDistributedTxRemoteAdapter extends IgniteTxAdapter
+public abstract class GridDistributedTxRemoteAdapter extends IgniteTxAdapter
     implements IgniteTxRemoteEx {
     /** */
     private static final long serialVersionUID = 0L;
 
-    /** Read set. */
-    @GridToStringInclude
-    protected Map<IgniteTxKey, IgniteTxEntry> readMap;
-
-    /** Write map. */
-    @GridToStringInclude
-    protected Map<IgniteTxKey, IgniteTxEntry> writeMap;
-
-    /** Remote thread ID. */
-    @GridToStringInclude
-    private long rmtThreadId;
+    /** Commit allowed field updater. */
+    private static final AtomicIntegerFieldUpdater<GridDistributedTxRemoteAdapter> COMMIT_ALLOWED_UPD =
+        AtomicIntegerFieldUpdater.newUpdater(GridDistributedTxRemoteAdapter.class, "commitAllowed");
 
     /** Explicit versions. */
     @GridToStringInclude
@@ -107,7 +115,15 @@ public class GridDistributedTxRemoteAdapter extends IgniteTxAdapter
 
     /** {@code True} only if all write entries are locked by this transaction. */
     @GridToStringInclude
-    private AtomicBoolean commitAllowed = new AtomicBoolean(false);
+    private volatile int commitAllowed;
+
+    /** */
+    @GridToStringInclude
+    protected IgniteTxRemoteState txState;
+
+    /** Transaction label. */
+    @GridToStringInclude
+    @Nullable private String txLbl;
 
     /**
      * Empty constructor required for {@link Externalizable}.
@@ -119,7 +135,6 @@ public class GridDistributedTxRemoteAdapter extends IgniteTxAdapter
     /**
      * @param ctx Cache registry.
      * @param nodeId Node ID.
-     * @param rmtThreadId Remote thread ID.
      * @param xidVer XID version.
      * @param commitVer Commit version.
      * @param sys System flag.
@@ -131,11 +146,11 @@ public class GridDistributedTxRemoteAdapter extends IgniteTxAdapter
      * @param txSize Expected transaction size.
      * @param subjId Subject ID.
      * @param taskNameHash Task name hash code.
+     * @param txLbl Transaction label.
      */
     public GridDistributedTxRemoteAdapter(
         GridCacheSharedContext<?, ?> ctx,
         UUID nodeId,
-        long rmtThreadId,
         GridCacheVersion xidVer,
         GridCacheVersion commitVer,
         boolean sys,
@@ -146,7 +161,8 @@ public class GridDistributedTxRemoteAdapter extends IgniteTxAdapter
         long timeout,
         int txSize,
         @Nullable UUID subjId,
-        int taskNameHash
+        int taskNameHash,
+        String txLbl
     ) {
         super(
             ctx,
@@ -163,8 +179,8 @@ public class GridDistributedTxRemoteAdapter extends IgniteTxAdapter
             subjId,
             taskNameHash);
 
-        this.rmtThreadId = rmtThreadId;
         this.invalidate = invalidate;
+        this.txLbl = txLbl;
 
         commitVersion(commitVer);
 
@@ -173,13 +189,13 @@ public class GridDistributedTxRemoteAdapter extends IgniteTxAdapter
     }
 
     /** {@inheritDoc} */
-    @Override public UUID eventNodeId() {
-        return nodeId;
+    @Override public IgniteTxState txState() {
+        return txState;
     }
 
     /** {@inheritDoc} */
-    @Override public Collection<UUID> masterNodeIds() {
-        return Collections.singleton(nodeId);
+    @Override public UUID eventNodeId() {
+        return nodeId;
     }
 
     /** {@inheritDoc} */
@@ -188,22 +204,25 @@ public class GridDistributedTxRemoteAdapter extends IgniteTxAdapter
     }
 
     /** {@inheritDoc} */
-    @Override public Collection<Integer> activeCacheIds() {
-        return Collections.emptyList();
+    @Override public boolean activeCachesDeploymentEnabled() {
+        return false;
+    }
+
+    /** {@inheritDoc} */
+    @Override public void activeCachesDeploymentEnabled(boolean depEnabled) {
+        throw new UnsupportedOperationException("Remote tx doesn't support deployment.");
+    }
+
+    /** {@inheritDoc} */
+    @Override public void addActiveCache(GridCacheContext cacheCtx, boolean recovery) throws IgniteCheckedException {
+        txState.addActiveCache(cacheCtx, recovery, this);
     }
 
     /**
      * @return Checks if transaction has no entries.
      */
     @Override public boolean empty() {
-        return readMap.isEmpty() && writeMap.isEmpty();
-    }
-
-    /** {@inheritDoc} */
-    @Override public boolean removed(IgniteTxKey key) {
-        IgniteTxEntry e = writeMap.get(key);
-
-        return e != null && e.op() == DELETE;
+        return txState.empty();
     }
 
     /** {@inheritDoc} */
@@ -213,12 +232,12 @@ public class GridDistributedTxRemoteAdapter extends IgniteTxAdapter
 
     /** {@inheritDoc} */
     @Override public Map<IgniteTxKey, IgniteTxEntry> writeMap() {
-        return writeMap;
+        return txState.writeMap();
     }
 
     /** {@inheritDoc} */
     @Override public Map<IgniteTxKey, IgniteTxEntry> readMap() {
-        return readMap;
+        return txState.readMap();
     }
 
     /** {@inheritDoc} */
@@ -229,10 +248,8 @@ public class GridDistributedTxRemoteAdapter extends IgniteTxAdapter
     /** {@inheritDoc} */
     @Override public GridTuple<CacheObject> peek(GridCacheContext cacheCtx,
         boolean failFast,
-        KeyCacheObject key,
-        CacheEntryPredicate[] filter)
-        throws GridCacheFilterFailedException
-    {
+        KeyCacheObject key)
+        throws GridCacheFilterFailedException {
         assert false : "Method peek can only be called on user transaction: " + this;
 
         throw new IllegalStateException("Method peek can only be called on user transaction: " + this);
@@ -240,12 +257,7 @@ public class GridDistributedTxRemoteAdapter extends IgniteTxAdapter
 
     /** {@inheritDoc} */
     @Override public IgniteTxEntry entry(IgniteTxKey key) {
-        IgniteTxEntry e = writeMap == null ? null : writeMap.get(key);
-
-        if (e == null)
-            e = readMap == null ? null : readMap.get(key);
-
-        return e;
+        return txState.entry(key);
     }
 
     /**
@@ -254,8 +266,7 @@ public class GridDistributedTxRemoteAdapter extends IgniteTxAdapter
      * @param key key to be removed.
      */
     public void clearEntry(IgniteTxKey key) {
-        readMap.remove(key);
-        writeMap.remove(key);
+        txState.clearEntry(key);
     }
 
     /**
@@ -263,16 +274,35 @@ public class GridDistributedTxRemoteAdapter extends IgniteTxAdapter
      * @param committedVers Committed versions.
      * @param rolledbackVers Rolled back versions.
      */
-    @Override public void doneRemote(GridCacheVersion baseVer, Collection<GridCacheVersion> committedVers,
-        Collection<GridCacheVersion> rolledbackVers, Collection<GridCacheVersion> pendingVers) {
+    @Override public void doneRemote(GridCacheVersion baseVer,
+        Collection<GridCacheVersion> committedVers,
+        Collection<GridCacheVersion> rolledbackVers,
+        Collection<GridCacheVersion> pendingVers) {
+        Map<IgniteTxKey, IgniteTxEntry> readMap = txState.readMap();
+
         if (readMap != null && !readMap.isEmpty()) {
             for (IgniteTxEntry txEntry : readMap.values())
                 doneRemote(txEntry, baseVer, committedVers, rolledbackVers, pendingVers);
         }
 
+        Map<IgniteTxKey, IgniteTxEntry> writeMap = txState.writeMap();
+
         if (writeMap != null && !writeMap.isEmpty()) {
             for (IgniteTxEntry txEntry : writeMap.values())
                 doneRemote(txEntry, baseVer, committedVers, rolledbackVers, pendingVers);
+        }
+    }
+
+    /** {@inheritDoc} */
+    @Override public void setPartitionUpdateCounters(long[] cntrs) {
+        if (writeMap() != null && !writeMap().isEmpty() && cntrs != null && cntrs.length > 0) {
+            int i = 0;
+
+            for (IgniteTxEntry txEntry : writeMap().values()) {
+                txEntry.updateCounter(cntrs[i]);
+
+                ++i;
+            }
         }
     }
 
@@ -285,8 +315,10 @@ public class GridDistributedTxRemoteAdapter extends IgniteTxAdapter
      * @param rolledbackVers Rolled back versions relative to base version.
      * @param pendingVers Pending versions.
      */
-    private void doneRemote(IgniteTxEntry txEntry, GridCacheVersion baseVer,
-        Collection<GridCacheVersion> committedVers, Collection<GridCacheVersion> rolledbackVers,
+    private void doneRemote(IgniteTxEntry txEntry,
+        GridCacheVersion baseVer,
+        Collection<GridCacheVersion> committedVers,
+        Collection<GridCacheVersion> rolledbackVers,
         Collection<GridCacheVersion> pendingVers) {
         while (true) {
             GridDistributedCacheEntry entry = (GridDistributedCacheEntry)txEntry.cached();
@@ -306,25 +338,31 @@ public class GridDistributedTxRemoteAdapter extends IgniteTxAdapter
                     log.debug("Replacing obsolete entry in remote transaction [entry=" + entry + ", tx=" + this + ']');
 
                 // Replace the entry.
-                txEntry.cached(txEntry.context().cache().entryEx(txEntry.key()));
+                txEntry.cached(txEntry.context().cache().entryEx(txEntry.key(), topologyVersion()));
             }
         }
     }
 
     /** {@inheritDoc} */
     @Override public boolean onOwnerChanged(GridCacheEntryEx entry, GridCacheMvccCandidate owner) {
-        try {
-            if (hasWriteKey(entry.txKey())) {
-                commitIfLocked();
+        if (!hasWriteKey(entry.txKey()))
+            return false;
 
-                return true;
-            }
+        try {
+            commitIfLocked();
+
+            return true;
         }
         catch (IgniteCheckedException e) {
             U.error(log, "Failed to commit remote transaction: " + this, e);
-        }
 
-        return false;
+            invalidate(true);
+            systemInvalidate(true);
+
+            rollbackRemoteTx();
+
+            return false;
+        }
     }
 
     /** {@inheritDoc} */
@@ -332,102 +370,44 @@ public class GridDistributedTxRemoteAdapter extends IgniteTxAdapter
         return started;
     }
 
-    /**
-     * @return Remote node thread ID.
-     */
-    @Override public long remoteThreadId() {
-        return rmtThreadId;
-    }
-
-    /**
-     * @param e Transaction entry to set.
-     * @return {@code True} if value was set.
-     */
-    @Override public boolean setWriteValue(IgniteTxEntry e) {
-        checkInternal(e.txKey());
-
-        IgniteTxEntry entry = writeMap.get(e.txKey());
-
-        if (entry == null) {
-            IgniteTxEntry rmv = readMap.remove(e.txKey());
-
-            if (rmv != null) {
-                e.cached(rmv.cached());
-
-                writeMap.put(e.txKey(), e);
-            }
-            // If lock is explicit.
-            else {
-                e.cached(e.context().cache().entryEx(e.key()));
-
-                // explicit lock.
-                writeMap.put(e.txKey(), e);
-            }
-        }
-        else {
-            // Copy values.
-            entry.value(e.value(), e.hasWriteValue(), e.hasReadValue());
-            entry.entryProcessors(e.entryProcessors());
-            entry.op(e.op());
-            entry.ttl(e.ttl());
-            entry.explicitVersion(e.explicitVersion());
-
-            // Conflict resolution stuff.
-            entry.conflictVersion(e.conflictVersion());
-            entry.conflictExpireTime(e.conflictExpireTime());
-        }
-
-        addExplicit(e);
-
-        return true;
-    }
-
     /** {@inheritDoc} */
     @Override public boolean hasWriteKey(IgniteTxKey key) {
-        return writeMap.containsKey(key);
-    }
-
-    /** {@inheritDoc} */
-    @Override public IgniteInternalFuture<IgniteInternalTx> prepareAsync() {
-        assert false;
-        return null;
+        return txState.hasWriteKey(key);
     }
 
     /** {@inheritDoc} */
     @Override public Set<IgniteTxKey> readSet() {
-        return readMap.keySet();
+        return txState.readSet();
     }
 
     /** {@inheritDoc} */
     @Override public Set<IgniteTxKey> writeSet() {
-        return writeMap.keySet();
+        return txState.writeSet();
     }
 
     /** {@inheritDoc} */
     @Override public Collection<IgniteTxEntry> allEntries() {
-        return F.concat(false, writeEntries(), readEntries());
+        return txState.allEntries();
     }
 
     /** {@inheritDoc} */
     @Override public Collection<IgniteTxEntry> writeEntries() {
-        return writeMap.values();
+        return txState.writeEntries();
     }
 
     /** {@inheritDoc} */
     @Override public Collection<IgniteTxEntry> readEntries() {
-        return readMap.values();
+        return txState.readEntries();
     }
 
     /**
-     * Prepare phase.
-     *
-     * @throws IgniteCheckedException If prepare failed.
+     * @throws IgniteCheckedException If failed.
      */
-    @Override public void prepare() throws IgniteCheckedException {
+    public final void prepareRemoteTx() throws IgniteCheckedException {
         // If another thread is doing prepare or rollback.
         if (!state(PREPARING)) {
             // In optimistic mode prepare may be called multiple times.
-            if(state() != PREPARING || !optimistic()) {
+            if (state() != PREPARING || !optimistic()) {
                 if (log.isDebugEnabled())
                     log.debug("Invalid transaction state for prepare: " + this);
 
@@ -436,7 +416,7 @@ public class GridDistributedTxRemoteAdapter extends IgniteTxAdapter
         }
 
         try {
-            cctx.tm().prepareTx(this);
+            cctx.tm().prepareTx(this, null);
 
             if (pessimistic() || isSystemInvalidate())
                 state(PREPARED);
@@ -451,10 +431,9 @@ public class GridDistributedTxRemoteAdapter extends IgniteTxAdapter
     /**
      * @throws IgniteCheckedException If commit failed.
      */
-    @SuppressWarnings({"CatchGenericClass"})
     private void commitIfLocked() throws IgniteCheckedException {
         if (state() == COMMITTING) {
-            for (IgniteTxEntry txEntry : writeMap.values()) {
+            for (IgniteTxEntry txEntry : writeEntries()) {
                 assert txEntry != null : "Missing transaction entry for tx: " + this;
 
                 while (true) {
@@ -480,35 +459,68 @@ public class GridDistributedTxRemoteAdapter extends IgniteTxAdapter
                         if (log.isDebugEnabled())
                             log.debug("Got removed entry while committing (will retry): " + txEntry);
 
-                        txEntry.cached(txEntry.context().cache().entryEx(txEntry.key()));
+                        txEntry.cached(txEntry.context().cache().entryEx(txEntry.key(), topologyVersion()));
                     }
                 }
             }
 
             // Only one thread gets to commit.
-            if (commitAllowed.compareAndSet(false, true)) {
+            if (COMMIT_ALLOWED_UPD.compareAndSet(this, 0, 1)) {
                 IgniteCheckedException err = null;
 
-                if (!F.isEmpty(writeMap)) {
+                Map<IgniteTxKey, IgniteTxEntry> writeMap = txState.writeMap();
+
+                GridCacheReturnCompletableWrapper wrapper = null;
+
+                if (!F.isEmpty(writeMap) || mvccSnapshot != null) {
+                    GridCacheReturn ret = null;
+
+                    if (!near() && !local() && onePhaseCommit()) {
+                        if (needReturnValue()) {
+                            ret = new GridCacheReturn(null, cctx.localNodeId().equals(otherNodeId()), true, null, true);
+
+                            UUID origNodeId = otherNodeId(); // Originating node.
+
+                            cctx.tm().addCommittedTxReturn(this,
+                                wrapper = new GridCacheReturnCompletableWrapper(
+                                    !cctx.localNodeId().equals(origNodeId) ? origNodeId : null));
+                        }
+                        else
+                            cctx.tm().addCommittedTx(this, this.nearXidVersion(), null);
+                    }
+
                     // Register this transaction as completed prior to write-phase to
                     // ensure proper lock ordering for removed entries.
                     cctx.tm().addCommittedTx(this);
 
                     AffinityTopologyVersion topVer = topologyVersion();
 
-                    // Node that for near transactions we grab all entries.
-                    for (IgniteTxEntry txEntry : (near() ? allEntries() : writeEntries())) {
-                        GridCacheContext cacheCtx = txEntry.context();
+                    WALPointer ptr = null;
 
-                        boolean replicate = cacheCtx.isDrEnabled();
+                    cctx.database().checkpointReadLock();
 
-                        try {
+                    try {
+                        assert !txState.mvccEnabled() || mvccSnapshot != null : "Mvcc is not initialized: " + this;
+
+                        Collection<IgniteTxEntry> entries = near() || cctx.snapshot().needTxReadLogging() ? allEntries() : writeEntries();
+
+                        // Data entry to write to WAL and associated with it TxEntry.
+                        List<T2<DataEntry, IgniteTxEntry>> dataEntries = null;
+
+                        batchStoreCommit(writeMap().values());
+
+                        // Node that for near transactions we grab all entries.
+                        for (IgniteTxEntry txEntry : entries) {
+                            GridCacheContext cacheCtx = txEntry.context();
+
+                            boolean replicate = cacheCtx.isDrEnabled();
+
                             while (true) {
                                 try {
                                     GridCacheEntryEx cached = txEntry.cached();
 
                                     if (cached == null)
-                                        txEntry.cached(cached = cacheCtx.cache().entryEx(txEntry.key()));
+                                        txEntry.cached(cached = cacheCtx.cache().entryEx(txEntry.key(), topologyVersion()));
 
                                     if (near() && cacheCtx.dr().receiveEnabled()) {
                                         cached.markObsolete(xidVer);
@@ -525,7 +537,7 @@ public class GridDistributedTxRemoteAdapter extends IgniteTxAdapter
                                         txEntry.cached().unswap(false);
 
                                     IgniteBiTuple<GridCacheOperation, CacheObject> res =
-                                        applyTransformClosures(txEntry, false);
+                                        applyTransformClosures(txEntry, false, ret);
 
                                     GridCacheOperation op = res.get1();
                                     CacheObject val = res.get2();
@@ -569,19 +581,80 @@ public class GridDistributedTxRemoteAdapter extends IgniteTxAdapter
                                         // Nullify explicit version so that innerSet/innerRemove will work as usual.
                                         explicitVer = null;
 
+                                    GridCacheVersion dhtVer = cached.isNear() ? writeVersion() : null;
+
+                                    if (!near() && cacheCtx.group().persistenceEnabled() && cacheCtx.group().walEnabled() &&
+                                        op != NOOP && op != RELOAD && (op != READ || cctx.snapshot().needTxReadLogging())) {
+                                        if (dataEntries == null)
+                                            dataEntries = new ArrayList<>(entries.size());
+
+                                        dataEntries.add(
+                                            new T2<>(
+                                                new DataEntry(
+                                                    cacheCtx.cacheId(),
+                                                    txEntry.key(),
+                                                    val,
+                                                    op,
+                                                    nearXidVersion(),
+                                                    writeVersion(),
+                                                    0,
+                                                    txEntry.key().partition(),
+                                                    txEntry.updateCounter()
+                                                ),
+                                                txEntry
+                                            )
+                                        );
+                                    }
+
                                     if (op == CREATE || op == UPDATE) {
                                         // Invalidate only for near nodes (backups cannot be invalidated).
                                         if (isSystemInvalidate() || (isInvalidate() && cacheCtx.isNear()))
-                                            cached.innerRemove(this, eventNodeId(), nodeId, false, false, true, true,
-                                                topVer, null, replicate ? DR_BACKUP : DR_NONE,
-                                                near() ? null : explicitVer, CU.subjectId(this, cctx),
-                                                resolveTaskName());
+                                            cached.innerRemove(this,
+                                                eventNodeId(),
+                                                nodeId,
+                                                false,
+                                                true,
+                                                true,
+                                                txEntry.keepBinary(),
+                                                txEntry.hasOldValue(),
+                                                txEntry.oldValue(),
+                                                topVer,
+                                                null,
+                                                replicate ? DR_BACKUP : DR_NONE,
+                                                near() ? null : explicitVer,
+                                                CU.subjectId(this, cctx),
+                                                resolveTaskName(),
+                                                dhtVer,
+                                                txEntry.updateCounter());
                                         else {
-                                            cached.innerSet(this, eventNodeId(), nodeId, val, false, false,
-                                                txEntry.ttl(), true, true, topVer, null,
-                                                replicate ? DR_BACKUP : DR_NONE, txEntry.conflictExpireTime(),
-                                                near() ? null : explicitVer, CU.subjectId(this, cctx),
-                                                resolveTaskName());
+                                            assert val != null : txEntry;
+
+                                            GridCacheUpdateTxResult updRes = cached.innerSet(this,
+                                                eventNodeId(),
+                                                nodeId,
+                                                val,
+                                                false,
+                                                false,
+                                                txEntry.ttl(),
+                                                true,
+                                                true,
+                                                txEntry.keepBinary(),
+                                                txEntry.hasOldValue(),
+                                                txEntry.oldValue(),
+                                                topVer,
+                                                null,
+                                                replicate ? DR_BACKUP : DR_NONE,
+                                                txEntry.conflictExpireTime(),
+                                                near() ? null : explicitVer,
+                                                CU.subjectId(this, cctx),
+                                                resolveTaskName(),
+                                                dhtVer,
+                                                txEntry.updateCounter());
+
+                                            txEntry.updateCounter(updRes.updateCounter());
+
+                                            if (updRes.loggedPointer() != null)
+                                                ptr = updRes.loggedPointer();
 
                                             // Keep near entry up to date.
                                             if (nearCached != null) {
@@ -597,9 +670,28 @@ public class GridDistributedTxRemoteAdapter extends IgniteTxAdapter
                                         }
                                     }
                                     else if (op == DELETE) {
-                                        cached.innerRemove(this, eventNodeId(), nodeId, false, false, true, true,
-                                            topVer, null, replicate ? DR_BACKUP : DR_NONE,
-                                            near() ? null : explicitVer, CU.subjectId(this, cctx), resolveTaskName());
+                                        GridCacheUpdateTxResult updRes = cached.innerRemove(this,
+                                            eventNodeId(),
+                                            nodeId,
+                                            false,
+                                            true,
+                                            true,
+                                            txEntry.keepBinary(),
+                                            txEntry.hasOldValue(),
+                                            txEntry.oldValue(),
+                                            topVer,
+                                            null,
+                                            replicate ? DR_BACKUP : DR_NONE,
+                                            near() ? null : explicitVer,
+                                            CU.subjectId(this, cctx),
+                                            resolveTaskName(),
+                                            dhtVer,
+                                            txEntry.updateCounter());
+
+                                        txEntry.updateCounter(updRes.updateCounter());
+
+                                        if (updRes.loggedPointer() != null)
+                                            ptr = updRes.loggedPointer();
 
                                         // Keep near entry up to date.
                                         if (nearCached != null)
@@ -662,32 +754,61 @@ public class GridDistributedTxRemoteAdapter extends IgniteTxAdapter
                                         log.debug("Attempting to commit a removed entry (will retry): " + txEntry);
 
                                     // Renew cached entry.
-                                    txEntry.cached(cacheCtx.cache().entryEx(txEntry.key()));
+                                    txEntry.cached(cacheCtx.cache().entryEx(txEntry.key(), topologyVersion()));
                                 }
                             }
                         }
-                        catch (Throwable ex) {
-                            // In case of error, we still make the best effort to commit,
-                            // as there is no way to rollback at this point.
-                            err = new IgniteTxHeuristicCheckedException("Commit produced a runtime exception " +
-                                "(all transaction entries will be invalidated): " + CU.txString(this), ex);
 
-                            U.error(log, "Commit failed.", err);
+                        // Apply cache size deltas.
+                        applyTxSizes();
 
-                            uncommit();
+                        TxCounters txCntrs = txCounters(false);
 
-                            state(UNKNOWN);
+                        // Apply update counters.
+                        if (txCntrs != null)
+                            cctx.tm().txHandler().applyPartitionsUpdatesCounters(txCntrs.updateCounters());
 
-                            if (ex instanceof Error)
-                                throw (Error)ex;
+                        cctx.mvccCaching().onTxFinished(this, true);
+
+                        if (!near() && !F.isEmpty(dataEntries) && cctx.wal() != null) {
+                            // Set new update counters for data entries received from persisted tx entries.
+                            List<DataEntry> entriesWithCounters = dataEntries.stream()
+                                .map(tuple -> tuple.get1().partitionCounter(tuple.get2().updateCounter()))
+                                .collect(Collectors.toList());
+
+                            cctx.wal().log(new DataRecord(entriesWithCounters));
                         }
+
+                        if (ptr != null && !cctx.tm().logTxRecords())
+                            cctx.wal().flush(ptr, false);
                     }
-                }
+                    catch (Throwable ex) {
+                        state(UNKNOWN);
 
-                if (err != null) {
-                    state(UNKNOWN);
+                        if (X.hasCause(ex, NodeStoppingException.class)) {
+                            U.warn(log, "Failed to commit transaction, node is stopping [tx=" + CU.txString(this) +
+                                ", err=" + ex + ']');
 
-                    throw err;
+                            return;
+                        }
+
+                        err = heuristicException(ex);
+
+                        try {
+                            uncommit();
+                        }
+                        catch (Throwable e) {
+                            err.addSuppressed(e);
+                        }
+
+                        throw err;
+                    }
+                    finally {
+                        cctx.database().checkpointReadUnlock();
+
+                        if (wrapper != null)
+                            wrapper.initialize(ret);
+                    }
                 }
 
                 cctx.tm().commitTx(this);
@@ -698,7 +819,7 @@ public class GridDistributedTxRemoteAdapter extends IgniteTxAdapter
     }
 
     /** {@inheritDoc} */
-    @Override public void commit() throws IgniteCheckedException {
+    @Override public final void commitRemoteTx() throws IgniteCheckedException {
         if (optimistic())
             state(PREPARED);
 
@@ -717,10 +838,20 @@ public class GridDistributedTxRemoteAdapter extends IgniteTxAdapter
             if (!isSystemInvalidate())
                 throw new IgniteCheckedException("Invalid transaction state for commit [state=" + state + ", tx=" + this + ']');
 
-            rollback();
+            rollbackRemoteTx();
+
+            return;
         }
 
-        commitIfLocked();
+        try {
+            commitIfLocked();
+        }
+        catch (IgniteTxHeuristicCheckedException e) {
+            // Treat heuristic exception as critical.
+            cctx.kernalContext().failure().process(new FailureContext(FailureType.CRITICAL_ERROR, e));
+
+            throw e;
+        }
     }
 
     /**
@@ -735,7 +866,7 @@ public class GridDistributedTxRemoteAdapter extends IgniteTxAdapter
     /** {@inheritDoc} */
     @Override public IgniteInternalFuture<IgniteInternalTx> commitAsync() {
         try {
-            commit();
+            commitRemoteTx();
 
             return new GridFinishedFuture<IgniteInternalTx>(this);
         }
@@ -745,27 +876,70 @@ public class GridDistributedTxRemoteAdapter extends IgniteTxAdapter
     }
 
     /** {@inheritDoc} */
-    @SuppressWarnings({"CatchGenericClass"})
-    @Override public void rollback() {
+    @Override public final IgniteInternalFuture<?> salvageTx() {
+        try {
+            systemInvalidate(true);
+
+            prepareRemoteTx();
+
+            if (state() == PREPARING) {
+                if (log.isDebugEnabled())
+                    log.debug("Ignoring transaction in PREPARING state as it is currently handled " +
+                        "by another thread: " + this);
+
+                return null;
+            }
+
+            doneRemote(xidVersion(),
+                Collections.<GridCacheVersion>emptyList(),
+                Collections.<GridCacheVersion>emptyList(),
+                Collections.<GridCacheVersion>emptyList());
+
+            commitRemoteTx();
+        }
+        catch (IgniteCheckedException e) {
+            U.error(log, "Failed to invalidate transaction: " + xidVersion(), e);
+        }
+
+        return null;
+    }
+
+    /** {@inheritDoc} */
+    @Override public final void rollbackRemoteTx() {
         try {
             // Note that we don't evict near entries here -
             // they will be deleted by their corresponding transactions.
             if (state(ROLLING_BACK) || state() == UNKNOWN) {
-                cctx.tm().rollbackTx(this);
+                cctx.tm().rollbackTx(this, false, skipCompletedVersions());
+
+                TxCounters counters = txCounters(false);
+
+                if (counters != null)
+                    cctx.tm().txHandler().applyPartitionsUpdatesCounters(counters.updateCounters());
 
                 state(ROLLED_BACK);
+
+                cctx.mvccCaching().onTxFinished(this, false);
+
             }
         }
-        catch (RuntimeException | Error e) {
+        catch (IgniteCheckedException | RuntimeException | Error e) {
             state(UNKNOWN);
 
-            throw e;
+            U.error(log, "Error during tx rollback.", e);
+
+            if (e instanceof IgniteCheckedException)
+                throw new IgniteException(e);
+            else if (e instanceof RuntimeException)
+                throw (RuntimeException) e;
+            else
+                throw (Error) e;
         }
     }
 
     /** {@inheritDoc} */
     @Override public IgniteInternalFuture<IgniteInternalTx> rollbackAsync() {
-        rollback();
+        rollbackRemoteTx();
 
         return new GridFinishedFuture<IgniteInternalTx>(this);
     }
@@ -773,6 +947,11 @@ public class GridDistributedTxRemoteAdapter extends IgniteTxAdapter
     /** {@inheritDoc} */
     @Override public Collection<GridCacheVersion> alternateVersions() {
         return explicitVers == null ? Collections.<GridCacheVersion>emptyList() : explicitVers;
+    }
+
+    /** {@inheritDoc} */
+    @Override public void commitError(Throwable e) {
+        // No-op.
     }
 
     /**
@@ -796,6 +975,11 @@ public class GridDistributedTxRemoteAdapter extends IgniteTxAdapter
                 cctx.tm().addAlternateVersion(e.explicitVersion(), this);
             }
         }
+    }
+
+    /** {@inheritDoc} */
+    @Override public String label() {
+        return txLbl;
     }
 
     /** {@inheritDoc} */

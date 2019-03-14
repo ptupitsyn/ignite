@@ -17,45 +17,37 @@
 
 package org.apache.ignite.internal.util.io;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.Arrays;
 import org.apache.ignite.internal.util.GridUnsafe;
 import org.apache.ignite.internal.util.typedef.internal.S;
 import org.apache.ignite.internal.util.typedef.internal.U;
-import sun.misc.Unsafe;
 
 import static org.apache.ignite.IgniteSystemProperties.IGNITE_MARSHAL_BUFFERS_RECHECK;
+import static org.apache.ignite.internal.util.GridUnsafe.BIG_ENDIAN;
+import static org.apache.ignite.internal.util.GridUnsafe.BYTE_ARR_OFF;
+import static org.apache.ignite.internal.util.GridUnsafe.CHAR_ARR_OFF;
+import static org.apache.ignite.internal.util.GridUnsafe.DOUBLE_ARR_OFF;
+import static org.apache.ignite.internal.util.GridUnsafe.FLOAT_ARR_OFF;
+import static org.apache.ignite.internal.util.GridUnsafe.INT_ARR_OFF;
+import static org.apache.ignite.internal.util.GridUnsafe.LONG_ARR_OFF;
+import static org.apache.ignite.internal.util.GridUnsafe.SHORT_ARR_OFF;
 
 /**
  * Data output based on {@code Unsafe} operations.
  */
 public class GridUnsafeDataOutput extends OutputStream implements GridDataOutput {
-    /** Unsafe. */
-    private static final Unsafe UNSAFE = GridUnsafe.unsafe();
+    /**
+     * Based on {@link ByteArrayOutputStream#MAX_ARRAY_SIZE} or many other similar constants in other classes.
+     * It's not safe to allocate more then this number of elements in byte array, because it can throw
+     * java.lang.OutOfMemoryError: Requested array size exceeds VM limit
+     */
+    private static final int MAX_BYTE_ARRAY_SIZE = Integer.MAX_VALUE - 8;
 
     /** */
-    private static final Long CHECK_FREQ = Long.getLong(IGNITE_MARSHAL_BUFFERS_RECHECK, 10000);
-
-    /** */
-    private static final long byteArrOff = UNSAFE.arrayBaseOffset(byte[].class);
-
-    /** */
-    private static final long shortArrOff = UNSAFE.arrayBaseOffset(short[].class);
-
-    /** */
-    private static final long intArrOff = UNSAFE.arrayBaseOffset(int[].class);
-
-    /** */
-    private static final long longArrOff = UNSAFE.arrayBaseOffset(long[].class);
-
-    /** */
-    private static final long floatArrOff = UNSAFE.arrayBaseOffset(float[].class);
-
-    /** */
-    private static final long doubleArrOff = UNSAFE.arrayBaseOffset(double[].class);
-
-    /** */
-    private static final long charArrOff = UNSAFE.arrayBaseOffset(char[].class);
+    private static final long CHECK_FREQ = Long.getLong(IGNITE_MARSHAL_BUFFERS_RECHECK, 10000);
 
     /** Length of char buffer (for writing strings). */
     private static final int CHAR_BUF_SIZE = 256;
@@ -114,7 +106,7 @@ public class GridUnsafeDataOutput extends OutputStream implements GridDataOutput
     @Override public byte[] array() {
         byte[] bytes0 = new byte[off];
 
-        UNSAFE.copyMemory(bytes, byteArrOff, bytes0, byteArrOff, off);
+        System.arraycopy(bytes, 0, bytes0, 0, off);
 
         return bytes0;
     }
@@ -137,7 +129,11 @@ public class GridUnsafeDataOutput extends OutputStream implements GridDataOutput
     /**
      * @param size Size.
      */
-    private void requestFreeSize(int size) {
+    private void requestFreeSize(int size) throws IOException {
+        if (!canBeAllocated(off + size))
+            throw new IOException("Failed to allocate required memory (byte array size overflow detected) " +
+                "[length=" + size + ", offset=" + off + ']');
+
         size = off + size;
 
         maxOff = Math.max(maxOff, size);
@@ -145,26 +141,31 @@ public class GridUnsafeDataOutput extends OutputStream implements GridDataOutput
         long now = U.currentTimeMillis();
 
         if (size > bytes.length) {
-            byte[] newBytes = new byte[size << 1]; // Grow.
+            int newSize = size << 1;
 
-            UNSAFE.copyMemory(bytes, byteArrOff, newBytes, byteArrOff, off);
+            if (!canBeAllocated(newSize))
+                newSize = MAX_BYTE_ARRAY_SIZE;
 
-            bytes = newBytes;
+            bytes = Arrays.copyOf(bytes, newSize); // Grow.
         }
         else if (now - lastCheck > CHECK_FREQ) {
             int halfSize = bytes.length >> 1;
 
-            if (maxOff < halfSize) {
-                byte[] newBytes = new byte[halfSize]; // Shrink.
-
-                UNSAFE.copyMemory(bytes, byteArrOff, newBytes, byteArrOff, off);
-
-                bytes = newBytes;
-            }
+            if (maxOff < halfSize)
+                bytes = Arrays.copyOf(bytes, halfSize); // Shrink.
 
             maxOff = 0;
             lastCheck = now;
         }
+    }
+
+    /**
+     * @param size Size of potential byte array to check.
+     * @return true if {@code new byte[size]} won't throw {@link OutOfMemoryError} given enough heap space.
+     * @see GridUnsafeDataOutput#MAX_BYTE_ARRAY_SIZE
+     */
+    private boolean canBeAllocated(long size) {
+        return 0 <= size && size <= MAX_BYTE_ARRAY_SIZE;
     }
 
     /**
@@ -182,7 +183,7 @@ public class GridUnsafeDataOutput extends OutputStream implements GridDataOutput
     @Override public void write(byte[] b) throws IOException {
         requestFreeSize(b.length);
 
-        UNSAFE.copyMemory(b, byteArrOff, bytes, byteArrOff + off, b.length);
+        System.arraycopy(b, 0, bytes, off, b.length);
 
         onWrite(b.length);
     }
@@ -191,7 +192,7 @@ public class GridUnsafeDataOutput extends OutputStream implements GridDataOutput
     @Override public void write(byte[] b, int off, int len) throws IOException {
         requestFreeSize(len);
 
-        UNSAFE.copyMemory(b, byteArrOff + off, bytes, byteArrOff + this.off, len);
+        System.arraycopy(b, off, bytes, this.off, len);
 
         onWrite(len);
     }
@@ -200,11 +201,23 @@ public class GridUnsafeDataOutput extends OutputStream implements GridDataOutput
     @Override public void writeDoubleArray(double[] arr) throws IOException {
         writeInt(arr.length);
 
+        checkArrayAllocationOverflow(8, arr.length, "double");
+
         int bytesToCp = arr.length << 3;
 
         requestFreeSize(bytesToCp);
 
-        UNSAFE.copyMemory(arr, doubleArrOff, bytes, byteArrOff + off, bytesToCp);
+        if (BIG_ENDIAN) {
+            long off = BYTE_ARR_OFF + this.off;
+
+            for (double val : arr) {
+                GridUnsafe.putDoubleLE(bytes, off, val);
+
+                off += 8;
+            }
+        }
+        else
+            GridUnsafe.copyMemory(arr, DOUBLE_ARR_OFF, bytes, BYTE_ARR_OFF + off, bytesToCp);
 
         onWrite(bytesToCp);
     }
@@ -222,11 +235,23 @@ public class GridUnsafeDataOutput extends OutputStream implements GridDataOutput
     @Override public void writeCharArray(char[] arr) throws IOException {
         writeInt(arr.length);
 
+        checkArrayAllocationOverflow(2, arr.length, "char");
+
         int bytesToCp = arr.length << 1;
 
         requestFreeSize(bytesToCp);
 
-        UNSAFE.copyMemory(arr, charArrOff, bytes, byteArrOff + off, bytesToCp);
+        if (BIG_ENDIAN) {
+            long off = BYTE_ARR_OFF + this.off;
+
+            for (char val : arr) {
+                GridUnsafe.putCharLE(bytes, off, val);
+
+                off += 2;
+            }
+        }
+        else
+            GridUnsafe.copyMemory(arr, CHAR_ARR_OFF, bytes, BYTE_ARR_OFF + off, bytesToCp);
 
         onWrite(bytesToCp);
     }
@@ -235,11 +260,23 @@ public class GridUnsafeDataOutput extends OutputStream implements GridDataOutput
     @Override public void writeLongArray(long[] arr) throws IOException {
         writeInt(arr.length);
 
+        checkArrayAllocationOverflow(8, arr.length, "long");
+
         int bytesToCp = arr.length << 3;
 
         requestFreeSize(bytesToCp);
 
-        UNSAFE.copyMemory(arr, longArrOff, bytes, byteArrOff + off, bytesToCp);
+        if (BIG_ENDIAN) {
+            long off = BYTE_ARR_OFF + this.off;
+
+            for (long val : arr) {
+                GridUnsafe.putLongLE(bytes, off, val);
+
+                off += 8;
+            }
+        }
+        else
+            GridUnsafe.copyMemory(arr, LONG_ARR_OFF, bytes, BYTE_ARR_OFF + off, bytesToCp);
 
         onWrite(bytesToCp);
     }
@@ -248,11 +285,23 @@ public class GridUnsafeDataOutput extends OutputStream implements GridDataOutput
     @Override public void writeFloatArray(float[] arr) throws IOException {
         writeInt(arr.length);
 
+        checkArrayAllocationOverflow(4, arr.length, "float");
+
         int bytesToCp = arr.length << 2;
 
         requestFreeSize(bytesToCp);
 
-        UNSAFE.copyMemory(arr, floatArrOff, bytes, byteArrOff + off, bytesToCp);
+        if (BIG_ENDIAN) {
+            long off = BYTE_ARR_OFF + this.off;
+
+            for (float val : arr) {
+                GridUnsafe.putFloatLE(bytes, off, val);
+
+                off += 4;
+            }
+        }
+        else
+            GridUnsafe.copyMemory(arr, FLOAT_ARR_OFF, bytes, BYTE_ARR_OFF + off, bytesToCp);
 
         onWrite(bytesToCp);
     }
@@ -270,7 +319,7 @@ public class GridUnsafeDataOutput extends OutputStream implements GridDataOutput
 
         requestFreeSize(arr.length);
 
-        UNSAFE.copyMemory(arr, byteArrOff, bytes, byteArrOff + off, arr.length);
+        System.arraycopy(arr, 0, bytes, off, arr.length);
 
         onWrite(arr.length);
     }
@@ -279,11 +328,23 @@ public class GridUnsafeDataOutput extends OutputStream implements GridDataOutput
     @Override public void writeShortArray(short[] arr) throws IOException {
         writeInt(arr.length);
 
+        checkArrayAllocationOverflow(2, arr.length, "short");
+
         int bytesToCp = arr.length << 1;
 
         requestFreeSize(bytesToCp);
 
-        UNSAFE.copyMemory(arr, shortArrOff, bytes, byteArrOff + off, bytesToCp);
+        if (BIG_ENDIAN) {
+            long off = BYTE_ARR_OFF + this.off;
+
+            for (short val : arr) {
+                GridUnsafe.putShortLE(bytes, off, val);
+
+                off += 2;
+            }
+        }
+        else
+            GridUnsafe.copyMemory(arr, SHORT_ARR_OFF, bytes, BYTE_ARR_OFF + off, bytesToCp);
 
         onWrite(bytesToCp);
     }
@@ -292,11 +353,23 @@ public class GridUnsafeDataOutput extends OutputStream implements GridDataOutput
     @Override public void writeIntArray(int[] arr) throws IOException {
         writeInt(arr.length);
 
+        checkArrayAllocationOverflow(4, arr.length, "int");
+
         int bytesToCp = arr.length << 2;
 
         requestFreeSize(bytesToCp);
 
-        UNSAFE.copyMemory(arr, intArrOff, bytes, byteArrOff + off, bytesToCp);
+        if (BIG_ENDIAN) {
+            long off = BYTE_ARR_OFF + this.off;
+
+            for (int val : arr) {
+                GridUnsafe.putIntLE(bytes, off, val);
+
+                off += 4;
+            }
+        }
+        else
+            GridUnsafe.copyMemory(arr, INT_ARR_OFF, bytes, BYTE_ARR_OFF + off, bytesToCp);
 
         onWrite(bytesToCp);
     }
@@ -310,7 +383,7 @@ public class GridUnsafeDataOutput extends OutputStream implements GridDataOutput
     @Override public void writeBoolean(boolean v) throws IOException {
         requestFreeSize(1);
 
-        UNSAFE.putBoolean(bytes, byteArrOff + off, v);
+        GridUnsafe.putBoolean(bytes, BYTE_ARR_OFF + off, v);
 
         onWrite(1);
     }
@@ -319,7 +392,7 @@ public class GridUnsafeDataOutput extends OutputStream implements GridDataOutput
     @Override public void writeByte(int v) throws IOException {
         requestFreeSize(1);
 
-        UNSAFE.putByte(bytes, byteArrOff + off, (byte)v);
+        GridUnsafe.putByte(bytes, BYTE_ARR_OFF + off, (byte)v);
 
         onWrite(1);
     }
@@ -328,7 +401,14 @@ public class GridUnsafeDataOutput extends OutputStream implements GridDataOutput
     @Override public void writeShort(int v) throws IOException {
         requestFreeSize(2);
 
-        UNSAFE.putShort(bytes, byteArrOff + off, (short)v);
+        short val = (short)v;
+
+        long off = BYTE_ARR_OFF + this.off;
+
+        if (BIG_ENDIAN)
+            GridUnsafe.putShortLE(bytes, off, val);
+        else
+            GridUnsafe.putShort(bytes, off, val);
 
         onWrite(2);
     }
@@ -337,7 +417,14 @@ public class GridUnsafeDataOutput extends OutputStream implements GridDataOutput
     @Override public void writeChar(int v) throws IOException {
         requestFreeSize(2);
 
-        UNSAFE.putChar(bytes, byteArrOff + off, (char)v);
+        char val = (char)v;
+
+        long off = BYTE_ARR_OFF + this.off;
+
+        if (BIG_ENDIAN)
+            GridUnsafe.putCharLE(bytes, off, val);
+        else
+            GridUnsafe.putChar(bytes, off, val);
 
         onWrite(2);
     }
@@ -346,7 +433,12 @@ public class GridUnsafeDataOutput extends OutputStream implements GridDataOutput
     @Override public void writeInt(int v) throws IOException {
         requestFreeSize(4);
 
-        UNSAFE.putInt(bytes, byteArrOff + off, v);
+        long off = BYTE_ARR_OFF + this.off;
+
+        if (BIG_ENDIAN)
+            GridUnsafe.putIntLE(bytes, off, v);
+        else
+            GridUnsafe.putInt(bytes, off, v);
 
         onWrite(4);
     }
@@ -355,27 +447,28 @@ public class GridUnsafeDataOutput extends OutputStream implements GridDataOutput
     @Override public void writeLong(long v) throws IOException {
         requestFreeSize(8);
 
-        UNSAFE.putLong(bytes, byteArrOff + off, v);
+        long off = BYTE_ARR_OFF + this.off;
+
+        if (BIG_ENDIAN)
+            GridUnsafe.putLongLE(bytes, off, v);
+        else
+            GridUnsafe.putLong(bytes, off, v);
 
         onWrite(8);
     }
 
     /** {@inheritDoc} */
     @Override public void writeFloat(float v) throws IOException {
-        requestFreeSize(4);
+        int val = Float.floatToIntBits(v);
 
-        UNSAFE.putFloat(bytes, byteArrOff + off, v);
-
-        onWrite(4);
+        writeInt(val);
     }
 
     /** {@inheritDoc} */
     @Override public void writeDouble(double v) throws IOException {
-        requestFreeSize(8);
+        long val = Double.doubleToLongBits(v);
 
-        UNSAFE.putDouble(bytes, byteArrOff + off, v);
-
-        onWrite(8);
+        writeLong(val);
     }
 
     /** {@inheritDoc} */
@@ -406,6 +499,22 @@ public class GridUnsafeDataOutput extends OutputStream implements GridDataOutput
     /** {@inheritDoc} */
     @Override public void writeUTF(String s) throws IOException {
         writeUTF(s, utfLength(s));
+    }
+
+    /**
+     * Check for possible arithmetic overflow when trying to serialize a humongous array.
+     *
+     * @param bytes Number of bytes in a single array element.
+     * @param arrLen Array length.
+     * @param type Type of an array.
+     * @throws IOException If oveflow presents and data corruption can occur.
+     */
+    private void checkArrayAllocationOverflow(int bytes, int arrLen, String type) throws IOException {
+        long bytesToAlloc = (long)arrLen * bytes;
+
+        if (!canBeAllocated(bytesToAlloc))
+            throw new IOException("Failed to allocate required memory for " + type + " array " +
+                "(byte array size overflow detected) [length=" + arrLen + ']');
     }
 
     /**

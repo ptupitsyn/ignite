@@ -19,6 +19,7 @@ package org.apache.ignite.internal.util.future;
 
 import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
@@ -28,11 +29,13 @@ import org.apache.ignite.internal.IgniteFutureTimeoutCheckedException;
 import org.apache.ignite.internal.IgniteInternalFuture;
 import org.apache.ignite.internal.cluster.ClusterGroupEmptyCheckedException;
 import org.apache.ignite.internal.processors.closure.GridClosureProcessor;
+import org.apache.ignite.internal.processors.pool.PoolProcessor;
 import org.apache.ignite.internal.util.typedef.CI1;
 import org.apache.ignite.internal.util.typedef.CX1;
 import org.apache.ignite.testframework.GridTestUtils;
 import org.apache.ignite.testframework.junits.GridTestKernalContext;
 import org.apache.ignite.testframework.junits.common.GridCommonAbstractTest;
+import org.junit.Test;
 
 /**
  * Tests grid future adapter use cases.
@@ -41,6 +44,7 @@ public class GridFutureAdapterSelfTest extends GridCommonAbstractTest {
     /**
      * @throws Exception If failed.
      */
+    @Test
     public void testOnDone() throws Exception {
         GridFutureAdapter<String> fut = new GridFutureAdapter<>();
 
@@ -90,6 +94,7 @@ public class GridFutureAdapterSelfTest extends GridCommonAbstractTest {
     /**
      * @throws Exception If failed.
      */
+    @Test
     public void testOnCancelled() throws Exception {
         GridTestUtils.assertThrows(log, new Callable<Object>() {
             @Override public Object call() throws Exception {
@@ -117,6 +122,7 @@ public class GridFutureAdapterSelfTest extends GridCommonAbstractTest {
     /**
      * @throws Exception If failed.
      */
+    @Test
     public void testListenSyncNotify() throws Exception {
         GridFutureAdapter<String> fut = new GridFutureAdapter<>();
 
@@ -168,12 +174,14 @@ public class GridFutureAdapterSelfTest extends GridCommonAbstractTest {
     /**
      * @throws Exception If failed.
      */
+    @Test
     public void testListenNotify() throws Exception {
         GridTestKernalContext ctx = new GridTestKernalContext(log);
 
         ctx.setExecutorService(Executors.newFixedThreadPool(1));
         ctx.setSystemExecutorService(Executors.newFixedThreadPool(1));
 
+        ctx.add(new PoolProcessor(ctx));
         ctx.add(new GridClosureProcessor(ctx));
 
         ctx.start();
@@ -225,92 +233,106 @@ public class GridFutureAdapterSelfTest extends GridCommonAbstractTest {
      *
      * @throws Exception In case of any exception.
      */
-    @SuppressWarnings("ErrorNotRethrown")
+    @Test
     public void testChaining() throws Exception {
+        checkChaining(null);
+
+        ExecutorService exec = Executors.newFixedThreadPool(1);
+
+        try {
+            checkChaining(exec);
+
+            GridFinishedFuture<Integer> fut = new GridFinishedFuture<>(1);
+
+            IgniteInternalFuture<Object> chain = fut.chain(new CX1<IgniteInternalFuture<Integer>, Object>() {
+                @Override public Object applyx(IgniteInternalFuture<Integer> fut) throws IgniteCheckedException {
+                    return fut.get() + 1;
+                }
+            }, exec);
+
+            assertEquals(2, chain.get());
+        }
+        finally {
+            exec.shutdown();
+        }
+    }
+
+    /**
+     * @param exec Executor for chain callback.
+     * @throws Exception If failed.
+     */
+    @SuppressWarnings("ErrorNotRethrown")
+    private void checkChaining(ExecutorService exec) throws Exception {
         final CX1<IgniteInternalFuture<Object>, Object> passThrough = new CX1<IgniteInternalFuture<Object>, Object>() {
             @Override public Object applyx(IgniteInternalFuture<Object> f) throws IgniteCheckedException {
                 return f.get();
             }
         };
 
-        final GridTestKernalContext ctx = new GridTestKernalContext(log);
+        GridFutureAdapter<Object> fut = new GridFutureAdapter<>();
+        IgniteInternalFuture<Object> chain = exec != null ? fut.chain(passThrough, exec) : fut.chain(passThrough);
 
-        ctx.setExecutorService(Executors.newFixedThreadPool(1));
-        ctx.setSystemExecutorService(Executors.newFixedThreadPool(1));
-
-        ctx.add(new GridClosureProcessor(ctx));
-
-        ctx.start();
+        assertFalse(fut.isDone());
+        assertFalse(chain.isDone());
 
         try {
-            // Test result returned.
+            chain.get(20);
 
-            GridFutureAdapter<Object> fut = new GridFutureAdapter<>();
-            IgniteInternalFuture<Object> chain = fut.chain(passThrough);
-
-            assertFalse(fut.isDone());
-            assertFalse(chain.isDone());
-
-            try {
-                chain.get(20);
-
-                fail("Expects timeout exception.");
-            }
-            catch (IgniteFutureTimeoutCheckedException e) {
-                info("Expected timeout exception: " + e.getMessage());
-            }
-
-            fut.onDone("result");
-
-            assertEquals("result", chain.get(1));
-
-            // Test exception re-thrown.
-
-            fut = new GridFutureAdapter<>();
-            chain = fut.chain(passThrough);
-
-            fut.onDone(new ClusterGroupEmptyCheckedException("test exception"));
-
-            try {
-                chain.get();
-
-                fail("Expects failed with exception.");
-            }
-            catch (ClusterGroupEmptyCheckedException e) {
-                info("Expected exception: " + e.getMessage());
-            }
-
-            // Test error re-thrown.
-
-            fut = new GridFutureAdapter<>();
-            chain = fut.chain(passThrough);
-
-            try {
-                fut.onDone(new StackOverflowError("test error"));
-
-                fail("Expects failed with error.");
-            }
-            catch (StackOverflowError e) {
-                info("Expected error: " + e.getMessage());
-            }
-
-            try {
-                chain.get();
-
-                fail("Expects failed with error.");
-            }
-            catch (StackOverflowError e) {
-                info("Expected error: " + e.getMessage());
-            }
+            fail("Expects timeout exception.");
         }
-        finally {
-            ctx.stop(false);
+        catch (IgniteFutureTimeoutCheckedException e) {
+            info("Expected timeout exception: " + e.getMessage());
+        }
+
+        fut.onDone("result");
+
+        assertEquals("result", exec == null ? chain.get(1) : chain.get());
+
+        // Test exception re-thrown.
+
+        fut = new GridFutureAdapter<>();
+        chain = exec != null ? fut.chain(passThrough, exec) : fut.chain(passThrough);
+
+        fut.onDone(new ClusterGroupEmptyCheckedException("test exception"));
+
+        try {
+            chain.get();
+
+            fail("Expects failed with exception.");
+        }
+        catch (ClusterGroupEmptyCheckedException e) {
+            info("Expected exception: " + e.getMessage());
+        }
+
+        // Test error re-thrown.
+
+        fut = new GridFutureAdapter<>();
+        chain = exec != null ? fut.chain(passThrough, exec) : fut.chain(passThrough);
+
+        try {
+            fut.onDone(new StackOverflowError("test error"));
+
+            if (exec == null)
+                fail("Expects failed with error.");
+        }
+        catch (StackOverflowError e) {
+            info("Expected error: " + e.getMessage());
+        }
+
+        try {
+            chain.get();
+
+            fail("Expects failed with error.");
+        }
+        catch (StackOverflowError e) {
+            info("Expected error: " + e.getMessage());
         }
     }
 
     /**
      * @throws Exception If failed.
      */
+    @Test
     public void testGet() throws Exception {
         GridFutureAdapter<Object> unfinished = new GridFutureAdapter<>();
         GridFutureAdapter<Object> finished = new GridFutureAdapter<>();

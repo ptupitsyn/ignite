@@ -21,8 +21,12 @@ import java.io.Externalizable;
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
+import org.apache.ignite.IgniteException;
 import org.apache.ignite.cache.CacheEntry;
 import org.apache.ignite.internal.processors.cache.version.GridCacheVersion;
+
+import static org.apache.ignite.internal.processors.cache.transactions.IgniteTxEntry.GET_ENTRY_INVALID_VER_AFTER_GET;
+import static org.apache.ignite.internal.processors.cache.transactions.IgniteTxEntry.GET_ENTRY_INVALID_VER_UPDATED;
 
 /**
  *
@@ -53,13 +57,16 @@ public class CacheEntryImplEx<K, V> extends CacheEntryImpl<K, V> implements Cach
     }
 
     /** {@inheritDoc} */
-    public GridCacheVersion version() {
-        return ver;
-    }
+    @Override public GridCacheVersion version() {
+        if (ver == GET_ENTRY_INVALID_VER_AFTER_GET) {
+            throw new IgniteException("Impossible to get entry version after " +
+                "get() inside OPTIMISTIC REPEATABLE_READ transaction. Use only getEntry() or getEntries() inside " +
+                "OPTIMISTIC REPEATABLE_READ transaction to solve this problem.");
+        }
+        else if (ver == GET_ENTRY_INVALID_VER_UPDATED)
+            throw new IgniteException("Impossible to get version for entry updated in transaction.");
 
-    /** {@inheritDoc} */
-    @Override public long updateTime() {
-        return ver.globalTime();
+        return ver;
     }
 
     /** {@inheritDoc} */
@@ -77,8 +84,18 @@ public class CacheEntryImplEx<K, V> extends CacheEntryImpl<K, V> implements Cach
     }
 
     /** {@inheritDoc} */
-    public String toString() {
-        return "VersionedEntry [key=" + getKey() + ", val=" + getValue() + ", topVer=" + ver.topologyVersion() +
-            ", nodeOrder=" + ver.nodeOrder() + ", order=" + ver.order() + ", updateTime=" + ver.globalTime() + ']';
+    @Override public String toString() {
+        String res = "CacheEntry [key=" + getKey() +
+            ", val=" + getValue();
+
+        if (ver != null && ver != GET_ENTRY_INVALID_VER_AFTER_GET && ver != GET_ENTRY_INVALID_VER_UPDATED) {
+            res += ", topVer=" + ver.topologyVersion() +
+                ", nodeOrder=" + ver.nodeOrder() +
+                ", order=" + ver.order();
+        }
+        else
+            res += ", ver=n/a";
+
+        return res + ']';
     }
 }

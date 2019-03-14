@@ -43,6 +43,7 @@ import org.apache.ignite.spi.failover.FailoverContext;
 import org.apache.ignite.spi.failover.always.AlwaysFailoverSpi;
 import org.apache.ignite.testframework.junits.common.GridCommonAbstractTest;
 import org.apache.ignite.testframework.junits.common.GridCommonTest;
+import org.junit.Test;
 
 /**
  * Test failover of a task with Node filter predicate.
@@ -61,7 +62,7 @@ public class GridFailoverTaskWithPredicateSelfTest extends GridCommonAbstractTes
     /** Predicate to exclude the second node from topology */
     private final IgnitePredicate<ClusterNode> p = new IgnitePredicate<ClusterNode>() {
         @Override public boolean apply(ClusterNode e) {
-            return !NODE2.equals(e.attribute(IgniteNodeAttributes.ATTR_GRID_NAME));
+            return !NODE2.equals(e.attribute(IgniteNodeAttributes.ATTR_IGNITE_INSTANCE_NAME));
         }
     };
 
@@ -72,8 +73,8 @@ public class GridFailoverTaskWithPredicateSelfTest extends GridCommonAbstractTes
     private final AtomicBoolean failed = new AtomicBoolean();
 
     /** {@inheritDoc} */
-    @Override protected IgniteConfiguration getConfiguration(String gridName) throws Exception {
-        IgniteConfiguration cfg = super.getConfiguration(gridName);
+    @Override protected IgniteConfiguration getConfiguration(String igniteInstanceName) throws Exception {
+        IgniteConfiguration cfg = super.getConfiguration(igniteInstanceName);
 
         cfg.setFailoverSpi(new AlwaysFailoverSpi() {
             /** {@inheritDoc} */
@@ -98,6 +99,7 @@ public class GridFailoverTaskWithPredicateSelfTest extends GridCommonAbstractTes
      *
      * @throws Exception If failed.
      */
+    @Test
     public void testJobNotFailedOver() throws Exception {
         failed.set(false);
         routed.set(false);
@@ -129,6 +131,7 @@ public class GridFailoverTaskWithPredicateSelfTest extends GridCommonAbstractTes
      *
      * @throws Exception If failed.
      */
+    @Test
     public void testJobFailedOver() throws Exception {
         failed.set(false);
         routed.set(false);
@@ -166,6 +169,7 @@ public class GridFailoverTaskWithPredicateSelfTest extends GridCommonAbstractTes
      *
      * @throws Exception If error happens.
      */
+    @Test
     public void testJobNotFailedOverWithStaticProjection() throws Exception {
         failed.set(false);
         routed.set(false);
