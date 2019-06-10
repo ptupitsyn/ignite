@@ -17,6 +17,8 @@
 
 namespace Apache.Ignite.Core.Tests.DotNetCore.Common
 {
+    using Apache.Ignite.Core.Tests.Plugin;
+
     /// <summary>
     /// Test runner.
     /// </summary>
@@ -27,7 +29,10 @@ namespace Apache.Ignite.Core.Tests.DotNetCore.Common
         /// </summary>
         private static void Main(string[] args)
         {
-            new IgnitionStartTest().TestIgniteStartsFromAppConfig();
+            // new IgnitionStartTest().TestIgniteStartsFromAppConfig();
+            var test = new PluginTest();
+            test.IgnitionStart_PluginProviderThrowsException_StopsAndRethrowsException();
+            test.TearDown();
         }
     }
 }
