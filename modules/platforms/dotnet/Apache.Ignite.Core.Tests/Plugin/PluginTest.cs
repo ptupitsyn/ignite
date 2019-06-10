@@ -225,6 +225,10 @@ namespace Apache.Ignite.Core.Tests.Plugin
                     "normalPlugin.Start", "errPlugin.Start",
                     "errPlugin.Stop", "normalPlugin.Stop"
                 }, PluginLog);
+
+            // Verify ignite start-stop.
+            Ignition.Start(TestUtils.GetTestConfiguration());
+            Ignition.StopAll(true);
         }
 
         private class NoAttributeConfig : IPluginConfiguration
