@@ -50,7 +50,7 @@ namespace Apache.Ignite.Core.Tests.Plugin
         /// Tests the plugin life cycle.
         /// </summary>
         [Test]
-        public void TestIgniteStartStop()
+        public void IgnitionStart_ValidPluginConfiguration_StartsAndReturnsWorkingPlugin()
         {
             var cfg = new IgniteConfiguration(TestUtils.GetTestConfiguration())
             {
@@ -184,7 +184,7 @@ namespace Apache.Ignite.Core.Tests.Plugin
         }
 
         [Test]
-        public void IgnitionStart_MissingPluginConfigurationAtribute_ThrowsException()
+        public void IgnitionStart_MissingPluginConfigurationAttribute_ThrowsException()
         {
             var ex = Assert.Throws<IgniteException>(() => TryStart(new[] { new NoAttributeConfig() }));
             Assert.IsNotNull(ex.InnerException);
