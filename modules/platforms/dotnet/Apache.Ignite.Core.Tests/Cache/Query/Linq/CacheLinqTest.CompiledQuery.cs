@@ -26,7 +26,10 @@
 // ReSharper disable UnusedMemberInSuper.Global
 namespace Apache.Ignite.Core.Tests.Cache.Query.Linq
 {
+    using System;
     using System.Linq;
+    using Apache.Ignite.Core.Cache;
+    using Apache.Ignite.Core.Cache.Query;
     using Apache.Ignite.Linq;
     using NUnit.Framework;
 
@@ -210,6 +213,23 @@ namespace Apache.Ignite.Core.Tests.Cache.Query.Linq
             var compiled2 = CompiledQuery.Compile(qry2);
 
             Assert.AreEqual(17, compiled2(18, 16, "ers", 13, 17).Single().Key);
+        }
+
+        [Test]
+        public void TestCompiledQueryStringEquals()
+        {
+            var persons = GetPersonCache().AsCacheQueryable();
+            var qry0 = CompiledQuery.Compile((string empName) => persons.Where(x => x.Value.Name == empName));
+            Assert.AreEqual(3, qry0("p1").Count());
+        }
+
+        [Test]
+        public void TestCompiledQueryStringEqualsFreeform()
+        {
+            var persons = GetPersonCache().AsCacheQueryable().Where(emp => emp.Value.Name == "unused");
+            var compiledQuery = CompiledQuery.Compile(persons);
+            Func<string, IQueryCursor<ICacheEntry<int, Person>>> parametrizedCompiledQuery = empName => compiledQuery(empName);
+            Assert.AreEqual(1, parametrizedCompiledQuery(" Person_0  ").Count());
         }
     }
 }

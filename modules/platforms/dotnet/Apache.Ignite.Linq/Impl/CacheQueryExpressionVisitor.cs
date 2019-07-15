@@ -187,6 +187,7 @@ namespace Apache.Ignite.Linq.Impl
                     if (rightConst != null && rightConst.Value == null)
                     {
                         // Special case for nulls, since "= null" does not work in SQL
+                        // TODO: This is broken for Compiled Query since we miss the parameter.
                         ResultBuilder.Append(" is null)");
                         return expression;
                     }
