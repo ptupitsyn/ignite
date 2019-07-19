@@ -188,6 +188,8 @@ namespace Apache.Ignite.Linq.Impl
                     {
                         // Special case for nulls, since "= null" does not work in SQL
                         // TODO: This is broken for Compiled Query since we miss the parameter.
+                        // TODO: instead, when appending the right side:
+                        // F = ? or (? is null and F is null)
                         ResultBuilder.Append(" is null)");
                         return expression;
                     }
@@ -202,6 +204,7 @@ namespace Apache.Ignite.Linq.Impl
 
                     if (rightConst != null && rightConst.Value == null)
                     {
+                        // TODO: Same as above
                         // Special case for nulls, since "<> null" does not work in SQL
                         ResultBuilder.Append(" is not null)");
                         return expression;
@@ -503,6 +506,8 @@ namespace Apache.Ignite.Linq.Impl
         /// </summary>
         public void AppendParameter(object value)
         {
+            // TODO:
+            // ? or (? is null and name is null)
             ResultBuilder.Append("?");
 
             _modelVisitor.Parameters.Add(value);
