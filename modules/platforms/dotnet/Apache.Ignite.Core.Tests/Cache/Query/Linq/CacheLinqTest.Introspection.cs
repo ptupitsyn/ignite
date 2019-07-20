@@ -68,8 +68,8 @@ namespace Apache.Ignite.Core.Tests.Cache.Query.Linq
 
             Assert.AreEqual(
                 GetSqlEscapeAll()
-                    ? "select _T0._KEY, _T0._VAL from PERSON_ORG_SCHEMA.\"Person\" as _T0 where (_T0.\"_KEY\" > ?)"
-                    : "select _T0._KEY, _T0._VAL from PERSON_ORG_SCHEMA.Person as _T0 where (_T0._KEY > ?)",
+                    ? "select _T0._KEY, _T0._VAL from PERSON_ORG_SCHEMA.\"Person\" as _T0 where (_T0.\"_KEY\" > ?1)"
+                    : "select _T0._KEY, _T0._VAL from PERSON_ORG_SCHEMA.Person as _T0 where (_T0._KEY > ?1)",
                 fq.Sql);
 
             Assert.AreEqual(new[] { 10 }, fq.Arguments);
@@ -89,12 +89,12 @@ namespace Apache.Ignite.Core.Tests.Cache.Query.Linq
             Assert.AreEqual(GetSqlEscapeAll()
                 ? "CacheQueryable [CacheName=person_org, TableName=Person, Query=SqlFieldsQuery " +
                   "[Sql=select _T0._KEY, _T0._VAL from PERSON_ORG_SCHEMA.\"Person\" as _T0 where " +
-                  "(_T0.\"_KEY\" > ?), Arguments=[10], " +
+                  "(_T0.\"_KEY\" > ?1), Arguments=[10], " +
                   "Local=True, PageSize=999, EnableDistributedJoins=False, EnforceJoinOrder=True, " +
                   "Timeout=00:00:02.5000000, ReplicatedOnly=True, Colocated=True, Schema=, Lazy=True]]"
                 : "CacheQueryable [CacheName=person_org, TableName=Person, Query=SqlFieldsQuery " +
                   "[Sql=select _T0._KEY, _T0._VAL from PERSON_ORG_SCHEMA.Person as _T0 where " +
-                  "(_T0._KEY > ?), Arguments=[10], " +
+                  "(_T0._KEY > ?1), Arguments=[10], " +
                   "Local=True, PageSize=999, EnableDistributedJoins=False, EnforceJoinOrder=True, " +
                   "Timeout=00:00:02.5000000, ReplicatedOnly=True, Colocated=True, Schema=, Lazy=True]]", str);
 
@@ -141,14 +141,14 @@ namespace Apache.Ignite.Core.Tests.Cache.Query.Linq
             Assert.AreEqual(GetSqlEscapeAll()
                 ? "CacheQueryable [CacheName=person_org, TableName=Person, Query=SqlFieldsQuery " +
                   "[Sql=select _T0._KEY, _T0._VAL from PERSON_ORG_SCHEMA.\"Person\" as _T0 where " +
-                  "(((_T0.\"_KEY\" > ?) and (_T0.\"age1\" > ?)) " +
-                  "and (_T0.\"Name\" like \'%\' || ? || \'%\') ), Arguments=[10, 20, x], Local=False, " +
+                  "(((_T0.\"_KEY\" > ?1) and (_T0.\"age1\" > ?2)) " +
+                  "and (_T0.\"Name\" like \'%\' || ?3 || \'%\') ), Arguments=[10, 20, x], Local=False, " +
                   "PageSize=1024, EnableDistributedJoins=True, EnforceJoinOrder=False, " +
                   "Timeout=00:00:00, ReplicatedOnly=False, Colocated=False, Schema=, Lazy=False]]"
                 : "CacheQueryable [CacheName=person_org, TableName=Person, Query=SqlFieldsQuery " +
                   "[Sql=select _T0._KEY, _T0._VAL from PERSON_ORG_SCHEMA.Person as _T0 where " +
-                  "(((_T0._KEY > ?) and (_T0.AGE1 > ?)) " +
-                  "and (_T0.NAME like \'%\' || ? || \'%\') ), Arguments=[10, 20, x], Local=False, " +
+                  "(((_T0._KEY > ?1) and (_T0.AGE1 > ?2)) " +
+                  "and (_T0.NAME like \'%\' || ?3 || \'%\') ), Arguments=[10, 20, x], Local=False, " +
                   "PageSize=1024, EnableDistributedJoins=True, EnforceJoinOrder=False, " +
                   "Timeout=00:00:00, ReplicatedOnly=False, Colocated=False, Schema=, Lazy=False]]", str);
         }
