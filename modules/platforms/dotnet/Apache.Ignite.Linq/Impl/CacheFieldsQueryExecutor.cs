@@ -131,7 +131,9 @@ namespace Apache.Ignite.Linq.Impl
 
                 throw new InvalidOperationException("Error compiling query: entire LINQ expression should be " +
                                                     "specified within lambda passed to Compile method. " +
-                                                    "Part of the query can't be outside the Compile method call.");
+                                                    "Part of the query can't be outside the Compile method call. \n" +
+                                                    "Q1 = " + qryText + " \n" +
+                                                    "Q2 = " + qryTextLambda);
             }
 
             var selector = GetResultSelector<T>(queryModel.SelectClause.Selector);

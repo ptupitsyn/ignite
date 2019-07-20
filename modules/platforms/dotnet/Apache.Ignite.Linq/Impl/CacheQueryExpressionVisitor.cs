@@ -182,19 +182,23 @@ namespace Apache.Ignite.Linq.Impl
             {
                 case ExpressionType.Equal:
                 {
+                    ResultBuilder.Append(" = ");
+
                     var rightConst = expression.Right as ConstantExpression;
 
-                    if (rightConst != null && rightConst.Value == null)
+                    if (rightConst != null && !rightConst.Type.IsValueType)
                     {
-                        // Special case for nulls, since "= null" does not work in SQL
-                        // TODO: This is broken for Compiled Query since we miss the parameter.
-                        // TODO: instead, when appending the right side:
+                        // Special case for reference types, since "= null" does not work in SQL
                         // F = ? or (? is null and F is null)
+                        AppendParameter(rightConst.Value);
+                        ResultBuilder.Append(" or (");
+                        AppendParameter(rightConst.Value);
+                        ResultBuilder.Append(" is null and ");
+                        Visit(expression.Left);
                         ResultBuilder.Append(" is null)");
                         return expression;
                     }
 
-                    ResultBuilder.Append(" = ");
                     break;
                 }
 
@@ -506,8 +510,6 @@ namespace Apache.Ignite.Linq.Impl
         /// </summary>
         public void AppendParameter(object value)
         {
-            // TODO:
-            // ? or (? is null and name is null)
             ResultBuilder.Append("?");
 
             _modelVisitor.Parameters.Add(value);
