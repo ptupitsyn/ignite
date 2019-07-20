@@ -220,7 +220,7 @@ namespace Apache.Ignite.Core.Tests.Cache.Query.Linq
         {
             var persons = GetPersonCache().AsCacheQueryable();
             var qry0 = CompiledQuery.Compile((string empName) => persons.Where(x => x.Value.Name == empName));
-            Assert.AreEqual(3, qry0("p1").Count());
+            Assert.AreEqual(1, qry0(" Person_1  ").Count());
         }
 
         [Test]

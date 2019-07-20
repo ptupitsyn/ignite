@@ -26,6 +26,7 @@ namespace Apache.Ignite.Linq.Impl
     using System.Linq;
     using System.Linq.Expressions;
     using System.Reflection;
+    using System.Runtime.InteropServices;
     using Apache.Ignite.Core.Cache;
     using Apache.Ignite.Core.Cache.Configuration;
     using Apache.Ignite.Core.Impl.Cache;
@@ -190,12 +191,17 @@ namespace Apache.Ignite.Linq.Impl
                     {
                         // Special case for reference types, since "= null" does not work in SQL
                         // F = ? or (? is null and F is null)
-                        AppendParameter(rightConst.Value);
-                        ResultBuilder.Append(" or (");
-                        AppendParameter(rightConst.Value);
-                        ResultBuilder.Append(" is null and ");
+                        var parameter = AppendParameter(rightConst.Value);
+
+                        ResultBuilder
+                            .Append(" or (")
+                            .Append(parameter)
+                            .Append(" is null and ");
+
                         Visit(expression.Left);
+
                         ResultBuilder.Append(" is null))");
+
                         return expression;
                     }
 
@@ -508,11 +514,15 @@ namespace Apache.Ignite.Linq.Impl
         /// <summary>
         /// Appends the parameter.
         /// </summary>
-        public void AppendParameter(object value)
+        public string AppendParameter(object value)
         {
-            ResultBuilder.Append("?");
-
             _modelVisitor.Parameters.Add(value);
+
+            var parameter = "?" + _modelVisitor.Parameters.Count;
+
+            ResultBuilder.Append(parameter);
+
+            return parameter;
         }
 
         /** <inheritdoc /> */
