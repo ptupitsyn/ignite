@@ -625,13 +625,14 @@ namespace Apache.Ignite.Linq.Impl
             var tableAlias = _aliases.GetTableAlias(joinClause);
             var fieldAlias = _aliases.GetFieldAlias(joinClause.InnerKeySelector);
 
-            _builder.AppendFormat("{0} join table ({1} {2} = ?) {3} on (", 
+            Parameters.Add(values);
+
+            _builder.AppendFormat("{0} join table ({1} {2} = ?{3}) {4} on (",
                 isOuter ? "left outer" : "inner",
                 fieldAlias,
-                sqlTypeName, 
+                sqlTypeName,
+                Parameters.Count,
                 tableAlias);
-
-            Parameters.Add(values);
         }
 
         /// <summary>
