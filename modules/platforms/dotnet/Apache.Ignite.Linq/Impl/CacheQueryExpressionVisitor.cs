@@ -195,7 +195,7 @@ namespace Apache.Ignite.Linq.Impl
                         AppendParameter(rightConst.Value);
                         ResultBuilder.Append(" is null and ");
                         Visit(expression.Left);
-                        ResultBuilder.Append(" is null)");
+                        ResultBuilder.Append(" is null))");
                         return expression;
                     }
 
