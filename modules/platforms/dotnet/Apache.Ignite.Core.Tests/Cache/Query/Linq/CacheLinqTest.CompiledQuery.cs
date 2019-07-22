@@ -225,21 +225,24 @@ namespace Apache.Ignite.Core.Tests.Cache.Query.Linq
         }
 
         [Test]
+        public void TestCompiledQueryStringEqualsNull()
+        {
+            var roles = GetRoleCache().AsCacheQueryable();
+
+            var nullNameRoles = CompiledQuery.Compile(roles.Where(x => x.Value.Name == null));
+            Assert.AreEqual(1, nullNameRoles().Count());
+
+            var nonNullNameRoles = CompiledQuery.Compile(roles.Where(x => x.Value.Name != null));
+            Assert.AreEqual(RoleCount - 1, nonNullNameRoles().Count());
+        }
+
+        [Test]
         public void TestCompiledQueryStringNotEquals()
         {
             var persons = GetPersonCache().AsCacheQueryable();
             var qry0 = CompiledQuery.Compile((string empName) => persons.Where(x => x.Value.Name != empName));
             Assert.AreEqual(PersonCount - 1, qry0(" Person_1  ").Count());
             Assert.AreEqual(0, qry0(null).Count());
-
-            // TODO: test finding null values
-//            var roles = GetRoleCache().AsCacheQueryable();
-//
-//            var nullNameRole = roles.Single(x => x.Value.Name == null);
-//            Assert.AreEqual(null, nullNameRole.Value.Name);
-//
-//            var nonNullNameRoles = roles.Where(x => x.Value.Name != null);
-//            Assert.AreEqual(RoleCount - 1, nonNullNameRoles.Count());
         }
 
         [Test]
