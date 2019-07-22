@@ -210,17 +210,29 @@ namespace Apache.Ignite.Linq.Impl
 
                 case ExpressionType.NotEqual:
                 {
+                    // TODO: Generalize with above
+                    ResultBuilder.Append(" <> ");
+
                     var rightConst = expression.Right as ConstantExpression;
 
                     if (rightConst != null && rightConst.Value == null)
                     {
-                        // TODO: Same as above
-                        // Special case for nulls, since "<> null" does not work in SQL
-                        ResultBuilder.Append(" is not null)");
+                        // Special case for reference types, since "<> null" does not work in SQL
+                        // F <> ? or (? is null and F is not null)
+                        var parameter = AppendParameter(rightConst.Value);
+
+                        ResultBuilder
+                            .Append(" or (")
+                            .Append(parameter)
+                            .Append(" is null and ");
+
+                        Visit(expression.Left);
+
+                        ResultBuilder.Append(" is not null))");
+
                         return expression;
                     }
 
-                    ResultBuilder.Append(" <> ");
                     break;
                 }
 
