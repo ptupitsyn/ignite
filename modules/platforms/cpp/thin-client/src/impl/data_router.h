@@ -99,7 +99,7 @@ namespace ignite
                 {
                     const AffinityTopologyVersion* ver = rsp.GetAffinityTopologyVersion();
 
-                    if (ver != 0 && config.IsAffinityAwareness())
+                    if (ver != 0 && config.IsPartitionAwareness())
                         affinityManager.UpdateAffinity(*ver);
                 }
 
@@ -182,13 +182,13 @@ namespace ignite
                 void RefreshAffinityMapping(const std::vector<int32_t>& cacheIds);
 
                 /**
-                 * Checked whether affinity awareness enabled.
+                 * Checked whether Partition Awareness enabled.
                  *
-                 * @return @c true if affinity awareness enabled.
+                 * @return @c true if Partition Awareness enabled.
                  */
-                bool IsAffinityAwarenessEnabled() const
+                bool IsPartitionAwarenessEnabled() const
                 {
-                    return config.IsAffinityAwareness();
+                    return config.IsPartitionAwareness();
                 }
 
                 /**

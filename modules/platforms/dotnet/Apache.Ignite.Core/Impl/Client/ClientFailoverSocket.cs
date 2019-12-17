@@ -109,7 +109,7 @@ namespace Apache.Ignite.Core.Impl.Client
         }
 
         /// <summary>
-        /// Performs a send-receive operation with affinity awareness.
+        /// Performs a send-receive operation with Partition Awareness.
         /// </summary>
         public T DoOutInOpAffinity<T, TKey>(
             ClientOp opId,
@@ -125,7 +125,7 @@ namespace Apache.Ignite.Core.Impl.Client
         }
 
         /// <summary>
-        /// Performs an async send-receive operation with affinity awareness.
+        /// Performs an async send-receive operation with Partition Awareness.
         /// </summary>
         public Task<T> DoOutInOpAffinityAsync<T, TKey>(
             ClientOp opId,
@@ -196,7 +196,7 @@ namespace Apache.Ignite.Core.Impl.Client
 
         private ClientSocket GetAffinitySocket<TKey>(int cacheId, TKey key)
         {
-            if (!_config.EnableAffinityAwareness)
+            if (!_config.EnablePartitionAwareness)
             {
                 return null;
             }
@@ -313,11 +313,6 @@ namespace Apache.Ignite.Core.Impl.Client
                 throw new AggregateException("Failed to establish Ignite thin client connection, " +
                                              "examine inner exceptions for details.", errors);
             }
-
-            if (_config.EnableAffinityAwareness)
-            {
-                InitSocketMap();
-            }
         }
 
         /// <summary>
@@ -326,6 +321,11 @@ namespace Apache.Ignite.Core.Impl.Client
         private void OnAffinityTopologyVersionChange(AffinityTopologyVersion affinityTopologyVersion)
         {
             _affinityTopologyVersion = affinityTopologyVersion;
+
+            if (_config.EnablePartitionAwareness)
+            {
+                InitSocketMap();
+            }
         }
 
         /// <summary>
@@ -405,7 +405,7 @@ namespace Apache.Ignite.Core.Impl.Client
 
             for (int i = 0; i < size; i++)
             {
-                var grp = new ClientCacheAffinityAwarenessGroup(s);
+                var grp = new ClientCachePartitionAwarenessGroup(s);
 
                 if (grp.PartitionMap == null)
                 {

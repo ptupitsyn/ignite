@@ -26,13 +26,13 @@ import java.util.UUID;
  * A data projection of grid client. Contains various methods for cache operations and metrics retrieval.
  * An instance of data projection over some remote cache is provided via
  * {@link GridClient#data(String)} method.
- * <h1 class="header">Affinity Awareness</h1>
+ * <h1 class="header">Partition Awareness</h1>
  * One of the unique properties of the Ignite remote clients is that they are
- * affinity aware. In other words, both compute and data APIs will optionally
+ * partition aware. In other words, both compute and data APIs will optionally
  * contact exactly the node where the data is cached based on some affinity key.
  * This allows for collocation of computations and data and avoids extra network
  * hops that would be necessary if non-affinity nodes were contacted. By default
- * all operations on {@code GridClientData} API will be affinity-aware unless
+ * all operations on {@code GridClientData} API will be partition-aware unless
  * such behavior is overridden by pinning one or more remote nodes
  * (see {@link #pinNodes(GridClientNode, GridClientNode...)} for more information).
  */
@@ -70,7 +70,7 @@ public interface GridClientData {
     /**
      * Puts value to cache on remote grid.
      * <p>
-     * Note that this operation is affinity-aware and will immediately contact
+     * Note that this operation is partition-aware and will immediately contact
      * exactly the remote node on which this key is supposed to be cached (unless
      * some nodes were {@code pinned}).
      *
@@ -86,7 +86,7 @@ public interface GridClientData {
     /**
      * Asynchronously puts value to cache on remote node.
      * <p>
-     * Note that this operation is affinity-aware and will immediately contact
+     * Note that this operation is partition-aware and will immediately contact
      * exactly the remote node on which this key is supposed to be cached (unless
      * some nodes were {@code pinned}).
      *
@@ -99,7 +99,7 @@ public interface GridClientData {
     /**
      * Puts entries to cache on remote grid.
      * <p>
-     * Note that this operation is affinity-aware and will immediately contact
+     * Note that this operation is partition-aware and will immediately contact
      * exactly the remote nodes on which these keys are supposed to be cached (unless
      * some nodes were {@code pinned}). If entries do not map to one node, then the node
      * which has most mapped entries will be contacted.
@@ -114,7 +114,7 @@ public interface GridClientData {
     /**
      * Asynchronously puts entries to cache on remote grid.
      * <p>
-     * Note that this operation is affinity-aware and will immediately contact
+     * Note that this operation is partition-aware and will immediately contact
      * exactly the remote nodes on which these keys are supposed to be cached (unless
      * some nodes were {@code pinned}). If entries do not map to one node, then the node
      * which has most mapped entries will be contacted.
@@ -127,7 +127,7 @@ public interface GridClientData {
     /**
      * Gets value from cache on remote node.
      * <p>
-     * Note that this operation is affinity-aware and will immediately contact
+     * Note that this operation is partition-aware and will immediately contact
      * exactly the remote node on which this key is supposed to be cached (unless
      * some nodes were {@code pinned}).
      *
@@ -142,7 +142,7 @@ public interface GridClientData {
     /**
      * Asynchronously gets value from cache on remote grid.
      * <p>
-     * Note that this operation is affinity-aware and will immediately contact
+     * Note that this operation is partition-aware and will immediately contact
      * exactly the remote node on which this key is supposed to be cached (unless
      * some nodes were {@code pinned}).
      *
@@ -154,7 +154,7 @@ public interface GridClientData {
     /**
      * Gets entries from cache on remote grid.
      * <p>
-     * Note that this operation is affinity-aware and will immediately contact
+     * Note that this operation is partition-aware and will immediately contact
      * exactly the remote nodes on which these keys are supposed to be cached (unless
      * some nodes were {@code pinned}). If entries do not map to one node, then the node
      * which has most mapped entries will be contacted.
@@ -170,7 +170,7 @@ public interface GridClientData {
     /**
      * Asynchronously gets entries from cache on remote grid.
      * <p>
-     * Note that this operation is affinity-aware and will immediately contact
+     * Note that this operation is partition-aware and will immediately contact
      * exactly the remote nodes on which these keys are supposed to be cached (unless
      * some nodes were {@code pinned}). If entries do not map to one node, then the node
      * which has most mapped entries will be contacted.
@@ -183,7 +183,7 @@ public interface GridClientData {
     /**
      * Removes value from cache on remote node.
      * <p>
-     * Note that this operation is affinity-aware and will immediately contact
+     * Note that this operation is partition-aware and will immediately contact
      * exactly the remote node on which this key is supposed to be cached (unless
      * some nodes were {@code pinned}).
      *
@@ -198,7 +198,7 @@ public interface GridClientData {
     /**
      * Asynchronously removes value from cache on remote grid.
      * <p>
-     * Note that this operation is affinity-aware and will immediately contact
+     * Note that this operation is partition-aware and will immediately contact
      * exactly the remote node on which this key is supposed to be cached (unless
      * some nodes were {@code pinned}).
      *
@@ -210,7 +210,7 @@ public interface GridClientData {
     /**
      * Removes entries from cache on remote node.
      * <p>
-     * Note that this operation is affinity-aware and will immediately contact
+     * Note that this operation is partition-aware and will immediately contact
      * exactly the remote nodes on which these keys are supposed to be cached (unless
      * some nodes were {@code pinned}). If entries do not map to one node, then the node
      * which has most mapped entries will be contacted.
@@ -225,7 +225,7 @@ public interface GridClientData {
     /**
      * Asynchronously removes entries from cache on remote grid.
      * <p>
-     * Note that this operation is affinity-aware and will immediately contact
+     * Note that this operation is partition-aware and will immediately contact
      * exactly the remote nodes on which these keys are supposed to be cached (unless
      * some nodes were {@code pinned}). If entries do not map to one node, then the node
      * which has most mapped entries will be contacted.
@@ -239,7 +239,7 @@ public interface GridClientData {
      * Replaces value in cache on remote grid only if there was a {@code non-null}
      * value associated with this key.
      * <p>
-     * Note that this operation is affinity-aware and will immediately contact
+     * Note that this operation is partition-aware and will immediately contact
      * exactly the remote node on which this key is supposed to be cached (unless
      * some nodes were {@code pinned}).
      *
@@ -256,7 +256,7 @@ public interface GridClientData {
      * Asynchronously replaces value in cache on remote grid only if there was a {@code non-null}
      * value associated with this key.
      * <p>
-     * Note that this operation is affinity-aware and will immediately contact
+     * Note that this operation is partition-aware and will immediately contact
      * exactly the remote node on which this key is supposed to be cached (unless
      * some nodes were {@code pinned}).
      *
@@ -281,7 +281,7 @@ public interface GridClientData {
      * If both {@code val1} and {@code val2} are {@code null}, entry is removed.
      * </li>
      * </ul>
-     * Note that this operation is affinity-aware and will immediately contact
+     * Note that this operation is partition-aware and will immediately contact
      * exactly the remote node on which this key is supposed to be cached (unless
      * some nodes were {@code pinned}).
      *
@@ -310,7 +310,7 @@ public interface GridClientData {
      * If both {@code val1} and {@code val2} are {@code null}, entry is removed.
      * </li>
      * </ul>
-     * Note that this operation is affinity-aware and will immediately contact
+     * Note that this operation is partition-aware and will immediately contact
      * exactly the remote node on which this key is supposed to be cached (unless
      * some nodes were {@code pinned}).
      *
@@ -366,7 +366,7 @@ public interface GridClientData {
     /**
      * Append requested value to already cached one. This method supports work with strings, lists and maps.
      * <p>
-     * Note that this operation is affinity-aware and will immediately contact
+     * Note that this operation is partition-aware and will immediately contact
      * exactly the remote node on which this key is supposed to be cached (unless
      * some nodes were {@code pinned}).
      *
@@ -380,7 +380,7 @@ public interface GridClientData {
     /**
      * Append requested value to already cached one. This method supports work with strings, lists and maps.
      * <p>
-     * Note that this operation is affinity-aware and will immediately contact
+     * Note that this operation is partition-aware and will immediately contact
      * exactly the remote node on which this key is supposed to be cached (unless
      * some nodes were {@code pinned}).
      *
@@ -394,7 +394,7 @@ public interface GridClientData {
     /**
      * Prepend requested value to already cached one. This method supports work with strings, lists and maps.
      * <p>
-     * Note that this operation is affinity-aware and will immediately contact
+     * Note that this operation is partition-aware and will immediately contact
      * exactly the remote node on which this key is supposed to be cached (unless
      * some nodes were {@code pinned}).
      *
@@ -408,7 +408,7 @@ public interface GridClientData {
     /**
      * Prepend requested value to already cached one. This method supports work with strings, lists and maps.
      * <p>
-     * Note that this operation is affinity-aware and will immediately contact
+     * Note that this operation is partition-aware and will immediately contact
      * exactly the remote node on which this key is supposed to be cached (unless
      * some nodes were {@code pinned}).
      *
