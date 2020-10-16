@@ -534,6 +534,8 @@ class TcpClientChannel extends SimpleChannelInboundHandler<ByteBuf> implements C
             @Override
             public void initChannel(SocketChannel ch) {
                 // ch.pipeline().addLast(new SslHandler(sslContext.newEngine(ch.alloc())));
+
+                // TODO: Dedicated decoder for Ignite messages?
                 ch.pipeline().addLast(handler);
             }
         });
