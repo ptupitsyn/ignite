@@ -22,9 +22,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.net.InetSocketAddress;
-import java.net.Socket;
 import java.security.KeyManagementException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
@@ -60,6 +58,19 @@ import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
 import javax.net.ssl.X509TrustManager;
+
+import io.netty.bootstrap.Bootstrap;
+import io.netty.buffer.ByteBuf;
+import io.netty.channel.Channel;
+import io.netty.channel.ChannelHandler;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelInitializer;
+import io.netty.channel.ChannelOption;
+import io.netty.channel.EventLoopGroup;
+import io.netty.channel.SimpleChannelInboundHandler;
+import io.netty.channel.nio.NioEventLoopGroup;
+import io.netty.channel.socket.SocketChannel;
+import io.netty.channel.socket.nio.NioSocketChannel;
 import org.apache.ignite.IgniteCheckedException;
 import org.apache.ignite.client.ClientAuthenticationException;
 import org.apache.ignite.client.ClientAuthorizationException;
@@ -67,7 +78,6 @@ import org.apache.ignite.client.ClientConnectionException;
 import org.apache.ignite.client.ClientException;
 import org.apache.ignite.client.ClientFeatureNotSupportedByServerException;
 import org.apache.ignite.client.ClientReconnectedException;
-import org.apache.ignite.client.SslMode;
 import org.apache.ignite.client.SslProtocol;
 import org.apache.ignite.configuration.ClientConfiguration;
 import org.apache.ignite.configuration.IgniteConfiguration;
@@ -87,7 +97,6 @@ import org.apache.ignite.internal.processors.platform.client.ClientFlag;
 import org.apache.ignite.internal.processors.platform.client.ClientStatus;
 import org.apache.ignite.internal.util.future.GridFutureAdapter;
 import org.apache.ignite.internal.util.typedef.F;
-import org.apache.ignite.internal.util.typedef.internal.U;
 import org.jetbrains.annotations.Nullable;
 
 import static org.apache.ignite.internal.client.thin.ProtocolBitmaskFeature.USER_ATTRIBUTES;
@@ -107,12 +116,9 @@ import static org.apache.ignite.internal.client.thin.ProtocolVersionFeature.PART
 /**
  * Implements {@link ClientChannel} over TCP.
  */
-class TcpClientChannel implements ClientChannel {
+class TcpClientChannel extends SimpleChannelInboundHandler<ByteBuf> implements ClientChannel {
     /** Protocol version used by default on first connection attempt. */
     private static final ProtocolVersion DEFAULT_VERSION = LATEST_VER;
-
-    /** Receiver thread prefix. */
-    static final String RECEIVER_THREAD_PREFIX = "thin-client-channel#";
 
     /** Supported protocol versions. */
     private static final Collection<ProtocolVersion> supportedVers = Arrays.asList(
@@ -136,13 +142,7 @@ class TcpClientChannel implements ClientChannel {
     private AffinityTopologyVersion srvTopVer;
 
     /** Channel. */
-    private final Socket sock;
-
-    /** Output stream. */
-    private final OutputStream out;
-
-    /** Data input. */
-    private final ByteCountingDataInput dataInput;
+    private final Channel sock;
 
     /** Request id. */
     private final AtomicLong reqId = new AtomicLong(1);
@@ -165,9 +165,6 @@ class TcpClientChannel implements ClientChannel {
     /** Executor for async operation listeners. */
     private final Executor asyncContinuationExecutor;
 
-    /** Receiver thread (processes incoming messages). */
-    private Thread receiverThread;
-
     /** Constructor. */
     TcpClientChannel(ClientChannelConfiguration cfg)
         throws ClientConnectionException, ClientAuthenticationException, ClientProtocolError {
@@ -177,10 +174,7 @@ class TcpClientChannel implements ClientChannel {
         asyncContinuationExecutor = cfgExec != null ? cfgExec : ForkJoinPool.commonPool();
 
         try {
-            sock = createSocket(cfg);
-
-            out = sock.getOutputStream();
-            dataInput = new ByteCountingDataInput(sock.getInputStream());
+            sock = createSocket(cfg, this);
         }
         catch (IOException e) {
             throw handleIOError("addr=" + cfg.getAddress(), e);
@@ -199,18 +193,14 @@ class TcpClientChannel implements ClientChannel {
      */
     private void close(Throwable cause) {
         if (closed.compareAndSet(false, true)) {
-            U.closeQuiet(dataInput);
-            U.closeQuiet(out);
-            U.closeQuiet(sock);
+            // TODO: closeQuiet
+            sock.close();
 
             sndLock.lock(); // Lock here to prevent creation of new pending requests.
 
             try {
                 for (ClientRequestFuture pendingReq : pendingReqs.values())
                     pendingReq.onDone(new ClientConnectionException("Channel is closed", cause));
-
-                if (receiverThread != null)
-                    receiverThread.interrupt();
             }
             finally {
                 sndLock.unlock();
@@ -263,8 +253,6 @@ class TcpClientChannel implements ClientChannel {
         try (PayloadOutputChannel payloadCh = new PayloadOutputChannel(this)) {
             if (closed())
                 throw new ClientConnectionException("Channel is closed");
-
-            initReceiverThread(); // Start the receiver thread with the first request.
 
             pendingReqs.put(id, new ClientRequestFuture());
 
@@ -386,33 +374,6 @@ class TcpClientChannel implements ClientChannel {
             return new ClientException(e.getMessage(), e.getCause());
 
         return new ClientException(e.getMessage(), e);
-    }
-
-    /**
-     * Init and start receiver thread if it wasn't started before.
-     *
-     * Note: Method should be called only under external synchronization.
-     */
-    private void initReceiverThread() {
-        if (receiverThread == null) {
-            Socket sock = this.sock;
-
-            String sockInfo = sock == null ? null : sock.getInetAddress().getHostName() + ":" + sock.getPort();
-
-            receiverThread = new Thread(() -> {
-                try {
-                    while (!closed())
-                        processNextMessage();
-                }
-                catch (Throwable e) {
-                    close(e);
-                }
-            }, RECEIVER_THREAD_PREFIX + sockInfo);
-
-            receiverThread.setDaemon(true);
-
-            receiverThread.start();
-        }
     }
 
     /**
@@ -542,23 +503,50 @@ class TcpClientChannel implements ClientChannel {
     }
 
     /** Create socket. */
-    private static Socket createSocket(ClientChannelConfiguration cfg) throws IOException {
-        Socket sock = cfg.getSslMode() == SslMode.REQUIRED ?
-            new ClientSslSocketFactory(cfg).create() :
-            new Socket(cfg.getAddress().getHostName(), cfg.getAddress().getPort());
+    private static Channel createSocket(ClientChannelConfiguration cfg, ChannelHandler handler) throws IOException {
+        // TODO: SSL, timeouts
+//        Socket sock = cfg.getSslMode() == SslMode.REQUIRED ?
+//            new ClientSslSocketFactory(cfg).create() :
+//            new Socket(cfg.getAddress().getHostName(), cfg.getAddress().getPort());
+//
+//        sock.setTcpNoDelay(cfg.isTcpNoDelay());
+//
+//        if (cfg.getTimeout() > 0)
+//            sock.setSoTimeout(cfg.getTimeout());
+//
+//        if (cfg.getSendBufferSize() > 0)
+//            sock.setSendBufferSize(cfg.getSendBufferSize());
+//
+//        if (cfg.getReceiveBufferSize() > 0)
+//            sock.setReceiveBufferSize(cfg.getReceiveBufferSize());
+//
+//        return sock;
 
-        sock.setTcpNoDelay(cfg.isTcpNoDelay());
+        // TODO: Init worker group in parent ReliableChannel
+        EventLoopGroup workerGroup = new NioEventLoopGroup();
 
-        if (cfg.getTimeout() > 0)
-            sock.setSoTimeout(cfg.getTimeout());
+        Bootstrap b = new Bootstrap();
+        b.group(workerGroup);
+        b.channel(NioSocketChannel.class);
+        b.option(ChannelOption.SO_KEEPALIVE, true);
 
-        if (cfg.getSendBufferSize() > 0)
-            sock.setSendBufferSize(cfg.getSendBufferSize());
+        b.handler(new ChannelInitializer<SocketChannel>() {
+            @Override
+            public void initChannel(SocketChannel ch) {
+                // ch.pipeline().addLast(new SslHandler(sslContext.newEngine(ch.alloc())));
+                ch.pipeline().addLast(handler);
+            }
+        });
 
-        if (cfg.getReceiveBufferSize() > 0)
-            sock.setReceiveBufferSize(cfg.getReceiveBufferSize());
-
-        return sock;
+        // Start the client.
+        try {
+            return b.connect(cfg.getAddress().getHostName(), cfg.getAddress().getPort())
+                    .sync()
+                    .channel();
+        } catch (InterruptedException e) {
+            // TODO:
+            return null;
+        }
     }
 
     /** Client handshake. */
@@ -700,6 +688,10 @@ class TcpClientChannel implements ClientChannel {
      */
     private ClientException handleIOError(String chInfo, @Nullable IOException ex) {
         return new ClientConnectionException("Ignite cluster is unavailable [" + chInfo + ']', ex);
+    }
+
+    @Override protected void channelRead0(ChannelHandlerContext ctx, ByteBuf msg) throws Exception {
+        // TODO: Handle received data
     }
 
     /**
