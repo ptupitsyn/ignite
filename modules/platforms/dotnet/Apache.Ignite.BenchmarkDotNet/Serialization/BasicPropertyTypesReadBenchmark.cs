@@ -24,6 +24,12 @@ namespace Apache.Ignite.BenchmarkDotNet.Serialization
 
     /// <summary>
     /// Deserialization benchmark.
+    ///
+    /// With TypeCaster (.NET Core 3.1):
+    /// |          Method |     Mean |     Error |    StdDev |  Gen 0 | Gen 1 | Gen 2 | Allocated |
+    /// |---------------- |---------:|----------:|----------:|-------:|------:|------:|----------:|
+    /// |            Read | 2.522 us | 0.0103 us | 0.0097 us | 0.5951 |     - |     - |   3.66 KB |
+    /// | ReadBinarizable | 2.274 us | 0.0092 us | 0.0077 us | 0.6065 |     - |     - |   3.73 KB |
     /// </summary>
     [MemoryDiagnoser]
     public class BasicPropertyTypesReadBenchmark
