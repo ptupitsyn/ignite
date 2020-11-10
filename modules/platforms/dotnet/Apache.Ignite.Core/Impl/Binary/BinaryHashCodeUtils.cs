@@ -40,74 +40,74 @@ namespace Apache.Ignite.Core.Impl.Binary
             var type = val.GetType();
 
             if (type == typeof(int))
-                return TypeCaster<int>.Cast(val);
+                return (int) (object) val;
 
             if (type == typeof(long))
-                return GetLongHashCode(TypeCaster<long>.Cast(val));
+                return GetLongHashCode((long) (object) val);
 
             if (type == typeof(bool))
-                return TypeCaster<bool>.Cast(val) ? 1231 : 1237;
+                return (bool) (object) val ? 1231 : 1237;
 
             if (type == typeof(byte))
-                return TypeCaster<byte>.Cast(val);
+                return (byte) (object) val;
 
             if (type == typeof(short))
-                return TypeCaster<short>.Cast(val);
+                return (short) (object) val;
 
             if (type == typeof(char))
-                return TypeCaster<char>.Cast(val);
+                return (char) (object) val;
 
             if (type == typeof(float))
             {
-                var floatVal = TypeCaster<float>.Cast(val);
+                var floatVal = (float) (object) val;
                 return *(int*) &floatVal;
             }
 
             if (type == typeof(double))
             {
-                var doubleVal = TypeCaster<double>.Cast(val);
+                var doubleVal = (double) (object) val;
                 return GetLongHashCode(*(long*) &doubleVal);
             }
 
             if (type == typeof(sbyte))
             {
-                var val0 = TypeCaster<sbyte>.Cast(val);
+                var val0 = (sbyte) (object) val;
                 return *(byte*) &val0;
             }
 
             if (type == typeof(ushort))
             {
-                var val0 = TypeCaster<ushort>.Cast(val);
+                var val0 = (ushort) (object) val;
                 return *(short*) &val0;
             }
 
             if (type == typeof(uint))
             {
-                var val0 = TypeCaster<uint>.Cast(val);
+                var val0 = (uint) (object) val;
                 return *(int*) &val0;
             }
 
             if (type == typeof(ulong))
             {
-                var val0 = TypeCaster<ulong>.Cast(val);
+                var val0 = (ulong) (object) val;
                 return GetLongHashCode(*(long*) &val0);
             }
 
             if (type == typeof(IntPtr))
             {
-                var val0 = TypeCaster<IntPtr>.Cast(val).ToInt64();
+                var val0 = ((IntPtr) (object) val).ToInt64();
                 return GetLongHashCode(val0);
             }
 
             if (type == typeof(UIntPtr))
             {
-                var val0 = TypeCaster<UIntPtr>.Cast(val).ToUInt64();
+                var val0 = ((UIntPtr) (object) val).ToUInt64();
                 return GetLongHashCode(*(long*) &val0);
             }
 
             if (type == typeof(Guid))
             {
-                return GetGuidHashCode(TypeCaster<Guid>.Cast(val));
+                return GetGuidHashCode((Guid) (object) val);
             }
 
             // DateTime, when used as key, is always written as BinaryObject.
