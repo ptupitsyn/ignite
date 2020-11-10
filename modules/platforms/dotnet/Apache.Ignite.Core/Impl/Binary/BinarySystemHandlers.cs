@@ -48,7 +48,8 @@ namespace Apache.Ignite.Core.Impl.Binary
             ReadHandlers[BinaryTypeId.Byte] = new BinarySystemReader<byte>(s => s.ReadByte());
             ReadHandlers[BinaryTypeId.Short] = new BinarySystemReader<short>(s => s.ReadShort());
             ReadHandlers[BinaryTypeId.Char] = new BinarySystemReader<char>(s => s.ReadChar());
-            ReadHandlers[BinaryTypeId.Int] = new BinarySystemReader<int>(s => s.ReadInt());
+            ReadHandlers[BinaryTypeId.Int] =
+                new BinarySystemDualReader<int, uint>(s => s.ReadInt(), s => (uint) s.ReadInt());
             ReadHandlers[BinaryTypeId.Long] = new BinarySystemReader<long>(s => s.ReadLong());
             ReadHandlers[BinaryTypeId.Float] = new BinarySystemReader<float>(s => s.ReadFloat());
             ReadHandlers[BinaryTypeId.Double] = new BinarySystemReader<double>(s => s.ReadDouble());
