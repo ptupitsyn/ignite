@@ -20,18 +20,18 @@ namespace Apache.Ignite.BenchmarkDotNet.Serialization
     using Apache.Ignite.BenchmarkDotNet.Models;
     using Apache.Ignite.Core.Binary;
     using Apache.Ignite.Core.Impl.Binary;
-    using Apache.Ignite.Core.Impl.Memory;
     using global::BenchmarkDotNet.Attributes;
 
+    /// <summary>
+    /// Deserialization benchmark.
+    /// </summary>
     public class BasicPropertyTypesReadBenchmark
     {
         private Marshaller _marsh;
 
-        private PlatformMemoryManager _memMgr;
+        private byte[] _bytes;
 
-        private IPlatformMemory _mem;
-
-        private IPlatformMemory _memBinarizable;
+        private byte[] _bytesBinarizable;
 
         [GlobalSetup]
         public void GlobalSetup()
@@ -40,29 +40,20 @@ namespace Apache.Ignite.BenchmarkDotNet.Serialization
                 typeof (BasicPropertyTypes),
                 typeof (BasicPropertyTypesBinarizable)));
 
-            _memMgr = new PlatformMemoryManager(1024);
-            _mem = _memMgr.Allocate();
-            _memBinarizable = _memMgr.Allocate();
-
-            var stream = _mem.GetStream();
-            _marsh.StartMarshal(stream).Write(new BasicPropertyTypes());
-            stream.SynchronizeOutput();
-
-            stream = _memBinarizable.GetStream();
-            _marsh.StartMarshal(stream).Write(new BasicPropertyTypesBinarizable());
-            stream.SynchronizeOutput();
+            _bytes = _marsh.Marshal(new BasicPropertyTypes());
+            _bytesBinarizable = _marsh.Marshal(new BasicPropertyTypesBinarizable());
         }
 
         [Benchmark]
         public void Read()
         {
-
+            _marsh.Unmarshal<BasicPropertyTypes>(_bytes);
         }
 
         [Benchmark]
         public void ReadBinarizable()
         {
-
+            _marsh.Unmarshal<BasicPropertyTypesBinarizable>(_bytesBinarizable);
         }
     }
 }
