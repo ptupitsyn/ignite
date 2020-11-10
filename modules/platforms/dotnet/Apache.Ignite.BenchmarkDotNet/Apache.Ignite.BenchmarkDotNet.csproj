@@ -15,4 +15,8 @@
     <ProjectReference Include="..\Apache.Ignite.Core\Apache.Ignite.Core.DotNetCore.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Serialization" />
+  </ItemGroup>
+
 </Project>
