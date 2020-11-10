@@ -17,7 +17,6 @@
 
 namespace Apache.Ignite.BenchmarkDotNet.Serialization
 {
-    using System.Collections.Generic;
     using Apache.Ignite.BenchmarkDotNet.Models;
     using Apache.Ignite.Core.Binary;
     using Apache.Ignite.Core.Impl.Binary;
@@ -32,6 +31,8 @@ namespace Apache.Ignite.BenchmarkDotNet.Serialization
 
         private IPlatformMemory _mem;
 
+        private IPlatformMemory _memBinarizable;
+
         [GlobalSetup]
         public void GlobalSetup()
         {
@@ -41,14 +42,27 @@ namespace Apache.Ignite.BenchmarkDotNet.Serialization
 
             _memMgr = new PlatformMemoryManager(1024);
             _mem = _memMgr.Allocate();
+            _memBinarizable = _memMgr.Allocate();
 
             var stream = _mem.GetStream();
-
-            _marsh.StartMarshal(stream).Write(_address);
-
+            _marsh.StartMarshal(stream).Write(new BasicPropertyTypes());
             stream.SynchronizeOutput();
+
+            stream = _memBinarizable.GetStream();
+            _marsh.StartMarshal(stream).Write(new BasicPropertyTypesBinarizable());
+            stream.SynchronizeOutput();
+        }
+
+        [Benchmark]
+        public void Read()
+        {
 
         }
 
+        [Benchmark]
+        public void ReadBinarizable()
+        {
+
+        }
     }
 }
