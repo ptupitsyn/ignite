@@ -17,11 +17,39 @@
 
 namespace Apache.Ignite.BenchmarkDotNet.Serialization
 {
+    using Apache.Ignite.BenchmarkDotNet.Models;
+    using Apache.Ignite.Core.Binary;
+    using Apache.Ignite.Core.Impl.Binary;
+    using global::BenchmarkDotNet.Attributes;
+
     /// <summary>
     /// BinaryObject field retrieval benchmark.
     /// </summary>
     public class BinaryObjectGetFieldBenchmark
     {
+        private IBinaryObject _binObj;
 
+        [GlobalSetup]
+        public void GlobalSetup()
+        {
+            var marsh = new Marshaller(new BinaryConfiguration(
+                typeof (BasicPropertyTypes),
+                typeof (BasicPropertyTypesBinarizable)));
+
+            var bytes = marsh.Marshal(new BasicPropertyTypes());
+            _binObj = marsh.Unmarshal<IBinaryObject>(bytes, BinaryMode.ForceBinary);
+        }
+
+        [Benchmark]
+        public void GetBool()
+        {
+            _binObj.GetField<bool>("Boolean");
+        }
+
+        [Benchmark]
+        public void GetInt()
+        {
+            _binObj.GetField<int>("Int");
+        }
     }
 }
