@@ -9,6 +9,10 @@ namespace Apache.Ignite.BenchmarkDotNet.Serialization
     /// Serialization benchmark.
     ///
     /// With TypeCaster (.NET Core 3.1):
+    /// |           Method |     Mean |     Error |    StdDev |  Gen 0 | Gen 1 | Gen 2 | Allocated |
+    /// |----------------- |---------:|----------:|----------:|-------:|------:|------:|----------:|
+    /// |            Write | 2.163 us | 0.0129 us | 0.0115 us | 0.2861 |     - |     - |   1.77 KB |
+    /// | WriteBinarizable | 1.838 us | 0.0111 us | 0.0098 us | 0.2823 |     - |     - |   1.73 KB |
     /// </summary>
     [MemoryDiagnoser]
     public class BasicPropertyTypesWriteBenchmark
