@@ -44,7 +44,6 @@ namespace Apache.Ignite.BenchmarkDotNet.Serialization
 
             var stream = _mem.GetStream();
 
-            //_marsh.StartMarshal(stream).Write(_model);
             _marsh.StartMarshal(stream).Write(_address);
 
             stream.SynchronizeOutput();

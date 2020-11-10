@@ -24,29 +24,52 @@ namespace Apache.Ignite.BenchmarkDotNet.Models
     /// </summary>
     public class BasicPropertyTypes
     {
-        public byte Byte { get; set; }
-        public byte[] ByteArray { get; set; }
-        public char Char { get; set; }
-        public char[] CharArray { get; set; }
-        public short Short { get; set; }
-        public short[] ShortArray { get; set; }
-        public int Int { get; set; }
-        public int[] IntArray { get; set; }
-        public long Long { get; set; }
-        public long[] LongArray { get; set; }
-        public bool Boolean { get; set; }
-        public bool[] BooleanArray { get; set; }
-        public float Float { get; set; }
-        public float[] FloatArray { get; set; }
-        public double Double { get; set; }
-        public double[] DoubleArray { get; set; }
-        public decimal? Decimal { get; set; }
-        public decimal?[] DecimalArray { get; set; }
-        public DateTime? Date { get; set; }
-        public DateTime?[] DateArray { get; set; }
-        public string String { get; set; }
-        public string[] StringArray { get; set; }
-        public Guid? Guid { get; set; }
-        public Guid?[] GuidArray { get; set; }
+        public byte Byte { get; set; } = 1;
+
+        public byte[] ByteArray { get; set; } = {1, 2, 3};
+
+        public char Char { get; set; } = 'c';
+
+        public char[] CharArray { get; set; } = {'a', 'b'};
+
+        public short Short { get; set; } = 3;
+
+        public short[] ShortArray { get; set; } = {4, 5, 6, 7};
+
+        public int Int { get; set; } = 10;
+
+        public int[] IntArray { get; set; } = {10, 11, 12};
+
+        public long Long { get; set; } = 13;
+
+        public long[] LongArray { get; set; } = {14, 15, 16};
+
+        public bool Boolean { get; set; } = true;
+
+        public bool[] BooleanArray { get; set; } = {true, false};
+
+        public float Float { get; set; } = 1.2f;
+
+        public float[] FloatArray { get; set; } = {2.5f, 6.8f};
+
+        public double Double { get; set; } = 34.56;
+
+        public double[] DoubleArray { get; set; } = {0, -1.1, 2.2};
+
+        public decimal? Decimal { get; set; } = 33.66m;
+
+        public decimal?[] DecimalArray { get; set; } = { -6.6m, 9.9m, 0 };
+
+        public DateTime? Date { get; set; } = new DateTime(1, 2, 3);
+
+        public DateTime?[] DateArray { get; set; } = {new DateTime(5, 6, 7), default};
+
+        public string String { get; set; } = "Foo bar";
+
+        public string[] StringArray { get; set; } = {"foo", "bar", "baz"};
+
+        public Guid? Guid { get; set; } = System.Guid.NewGuid();
+
+        public Guid?[] GuidArray { get; set; } = {System.Guid.NewGuid(), System.Guid.NewGuid()};
     }
 }
