@@ -245,6 +245,9 @@ namespace Apache.Ignite.Core.Impl.Binary
         /// </summary>
         public static bool TryReadSystemType<T>(byte typeId, BinaryReader ctx, out T res)
         {
+            // TODO: A better way to handle dual types?
+            // Cast to an interface first, if it fits - call with interface?
+
             var handler = ReadHandlers[typeId];
 
             if (handler == null)
