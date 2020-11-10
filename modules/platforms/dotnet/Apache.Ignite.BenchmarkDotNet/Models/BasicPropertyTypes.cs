@@ -60,14 +60,6 @@ namespace Apache.Ignite.BenchmarkDotNet.Models
 
         public decimal?[] DecimalArray { get; set; } = {-6.6m, 9.9m, 0};
 
-        public DateTime? Date { get; set; } = new DateTime(1, 2, 3).ToUniversalTime();
-
-        public DateTime?[] DateArray { get; set; } =
-        {
-            new DateTime(5, 6, 7).ToUniversalTime(),
-            new DateTime(9, 6, 7).ToUniversalTime()
-        };
-
         public string String { get; set; } = "Foo bar";
 
         public string[] StringArray { get; set; } = {"foo", "bar", "baz"};
