@@ -43,7 +43,7 @@ namespace Apache.Ignite.Core.Impl.Binary
 
             _serializableTypeDesc = SerializableTypeDescriptor.Get(type);
         }
-        
+
         /** <inheritdoc /> */
         public bool SupportsHandles
         {
@@ -275,7 +275,7 @@ namespace Apache.Ignite.Core.Impl.Binary
         private static bool HasAllFields(BinaryTypeHolder binaryTypeHolder, int[] schema)
         {
             var fieldIds = binaryTypeHolder.GetFieldIds();
-            
+
             foreach (var fieldId in schema)
             {
                 if (!fieldIds.Contains(fieldId))
@@ -323,7 +323,7 @@ namespace Apache.Ignite.Core.Impl.Binary
         private static Type GetCustomType(SerializationInfo serInfo, ISerializable serializable)
         {
             // ISerializable implementor may call SerializationInfo.SetType() or FullTypeName setter.
-            // In that case there is no serialization ctor on objType. 
+            // In that case there is no serialization ctor on objType.
             // Instead, we should instantiate specified custom type and then call IObjectReference.GetRealObject().
             if (serInfo.IsFullTypeNameSetExplicit)
             {
@@ -334,7 +334,7 @@ namespace Apache.Ignite.Core.Impl.Binary
                 typeof(ISerializable).IsAssignableFrom(serInfo.ObjectType))
             {
                 // serInfo.ObjectType should be ISerializable. There is a known case for generic collections:
-                // serializable is EnumEqualityComparer : ISerializable 
+                // serializable is EnumEqualityComparer : ISerializable
                 // and serInfo.ObjectType is ObjectEqualityComparer (does not implement ISerializable interface).
                 // Please read a possible explanation here:
                 // http://dotnetstudio.blogspot.ru/2012/06/net-35-to-net-40-enum.html
@@ -569,7 +569,7 @@ namespace Apache.Ignite.Core.Impl.Binary
         /// <summary>
         /// Reads the serialization information.
         /// </summary>
-        private static SerializationInfo ReadSerializationInfo(BinaryReader reader, 
+        private static SerializationInfo ReadSerializationInfo(BinaryReader reader,
             IEnumerable<string> fieldNames, Type type, ICollection<int> dotNetFields)
         {
             var serInfo = new SerializationInfo(type, new FormatterConverter());
@@ -642,31 +642,31 @@ namespace Apache.Ignite.Core.Impl.Binary
             {
                 if (fieldType == typeof(byte))
                 {
-                    return dotNetFields.Contains(BinaryUtils.GetStringHashCodeLowerCase(fieldName)) 
+                    return dotNetFields.Contains(BinaryUtils.GetStringHashCodeLowerCase(fieldName))
                         ? (sbyte) (byte) fieldVal : fieldVal;
                 }
 
                 if (fieldType == typeof(short))
                 {
-                    return dotNetFields.Contains(BinaryUtils.GetStringHashCodeLowerCase(fieldName)) 
+                    return dotNetFields.Contains(BinaryUtils.GetStringHashCodeLowerCase(fieldName))
                         ? (ushort) (short) fieldVal : fieldVal;
                 }
 
                 if (fieldType == typeof(int))
                 {
-                    return dotNetFields.Contains(BinaryUtils.GetStringHashCodeLowerCase(fieldName)) 
+                    return dotNetFields.Contains(BinaryUtils.GetStringHashCodeLowerCase(fieldName))
                         ? (uint) (int) fieldVal : fieldVal;
                 }
 
                 if (fieldType == typeof(long))
                 {
-                    return dotNetFields.Contains(BinaryUtils.GetStringHashCodeLowerCase(fieldName)) 
+                    return dotNetFields.Contains(BinaryUtils.GetStringHashCodeLowerCase(fieldName))
                         ? (ulong) (long) fieldVal : fieldVal;
                 }
 
                 if (fieldType == typeof(byte[]))
                 {
-                    return dotNetFields.Contains(BinaryUtils.GetStringHashCodeLowerCase(fieldName)) 
+                    return dotNetFields.Contains(BinaryUtils.GetStringHashCodeLowerCase(fieldName))
                         ? ConvertArray<byte, sbyte>((byte[]) fieldVal) : fieldVal;
                 }
 
@@ -678,13 +678,13 @@ namespace Apache.Ignite.Core.Impl.Binary
 
                 if (fieldType == typeof(int[]))
                 {
-                    return dotNetFields.Contains(BinaryUtils.GetStringHashCodeLowerCase(fieldName)) 
+                    return dotNetFields.Contains(BinaryUtils.GetStringHashCodeLowerCase(fieldName))
                         ? ConvertArray<int, uint>((int[]) fieldVal) : fieldVal;
                 }
 
                 if (fieldType == typeof(long[]))
                 {
-                    return dotNetFields.Contains(BinaryUtils.GetStringHashCodeLowerCase(fieldName)) 
+                    return dotNetFields.Contains(BinaryUtils.GetStringHashCodeLowerCase(fieldName))
                         ? ConvertArray<long, ulong>((long[]) fieldVal) : fieldVal;
                 }
             }
@@ -701,7 +701,7 @@ namespace Apache.Ignite.Core.Impl.Binary
 
             for (var i = 0; i < arr.Length; i++)
             {
-                res[i] = TypeCaster<TU>.Cast(arr[i]);
+                res[i] = (TU) (object) arr[i];
             }
 
             return res;

@@ -19,7 +19,6 @@ namespace Apache.Ignite.Core.Impl.Binary
 {
     using System;
     using System.Diagnostics;
-    using Apache.Ignite.Core.Impl.Common;
 
     /// <summary>
     /// Binary serializer for system types.
@@ -44,13 +43,13 @@ namespace Apache.Ignite.Core.Impl.Binary
         /** <inheritDoc /> */
         public void WriteBinary<T1>(T1 obj, BinaryWriter writer)
         {
-            TypeCaster<T>.Cast(obj).WriteBinary(writer);
+            ((T) (object) obj).WriteBinary(writer);
         }
 
         /** <inheritDoc /> */
         public T1 ReadBinary<T1>(BinaryReader reader, IBinaryTypeDescriptor desc, int pos, Type typeOverride)
         {
-            return TypeCaster<T1>.Cast(_ctor(reader));
+            return (T1) (object) _ctor(reader);
         }
 
         /** <inheritdoc /> */

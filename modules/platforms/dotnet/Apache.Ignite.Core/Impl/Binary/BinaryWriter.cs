@@ -26,7 +26,6 @@ namespace Apache.Ignite.Core.Impl.Binary
     using Apache.Ignite.Core.Impl.Binary.IO;
     using Apache.Ignite.Core.Impl.Binary.Metadata;
     using Apache.Ignite.Core.Impl.Binary.Structure;
-    using Apache.Ignite.Core.Impl.Common;
 
     /// <summary>
     /// Binary writer implementation.
@@ -627,7 +626,7 @@ namespace Apache.Ignite.Core.Impl.Binary
                 BinaryUtils.WriteDecimalArray(val, _stream);
             }
         }
-        
+
         /// <summary>
         /// Write decimal array.
         /// </summary>
@@ -660,7 +659,7 @@ namespace Apache.Ignite.Core.Impl.Binary
                 BinaryUtils.WriteTimestamp(val.Value, _stream);
             }
         }
-        
+
         /// <summary>
         /// Write date value.
         /// </summary>
@@ -908,7 +907,7 @@ namespace Apache.Ignite.Core.Impl.Binary
                 // Save enum fields only once - they can't change locally at runtime.
                 var metaHnd = _marsh.GetBinaryTypeHandler(desc);
                 var binaryFields = metaHnd.OnObjectWriteFinished();
-                
+
                 SaveMetadata(desc, binaryFields);
             }
         }
@@ -1163,7 +1162,7 @@ namespace Apache.Ignite.Core.Impl.Binary
                 return;
             }
 
-            // We use GetType() of a real object instead of typeof(T) to take advantage of 
+            // We use GetType() of a real object instead of typeof(T) to take advantage of
             // automatic Nullable'1 unwrapping.
             Type type = obj.GetType();
 
@@ -1250,7 +1249,7 @@ namespace Apache.Ignite.Core.Impl.Binary
                 var schemaOffset = dataEnd - pos;
 
                 int schemaId;
-                    
+
                 var flags = desc.UserType
                     ? BinaryObjectHeader.Flag.UserType
                     : BinaryObjectHeader.Flag.None;
@@ -1329,49 +1328,49 @@ namespace Apache.Ignite.Core.Impl.Binary
             // Types check sequence is designed to minimize comparisons for the most frequent types.
 
             if (type == typeof(int))
-                WriteIntField(TypeCaster<int>.Cast(val));
+                WriteIntField((int) (object) val);
             else if (type == typeof(long))
-                WriteLongField(TypeCaster<long>.Cast(val));
+                WriteLongField((long) (object) val);
             else if (type == typeof(bool))
-                WriteBooleanField(TypeCaster<bool>.Cast(val));
+                WriteBooleanField((bool) (object) val);
             else if (type == typeof(byte))
-                WriteByteField(TypeCaster<byte>.Cast(val));
+                WriteByteField((byte) (object) val);
             else if (type == typeof(short))
-                WriteShortField(TypeCaster<short>.Cast(val));
+                WriteShortField((short) (object) val);
             else if (type == typeof(char))
-                WriteCharField(TypeCaster<char>.Cast(val));
+                WriteCharField((char) (object) val);
             else if (type == typeof(float))
-                WriteFloatField(TypeCaster<float>.Cast(val));
+                WriteFloatField((float) (object) val);
             else if (type == typeof(double))
-                WriteDoubleField(TypeCaster<double>.Cast(val));
+                WriteDoubleField((double) (object) val);
             else if (type == typeof(sbyte))
             {
-                var val0 = TypeCaster<sbyte>.Cast(val);
+                var val0 = (sbyte) (object) val;
                 WriteByteField(*(byte*)&val0);
             }
             else if (type == typeof(ushort))
             {
-                var val0 = TypeCaster<ushort>.Cast(val);
+                var val0 = (ushort) (object) val;
                 WriteShortField(*(short*) &val0);
             }
             else if (type == typeof(uint))
             {
-                var val0 = TypeCaster<uint>.Cast(val);
+                var val0 = (uint) (object) val;
                 WriteIntField(*(int*)&val0);
             }
             else if (type == typeof(ulong))
             {
-                var val0 = TypeCaster<ulong>.Cast(val);
+                var val0 = (ulong) (object) val;
                 WriteLongField(*(long*)&val0);
             }
             else if (type == typeof(IntPtr))
             {
-                var val0 = TypeCaster<IntPtr>.Cast(val).ToInt64();
+                var val0 = ((IntPtr) (object) val).ToInt64();
                 WriteLongField(val0);
             }
             else if (type == typeof(UIntPtr))
             {
-                var val0 = TypeCaster<UIntPtr>.Cast(val).ToUInt64();
+                var val0 = ((UIntPtr) (object) val).ToUInt64();
                 WriteLongField(*(long*)&val0);
             }
             else

@@ -24,7 +24,6 @@ namespace Apache.Ignite.Core.Tests.Binary
     using Apache.Ignite.Core.Binary;
     using Apache.Ignite.Core.Impl;
     using Apache.Ignite.Core.Impl.Binary;
-    using Apache.Ignite.Core.Impl.Common;
     using NUnit.Framework;
 
     /// <summary>
@@ -80,7 +79,7 @@ namespace Apache.Ignite.Core.Tests.Binary
 
             if (isBinaryEnum)
             {
-                Assert.AreEqual(TypeCaster<int>.Cast(val), binRes.EnumValue);
+                Assert.AreEqual((int) (object) val, binRes.EnumValue);
 
                 if (ignite != null)
                 {
@@ -89,7 +88,7 @@ namespace Apache.Ignite.Core.Tests.Binary
 
                     var expectedEnumNames = Enum.GetValues(typeof(T)).OfType<T>().Select(x => x.ToString()).ToList();
                     var actualEnumNames = binRes.GetBinaryType().GetEnumValues().Select(v => v.EnumName).ToList();
-                    
+
                     CollectionAssert.AreEquivalent(expectedEnumNames, actualEnumNames);
                 }
                 else

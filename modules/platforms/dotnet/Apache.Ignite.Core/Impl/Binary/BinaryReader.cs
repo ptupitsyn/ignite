@@ -26,7 +26,6 @@ namespace Apache.Ignite.Core.Impl.Binary
     using Apache.Ignite.Core.Common;
     using Apache.Ignite.Core.Impl.Binary.IO;
     using Apache.Ignite.Core.Impl.Binary.Structure;
-    using Apache.Ignite.Core.Impl.Common;
 
     /// <summary>
     /// Binary reader implementation.

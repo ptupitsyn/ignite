@@ -110,9 +110,9 @@ namespace Apache.Ignite.Core.Impl.Binary
         /** String mode. */
         public static readonly bool UseStringSerializationVer2 =
             (Environment.GetEnvironmentVariable(IgniteBinaryMarshallerUseStringSerializationVer2) ?? "false") == "true";
-        
+
         /** Cached maps of enum members per type. */
-        private static readonly CopyOnWriteConcurrentDictionary<Type, Dictionary<string, int>> EnumValues = 
+        private static readonly CopyOnWriteConcurrentDictionary<Type, Dictionary<string, int>> EnumValues =
             new CopyOnWriteConcurrentDictionary<Type, Dictionary<string, int>>();
 
         /// <summary>
@@ -917,7 +917,7 @@ namespace Apache.Ignite.Core.Impl.Binary
         }
 
         /// <summary>
-        /// Writes a guid with bitwise conversion, assuming that <see cref="Guid"/> 
+        /// Writes a guid with bitwise conversion, assuming that <see cref="Guid"/>
         /// is laid out in memory sequentially and without gaps between fields.
         /// </summary>
         /// <param name="val">The value.</param>
@@ -965,7 +965,7 @@ namespace Apache.Ignite.Core.Impl.Binary
         }
 
         /// <summary>
-        /// Reads a guid with bitwise conversion, assuming that <see cref="Guid"/> 
+        /// Reads a guid with bitwise conversion, assuming that <see cref="Guid"/>
         /// is laid out in memory sequentially and without gaps between fields.
         /// </summary>
         /// <param name="stream">The stream.</param>
@@ -1094,8 +1094,8 @@ namespace Apache.Ignite.Core.Impl.Binary
         /// </summary>
         public static int GetArrayElementTypeId(Type elemType, Marshaller marsh)
         {
-            return elemType == typeof(object) 
-                ? ObjTypeId 
+            return elemType == typeof(object)
+                ? ObjTypeId
                 : marsh.GetDescriptor(elemType).TypeId;
         }
 
@@ -1360,13 +1360,13 @@ namespace Apache.Ignite.Core.Impl.Binary
         public static T GetEnumValue<T>(int value, int typeId, Marshaller marsh)
         {
             if (typeId == ObjTypeId)
-                return TypeCaster<T>.Cast(value);
+                return (T) (object) value;
 
             // All enums are user types
             var desc = marsh.GetDescriptor(true, typeId, true);
 
             if (desc == null || desc.Type == null)
-                return TypeCaster<T>.Cast(value);
+                return (T) (object) value;
 
             return (T)Enum.ToObject(desc.Type, value);
         }
@@ -1586,7 +1586,7 @@ namespace Apache.Ignite.Core.Impl.Binary
             err = null;
 
             if (reader.ReadBoolean()) // success indication
-                return reader.ReadObject<object>(); 
+                return reader.ReadObject<object>();
 
             err = reader.ReadBoolean() // native error indication
                 ? reader.ReadObject<object>()
@@ -1736,7 +1736,7 @@ namespace Apache.Ignite.Core.Impl.Binary
 
             var enumType = Enum.GetUnderlyingType(type);
 
-            return enumType == typeof(int) || enumType == typeof(byte) || enumType == typeof(sbyte) 
+            return enumType == typeof(int) || enumType == typeof(byte) || enumType == typeof(sbyte)
                 || enumType == typeof(short) || enumType == typeof(ushort) || enumType == typeof(uint);
         }
 
@@ -1753,7 +1753,7 @@ namespace Apache.Ignite.Core.Impl.Binary
 
             return TimeSpan.FromMilliseconds(ms);
         }
-        
+
         /// <summary>
         /// Gets the enum values.
         /// </summary>
@@ -1761,7 +1761,7 @@ namespace Apache.Ignite.Core.Impl.Binary
         {
             Debug.Assert(enumType != null);
             Debug.Assert(enumType.IsEnum);
-            
+
             Dictionary<string,int> res;
             if (EnumValues.TryGetValue(enumType, out res))
             {
@@ -1782,10 +1782,10 @@ namespace Apache.Ignite.Core.Impl.Binary
             }
 
             EnumValues.Set(enumType, res);
-            
+
             return res;
         }
-        
+
         /// <summary>
         /// Gets the enum value as int.
         /// </summary>

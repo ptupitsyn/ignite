@@ -19,7 +19,6 @@ namespace Apache.Ignite.Core.Impl.Deployment
 {
     using System;
     using Apache.Ignite.Core.Impl.Binary;
-    using Apache.Ignite.Core.Impl.Common;
 
     /// <summary>
     /// Serializer for <see cref="PeerLoadingObjectHolder"/>. Unwraps underlying object automatically.
@@ -29,7 +28,7 @@ namespace Apache.Ignite.Core.Impl.Deployment
         /** <inheritdoc /> */
         public void WriteBinary<T>(T obj, BinaryWriter writer)
         {
-            TypeCaster<PeerLoadingObjectHolder>.Cast(obj).WriteBinary(writer);
+            ((PeerLoadingObjectHolder) (object) obj).WriteBinary(writer);
         }
 
         /** <inheritdoc /> */

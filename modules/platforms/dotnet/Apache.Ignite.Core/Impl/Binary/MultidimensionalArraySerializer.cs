@@ -18,7 +18,6 @@
 namespace Apache.Ignite.Core.Impl.Binary
 {
     using System;
-    using Apache.Ignite.Core.Impl.Common;
 
     /// <summary>
     /// Serializer for <see cref="MultidimensionalArrayHolder"/>. Unwraps underlying object automatically.
@@ -28,7 +27,7 @@ namespace Apache.Ignite.Core.Impl.Binary
         /** <inheritdoc /> */
         public void WriteBinary<T>(T obj, BinaryWriter writer)
         {
-            TypeCaster<MultidimensionalArrayHolder>.Cast(obj).WriteBinary(writer);
+            ((MultidimensionalArrayHolder) (object) obj).WriteBinary(writer);
         }
 
         /** <inheritdoc /> */

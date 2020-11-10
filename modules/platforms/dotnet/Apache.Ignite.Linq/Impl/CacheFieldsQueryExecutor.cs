@@ -38,7 +38,7 @@ namespace Apache.Ignite.Linq.Impl
     {
         /** */
         private readonly ICacheInternal _cache;
-        
+
         /** */
         private readonly QueryOptions _options;
 
@@ -240,7 +240,7 @@ namespace Apache.Ignite.Linq.Impl
                 return GetCompiledCtor<T>(entryCtor);
 
             if (typeof(T) == typeof(bool))
-                return ReadBool<T>;
+                return (reader, i) => (T) (object) ReadBool(reader);
 
             return (reader, count) => reader.ReadObject<T>();
         }
@@ -248,18 +248,18 @@ namespace Apache.Ignite.Linq.Impl
         /// <summary>
         /// Reads the bool. Actual data may be bool or int/long.
         /// </summary>
-        private static T ReadBool<T>(IBinaryRawReader reader, int count)
+        private static bool ReadBool(IBinaryRawReader reader)
         {
             var obj = reader.ReadObject<object>();
 
             if (obj is bool)
-                return (T) obj;
+                return (bool) obj;
 
             if (obj is long)
-                return TypeCaster<T>.Cast((long) obj != 0);
+                return (long) obj != 0;
 
             if (obj is int)
-                return TypeCaster<T>.Cast((int) obj != 0);
+                return (int) obj != 0;
 
             throw new InvalidOperationException("Expected bool, got: " + obj);
         }
