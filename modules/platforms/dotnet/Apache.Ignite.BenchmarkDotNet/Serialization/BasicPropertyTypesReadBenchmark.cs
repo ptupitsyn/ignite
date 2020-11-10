@@ -25,6 +25,7 @@ namespace Apache.Ignite.BenchmarkDotNet.Serialization
     /// <summary>
     /// Deserialization benchmark.
     /// </summary>
+    [MemoryDiagnoser]
     public class BasicPropertyTypesReadBenchmark
     {
         private Marshaller _marsh;
