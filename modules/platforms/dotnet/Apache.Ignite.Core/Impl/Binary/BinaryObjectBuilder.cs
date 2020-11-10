@@ -36,9 +36,9 @@ namespace Apache.Ignite.Core.Impl.Binary
         /** Cached dictionary with no values. */
         private static readonly IDictionary<int, BinaryBuilderField> EmptyVals =
             new Dictionary<int, BinaryBuilderField>();
-        
-        /** Binary. */
-        private readonly Binary _binary;
+
+        /** Marshaller. */
+        private readonly Marshaller _marsh;
 
         /** */
         private readonly BinaryObjectBuilder _parent;
@@ -59,35 +59,35 @@ namespace Apache.Ignite.Core.Impl.Binary
         private Context _ctx;
 
         /** Write array action. */
-        private static readonly Action<BinaryWriter, object> WriteArrayAction = 
+        private static readonly Action<BinaryWriter, object> WriteArrayAction =
             (w, o) => w.WriteArrayInternal((Array) o);
 
         /** Write collection action. */
-        private static readonly Action<BinaryWriter, object> WriteCollectionAction = 
+        private static readonly Action<BinaryWriter, object> WriteCollectionAction =
             (w, o) => w.WriteCollection((ICollection) o);
 
         /** Write timestamp action. */
-        private static readonly Action<BinaryWriter, object> WriteTimestampAction = 
+        private static readonly Action<BinaryWriter, object> WriteTimestampAction =
             (w, o) => w.WriteTimestamp((DateTime?) o);
 
         /** Write timestamp array action. */
-        private static readonly Action<BinaryWriter, object> WriteTimestampArrayAction = 
+        private static readonly Action<BinaryWriter, object> WriteTimestampArrayAction =
             (w, o) => w.WriteTimestampArray((DateTime?[])o);
 
         /// <summary>
         /// Constructor.
         /// </summary>
-        /// <param name="binary">Binary.</param>
+        /// <param name="marsh">Marshaller.</param>
         /// <param name="parent">Parent builder.</param>
         /// <param name="obj">Initial binary object.</param>
         /// <param name="desc">Type descriptor.</param>
-        public BinaryObjectBuilder(Binary binary, BinaryObjectBuilder parent, 
+        public BinaryObjectBuilder(Marshaller marsh, BinaryObjectBuilder parent,
             BinaryObject obj, IBinaryTypeDescriptor desc)
         {
-            Debug.Assert(binary != null);
+            Debug.Assert(marsh != null);
             Debug.Assert(desc != null);
 
-            _binary = binary;
+            _marsh = marsh;
             _parent = parent ?? this;
             _desc = desc;
 
@@ -134,7 +134,7 @@ namespace Apache.Ignite.Core.Impl.Binary
         public IBinaryObjectBuilder SetField<T>(string fieldName, T val, Type valType)
         {
             IgniteArgumentCheck.NotNull(valType, "valType");
-            
+
             return SetField0(fieldName, new BinaryBuilderField(valType, val, BinaryTypeId.GetTypeId(valType)));
         }
 
@@ -144,202 +144,202 @@ namespace Apache.Ignite.Core.Impl.Binary
             return SetField0(fieldName,
                 new BinaryBuilderField(typeof (T[]), val, BinaryTypeId.Array, WriteArrayAction));
         }
- 
+
         /** <inheritDoc /> */
         public IBinaryObjectBuilder SetBooleanField(string fieldName, bool val)
         {
-            return SetField0(fieldName, new BinaryBuilderField(typeof (bool), val, BinaryTypeId.Bool, 
+            return SetField0(fieldName, new BinaryBuilderField(typeof (bool), val, BinaryTypeId.Bool,
                 (w, o) => w.WriteBooleanField((bool) o)));
         }
- 
+
         /** <inheritDoc /> */
         public IBinaryObjectBuilder SetBooleanArrayField(string fieldName, bool[] val)
         {
             return SetField0(fieldName, new BinaryBuilderField(typeof (bool[]), val, BinaryTypeId.ArrayBool,
                 (w, o) => w.WriteBooleanArray((bool[]) o)));
         }
- 
+
         /** <inheritDoc /> */
         public IBinaryObjectBuilder SetByteField(string fieldName, byte val)
         {
             return SetField0(fieldName, new BinaryBuilderField(typeof (byte), val, BinaryTypeId.Byte,
                 (w, o) => w.WriteByteField((byte) o)));
         }
- 
+
         /** <inheritDoc /> */
         public IBinaryObjectBuilder SetByteArrayField(string fieldName, byte[] val)
         {
             return SetField0(fieldName, new BinaryBuilderField(typeof (byte[]), val, BinaryTypeId.ArrayByte,
                 (w, o) => w.WriteByteArray((byte[]) o)));
         }
- 
+
         /** <inheritDoc /> */
         public IBinaryObjectBuilder SetCharField(string fieldName, char val)
         {
             return SetField0(fieldName, new BinaryBuilderField(typeof (char), val, BinaryTypeId.Char,
                 (w, o) => w.WriteCharField((char) o)));
         }
- 
+
         /** <inheritDoc /> */
         public IBinaryObjectBuilder SetCharArrayField(string fieldName, char[] val)
         {
             return SetField0(fieldName, new BinaryBuilderField(typeof (char[]), val, BinaryTypeId.ArrayChar,
                 (w, o) => w.WriteCharArray((char[]) o)));
         }
- 
+
         /** <inheritDoc /> */
         public IBinaryObjectBuilder SetCollectionField(string fieldName, ICollection val)
         {
             return SetField0(fieldName, new BinaryBuilderField(typeof (ICollection), val, BinaryTypeId.Collection,
                 WriteCollectionAction));
         }
- 
+
         /** <inheritDoc /> */
         public IBinaryObjectBuilder SetDecimalField(string fieldName, decimal? val)
         {
             return SetField0(fieldName, new BinaryBuilderField(typeof (decimal?), val, BinaryTypeId.Decimal,
                 (w, o) => w.WriteDecimal((decimal?) o)));
         }
- 
+
         /** <inheritDoc /> */
         public IBinaryObjectBuilder SetDecimalArrayField(string fieldName, decimal?[] val)
         {
             return SetField0(fieldName, new BinaryBuilderField(typeof (decimal?[]), val, BinaryTypeId.ArrayDecimal,
                 (w, o) => w.WriteDecimalArray((decimal?[]) o)));
         }
- 
+
         /** <inheritDoc /> */
         public IBinaryObjectBuilder SetDictionaryField(string fieldName, IDictionary val)
         {
             return SetField0(fieldName, new BinaryBuilderField(typeof (IDictionary), val, BinaryTypeId.Dictionary,
                 (w, o) => w.WriteDictionary((IDictionary) o)));
         }
- 
+
         /** <inheritDoc /> */
         public IBinaryObjectBuilder SetDoubleField(string fieldName, double val)
         {
             return SetField0(fieldName, new BinaryBuilderField(typeof (double), val, BinaryTypeId.Double,
                 (w, o) => w.WriteDoubleField((double) o)));
         }
- 
+
         /** <inheritDoc /> */
         public IBinaryObjectBuilder SetDoubleArrayField(string fieldName, double[] val)
         {
             return SetField0(fieldName, new BinaryBuilderField(typeof (double[]), val, BinaryTypeId.ArrayDouble,
                 (w, o) => w.WriteDoubleArray((double[]) o)));
         }
- 
+
         /** <inheritDoc /> */
         public IBinaryObjectBuilder SetEnumField<T>(string fieldName, T val)
         {
             return SetField0(fieldName, new BinaryBuilderField(typeof (T), val, BinaryTypeId.Enum,
                 (w, o) => w.WriteEnum((T) o)));
         }
- 
+
         /** <inheritDoc /> */
         public IBinaryObjectBuilder SetEnumArrayField<T>(string fieldName, T[] val)
         {
             return SetField0(fieldName, new BinaryBuilderField(typeof (T[]), val, BinaryTypeId.ArrayEnum,
                 (w, o) => w.WriteEnumArray((T[]) o)));
         }
- 
+
         /** <inheritDoc /> */
         public IBinaryObjectBuilder SetFloatField(string fieldName, float val)
         {
             return SetField0(fieldName, new BinaryBuilderField(typeof (float), val, BinaryTypeId.Float,
                 (w, o) => w.WriteFloatField((float) o)));
         }
- 
+
         /** <inheritDoc /> */
         public IBinaryObjectBuilder SetFloatArrayField(string fieldName, float[] val)
         {
             return SetField0(fieldName, new BinaryBuilderField(typeof (float[]), val, BinaryTypeId.ArrayFloat,
                 (w, o) => w.WriteFloatArray((float[]) o)));
         }
- 
+
         /** <inheritDoc /> */
         public IBinaryObjectBuilder SetGuidField(string fieldName, Guid? val)
         {
             return SetField0(fieldName, new BinaryBuilderField(typeof (Guid?), val, BinaryTypeId.Guid,
                 (w, o) => w.WriteGuid((Guid?) o)));
         }
- 
+
         /** <inheritDoc /> */
         public IBinaryObjectBuilder SetGuidArrayField(string fieldName, Guid?[] val)
         {
             return SetField0(fieldName, new BinaryBuilderField(typeof (Guid?[]), val, BinaryTypeId.ArrayGuid,
                 (w, o) => w.WriteGuidArray((Guid?[]) o)));
         }
- 
+
         /** <inheritDoc /> */
         public IBinaryObjectBuilder SetIntField(string fieldName, int val)
         {
             return SetField0(fieldName, new BinaryBuilderField(typeof (int), val, BinaryTypeId.Int,
                 (w, o) => w.WriteIntField((int) o)));
         }
- 
+
         /** <inheritDoc /> */
         public IBinaryObjectBuilder SetIntArrayField(string fieldName, int[] val)
         {
             return SetField0(fieldName, new BinaryBuilderField(typeof (int[]), val, BinaryTypeId.ArrayInt,
                 (w, o) => w.WriteIntArray((int[]) o)));
         }
- 
+
         /** <inheritDoc /> */
         public IBinaryObjectBuilder SetLongField(string fieldName, long val)
         {
             return SetField0(fieldName, new BinaryBuilderField(typeof (long), val, BinaryTypeId.Long,
                 (w, o) => w.WriteLongField((long) o)));
         }
- 
+
         /** <inheritDoc /> */
         public IBinaryObjectBuilder SetLongArrayField(string fieldName, long[] val)
         {
             return SetField0(fieldName, new BinaryBuilderField(typeof (long[]), val, BinaryTypeId.ArrayLong,
                 (w, o) => w.WriteLongArray((long[]) o)));
         }
- 
+
         /** <inheritDoc /> */
         public IBinaryObjectBuilder SetShortField(string fieldName, short val)
         {
             return SetField0(fieldName, new BinaryBuilderField(typeof (short), val, BinaryTypeId.Short,
                 (w, o) => w.WriteShortField((short) o)));
         }
- 
+
         /** <inheritDoc /> */
         public IBinaryObjectBuilder SetShortArrayField(string fieldName, short[] val)
         {
             return SetField0(fieldName, new BinaryBuilderField(typeof (short[]), val, BinaryTypeId.ArrayShort,
                 (w, o) => w.WriteShortArray((short[]) o)));
         }
- 
+
         /** <inheritDoc /> */
         public IBinaryObjectBuilder SetStringField(string fieldName, string val)
         {
             return SetField0(fieldName, new BinaryBuilderField(typeof (string), val, BinaryTypeId.String,
                 (w, o) => w.WriteString((string) o)));
         }
- 
+
         /** <inheritDoc /> */
         public IBinaryObjectBuilder SetStringArrayField(string fieldName, string[] val)
         {
             return SetField0(fieldName, new BinaryBuilderField(typeof (string[]), val, BinaryTypeId.ArrayString,
                 (w, o) => w.WriteStringArray((string[]) o)));
         }
- 
+
         /** <inheritDoc /> */
         public IBinaryObjectBuilder SetTimestampField(string fieldName, DateTime? val)
         {
             return SetField0(fieldName, new BinaryBuilderField(typeof (DateTime?), val, BinaryTypeId.Timestamp,
                 WriteTimestampAction));
         }
- 
+
         /** <inheritDoc /> */
         public IBinaryObjectBuilder SetTimestampArrayField(string fieldName, DateTime?[] val)
         {
             return SetField0(fieldName, new BinaryBuilderField(typeof (DateTime?[]), val, BinaryTypeId.ArrayTimestamp,
                 WriteTimestampArrayAction));
-        } 
+        }
 
         /** <inheritDoc /> */
         public IBinaryObjectBuilder RemoveField(string name)
@@ -355,23 +355,23 @@ namespace Apache.Ignite.Core.Impl.Binary
 
             using (var outStream = new BinaryHeapStream(estimatedCapacity))
             {
-                BinaryWriter writer = _binary.Marshaller.StartMarshal(outStream);
+                BinaryWriter writer = _marsh.StartMarshal(outStream);
 
                 writer.SetBuilder(this);
 
                 // All related builders will work in this context with this writer.
                 _parent._ctx = new Context(writer);
-            
+
                 try
                 {
                     // Write.
                     writer.Write(this);
-                
+
                     // Process metadata.
-                    _binary.Marshaller.FinishMarshal(writer);
+                    _marsh.FinishMarshal(writer);
 
                     // Create binary object once metadata is processed.
-                    return new BinaryObject(_binary.Marshaller, outStream.InternalArray, 0, 
+                    return new BinaryObject(_marsh, outStream.InternalArray, 0,
                         BinaryObjectHeader.Read(outStream, 0));
                 }
                 finally
@@ -389,11 +389,11 @@ namespace Apache.Ignite.Core.Impl.Binary
         /// <returns>Child builder.</returns>
         public BinaryObjectBuilder Child(BinaryObject obj)
         {
-            var desc = _binary.Marshaller.GetDescriptor(true, obj.TypeId);
+            var desc = _marsh.GetDescriptor(true, obj.TypeId);
 
-            return new BinaryObjectBuilder(_binary, null, obj, desc);
+            return new BinaryObjectBuilder(_marsh, null, obj, desc);
         }
-        
+
         /// <summary>
         /// Get cache field.
         /// </summary>
@@ -432,7 +432,7 @@ namespace Apache.Ignite.Core.Impl.Binary
             var hdr = _obj.Data[pos];
 
             var field = new BinaryBuilderField(typeof(T), val, hdr, GetWriteAction(hdr, pos));
-            
+
             _parent._cache[pos] = field;
 
             return field;
@@ -511,11 +511,11 @@ namespace Apache.Ignite.Core.Impl.Binary
             BinaryObjectBuilder oldBuilder = _parent._ctx.Writer.SetBuilder(_parent);
 
             int streamPos = inStream.Position;
-            
+
             try
             {
                 // Prepare fields.
-                IBinaryTypeHandler metaHnd = _binary.Marshaller.GetBinaryTypeHandler(desc);
+                IBinaryTypeHandler metaHnd = _marsh.GetBinaryTypeHandler(desc);
 
                 IDictionary<int, BinaryBuilderField> vals0;
 
@@ -535,7 +535,7 @@ namespace Apache.Ignite.Core.Impl.Binary
 
                         vals0[fieldId] = valEntry.Value;
 
-                        // Write metadata if: 1) it is enabled for type; 2) type is not null (i.e. it is neither 
+                        // Write metadata if: 1) it is enabled for type; 2) type is not null (i.e. it is neither
                         // remove marker, nor a field read through "GetField" method.
                         if (metaHnd != null && valEntry.Value.Type != null)
                             metaHnd.OnFieldWrite(fieldId, valEntry.Key, valEntry.Value.TypeId);
@@ -607,7 +607,7 @@ namespace Apache.Ignite.Core.Impl.Binary
             else if (inHdr == BinaryUtils.HdrFull)
             {
                 var inHeader = BinaryObjectHeader.Read(inStream, inStartPos);
-                
+
                 BinaryUtils.ValidateProtocolVersion(inHeader.Version);
 
                 int hndPos;
@@ -624,8 +624,8 @@ namespace Apache.Ignite.Core.Impl.Binary
                     else
                     {
                         // New object, write in full form.
-                        var inSchema = BinaryObjectSchemaSerializer.ReadSchema(inStream, inStartPos, inHeader, 
-                            _desc.Schema, _binary.Marshaller.Ignite);
+                        var inSchema = BinaryObjectSchemaSerializer.ReadSchema(inStream, inStartPos, inHeader,
+                            _desc.Schema, _marsh.Ignite);
 
                         var outSchema = BinaryObjectSchemaHolder.Current;
                         var schemaIdx = outSchema.PushSchema();
@@ -713,7 +713,7 @@ namespace Apache.Ignite.Core.Impl.Binary
                             if (hasSchema)
                             {
                                 outSchemaOff = schemaPos - outStartPos;
-                                
+
                                 flags |= BinaryObjectHeader.Flag.HasSchema;
 
                                 if (inHeader.HasRaw)
@@ -735,7 +735,7 @@ namespace Apache.Ignite.Core.Impl.Binary
                                     schemaPos - outStartPos - BinaryObjectHeader.Size);
                             }
 
-                            var outHeader = new BinaryObjectHeader(inHeader.TypeId, outHash, outLen, 
+                            var outHeader = new BinaryObjectHeader(inHeader.TypeId, outHash, outLen,
                                 outSchemaId, outSchemaOff, flags);
 
                             BinaryObjectHeader.Write(outHeader, outStream, outStartPos);
@@ -1001,7 +1001,7 @@ namespace Apache.Ignite.Core.Impl.Binary
                     }
 
                     break;
-                    
+
                 case BinaryTypeId.Binary:
                     TransferArray(inStream, outStream, 1); // Data array.
                     TransferBytes(inStream, outStream, 4); // Offset in array.
@@ -1060,7 +1060,7 @@ namespace Apache.Ignite.Core.Impl.Binary
 
             var flags = desc.UserType ? BinaryObjectHeader.Flag.UserType : BinaryObjectHeader.Flag.None;
 
-            if (_binary.Marshaller.CompactFooter && desc.UserType)
+            if (_marsh.CompactFooter && desc.UserType)
                 flags |= BinaryObjectHeader.Flag.CompactFooter;
 
             var hdr = new BinaryObjectHeader(desc.TypeId, 0, len, 0, len, flags);
@@ -1069,7 +1069,7 @@ namespace Apache.Ignite.Core.Impl.Binary
             {
                 BinaryObjectHeader.Write(hdr, stream, 0);
 
-                return new BinaryObject(_binary.Marshaller, stream.InternalArray, 0, hdr);
+                return new BinaryObject(_marsh, stream.InternalArray, 0, hdr);
             }
         }
 
@@ -1117,7 +1117,7 @@ namespace Apache.Ignite.Core.Impl.Binary
             public Context(Context parent)
             {
                 _parent = parent;
-                
+
                 _writer = parent._writer;
 
                 if (parent._children == null)

@@ -79,7 +79,7 @@ namespace Apache.Ignite.Core.Impl.Binary
             IBinaryTypeDescriptor desc = _marsh.GetDescriptor(type);
 
             if (desc == null)
-                throw new IgniteException("Type is not binary (add it to BinaryConfiguration): " + 
+                throw new IgniteException("Type is not binary (add it to BinaryConfiguration): " +
                     type.FullName);
 
             return Builder0(null, null, desc);
@@ -91,7 +91,7 @@ namespace Apache.Ignite.Core.Impl.Binary
             IgniteArgumentCheck.NotNullOrEmpty(typeName, "typeName");
 
             IBinaryTypeDescriptor desc = _marsh.GetDescriptor(typeName);
-            
+
             return Builder0(null, null, desc);
         }
 
@@ -106,7 +106,7 @@ namespace Apache.Ignite.Core.Impl.Binary
                 throw new ArgumentException("Unsupported object type: " + obj.GetType());
 
             IBinaryTypeDescriptor desc = _marsh.GetDescriptor(true, obj0.TypeId);
-            
+
             return Builder0(null, obj0, desc);
         }
 
@@ -166,9 +166,9 @@ namespace Apache.Ignite.Core.Impl.Binary
         public IBinaryObject BuildEnum(Type type, int value)
         {
             IgniteArgumentCheck.NotNull(type, "type");
-            IgniteArgumentCheck.Ensure(BinaryUtils.IsIgniteEnum(type), "type", 
+            IgniteArgumentCheck.Ensure(BinaryUtils.IsIgniteEnum(type), "type",
                 "Type should be an Enum.");
-            
+
             var desc = Marshaller.GetDescriptor(type);
 
             IgniteArgumentCheck.Ensure(desc.IsEnum, "typeName", "Type should be an Enum.");
@@ -235,10 +235,10 @@ namespace Apache.Ignite.Core.Impl.Binary
         /// <param name="obj">binary object.</param>
         /// <param name="desc">Type descriptor.</param>
         /// <returns>Builder.</returns>
-        private BinaryObjectBuilder Builder0(BinaryObjectBuilder parent, BinaryObject obj, 
+        private BinaryObjectBuilder Builder0(BinaryObjectBuilder parent, BinaryObject obj,
             IBinaryTypeDescriptor desc)
         {
-            return new BinaryObjectBuilder(this, parent, obj, desc);
+            return new BinaryObjectBuilder(_marsh, parent, obj, desc);
         }
 
         /// <summary>
