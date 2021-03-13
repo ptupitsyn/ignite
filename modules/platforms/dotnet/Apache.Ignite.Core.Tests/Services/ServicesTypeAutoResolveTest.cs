@@ -269,6 +269,7 @@ namespace Apache.Ignite.Core.Tests.Services
             var svc = _client.GetServices().GetServiceProxy<IArrayFactory>(nameof(ArrayFactoryService));
 
             var mthd = typeof(IArrayFactory).GetMethod(nameof(IArrayFactory.CreateArray));
+            Assert.IsNotNull(mthd);
 
             var arr = mthd.Invoke(svc, new object[] {2, 1});
 
