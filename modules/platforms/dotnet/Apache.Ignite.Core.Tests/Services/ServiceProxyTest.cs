@@ -214,7 +214,7 @@ namespace Apache.Ignite.Core.Tests.Services
         public void TestBinarizableMarshallingException()
         {
             var prx = GetProxy();
-                
+
             var ex = Assert.Throws<ServiceInvocationException>(() => prx.CustomExceptionBinarizableMethod(false, false));
 
             if (KeepBinary)
@@ -275,7 +275,7 @@ namespace Apache.Ignite.Core.Tests.Services
         /// <returns>
         /// Invocation result.
         /// </returns>
-        private object InvokeProxyMethod(MethodBase method, object[] args)
+        private object InvokeProxyMethod(MethodInfo method, object[] args)
         {
             using (var inStream = new PlatformMemoryStream(_memory.Allocate()))
             using (var outStream = new PlatformMemoryStream(_memory.Allocate()))
@@ -308,7 +308,7 @@ namespace Apache.Ignite.Core.Tests.Services
 
                 outStream.Seek(0, SeekOrigin.Begin);
 
-                return ServiceProxySerializer.ReadInvocationResult(outStream, _marsh, KeepBinary);
+                return ServiceProxySerializer.ReadInvocationResult(outStream, _marsh, KeepBinary, method.ReturnType);
             }
         }
 
@@ -758,7 +758,7 @@ namespace Apache.Ignite.Core.Tests.Services
         public void TestBinarizableMethods()
         {
             var prx = GetProxy();
-            
+
             var obj = new TestBinarizableClass { Prop = "PropValue" };
             var portObj = Binary.ToBinary<IBinaryObject>(obj);
 

@@ -85,7 +85,7 @@ namespace Apache.Ignite.Core.Impl.Services
         /// <param name="marsh">Marshaller.</param>
         /// <param name="mthdName">Method name.</param>
         /// <param name="mthdArgs">Method arguments.</param>
-        public static void ReadProxyMethod(IBinaryStream stream, Marshaller marsh, 
+        public static void ReadProxyMethod(IBinaryStream stream, Marshaller marsh,
             out string mthdName, out object[] mthdArgs)
         {
             var reader = marsh.StartUnmarshal(stream);
@@ -134,10 +134,12 @@ namespace Apache.Ignite.Core.Impl.Services
         /// <param name="stream">Stream.</param>
         /// <param name="marsh">Marshaller.</param>
         /// <param name="keepBinary">Binary flag.</param>
+        /// <param name="methodReturnType"></param>
         /// <returns>
         /// Method invocation result, or exception in case of error.
         /// </returns>
-        public static object ReadInvocationResult(IBinaryStream stream, Marshaller marsh, bool keepBinary)
+        public static object ReadInvocationResult(IBinaryStream stream, Marshaller marsh, bool keepBinary,
+            Type methodReturnType)
         {
             Debug.Assert(stream != null);
             Debug.Assert(marsh != null);

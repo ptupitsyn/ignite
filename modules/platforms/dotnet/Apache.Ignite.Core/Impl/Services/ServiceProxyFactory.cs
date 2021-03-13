@@ -21,7 +21,7 @@ namespace Apache.Ignite.Core.Impl.Services
     using System.Diagnostics;
     using System.Linq.Expressions;
     using System.Reflection;
-    using ProxyAction = System.Func<System.Reflection.MethodBase, object[], object>;
+    using ProxyAction = System.Func<System.Reflection.MethodInfo, object[], object>;
 
     /// <summary>
     /// Factory for proxy creation.

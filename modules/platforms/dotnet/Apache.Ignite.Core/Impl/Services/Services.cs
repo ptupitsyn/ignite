@@ -40,7 +40,7 @@ namespace Apache.Ignite.Core.Impl.Services
 
         /** */
         private const int OpDeploy = 1;
-        
+
         /** */
         private const int OpDeployMultiple = 2;
 
@@ -99,7 +99,7 @@ namespace Apache.Ignite.Core.Impl.Services
         /// <param name="clusterGroup">Cluster group.</param>
         /// <param name="keepBinary">Invoker binary flag.</param>
         /// <param name="srvKeepBinary">Server binary flag.</param>
-        public Services(IPlatformTargetInternal target, IClusterGroup clusterGroup, 
+        public Services(IPlatformTargetInternal target, IClusterGroup clusterGroup,
             bool keepBinary, bool srvKeepBinary)
             : base(target)
         {
@@ -249,7 +249,7 @@ namespace Apache.Ignite.Core.Impl.Services
         {
             ValidateConfiguration(configuration, "configuration");
 
-            return DoOutOpAsync(OpDeployAsync, w => configuration.Write(w), 
+            return DoOutOpAsync(OpDeployAsync, w => configuration.Write(w),
                 _keepBinary, ReadDeploymentResult);
         }
 
@@ -265,7 +265,7 @@ namespace Apache.Ignite.Core.Impl.Services
         public Task DeployAllAsync(IEnumerable<ServiceConfiguration> configurations)
         {
             IgniteArgumentCheck.NotNull(configurations, "configurations");
- 
+
             return DoOutOpAsync(OpDeployAllAsync, w => SerializeConfigurations(configurations, w),
                 _keepBinary, ReadDeploymentResult);
         }
@@ -347,7 +347,7 @@ namespace Apache.Ignite.Core.Impl.Services
                         return new T[0];
 
                     var count = r.ReadInt();
-                        
+
                     var res = new List<T>(count);
 
                     for (var i = 0; i < count; i++)
@@ -367,7 +367,7 @@ namespace Apache.Ignite.Core.Impl.Services
         public T GetServiceProxy<T>(string name, bool sticky) where T : class
         {
             IgniteArgumentCheck.NotNullOrEmpty(name, "name");
-            IgniteArgumentCheck.Ensure(typeof(T).IsInterface, "T", 
+            IgniteArgumentCheck.Ensure(typeof(T).IsInterface, "T",
                 "Service proxy type should be an interface: " + typeof(T));
 
             // In local scenario try to return service instance itself instead of a proxy
@@ -432,7 +432,7 @@ namespace Apache.Ignite.Core.Impl.Services
         /// Invocation result.
         /// </returns>
         private object InvokeProxyMethod(IPlatformTargetInternal proxy, string methodName,
-            MethodBase method, object[] args, PlatformType platformType)
+            MethodInfo method, object[] args, PlatformType platformType)
         {
             bool locRegisterSameJavaType = Marshaller.RegisterSameJavaTypeTl.Value;
 
@@ -445,7 +445,7 @@ namespace Apache.Ignite.Core.Impl.Services
             {
                 return DoOutInOp(OpInvokeMethod,
                     writer => ServiceProxySerializer.WriteProxyMethod(writer, methodName, method, args, platformType),
-                    (stream, res) => ServiceProxySerializer.ReadInvocationResult(stream, Marshaller, _keepBinary),
+                    (stream, res) => ServiceProxySerializer.ReadInvocationResult(stream, Marshaller, _keepBinary, method.ReturnType),
                     proxy);
             }
             finally
@@ -493,7 +493,7 @@ namespace Apache.Ignite.Core.Impl.Services
         /// </summary>
         /// <param name="configurations">a collection of service configurations </param>
         /// <param name="writer">Binary Writer</param>
-        private static void SerializeConfigurations(IEnumerable<ServiceConfiguration> configurations, 
+        private static void SerializeConfigurations(IEnumerable<ServiceConfiguration> configurations,
             BinaryWriter writer)
         {
             var pos = writer.Stream.Position;
