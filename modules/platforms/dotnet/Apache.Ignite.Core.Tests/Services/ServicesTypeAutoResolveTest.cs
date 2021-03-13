@@ -23,6 +23,7 @@ namespace Apache.Ignite.Core.Tests.Services
     using System.IO;
     using System.Linq;
     using Apache.Ignite.Core.Binary;
+    using Apache.Ignite.Core.Services;
     using NUnit.Framework;
     using Apache.Ignite.Platform.Model;
 
@@ -39,7 +40,7 @@ namespace Apache.Ignite.Core.Tests.Services
         };
 
         /** */
-        protected internal static readonly Parameter[] Param = new[] 
+        protected internal static readonly Parameter[] Param = new[]
         {
             new Parameter()
                 {Id = 1, Values = new[] {new ParamValue() {Id = 1, Val = 42}, new ParamValue() {Id = 2, Val = 43}}},
@@ -49,6 +50,9 @@ namespace Apache.Ignite.Core.Tests.Services
 
         /** */
         private IIgnite _grid1;
+
+        /** */
+        private IIgnite _client;
 
         [TestFixtureTearDown]
         public void FixtureTearDown()
@@ -96,13 +100,13 @@ namespace Apache.Ignite.Core.Tests.Services
         /// Types should be resolved implicitly.
         /// </summary>
         [Test]
-        public void TestCallJavaServiceDynamicProxy() 
+        public void TestCallJavaServiceDynamicProxy()
         {
             // Deploy Java service
             var javaSvcName = TestUtils.DeployJavaService(_grid1);
             var svc = _grid1.GetServices().GetDynamicServiceProxy(javaSvcName, true);
 
-            doTestService(new JavaServiceDynamicProxy(svc));
+            DoTestService(new JavaServiceDynamicProxy(svc));
         }
 
         /// <summary>
@@ -117,7 +121,7 @@ namespace Apache.Ignite.Core.Tests.Services
 
             var svc = _grid1.GetServices().GetServiceProxy<IJavaService>(javaSvcName, false);
 
-            doTestService(svc);
+            DoTestService(svc);
 
             Assert.IsNull(svc.testDepartments(null));
 
@@ -135,7 +139,7 @@ namespace Apache.Ignite.Core.Tests.Services
         /// <summary>
         /// Tests java service instance.
         /// </summary>
-        private void doTestService(IJavaService svc)
+        private void DoTestService(IJavaService svc)
         {
             Assert.IsNull(svc.testAddress(null));
 
@@ -153,11 +157,34 @@ namespace Apache.Ignite.Core.Tests.Services
 
             var emps = svc.testEmployees(Emps);
 
+            Assert.AreEqual(typeof(Employee[]), emps);
             Assert.NotNull(emps);
             Assert.AreEqual(1, emps.Length);
 
             Assert.AreEqual("Kyle Reese", emps[0].Fio);
             Assert.AreEqual(3, emps[0].Salary);
+
+            var accs = svc.testAccounts();
+
+            Assert.AreEqual(typeof(Account[]), accs);
+            Assert.NotNull(accs);
+            Assert.AreEqual(2, accs.Length);
+            Assert.AreEqual("123", accs[0].Id);
+            Assert.AreEqual("321", accs[1].Id);
+            Assert.AreEqual(42, accs[0].Amount);
+            Assert.AreEqual(0, accs[1].Amount);
+
+            var users = svc.testUsers();
+
+            Assert.AreEqual(typeof(User[]), users);
+            Assert.NotNull(users);
+            Assert.AreEqual(2, users.Length);
+            Assert.AreEqual(1, users[0].Id);
+            Assert.AreEqual(ACL.Allow, users[0].Acl);
+            Assert.AreEqual("admin", users[0].Role.Name);
+            Assert.AreEqual(2, users[1].Id);
+            Assert.AreEqual(ACL.Deny, users[1].Acl);
+            Assert.AreEqual("user", users[1].Role.Name);
 
             Assert.IsNull(svc.testMap(null));
 
@@ -171,26 +198,6 @@ namespace Apache.Ignite.Core.Tests.Services
             Assert.NotNull(res);
             Assert.AreEqual(1, res.Count);
             Assert.AreEqual("value3", ((Value)res[new Key() {Id = 3}]).Val);
-
-            var accs = svc.testAccounts();
-
-            Assert.NotNull(accs);
-            Assert.AreEqual(2, accs.Length);
-            Assert.AreEqual("123", accs[0].Id);
-            Assert.AreEqual("321", accs[1].Id);
-            Assert.AreEqual(42, accs[0].Amount);
-            Assert.AreEqual(0, accs[1].Amount);
-
-            var users = svc.testUsers();
-
-            Assert.NotNull(users);
-            Assert.AreEqual(2, users.Length);
-            Assert.AreEqual(1, users[0].Id);
-            Assert.AreEqual(ACL.Allow, users[0].Acl);
-            Assert.AreEqual("admin", users[0].Role.Name);
-            Assert.AreEqual(2, users[1].Id);
-            Assert.AreEqual(ACL.Deny, users[1].Acl);
-            Assert.AreEqual("user", users[1].Role.Name);
         }
 
         /// <summary>
@@ -202,7 +209,15 @@ namespace Apache.Ignite.Core.Tests.Services
                 return;
 
             var path = Path.Combine("Config", "Compute", "compute-grid");
-            _grid1 = Ignition.Start(GetConfiguration(path + "1.xml"));
+
+            var cfg = GetConfiguration(path + "1.xml");
+
+            _grid1 = Ignition.Start(cfg);
+
+            cfg.ClientMode = true;
+            cfg.IgniteInstanceName = "client";
+
+            _client = Ignition.Start(cfg);
         }
 
         /// <summary>
@@ -230,6 +245,70 @@ namespace Apache.Ignite.Core.Tests.Services
                     NameMapper = new BinaryBasicNameMapper {NamespacePrefix = "org.", NamespaceToLower = true}
                 }
             };
+        }
+
+        [Test]
+        public void ServiceReturnsArray()
+        {
+            _client.GetServices().DeployClusterSingleton(nameof(ArrayFactoryService), new ArrayFactoryService());
+
+            var svc = _client.GetServices().GetServiceProxy<IArrayFactory>(nameof(ArrayFactoryService), false);
+            var arr = svc.CreateArray(2, 1);
+
+            Assert.AreEqual(typeof(R[]), arr.GetType());
+            Assert.AreEqual(1, arr[1].Value);
+
+            _client.GetServices().Cancel(nameof(ArrayFactoryService));
+        }
+
+        [Test]
+        public void ServiceReturnsArrayWithReflection()
+        {
+            _client.GetServices().DeployClusterSingleton(nameof(ArrayFactoryService), new ArrayFactoryService());
+
+            var svc = _client.GetServices().GetServiceProxy<IArrayFactory>(nameof(ArrayFactoryService));
+
+            var mthd = typeof(IArrayFactory).GetMethod(nameof(IArrayFactory.CreateArray));
+
+            var arr = mthd.Invoke(svc, new object[] {2, 1});
+
+            Assert.IsTrue(arr.GetType() == typeof(R[]));
+            Assert.AreEqual(1, ((R[]) arr)[1].Value);
+
+            _client.GetServices().Cancel(nameof(ArrayFactoryService));
+        }
+
+        public interface IArrayFactory
+        {
+            R[] CreateArray(int size, int dlftVal);
+        }
+
+        public sealed class ArrayFactoryService : IArrayFactory, IService
+        {
+            public R[] CreateArray(int size, int dfltVal)
+            {
+                return Enumerable.Repeat(new R { Value = dfltVal }, size).ToArray();
+            }
+
+            public void Cancel(IServiceContext context)
+            {
+            }
+
+            public void Execute(IServiceContext context)
+            {
+            }
+
+            public void Init(IServiceContext context)
+            {
+            }
+        }
+
+        /// <summary>
+        /// Test result class.
+        /// </summary>
+        public class R
+        {
+            public int Value { get; set; }
         }
     }
 }
