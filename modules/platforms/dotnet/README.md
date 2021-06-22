@@ -251,8 +251,8 @@ Ignite is a distributed system and, therefore, it is important to be able to col
 
 
 [apache-ignite-homepage]: https://ignite.apache.org/
-[getting-started]: https://apacheignite-net.readme.io/docs/getting-started-2
-[docs]: https://apacheignite-net.readme.io/docs
+[getting-started]: https://ignite.apache.org/docs/latest/quick-start/dotnet
+[docs]: https://ignite.apache.org/docs
 
 ## Contribute to Ignite.NET
 
