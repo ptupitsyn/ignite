@@ -20,6 +20,7 @@ namespace Apache.Ignite.Core.Tests.Cache
     using System;
     using System.IO;
     using System.Linq;
+    using Apache.Ignite.Core.Cache;
     using Apache.Ignite.Core.Cache.Affinity.Rendezvous;
     using Apache.Ignite.Core.Cache.Configuration;
     using Apache.Ignite.Core.Cache.Store;
@@ -110,7 +111,8 @@ namespace Apache.Ignite.Core.Tests.Cache
                     Name = cacheName,
                     CacheStoreFactory = withCacheStore ? new CustomStoreFactory() : null,
                     AffinityFunction = withCustomAffinity ? new CustomAffinityFunction() : null,
-                    PlatformCacheConfiguration = new PlatformCacheConfiguration()
+                    PlatformCacheConfiguration = new PlatformCacheConfiguration(),
+                    // OnheapCacheEnabled = true
                 });
                 cache[1] = 1;
 
@@ -139,7 +141,9 @@ namespace Apache.Ignite.Core.Tests.Cache
                 // Persistent cache already exists and contains data.
                 var cache = ignite.GetCache<int, int>(cacheName);
                 Assert.AreEqual(1, cache[1]);
-                Assert.AreEqual(1, cache[1]);
+
+                cache[1] = 11;
+                Assert.AreEqual(11, cache.LocalPeek(1, CachePeekMode.Platform));
 
                 // Non-persistent cache does not exist.
                 var ex = Assert.Throws<ArgumentException>(() => ignite.GetCache<int, int>(volatileCacheName));
