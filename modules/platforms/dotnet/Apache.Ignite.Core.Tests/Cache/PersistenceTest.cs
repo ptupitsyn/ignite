@@ -109,7 +109,8 @@ namespace Apache.Ignite.Core.Tests.Cache
                 {
                     Name = cacheName,
                     CacheStoreFactory = withCacheStore ? new CustomStoreFactory() : null,
-                    AffinityFunction = withCustomAffinity ? new CustomAffinityFunction() : null
+                    AffinityFunction = withCustomAffinity ? new CustomAffinityFunction() : null,
+                    PlatformCacheConfiguration = new PlatformCacheConfiguration()
                 });
                 cache[1] = 1;
 
@@ -137,6 +138,7 @@ namespace Apache.Ignite.Core.Tests.Cache
 
                 // Persistent cache already exists and contains data.
                 var cache = ignite.GetCache<int, int>(cacheName);
+                Assert.AreEqual(1, cache[1]);
                 Assert.AreEqual(1, cache[1]);
 
                 // Non-persistent cache does not exist.
