@@ -142,7 +142,10 @@ namespace Apache.Ignite.Core.Tests.Cache
                 var cache = ignite.GetCache<int, int>(cacheName);
                 Assert.AreEqual(1, cache[1]);
 
+                // Before write: GridCacheMapEntry is not created because of readNoEntry
                 cache[1] = 11;
+
+                // After write: ???
                 Assert.AreEqual(11, cache.LocalPeek(1, CachePeekMode.Platform));
 
                 // Non-persistent cache does not exist.
