@@ -21,6 +21,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
@@ -121,18 +122,21 @@ public class ServicesTest extends AbstractThinClientTest {
     @Test
     public void testTreeSetMapRoundtrip() {
         try (IgniteClient client = startClient(0)) {
-            TreeSet<Object> treeSet = new TreeSet<>();
+            TreeHolder holder = new TreeHolder();
+            holder.treeMap = new TreeMap<>();
+            holder.treeSet = new TreeSet<>();
 
-            ClientCache<Object, Object> clientCache = client.cache(DEFAULT_CACHE_NAME);
-            IgniteCache<Object, Object> serverCache = grid(0).cache(DEFAULT_CACHE_NAME);
+            ClientCache<Integer, TreeHolder> clientCache = client.cache(DEFAULT_CACHE_NAME);
+            IgniteCache<Integer, TreeHolder> serverCache = grid(0).cache(DEFAULT_CACHE_NAME);
 
-            clientCache.put(1, treeSet);
-            serverCache.put(2, treeSet);
+            clientCache.put(1, holder);
+            serverCache.put(2, holder);
 
-            Object res1 = clientCache.get(2);
-            Object res2 = serverCache.get(1);
+            TreeHolder res1 = clientCache.get(2);
+            TreeHolder res2 = serverCache.get(1);
 
-            assertEquals(res1.getClass(), res2.getClass());
+            assertEquals(res1.treeMap.getClass(), res2.treeMap.getClass());
+            assertEquals(res1.treeSet.getClass(), res2.treeSet.getClass());
         }
     }
 
@@ -553,5 +557,12 @@ public class ServicesTest extends AbstractThinClientTest {
         @Override public UUID nodeId() {
             return ignite.cluster().localNode().id();
         }
+    }
+
+    public static class TreeHolder
+    {
+        public TreeSet<Object> treeSet;
+
+        public TreeMap<Object, Object> treeMap;
     }
 }
