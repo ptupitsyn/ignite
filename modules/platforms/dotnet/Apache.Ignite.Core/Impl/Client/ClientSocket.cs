@@ -861,6 +861,10 @@ namespace Apache.Ignite.Core.Impl.Client
                 SendTimeout = (int) cfg.SocketTimeout.TotalMilliseconds
             };
 
+            // TODO: Check KeepAlive packets with WireShark.
+            socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.KeepAlive, true);
+            socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.NoDelay, true);
+
             if (cfg.SocketSendBufferSize != IgniteClientConfiguration.DefaultSocketBufferSize)
             {
                 socket.SendBufferSize = cfg.SocketSendBufferSize;
