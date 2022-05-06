@@ -131,7 +131,8 @@ namespace Apache.Ignite.Core.Tests.Cache.Query.Linq
                 {
                     NameMapper = GetNameMapper()
                 },
-                IgniteInstanceName = gridName
+                IgniteInstanceName = gridName,
+                SpringConfigUrl = "Config/calcite-engine.xml"
             };
         }
 
