@@ -1,0 +1,88 @@
+{
+  "metadata": [
+    {
+      "src": [
+        {
+		  "src": ".",
+          "files": [
+            "**/Apache.Ignite.Core.csproj",
+            "**/Apache.Ignite.Linq.csproj",
+            "**/Apache.Ignite.AspNet.csproj",
+            "**/Apache.Ignite.EntityFramework.csproj",
+            "**/Apache.Ignite.NLog.csproj",
+            "**/Apache.Ignite.Log4Net.csproj"
+          ],
+          "exclude": [
+            "**/obj/**",
+            "**/bin/**"
+          ]
+        }
+      ],
+      "dest": "docfx/api",
+	  "filter": "docfx/filterConfig.yml"
+    }
+  ],
+  "build": {
+    "content": [
+      {
+        "files": [
+          "docfx/api/**.yml",
+          "docfx/api/index.md"
+        ]
+      },
+      {
+        "files": [
+          "docfx/articles/**.md",
+          "docfx/articles/**/toc.yml",
+          "docfx/toc.yml",
+          "docfx/*.md"
+        ],
+        "exclude": [
+          "obj/**"
+        ]
+      }
+    ],
+    "resource": [
+      {
+        "files": [
+          "docfx/images/**"
+        ],
+        "exclude": [
+          "obj/**"
+        ]
+      }
+    ],
+    "overwrite": [
+      {
+        "files": [
+          "docfx/apidoc/**.md"
+        ],
+        "exclude": [
+          "obj/**"
+        ]
+      }
+    ],
+    "dest": "../../clients/target/dotnetdoc",
+    "globalMetadataFiles": [],
+    "fileMetadataFiles": [],
+    "template": [
+      "default"
+    ],
+    "postProcessors": [],
+    "noLangKeyword": false,
+    "keepFileLink": false,
+    "cleanupCacheHistory": false,
+	"globalMetadata": {
+      "_gitContribute": {
+        "repo": "https://github.com/apache/ignite",
+        "branch": "master"
+      },
+	  "_enableSearch": true,
+      "_appTitle": "Apache Ignite.NET",
+	  "_appFaviconPath": "images/favicon.ico",
+	  "_appLogoPath": "images/logo_ignite_32_32.png",
+	  "_appFooter": "© 2015 - 2019 The Apache Software Foundation",
+      "_disableContribution": true
+    }
+  }
+}
