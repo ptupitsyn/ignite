@@ -18,8 +18,6 @@
 namespace Apache.Ignite.Core.Impl.Memory
 {
     using System;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Reflection;
     using System.Runtime.InteropServices;
 
     /// <summary>
@@ -364,58 +362,6 @@ namespace Apache.Ignite.Core.Impl.Memory
 
         #region MEMCPY
 
-        /** Array copy delegate. */
-        private delegate void MemCopy(byte* a1, byte* a2, int len);
-
-        /** memcpy function handle. */
-        private static readonly MemCopy Memcpy;
-
-        /** Whether src and dest arguments are inverted. */
-        [SuppressMessage("Microsoft.Performance", "CA1802:UseLiteralsWhereAppropriate")]
-        private static readonly bool MemcpyInverted;
-
-        /// <summary>
-        /// Static initializer.
-        /// </summary>
-        [SuppressMessage("Microsoft.Design", "CA1065:DoNotRaiseExceptionsInUnexpectedLocations")]
-        [SuppressMessage("Microsoft.Performance", "CA1810:InitializeReferenceTypeStaticFieldsInline")]
-        static PlatformMemoryUtils()
-        {
-            Type type = typeof(Buffer);
-
-            const BindingFlags flags = BindingFlags.Static | BindingFlags.NonPublic;
-            Type[] paramTypes = { typeof(byte*), typeof(byte*), typeof(int) };
-
-            // Assume .Net 4.5.
-            MethodInfo mthd = type.GetMethod("Memcpy", flags, null, paramTypes, null);
-
-            MemcpyInverted = true;
-
-            if (mthd == null)
-            {
-                // Assume .Net 4.0.
-                mthd = type.GetMethod("memcpyimpl", flags, null, paramTypes, null);
-
-                MemcpyInverted = false;
-
-                if (mthd == null)
-                    throw new InvalidOperationException("Unable to get memory copy function delegate.");
-            }
-
-            Memcpy = (MemCopy)Delegate.CreateDelegate(typeof(MemCopy), mthd);
-        }
-
-        /// <summary>
-        /// Unsafe memory copy routine.
-        /// </summary>
-        /// <param name="src">Source.</param>
-        /// <param name="dest">Destination.</param>
-        /// <param name="len">Length.</param>
-        public static void CopyMemory(void* src, void* dest, int len)
-        {
-            CopyMemory((byte*)src, (byte*)dest, len);
-        }
-
         /// <summary>
         /// Unsafe memory copy routine.
         /// </summary>
@@ -424,10 +370,7 @@ namespace Apache.Ignite.Core.Impl.Memory
         /// <param name="len">Length.</param>
         public static void CopyMemory(byte* src, byte* dest, int len)
         {
-            if (MemcpyInverted)
-                Memcpy.Invoke(dest, src, len);
-            else
-                Memcpy.Invoke(src, dest, len);
+            Buffer.MemoryCopy(src, dest, 0, len);
         }
 
         #endregion
