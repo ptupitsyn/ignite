@@ -370,7 +370,7 @@ namespace Apache.Ignite.Core.Impl.Memory
         /// <param name="len">Length.</param>
         public static void CopyMemory(byte* src, byte* dest, int len)
         {
-            Buffer.MemoryCopy(src, dest, 0, len);
+            Buffer.MemoryCopy(src, dest, len, len);
         }
 
         #endregion
