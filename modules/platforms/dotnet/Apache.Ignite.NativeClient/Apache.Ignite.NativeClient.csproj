@@ -8,6 +8,11 @@
         <PublishAot>true</PublishAot>
 
         <LangVersion>latest</LangVersion>
+        <AssemblyName>libignite</AssemblyName>
     </PropertyGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\Apache.Ignite.Core\Apache.Ignite.Core.csproj" />
+    </ItemGroup>
 
 </Project>
