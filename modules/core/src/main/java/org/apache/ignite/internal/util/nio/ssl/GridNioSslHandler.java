@@ -606,6 +606,9 @@ class GridNioSslHandler extends ReentrantLock {
     private SSLEngineResult unwrap0() throws SSLException {
         SSLEngineResult res;
 
+        // TODO:
+        // 1. Write down all conditions when this method will loop
+        // 2. Check OpenJDK code - can it get stuck on bad data?
         do {
             res = sslEngine.unwrap(inNetBuf, appBuf);
 
