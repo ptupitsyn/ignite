@@ -76,7 +76,7 @@ public class GridNioSelfTest extends GridCommonAbstractTest {
     private static final int THREAD_CNT = 5;
 
     /** Message size. */
-    private static final int MSG_SIZE = 1024 * 128;
+    static final int MSG_SIZE = 1024 * 128;
 
     /** Count of statistics segments. */
     private static final int STATISTICS_SEGMENTS_CNT = 10;
@@ -1277,7 +1277,7 @@ public class GridNioSelfTest extends GridCommonAbstractTest {
     /**
      * @return Test message.
      */
-    private byte[] createMessage() {
+    byte[] createMessage() {
         return new byte[MSG_SIZE];
     }
 
@@ -1425,7 +1425,7 @@ public class GridNioSelfTest extends GridCommonAbstractTest {
     /**
      * Test client to use instead of {@link GridTcpNioCommunicationClient}
      */
-    private static class TestClient implements AutoCloseable {
+    static class TestClient implements AutoCloseable {
         /** Socket implementation to use. */
         private Socket sock;
 

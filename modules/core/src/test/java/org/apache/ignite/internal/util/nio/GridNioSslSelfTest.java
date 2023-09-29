@@ -121,4 +121,33 @@ public class GridNioSslSelfTest extends GridNioSelfTest {
         assert latch.await(5, SECONDS);
         srvr.stop();
     }
+
+    @Test
+    public void testSendReceive2() throws Exception {
+        CountDownLatch latch = new CountDownLatch(1);
+
+        NioListener lsnr = new NioListener(latch);
+
+        GridNioServer<?> srvr = startServer(new GridBufferedParser(true, ByteOrder.nativeOrder()), lsnr);
+
+        TestClient client = null;
+
+        try {
+            client = createClient(U.getLocalHost(), srvr.port(), U.getLocalHost());
+
+            client.sendMessage(createMessage(), MSG_SIZE);
+
+            client.close();
+
+            assert latch.await(30, SECONDS);
+
+            assertEquals("Unexpected message count", 10, lsnr.getMessageCount());
+        }
+        finally {
+            srvr.stop();
+
+            if (client != null)
+                client.close();
+        }
+    }
 }
