@@ -143,7 +143,7 @@ class GridNioSslHandler extends ReentrantLock {
         handshakeStatus = sslEngine.getHandshakeStatus();
 
         // Allocate a little bit more so SSL engine would not return buffer overflow status.
-        int netBufSize = sslEngine.getSession().getPacketBufferSize() + 50;
+        int netBufSize = 500;
 
         outNetBuf = directBuf ? ByteBuffer.allocateDirect(netBufSize) : ByteBuffer.allocate(netBufSize);
 
@@ -163,7 +163,7 @@ class GridNioSslHandler extends ReentrantLock {
         outNetBuf.position(0);
         outNetBuf.limit(0);
 
-        int appBufSize = Math.max(sslEngine.getSession().getApplicationBufferSize() + 50, netBufSize * 2);
+        int appBufSize = netBufSize * 2;
 
         appBuf = directBuf ? ByteBuffer.allocateDirect(appBufSize) : ByteBuffer.allocate(appBufSize);
 
@@ -611,6 +611,9 @@ class GridNioSslHandler extends ReentrantLock {
         // 2. Check OpenJDK code - can it get stuck on bad data?
         // 3. If there is a very big (endless) handshake payload, we will loop here forever anyway?
         // When is that possible? Double check SSL handshake format.
+
+        // checkParams is simple, can't be looping
+        //
         do {
             res = sslEngine.unwrap(inNetBuf, appBuf);
 
