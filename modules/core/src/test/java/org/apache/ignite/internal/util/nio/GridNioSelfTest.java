@@ -1295,7 +1295,7 @@ public class GridNioSelfTest extends GridCommonAbstractTest {
     /**
      *
      */
-    private static class NioListener extends GridNioServerListenerAdapter<byte[]> {
+    public static class NioListener extends GridNioServerListenerAdapter<byte[]> {
         /** */
         private final AtomicInteger msgCnt = new AtomicInteger(0);
 
