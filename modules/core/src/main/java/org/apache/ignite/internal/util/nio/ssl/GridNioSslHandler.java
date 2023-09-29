@@ -609,6 +609,8 @@ class GridNioSslHandler extends ReentrantLock {
         // TODO:
         // 1. Write down all conditions when this method will loop
         // 2. Check OpenJDK code - can it get stuck on bad data?
+        // 3. If there is a very big (endless) handshake payload, we will loop here forever anyway?
+        // When is that possible? Double check SSL handshake format.
         do {
             res = sslEngine.unwrap(inNetBuf, appBuf);
 
