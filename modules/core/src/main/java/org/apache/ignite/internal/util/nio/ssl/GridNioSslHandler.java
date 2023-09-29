@@ -143,7 +143,7 @@ class GridNioSslHandler extends ReentrantLock {
         handshakeStatus = sslEngine.getHandshakeStatus();
 
         // Allocate a little bit more so SSL engine would not return buffer overflow status.
-        int netBufSize = 500;
+        int netBufSize = sslEngine.getSession().getPacketBufferSize() + 50;
 
         outNetBuf = directBuf ? ByteBuffer.allocateDirect(netBufSize) : ByteBuffer.allocate(netBufSize);
 
@@ -163,7 +163,7 @@ class GridNioSslHandler extends ReentrantLock {
         outNetBuf.position(0);
         outNetBuf.limit(0);
 
-        int appBufSize = netBufSize * 2;
+        int appBufSize = Math.max(sslEngine.getSession().getApplicationBufferSize() + 50, netBufSize * 2);
 
         appBuf = directBuf ? ByteBuffer.allocateDirect(appBufSize) : ByteBuffer.allocate(appBufSize);
 
