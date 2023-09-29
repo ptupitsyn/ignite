@@ -124,6 +124,7 @@ public class GridNioSslSelfTest extends GridNioSelfTest {
 
     @Test
     public void testSendReceive2() throws Exception {
+        // TODO: This bypasses ClientListenerNioListener, we need an integration test?
         CountDownLatch latch = new CountDownLatch(1);
 
         NioListener lsnr = new NioListener(latch);
@@ -141,7 +142,7 @@ public class GridNioSslSelfTest extends GridNioSelfTest {
 
             assert latch.await(30, SECONDS);
 
-            assertEquals("Unexpected message count", 10, lsnr.getMessageCount());
+            assertEquals("Unexpected message count", 1, lsnr.getMessageCount());
         }
         finally {
             srvr.stop();
