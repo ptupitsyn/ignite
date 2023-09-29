@@ -125,6 +125,8 @@ public class GridNioSslSelfTest extends GridNioSelfTest {
     @Test
     public void testSendReceive2() throws Exception {
         // TODO: This bypasses ClientListenerNioListener, we need an integration test?
+        // Or maybe not, just investigate why a call to SSLEngineImpl.checkParams can be stuck in a loop
+        // (The thread is RUNNABLE)
         CountDownLatch latch = new CountDownLatch(1);
 
         NioListener lsnr = new NioListener(latch);
