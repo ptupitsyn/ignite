@@ -120,18 +120,18 @@ public class GridNioSslSelfTest extends GridNioSelfTest {
         GridNioServer<?> srvr = startServer(new GridBufferedParser(true, ByteOrder.nativeOrder()), lsnr);
 
         // Create raw TLS record.
-        byte[] bytes = new byte[20005];
+        byte[] bytes = new byte[40005];
         Arrays.fill(bytes, (byte) 1);
 
         bytes[0] = 22; // record type
         bytes[1] = 3;  // major version
         bytes[2] = 3;  // minor version
-        bytes[3] = 0x4e; // record length 2 bytes / 0x4E20 / decimal 20,000
-        bytes[4] = 0x20; // record length
+        bytes[3] = (byte) 0x9c; // record length 2 bytes / 0x9C40 / decimal 40,000
+        bytes[4] = 0x40; // record length
         bytes[5] = 1;  // message type
-        bytes[6] = 0;  // message length 3 bytes / 0x004E17 / decimal 19,991
-        bytes[7] = 0x4e;
-        bytes[8] = 0x17;
+        bytes[6] = 0;  // message length 3 bytes / 0x009C37 / decimal 39,991
+        bytes[7] = (byte) 0x9c;
+        bytes[8] = 0x37;
 
         try (Socket s = createSocket()) {
             s.connect(new InetSocketAddress(U.getLocalHost(), srvr.port()), 1000);
