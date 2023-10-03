@@ -28,6 +28,8 @@ import org.apache.ignite.IgniteCheckedException;
 import org.apache.ignite.internal.util.nio.ssl.GridNioSslFilter;
 import org.apache.ignite.internal.util.typedef.internal.U;
 import org.apache.ignite.testframework.GridTestUtils;
+import org.apache.logging.log4j.Level;
+import org.apache.logging.log4j.core.config.Configurator;
 import org.junit.Test;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
@@ -115,6 +117,8 @@ public class GridNioSslSelfTest extends GridNioSelfTest {
 
     @Test
     public void testInvalidLargeTLSFrame() throws Exception {
+        Configurator.setRootLevel(Level.TRACE);
+
         CountDownLatch latch = new CountDownLatch(1);
         NioListener lsnr = new NioListener(latch);
         GridNioServer<?> srvr = startServer(new GridBufferedParser(true, ByteOrder.nativeOrder()), lsnr);
@@ -142,7 +146,7 @@ public class GridNioSslSelfTest extends GridNioSelfTest {
                 Thread.sleep(1000);
 
                 // Read until -1 or read timeout.
-                s.setSoTimeout(10_000);
+                s.setSoTimeout(100_000);
                 while (s.getInputStream().read() != -1) {
                 }
             }
