@@ -117,6 +117,8 @@ public class GridNioSslSelfTest extends GridNioSelfTest {
 
     @Test
     public void testInvalidLargeTLSFrame() throws Exception {
+        // This test does not cause issues in Ignite, because
+        // GridNioSslHandler.messageReceived expands buffer to accommodate big messages.
         Configurator.setRootLevel(Level.TRACE);
 
         CountDownLatch latch = new CountDownLatch(1);
