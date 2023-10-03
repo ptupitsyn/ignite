@@ -126,12 +126,12 @@ public class GridNioSslSelfTest extends GridNioSelfTest {
         bytes[0] = 22; // record type
         bytes[1] = 3;  // major version
         bytes[2] = 3;  // minor version
-        bytes[3] = 78; // record length 2 bytes / 0x4E20 / decimal 20,000
-        bytes[4] = 32; // record length
+        bytes[3] = 0x4e; // record length 2 bytes / 0x4E20 / decimal 20,000
+        bytes[4] = 0x20; // record length
         bytes[5] = 1;  // message type
         bytes[6] = 0;  // message length 3 bytes / 0x004E17 / decimal 19,991
-        bytes[7] = 78;
-        bytes[8] = 23;
+        bytes[7] = 0x4e;
+        bytes[8] = 0x17;
 
         try (Socket s = createSocket()) {
             s.connect(new InetSocketAddress(U.getLocalHost(), srvr.port()), 1000);
