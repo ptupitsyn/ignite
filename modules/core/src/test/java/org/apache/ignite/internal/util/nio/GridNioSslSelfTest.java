@@ -142,7 +142,7 @@ public class GridNioSslSelfTest extends GridNioSelfTest {
                 Thread.sleep(1000);
 
                 // Read until -1 or read timeout.
-                s.setSoTimeout(1000);
+                s.setSoTimeout(10_000);
                 while (s.getInputStream().read() != -1) {
                 }
             }

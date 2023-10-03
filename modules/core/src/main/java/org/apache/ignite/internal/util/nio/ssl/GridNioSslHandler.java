@@ -605,6 +605,7 @@ class GridNioSslHandler extends ReentrantLock {
      */
     private SSLEngineResult unwrap0() throws SSLException {
         SSLEngineResult res;
+        System.out.println(">>> unwrap0 enter");
 
         // TODO:
         // 1. Write down all conditions when this method will loop
@@ -616,6 +617,7 @@ class GridNioSslHandler extends ReentrantLock {
         //
         do {
             res = sslEngine.unwrap(inNetBuf, appBuf);
+            System.out.println("unwrap0 res: " + res);
 
             if (log.isDebugEnabled())
                 log.debug("Unwrapped raw data [status=" + res.getStatus() + ", handshakeStatus=" +
@@ -627,6 +629,7 @@ class GridNioSslHandler extends ReentrantLock {
         while ((res.getStatus() == Status.OK || res.getStatus() == Status.BUFFER_OVERFLOW) &&
             (handshakeFinished || res.getHandshakeStatus() == NEED_UNWRAP));
 
+        System.out.println(">>> unwrap0 return: " + res);
         return res;
     }
 
