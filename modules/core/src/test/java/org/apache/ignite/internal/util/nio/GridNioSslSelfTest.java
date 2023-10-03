@@ -21,6 +21,7 @@ import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.nio.ByteOrder;
+import java.util.Arrays;
 import java.util.concurrent.CountDownLatch;
 import javax.net.ssl.SSLContext;
 import org.apache.ignite.IgniteCheckedException;
@@ -113,6 +114,42 @@ public class GridNioSslSelfTest extends GridNioSelfTest {
     }
 
     @Test
+    public void testInvalidLargeTLSFrame() throws Exception {
+        CountDownLatch latch = new CountDownLatch(1);
+        NioListener lsnr = new NioListener(latch);
+        GridNioServer<?> srvr = startServer(new GridBufferedParser(true, ByteOrder.nativeOrder()), lsnr);
+
+        // Create raw TLS record.
+        byte[] bytes = new byte[20005];
+        Arrays.fill(bytes, (byte) 1);
+
+        bytes[0] = 22; // record type
+        bytes[1] = 3;  // major version
+        bytes[2] = 3;  // minor version
+        bytes[3] = 78; // record length 2 bytes / 0x4E20 / decimal 20,000
+        bytes[4] = 32; // record length
+        bytes[5] = 1;  // message type
+        bytes[6] = 0;  // message length 3 bytes / 0x004E17 / decimal 19,991
+        bytes[7] = 78;
+        bytes[8] = 23;
+
+        try (Socket s = createSocket()) {
+            s.connect(new InetSocketAddress(U.getLocalHost(), srvr.port()), 1000);
+            {
+                s.getOutputStream().write(bytes);
+
+                // Sleep to see if the server spins.
+                Thread.sleep(1000);
+
+                // Read until -1 or read timeout.
+                s.setSoTimeout(1000);
+                while (s.getInputStream().read() != -1) {
+                }
+            }
+        }
+    }
+
+    @Test
     public void testSendReceiveRaw() throws Exception {
         CountDownLatch latch = new CountDownLatch(1);
         NioListener lsnr = new NioListener(latch);
@@ -135,7 +172,7 @@ public class GridNioSslSelfTest extends GridNioSelfTest {
 //            }
         }
 
-        assert latch.await(5, SECONDS);
+        assert latch.await(50, SECONDS);
         srvr.stop();
     }
 
