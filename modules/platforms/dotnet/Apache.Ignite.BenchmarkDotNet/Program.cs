@@ -18,6 +18,7 @@
 namespace Apache.Ignite.BenchmarkDotNet
 {
     using Apache.Ignite.BenchmarkDotNet.DataStreamer;
+    using Apache.Ignite.BenchmarkDotNet.ThinClient;
     using global::BenchmarkDotNet.Running;
 
     /// <summary>
@@ -30,7 +31,7 @@ namespace Apache.Ignite.BenchmarkDotNet
         /// </summary>
         public static void Main()
         {
-            BenchmarkRunner.Run<DataStreamerBenchmark>();
+            BenchmarkRunner.Run<ThinClientCacheGetBenchmark>();
         }
     }
 }

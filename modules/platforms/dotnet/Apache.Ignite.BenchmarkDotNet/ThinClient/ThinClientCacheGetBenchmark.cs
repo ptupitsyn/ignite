@@ -17,6 +17,7 @@
 
 namespace Apache.Ignite.BenchmarkDotNet.ThinClient
 {
+    using Apache.Ignite.Core.Cache;
     using Apache.Ignite.Core.Client.Cache;
     using global::BenchmarkDotNet.Attributes;
 
@@ -32,7 +33,8 @@ namespace Apache.Ignite.BenchmarkDotNet.ThinClient
     {
         /** */
         private ICacheClient<int, int> _cache;
-        
+        private ICache<int, int> _embedCache;
+
         /** <inheritdoc /> */
         public override void GlobalSetup()
         {
@@ -40,13 +42,15 @@ namespace Apache.Ignite.BenchmarkDotNet.ThinClient
 
             _cache = Client.GetOrCreateCache<int, int>("c");
             _cache[1] = 1;
+
+            _embedCache = Ignite.GetCache<int, int>(_cache.Name);
         }
 
         /// <summary>
         /// Get benchmark.
         /// </summary>
         [Benchmark(Baseline = true)]
-        public void Get()
+        public void GetClient()
         {
             _cache.Get(1);
         }
@@ -55,9 +59,9 @@ namespace Apache.Ignite.BenchmarkDotNet.ThinClient
         /// GetAsync benchmark.
         /// </summary>
         [Benchmark]
-        public void GetAsync()
+        public void GetEmbedded()
         {
-            _cache.GetAsync(1).Wait();
+            _embedCache.Get(1);
         }
     }
 }
