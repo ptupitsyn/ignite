@@ -154,7 +154,7 @@ if (!$skipJava) {
     }
 
     # Install Maven Wrapper
-    Exec "$mv --% -N io.takari:maven:wrapper -Dmaven=3.5.2"
+    Exec "$mv --% -N io.takari:maven:wrapper -Dmaven=3.9.11"
     $mv = If ($IsLinux) { "./mvnw" } else { ".\mvnw.cmd" }
 
     # Run Maven
