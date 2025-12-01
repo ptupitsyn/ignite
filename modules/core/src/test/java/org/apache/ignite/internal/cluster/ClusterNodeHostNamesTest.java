@@ -17,6 +17,7 @@
 
 package org.apache.ignite.internal.cluster;
 
+import org.apache.ignite.cluster.ClusterNode;
 import org.apache.ignite.configuration.IgniteConfiguration;
 import org.apache.ignite.testframework.junits.IgniteTestResources;
 import org.apache.ignite.testframework.junits.common.GridCommonAbstractTest;
@@ -38,7 +39,7 @@ public class ClusterNodeHostNamesTest extends GridCommonAbstractTest {
                                                              IgniteTestResources rsrcs) throws Exception {
         IgniteConfiguration cfg = super.getConfiguration(igniteInstanceName, rsrcs);
 
-        cfg.setLocalHost("LoCalHost");
+        cfg.setLocalHost("foo.localhost");
 
         return cfg;
     }
@@ -46,7 +47,8 @@ public class ClusterNodeHostNamesTest extends GridCommonAbstractTest {
 
     @Test
     public void testHostNames() throws Exception {
-        Collection<String> hostNames = grid(0).cluster().localNode().hostNames();
+        ClusterNode localNode = grid(0).cluster().localNode();
+        Collection<String> hostNames = localNode.hostNames();
         assertNotNull(hostNames);
         assertFalse(hostNames.isEmpty());
     }
