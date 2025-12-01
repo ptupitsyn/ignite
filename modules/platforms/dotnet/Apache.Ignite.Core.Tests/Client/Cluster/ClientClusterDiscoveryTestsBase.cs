@@ -136,7 +136,7 @@ namespace Apache.Ignite.Core.Tests.Client.Cluster
         /// <summary>
         /// Asserts client connection count.
         /// </summary>
-        protected static void AssertClientConnectionCount(IIgniteClient client, int count)
+        public static void AssertClientConnectionCount(IIgniteClient client, int count)
         {
             var res = TestUtils.WaitForCondition(() =>
             {
