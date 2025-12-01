@@ -17,7 +17,7 @@
 
 namespace Apache.Ignite.Core.Tests.Client.Cluster
 {
-    using System;
+    using System.Linq;
     using Apache.Ignite.Core.Client;
     using NUnit.Framework;
 
@@ -45,20 +45,20 @@ namespace Apache.Ignite.Core.Tests.Client.Cluster
         {
             return new IgniteClientConfiguration(base.GetClientConfiguration())
             {
-                EnablePartitionAwareness = true
+                EnablePartitionAwareness = true,
             };
         }
 
         /** <inheritdoc /> */
         protected override IgniteConfiguration GetIgniteConfiguration()
         {
-            // IgniteUtils.addresses ignores loopback host names, so we set it via env variable.
-            Environment.SetEnvironmentVariable("IGNITE_LOCAL_HOST", "foo.localhost");
+            var baseCfg = base.GetIgniteConfiguration();
 
-            return new IgniteConfiguration(base.GetIgniteConfiguration())
+            return new IgniteConfiguration(baseCfg)
             {
-                // Localhost = _noLocalhost ? null : "foo.localhost",
-                AutoGenerateIgniteInstanceName = true
+                Localhost = null,
+                AutoGenerateIgniteInstanceName = true,
+                JvmOptions = baseCfg.JvmOptions.Append("-DIGNITE_LOCAL_HOST=foo.localhost").ToArray()
             };
         }
     }
