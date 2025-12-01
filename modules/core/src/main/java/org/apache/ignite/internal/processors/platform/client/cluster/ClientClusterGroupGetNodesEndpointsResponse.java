@@ -135,11 +135,11 @@ public class ClientClusterGroupGetNodesEndpointsResponse extends ClientResponse 
 
         writer.writeInt(addrs.size() + hosts.size());
 
-        for (String addr : addrs)
-            writer.writeString(addr);
-
         for (String host : hosts)
             writer.writeString(host);
+
+        for (String addr : addrs)
+            writer.writeString(addr);
 
         return true;
     }
