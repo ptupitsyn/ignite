@@ -36,6 +36,7 @@ import org.apache.ignite.internal.GridStopWithCollisionSpiTest;
 import org.apache.ignite.internal.IgniteLocalNodeMapBeforeStartTest;
 import org.apache.ignite.internal.IgniteSlowClientDetectionSelfTest;
 import org.apache.ignite.internal.TransactionsMXBeanImplTest;
+import org.apache.ignite.internal.cluster.ClusterNodeHostNamesTest;
 import org.apache.ignite.internal.codegen.MessageProcessorTest;
 import org.apache.ignite.internal.managers.communication.CacheEntryPredicateAdapterMessageTest;
 import org.apache.ignite.internal.managers.communication.CacheWriteSynchroizationModeMessageTest;
@@ -156,6 +157,8 @@ import org.junit.runners.Suite;
     CacheWriteSynchroizationModeMessageTest.class,
     CacheEntryPredicateAdapterMessageTest.class,
     DeploymentModeMessageTest.class,
+
+    ClusterNodeHostNamesTest.class
 })
 public class IgniteBasicTestSuite {
 }
