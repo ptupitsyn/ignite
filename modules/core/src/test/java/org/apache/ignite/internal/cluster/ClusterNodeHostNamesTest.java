@@ -46,10 +46,10 @@ public class ClusterNodeHostNamesTest extends GridCommonAbstractTest {
 
 
     @Test
-    public void testHostNames() throws Exception {
+    public void testHostNames() {
         ClusterNode localNode = grid(0).cluster().localNode();
         Collection<String> hostNames = localNode.hostNames();
-        assertNotNull(hostNames);
-        assertFalse(hostNames.isEmpty());
+        assertEquals("foo.localhost", hostNames.iterator().next());
+        assertEquals(1, hostNames.size());
     }
 }

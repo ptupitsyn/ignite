@@ -1480,7 +1480,7 @@ public abstract class IgniteUtils extends CommonUtils {
 
         if (allHostNames)
             hostNames.add(hostName);
-        else if (!F.isEmpty(hostName) && !addr.isLoopbackAddress())
+        else if (!F.isEmpty(hostName)) // TODO: REVERT
             hostNames.add(hostName);
     }
 
