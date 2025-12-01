@@ -128,7 +128,7 @@ namespace Apache.Ignite.Core.Tests.Client.Cluster
         {
             return new IgniteConfiguration(base.GetIgniteConfiguration())
             {
-                Localhost = _noLocalhost ? null : "127.0.0.1",
+                Localhost = _noLocalhost ? null : "foo.localhost",
                 AutoGenerateIgniteInstanceName = true
             };
         }

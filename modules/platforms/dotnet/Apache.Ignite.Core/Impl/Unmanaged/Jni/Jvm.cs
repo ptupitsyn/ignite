@@ -315,9 +315,6 @@ namespace Apache.Ignite.Core.Impl.Unmanaged.Jni
                     throw new IgniteException("JNI_CreateJavaVM failed: " + res);
                 }
 
-                // TODO: Remove (for debugger attach)
-                Thread.Sleep(5000);
-
                 return jvm;
             }
             finally
