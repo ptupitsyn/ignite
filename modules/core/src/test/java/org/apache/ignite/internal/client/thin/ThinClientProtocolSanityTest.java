@@ -97,6 +97,7 @@ import static org.junit.Assert.fail;
  * <ul>
  * <li>Reachable on {@link #ADDR} and active.</li>
  * <li>Indexing module present - the SQL and index query tests need it.</li>
+ * <li>Data in memory, without persistence - the WAL state test looks for a cache group with WAL off.</li>
  * <li>Server new enough for the {@code DATA_REPLICATION_OPERATIONS}, {@code INDEX_QUERY} and {@code HEARTBEAT}
  * protocol features. An older server gives a {@code ClientFeatureNotSupportedByServerException}.</li>
  * <li>Thin client compute on ({@code ThinClientConfiguration.setMaxActiveComputeTasksPerConnection}), with the tasks
@@ -114,7 +115,8 @@ import static org.junit.Assert.fail;
  * server gives the {@code SERVICE_TOPOLOGY} feature, and a GridGain server does not have this feature.</li>
  * <li>{@link ClientOperation#CACHE_INVOKE}, {@link ClientOperation#CACHE_INVOKE_ALL} - the entry processor class must
  * be on the server classpath.</li>
- * <li>{@link ClientOperation#CLUSTER_GET_WAL_STATE}, {@link ClientOperation#CLUSTER_CHANGE_WAL_STATE} - WAL.</li>
+ * <li>{@link ClientOperation#CLUSTER_CHANGE_WAL_STATE} - it changes the state of the cluster, and WAL goes off only
+ * for a cache with persistence.</li>
  * <li>{@link ClientOperation#ATOMIC_LONG_VALUE_COMPARE_AND_SET_AND_GET} - {@link ClientAtomicLongImpl} never sends it,
  * it only uses {@link ClientOperation#ATOMIC_LONG_VALUE_COMPARE_AND_SET}.</li>
  * <li>{@link ClientOperation#CLUSTER_GET_DC_NODES} - sent only when the server nodes carry a data center id.</li>
@@ -936,6 +938,18 @@ public class ThinClientProtocolSanityTest {
 
         for (ClusterNode node : nodes)
             assertNotNull(node.id());
+    }
+
+    /**
+     * Tested operation: {@link ClientOperation#CLUSTER_GET_WAL_STATE}. The operation only reads, thus it leaves the
+     * cluster as it was found. WAL belongs to persistence: the server gives {@code false} for a cache group without
+     * it, see {@code ClusterCachesInfo.registerNewCacheGroup}.
+     */
+    @Test
+    public void testClusterGetWalState() {
+        client.getOrCreateCache(cacheName());
+
+        assertFalse(client.cluster().isWalEnabled(cacheName()));
     }
 
     /**
