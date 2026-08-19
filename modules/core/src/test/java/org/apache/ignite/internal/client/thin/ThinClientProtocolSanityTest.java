@@ -31,6 +31,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import javax.cache.Cache;
 import org.apache.ignite.IgniteBinary;
@@ -51,6 +52,7 @@ import org.apache.ignite.cache.query.SqlQuery;
 import org.apache.ignite.client.ClientAtomicLong;
 import org.apache.ignite.client.ClientCache;
 import org.apache.ignite.client.ClientCacheConfiguration;
+import org.apache.ignite.client.ClientCompute;
 import org.apache.ignite.client.ClientCollectionConfiguration;
 import org.apache.ignite.client.ClientException;
 import org.apache.ignite.client.ClientIgniteSet;
@@ -63,6 +65,7 @@ import org.apache.ignite.cluster.ClusterState;
 import org.apache.ignite.configuration.ClientConfiguration;
 import org.apache.ignite.internal.processors.cache.version.GridCacheVersion;
 import org.apache.ignite.internal.util.typedef.T3;
+import org.apache.ignite.internal.util.typedef.X;
 import org.apache.ignite.internal.util.typedef.internal.CU;
 import org.junit.*;
 import org.junit.rules.TestName;
@@ -88,15 +91,15 @@ import static org.junit.Assert.fail;
  * <li>Indexing module present - the SQL and index query tests need it.</li>
  * <li>Server new enough for the {@code DATA_REPLICATION_OPERATIONS}, {@code INDEX_QUERY} and {@code HEARTBEAT}
  * protocol features. An older server gives a {@code ClientFeatureNotSupportedByServerException}.</li>
+ * <li>Thin client compute on ({@code ThinClientConfiguration.setMaxActiveComputeTasksPerConnection}), with the tasks
+ * {@link #ECHO_TASK_CLS}, {@link #SLEEP_TASK_CLS} and {@link #FAIL_TASK_CLS} on the server classpath, and deployed
+ * under their task names. The GridGain {@code IgniteClientCompatNodeRunnerTest} does all of this.</li>
  * </ul>
  * Every cache, atomic long and set that the test makes has a name that starts with {@link #PREFIX}, and is removed
  * again when the class completes.
  * <p>
  * These operations are <b>not</b> covered:
  * <ul>
- * <li>{@link ClientOperation#COMPUTE_TASK_EXECUTE}, {@link ClientOperation#COMPUTE_TASK_FINISHED} - the task class
- * must be deployed on the server, and thin client compute is off by default
- * ({@code ThinClientConfiguration.DFLT_MAX_ACTIVE_COMPUTE_TASKS_PER_CONNECTION} is 0).</li>
  * <li>{@link ClientOperation#SERVICE_INVOKE}, {@link ClientOperation#SERVICE_GET_DESCRIPTOR},
  * {@link ClientOperation#SERVICE_GET_TOPOLOGY} - they need a deployed service.</li>
  * <li>{@link ClientOperation#CACHE_INVOKE}, {@link ClientOperation#CACHE_INVOKE_ALL} - the entry processor class must
@@ -140,6 +143,30 @@ public class ThinClientProtocolSanityTest {
 
     /** Number of rows that the query tests insert. Bigger than any page size they use, so paging is forced. */
     private static final int QRY_ROWS = 10;
+
+    /** Class name of the task that gives its argument back. The compute tests execute it. */
+    private static final String ECHO_TASK_CLS = "org.apache.ignite.client.CompatEchoTask";
+
+    /** Task name of {@link #ECHO_TASK_CLS}, from its {@code ComputeTaskName} annotation. */
+    private static final String ECHO_TASK_NAME = "CompatEchoTask";
+
+    /** Class name of the task that stays busy. The cancel and the timeout test execute it. */
+    private static final String SLEEP_TASK_CLS = "org.apache.ignite.client.CompatSleepTask";
+
+    /** Class name of the task that always fails. */
+    private static final String FAIL_TASK_CLS = "org.apache.ignite.client.CompatFailTask";
+
+    /** Message that {@link #FAIL_TASK_CLS} puts into its error. */
+    private static final String FAIL_TASK_ERR_MSG = "Compat compute task failure.";
+
+    /** Argument of {@link #SLEEP_TASK_CLS}, in milliseconds. It is longer than any wait of the compute tests. */
+    private static final long SLEEP_TASK_DURATION = 30_000L;
+
+    /** Time that a compute test waits for a task result, in seconds. */
+    private static final long RESULT_WAIT = 10L;
+
+    /** Timeout that the timeout test puts on the task, in milliseconds. */
+    private static final long TASK_TIMEOUT = 500L;
 
     /** Client that the tests share. Tests that need their own configuration open a short-lived one instead. */
     private static IgniteClient client;
@@ -907,6 +934,123 @@ public class ThinClientProtocolSanityTest {
 
         for (ClientServiceDescriptor desc : descs)
             assertNotNull(desc.name());
+    }
+
+    /**
+     * Tested operations: {@link ClientOperation#COMPUTE_TASK_EXECUTE} and
+     * {@link ClientOperation#COMPUTE_TASK_FINISHED}. The task is named by its class, thus the server finds the class on
+     * its classpath and no deployment is necessary.
+     */
+    @Test
+    public void testComputeTaskExecute() throws Exception {
+        String res = client.compute().execute(ECHO_TASK_CLS, "ping");
+
+        assertEquals("ping", res);
+    }
+
+    /**
+     * Tested operation: {@link ClientOperation#COMPUTE_TASK_EXECUTE}, with the task name in the place of the class
+     * name. The server resolves the name only because the cluster runner deployed the task.
+     */
+    @Test
+    public void testComputeTaskExecuteByName() throws Exception {
+        String res = client.compute().execute(ECHO_TASK_NAME, "ping");
+
+        assertEquals("ping", res);
+    }
+
+    /**
+     * Tested operations: {@link ClientOperation#COMPUTE_TASK_EXECUTE} and
+     * {@link ClientOperation#COMPUTE_TASK_FINISHED}, through the asynchronous API. The result comes in the
+     * notification, thus the future gives it only after the server sends the notification.
+     */
+    @Test
+    public void testComputeTaskExecuteAsync() throws Exception {
+        Future<String> fut = client.compute().executeAsync(ECHO_TASK_CLS, "ping");
+
+        assertEquals("ping", fut.get(RESULT_WAIT, TimeUnit.SECONDS));
+    }
+
+    /**
+     * Tested operation: {@link ClientOperation#COMPUTE_TASK_EXECUTE}, for a cluster group. The request then holds the
+     * node IDs of the group in the place of an empty list.
+     */
+    @Test
+    public void testComputeTaskExecuteOnClusterGroup() throws Exception {
+        ClientCompute compute = client.compute(client.cluster().forServers());
+
+        assertEquals("ping", compute.execute(ECHO_TASK_CLS, "ping"));
+    }
+
+    /**
+     * Tested operation: {@link ClientOperation#COMPUTE_TASK_EXECUTE}, with the no-failover flag. The flag travels in
+     * the flag byte of the request.
+     */
+    @Test
+    public void testComputeTaskExecuteWithNoFailover() throws Exception {
+        String res = client.compute().withNoFailover().execute(ECHO_TASK_CLS, "ping");
+
+        assertEquals("ping", res);
+    }
+
+    /**
+     * Tested operation: {@link ClientOperation#COMPUTE_TASK_EXECUTE}, with the no-result-cache flag. The server then
+     * keeps no job results, thus {@code reduce} of the task gets an empty list and the task gives {@code null} back.
+     * A result other than {@code null} shows that the flag did not reach the server.
+     */
+    @Test
+    public void testComputeTaskExecuteWithNoResultCache() throws Exception {
+        String res = client.compute().withNoResultCache().execute(ECHO_TASK_CLS, "ping");
+
+        assertNull(res);
+    }
+
+    /**
+     * Tested operation: {@link ClientOperation#RESOURCE_CLOSE}, for a compute task. {@code ClientComputeImpl} sends it
+     * only from {@code cancel(true)}. {@code cancel(false)} completes the future on the client side alone. The call
+     * after the cancel shows that the channel is still good.
+     */
+    @Test
+    public void testComputeTaskCancel() throws Exception {
+        Future<String> fut = client.compute().executeAsync(SLEEP_TASK_CLS, SLEEP_TASK_DURATION);
+
+        assertTrue("Task was not cancelled.", fut.cancel(true));
+        assertTrue(fut.isCancelled());
+
+        assertNotNull(client.cacheNames());
+    }
+
+    /**
+     * Tested operation: {@link ClientOperation#COMPUTE_TASK_EXECUTE}, with the timeout field. The task is longer than
+     * the timeout, thus the server stops the task and sends an error.
+     */
+    @Test
+    public void testComputeTaskWithTimeout() throws Exception {
+        try {
+            client.compute().withTimeout(TASK_TIMEOUT).execute(SLEEP_TASK_CLS, SLEEP_TASK_DURATION);
+
+            fail("Task was expected to time out.");
+        }
+        catch (ClientException ignored) {
+            // Expected: the server stopped the task.
+        }
+    }
+
+    /**
+     * Tested operations: {@link ClientOperation#COMPUTE_TASK_EXECUTE} and
+     * {@link ClientOperation#COMPUTE_TASK_FINISHED}, with a task that fails. The error text of the server travels in
+     * the notification, thus the failure path of the compute protocol is also tested.
+     */
+    @Test
+    public void testComputeTaskFailure() throws Exception {
+        try {
+            client.compute().execute(FAIL_TASK_CLS, null);
+
+            fail("Task was expected to fail.");
+        }
+        catch (ClientException e) {
+            assertTrue("Unexpected error: " + e, X.getFullStackTrace(e).contains(FAIL_TASK_ERR_MSG));
+        }
     }
 
     /**
