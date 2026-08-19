@@ -69,13 +69,20 @@ import org.apache.ignite.internal.util.typedef.T3;
 import org.apache.ignite.internal.util.typedef.X;
 import org.apache.ignite.services.ServiceCallContext;
 import org.apache.ignite.internal.util.typedef.internal.CU;
-import org.junit.*;
+import org.junit.AfterClass;
+import org.junit.Assume;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Ignore;
+import org.junit.Rule;
+import org.junit.Test;
 import org.junit.rules.TestName;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -1014,14 +1021,9 @@ public class ThinClientProtocolSanityTest {
     public void testServiceInvokeFailure() {
         CompatService svc = client.services().serviceProxy(SVC_NAME, CompatService.class);
 
-        try {
-            svc.fail();
+        ClientException e = assertThrows(ClientException.class, svc::fail);
 
-            fail("Service method was expected to fail.");
-        }
-        catch (ClientException e) {
-            assertTrue("Unexpected error: " + e, X.getFullStackTrace(e).contains(SVC_ERR_MSG));
-        }
+        assertTrue("Unexpected error: " + e, X.getFullStackTrace(e).contains(SVC_ERR_MSG));
     }
 
     /**
@@ -1035,14 +1037,10 @@ public class ThinClientProtocolSanityTest {
 
         CompatService svc = client.services().serviceProxy(SVC_NAME, CompatService.class, callCtx, 0L);
 
-        try {
-            svc.echo("ping");
+        ClientFeatureNotSupportedByServerException e = assertThrows(ClientFeatureNotSupportedByServerException.class,
+            () -> svc.echo("ping"));
 
-            fail("Caller context was expected to be rejected.");
-        }
-        catch (ClientFeatureNotSupportedByServerException e) {
-            assertTrue("Unexpected error: " + e, e.getMessage().contains("SERVICE_INVOKE_CALLCTX"));
-        }
+        assertTrue("Unexpected error: " + e, e.getMessage().contains("SERVICE_INVOKE_CALLCTX"));
     }
 
     /**
@@ -1158,15 +1156,10 @@ public class ThinClientProtocolSanityTest {
      * the timeout, thus the server stops the task and sends an error.
      */
     @Test
-    public void testComputeTaskWithTimeout() throws Exception {
-        try {
-            client.compute().withTimeout(TASK_TIMEOUT).execute(SLEEP_TASK_CLS, SLEEP_TASK_DURATION);
-
-            fail("Task was expected to time out.");
-        }
-        catch (ClientException ignored) {
-            // Expected: the server stopped the task.
-        }
+    public void testComputeTaskWithTimeout() {
+        // The server stops the task, thus the client gets an error.
+        assertThrows(ClientException.class,
+            () -> client.compute().withTimeout(TASK_TIMEOUT).execute(SLEEP_TASK_CLS, SLEEP_TASK_DURATION));
     }
 
     /**
@@ -1175,15 +1168,10 @@ public class ThinClientProtocolSanityTest {
      * the notification, thus the failure path of the compute protocol is also tested.
      */
     @Test
-    public void testComputeTaskFailure() throws Exception {
-        try {
-            client.compute().execute(FAIL_TASK_CLS, null);
+    public void testComputeTaskFailure() {
+        ClientException e = assertThrows(ClientException.class, () -> client.compute().execute(FAIL_TASK_CLS, null));
 
-            fail("Task was expected to fail.");
-        }
-        catch (ClientException e) {
-            assertTrue("Unexpected error: " + e, X.getFullStackTrace(e).contains(FAIL_TASK_ERR_MSG));
-        }
+        assertTrue("Unexpected error: " + e, X.getFullStackTrace(e).contains(FAIL_TASK_ERR_MSG));
     }
 
     /**
@@ -1549,14 +1537,9 @@ public class ThinClientProtocolSanityTest {
     @Test
     @Ignore("Unexpected message: Ignite failed to process request [12]: Invalid request op code: 10000 (server status code [2])")
     public void testStopWarmUp() {
-        try {
-            ((TcpIgniteClient)client).stopWarmUp();
+        ClientException e = assertThrows(ClientException.class, () -> ((TcpIgniteClient)client).stopWarmUp());
 
-            fail("Warm-up stop was expected to be rejected by a running node.");
-        }
-        catch (ClientException e) {
-            assertTrue("Unexpected message: " + e.getMessage(), e.getMessage().contains("Node has already started"));
-        }
+        assertTrue("Unexpected message: " + e.getMessage(), e.getMessage().contains("Node has already started"));
     }
 
     /**
