@@ -56,6 +56,7 @@ import org.apache.ignite.client.ClientCompute;
 import org.apache.ignite.client.ClientCollectionConfiguration;
 import org.apache.ignite.client.ClientException;
 import org.apache.ignite.client.ClientIgniteSet;
+import org.apache.ignite.client.ClientFeatureNotSupportedByServerException;
 import org.apache.ignite.client.ClientServiceDescriptor;
 import org.apache.ignite.client.ClientTransaction;
 import org.apache.ignite.client.IgniteClient;
@@ -66,6 +67,7 @@ import org.apache.ignite.configuration.ClientConfiguration;
 import org.apache.ignite.internal.processors.cache.version.GridCacheVersion;
 import org.apache.ignite.internal.util.typedef.T3;
 import org.apache.ignite.internal.util.typedef.X;
+import org.apache.ignite.services.ServiceCallContext;
 import org.apache.ignite.internal.util.typedef.internal.CU;
 import org.junit.*;
 import org.junit.rules.TestName;
@@ -94,14 +96,16 @@ import static org.junit.Assert.fail;
  * <li>Thin client compute on ({@code ThinClientConfiguration.setMaxActiveComputeTasksPerConnection}), with the tasks
  * {@link #ECHO_TASK_CLS}, {@link #SLEEP_TASK_CLS} and {@link #FAIL_TASK_CLS} on the server classpath, and deployed
  * under their task names. The GridGain {@code IgniteClientCompatNodeRunnerTest} does all of this.</li>
+ * <li>A service with the methods of {@link CompatService}, deployed under the name {@link #SVC_NAME}. The same runner
+ * deploys it.</li>
  * </ul>
  * Every cache, atomic long and set that the test makes has a name that starts with {@link #PREFIX}, and is removed
  * again when the class completes.
  * <p>
  * These operations are <b>not</b> covered:
  * <ul>
- * <li>{@link ClientOperation#SERVICE_INVOKE}, {@link ClientOperation#SERVICE_GET_DESCRIPTOR},
- * {@link ClientOperation#SERVICE_GET_TOPOLOGY} - they need a deployed service.</li>
+ * <li>{@link ClientOperation#SERVICE_GET_TOPOLOGY} - {@code ClientServicesImpl.serviceTopology} sends it only if the
+ * server gives the {@code SERVICE_TOPOLOGY} feature, and a GridGain server does not have this feature.</li>
  * <li>{@link ClientOperation#CACHE_INVOKE}, {@link ClientOperation#CACHE_INVOKE_ALL} - the entry processor class must
  * be on the server classpath.</li>
  * <li>{@link ClientOperation#CLUSTER_GET_WAL_STATE}, {@link ClientOperation#CLUSTER_CHANGE_WAL_STATE} - WAL.</li>
@@ -167,6 +171,12 @@ public class ThinClientProtocolSanityTest {
 
     /** Timeout that the timeout test puts on the task, in milliseconds. */
     private static final long TASK_TIMEOUT = 500L;
+
+    /** Name of the service that the service tests call. */
+    private static final String SVC_NAME = "CompatService";
+
+    /** Message that {@link CompatService#fail()} puts into its error. */
+    private static final String SVC_ERR_MSG = "Compat service failure.";
 
     /** Client that the tests share. Tests that need their own configuration open a short-lived one instead. */
     private static IgniteClient client;
@@ -923,8 +933,7 @@ public class ThinClientProtocolSanityTest {
     }
 
     /**
-     * Tested operation: {@link ClientOperation#SERVICE_GET_DESCRIPTORS}. The call round trips on any cluster and gives
-     * back whatever happens to be deployed, which may be nothing.
+     * Tested operation: {@link ClientOperation#SERVICE_GET_DESCRIPTORS}.
      */
     @Test
     public void testServiceGetDescriptors() {
@@ -932,8 +941,132 @@ public class ThinClientProtocolSanityTest {
 
         assertNotNull(descs);
 
-        for (ClientServiceDescriptor desc : descs)
-            assertNotNull(desc.name());
+        for (ClientServiceDescriptor desc : descs) {
+            if (SVC_NAME.equals(desc.name()))
+                return;
+        }
+
+        fail("Service " + SVC_NAME + " is not in the descriptors.");
+    }
+
+    /**
+     * Tested operation: {@link ClientOperation#SERVICE_GET_DESCRIPTOR}.
+     */
+    @Test
+    public void testServiceGetDescriptor() {
+        ClientServiceDescriptor desc = client.services().serviceDescriptor(SVC_NAME);
+
+        assertEquals(SVC_NAME, desc.name());
+        assertNotNull(desc.serviceClass());
+        assertEquals(1, desc.totalCount());
+        assertNotNull(desc.originNodeId());
+    }
+
+    /**
+     * Tested operation: {@link ClientOperation#SERVICE_INVOKE}. The proxy sends the name of the method and the types
+     * of the parameters, thus the server needs no class of this test.
+     */
+    @Test
+    public void testServiceInvoke() {
+        CompatService svc = client.services().serviceProxy(SVC_NAME, CompatService.class);
+
+        assertEquals("ping", svc.echo("ping"));
+        assertEquals(5, svc.add(2, 3));
+    }
+
+    /**
+     * Tested operation: {@link ClientOperation#SERVICE_INVOKE}, for a method that gives {@code null} back.
+     */
+    @Test
+    public void testServiceInvokeNullResult() {
+        CompatService svc = client.services().serviceProxy(SVC_NAME, CompatService.class);
+
+        assertNull(svc.echo(null));
+    }
+
+    /**
+     * Tested operation: {@link ClientOperation#SERVICE_INVOKE}, with a timeout. The timeout travels in the request,
+     * and the method is much faster than it.
+     */
+    @Test
+    public void testServiceInvokeWithTimeout() {
+        CompatService svc = client.services().serviceProxy(SVC_NAME, CompatService.class, 10_000L);
+
+        assertEquals("ping", svc.echo("ping"));
+    }
+
+    /**
+     * Tested operation: {@link ClientOperation#SERVICE_INVOKE}, for a cluster group. The request then holds the node
+     * IDs of the group in the place of an empty list.
+     */
+    @Test
+    public void testServiceInvokeOnClusterGroup() {
+        CompatService svc = client.services(client.cluster().forServers()).serviceProxy(SVC_NAME, CompatService.class);
+
+        assertEquals("ping", svc.echo("ping"));
+    }
+
+    /**
+     * Tested operation: {@link ClientOperation#SERVICE_INVOKE}, for a method that fails. The error text of the server
+     * comes back in the answer.
+     */
+    @Test
+    public void testServiceInvokeFailure() {
+        CompatService svc = client.services().serviceProxy(SVC_NAME, CompatService.class);
+
+        try {
+            svc.fail();
+
+            fail("Service method was expected to fail.");
+        }
+        catch (ClientException e) {
+            assertTrue("Unexpected error: " + e, X.getFullStackTrace(e).contains(SVC_ERR_MSG));
+        }
+    }
+
+    /**
+     * A caller context needs the {@code SERVICE_INVOKE_CALLCTX} feature. Apache Ignite gives ID 10 to this feature and
+     * GridGain gives ID 34, thus a GridGain server does not give the feature to an Apache Ignite client and the client
+     * stops the call before it sends a request.
+     */
+    @Test
+    public void testServiceInvokeWithCallerContext() {
+        ServiceCallContext callCtx = ServiceCallContext.builder().put("key", "value").build();
+
+        CompatService svc = client.services().serviceProxy(SVC_NAME, CompatService.class, callCtx, 0L);
+
+        try {
+            svc.echo("ping");
+
+            fail("Caller context was expected to be rejected.");
+        }
+        catch (ClientFeatureNotSupportedByServerException e) {
+            assertTrue("Unexpected error: " + e, e.getMessage().contains("SERVICE_INVOKE_CALLCTX"));
+        }
+    }
+
+    /**
+     * Methods of the service that the cluster runner deploys. The request holds only the name of the method, thus this
+     * interface needs no counterpart of the same name on the server.
+     */
+    public interface CompatService {
+        /**
+         * @param val Value.
+         * @return The given value.
+         */
+        public String echo(String val);
+
+        /**
+         * @param a First value.
+         * @param b Second value.
+         * @return Sum of the two values.
+         */
+        public int add(int a, int b);
+
+        /**
+         * Always throws an error.
+         */
+        public void fail();
     }
 
     /**
