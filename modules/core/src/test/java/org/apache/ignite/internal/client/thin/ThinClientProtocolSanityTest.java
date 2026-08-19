@@ -64,12 +64,7 @@ import org.apache.ignite.configuration.ClientConfiguration;
 import org.apache.ignite.internal.processors.cache.version.GridCacheVersion;
 import org.apache.ignite.internal.util.typedef.T3;
 import org.apache.ignite.internal.util.typedef.internal.CU;
-import org.junit.AfterClass;
-import org.junit.Assume;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.*;
 import org.junit.rules.TestName;
 
 import static org.junit.Assert.assertEquals;
@@ -655,6 +650,7 @@ public class ThinClientProtocolSanityTest {
      * version type is part of the server itself.
      */
     @Test
+    @Ignore("ClientFeatureNotSupportedByServerException: Feature DATA_REPLICATION_OPERATIONS is not supported by the server")
     public void testCachePutAllConflict() {
         TcpClientCache<Integer, Integer> cache = (TcpClientCache<Integer, Integer>)client.<Integer, Integer>getOrCreateCache(cacheName());
 
@@ -671,6 +667,7 @@ public class ThinClientProtocolSanityTest {
      * Tested operation: {@link ClientOperation#CACHE_REMOVE_ALL_CONFLICT}.
      */
     @Test
+    @Ignore("ClientFeatureNotSupportedByServerException: Feature DATA_REPLICATION_OPERATIONS is not supported by the server")
     public void testCacheRemoveAllConflict() {
         TcpClientCache<Integer, Integer> cache = (TcpClientCache<Integer, Integer>)client.<Integer, Integer>getOrCreateCache(cacheName());
 
