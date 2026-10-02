@@ -21,6 +21,7 @@ namespace Apache.Ignite.Core.Tests.Client
     using System.Collections.Generic;
     using System.Diagnostics.CodeAnalysis;
     using System.Linq;
+    using System.Security.Authentication;
     using System.Threading;
     using System.Threading.Tasks;
     using Apache.Ignite.Core.Binary;
@@ -44,8 +45,11 @@ namespace Apache.Ignite.Core.Tests.Client
     /// Protocol sanity test for the .NET thin client against an external cluster, for example a GridGain server.
     /// The test examines most of the protocol operations.
     /// <para />
-    /// The test does not start a cluster. The cluster must be available at <see cref="Address"/> before the test
-    /// starts. The cluster must have these items (IgniteClientCompatNodeRunnerTest in GridGain deploys them):
+    /// The test does not start a cluster. The cluster must be available at <see cref="DefaultAddress"/> (or at the
+    /// address in <see cref="AddressVar"/>) before the test starts. <see cref="SslCertVar"/> and <see cref="UserVar"/>
+    /// turn on SSL and authentication.
+    /// <para />
+    /// The cluster must have these items (IgniteClientCompatNodeRunnerTest in GridGain deploys them):
     /// <list type="bullet">
     /// <item><description>Compute tasks CompatEchoTask, CompatSleepTask, CompatFailTask.</description></item>
     /// <item><description>Service CompatService (CompatServiceImpl).</description></item>
@@ -58,8 +62,23 @@ namespace Apache.Ignite.Core.Tests.Client
         /** Environment variable that permits this class to run. */
         public const string RunFlag = "IGNITE_DOTNET_CLIENT_PROTOCOL_SANITY_TEST_RUN";
 
-        /** Address of the cluster under test. */
-        private const string Address = "127.0.0.1:10800";
+        /** Environment variable with the address of the cluster under test. The default is 127.0.0.1:10800. */
+        public const string AddressVar = "IGNITE_DOTNET_CLIENT_PROTOCOL_SANITY_TEST_ADDRESS";
+
+        /** Environment variable with the path of the client certificate (.pfx). When it is set, SSL is on. */
+        public const string SslCertVar = "IGNITE_DOTNET_CLIENT_PROTOCOL_SANITY_TEST_SSL_CERT";
+
+        /** Environment variable with the password of the client certificate. */
+        public const string SslCertPasswordVar = "IGNITE_DOTNET_CLIENT_PROTOCOL_SANITY_TEST_SSL_CERT_PASSWORD";
+
+        /** Environment variable with the user name. When it is set, the client uses authentication. */
+        public const string UserVar = "IGNITE_DOTNET_CLIENT_PROTOCOL_SANITY_TEST_USER";
+
+        /** Environment variable with the password of the user. */
+        public const string PasswordVar = "IGNITE_DOTNET_CLIENT_PROTOCOL_SANITY_TEST_PASSWORD";
+
+        /** Default address of the cluster under test. */
+        private const string DefaultAddress = "127.0.0.1:10800";
 
         /** Prefix of all caches, atomic longs and sets. */
         private const string Prefix = "thinProtoSanityNet_";
@@ -118,10 +137,10 @@ namespace Apache.Ignite.Core.Tests.Client
         [OneTimeSetUp]
         public void FixtureSetUp()
         {
-            if (!string.Equals(Environment.GetEnvironmentVariable(RunFlag), "true", StringComparison.OrdinalIgnoreCase))
-            {
-                Assert.Ignore("The " + RunFlag + " environment variable is not true, the test is skipped.");
-            }
+            // if (!string.Equals(Environment.GetEnvironmentVariable(RunFlag), "true", StringComparison.OrdinalIgnoreCase))
+            // {
+            //     Assert.Ignore("The " + RunFlag + " environment variable is not true, the test is skipped.");
+            // }
 
             _client = Ignition.StartClient(GetClientConfiguration());
         }
@@ -835,14 +854,7 @@ namespace Apache.Ignite.Core.Tests.Client
         [Test]
         public void TestQueryLinq()
         {
-            var cfg = new CacheClientConfiguration(CacheName(), new QueryEntity(typeof(int), typeof(SqlPerson)));
-
-            var cache = _client.GetOrCreateCache<int, SqlPerson>(cfg);
-
-            for (var i = 0; i < QueryRows; i++)
-            {
-                cache.Put(i, new SqlPerson { Id = i, Name = "Person " + i });
-            }
+            var cache = GetSqlPersonCache(CacheName(), "Person ");
 
             var qry = cache.AsCacheQueryable();
 
@@ -852,6 +864,43 @@ namespace Apache.Ignite.Core.Tests.Client
 
             var ids = qry.Where(p => p.Value.Id > 5).OrderBy(p => p.Value.Id).Select(p => p.Value.Id).ToArray();
             Assert.AreEqual(new[] { 6, 7, 8, 9 }, ids);
+        }
+
+        /// <summary>
+        /// Tested operation: <c>QuerySqlFields</c>, through a LINQ join, LINQ DML and a compiled LINQ query.
+        /// </summary>
+        [Test]
+        public void TestQueryLinqJoinDmlCompiled()
+        {
+            var cache1 = GetSqlPersonCache(CacheName() + "_1", "Person ");
+            var cache2 = GetSqlPersonCache(CacheName() + "_2", "Other ");
+
+            // Join: the cluster has one node, thus a join that is not distributed gives all rows.
+            var names = cache1.AsCacheQueryable()
+                .Join(cache2.AsCacheQueryable(), p1 => p1.Value.Id, p2 => p2.Value.Id, (p1, p2) => p2.Value.Name)
+                .ToArray();
+
+            CollectionAssert.AreEquivalent(Enumerable.Range(0, QueryRows).Select(i => "Other " + i), names);
+
+            // Compiled query.
+            var persons = cache1.AsCacheQueryable();
+            var compiled = CompiledQuery.Compile((int id) => persons.Where(p => p.Value.Id == id));
+
+            Assert.AreEqual("Person 3", compiled(3).Single().Value.Name);
+
+            // DML.
+            var updated = cache1.AsCacheQueryable()
+                .Where(p => p.Value.Id < 3)
+                .UpdateAll(d => d.Set(p => p.Name, "Updated"));
+
+            Assert.AreEqual(3, updated);
+            Assert.AreEqual("Updated", cache1.Get(1).Name);
+            Assert.AreEqual("Person 3", cache1.Get(3).Name);
+
+            var removed = cache1.AsCacheQueryable().Where(p => p.Value.Id >= 5).RemoveAll();
+
+            Assert.AreEqual(QueryRows - 5, removed);
+            Assert.AreEqual(5, cache1.GetSize());
         }
 
         /// <summary>
@@ -904,6 +953,90 @@ namespace Apache.Ignite.Core.Tests.Client
         }
 
         /// <summary>
+        /// Tested operation: <c>QueryContinuousEventNotification</c>, for EXPIRED events.
+        /// </summary>
+        [Test]
+        public void TestQueryContinuousExpiredEvents()
+        {
+            var cache = _client.GetOrCreateCache<int, int>(
+                new CacheClientConfiguration(CacheName()) { EagerTtl = true });
+            cache.RemoveAll();
+
+            var expired = new List<ICacheEntryEvent<int, int>>();
+
+            var qry = new ContinuousQueryClient<int, int>(new Listener<int, int>(e =>
+            {
+                if (e.EventType != CacheEntryEventType.Expired)
+                {
+                    return;
+                }
+
+                lock (expired)
+                {
+                    expired.Add(e);
+                }
+            }))
+            {
+                IncludeExpired = true
+            };
+
+            using (cache.QueryContinuous(qry))
+            {
+                var ttl = TimeSpan.FromMilliseconds(200);
+
+                cache.WithExpiryPolicy(new Core.Cache.Expiry.ExpiryPolicy(ttl, ttl, ttl)).Put(1, 1);
+
+                TestUtils.WaitForTrueCondition(() =>
+                {
+                    lock (expired)
+                    {
+                        return expired.Count > 0;
+                    }
+                }, 10_000, "The EXPIRED event did not come.");
+            }
+
+            lock (expired)
+            {
+                Assert.AreEqual(1, expired.Single().Key);
+            }
+        }
+
+        /// <summary>
+        /// Tested operations: <c>BinaryTypePut</c> and <c>BinaryTypeGet</c>, for a type that gets a new field. The
+        /// server must merge the two schemas. The objects of the old schema and the new schema must stay readable.
+        /// </summary>
+        [Test]
+        public void TestBinarySchemaChange()
+        {
+            var typeName = Prefix + "SchemaType";
+
+            var binary = _client.GetBinary();
+            var cache = _client.GetOrCreateCache<int, object>(CacheName()).WithKeepBinary<int, IBinaryObject>();
+
+            cache.Put(1, binary.GetBuilder(typeName).SetField("A", 1).Build());
+            cache.Put(2, binary.GetBuilder(typeName).SetField("A", 2).SetField("B", "b").Build());
+
+            using var client = Ignition.StartClient(GetClientConfiguration());
+
+            var cache2 = client.GetCache<int, object>(CacheName()).WithKeepBinary<int, IBinaryObject>();
+
+            var obj1 = cache2.Get(1);
+            Assert.AreEqual(1, obj1.GetField<int>("A"));
+            Assert.IsFalse(obj1.HasField("B"));
+
+            var obj2 = cache2.Get(2);
+            Assert.AreEqual(2, obj2.GetField<int>("A"));
+            Assert.AreEqual("b", obj2.GetField<string>("B"));
+
+            CollectionAssert.AreEquivalent(new[] { "A", "B" }, client.GetBinary().GetBinaryType(typeName).Fields);
+
+            // The second client adds the new field to an object of the old schema.
+            cache2.Put(3, obj1.ToBuilder().SetField("B", "c").Build());
+
+            Assert.AreEqual("c", cache.Get(3).GetField<string>("B"));
+        }
+
+        /// <summary>
         /// Tested operations: <c>BinaryTypePut</c> and <c>BinaryTypeNamePut</c>. A new client has no binary metadata,
         /// thus a put of a user object sends both operations.
         /// </summary>
@@ -934,7 +1067,7 @@ namespace Apache.Ignite.Core.Tests.Client
             var type = client.GetBinary().GetBinaryType(typeof(Person));
 
             Assert.IsNotNull(type);
-            Assert.AreEqual(typeof(Person).FullName, type.TypeName);
+            AssertTypeName(typeof(Person), type.TypeName);
             CollectionAssert.AreEquivalent(new[] { "Id", "Name" }, type.Fields);
             Assert.AreEqual(BinaryTypeNames.TypeNameInt, type.GetFieldTypeName("Id"));
             Assert.AreEqual(BinaryTypeNames.TypeNameString, type.GetFieldTypeName("Name"));
@@ -974,7 +1107,7 @@ namespace Apache.Ignite.Core.Tests.Client
             // Read the same object as binary: the field values must be the same.
             var bin = client.GetCache<int, AllTypes>(CacheName()).WithKeepBinary<int, IBinaryObject>().Get(1);
 
-            Assert.AreEqual(typeof(AllTypes).FullName, bin.GetBinaryType().TypeName);
+            AssertTypeName(typeof(AllTypes), bin.GetBinaryType().TypeName);
             Assert.AreEqual(obj.Int, bin.GetField<int>(nameof(AllTypes.Int)));
             Assert.AreEqual(obj.String, bin.GetField<string>(nameof(AllTypes.String)));
             Assert.AreEqual(obj.Guid, bin.GetField<Guid>(nameof(AllTypes.Guid)));
@@ -1231,6 +1364,35 @@ namespace Apache.Ignite.Core.Tests.Client
             var ex = Assert.Throws<IgniteClientException>(() => svc.fail());
 
             StringAssert.Contains(ServiceErrorMessage, ex.ToString());
+        }
+
+        /// <summary>
+        /// Tested operation: <c>ServiceGetTopology</c>. With partition awareness, the client gets the nodes of the
+        /// service in the background, if the server has the service topology feature.
+        /// </summary>
+        [Test]
+        public void TestServiceInvokeWithServiceAwareness()
+        {
+            var logger = new CollectingLogger();
+
+            var cfg = GetClientConfiguration();
+            cfg.EnablePartitionAwareness = true;
+            cfg.Logger = logger;
+
+            using var client = Ignition.StartClient(cfg);
+
+            var svc = client.GetServices().GetServiceProxy<ICompatService>(ServiceName);
+
+            Assert.AreEqual("ping", svc.echo("ping"));
+
+            // The client logs the result of the topology update: a debug message, or an error.
+            TestUtils.WaitForTrueCondition(
+                () => logger.Contains("Topology of service") || logger.Contains("Failed to update topology"),
+                10_000,
+                "The client did not update the service topology.");
+
+            Assert.IsFalse(logger.Contains("Failed to update topology"), logger.ToString());
+            Assert.AreEqual("ping", svc.echo("ping"));
         }
 
         /// <summary>
@@ -1835,11 +1997,42 @@ namespace Apache.Ignite.Core.Tests.Client
         /// <summary>
         /// Gets the configuration for the cluster under test.
         /// </summary>
-        private static IgniteClientConfiguration GetClientConfiguration() =>
-            new IgniteClientConfiguration(Address)
+        private static IgniteClientConfiguration GetClientConfiguration()
+        {
+            var cfg = new IgniteClientConfiguration(Environment.GetEnvironmentVariable(AddressVar) ?? DefaultAddress)
             {
-                Logger = new ConsoleLogger { MinLevel = LogLevel.Warn }
+                Logger = new ConsoleLogger { MinLevel = LogLevel.Warn },
+                UserName = Environment.GetEnvironmentVariable(UserVar),
+                Password = Environment.GetEnvironmentVariable(PasswordVar)
             };
+
+            var cert = Environment.GetEnvironmentVariable(SslCertVar);
+
+            if (cert != null)
+            {
+                cfg.SslStreamFactory = new SslStreamFactory
+                {
+                    CertificatePath = cert,
+                    CertificatePassword = Environment.GetEnvironmentVariable(SslCertPasswordVar),
+                    SkipServerCertificateValidation = true,
+                    SslProtocols = SslProtocols.Tls12
+                };
+            }
+
+            return cfg;
+        }
+
+        /// <summary>
+        /// Checks the binary type name. The server can use the full name mapper or the simple name mapper.
+        /// </summary>
+        private static void AssertTypeName(Type type, string typeName)
+        {
+            var fullName = type.FullName ?? type.Name;
+
+            Assert.IsTrue(
+                typeName == fullName || fullName.EndsWith("." + typeName) || fullName.EndsWith("+" + typeName),
+                $"Unexpected type name [type={fullName}, typeName={typeName}]");
+        }
 
         /// <summary>
         /// Gets the cache name of the current test.
@@ -1880,6 +2073,25 @@ namespace Apache.Ignite.Core.Tests.Client
 
             cache.RemoveAll();
             cache.PutAll(Enumerable.Range(0, count).ToDictionary(x => x, x => x));
+
+            return cache;
+        }
+
+        /// <summary>
+        /// Makes a cache with SQL for <see cref="SqlPerson"/> and puts <see cref="QueryRows"/> persons into it.
+        /// </summary>
+        private ICacheClient<int, SqlPerson> GetSqlPersonCache(string cacheName, string namePrefix)
+        {
+            var cfg = new CacheClientConfiguration(cacheName, new QueryEntity(typeof(int), typeof(SqlPerson)));
+
+            var cache = _client.GetOrCreateCache<int, SqlPerson>(cfg);
+
+            cache.RemoveAll();
+
+            for (var i = 0; i < QueryRows; i++)
+            {
+                cache.Put(i, new SqlPerson { Id = i, Name = namePrefix + i });
+            }
 
             return cache;
         }
@@ -1958,6 +2170,50 @@ namespace Apache.Ignite.Core.Tests.Client
                 foreach (var evt in events)
                 {
                     _action(evt);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Logger that keeps all messages.
+        /// </summary>
+        private sealed class CollectingLogger : ILogger
+        {
+            /** */
+            private readonly List<string> _entries = new List<string>();
+
+            /** <inheritdoc /> */
+            public void Log(LogLevel level, string message, object[] args, IFormatProvider formatProvider,
+                string category, string nativeErrorInfo, Exception ex)
+            {
+                var text = args == null ? message : string.Format(formatProvider, message, args);
+
+                lock (_entries)
+                {
+                    _entries.Add($"[{level}] {text} {ex}");
+                }
+            }
+
+            /** <inheritdoc /> */
+            public bool IsEnabled(LogLevel level) => true;
+
+            /// <summary>
+            /// Checks whether a message contains the given text.
+            /// </summary>
+            public bool Contains(string text)
+            {
+                lock (_entries)
+                {
+                    return _entries.Any(e => e.Contains(text));
+                }
+            }
+
+            /** <inheritdoc /> */
+            public override string ToString()
+            {
+                lock (_entries)
+                {
+                    return string.Join(Environment.NewLine, _entries);
                 }
             }
         }
